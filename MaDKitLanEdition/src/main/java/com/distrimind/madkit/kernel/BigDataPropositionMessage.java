@@ -271,7 +271,11 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 								outputStream.write(buffer, 0, s);
 								remaining -= s;
 							}
-						} catch (Exception e) {
+						} catch(MessageSerializationException e)
+						{
+							dataCorrupted(length - remaining, e);
+						}
+						catch (Exception e) {
 							sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_PARTIALLY_TRANSFERED,
 									length - remaining);
 							throw e;
@@ -288,7 +292,10 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 			if (data != null) {
 				try {
 					outputStream.write(data);
-				} catch (IOException e) {
+				} catch(MessageSerializationException e)
+				{
+					dataCorrupted(0, e);
+				}catch (IOException e) {
 					sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_PARTIALLY_TRANSFERED, 0);
 				}
 				sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_TRANSFERED, length);
@@ -341,8 +348,13 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_PARTIALLY_TRANSFERED, dataTransfered);
 	}
 
-	void dataCorrupted(long dataTransfered) {
+	void dataCorrupted(long dataTransfered, MessageSerializationException e) {
 		sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_CORRUPTED, dataTransfered);
+		final AbstractAgent receiver = getReceiver().getAgent();
+		KernelAddress senderKernelAddress=getSender().getKernelAddress();
+		if (!senderKernelAddress.equals(receiver.getKernelAddress())) {
+			receiver.anomalyDetectedWithOneDistantKernel(e.getIntegrity().equals(Integrity.FAIL_AND_CANDIDATE_TO_BAN), senderKernelAddress, e.getMessage());
+		}
 	}
 
 	void transferCompleted(long dataTransfered) {
