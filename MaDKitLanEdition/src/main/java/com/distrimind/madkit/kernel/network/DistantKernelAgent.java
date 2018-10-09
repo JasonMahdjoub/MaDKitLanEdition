@@ -2246,7 +2246,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 
 		protected Reading(MessageDigestType messageDigestType, PacketPart _first_part, RandomOutputStream os)
-				throws PacketException {
+				throws PacketException, IOException {
 			if (os == null)
 				throw new NullPointerException("os");
 			this.messageDigestType = messageDigestType;
@@ -2268,7 +2268,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			return read_packet.isFinished();
 		}
 
-		public void readNewPart(PacketPart _part) throws PacketException {
+		public void readNewPart(PacketPart _part) throws PacketException, IOException {
 			if (read_packet == null)
 				read_packet = new ReadPacket(_part, output_stream,
 						messageDigestType);
@@ -2297,7 +2297,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		private long dataSize;
 		private final AgentAddress initialSocketAgent;
 
-		public SerializedReading(AgentAddress initialSocketAgent, PacketPart _part) throws PacketException {
+		public SerializedReading(AgentAddress initialSocketAgent, PacketPart _part) throws PacketException, IOException {
 			super(null, _part, new RandomByteArrayOutputStream());
 			this.initialSocketAgent = initialSocketAgent;
 			dataSize = _part.getSubBlock().getSize();
@@ -2309,7 +2309,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 
 		@Override
-		public void readNewPart(PacketPart _part) throws PacketException {
+		public void readNewPart(PacketPart _part) throws PacketException, IOException {
 			dataSize += _part.getSubBlock().getSize();
 			incrementTotalDataQueue(_part.getSubBlock().getSize());
 			super.readNewPart(_part);
@@ -2348,7 +2348,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 
 		@Override
-		public void readNewPart(PacketPart _part) throws PacketException {
+		public void readNewPart(PacketPart _part) throws PacketException, IOException {
 			data += _part.getSubBlock().getSize();
 			incrementTotalDataQueue(_part.getSubBlock().getSize());
 			if (read_packet == null)
@@ -2412,10 +2412,12 @@ class DistantKernelAgent extends AgentFakeThread {
 								sr.getReadPacket().getWritedDataLength());
 						current_big_data_readings.remove(reading.getIdentifier());
 					}
-				} catch (PacketException | IOException e) {
+				}
+				catch (PacketException | IOException e) {
+					boolean candidateToBan=(e instanceof MessageSerializationException) && ((MessageSerializationException) e).getIntegrity().equals(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 					MadkitKernelAccess.dataCorrupted(sr.getOriginalMessage(), sr.getReadPacket().getWritedDataLength());
 					current_big_data_readings.remove(reading.getIdentifier());
-					processInvalidPacketPart(agent_socket_sender, e, p, false);
+					processInvalidPacketPart(agent_socket_sender, e, p, candidateToBan);
 					try {
 						sr.closeStream();
 					} catch (Exception ignored) {
@@ -2480,8 +2482,9 @@ class DistantKernelAgent extends AgentFakeThread {
 							current_short_readings.put(p.getHead().getID(), sr);
 
 						}
-					} catch (PacketException e) {
-						processInvalidPacketPart(agent_socket_sender, e, p, false);
+					} catch (PacketException | IOException e) {
+						boolean candidateToBan=(e instanceof MessageSerializationException) && ((MessageSerializationException) e).getIntegrity().equals(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+						processInvalidPacketPart(agent_socket_sender, e, p, candidateToBan);
 					}
 				} else {
 					sr = ((SerializedReading) reading);
@@ -2502,8 +2505,9 @@ class DistantKernelAgent extends AgentFakeThread {
 
 								}
 							}
-						} catch (PacketException e) {
-							processInvalidPacketPart(agent_socket_sender, e, p, false);
+						} catch (PacketException | IOException e) {
+							boolean candidateToBan=(e instanceof MessageSerializationException) && ((MessageSerializationException) e).getIntegrity().equals(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+							processInvalidPacketPart(agent_socket_sender, e, p, candidateToBan);
 							sr.freeDataSize();
 						}
 					}

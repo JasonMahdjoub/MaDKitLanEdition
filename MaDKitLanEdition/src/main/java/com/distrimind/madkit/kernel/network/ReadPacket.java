@@ -77,7 +77,7 @@ final class ReadPacket {
 	private final RandomOutputStream output_stream;
 
 	public ReadPacket(PacketPart _first_part,
-					  RandomOutputStream _output_stream, MessageDigestType messageDigestType) throws PacketException {
+					  RandomOutputStream _output_stream, MessageDigestType messageDigestType) throws PacketException, IOException {
 		if (_first_part == null)
 			throw new NullPointerException("_first_part");
 		if (_output_stream == null)
@@ -124,7 +124,7 @@ final class ReadPacket {
 		readNewPart(_first_part);
 	}
 
-	public final void readNewPart(PacketPart _part) throws PacketException {
+	public final void readNewPart(PacketPart _part) throws PacketException, IOException {
 		if (isFinished())
 			return;
 		if (_part == null)
@@ -231,7 +231,11 @@ final class ReadPacket {
 			if (!isTemporaryInvalid())
 				processInvalid();
 			throw e;
-		} catch (Exception e) {
+		} catch (IOException e) {
+			processInvalid();
+			throw e;
+		}
+		catch (Exception e) {
 			processInvalid();
 			throw new PacketException(e);
 		}

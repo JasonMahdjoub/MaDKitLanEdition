@@ -315,7 +315,7 @@ public class ReadWritePacketTests extends JunitMadkit {
 	}
 
 	@Test
-	public void testReadWritePacket() throws PacketException, NoSuchAlgorithmException, NIOException, NoSuchProviderException {
+	public void testReadWritePacket() throws PacketException, NoSuchAlgorithmException, NIOException, NoSuchProviderException, IOException {
 		NetworkProperties np=new NetworkProperties();
 		np.addConnectionProtocol(new UnsecuredConnectionProtocolProperties());
 		ConnectionProtocol<?> conProto=np.getConnectionProtocolInstance(new InetSocketAddress(InetAddress.getLoopbackAddress(), 1000), new InetSocketAddress(InetAddress.getLoopbackAddress(), 1001), null, new MadkitProperties(), true, false);
@@ -325,7 +325,7 @@ public class ReadWritePacketTests extends JunitMadkit {
 	}
 
 	public void testReadWritePacket(ConnectionProtocol<?> conProto, MessageDigestType messageDigestType)
-			throws PacketException, NoSuchAlgorithmException, NIOException, NoSuchProviderException {
+			throws PacketException, NoSuchAlgorithmException, NIOException, NoSuchProviderException, IOException {
 		for (int i = 0; i < 100; i++) {
 			byte val = (byte) rand.nextInt(1 << WritePacket.getMaximumLocalRandomValuesBitsNumber());
 			Assert.assertEquals(val,
@@ -400,7 +400,7 @@ public class ReadWritePacketTests extends JunitMadkit {
 
 	private void testReadWritePacket(ConnectionProtocol<?> conProto, int _type, int _max_buffer_size, short random_values_size, long _start_position,
 			long length, boolean _transfert_as_big_data, MessageDigestType messageDigestType)
-			throws PacketException, NoSuchAlgorithmException, NIOException, NoSuchProviderException {
+			throws PacketException, NoSuchAlgorithmException, NIOException, NoSuchProviderException, IOException {
 		WritePacket output = new WritePacket(_type, idPacket, _max_buffer_size, random_values_size, rand,
 				new RandomByteArrayInputStream(data), _start_position, length, _transfert_as_big_data,
 				messageDigestType);

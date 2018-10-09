@@ -854,7 +854,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 	}
 
 	public static byte[] getMessage(byte[] originalMessage, ArrayList<byte[]> receivedBytes, ConnectionProtocol<?> cp,
-			NetworkProperties np, int idPacket, int transferType, TransferedBlockChecker tbc) throws PacketException, NIOException, BlockParserException {
+			NetworkProperties np, int idPacket, int transferType, TransferedBlockChecker tbc) throws PacketException, NIOException, BlockParserException, IOException {
 		Block b = new Block(receivedBytes.get(0));
 		Assert.assertEquals(transferType, b.getTransferID());
 		Assert.assertTrue(b.isValid());
