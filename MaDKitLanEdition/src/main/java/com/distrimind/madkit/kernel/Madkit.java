@@ -152,6 +152,7 @@ final public class Madkit {
 			Description d = new Description((short)1, (short)7, (short)7, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Detect security anomalies during big data transfers.");
             d.addItem("Correction of Group.equals() with null references.");
+            d.addItem("Better manage ban with deserialization process.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
