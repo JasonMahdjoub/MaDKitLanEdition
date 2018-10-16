@@ -50,12 +50,22 @@ import java.io.IOException;
  * @since MadkitLanEdition 1.7
  */
 public class VersionsFileGenerator {
+	@SuppressWarnings("ResultOfMethodCallIgnored")
 	public static void main(String args[]) throws IOException
 	{
 		String markdown=Madkit.getVersion().getMarkdownCode();
 		try(FileWriter fr = new FileWriter(new File("../versions.md")))
 		{
 			fr.write(markdown);
+			fr.flush();
+		}
+		String lastVersion=Madkit.getVersion().getFileHeadVersion();
+		File f=new File("../lastVersion.md");
+		if (f.exists())
+			f.delete();
+		try(FileWriter fr=new FileWriter(f))
+		{
+			fr.write(lastVersion);
 			fr.flush();
 		}
 	}
