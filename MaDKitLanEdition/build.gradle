@@ -136,7 +136,7 @@ allprojects {
 
 idea {
     project {
-        MaDKitLanEdition.jdkName = javaVersion
+        jdkName = javaVersion
         languageLevel = javaVersion
     }
 }
