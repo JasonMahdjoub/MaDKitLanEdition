@@ -352,7 +352,7 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_CORRUPTED, dataTransfered);
 		final AbstractAgent receiver = getReceiver().getAgent();
 		KernelAddress senderKernelAddress=getSender().getKernelAddress();
-		if (!senderKernelAddress.equals(receiver.getKernelAddress())) {
+		if (e!=null && !senderKernelAddress.equals(receiver.getKernelAddress())) {
 			receiver.anomalyDetectedWithOneDistantKernel(e.getIntegrity().equals(Integrity.FAIL_AND_CANDIDATE_TO_BAN), senderKernelAddress, e.getMessage());
 		}
 	}
