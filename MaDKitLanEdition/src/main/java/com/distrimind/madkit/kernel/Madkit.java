@@ -153,6 +153,8 @@ final public class Madkit {
 			d.addItem("Detect security anomalies during big data transfers.");
             d.addItem("Correction of Group.equals() with null references.");
             d.addItem("Better manage ban with deserialization process.");
+			d.addItem("Update Utils to 3.21.0.");
+			d.addItem("Update OOD to 2.0.0 Beta 88.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
