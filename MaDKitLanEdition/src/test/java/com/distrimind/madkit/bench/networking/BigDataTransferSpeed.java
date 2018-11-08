@@ -46,6 +46,7 @@ import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
+import com.distrimind.util.crypto.SymmetricAuthentifiedSignatureType;
 import com.distrimind.util.crypto.SymmetricEncryptionType;
 import org.junit.Test;
 import org.junit.Assert;
@@ -93,6 +94,7 @@ public class BigDataTransferSpeed extends JunitMadkit {
 				try {
 					P2PSecuredConnectionProtocolWithKeyAgreementProperties p2pprotocol=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
 					p2pprotocol.symmetricEncryptionType=SymmetricEncryptionType.AES_CTR;
+                    p2pprotocol.symmetricSignatureType= SymmetricAuthentifiedSignatureType.HMAC_SHA2_256;
 					new NetworkEventListener(true, false, false, null,
 							new ConnectionsProtocolsMKEventListener(p2pprotocol),
 							new AccessProtocolPropertiesMKEventListener(app),
@@ -102,13 +104,14 @@ public class BigDataTransferSpeed extends JunitMadkit {
 					e.printStackTrace();
 				}
 				_properties.networkProperties.networkLogLevel = Level.INFO;
-				_properties.networkProperties.maxBufferSize=Short.MAX_VALUE*2;
+				_properties.networkProperties.maxBufferSize=Short.MAX_VALUE*4;
 			}
 		};
 
 		P2PSecuredConnectionProtocolWithKeyAgreementProperties u = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
 		u.isServer = false;
         u.symmetricEncryptionType=SymmetricEncryptionType.AES_CTR;
+		u.symmetricSignatureType= SymmetricAuthentifiedSignatureType.HMAC_SHA2_256;
 
 		AbstractAccessProtocolProperties app = new AccessProtocolWithP2PAgreementProperties();
 		
@@ -118,7 +121,7 @@ public class BigDataTransferSpeed extends JunitMadkit {
 				Collections.singletonList((AbstractIP) new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"),
 						(Inet6Address) InetAddress.getByName("::1"))),
 				InetAddress.getByName("0.0.0.0"));
-		this.eventListener2.maxBufferSize=Short.MAX_VALUE*2;
+		this.eventListener2.maxBufferSize=Short.MAX_VALUE*4;
 	}
 	@Test
 	public void bigDataTransfer() {
