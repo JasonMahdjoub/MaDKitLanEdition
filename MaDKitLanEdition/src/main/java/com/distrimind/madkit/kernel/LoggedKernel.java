@@ -686,8 +686,8 @@ final class LoggedKernel extends MadkitKernel {
 	}
 
 	@Override
-	List<Group> getAccessibleGroupsGivenByDistantPeer(AbstractAgent requester, KernelAddress kernelAddress) {
-		List<Group> rc = kernel.getAccessibleGroupsGivenByDistantPeer(requester, kernelAddress);
+	Set<Group> getAccessibleGroupsGivenByDistantPeer(AbstractAgent requester, KernelAddress kernelAddress) {
+		Set<Group> rc = kernel.getAccessibleGroupsGivenByDistantPeer(requester, kernelAddress);
 
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST, "getAccessibleGroupsGivenByDistantPeer (Requester=" + requester
@@ -697,8 +697,8 @@ final class LoggedKernel extends MadkitKernel {
 	}
 
 	@Override
-	List<Group> getAccessibleGroupsGivenToDistantPeer(AbstractAgent requester, KernelAddress kernelAddress) {
-		List<Group> rc = kernel.getAccessibleGroupsGivenToDistantPeer(requester, kernelAddress);
+	Set<Group> getAccessibleGroupsGivenToDistantPeer(AbstractAgent requester, KernelAddress kernelAddress) {
+		Set<Group> rc = kernel.getAccessibleGroupsGivenToDistantPeer(requester, kernelAddress);
 
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST, "getAccessibleGroupsGivenToDistantPeer (Requester=" + requester
@@ -708,8 +708,30 @@ final class LoggedKernel extends MadkitKernel {
 	}
 
 	@Override
-	List<PairOfIdentifiers> getEffectiveDistantLogins(AbstractAgent requester, KernelAddress kernelAddress) {
-		List<PairOfIdentifiers> rc = kernel.getEffectiveDistantLogins(requester, kernelAddress);
+	Set<KernelAddress> getAccessibleKernelsPerGroupGivenByDistantPeer(AbstractAgent requester, Group group) {
+		Set<KernelAddress> rc = kernel.getAccessibleKernelsPerGroupGivenByDistantPeer(requester, group);
+
+		if (requester.isFinestLogOn())
+			requester.logger.log(Level.FINEST, "getAccessibleKernelsPerGroupGivenByDistantPeer (Requester=" + requester
+					+ ", group=" + group + ", result=" + rc + ")");
+
+		return rc;
+	}
+
+	@Override
+	Set<KernelAddress> getAccessibleKernelsPerGroupGivenToDistantPeer(AbstractAgent requester, Group group) {
+		Set<KernelAddress> rc = kernel.getAccessibleKernelsPerGroupGivenToDistantPeer(requester, group);
+
+		if (requester.isFinestLogOn())
+			requester.logger.log(Level.FINEST, "getAccessibleKernelsPerGroupGivenToDistantPeer (Requester=" + requester
+					+ ", group=" + group + ", result=" + rc + ")");
+
+		return rc;
+	}
+
+	@Override
+	Set<PairOfIdentifiers> getEffectiveDistantLogins(AbstractAgent requester, KernelAddress kernelAddress) {
+		Set<PairOfIdentifiers> rc = kernel.getEffectiveDistantLogins(requester, kernelAddress);
 
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST, "getEffectiveDistantLogins (Requester=" + requester

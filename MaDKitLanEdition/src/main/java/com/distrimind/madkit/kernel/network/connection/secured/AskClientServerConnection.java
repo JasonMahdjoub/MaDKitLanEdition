@@ -46,7 +46,6 @@ import gnu.vm.jgnu.security.spec.InvalidKeySpecException;
 import gnu.vm.jgnu.security.spec.InvalidParameterSpecException;
 import gnu.vm.jgnux.crypto.IllegalBlockSizeException;
 import gnu.vm.jgnux.crypto.NoSuchPaddingException;
-import gnu.vm.jgnux.crypto.ShortBufferException;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -106,7 +105,7 @@ class AskClientServerConnection extends AskConnection {
 	AskClientServerConnection(AbstractSecureRandom random, ASymmetricKeyWrapperType keyWrapper, SymmetricSecretKey encryptionSecretKey,SymmetricSecretKey signatureSecretKey,			
 			ASymmetricPublicKey distantPublicKeyForEncryption) throws InvalidKeyException, InvalidAlgorithmParameterException,
 			IllegalBlockSizeException, IOException, IllegalStateException,
-			NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException, NoSuchPaddingException, SignatureException, ShortBufferException {
+			NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException, NoSuchPaddingException, SignatureException {
 		super(false);
 		if (keyWrapper == null)
 			throw new NullPointerException("symmetricAlgo");
@@ -157,7 +156,7 @@ class AskClientServerConnection extends AskConnection {
 				SymmetricAuthentifiedSignatureCheckerAlgorithm checker=new SymmetricAuthentifiedSignatureCheckerAlgorithm(signatureSecretKey);
 				return checker.verify(this.secretKeyForEncryption, this.signatureOfSecretKeyForEncryption);
 			} catch (InvalidKeyException | SignatureException | NoSuchAlgorithmException | InvalidKeySpecException
-					| ShortBufferException | IllegalStateException | NoSuchProviderException
+					| IllegalStateException | NoSuchProviderException
 					| InvalidAlgorithmParameterException | InvalidParameterSpecException | IOException e) {
 				return false;
 			}

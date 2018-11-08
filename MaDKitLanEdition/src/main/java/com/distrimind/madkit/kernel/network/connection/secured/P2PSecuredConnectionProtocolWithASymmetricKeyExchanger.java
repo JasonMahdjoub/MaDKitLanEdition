@@ -117,7 +117,8 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 	private ASymmetricAuthentifiedSignatureCheckerAlgorithm signatureChecker=null;
 	private final PacketCounterForEncryptionAndSignature packetCounter;
 	private boolean reinitSymmetricAlgorithm=true;
-	
+
+	@SuppressWarnings("deprecation")
 	private P2PSecuredConnectionProtocolWithASymmetricKeyExchanger(InetSocketAddress _distant_inet_address,
 			InetSocketAddress _local_interface_address, ConnectionProtocol<?> _subProtocol,
 			DatabaseWrapper sql_connection, MadkitProperties mkProperties, NetworkProperties _properties, int subProtocolLevel, boolean isServer,

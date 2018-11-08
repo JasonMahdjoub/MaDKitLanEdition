@@ -382,17 +382,27 @@ class FakeKernel extends MadkitKernel {
 	}
 
 	@Override
-	List<Group> getAccessibleGroupsGivenByDistantPeer(AbstractAgent requester, KernelAddress kernelAddress) {
+	Set<Group> getAccessibleGroupsGivenByDistantPeer(AbstractAgent requester, KernelAddress kernelAddress) {
 		throw buildKernelException(requester);
 	}
 
 	@Override
-	List<Group> getAccessibleGroupsGivenToDistantPeer(AbstractAgent requester, KernelAddress kernelAddress) {
+	Set<KernelAddress> getAccessibleKernelsPerGroupGivenByDistantPeer(AbstractAgent requester, Group group) {
 		throw buildKernelException(requester);
 	}
 
 	@Override
-	List<PairOfIdentifiers> getEffectiveDistantLogins(AbstractAgent requester, KernelAddress kernelAddress) {
+	Set<KernelAddress> getAccessibleKernelsPerGroupGivenToDistantPeer(AbstractAgent requester, Group group) {
+		throw buildKernelException(requester);
+	}
+
+	@Override
+	Set<Group> getAccessibleGroupsGivenToDistantPeer(AbstractAgent requester, KernelAddress kernelAddress) {
+		throw buildKernelException(requester);
+	}
+
+	@Override
+	Set<PairOfIdentifiers> getEffectiveDistantLogins(AbstractAgent requester, KernelAddress kernelAddress) {
 		throw buildKernelException(requester);
 	}
 

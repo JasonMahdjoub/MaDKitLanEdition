@@ -294,7 +294,7 @@ class MadkitKernel extends Agent {
 	private AgentAddress netUpdater, netEmmiter, kernelRole, netSecurity;
 	final private Set<Agent> threadedAgents;
 
-	private final Map<AgentActionEvent, Set<AbstractAgent>> hooks = (Map<AgentActionEvent, Set<AbstractAgent>>) Collections
+	private final Map<AgentActionEvent, Set<AbstractAgent>> hooks = Collections
 			.synchronizedMap(new EnumMap<AgentActionEvent, Set<AbstractAgent>>(AgentActionEvent.class));
 
 	private AtomicBoolean auto_create_group = new AtomicBoolean(true);
@@ -302,12 +302,16 @@ class MadkitKernel extends Agent {
 
 	private final Set<Connection> availableConnections = Collections.synchronizedSet(new HashSet<Connection>());
 	private final Set<KernelAddress> distantKernelAddresses = Collections.synchronizedSet(new HashSet<KernelAddress>());
-	private final Map<KernelAddress, List<Group>> distantAccessibleGroupsGivenByDistantPeer = Collections
-			.synchronizedMap(new HashMap<KernelAddress, List<Group>>());
-	private final Map<KernelAddress, List<Group>> distantAccessibleGroupsGivenToDistantPeer = Collections
-			.synchronizedMap(new HashMap<KernelAddress, List<Group>>());
-	private final Map<KernelAddress, List<PairOfIdentifiers>> acceptedDistantLogins = Collections
-			.synchronizedMap(new HashMap<KernelAddress, List<PairOfIdentifiers>>());
+	private final Map<KernelAddress, Set<Group>> distantAccessibleGroupsGivenByDistantPeer = Collections
+			.synchronizedMap(new HashMap<KernelAddress, Set<Group>>());
+	private final Map<Group, Set<KernelAddress>> distantAccessibleKernelsPerGroupsGivenByDistantPeer= Collections
+			.synchronizedMap(new HashMap<Group, Set<KernelAddress>>());
+	private final Map<KernelAddress, Set<Group>> distantAccessibleGroupsGivenToDistantPeer = Collections
+			.synchronizedMap(new HashMap<KernelAddress, Set<Group>>());
+	private final Map<Group, Set<KernelAddress>> distantAccessibleKernelsPerGroupsGivenToDistantPeer= Collections
+			.synchronizedMap(new HashMap<Group, Set<KernelAddress>>());
+	private final Map<KernelAddress, Set<PairOfIdentifiers>> acceptedDistantLogins = Collections
+			.synchronizedMap(new HashMap<KernelAddress, Set<PairOfIdentifiers>>());
 	// private AtomicInteger proceed = new AtomicInteger(0);
 
 	private final IDGeneratorInt generator_id_transfert;
@@ -1058,6 +1062,58 @@ class MadkitKernel extends Agent {
 		}
 	}
 
+	private static void updateKernelMapPerGroups(Map<KernelAddress, Set<Group>> groupsPerKernelAddress, Map<Group, Set<KernelAddress>> kernelAddressesPerGroups, KernelAddress ka, List<Group> l)
+    {
+
+        Set<Group> ol;
+        groupsPerKernelAddress.put(ka, ol=Collections.synchronizedSet(new HashSet<>(l)));
+        List<Group> added=new ArrayList<>(l.size());
+        List<Group> removed=new ArrayList<>(ol.size());
+        for (Group g : l) {
+
+            if (!ol.contains(g))
+                added.add(g);
+        }
+        for (Group g : ol) {
+
+            if (!l.contains(g))
+                removed.add(g);
+        }
+        for (Group g : removed)
+        {
+            Set<KernelAddress> lka=kernelAddressesPerGroups.get(g);
+            if (lka!=null)
+            {
+                lka.remove(ka);
+                if (lka.isEmpty())
+                    kernelAddressesPerGroups.remove(g);
+            }
+        }
+        for (Group g : added)
+        {
+            Set<KernelAddress> lka;
+            if ((lka=kernelAddressesPerGroups.get(g))==null) {
+                lka = Collections.synchronizedSet(new HashSet<KernelAddress>());
+                kernelAddressesPerGroups.put(g, lka);
+            }
+            lka.add(ka);
+        }
+
+    }
+
+    private static void removeDistantKernelAddress(Map<KernelAddress, Set<Group>> groupsPerKernelAddress, Map<Group, Set<KernelAddress>> kernelAddressesPerGroups, KernelAddress ka)
+    {
+        Set<Group> l=groupsPerKernelAddress.remove(ka);
+        for (Group g : l) {
+            Set<KernelAddress> lka=kernelAddressesPerGroups.get(g);
+            if (lka!=null) {
+                lka.remove(ka);
+                if (lka.isEmpty())
+                    kernelAddressesPerGroups.remove(g);
+            }
+        }
+    }
+
 	void informHooks(HookMessage hook_message) {
 		if (hook_message != null) {
 			if (hook_message.getClass() == NetworkEventMessage.class) {
@@ -1080,22 +1136,23 @@ class MadkitKernel extends Agent {
 					if (!distantKernelAddresses.remove(m.getDistantKernelAddress()) && logger != null)
 						logger.warning(
 								"Removing but impossible to find distant kernel : " + m.getDistantKernelAddress());
-					distantAccessibleGroupsGivenByDistantPeer.remove(m.getDistantKernelAddress());
-					distantAccessibleGroupsGivenToDistantPeer.remove(m.getDistantKernelAddress());
+
+                    removeDistantKernelAddress(distantAccessibleGroupsGivenByDistantPeer, distantAccessibleKernelsPerGroupsGivenByDistantPeer, m.getDistantKernelAddress());
+                    removeDistantKernelAddress(distantAccessibleGroupsGivenToDistantPeer, distantAccessibleKernelsPerGroupsGivenToDistantPeer, m.getDistantKernelAddress());
 					acceptedDistantLogins.remove(m.getDistantKernelAddress());
 				}
 			} else if (hook_message.getClass() == NetworkGroupsAccessEvent.class) {
 				NetworkGroupsAccessEvent n = (NetworkGroupsAccessEvent) hook_message;
 				if (hook_message.getContent() == AgentActionEvent.ACCESSIBLE_LAN_GROUPS_GIVEN_BY_DISTANT_PEER) {
-					distantAccessibleGroupsGivenByDistantPeer.put(n.getConcernedKernelAddress(),
-							n.getRequestedAccessibleGroups());
+				    updateKernelMapPerGroups(distantAccessibleGroupsGivenByDistantPeer, distantAccessibleKernelsPerGroupsGivenByDistantPeer, n.getConcernedKernelAddress(), n.getRequestedAccessibleGroups());
+
 				} else if (hook_message.getContent() == AgentActionEvent.ACCESSIBLE_LAN_GROUPS_GIVEN_TO_DISTANT_PEER) {
-					distantAccessibleGroupsGivenToDistantPeer.put(n.getConcernedKernelAddress(),
-							n.getRequestedAccessibleGroups());
+                    updateKernelMapPerGroups(distantAccessibleGroupsGivenToDistantPeer, distantAccessibleKernelsPerGroupsGivenToDistantPeer, n.getConcernedKernelAddress(), n.getRequestedAccessibleGroups());
+
 				}
 			} else if (hook_message.getClass() == NetworkLoginAccessEvent.class) {
 				NetworkLoginAccessEvent n = (NetworkLoginAccessEvent) hook_message;
-				acceptedDistantLogins.put(n.getConcernedKernelAddress(), n.getCurrentIdentifiers());
+				acceptedDistantLogins.put(n.getConcernedKernelAddress(), new HashSet<>(n.getCurrentIdentifiers()));
 			}
 			if (hooks.size() > 0) {
 				final Set<AbstractAgent> l = hooks.get(hook_message.getContent());
@@ -1118,19 +1175,32 @@ class MadkitKernel extends Agent {
 		return Collections.unmodifiableSet(distantKernelAddresses);
 	}
 
-	List<Group> getAccessibleGroupsGivenByDistantPeer(AbstractAgent requester, KernelAddress kernelAddress) {
+	Set<Group> getAccessibleGroupsGivenByDistantPeer(AbstractAgent requester, KernelAddress kernelAddress) {
 		if (kernelAddress == null)
 			throw new NullPointerException("kernelAddress");
 		return distantAccessibleGroupsGivenByDistantPeer.get(kernelAddress);
 	}
 
-	List<Group> getAccessibleGroupsGivenToDistantPeer(AbstractAgent requester, KernelAddress kernelAddress) {
+	Set<Group> getAccessibleGroupsGivenToDistantPeer(AbstractAgent requester, KernelAddress kernelAddress) {
 		if (kernelAddress == null)
 			throw new NullPointerException("kernelAddress");
 		return distantAccessibleGroupsGivenToDistantPeer.get(kernelAddress);
 	}
+	@SuppressWarnings("unused")
+	Set<KernelAddress> getAccessibleKernelsPerGroupGivenByDistantPeer(AbstractAgent requester, Group group) {
+		if (kernelAddress == null)
+			throw new NullPointerException("kernelAddress");
+		return distantAccessibleKernelsPerGroupsGivenByDistantPeer.get(group);
+	}
 
-	List<PairOfIdentifiers> getEffectiveDistantLogins(AbstractAgent requester, KernelAddress kernelAddress) {
+	@SuppressWarnings("unused")
+	Set<KernelAddress> getAccessibleKernelsPerGroupGivenToDistantPeer(AbstractAgent requester, Group group) {
+		if (kernelAddress == null)
+			throw new NullPointerException("kernelAddress");
+		return distantAccessibleKernelsPerGroupsGivenToDistantPeer.get(group);
+	}
+
+	Set<PairOfIdentifiers> getEffectiveDistantLogins(AbstractAgent requester, KernelAddress kernelAddress) {
 		if (kernelAddress == null)
 			throw new NullPointerException("kernelAddress");
 		return acceptedDistantLogins.get(kernelAddress);
@@ -1560,13 +1630,14 @@ class MadkitKernel extends Agent {
 			try {
 				m.setSender(role);
 				m.getConversationID().setOrigin(kernelAddress);
-				Message bllm = MadkitNetworkAccess.getBroadcastLocalLanMessage(m, _destination_groups,
+                LocalLanMessage bllm = MadkitNetworkAccess.getBroadcastLocalLanMessage(m, _destination_groups,
 						_destination_role, _agentAddressesSender);
                 assert bllm != null;
-                Objects.requireNonNull(bllm).setSender(netEmmiter);
-				bllm.setReceiver(netAgent);
+                ((Message)Objects.requireNonNull(bllm)).setSender(netEmmiter);
+                ((Message)bllm).setReceiver(netAgent);
 				netAgent.getAgent().receiveMessage(bllm);
-				return ((LocalLanMessage) bllm).getMessageLocker().waitUnlock(_agentAddressesSender.get(0).getAgent(),
+
+                return bllm.getMessageLocker().waitUnlock(_agentAddressesSender.get(0).getAgent(),
 						true);
 			} catch (InterruptedException e) {
 				if (logger != null)
@@ -1620,12 +1691,12 @@ class MadkitKernel extends Agent {
 		if (netAgent != null) {
 			try {
 
-				Message dllm = MadkitNetworkAccess.getDirectLocalLanMessageInstance(m);
+                DirectLocalLanMessage dllm = MadkitNetworkAccess.getDirectLocalLanMessageInstance(m);
                 assert dllm != null;
-                Objects.requireNonNull(dllm).setSender(netEmmiter);
-				dllm.setReceiver(netAgent);
+                ((Message)Objects.requireNonNull(dllm)).setSender(netEmmiter);
+                ((Message)dllm).setReceiver(netAgent);
 				netAgent.getAgent().receiveMessage(dllm);
-				return ((DirectLocalLanMessage) dllm).getMessageLocker().waitUnlock(m.getSender().getAgent(), true);
+				return dllm.getMessageLocker().waitUnlock(m.getSender().getAgent(), true);
 			} catch (InterruptedException e) {
 				if (logger != null)
 					logger.severeLog("A problem occurs during a lan message sending", e);

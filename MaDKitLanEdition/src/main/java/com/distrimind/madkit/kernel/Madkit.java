@@ -155,6 +155,8 @@ final public class Madkit {
             d.addItem("Better manage ban with deserialization process.");
 			d.addItem("Update Utils to 3.21.0.");
 			d.addItem("Update OOD to 2.0.0 Beta 88.");
+			d.addItem("Add function AbstractAgent.getAccessibleKernelsFilteredByGroupsGivenByDistantPeer(Group).");
+			d.addItem("Add function AbstractAgent.getAccessibleKernelsFilteredByGroupsGivenToDistantPeer(Group).");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();

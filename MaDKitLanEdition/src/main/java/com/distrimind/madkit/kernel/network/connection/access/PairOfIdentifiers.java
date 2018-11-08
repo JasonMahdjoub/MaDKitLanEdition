@@ -71,13 +71,14 @@ public class PairOfIdentifiers {
 					"_localIdentifier and _distant_identifier must have the same cloud identifier");
 		}
 	}
+	@Override
+	public int hashCode()
+	{
+		return localIdentifier.hashCode()^distantIdentifier.hashCode();
+	}
 
 	@Override
 	public boolean equals(Object o) {
-		if (o == null)
-			return false;
-		if (o == this)
-			return true;
 		if (o instanceof PairOfIdentifiers)
 			return this.equals((PairOfIdentifiers) o);
 		return false;

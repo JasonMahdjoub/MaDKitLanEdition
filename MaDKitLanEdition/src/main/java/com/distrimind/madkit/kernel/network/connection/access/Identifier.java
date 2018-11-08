@@ -84,9 +84,6 @@ public class Identifier implements ExternalizableAndSizable {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o)
-			return true;
-
 		if (o instanceof Identifier) {
 			Identifier id = (Identifier) o;
 			return cloud_identifier.equals(id.cloud_identifier) && host_identifier.equals(id.host_identifier);

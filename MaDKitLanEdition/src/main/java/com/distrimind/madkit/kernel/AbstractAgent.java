@@ -4615,26 +4615,50 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	}
 
 	/**
-	 * Gets the list of accessible groups given by a distant Madkit kernel
+	 * Gets the set of accessible groups given by a distant Madkit kernel
 	 * 
 	 * @param kernelAddress
 	 *            the distant Madkit kernel
-	 * @return the list of accessible groups given by a distant Madkit kernel
+	 * @return the set of accessible groups given by a distant Madkit kernel
 	 */
-	public List<Group> getAccessibleGroupsGivenByDistantPeer(KernelAddress kernelAddress) {
+	public Set<Group> getAccessibleGroupsGivenByDistantPeer(KernelAddress kernelAddress) {
 		return getMadkitKernel().getAccessibleGroupsGivenByDistantPeer(this, kernelAddress);
 	}
 
 	/**
-	 * Gets the list of accessible groups given to a distant Madkit kernel
+	 * Gets the set of accessible distant kernel addresses filtered by group given by distant MadKitKernel
+	 *
+	 * @param group
+	 *            the group
+	 * @return the set of accessible distant kernel addresses filtered by group given by distant MadKitKernel
+	 */
+
+	public Set<KernelAddress> getAccessibleKernelsFilteredByGroupsGivenByDistantPeer(Group group) {
+		return getMadkitKernel().getAccessibleKernelsPerGroupGivenByDistantPeer(this, group);
+	}
+
+	/**
+	 * Gets the set of accessible groups given to a distant Madkit kernel
 	 * 
 	 * @param kernelAddress
 	 *            the distant Madkit kernel
-	 * @return the list of accessible groups given to a distant Madkit kernel
+	 * @return the set of accessible groups given to a distant Madkit kernel
 	 */
-	public List<Group> getAccessibleGroupsGivenToDistantPeer(KernelAddress kernelAddress) {
+	public Set<Group> getAccessibleGroupsGivenToDistantPeer(KernelAddress kernelAddress) {
 		return getMadkitKernel().getAccessibleGroupsGivenToDistantPeer(this, kernelAddress);
 	}
+
+	/**
+	 * Gets the set of accessible distant kernel addresses filtered by group given to distant MadKitKernel
+	 *
+	 * @param group
+	 *            the group
+	 * @return the set of accessible distant kernel addresses filtered by group given to distant MadKitKernel
+	 */
+	public Set<KernelAddress> getAccessibleKernelsFilteredByGroupsGivenToDistantPeer(Group group) {
+		return getMadkitKernel().getAccessibleKernelsPerGroupGivenToDistantPeer(this, group);
+	}
+
 
 	/**
 	 * Gets the identifiers logged with a distant Madkit kernel
@@ -4643,7 +4667,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *            the distant Madkit kernel
 	 * @return the identifiers logged with a distant Madkit kernel
 	 */
-	public List<PairOfIdentifiers> getEffectiveDistantLogins(KernelAddress kernelAddress) {
+	public Set<PairOfIdentifiers> getEffectiveDistantLogins(KernelAddress kernelAddress) {
 		return getMadkitKernel().getEffectiveDistantLogins(this, kernelAddress);
 	}
 
