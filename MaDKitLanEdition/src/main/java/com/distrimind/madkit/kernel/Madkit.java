@@ -153,8 +153,8 @@ final public class Madkit {
 			d.addItem("Detect security anomalies during big data transfers.");
             d.addItem("Correction of Group.equals() with null references.");
             d.addItem("Better manage ban with deserialization process.");
-			d.addItem("Update Utils to 3.21.1.");
-			d.addItem("Update OOD to 2.0.0 Beta 89.");
+			d.addItem("Update Utils to 3.22.0.");
+			d.addItem("Update OOD to 2.0.0 Beta 90.");
 			d.addItem("Add function AbstractAgent.getAccessibleKernelsFilteredByGroupsGivenByDistantPeer(Group).");
 			d.addItem("Add function AbstractAgent.getAccessibleKernelsFilteredByGroupsGivenToDistantPeer(Group).");
 			VERSION.addDescription(d);
