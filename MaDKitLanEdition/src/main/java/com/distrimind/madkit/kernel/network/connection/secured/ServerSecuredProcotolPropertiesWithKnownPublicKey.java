@@ -164,7 +164,7 @@ public class ServerSecuredProcotolPropertiesWithKnownPublicKey
 		if (keyPairForEncryption == null)
 			throw new NullPointerException("keyPairForEncryption");
 		keyPairsForEncryption.put(generateNewKeyPairIdentifier(), keyPairForEncryption);
-
+		validProfiles.put(lastIdentifier, true);
 		if (symmetricEncryptionType == null) {
 			symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
 			symmetricKeySizeBits = symmetricEncryptionType.getDefaultKeySizeBits();
@@ -196,6 +196,31 @@ public class ServerSecuredProcotolPropertiesWithKnownPublicKey
 	public ASymmetricKeyPair getKeyPairForEncryption(int profileIdentifier) {
 		return keyPairsForEncryption.get(profileIdentifier);
 	}
+
+	/**
+	 * Tells if the given profile identifier is valid
+	 * @param profileIdentifier the profile identifier
+	 * @return true if the given profile identifier is valid
+	 */
+	public boolean isValidProfile(int profileIdentifier) {
+	    Boolean valid=validProfiles.get(profileIdentifier);
+	    if (valid==null || !valid)
+	        return false;
+		ASymmetricKeyPair kp=keyPairsForEncryption.get(profileIdentifier);
+		return kp!=null && kp.getTimeExpirationUTC()>System.currentTimeMillis();
+	}
+
+    /**
+     * Invalidate given profile
+     * @param profileIdentifier the profile identifier
+     */
+	public void invalidateProfile(int profileIdentifier)
+    {
+        Boolean valid=validProfiles.get(profileIdentifier);
+        if (valid!=null)
+            validProfiles.put(profileIdentifier, false);
+    }
+
 
 	/**
 	 * Gets the signature type attached to this connection protocol and the given
@@ -338,6 +363,11 @@ public class ServerSecuredProcotolPropertiesWithKnownPublicKey
 
 
 	/**
+	 * The profile validation
+	 */
+	private Map<Integer, Boolean> validProfiles = new HashMap<>();
+
+	/**
 	 * The used key pairs for encryption
 	 */
 	private Map<Integer, ASymmetricKeyPair> keyPairsForEncryption = new HashMap<>();
@@ -395,7 +425,8 @@ public class ServerSecuredProcotolPropertiesWithKnownPublicKey
 		for (Map.Entry<Integer, ASymmetricKeyPair> e : keyPairs.entrySet()) {
 			if (e.getValue() == null)
 				throw new NullPointerException();
-			if (e.getValue().getTimeExpirationUTC() > System.currentTimeMillis()) {
+			Boolean vp=validProfiles.get(e.getKey());
+			if (e.getValue().getTimeExpirationUTC() > System.currentTimeMillis() && vp!=null && vp) {
 				valid = true;
 			}
 			int tmp = e.getValue().getKeySizeBits();

@@ -128,16 +128,21 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 		if (myKeyPairForEncryption != null)
 			return;
 		try {
+			if (!hproperties.isValidProfile(identifier))
+				throw new BlockParserException(
+						"Invalid profile " + identifier);
+
 			myKeyPairForEncryption = hproperties.getKeyPairForEncryption(identifier);
 			if (myKeyPairForEncryption == null)
 				throw new BlockParserException(
 						"Unkonw encryption profile. Impossible to find key pair identified by " + identifier);
+
 			
 			signatureType = hproperties.getSignatureType(identifier);
 			if (signatureType == null)
 				throw new BlockParserException(
 						"Unkonw encryption profile. Impossible to find signature identified by " + identifier);
-			
+
 			keyWrapper=hproperties.getKeyWrapper(identifier);
 
 			if (keyWrapper == null)

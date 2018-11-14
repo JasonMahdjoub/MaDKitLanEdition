@@ -53,6 +53,7 @@
   			<class name="com.distrimind.madkit.boot.process.NullArgTest"/>
   			<class name="com.distrimind.madkit.kernel.ManagerRoleTest"/>
   			<class name="com.distrimind.madkit.kernel.network.UPNPIDGTest"/>
+			<class name="com.distrimind.madkit.kernel.network.ClientServerProfileValidationTest"/>
   			<class name="com.distrimind.madkit.api.abstractAgent.ReloadClassTest"/>
   			<class name="com.distrimind.madkit.gui.HeadLessTest"/>
   			<class name="com.distrimind.madkit.api.abstractAgent.KillUnstoppableAgentFakeThreadTest"/>

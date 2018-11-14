@@ -125,8 +125,8 @@ final public class Madkit {
 		Calendar c = Calendar.getInstance();
 		c.set(2015, Calendar.MAY, 22);
 		Calendar c2 = Calendar.getInstance();
-		c2.set(2018, Calendar.OCTOBER, 4);
-		Version VERSION = new Version("MadkitLanEdition", "MKLE", (short)1, (short)7, (short)7, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
+		c2.set(2018, Calendar.NOVEMBER, 14);
+		Version VERSION = new Version("MadkitLanEdition", "MKLE", (short)1, (short)8, (short)0, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
 		try {
 
 			InputStream is = Madkit.class.getResourceAsStream("build.txt");
@@ -148,8 +148,8 @@ final public class Madkit {
 			VERSION.addDeveloper(new PersonDeveloper("Ferber", "Jacques", c.getTime()));
 
 			c = Calendar.getInstance();
-			c.set(2018, Calendar.OCTOBER, 4);
-			Description d = new Description((short)1, (short)7, (short)7, Version.Type.Stable, (short)1, c.getTime());
+			c.set(2018, Calendar.NOVEMBER, 14);
+			Description d = new Description((short)1, (short)8, (short)0, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Detect security anomalies during big data transfers.");
             d.addItem("Correction of Group.equals() with null references.");
             d.addItem("Better manage ban with deserialization process.");
@@ -157,6 +157,7 @@ final public class Madkit {
 			d.addItem("Update OOD to 2.0.0 Beta 90.");
 			d.addItem("Add function AbstractAgent.getAccessibleKernelsFilteredByGroupsGivenByDistantPeer(Group).");
 			d.addItem("Add function AbstractAgent.getAccessibleKernelsFilteredByGroupsGivenToDistantPeer(Group).");
+			d.addItem("Check public key validity with client/server connexion protocol.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
