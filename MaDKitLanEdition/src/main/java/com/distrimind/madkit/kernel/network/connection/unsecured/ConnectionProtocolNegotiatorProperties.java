@@ -73,6 +73,15 @@ public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolPr
     }
 
 
+    /**
+     * Add a possible connection protocol that this peer can accept.
+     * The given connection protocol will be chosen according the given priority
+     * @param cpp the connection protocol
+     * @param priority the priority (higher number means higher priority)
+     * @return the connection protocol identifier
+     * @throws ConnectionException if the limit of connection protocols have been reached
+     * @throws IllegalArgumentException if the connection protocol is incompatible with presents connection protocols (see {@link #needsServerSocketImpl()}, {@link #supportBidirectionalConnectionInitiativeImpl()}, {@link #needsServerSocketImpl()}, {@link #canBeServer()})
+     */
     public int addConnectionProtocol(ConnectionProtocolProperties<?> cpp, int priority) throws ConnectionException {
         assert cpp!=null;
         if (!connectionProtocolProperties.isEmpty())
@@ -93,18 +102,31 @@ public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolPr
         return lastIdentifier;
     }
 
+    /**
+     * Tels if the connection protocol that corresponds to the given identifier is enabled
+     * @param identifier the identifier
+     * @return true if the connection protocol that corresponds to the given identifier is enabled
+     */
     public boolean isValidConnectionProtocol(int identifier)
     {
         Boolean v=validationOfConnectionProtocols.get(identifier);
         return v!=null && v;
     }
 
+    /**
+     * Invalidate the connection protocol that corresponds to the given identifier
+     * @param identifier the identifier
+     */
     public void invalidateConnectionProtocol(int identifier) {
         Boolean v=validationOfConnectionProtocols.get(identifier);
         if (v!=null)
             validationOfConnectionProtocols.put(identifier, false);
     }
 
+    /**
+     * Gets the priorities associated to connection protocol identifiers
+     * @return the priorities
+     */
     public Map<Integer, Integer> getValidPriorities()
     {
         if (validPriorities==null) {
@@ -118,6 +140,7 @@ public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolPr
         }
         return validPriorities;
     }
+
 
     public ConnectionProtocolProperties<?> getConnectionProtocolProperties(Map<Integer, Integer> priorities) {
         int max=Integer.MIN_VALUE;
@@ -138,6 +161,12 @@ public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolPr
             return connectionProtocolProperties.get(res);
     }
 
+    /**
+     * Change the connection protocol priority
+     * @param identifier the connection protocol identifier
+     * @param priority the priority (higher number means higher priority)
+     * @return the old priority
+     */
     public int setPriority(int identifier, int priority)
     {
         if (connectionProtocolsPriorities.containsKey(identifier))

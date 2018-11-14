@@ -67,9 +67,11 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
     protected ConnectionProtocolNegotiator(InetSocketAddress _distant_inet_address, InetSocketAddress _local_interface_address, ConnectionProtocol<?> _subProtocol, DatabaseWrapper sql_connection, MadkitProperties _properties, int subProtocolLevel, boolean isServer, boolean mustSupportBidirectionnalConnectionInitiative) throws ConnectionException {
         super(_distant_inet_address, _local_interface_address, _subProtocol, sql_connection, _properties, subProtocolLevel, isServer, mustSupportBidirectionnalConnectionInitiative);
         nproperties=(ConnectionProtocolNegotiatorProperties)getProperties();
+        this.nproperties.checkProperties();
         selectedConnectionProtocol=null;
         this.parser=new Parser();
         this.mkProperties=_properties;
+
     }
 
 
