@@ -37,12 +37,10 @@
  */
 package com.distrimind.madkit.kernel.network.connection.secured;
 
+import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
-import com.distrimind.util.crypto.ASymmetricAuthentifiedSignatureType;
-import com.distrimind.util.crypto.ASymmetricEncryptionType;
-import com.distrimind.util.crypto.ASymmetricKeyWrapperType;
-import com.distrimind.util.crypto.SymmetricEncryptionType;
+import com.distrimind.util.crypto.*;
 
 /**
  * 
@@ -86,7 +84,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties ex
 	/**
 	 * The symmetric key size in bits
 	 */
-	public short SymmetricKeySizeBits = symmetricEncryptionType.getDefaultKeySizeBits();
+	public short symmetricKeySizeBits = symmetricEncryptionType.getDefaultKeySizeBits();
 
 	/**
 	 * Asymmetric encryption algorithm
@@ -120,7 +118,8 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties ex
 	 */
 	public boolean isServer = true;
 
-	void checkProperties() throws ConnectionException {
+	@Override
+	public void checkProperties() throws ConnectionException {
 		if (aSymetricKeySize < minASymetricKeySize)
 			throw new ConnectionException("_rsa_key_size must be greater or equal than " + minASymetricKeySize
 					+ " . Moreover, this number must correspond to this schema : _rsa_key_size=2^x.");
@@ -138,7 +137,47 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties ex
 	}
 
 	@Override
-	protected boolean needsServerSocketImpl() {
+	public boolean needsMadkitLanEditionDatabase() {
+		return true;
+	}
+
+	@Override
+	public boolean isEncrypted() {
+		return enableEncryption;
+	}
+    private transient volatile Integer maxBodyOutputSize=null;
+
+	@Override
+	public int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException {
+		if (!isEncrypted())
+			return size;
+		else
+		{
+            try {
+                if (maxBodyOutputSize==null)
+                {
+                    maxBodyOutputSize=new SymmetricEncryptionAlgorithm(SecureRandomType.DEFAULT.getSingleton(null), symmetricEncryptionType.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), symmetricKeySizeBits).generateKey()).getOutputSizeForEncryption(size)+4;
+                }
+                return maxBodyOutputSize;
+            } catch (Exception e) {
+                throw new BlockParserException(e);
+            }
+
+
+		}
+	}
+    private transient volatile Integer maxHeadSize=null;
+    @Override
+    public int getMaximumSizeHead() {
+        if (maxHeadSize==null) {
+
+            maxHeadSize = signatureType.getSignatureSizeBytes(aSymetricKeySize);
+        }
+        return maxHeadSize;
+    }
+
+    @Override
+	public boolean needsServerSocketImpl() {
 		return isServer;
 	}
 
@@ -148,12 +187,12 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties ex
 	}
 
 	@Override
-	public boolean supportBidirectionnalConnectionInitiativeImpl() {
+	public boolean supportBidirectionalConnectionInitiativeImpl() {
 		return true;
 	}
 
 	@Override
-	protected boolean canBeServer() {
+	public boolean canBeServer() {
 		return isServer;
 	}
 

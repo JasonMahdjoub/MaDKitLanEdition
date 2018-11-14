@@ -144,9 +144,11 @@ public class ReadWritePacketTests extends JunitMadkit {
 		this.rand=SecureRandomType.DEFAULT.getSingleton(null);
 		idPacket=Math.abs(rand.nextInt());
 		this.originalData = data;
+		MadkitProperties madkitProperties=new MadkitProperties();
+		madkitProperties.networkProperties=new NetworkProperties();
 		connectionProtocol = new UnsecuredConnectionProtocolProperties().getConnectionProtocolInstance(
 				new InetSocketAddress(InetAddress.getByName("254.168.45.1"), 10),
-				new InetSocketAddress(InetAddress.getByName("192.168.0.1"), 10), null, new MadkitProperties(), new NetworkProperties(), false,
+				new InetSocketAddress(InetAddress.getByName("192.168.0.1"), 10), null, madkitProperties, false,
 				false);
 		synchronizer = new DataSocketSynchronizer();
 		socketAgentInterface = new SAI();

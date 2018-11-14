@@ -251,10 +251,10 @@ public class SubBlocksStructure {
 				 * if (sbp.getSizeBlockModulus()<1) throw new BlockParserException("The parser "
 				 * +sbp+" returns a block modulus lower than 1: "+sbp.getSizeBlockModulus());
 				 */
-				if (sbp.getMaximumSizeHead() < 0)
+				if (connection_protocol.getMaximumSizeHead() < 0)
 					throw new BlockParserException(
-							"The parser " + sbp + " returns a head size lower than 0: " + sbp.getMaximumSizeHead());
-				size -= sbp.getMaximumSizeHead();
+							"The parser " + sbp + " returns a head size lower than 0: " + connection_protocol.getMaximumSizeHead());
+				size -= connection_protocol.getMaximumSizeHead();
 
 				// size=size-size%sbp.getSizeBlockModulus();
 			} catch (BlockParserException e) {
@@ -277,15 +277,15 @@ public class SubBlocksStructure {
 				 * if (sbp.getSizeBlockModulus()<1) throw new BlockParserException("The parser "
 				 * +sbp+" returns a block modulus lower than 1: "+sbp.getSizeBlockModulus());
 				 */
-				if (sbp.getMaximumSizeHead() < 0)
+				if (connection_protocol.getMaximumSizeHead() < 0)
 					throw new BlockParserException(
-							"The parser " + sbp + " returns a head size lower than 0: " + sbp.getMaximumSizeHead());
+							"The parser " + sbp + " returns a head size lower than 0: " + connection_protocol.getMaximumSizeHead());
 				
-				int outputSize = sbp.getMaximumBodyOutputSizeForEncryption(size);
+				int outputSize = connection_protocol.getMaximumBodyOutputSizeForEncryption(size);
 				if (outputSize < 0)
 					throw new BlockParserException(
 							"The parser " + sbp + " returns an ouput size lower than 0: " + outputSize);
-				size = outputSize + sbp.getMaximumSizeHead();
+				size = outputSize + connection_protocol.getMaximumSizeHead();
 
 				/*
 				 * int mod=size%sbp.getSizeBlockModulus(); if (mod!=0)

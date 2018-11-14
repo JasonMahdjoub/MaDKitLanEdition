@@ -450,8 +450,9 @@ public class ServerSecuredProcotolPropertiesWithKnownPublicKey
 					+ " . Moreover, this number must correspond to this schema : _rsa_key_size=2^x.");
 		return valid;
 	}
-	
-	void checkProperties() throws ConnectionException {
+
+    @Override
+    public void checkProperties() throws ConnectionException {
 		boolean valid = checkKeyPairs(keyPairsForEncryption);
 		
 		if (!valid) {
@@ -460,8 +461,20 @@ public class ServerSecuredProcotolPropertiesWithKnownPublicKey
 
 	}
 
-	@Override
-	protected boolean needsServerSocketImpl() {
+    @Override
+    public boolean needsMadkitLanEditionDatabase() {
+        return false;
+    }
+
+    @Override
+    public boolean isEncrypted() {
+        return enableEncryption;
+    }
+
+
+
+    @Override
+	public boolean needsServerSocketImpl() {
 		return true;
 	}
 
@@ -471,17 +484,20 @@ public class ServerSecuredProcotolPropertiesWithKnownPublicKey
 	}
 
 	@Override
-	public boolean supportBidirectionnalConnectionInitiativeImpl() {
+	public boolean supportBidirectionalConnectionInitiativeImpl() {
 		return false;
 	}
 
 	@Override
-	protected boolean canBeServer() {
+	public boolean canBeServer() {
 		return true;
 	}
 	private SymmetricEncryptionAlgorithm maxAlgo=null;
-	int getMaximumOutputLengthForEncryption(int size) throws BlockParserException
+	@Override
+	public int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException
 	{
+	    if (!isEncrypted())
+	        return size;
 		try {
 			if (maxAlgo==null)
 			{
@@ -505,5 +521,10 @@ public class ServerSecuredProcotolPropertiesWithKnownPublicKey
 			throw new BlockParserException(e);
 		}
 	}
-	
+
+    @Override
+    public int getMaximumSizeHead() throws BlockParserException {
+        return getMaximumSignatureSizeBits()/8;
+    }
+
 }

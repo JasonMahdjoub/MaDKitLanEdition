@@ -37,10 +37,15 @@
  */
 package com.distrimind.madkit.kernel.network.connection.secured;
 
-import java.io.ByteArrayInputStream;
-import java.net.InetSocketAddress;
-import java.util.Arrays;
-
+import com.distrimind.madkit.exceptions.BlockParserException;
+import com.distrimind.madkit.exceptions.ConnectionException;
+import com.distrimind.madkit.kernel.MadkitProperties;
+import com.distrimind.madkit.kernel.network.*;
+import com.distrimind.madkit.kernel.network.connection.*;
+import com.distrimind.ood.database.DatabaseWrapper;
+import com.distrimind.util.Bits;
+import com.distrimind.util.crypto.*;
+import com.distrimind.util.sizeof.ObjectSizer;
 import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
 import gnu.vm.jgnu.security.InvalidKeyException;
 import gnu.vm.jgnu.security.NoSuchAlgorithmException;
@@ -48,33 +53,9 @@ import gnu.vm.jgnu.security.NoSuchProviderException;
 import gnu.vm.jgnu.security.spec.InvalidKeySpecException;
 import gnu.vm.jgnux.crypto.NoSuchPaddingException;
 
-import com.distrimind.madkit.exceptions.BlockParserException;
-import com.distrimind.madkit.exceptions.ConnectionException;
-import com.distrimind.madkit.kernel.MadkitProperties;
-import com.distrimind.madkit.kernel.network.Block;
-import com.distrimind.madkit.kernel.network.NetworkProperties;
-import com.distrimind.madkit.kernel.network.PacketCounter;
-import com.distrimind.madkit.kernel.network.PacketPartHead;
-import com.distrimind.madkit.kernel.network.SubBlock;
-import com.distrimind.madkit.kernel.network.SubBlockInfo;
-import com.distrimind.madkit.kernel.network.SubBlockParser;
-import com.distrimind.madkit.kernel.network.connection.AskConnection;
-import com.distrimind.madkit.kernel.network.connection.ConnectionFinished;
-import com.distrimind.madkit.kernel.network.connection.ConnectionMessage;
-import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol;
-import com.distrimind.madkit.kernel.network.connection.TransferedBlockChecker;
-import com.distrimind.madkit.kernel.network.connection.UnexpectedMessage;
-import com.distrimind.ood.database.DatabaseWrapper;
-import com.distrimind.util.Bits;
-import com.distrimind.util.crypto.ASymmetricKeyWrapperType;
-import com.distrimind.util.crypto.ASymmetricPublicKey;
-import com.distrimind.util.crypto.AbstractSecureRandom;
-import com.distrimind.util.crypto.ClientASymmetricEncryptionAlgorithm;
-import com.distrimind.util.crypto.SymmetricAuthentifiedSignatureCheckerAlgorithm;
-import com.distrimind.util.crypto.SymmetricAuthentifiedSignerAlgorithm;
-import com.distrimind.util.crypto.SymmetricEncryptionAlgorithm;
-import com.distrimind.util.crypto.SymmetricSecretKey;
-import com.distrimind.util.sizeof.ObjectSizer;
+import java.io.ByteArrayInputStream;
+import java.net.InetSocketAddress;
+import java.util.Arrays;
 
 /**
  * Represents a connection protocol used between a client and a server. This
@@ -111,7 +92,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 	
 	private ClientSecuredConnectionProtocolWithKnownPublicKey(InetSocketAddress _distant_inet_address,
 			InetSocketAddress _local_interface_address, ConnectionProtocol<?> _subProtocol,
-			DatabaseWrapper sql_connection, MadkitProperties mkProperties, NetworkProperties _properties, int subProtocolLevel, boolean isServer,
+			DatabaseWrapper sql_connection, MadkitProperties mkProperties, MadkitProperties _properties, int subProtocolLevel, boolean isServer,
 			boolean mustSupportBidirectionnalConnectionInitiative) throws ConnectionException {
 		super(_distant_inet_address, _local_interface_address, _subProtocol, sql_connection, _properties,
 				subProtocolLevel, isServer, mustSupportBidirectionnalConnectionInitiative);
@@ -267,11 +248,6 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 	}
 
 	@Override
-	public boolean isCrypted() {
-		return hproperties.enableEncryption;
-	}
-
-	@Override
 	protected void closeConnection(ConnectionClosedReason _reason) {
 		if (_reason.equals(ConnectionClosedReason.CONNECTION_ANOMALY)) {
 			resetKeys();
@@ -297,19 +273,6 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 					}
 					return symmetricEncryption.getOutputSizeForEncryption(size)+4;
 				}
-			} catch (Exception e) {
-				throw new BlockParserException(e);
-			}
-		}
-		private SymmetricEncryptionAlgorithm maxAlgo=null;
-		@Override
-		public int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException {
-			try {
-				if (maxAlgo==null)
-				{
-					maxAlgo=new SymmetricEncryptionAlgorithm(approvedRandom, hproperties.getSymmetricEncryptionType().getKeyGenerator(approvedRandom, hproperties.getSymmetricKeySizeBits()).generateKey());
-				}
-				return maxAlgo.getOutputSizeForEncryption(size)+4;
 			} catch (Exception e) {
 				throw new BlockParserException(e);
 			}
@@ -529,10 +492,6 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 			}
 		}
 
-		@Override
-		public int getMaximumSizeHead() {
-			return signature_size_bytes;
-		}
 
 		@Override
 		public SubBlockInfo checkEntrantPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
@@ -694,11 +653,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 			return _size;
 		}
 
-		@Override
-		public int getMaximumSizeHead() {
-			return signature_size_bytes;
-		}
-		
+
 		@Override
 		public SubBlockInfo checkEntrantPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
 			SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getSizeHead(),
@@ -749,11 +704,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 			throw new BlockParserException("Unexpected exception");
 		}
 
-		@Override
-		public int getMaximumBodyOutputSizeForEncryption(int size) {
-			return size;
-		}
-		
+
 
 	}
 
@@ -788,8 +739,8 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 		private transient ASymmetricPublicKey publicKey;
 
 		protected BlockChecker(TransferedBlockChecker _subChecker, ASymmetricSignatureType signatureType,
-				ASymmetricPublicKey publicKey, int signatureSize, boolean isCrypted) throws NoSuchAlgorithmException {
-			super(_subChecker, !isCrypted);
+				ASymmetricPublicKey publicKey, int signatureSize, boolean isEncrypted) throws NoSuchAlgorithmException {
+			super(_subChecker, !isEncrypted);
 			this.signatureType = signatureType;
 			this.publicKey = publicKey;
 			this.signatureSize = signatureSize;
@@ -848,10 +799,6 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 		}
 	}*/
 
-	@Override
-	public boolean needsMadkitLanEditionDatabase() {
-		return false;
-	}
 	@Override
 	public PacketCounter getPacketCounter() {
 		return packetCounter;

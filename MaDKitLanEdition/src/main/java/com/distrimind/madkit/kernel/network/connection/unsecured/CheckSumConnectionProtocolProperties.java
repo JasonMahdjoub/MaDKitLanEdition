@@ -37,6 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network.connection.unsecured;
 
+import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
 import com.distrimind.util.crypto.MessageDigestType;
@@ -72,13 +73,33 @@ public class CheckSumConnectionProtocolProperties extends ConnectionProtocolProp
 	public boolean isServer = true;
 
 	@Override
-	protected boolean needsServerSocketImpl() {
+	public boolean needsServerSocketImpl() {
 		return isServer;
 	}
 
-	void checkProperties() throws ConnectionException {
+	public void checkProperties() throws ConnectionException {
 		if (messageDigestType == null)
 			throw new ConnectionException("messageDigestType cannot be null");
+	}
+
+	@Override
+	public boolean needsMadkitLanEditionDatabase() {
+		return false;
+	}
+
+	@Override
+	public boolean isEncrypted() {
+		return false;
+	}
+
+	@Override
+	public int getMaximumBodyOutputSizeForEncryption(int size) {
+		return size;
+	}
+
+	@Override
+	public int getMaximumSizeHead() {
+		return messageDigestType.getDigestLengthInBits()/8;
 	}
 
 	@Override
@@ -87,12 +108,12 @@ public class CheckSumConnectionProtocolProperties extends ConnectionProtocolProp
 	}
 
 	@Override
-	public boolean supportBidirectionnalConnectionInitiativeImpl() {
+	public boolean supportBidirectionalConnectionInitiativeImpl() {
 		return true;
 	}
 
 	@Override
-	protected boolean canBeServer() {
+	public boolean canBeServer() {
 		return isServer;
 	}
 

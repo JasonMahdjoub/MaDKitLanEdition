@@ -37,47 +37,25 @@
  */
 package com.distrimind.madkit.kernel.network.connection.secured;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.Arrays;
-
 import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.kernel.MadkitProperties;
-import com.distrimind.madkit.kernel.network.Block;
-import com.distrimind.madkit.kernel.network.NetworkProperties;
-import com.distrimind.madkit.kernel.network.PacketCounter;
-import com.distrimind.madkit.kernel.network.PacketPartHead;
-import com.distrimind.madkit.kernel.network.SubBlock;
-import com.distrimind.madkit.kernel.network.SubBlockInfo;
-import com.distrimind.madkit.kernel.network.SubBlockParser;
-import com.distrimind.madkit.kernel.network.connection.AskConnection;
-import com.distrimind.madkit.kernel.network.connection.ConnectionFinished;
-import com.distrimind.madkit.kernel.network.connection.ConnectionMessage;
-import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol;
-import com.distrimind.madkit.kernel.network.connection.IncomprehensiblePublicKey;
-import com.distrimind.madkit.kernel.network.connection.TransferedBlockChecker;
-import com.distrimind.madkit.kernel.network.connection.UnexpectedMessage;
+import com.distrimind.madkit.kernel.network.*;
+import com.distrimind.madkit.kernel.network.connection.*;
 import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.util.Bits;
-import com.distrimind.util.crypto.AbstractSecureRandom;
-import com.distrimind.util.crypto.KeyAgreement;
-import com.distrimind.util.crypto.SymmetricAuthentifiedSignatureCheckerAlgorithm;
-import com.distrimind.util.crypto.SymmetricAuthentifiedSignerAlgorithm;
-import com.distrimind.util.crypto.SymmetricEncryptionAlgorithm;
-import com.distrimind.util.crypto.SymmetricSecretKey;
-
-import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
-import gnu.vm.jgnu.security.InvalidKeyException;
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
-import gnu.vm.jgnu.security.SignatureException;
+import com.distrimind.util.crypto.*;
+import gnu.vm.jgnu.security.*;
 import gnu.vm.jgnu.security.spec.InvalidKeySpecException;
 import gnu.vm.jgnux.crypto.BadPaddingException;
 import gnu.vm.jgnux.crypto.IllegalBlockSizeException;
 import gnu.vm.jgnux.crypto.NoSuchPaddingException;
 import gnu.vm.jgnux.crypto.ShortBufferException;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.Arrays;
 
 /**
  * 
@@ -112,7 +90,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 	private boolean doNotTakeIntoAccountNextState=true;
 	private P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm(InetSocketAddress _distant_inet_address,
 			InetSocketAddress _local_interface_address, ConnectionProtocol<?> _subProtocol,
-			DatabaseWrapper sql_connection, MadkitProperties mkProperties, NetworkProperties _properties, int subProtocolLevel, boolean isServer,
+			DatabaseWrapper sql_connection, MadkitProperties mkProperties, MadkitProperties _properties, int subProtocolLevel, boolean isServer,
 			boolean mustSupportBidirectionnalConnectionInitiative) throws ConnectionException {
 		super(_distant_inet_address, _local_interface_address, _subProtocol, sql_connection, _properties,
 				subProtocolLevel, isServer, mustSupportBidirectionnalConnectionInitiative);
@@ -489,11 +467,6 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 	}
 
 	@Override
-	public boolean isCrypted() {
-		return hproperties.enableEncryption;
-	}
-
-	@Override
 	protected void closeConnection(ConnectionClosedReason _reason) {
 		if (_reason.equals(ConnectionClosedReason.CONNECTION_ANOMALY))
 			reset();
@@ -544,19 +517,6 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 
 		}
 		
-		private SymmetricEncryptionAlgorithm maxAlgo=null;
-		@Override
-		public int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException {
-			try {
-				if (maxAlgo==null)
-				{
-					maxAlgo=new SymmetricEncryptionAlgorithm(approvedRandom, hproperties.symmetricEncryptionType.getKeyGenerator(approvedRandom, hproperties.symmetricKeySizeBits).generateKey());
-				}
-				return maxAlgo.getOutputSizeForEncryption(size)+4;
-			} catch (Exception e) {
-				throw new BlockParserException(e);
-			}
-		}
 
 		@Override
 		public int getBodyOutputSizeForDecryption(int size) throws BlockParserException {
@@ -793,10 +753,6 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 			return P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm.this.signature_size_bytes;
 		}
 
-		@Override
-		public int getMaximumSizeHead() {
-			return getSizeHead();
-		}
 
 		public SubBlockInfo checkEntrantPointToPointTransferedBlockWithNoEncryptin(SubBlock _block) throws BlockParserException {
 			return new SubBlockInfo(new SubBlock(_block.getBytes(), _block.getOffset() + getSizeHead(),
@@ -890,10 +846,6 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 			return size;
 		}
 
-		@Override
-		public int getMaximumBodyOutputSizeForEncryption(int size) {
-			return size;
-		}
 
 		@Override
 		public int getSizeHead() {
@@ -905,10 +857,6 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 			return _size;
 		}
 
-		@Override
-		public int getMaximumSizeHead() {
-			return getSizeHead();
-		}
 		@Override
 		public SubBlockInfo getSubBlockWithEncryption(SubBlock _block, boolean enabledEncryption) throws BlockParserException {
 			try {
@@ -975,11 +923,11 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 			
 			/*if (secret_key_for_signature == null || current_step.compareTo(Step.WAITING_FOR_CONNECTION_CONFIRMATION) <= 0) {
 				currentBlockCheckerIsNull = true;
-				return new ConnectionProtocol.NullBlockChecker(subBlockChercker, this.isCrypted(), (short) parser.getSizeHead());
+				return new ConnectionProtocol.NullBlockChecker(subBlockChercker, this.isEncrypted(), (short) parser.getSizeHead());
 			} else {
 				currentBlockCheckerIsNull = false;
 				return new BlockChecker(subBlockChercker, this.hproperties.signatureType,
-						secret_key_for_signature, this.signature_size, this.isCrypted());
+						secret_key_for_signature, this.signature_size, this.isEncrypted());
 			}*/
 		} catch (Exception e) {
 			blockCheckerChanged = true;
@@ -994,8 +942,8 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 		private transient SymmetricSecretKey secretKey;
 
 		protected BlockChecker(TransferedBlockChecker _subChecker, SymmetricSignatureType signatureType,
-				SymmetricSecretKey secretKey, int signatureSize, boolean isCrypted) throws NoSuchAlgorithmException {
-			super(_subChecker, !isCrypted);
+				SymmetricSecretKey secretKey, int signatureSize, boolean isEncrypted) throws NoSuchAlgorithmException {
+			super(_subChecker, !isEncrypted);
 			this.signatureType = signatureType;
 			this.secretKey = secretKey;
 			this.signatureSize = signatureSize;
@@ -1055,10 +1003,6 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 
 	}*/
 
-	@Override
-	public boolean needsMadkitLanEditionDatabase() {
-		return false;
-	}
 
 	@Override
 	public boolean isTransferBlockCheckerChangedImpl() {

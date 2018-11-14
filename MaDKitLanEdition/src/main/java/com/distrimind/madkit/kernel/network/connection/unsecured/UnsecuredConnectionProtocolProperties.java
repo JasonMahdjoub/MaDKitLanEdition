@@ -37,6 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network.connection.unsecured;
 
+import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
 
 /**
@@ -65,7 +66,7 @@ public class UnsecuredConnectionProtocolProperties extends ConnectionProtocolPro
 	}
 
 	@Override
-	protected boolean needsServerSocketImpl() {
+	public boolean needsServerSocketImpl() {
 		return isServer;
 	}
 
@@ -75,13 +76,37 @@ public class UnsecuredConnectionProtocolProperties extends ConnectionProtocolPro
 	}
 
 	@Override
-	public boolean supportBidirectionnalConnectionInitiativeImpl() {
+	public boolean supportBidirectionalConnectionInitiativeImpl() {
 		return true;
 	}
 
 	@Override
-	protected boolean canBeServer() {
+	public boolean canBeServer() {
 		return isServer;
+	}
+
+	@Override
+	public void checkProperties()  {
+	}
+
+	@Override
+	public boolean needsMadkitLanEditionDatabase() {
+		return false;
+	}
+
+	@Override
+	public boolean isEncrypted() {
+		return false;
+	}
+
+	@Override
+	public int getMaximumBodyOutputSizeForEncryption(int size) {
+		return size;
+	}
+
+	@Override
+	public int getMaximumSizeHead() throws BlockParserException {
+		return 0;
 	}
 
 }

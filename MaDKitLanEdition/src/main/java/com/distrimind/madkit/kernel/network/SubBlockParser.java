@@ -67,17 +67,9 @@ public abstract class SubBlockParser {
 
 	public abstract int getSizeHead() throws BlockParserException;
 
-	/**
-	 * cannot change during process
-	 * 
-	 * @return the maximum size head
-	 * @throws BlockParserException if the block is invalid
-	 */
-	public abstract int getMaximumSizeHead() throws BlockParserException;
-
 	// public int getSizeBlockModulus() throws BlockParserExcetion;
 	public abstract int getBodyOutputSizeForEncryption(int size) throws BlockParserException;
-	public abstract int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException;
+
 
 	public abstract int getBodyOutputSizeForDecryption(int size) throws BlockParserException;
 	

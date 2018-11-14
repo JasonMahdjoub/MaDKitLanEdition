@@ -121,7 +121,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 	@SuppressWarnings("deprecation")
 	private P2PSecuredConnectionProtocolWithASymmetricKeyExchanger(InetSocketAddress _distant_inet_address,
 			InetSocketAddress _local_interface_address, ConnectionProtocol<?> _subProtocol,
-			DatabaseWrapper sql_connection, MadkitProperties mkProperties, NetworkProperties _properties, int subProtocolLevel, boolean isServer,
+			DatabaseWrapper sql_connection, MadkitProperties mkProperties, MadkitProperties _properties, int subProtocolLevel, boolean isServer,
 			boolean mustSupportBidirectionnalConnectionInitiative) throws ConnectionException {
 		super(_distant_inet_address, _local_interface_address, _subProtocol, sql_connection, _properties,
 				subProtocolLevel, isServer, mustSupportBidirectionnalConnectionInitiative);
@@ -274,7 +274,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 
 	private void generateSecretKey() throws ConnectionException {
 		try {
-			secret_key = hproperties.symmetricEncryptionType.getKeyGenerator(approvedRandomForKeys, hproperties.SymmetricKeySizeBits)
+			secret_key = hproperties.symmetricEncryptionType.getKeyGenerator(approvedRandomForKeys, hproperties.symmetricKeySizeBits)
 					.generateKey();
 			symmetricEncryption = new SymmetricEncryptionAlgorithm(approvedRandom, secret_key);
 		} catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException
@@ -462,10 +462,6 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 		return null;
 	}
 
-	@Override
-	public boolean isCrypted() {
-		return hproperties.enableEncryption;
-	}
 
 	@Override
 	protected void closeConnection(ConnectionClosedReason _reason) {
@@ -504,19 +500,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 
 		}
 		
-		private SymmetricEncryptionAlgorithm maxAlgo=null;
-		@Override
-		public int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException {
-			try {
-				if (maxAlgo==null)
-				{
-					maxAlgo=new SymmetricEncryptionAlgorithm(approvedRandom, hproperties.symmetricEncryptionType.getKeyGenerator(approvedRandom, hproperties.SymmetricKeySizeBits).generateKey());
-				}
-				return maxAlgo.getOutputSizeForEncryption(size)+4;
-			} catch (Exception e) {
-				throw new BlockParserException(e);
-			}
-		}
+
 
 		@Override
 		public int getBodyOutputSizeForDecryption(int size) throws BlockParserException {
@@ -732,11 +716,6 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 			return P2PSecuredConnectionProtocolWithASymmetricKeyExchanger.this.signature_size_bytes;
 		}
 
-		@Override
-		public int getMaximumSizeHead() {
-			return getSizeHead();
-		}
-
 
 		private SubBlockInfo checkEntrantPointToPointTransferedBlockWithNoEncryption(SubBlock _block) throws BlockParserException
 		{
@@ -914,10 +893,6 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 			return _size;
 		}
 
-		@Override
-		public int getMaximumSizeHead() {
-			return getSizeHead();
-		}
 
 		private SubBlockInfo checkEntrantPointToPointTransferedBlockWithNoEncryption(SubBlock _block) throws BlockParserException
 		{
@@ -996,11 +971,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 
 		}
 
-		@Override
-		public int getMaximumBodyOutputSizeForEncryption(int size) {
-			return size;
-		}
-		
+
 	}
 
 	@Override
@@ -1118,10 +1089,6 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 
 	}
 
-	@Override
-	public boolean needsMadkitLanEditionDatabase() {
-		return true;
-	}
 
 	@Override
 	public boolean isTransferBlockCheckerChangedImpl() {

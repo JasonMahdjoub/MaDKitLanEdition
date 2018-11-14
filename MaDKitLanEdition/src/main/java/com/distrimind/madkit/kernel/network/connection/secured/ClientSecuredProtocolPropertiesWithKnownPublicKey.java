@@ -37,12 +37,10 @@
  */
 package com.distrimind.madkit.kernel.network.connection.secured;
 
+import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
-import com.distrimind.util.crypto.ASymmetricKeyWrapperType;
-import com.distrimind.util.crypto.ASymmetricPublicKey;
-import com.distrimind.util.crypto.SymmetricAuthentifiedSignatureType;
-import com.distrimind.util.crypto.SymmetricEncryptionType;
+import com.distrimind.util.crypto.*;
 
 /**
  * 
@@ -269,8 +267,10 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 		}
 		
 	}
-	
-	void checkProperties() throws ConnectionException {
+
+	@Override
+	public void checkProperties() throws ConnectionException {
+
 		checkPublicKey(publicKeyForEncryption);
 		if (symmetricEncryptionType==null)
 			throw new ConnectionException(new NullPointerException());
@@ -280,7 +280,42 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	}
 
 	@Override
-	protected boolean needsServerSocketImpl() {
+	public boolean needsMadkitLanEditionDatabase() {
+		return false;
+	}
+
+	@Override
+	public boolean isEncrypted() {
+		return enableEncryption;
+	}
+	private transient volatile Integer maxBodyOutputSize=null;
+
+	@Override
+	public int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException {
+		if (!isEncrypted())
+			return size;
+		else
+		{
+			try {
+				if (maxBodyOutputSize==null)
+				{
+					maxBodyOutputSize=new SymmetricEncryptionAlgorithm(SecureRandomType.DEFAULT.getSingleton(null), symmetricEncryptionType.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), getSymmetricKeySizeBits()).generateKey()).getOutputSizeForEncryption(size)+4;
+				}
+				return maxBodyOutputSize;
+			} catch (Exception e) {
+				throw new BlockParserException(e);
+			}
+
+		}
+	}
+
+    @Override
+    public int getMaximumSizeHead() {
+        return signatureType.getSignatureSizeInBits()/8;
+    }
+
+    @Override
+	public boolean needsServerSocketImpl() {
 		return false;
 	}
 
@@ -290,12 +325,12 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	}
 
 	@Override
-	public boolean supportBidirectionnalConnectionInitiativeImpl() {
+	public boolean supportBidirectionalConnectionInitiativeImpl() {
 		return false;
 	}
 
 	@Override
-	protected boolean canBeServer() {
+	public boolean canBeServer() {
 		return false;
 	}
 

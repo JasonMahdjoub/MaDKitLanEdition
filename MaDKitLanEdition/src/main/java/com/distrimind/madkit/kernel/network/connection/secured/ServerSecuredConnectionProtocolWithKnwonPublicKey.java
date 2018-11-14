@@ -93,7 +93,7 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 
 	private ServerSecuredConnectionProtocolWithKnwonPublicKey(InetSocketAddress _distant_inet_address,
 			InetSocketAddress _local_interface_address, ConnectionProtocol<?> _subProtocol,
-			DatabaseWrapper sql_connection, MadkitProperties mkProperties, NetworkProperties _properties, int subProtocolLevel, boolean isServer,
+			DatabaseWrapper sql_connection, MadkitProperties mkProperties, MadkitProperties _properties, int subProtocolLevel, boolean isServer,
 			boolean mustSupportBidirectionnalConnectionInitiative) throws ConnectionException {
 		super(_distant_inet_address, _local_interface_address, _subProtocol, sql_connection, _properties,
 				subProtocolLevel, isServer, mustSupportBidirectionnalConnectionInitiative);
@@ -284,10 +284,6 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 		return null;
 	}
 
-	@Override
-	public boolean isCrypted() {
-		return hproperties.enableEncryption;
-	}
 
 	@Override
 	protected void closeConnection(ConnectionClosedReason _reason) {
@@ -322,11 +318,7 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 				throw new BlockParserException(e);
 			}
 		}
-		
-		@Override
-		public int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException {
-			return hproperties.getMaximumOutputLengthForEncryption(size);
-		}
+
 
 		@Override
 		public int getBodyOutputSizeForDecryption(int size) throws BlockParserException {
@@ -543,11 +535,6 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 		}
 
 		@Override
-		public int getMaximumSizeHead() {
-			return maximumSignatureSize;
-		}
-
-		@Override
 		public SubBlockInfo checkEntrantPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
 			SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getSizeHead(),
 					_block.getSize() - getSizeHead());
@@ -608,10 +595,6 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 
 		@Override
 		public int getBodyOutputSizeForEncryption(int size) {
-			return size;
-		}
-		@Override
-		public int getMaximumBodyOutputSizeForEncryption(int size) {
 			return size;
 		}
 
@@ -707,11 +690,7 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 			return _size;
 		}
 
-		@Override
-		public int getMaximumSizeHead() {
-			return maximumSignatureSize;
-		}
-		
+
 		@Override
 		public SubBlockInfo checkEntrantPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
 			SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getSizeHead(),
@@ -788,8 +767,8 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 		private transient ASymmetricPublicKey publicKey;
 
 		protected BlockChecker(TransferedBlockChecker _subChecker, ASymmetricSignatureType signatureType,
-				ASymmetricPublicKey publicKey, int signatureSize, boolean isCrypted) throws NoSuchAlgorithmException {
-			super(_subChecker, !isCrypted);
+				ASymmetricPublicKey publicKey, int signatureSize, boolean isEncrypted) throws NoSuchAlgorithmException {
+			super(_subChecker, !isEncrypted);
 			this.signatureType = signatureType;
 			this.publicKey = publicKey;
 			this.signatureSize = signatureSize;
@@ -849,10 +828,6 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 
 	}*/
 
-	@Override
-	public boolean needsMadkitLanEditionDatabase() {
-		return false;
-	}
 
 	@Override
 	public PacketCounter getPacketCounter() {

@@ -1,0 +1,238 @@
+/*
+ * MadKitLanEdition (created by Jason MAHDJOUB (jason.mahdjoub@distri-mind.fr)) Copyright (c)
+ * 2015 is a fork of MadKit and MadKitGroupExtension.
+ *
+ * Copyright or © or Copr. Jason Mahdjoub, Fabien Michel, Olivier Gutknecht, Jacques Ferber (1997)
+ *
+ * jason.mahdjoub@distri-mind.fr
+ * fmichel@lirmm.fr
+ * olg@no-distance.net
+ * ferber@lirmm.fr
+ *
+ * This software is a computer program whose purpose is to
+ * provide a lightweight Java library for designing and simulating Multi-Agent Systems (MAS).
+ * This software is governed by the CeCILL-C license under French law and
+ * abiding by the rules of distribution of free software.  You can  use,
+ * modify and/ or redistribute the software under the terms of the CeCILL-C
+ * license as circulated by CEA, CNRS and INRIA at the following URL
+ * "http://www.cecill.info".
+ * As a counterpart to the access to the source code and  rights to copy,
+ * modify and redistribute granted by the license, users are provided only
+ * with a limited warranty  and the software's author,  the holder of the
+ * economic rights,  and the successive licensors  have only  limited
+ * liability.
+ *
+ * In this respect, the user's attention is drawn to the risks associated
+ * with loading,  using,  modifying and/or developing or reproducing the
+ * software by the user in light of its specific status of free software,
+ * that may mean  that it is complicated to manipulate,  and  that  also
+ * therefore means  that it is reserved for developers  and  experienced
+ * professionals having in-depth computer knowledge. Users are therefore
+ * encouraged to load and test the software's suitability as regards their
+ * requirements in conditions enabling the security of their systems and/or
+ * data to be ensured and,  more generally, to use and operate it in the
+ * same conditions as regards security.
+ * The fact that you are presently reading this means that you have had
+ * knowledge of the CeCILL-C license and that you accept its terms.
+ */
+package com.distrimind.madkit.kernel.network.connection.unsecured;
+
+import com.distrimind.madkit.exceptions.BlockParserException;
+import com.distrimind.madkit.exceptions.ConnectionException;
+import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
+/**
+ * Properties of negotiator of connection protocols
+ *
+ * @author Jason Mahdjoub
+ * @version 1.0
+ * @since MadkitLanEdition 1.8
+ *
+ */
+public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolProperties<ConnectionProtocolNegotiator>
+{
+    public static final short MAXIMUM_NUMBER_OF_CONNECTION_PROTOCOLS=500;
+    private int lastIdentifier;
+    private HashMap<Integer, ConnectionProtocolProperties<?>> connectionProtocolProperties;
+    private HashMap<Integer, Boolean> validationOfConnectionProtocols;
+    private HashMap<Integer, Integer> connectionProtocolsPriorities;
+    private volatile transient Map<Integer, Integer> validPriorities=null;
+
+    protected ConnectionProtocolNegotiatorProperties(Class<ConnectionProtocolNegotiator> _connectionProtocolClass) {
+        super(_connectionProtocolClass);
+
+        lastIdentifier=0;
+        connectionProtocolProperties=new HashMap<>();
+        validationOfConnectionProtocols=new HashMap<>();
+        connectionProtocolsPriorities=new HashMap<>();
+    }
+
+
+    public int addConnectionProtocol(ConnectionProtocolProperties<?> cpp, int priority) throws ConnectionException {
+        assert cpp!=null;
+        if (!connectionProtocolProperties.isEmpty())
+        {
+            if (needsServerSocketImpl()!=cpp.needsServerSocketImpl() ||
+                    canTakeConnectionInitiativeImpl()!=cpp.canTakeConnectionInitiativeImpl() ||
+                    supportBidirectionalConnectionInitiativeImpl()!=cpp.supportBidirectionalConnectionInitiativeImpl() ||
+                    canBeServer()!=cpp.canBeServer())
+                throw new IllegalArgumentException("Incompatible connection protocol with presents connection protocols");
+        }
+        if (connectionProtocolProperties.size()>MAXIMUM_NUMBER_OF_CONNECTION_PROTOCOLS)
+            throw new ConnectionException("Limit of connection protocols is reached");
+        ++lastIdentifier;
+        connectionProtocolProperties.put(lastIdentifier, cpp);
+        validationOfConnectionProtocols.put(lastIdentifier, true);
+        connectionProtocolsPriorities.put(lastIdentifier, priority);
+        validPriorities=null;
+        return lastIdentifier;
+    }
+
+    public boolean isValidConnectionProtocol(int identifier)
+    {
+        Boolean v=validationOfConnectionProtocols.get(identifier);
+        return v!=null && v;
+    }
+
+    public void invalidateConnectionProtocol(int identifier) {
+        Boolean v=validationOfConnectionProtocols.get(identifier);
+        if (v!=null)
+            validationOfConnectionProtocols.put(identifier, false);
+    }
+
+    public Map<Integer, Integer> getValidPriorities()
+    {
+        if (validPriorities==null) {
+
+            HashMap<Integer, Integer> res=new HashMap<>();
+            for (Map.Entry<Integer, Integer> e : connectionProtocolsPriorities.entrySet()) {
+                if (isValidConnectionProtocol(e.getKey()))
+                    res.put(e.getKey(), e.getValue());
+            }
+            validPriorities= Collections.unmodifiableMap(res);
+        }
+        return validPriorities;
+    }
+
+    public ConnectionProtocolProperties<?> getConnectionProtocolProperties(Map<Integer, Integer> priorities) {
+        int max=Integer.MIN_VALUE;
+        Integer res=null;
+        for (Map.Entry<Integer, Integer> e : priorities.entrySet()) {
+            Integer v=connectionProtocolsPriorities.get(e.getKey());
+            if (v!=null) {
+                int s=v+e.getValue();
+                if (s > max) {
+                    max = s;
+                    res = e.getKey();
+                }
+            }
+        }
+        if (res==null)
+            return null;
+        else
+            return connectionProtocolProperties.get(res);
+    }
+
+    public int setPriority(int identifier, int priority)
+    {
+        if (connectionProtocolsPriorities.containsKey(identifier))
+            return Objects.requireNonNull(connectionProtocolsPriorities.put(identifier, priority));
+        else
+            throw new IllegalArgumentException();
+    }
+
+
+    @Override
+    public boolean needsServerSocketImpl() {
+        return !connectionProtocolsPriorities.isEmpty() && connectionProtocolProperties.values().iterator().next().needsServerSocketImpl();
+    }
+
+    @Override
+    public boolean supportBidirectionalConnectionInitiativeImpl() {
+        return !connectionProtocolsPriorities.isEmpty() && connectionProtocolProperties.values().iterator().next().supportBidirectionalConnectionInitiativeImpl();
+
+    }
+
+    @Override
+    public boolean canTakeConnectionInitiativeImpl() {
+        return !connectionProtocolsPriorities.isEmpty() && connectionProtocolProperties.values().iterator().next().canTakeConnectionInitiativeImpl();
+    }
+
+    @Override
+    public boolean canBeServer() {
+        return !connectionProtocolsPriorities.isEmpty() && connectionProtocolProperties.values().iterator().next().canBeServer();
+    }
+
+    public HashMap<Integer, Integer> getConnectionProtocolsPriorities() {
+        return connectionProtocolsPriorities;
+    }
+
+    @Override
+    public void checkProperties() throws ConnectionException {
+        if (connectionProtocolProperties==null)
+            throw new ConnectionException();
+        if (validationOfConnectionProtocols==null)
+            throw new ConnectionException();
+        if (connectionProtocolsPriorities==null)
+            throw new ConnectionException();
+        if (connectionProtocolProperties.size()!=validationOfConnectionProtocols.size())
+            throw new ConnectionException();
+        if (connectionProtocolProperties.size()!=connectionProtocolsPriorities.size())
+            throw new ConnectionException();
+        boolean v=false;
+        for (Map.Entry<Integer, ConnectionProtocolProperties<?>> e : connectionProtocolProperties.entrySet())
+        {
+            Boolean val=validationOfConnectionProtocols.get(e.getKey());
+            if (val==null)
+                throw new ConnectionException();
+            if (val) {
+                v = true;
+                e.getValue().checkProperties();
+            }
+            if (connectionProtocolsPriorities.get(e.getKey())==null)
+                throw new ConnectionException();
+
+
+        }
+        if (!v)
+            throw new ConnectionException();
+    }
+
+    @Override
+    public boolean needsMadkitLanEditionDatabase() {
+        for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties.values())
+            if (cpp.needsMadkitLanEditionDatabase())
+                return true;
+        return false;
+    }
+
+    @Override
+    public boolean isEncrypted() {
+
+        for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties.values())
+            if (!cpp.needsMadkitLanEditionDatabase())
+                return false;
+        return true;
+    }
+
+    @Override
+    public int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException {
+        int res=0;
+        for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties.values())
+            res=Math.max(cpp.getMaximumBodyOutputSizeForEncryption(size), res);
+        return res;
+    }
+
+    @Override
+    public int getMaximumSizeHead() throws BlockParserException {
+        int res=0;
+        for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties.values())
+            res=Math.max(cpp.getMaximumSizeHead(), res);
+        return res;
+    }
+}

@@ -72,7 +72,7 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 
 	private CheckSumConnectionProtocol(InetSocketAddress _distant_inet_address,
 									   InetSocketAddress _local_interface_address, ConnectionProtocol<?> _subProtocol,
-									   DatabaseWrapper _sql_connection, @SuppressWarnings("unused") MadkitProperties mkProperties, NetworkProperties _properties, int subProtocolLevel, boolean isServer,
+									   DatabaseWrapper _sql_connection, @SuppressWarnings("unused") MadkitProperties mkProperties, MadkitProperties _properties, int subProtocolLevel, boolean isServer,
 									   boolean mustSupportBidirectionnalConnectionInitiative
 	) throws ConnectionException {
 		super(_distant_inet_address, _local_interface_address, _subProtocol, _sql_connection, _properties,
@@ -88,15 +88,6 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 		}
 	}
 
-	@Override
-	public boolean needsMadkitLanEditionDatabase() {
-		return false;
-	}
-
-	@Override
-	public boolean isCrypted() {
-		return false;
-	}
 
 	@Override
 	protected ConnectionMessage getNextStep(ConnectionMessage _m) {
@@ -207,10 +198,6 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 			return _size;
 		}
 
-		@Override
-		public int getMaximumSizeHead() {
-			return getSizeHead();
-		}
 
 		@Override
 		public SubBlockInfo checkEntrantPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
@@ -240,10 +227,6 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 			}
 		}
 
-		@Override
-		public int getMaximumBodyOutputSizeForEncryption(int size) {
-			return size;
-		}
 
 	}
 

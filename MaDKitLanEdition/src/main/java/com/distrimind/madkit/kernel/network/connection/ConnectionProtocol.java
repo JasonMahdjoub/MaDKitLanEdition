@@ -52,6 +52,7 @@ import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.exceptions.NIOException;
 import com.distrimind.madkit.exceptions.PacketException;
 import com.distrimind.madkit.i18n.ErrorMessages;
+import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.Block;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.madkit.kernel.network.PacketCounter;
@@ -153,22 +154,26 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 	protected final ConnectionProtocol<?> subProtocol;
 	private boolean connectionFinishedMessageReceived = false;
 	private volatile PointToPointTransferedBlockChecker pointToPointTransferedBlockChecker=null;
+	protected final boolean isServer;
+    protected final boolean mustSupportBidirectionnalConnectionInitiative;
 	//private CounterSelector counterSelector=null;
 
 	
 	protected ConnectionProtocol(InetSocketAddress _distant_inet_address, InetSocketAddress _local_interface_address,
-			ConnectionProtocol<?> _subProtocol, DatabaseWrapper sql_connection, NetworkProperties _properties,
+			ConnectionProtocol<?> _subProtocol, DatabaseWrapper sql_connection, MadkitProperties _properties,
 			int subProtocolLevel, boolean isServer, boolean mustSupportBidirectionnalConnectionInitiative)
 			throws ConnectionException {
 		if (_distant_inet_address == null)
 			throw new NullPointerException("_distant_inet_address");
 		if (_properties == null)
 			throw new NullPointerException("_properties");
+		this.isServer=isServer;
+        this.mustSupportBidirectionnalConnectionInitiative=mustSupportBidirectionnalConnectionInitiative;
 		distant_inet_address = _distant_inet_address;
 		local_interface_address = _local_interface_address;
 		subProtocol = _subProtocol;
-		network_properties = _properties;
-		connection_protocol_properties =  _properties
+		network_properties = _properties.networkProperties;
+		connection_protocol_properties =  network_properties
 				.getConnectionProtocolProperties(_distant_inet_address, _local_interface_address, subProtocolLevel,
 						isServer, mustSupportBidirectionnalConnectionInitiative);
 		if (mustSupportBidirectionnalConnectionInitiative
@@ -183,7 +188,10 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 		return subProtocol;
 	}
 
-	public abstract boolean needsMadkitLanEditionDatabase();
+	public final boolean needsMadkitLanEditionDatabase()
+	{
+		return connection_protocol_properties.needsMadkitLanEditionDatabase();
+	}
 
 	public DatabaseWrapper getDatabaseWrapper() {
 		return sql_connection;
@@ -304,7 +312,10 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 	 * 
 	 * @return true if this connection protocol encrypt the data. False else.
 	 */
-	public abstract boolean isCrypted();
+	public final boolean isCrypted()
+	{
+		return connection_protocol_properties.isEncrypted();
+	}
 
 	/**
 	 * This function aims to manage received message from distant client.
@@ -485,6 +496,16 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 
 	}
 
+	public final int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException
+	{
+		return connection_protocol_properties.getMaximumBodyOutputSizeForEncryption(size);
+	}
+
+
+	public final int getMaximumSizeHead() throws BlockParserException {
+		return connection_protocol_properties.getMaximumSizeHead();
+	}
+
 	/**
 	 * 
 	 * @return true if the connection was established but closed for now.
@@ -590,7 +611,7 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 				int pos = rfromit.current_pos - 1;
 				if (pos >= rfromit.list.size()) {
 					if (rfromit.list.size() > 0)
-						current = rfromit.list.get(rfromit.list.size());
+						current = rfromit.list.get(rfromit.list.size()-1);
 					else
 						current = null;
 				} else if (pos < 0)

@@ -238,13 +238,13 @@ public class ConnectionProperties {
 	}
 
 	public ConnectionProtocol<?> getConnectionProtocolsInstances(InetSocketAddress _distant_inet_address,
-			InetSocketAddress _local_interface_address, DatabaseWrapper sql_connection, MadkitProperties mkProperties, NetworkProperties _properties,
+			InetSocketAddress _local_interface_address, DatabaseWrapper sql_connection, MadkitProperties mkProperties,
 			boolean isServer, boolean needConnectionInitiationAbility) throws NIOException {
 		for (ConnectionProtocolProperties<?> cpp : connection_protocol_properties) {
 			if (cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
 					_distant_inet_address.getAddress(), isServer, needConnectionInitiationAbility))
 				return cpp.getConnectionProtocolInstance(_distant_inet_address, _local_interface_address,
-						sql_connection, mkProperties, _properties, isServer, needConnectionInitiationAbility);
+						sql_connection, mkProperties, isServer, needConnectionInitiationAbility);
 		}
 		return null;
 	}

@@ -616,7 +616,7 @@ public class NetworkProperties extends MultiFormatProperties {
 			if (cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
 					_distant_inet_address.getAddress(), isServer, needBiDirectionnalConnectionInitiationAbility)) {
 				return cpp.getConnectionProtocolInstance(_distant_inet_address, _local_interface_address,
-						sql_connection, mkProperties, this, isServer, needBiDirectionnalConnectionInitiationAbility);
+						sql_connection, mkProperties, isServer, needBiDirectionnalConnectionInitiationAbility);
 			}
 		}
 		return null;

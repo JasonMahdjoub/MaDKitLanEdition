@@ -37,11 +37,14 @@
  */
 package com.distrimind.madkit.kernel.network.connection.secured;
 
+import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
-import com.distrimind.util.crypto.KeyAgreementType;
-import com.distrimind.util.crypto.SymmetricAuthentifiedSignatureType;
-import com.distrimind.util.crypto.SymmetricEncryptionType;
+import com.distrimind.util.crypto.*;
+import gnu.vm.jgnu.security.InvalidKeyException;
+import gnu.vm.jgnu.security.NoSuchAlgorithmException;
+import gnu.vm.jgnu.security.NoSuchProviderException;
+import gnu.vm.jgnu.security.spec.InvalidKeySpecException;
 
 /**
  * 
@@ -92,7 +95,10 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementProperties extends Conn
 	 */
 	public boolean isServer = true;
 
-	void checkProperties() throws ConnectionException {
+
+	@Override
+	public void checkProperties() throws ConnectionException {
+
 		if (keyAgreementType==null)
 			throw new ConnectionException(new NullPointerException("keyAgreementType"));
 		if (symmetricEncryptionType==null && enableEncryption)
@@ -106,7 +112,54 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementProperties extends Conn
 	}
 
 	@Override
-	protected boolean needsServerSocketImpl() {
+	public boolean needsMadkitLanEditionDatabase() {
+		return false;
+	}
+
+	@Override
+	public boolean isEncrypted() {
+		return enableEncryption;
+	}
+	private transient volatile Integer maxBodyOutputSize=null;
+
+	@Override
+	public int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException {
+		if (!isEncrypted())
+			return size;
+		else
+		{
+			try {
+				if (maxBodyOutputSize==null)
+				{
+					maxBodyOutputSize=new SymmetricEncryptionAlgorithm(SecureRandomType.DEFAULT.getSingleton(null), symmetricEncryptionType.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), symmetricKeySizeBits).generateKey()).getOutputSizeForEncryption(size)+4;
+				}
+				return maxBodyOutputSize;
+			} catch (Exception e) {
+				throw new BlockParserException(e);
+			}
+
+		}
+	}
+
+	private transient volatile Integer maxHeadSize=null;
+    @Override
+    public int getMaximumSizeHead() throws BlockParserException {
+        if (maxHeadSize==null) {
+            try {
+
+                SymmetricAuthentifiedSignerAlgorithm signerTmp = new SymmetricAuthentifiedSignerAlgorithm(symmetricSignatureType.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), symmetricEncryptionType.getDefaultKeySizeBits()).generateKey());
+                signerTmp.init();
+                maxHeadSize = signerTmp.getMacLength()/8;
+
+            } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidKeyException | InvalidKeySpecException e) {
+                throw new BlockParserException(e);
+            }
+        }
+        return maxHeadSize;
+    }
+
+    @Override
+	public boolean needsServerSocketImpl() {
 		return isServer;
 	}
 
@@ -116,12 +169,12 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementProperties extends Conn
 	}
 
 	@Override
-	public boolean supportBidirectionnalConnectionInitiativeImpl() {
+	public boolean supportBidirectionalConnectionInitiativeImpl() {
 		return true;
 	}
 
 	@Override
-	protected boolean canBeServer() {
+	public boolean canBeServer() {
 		return isServer;
 	}
 
