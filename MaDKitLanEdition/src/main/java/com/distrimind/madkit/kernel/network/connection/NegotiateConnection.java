@@ -1,8 +1,6 @@
-package com.distrimind.madkit.kernel.network.connection.unsecured;
+package com.distrimind.madkit.kernel.network.connection;
 
 import com.distrimind.madkit.exceptions.MessageSerializationException;
-import com.distrimind.madkit.kernel.network.connection.AskConnection;
-import com.distrimind.madkit.util.SerializationTools;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -13,6 +11,11 @@ import java.util.Map;
 public class NegotiateConnection extends AskConnection {
     private Map<Integer, Integer> priorities;
 
+    @SuppressWarnings("unused")
+    private NegotiateConnection()
+    {
+
+    }
     public NegotiateConnection(boolean _you_are_asking, Map<Integer, Integer> priorities) {
         super(_you_are_asking);
         assert priorities!=null;

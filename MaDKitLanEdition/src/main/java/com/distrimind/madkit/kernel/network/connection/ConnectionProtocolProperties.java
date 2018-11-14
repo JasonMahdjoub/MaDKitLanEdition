@@ -152,9 +152,8 @@ public abstract class ConnectionProtocolProperties<CP extends ConnectionProtocol
                                  boolean isServer, boolean needBiDirectionnalConnectionInitiationAbility) {
         return isConcernedByLocalNetworkInterface(_local_inet_address, _local_port)
                 && isConcernedByDistantPeer(_distant_inet_address, _local_port)
-                && ((needBiDirectionnalConnectionInitiationAbility && this.supportBidirectionnalConnectionInitiative())
-                || !needBiDirectionnalConnectionInitiationAbility
-                && (!isServer || this.canBeServer()));
+                && (!needBiDirectionnalConnectionInitiationAbility || this.supportBidirectionnalConnectionInitiative())
+                && (!isServer || this.canBeServer());
     }
 
     public ConnectionProtocol<CP> getConnectionProtocolInstance(InetSocketAddress _distant_inet_address,
@@ -171,7 +170,7 @@ public abstract class ConnectionProtocolProperties<CP extends ConnectionProtocol
             throws NIOException {
         try {
             Constructor<CP> c = connectionProtocolClass.getDeclaredConstructor(InetSocketAddress.class,
-                    InetSocketAddress.class, ConnectionProtocol.class, DatabaseWrapper.class, MadkitProperties.class,
+                    InetSocketAddress.class, ConnectionProtocol.class, DatabaseWrapper.class, MadkitProperties.class,ConnectionProtocolProperties.class,
                     int.class, boolean.class, boolean.class);
             c.setAccessible(true);
             ConnectionProtocol<?> sub = null;
@@ -182,7 +181,7 @@ public abstract class ConnectionProtocolProperties<CP extends ConnectionProtocol
                 if (sub == null)
                     return null;
             }
-            return c.newInstance(_distant_inet_address, _distant_inet_address, sub, sql_connection, mkProperties,
+            return c.newInstance(_distant_inet_address, _distant_inet_address, sub, sql_connection, mkProperties,this,
                     subProtocolLevel, isServer,
                     needBiDirectionnalConnectionInitiationAbility);
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException

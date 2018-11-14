@@ -49,12 +49,7 @@ import com.distrimind.madkit.kernel.network.PacketCounter;
 import com.distrimind.madkit.kernel.network.SubBlock;
 import com.distrimind.madkit.kernel.network.SubBlockInfo;
 import com.distrimind.madkit.kernel.network.SubBlockParser;
-import com.distrimind.madkit.kernel.network.connection.AskConnection;
-import com.distrimind.madkit.kernel.network.connection.ConnectionFinished;
-import com.distrimind.madkit.kernel.network.connection.ConnectionMessage;
-import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol;
-import com.distrimind.madkit.kernel.network.connection.TransferedBlockChecker;
-import com.distrimind.madkit.kernel.network.connection.UnexpectedMessage;
+import com.distrimind.madkit.kernel.network.connection.*;
 import com.distrimind.ood.database.DatabaseWrapper;
 
 /**
@@ -72,11 +67,11 @@ public class UnsecuredConnectionProtocol extends ConnectionProtocol<UnsecuredCon
 
 	@SuppressWarnings("unused")
 	private UnsecuredConnectionProtocol(InetSocketAddress _distant_inet_address,
-										InetSocketAddress _local_interface_address, ConnectionProtocol<?> _subProtocol,
-										DatabaseWrapper _sql_connection, MadkitProperties mkProperties, MadkitProperties _properties, int subProtocolLevel, boolean isServer,
-										boolean mustSupportBidirectionnalConnectionInitiative
+                                        InetSocketAddress _local_interface_address, ConnectionProtocol<?> _subProtocol,
+                                        DatabaseWrapper _sql_connection, MadkitProperties mkProperties, ConnectionProtocolProperties<?> cpp, int subProtocolLevel, boolean isServer,
+                                        boolean mustSupportBidirectionnalConnectionInitiative
 										) throws ConnectionException {
-		super(_distant_inet_address, _local_interface_address, _subProtocol, _sql_connection, _properties,
+		super(_distant_inet_address, _local_interface_address, _subProtocol, _sql_connection, mkProperties,cpp,
 				subProtocolLevel, isServer, mustSupportBidirectionnalConnectionInitiative);
 		parser = new Parser();
 	}

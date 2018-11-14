@@ -160,7 +160,7 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 
 	
 	protected ConnectionProtocol(InetSocketAddress _distant_inet_address, InetSocketAddress _local_interface_address,
-			ConnectionProtocol<?> _subProtocol, DatabaseWrapper sql_connection, MadkitProperties _properties,
+			ConnectionProtocol<?> _subProtocol, DatabaseWrapper sql_connection, MadkitProperties _properties, ConnectionProtocolProperties<?> cpp,
 			int subProtocolLevel, boolean isServer, boolean mustSupportBidirectionnalConnectionInitiative)
 			throws ConnectionException {
 		if (_distant_inet_address == null)
@@ -173,9 +173,7 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 		local_interface_address = _local_interface_address;
 		subProtocol = _subProtocol;
 		network_properties = _properties.networkProperties;
-		connection_protocol_properties =  network_properties
-				.getConnectionProtocolProperties(_distant_inet_address, _local_interface_address, subProtocolLevel,
-						isServer, mustSupportBidirectionnalConnectionInitiative);
+		connection_protocol_properties =  cpp;
 		if (mustSupportBidirectionnalConnectionInitiative
 				&& !connection_protocol_properties.supportBidirectionnalConnectionInitiative())
 			throw new ConnectionException(
@@ -381,7 +379,9 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 		int i = 0;
 		for (Iterator<ConnectionProtocol<?>> it = this.iterator(); it.hasNext(); i++) {
 			ConnectionProtocol<?> cp = it.next();
-			cp.getPacketCounter().incrementMyCounters();
+			PacketCounter pc=cp.getPacketCounter();
+			if (pc!=null)
+			    pc.incrementMyCounters();
 			boolean valid;
 			boolean candidate_to_ban =false;
 			SubBlockParser sbp = cp.getParser();
@@ -448,7 +448,9 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 			int i = this.sizeOfSubConnectionProtocols();
 			for (Iterator<ConnectionProtocol<?>> it = this.reverseIterator(); it.hasNext(); i--) {
 				ConnectionProtocol<?> cp = it.next();
-				cp.getPacketCounter().incrementOtherCounters();
+				PacketCounter pc=cp.getPacketCounter();
+				if (pc!=null)
+				    pc.incrementOtherCounters();
 				subBlock = lastSBS.getSubBlockForParent(cp.getParser().getParentBlock(subBlock, excludedFromEncryption), i, random);
 			}
 			PointToPointTransferedBlockChecker ptp=pointToPointTransferedBlockChecker;

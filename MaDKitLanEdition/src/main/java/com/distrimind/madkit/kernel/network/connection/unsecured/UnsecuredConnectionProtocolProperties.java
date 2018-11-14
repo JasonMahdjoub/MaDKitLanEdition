@@ -82,7 +82,7 @@ public class UnsecuredConnectionProtocolProperties extends ConnectionProtocolPro
 
 	@Override
 	public boolean canBeServer() {
-		return isServer;
+		return true;
 	}
 
 	@Override

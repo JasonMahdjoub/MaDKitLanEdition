@@ -114,7 +114,7 @@ public class CheckSumConnectionProtocolProperties extends ConnectionProtocolProp
 
 	@Override
 	public boolean canBeServer() {
-		return isServer;
+		return true;
 	}
 
 }

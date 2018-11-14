@@ -35,11 +35,10 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-package com.distrimind.madkit.kernel.network.connection.unsecured;
+package com.distrimind.madkit.kernel.network.connection;
 
 import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.exceptions.ConnectionException;
-import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -63,8 +62,8 @@ public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolPr
     private HashMap<Integer, Integer> connectionProtocolsPriorities;
     private volatile transient Map<Integer, Integer> validPriorities=null;
 
-    protected ConnectionProtocolNegotiatorProperties(Class<ConnectionProtocolNegotiator> _connectionProtocolClass) {
-        super(_connectionProtocolClass);
+    public ConnectionProtocolNegotiatorProperties() {
+        super(ConnectionProtocolNegotiator.class);
 
         lastIdentifier=0;
         connectionProtocolProperties=new HashMap<>();

@@ -40,6 +40,7 @@ package com.distrimind.madkit.kernel.network;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.kernel.MadkitEventListener;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
@@ -47,12 +48,9 @@ import com.distrimind.madkit.kernel.network.connection.secured.ClientSecuredProt
 import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolWithKeyAgreementProperties;
 import com.distrimind.madkit.kernel.network.connection.secured.ServerSecuredProcotolPropertiesWithKnownPublicKey;
 import com.distrimind.madkit.kernel.network.connection.unsecured.CheckSumConnectionProtocolProperties;
+import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolNegotiatorProperties;
 import com.distrimind.madkit.kernel.network.connection.unsecured.UnsecuredConnectionProtocolProperties;
-import com.distrimind.util.crypto.ASymmetricEncryptionType;
-import com.distrimind.util.crypto.ASymmetricKeyPair;
-import com.distrimind.util.crypto.ASymmetricKeyWrapperType;
-import com.distrimind.util.crypto.SecureRandomType;
-import com.distrimind.util.crypto.SymmetricEncryptionType;
+import com.distrimind.util.crypto.*;
 
 import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
 import gnu.vm.jgnu.security.NoSuchAlgorithmException;
@@ -140,7 +138,7 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 
 	public static ArrayList<ConnectionsProtocolsMKEventListener> getConnectionsProtocolsMKEventListenerForServerConnection(
 			boolean includeP2PConnectionPossibilityForClients)
-			throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+			throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, ConnectionException {
 		ArrayList<ConnectionsProtocolsMKEventListener> res = new ArrayList<>();
 		res.add(new ConnectionsProtocolsMKEventListener(new UnsecuredConnectionProtocolProperties()));
 
@@ -168,6 +166,23 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 		cpp = new CheckSumConnectionProtocolProperties();
 		cpp.subProtocolProperties = new UnsecuredConnectionProtocolProperties();
 		res.add(new ConnectionsProtocolsMKEventListener(cpp));
+
+
+		ConnectionProtocolNegotiatorProperties cpnp=new ConnectionProtocolNegotiatorProperties();
+		P2PSecuredConnectionProtocolWithKeyAgreementProperties p2pp_ecdh=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
+		p2pp_ecdh.keyAgreementType= KeyAgreementType.BCPQC_NEW_HOPE;
+		p2pp_ecdh.enableEncryption=true;
+		p2pp_ecdh.symmetricKeySizeBits=256;
+		cpnp.addConnectionProtocol(p2pp_ecdh, 1);
+
+		p2pp_ecdh = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
+		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
+		p2pp_ecdh.enableEncryption=false;
+		cpnp.addConnectionProtocol(p2pp_ecdh, 0);
+		res.add(new ConnectionsProtocolsMKEventListener(cpnp));
+
 		return res;
 	}
 

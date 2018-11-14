@@ -175,7 +175,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementProperties extends Conn
 
 	@Override
 	public boolean canBeServer() {
-		return isServer;
+		return true;
 	}
 
 }

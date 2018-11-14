@@ -72,10 +72,10 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 
 	private CheckSumConnectionProtocol(InetSocketAddress _distant_inet_address,
 									   InetSocketAddress _local_interface_address, ConnectionProtocol<?> _subProtocol,
-									   DatabaseWrapper _sql_connection, @SuppressWarnings("unused") MadkitProperties mkProperties, MadkitProperties _properties, int subProtocolLevel, boolean isServer,
+									   DatabaseWrapper _sql_connection, MadkitProperties mkProperties, ConnectionProtocolProperties<?> cpp, int subProtocolLevel, boolean isServer,
 									   boolean mustSupportBidirectionnalConnectionInitiative
 	) throws ConnectionException {
-		super(_distant_inet_address, _local_interface_address, _subProtocol, _sql_connection, _properties,
+		super(_distant_inet_address, _local_interface_address, _subProtocol, _sql_connection, mkProperties,cpp,
 				subProtocolLevel, isServer, mustSupportBidirectionnalConnectionInitiative);
 		parser = new Parser();
 		CheckSumConnectionProtocolProperties p = (CheckSumConnectionProtocolProperties) super.connection_protocol_properties;

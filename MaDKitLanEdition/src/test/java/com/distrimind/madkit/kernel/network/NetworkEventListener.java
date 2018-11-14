@@ -37,6 +37,15 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import com.distrimind.madkit.exceptions.ConnectionException;
+import com.distrimind.madkit.kernel.MadkitEventListener;
+import com.distrimind.madkit.kernel.MadkitProperties;
+import com.distrimind.ood.database.EmbeddedHSQLDBDatabaseFactory;
+import com.distrimind.ood.database.exceptions.DatabaseException;
+import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
+import gnu.vm.jgnu.security.NoSuchAlgorithmException;
+import gnu.vm.jgnu.security.NoSuchProviderException;
+
 import java.io.File;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
@@ -46,17 +55,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import com.distrimind.madkit.kernel.MadkitEventListener;
-import com.distrimind.madkit.kernel.MadkitProperties;
-import com.distrimind.madkit.kernel.network.AbstractIP;
-import com.distrimind.madkit.kernel.network.DoubleIP;
-import com.distrimind.ood.database.EmbeddedHSQLDBDatabaseFactory;
-import com.distrimind.ood.database.exceptions.DatabaseException;
-
-import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
 
 /**
  * 
@@ -224,7 +222,7 @@ public class NetworkEventListener implements MadkitEventListener {
 			boolean bindDoubleInetAddress, boolean network, boolean upnpIGDEnabled, boolean databaseEnabled,
 			final boolean canTakeLoginInitiative, boolean includeP2PConnectionPossibilityForClients,
 			final Runnable invalidPassord, int clientNumber, int... loginIndexes)
-			throws UnknownHostException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+			throws UnknownHostException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, ConnectionException {
 		ArrayList<Object[]> res = new ArrayList<>();
 
 		for (ConnectionsProtocolsMKEventListener cp : ConnectionsProtocolsMKEventListener
@@ -266,15 +264,15 @@ public class NetworkEventListener implements MadkitEventListener {
                                     Arrays.asList(
                                             (AbstractIP) new DoubleIP(5001,
                                                     (Inet4Address) InetAddress.getByName("127.0.0.1")),
-                                            (AbstractIP) new DoubleIP(5001,
-                                                    (Inet6Address) InetAddress.getByName("::1"))));
+											new DoubleIP(5001,
+													(Inet6Address) InetAddress.getByName("::1"))));
                         else
                             o[h] = new NetworkEventListener(network, upnpIGDEnabled, false,
                                     databaseEnabled ? new File("tmpfortest" + clientNumber + ".database") : null, cp,
                                     app, ad, 5001+h,
-                                    Arrays.asList((AbstractIP) new DoubleIP(5001,
-                                            (Inet4Address) InetAddress.getByName("127.0.0.1"),
-                                            (Inet6Address) InetAddress.getByName("::1"))));
+									Collections.singletonList((AbstractIP) new DoubleIP(5001,
+											(Inet4Address) InetAddress.getByName("127.0.0.1"),
+											(Inet6Address) InetAddress.getByName("::1"))));
 
 
                     }

@@ -167,6 +167,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties ex
 		}
 	}
     private transient volatile Integer maxHeadSize=null;
+    @SuppressWarnings("deprecation")
     @Override
     public int getMaximumSizeHead() {
         if (maxHeadSize==null) {
@@ -193,7 +194,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties ex
 
 	@Override
 	public boolean canBeServer() {
-		return isServer;
+		return true;
 	}
 
 }

@@ -35,14 +35,13 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-package com.distrimind.madkit.kernel.network.connection.unsecured;
+package com.distrimind.madkit.kernel.network.connection;
 
 import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.exceptions.NIOException;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.*;
-import com.distrimind.madkit.kernel.network.connection.*;
 import com.distrimind.ood.database.DatabaseWrapper;
 
 import java.net.InetSocketAddress;
@@ -64,8 +63,8 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
     private final MadkitProperties mkProperties;
     private boolean stateJustChanged=false;
 
-    protected ConnectionProtocolNegotiator(InetSocketAddress _distant_inet_address, InetSocketAddress _local_interface_address, ConnectionProtocol<?> _subProtocol, DatabaseWrapper sql_connection, MadkitProperties _properties, int subProtocolLevel, boolean isServer, boolean mustSupportBidirectionnalConnectionInitiative) throws ConnectionException {
-        super(_distant_inet_address, _local_interface_address, _subProtocol, sql_connection, _properties, subProtocolLevel, isServer, mustSupportBidirectionnalConnectionInitiative);
+    protected ConnectionProtocolNegotiator(InetSocketAddress _distant_inet_address, InetSocketAddress _local_interface_address, ConnectionProtocol<?> _subProtocol, DatabaseWrapper sql_connection, MadkitProperties _properties, ConnectionProtocolProperties<?> cpp, int subProtocolLevel, boolean isServer, boolean mustSupportBidirectionnalConnectionInitiative) throws ConnectionException {
+        super(_distant_inet_address, _local_interface_address, _subProtocol, sql_connection, _properties, cpp,subProtocolLevel, isServer, mustSupportBidirectionnalConnectionInitiative);
         nproperties=(ConnectionProtocolNegotiatorProperties)getProperties();
         this.nproperties.checkProperties();
         selectedConnectionProtocol=null;
@@ -171,7 +170,7 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
     @Override
     protected TransferedBlockChecker getTransferedBlockChecker(TransferedBlockChecker subBlockChercker) throws ConnectionException {
         if (selectedConnectionProtocol!=null)
-            return getTransferedBlockChecker(subBlockChercker);
+            return selectedConnectionProtocol.getTransferedBlockChecker(subBlockChercker);
         else {
             try {
                 needToRefreshTransferBlockChecker=false;
@@ -217,8 +216,13 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
         public SubBlock getParentBlock(SubBlock _block, boolean excludedFromEncryption) throws BlockParserException {
             if (selectedConnectionProtocol==null || stateJustChanged)
             {
-                stateJustChanged=false;
-                return getParentBlockWithNoTreatments(_block);
+                try {
+                    return getParentBlockWithNoTreatments(_block);
+                }
+                finally
+                {
+                    stateJustChanged=false;
+                }
             }
             else
                 return selectedConnectionProtocol.getParser().getParentBlock(_block, excludedFromEncryption);

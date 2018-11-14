@@ -37,30 +37,6 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.Externalizable;
-import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
-
 import com.distrimind.madkit.database.KeysPairs;
 import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.exceptions.ConnectionException;
@@ -70,35 +46,36 @@ import com.distrimind.madkit.io.RandomByteArrayInputStream;
 import com.distrimind.madkit.io.RandomByteArrayOutputStream;
 import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.MadkitProperties;
-import com.distrimind.madkit.kernel.network.connection.AskConnection;
-import com.distrimind.madkit.kernel.network.connection.ConnectionMessage;
-import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol;
+import com.distrimind.madkit.kernel.network.connection.*;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionState;
-import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
-import com.distrimind.madkit.kernel.network.connection.PointToPointTransferedBlockChecker;
-import com.distrimind.madkit.kernel.network.connection.TransferedBlockChecker;
-import com.distrimind.madkit.kernel.network.connection.UnexpectedMessage;
 import com.distrimind.madkit.kernel.network.connection.secured.ClientSecuredProtocolPropertiesWithKnownPublicKey;
 import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties;
 import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolWithKeyAgreementProperties;
 import com.distrimind.madkit.kernel.network.connection.secured.ServerSecuredProcotolPropertiesWithKnownPublicKey;
 import com.distrimind.madkit.kernel.network.connection.unsecured.CheckSumConnectionProtocolProperties;
+import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolNegotiatorProperties;
 import com.distrimind.madkit.kernel.network.connection.unsecured.UnsecuredConnectionProtocolProperties;
 import com.distrimind.madkit.util.SerializationTools;
 import com.distrimind.ood.database.DatabaseConfiguration;
 import com.distrimind.ood.database.EmbeddedHSQLDBWrapper;
-import com.distrimind.util.crypto.ASymmetricEncryptionType;
-import com.distrimind.util.crypto.ASymmetricKeyPair;
-import com.distrimind.util.crypto.ASymmetricKeyWrapperType;
-import com.distrimind.util.crypto.AbstractSecureRandom;
-import com.distrimind.util.crypto.KeyAgreementType;
-import com.distrimind.util.crypto.MessageDigestType;
-import com.distrimind.util.crypto.SecureRandomType;
-import com.distrimind.util.crypto.SymmetricEncryptionType;
-
+import com.distrimind.util.crypto.*;
 import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
 import gnu.vm.jgnu.security.NoSuchAlgorithmException;
 import gnu.vm.jgnu.security.NoSuchProviderException;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+
+import java.io.*;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * 
@@ -144,9 +121,9 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 	private static final int numberMaxExchange = 100;
 	private ConnectionProtocol<?> cpasker;
 	private ConnectionProtocol<?> cpreceiver;
-	private final NetworkProperties npasker;
-	private final NetworkProperties npreceiver;
-	private static final MadkitProperties mkProperties=new MadkitProperties();
+	private NetworkProperties npasker, npreceiver;
+    private final MadkitProperties mkPropertiesAsker;
+    private final MadkitProperties mkPropertiesReceiver;
 	private final static AbstractSecureRandom rand ;
 	static
 	{
@@ -161,7 +138,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 	}
 
 	private static ArrayList<ConnectionProtocolProperties<?>[]> dataWithSubLevel()
-			throws SecurityException, IllegalArgumentException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+			throws SecurityException, IllegalArgumentException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, ConnectionException {
 		ArrayList<ConnectionProtocolProperties<?>[]> res = new ArrayList<>();
 		ArrayList<ConnectionProtocolProperties<?>[]> l=dataOneLevel();
 		@SuppressWarnings("unchecked")
@@ -185,7 +162,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 	}
 
 	private static ArrayList<ConnectionProtocolProperties<?>[]> dataOneLevel()
-			throws SecurityException, IllegalArgumentException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+			throws SecurityException, IllegalArgumentException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, ConnectionException {
 		ArrayList<ConnectionProtocolProperties<?>[]> res = new ArrayList<>();
 
 		ConnectionProtocolProperties<?>[] o = new ConnectionProtocolProperties<?>[2];
@@ -267,6 +244,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		p2pp_ecdh.enableEncryption=false;
 		o[1] = p2pp_ecdh;
 		res.add(o);
+
 		o = new ConnectionProtocolProperties<?>[2];
 		p2pp_ecdh = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
@@ -294,8 +272,67 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		p2pp_ecdh.enableEncryption=false;
 		o[1] = p2pp_ecdh;
 		res.add(o);
-	
-		
+
+		o = new ConnectionProtocolProperties<?>[2];
+		ConnectionProtocolNegotiatorProperties cpnp=new ConnectionProtocolNegotiatorProperties();
+		p2pp_ecdh=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
+		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
+		p2pp_ecdh.enableEncryption=true;
+		p2pp_ecdh.symmetricKeySizeBits=256;
+
+		cpnp.addConnectionProtocol(p2pp_ecdh, 1);
+		p2pp_ecdh = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
+		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
+		p2pp_ecdh.enableEncryption=false;
+		cpnp.addConnectionProtocol(p2pp_ecdh, 0);
+		o[0] = cpnp;
+		cpnp=new ConnectionProtocolNegotiatorProperties();
+		p2pp_ecdh=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
+		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
+		p2pp_ecdh.enableEncryption=true;
+		p2pp_ecdh.symmetricKeySizeBits=256;
+		cpnp.addConnectionProtocol(p2pp_ecdh, 1);
+		p2pp_ecdh = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
+		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
+		p2pp_ecdh.enableEncryption=false;
+		cpnp.addConnectionProtocol(p2pp_ecdh, 0);
+		o[1] = cpnp;
+		res.add(o);
+
+		o = new ConnectionProtocolProperties<?>[2];
+		cpnp=new ConnectionProtocolNegotiatorProperties();
+		p2pp_ecdh=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
+		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
+		p2pp_ecdh.enableEncryption=true;
+		p2pp_ecdh.symmetricKeySizeBits=256;
+
+		cpnp.addConnectionProtocol(p2pp_ecdh, 0);
+		p2pp_ecdh = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
+		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
+		p2pp_ecdh.enableEncryption=false;
+		cpnp.addConnectionProtocol(p2pp_ecdh, 1);
+		o[0] = cpnp;
+		cpnp=new ConnectionProtocolNegotiatorProperties();
+		p2pp_ecdh=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
+		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
+		p2pp_ecdh.enableEncryption=true;
+		p2pp_ecdh.symmetricKeySizeBits=256;
+		cpnp.addConnectionProtocol(p2pp_ecdh, 0);
+		p2pp_ecdh = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
+		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
+		p2pp_ecdh.enableEncryption=false;
+		cpnp.addConnectionProtocol(p2pp_ecdh, 1);
+		o[1] = cpnp;
+		res.add(o);
+
 		o = new ConnectionProtocolProperties<?>[2];
 		ServerSecuredProcotolPropertiesWithKnownPublicKey sp = new ServerSecuredProcotolPropertiesWithKnownPublicKey();
 		ClientSecuredProtocolPropertiesWithKnownPublicKey cp = new ClientSecuredProtocolPropertiesWithKnownPublicKey();
@@ -349,25 +386,30 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		o[1] = cs;
 		res.add(o);
 
+
 		return res;
 	}
 
 	public static Collection<Object[]> data(boolean enableDatabase) throws SecurityException, IllegalArgumentException,
-			UnknownHostException, NoSuchAlgorithmException, NIOException, NoSuchProviderException, InvalidAlgorithmParameterException {
+			UnknownHostException, NoSuchAlgorithmException, NIOException, NoSuchProviderException, InvalidAlgorithmParameterException, ConnectionException {
 		ArrayList<ConnectionProtocolProperties<?>[]> data = dataOneLevel();
 		data.addAll(dataWithSubLevel());
 		Collection<Object[]> res = new ArrayList<>();
+
 		for (ConnectionProtocolProperties<?>[] base : data) {
 			Object o[] = new Object[4];
 
-			NetworkProperties np = new NetworkProperties();
-			np.addConnectionProtocol(base[0]);
-			o[0] = getConnectionProtocolInstance(mkProperties, np, enableDatabase ? 1 : 0);
-			o[1] = np;
-			np = new NetworkProperties();
-			np.addConnectionProtocol(base[1]);
-			o[2] = getConnectionProtocolInstance(mkProperties, np, enableDatabase ? 2 : 0);
-			o[3] = np;
+            MadkitProperties madkitProperties=new MadkitProperties();
+			madkitProperties.networkProperties= new NetworkProperties();
+            madkitProperties.networkProperties.addConnectionProtocol(base[0]);
+			o[0] = getConnectionProtocolInstance(madkitProperties, enableDatabase ? 1 : 0);
+			o[1] = madkitProperties;
+            madkitProperties=new MadkitProperties();
+            madkitProperties.networkProperties= new NetworkProperties();
+
+            madkitProperties.networkProperties.addConnectionProtocol(base[1]);
+			o[2] = getConnectionProtocolInstance(madkitProperties, enableDatabase ? 2 : 0);
+			o[3] = madkitProperties;
 			res.add(o);
 		}
 		return res;
@@ -375,15 +417,15 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 
 	@Parameters
 	public static Collection<Object[]> data() throws SecurityException, IllegalArgumentException, UnknownHostException,
-			NoSuchAlgorithmException, NIOException, NoSuchProviderException, InvalidAlgorithmParameterException {
+			NoSuchAlgorithmException, NIOException, NoSuchProviderException, InvalidAlgorithmParameterException, ConnectionException {
 		Collection<Object[]> res = data(false);
 		res.addAll(data(true));
 		return res;
 	}
 
-	public static ConnectionProtocol<?> getConnectionProtocolInstance(MadkitProperties mkProperties, NetworkProperties np, int database)
+	public static ConnectionProtocol<?> getConnectionProtocolInstance(MadkitProperties mkProperties, int database)
 			throws NIOException, UnknownHostException, IllegalArgumentException {
-		return np.getConnectionProtocolInstance(new InetSocketAddress(InetAddress.getByName("56.41.158.221"), 5000),
+		return mkProperties.networkProperties.getConnectionProtocolInstance(new InetSocketAddress(InetAddress.getByName("56.41.158.221"), 5000),
 				new InetSocketAddress(InetAddress.getByName("192.168.0.55"), 5000),
 				database == 1 ? sql_connection_asker : database == 2 ? sql_connection_recveiver : null, mkProperties,false, false);
 		// ConnectionProtocolProperties<?> cpp=np.getConnectionProtocolProperties(new
@@ -392,13 +434,15 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		// return cpp.getConnectionProtocolInstance(, , 5000), null, np);
 	}
 
-	public ConnectionsProtocolsTests(ConnectionProtocol<?> cpasker, NetworkProperties npasker,
-			ConnectionProtocol<?> cpreceiver, NetworkProperties npreceiver) {
+	public ConnectionsProtocolsTests(ConnectionProtocol<?> cpasker, MadkitProperties mkPropertiesAsker,
+			ConnectionProtocol<?> cpreceiver, MadkitProperties mkPropertiesReceiver) {
 		this.cpasker = cpasker;
 		this.cpreceiver = cpreceiver;
-		this.npasker = npasker;
-		this.npreceiver = npreceiver;
-		
+		this.mkPropertiesAsker=mkPropertiesAsker;
+        this.mkPropertiesReceiver=mkPropertiesReceiver;
+        this.npasker=this.mkPropertiesAsker.networkProperties;
+        this.npreceiver=this.mkPropertiesReceiver.networkProperties;
+
 	}
 
 	@Test
@@ -589,8 +633,8 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 	public void testIrregularConnectionWithUnkowMessage(int index, boolean asker, boolean enableDatabase)
 			throws ConnectionException, PacketException, NIOException, IOException, ClassNotFoundException,
 			BlockParserException, IllegalArgumentException, NoSuchAlgorithmException, NoSuchProviderException {
-		cpasker = getConnectionProtocolInstance(mkProperties, npasker, enableDatabase ? 1 : 0);
-		cpreceiver = getConnectionProtocolInstance(mkProperties, npreceiver, enableDatabase ? 2 : 0);
+		cpasker = getConnectionProtocolInstance(mkPropertiesAsker, enableDatabase ? 1 : 0);
+		cpreceiver = getConnectionProtocolInstance(mkPropertiesReceiver, enableDatabase ? 2 : 0);
 		/*this.cpasker.setCounterSelector(new CounterSelector(this.cpasker));
 		this.cpreceiver.setCounterSelector(new CounterSelector(this.cpreceiver));*/
 
@@ -682,8 +726,8 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 	public void testIrregularConnectionWithCurrptedMessage(int index, boolean asker, boolean enableDatabase)
 			throws ConnectionException, PacketException, NIOException, IOException, ClassNotFoundException,
 			BlockParserException, NoSuchAlgorithmException, NoSuchProviderException {
-		cpasker = getConnectionProtocolInstance(mkProperties, npasker, enableDatabase ? 1 : 0);
-		cpreceiver = getConnectionProtocolInstance(mkProperties, npreceiver, enableDatabase ? 2 : 0);
+		cpasker = getConnectionProtocolInstance(mkPropertiesAsker, enableDatabase ? 1 : 0);
+		cpreceiver = getConnectionProtocolInstance(mkPropertiesReceiver, enableDatabase ? 2 : 0);
 		Assert.assertFalse(cpasker.isConnectionEstablished());
 		Assert.assertFalse(cpreceiver.isConnectionEstablished());
 		Assert.assertEquals(ConnectionState.NOT_CONNECTED, cpasker.getConnectionState());
