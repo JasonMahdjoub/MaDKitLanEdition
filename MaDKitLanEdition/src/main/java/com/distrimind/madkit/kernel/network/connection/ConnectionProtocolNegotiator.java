@@ -104,6 +104,7 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
                             }
 
                             status=Status.PROTOCOL_CHOSEN;
+                            needToRefreshTransferBlockChecker=true;
                             if (isCurrentServerAskingConnection())
                                 return selectedConnectionProtocol.setAndGetNextMessage(new AskConnection(true));
                             else {
@@ -124,7 +125,7 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
                     }
                 }
                 else if (_m instanceof ConnectionFinished) {
-
+                    needToRefreshTransferBlockChecker=true;
                     if (((ConnectionFinished) _m).getState()
                             .equals(ConnectionProtocol.ConnectionState.CONNECTION_ESTABLISHED)) {
                         status=Status.INVALID_CONNECTION;
@@ -155,23 +156,36 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
 
     @Override
     protected void closeConnection(ConnectionClosedReason _reason) throws ConnectionException {
+        needToRefreshTransferBlockChecker=true;
+        status=Status.CLOSED_CONNECTION;
         if (selectedConnectionProtocol!=null)
             selectedConnectionProtocol.setConnectionClosed(_reason);
     }
 
+
+    @Override
+    public int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException
+    {
+        if (stateJustChanged || selectedConnectionProtocol==null)
+            return super.getMaximumBodyOutputSizeForEncryption(size);
+        else
+            return selectedConnectionProtocol.getMaximumBodyOutputSizeForEncryption(size);
+    }
+
+
     @Override
     public SubBlockParser getParser() {
-        if (parser==null)
-            return selectedConnectionProtocol==null?null:selectedConnectionProtocol.getParser();
-        else
+
+        if (stateJustChanged || selectedConnectionProtocol==null)
             return parser;
+        else
+            return selectedConnectionProtocol.getParser();
     }
 
     @Override
     protected TransferedBlockChecker getTransferedBlockChecker(TransferedBlockChecker subBlockChercker) throws ConnectionException {
-        if (selectedConnectionProtocol!=null)
-            return selectedConnectionProtocol.getTransferedBlockChecker(subBlockChercker);
-        else {
+
+        if (stateJustChanged || selectedConnectionProtocol==null) {
             try {
                 needToRefreshTransferBlockChecker=false;
                 return new ConnectionProtocol.NullBlockChecker(subBlockChercker, this.isCrypted(),
@@ -181,16 +195,18 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
                 throw new ConnectionException(e);
             }
         }
+        else
+            return selectedConnectionProtocol.getTransferedBlockChecker(subBlockChercker);
     }
 
     @Override
     protected boolean isTransferBlockCheckerChangedImpl() {
-        return selectedConnectionProtocol==null?needToRefreshTransferBlockChecker:selectedConnectionProtocol.isTransferBlockCheckerChanged();
+        return (stateJustChanged || selectedConnectionProtocol==null)?needToRefreshTransferBlockChecker:selectedConnectionProtocol.isTransferBlockCheckerChanged();
     }
 
     @Override
     public PacketCounter getPacketCounter() {
-        return selectedConnectionProtocol==null?null:selectedConnectionProtocol.getPacketCounter();
+        return (stateJustChanged || selectedConnectionProtocol==null)?null:selectedConnectionProtocol.getPacketCounter();
     }
 
     private enum Status
@@ -254,15 +270,33 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
             else
                 return selectedConnectionProtocol.getParser().getBodyOutputSizeForDecryption(size);
         }
+        /*private SubBlock signIfPossibleOutgoingPointToPointTransferedBlockWithNoEncryption(SubBlock _block) throws BlockParserException {
+            SubBlock res= new SubBlock(_block.getBytes(), _block.getOffset() - getSizeHead(),
+                    _block.getSize() + getSizeHead());
+            byte[] tab=res.getBytes();
+            for (int i=res.getOffset();i<_block.getOffset();i++)
+                tab[i]=0;
+            return res;
 
+        }
+        private SubBlockInfo checkEntrantPointToPointTransferedBlockWithNoEncryptin(SubBlock _block) throws BlockParserException {
+            return new SubBlockInfo(new SubBlock(_block.getBytes(), _block.getOffset() + getSizeHead(),
+                    _block.getSize() - getSizeHead()), true, false);
+        }*/
         @Override
-        public SubBlockInfo checkEntrantPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
-            return selectedConnectionProtocol.getParser().checkEntrantPointToPointTransferedBlock(_block);
+        public SubBlockInfo checkIncomingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+            /*if (selectedConnectionProtocol==null)
+                return checkEntrantPointToPointTransferedBlockWithNoEncryptin(_block);
+            else*/
+                return selectedConnectionProtocol.getParser().checkIncomingPointToPointTransferedBlock(_block);
         }
 
         @Override
-        public SubBlock signIfPossibleSortantPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
-            return selectedConnectionProtocol.getParser().signIfPossibleSortantPointToPointTransferedBlock(_block);
+        public SubBlock signIfPossibleOutgoingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+            /*if (selectedConnectionProtocol==null || stateJustChanged)
+                return signIfPossibleOutgoingPointToPointTransferedBlockWithNoEncryption(_block);
+            else*/
+                return selectedConnectionProtocol.getParser().signIfPossibleOutgoingPointToPointTransferedBlock(_block);
 
         }
     }

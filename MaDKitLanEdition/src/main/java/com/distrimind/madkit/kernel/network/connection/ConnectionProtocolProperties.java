@@ -258,5 +258,10 @@ public abstract class ConnectionProtocolProperties<CP extends ConnectionProtocol
     public abstract int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException;
 
 
+    /**
+     * Gets the maximum packet head size. This value cannot change.
+     * @return the maximum packet head size
+     * @throws BlockParserException if a problem occurs
+     */
     public abstract int getMaximumSizeHead() throws BlockParserException;
 }

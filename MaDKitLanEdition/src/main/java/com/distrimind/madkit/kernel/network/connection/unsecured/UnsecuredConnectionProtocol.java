@@ -171,12 +171,12 @@ public class UnsecuredConnectionProtocol extends ConnectionProtocol<UnsecuredCon
 
 
 		@Override
-		public SubBlockInfo checkEntrantPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+		public SubBlockInfo checkIncomingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
 			return new SubBlockInfo(_block, true, false);
 		}
 
 		@Override
-		public SubBlock signIfPossibleSortantPointToPointTransferedBlock(SubBlock _block) {
+		public SubBlock signIfPossibleOutgoingPointToPointTransferedBlock(SubBlock _block) {
 			return _block;
 		}
 

@@ -42,12 +42,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Enumeration;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.logging.ConsoleHandler;
@@ -754,11 +750,13 @@ final public class Madkit {
 			Calendar endCal = Calendar.getInstance();
 			startCal.setTime(VERSION.getProjectStartDate());
 			endCal.setTime(VERSION.getProjectEndDate());
+			Calendar c=new GregorianCalendar();
+			c.setTime(VERSION.getProjectEndDate());
 			System.out.println("\n-----------------------------------------------------------------------------"
 					+ "\n\t\t\t\t    MadkitLanEdition\n" + "\n\t version: " + VERSION.getMajor() + "."
 					+ VERSION.getMinor() + "." + VERSION.getRevision() + " " + VERSION.getType()
 					+ (VERSION.getType().equals(Version.Type.Stable) ? "" : (" " + VERSION.getAlphaBetaVersion()))
-					+ "\n\t MaDKit Team (c) 1997-2016"
+					+ "\n\t MaDKit Team (c) 1997-"+c.get(Calendar.YEAR)
 					+ "\n\t MadkitLanEdition Team (c) " + startCal.get(Calendar.YEAR) + "-" + endCal.get(Calendar.YEAR)
 					+ "\n\t Kernel " + myKernel.getNetworkID()
 					+ "\n-----------------------------------------------------------------------------\n");

@@ -147,7 +147,7 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 	protected final InetSocketAddress local_interface_address;
 	private ConnectionState connection_state = ConnectionState.NOT_CONNECTED;
 	private ConnectionClosedReason connection_close_reason = null;
-	private boolean this_ask_connection = false;
+	private Boolean this_ask_connection = null;
 	protected final ConnectionProtocolProperties<?> connection_protocol_properties;
 	protected final NetworkProperties network_properties;
 	protected final DatabaseWrapper sql_connection;
@@ -227,7 +227,7 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 	 * @see #getNextStep(ConnectionMessage)
 	 */
 	public final ConnectionMessage setAndGetNextMessage(ConnectionMessage _m) throws ConnectionException {
-		if (_m instanceof AskConnection) {
+		if (this_ask_connection==null && _m instanceof AskConnection) {
 			this_ask_connection = ((AskConnection) _m).isYouAreAsking();
 		}
 		if (_m instanceof ConnectionFinished) {
@@ -498,13 +498,13 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 
 	}
 
-	public final int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException
+	public int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException
 	{
 		return connection_protocol_properties.getMaximumBodyOutputSizeForEncryption(size);
 	}
 
 
-	public final int getMaximumSizeHead() throws BlockParserException {
+	public int getMaximumSizeHead() throws BlockParserException {
 		return connection_protocol_properties.getMaximumSizeHead();
 	}
 

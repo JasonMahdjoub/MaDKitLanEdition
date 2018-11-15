@@ -294,6 +294,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
 		p2pp_ecdh.enableEncryption=true;
 		p2pp_ecdh.symmetricKeySizeBits=256;
+
 		cpnp.addConnectionProtocol(p2pp_ecdh, 1);
 		p2pp_ecdh = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
@@ -324,6 +325,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
 		p2pp_ecdh.enableEncryption=true;
 		p2pp_ecdh.symmetricKeySizeBits=256;
+
 		cpnp.addConnectionProtocol(p2pp_ecdh, 0);
 		p2pp_ecdh = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;

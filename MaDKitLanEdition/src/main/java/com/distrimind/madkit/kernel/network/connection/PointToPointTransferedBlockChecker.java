@@ -75,7 +75,7 @@ public class PointToPointTransferedBlockChecker extends TransferedBlockChecker {
 
 			for (ConnectionProtocol<?> cp : cpInput) {
 				//cp.getPacketCounter().incrementMyCounters();
-				SubBlockInfo checkedBlock = cp.getParser().checkEntrantPointToPointTransferedBlock(sb);
+				SubBlockInfo checkedBlock = cp.getParser().checkIncomingPointToPointTransferedBlock(sb);
 				if (!checkedBlock.isValid())
 					return checkedBlock;
 				sb = checkedBlock.getSubBlock();
@@ -126,7 +126,7 @@ public class PointToPointTransferedBlockChecker extends TransferedBlockChecker {
 		{
 			ConnectionProtocol<?> cp=it.next();
 			//cp.getPacketCounter().incrementOtherCounters();
-			res=cp.getParser().signIfPossibleSortantPointToPointTransferedBlock(res);
+			res=cp.getParser().signIfPossibleOutgoingPointToPointTransferedBlock(res);
 		}
 		
 		return res;

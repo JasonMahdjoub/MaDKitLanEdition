@@ -535,7 +535,7 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 		}
 
 		@Override
-		public SubBlockInfo checkEntrantPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+		public SubBlockInfo checkIncomingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
 			SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getSizeHead(),
 					_block.getSize() - getSizeHead());
 			switch (current_step) {
@@ -560,7 +560,7 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 		}
 
 		@Override
-		public SubBlock signIfPossibleSortantPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+		public SubBlock signIfPossibleOutgoingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
 			try {
 				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() - getSizeHead(),
 						_block.getSize() + getSizeHead());
@@ -692,7 +692,7 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 
 
 		@Override
-		public SubBlockInfo checkEntrantPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+		public SubBlockInfo checkIncomingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
 			SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getSizeHead(),
 					_block.getSize() - getSizeHead());
 			switch (current_step) {
@@ -717,7 +717,7 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 		}
 
 		@Override
-		public SubBlock signIfPossibleSortantPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+		public SubBlock signIfPossibleOutgoingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
 			try {
 				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() - getSizeHead(),
 						_block.getSize() + getSizeHead());

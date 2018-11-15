@@ -200,7 +200,7 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 
 
 		@Override
-		public SubBlockInfo checkEntrantPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+		public SubBlockInfo checkIncomingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
 			int sizeHead = getSizeHead();
 			SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + sizeHead, _block.getSize() - sizeHead);
 			messageDigest.reset();
@@ -214,7 +214,7 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 		}
 
 		@Override
-		public SubBlock signIfPossibleSortantPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+		public SubBlock signIfPossibleOutgoingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
 			try {
 				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() - getSizeHead(),
 						_block.getSize() + getSizeHead());

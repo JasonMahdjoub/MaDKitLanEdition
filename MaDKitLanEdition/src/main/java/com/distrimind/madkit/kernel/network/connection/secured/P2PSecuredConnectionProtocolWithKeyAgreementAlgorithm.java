@@ -775,7 +775,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 		}
 		
 		@Override
-		public SubBlockInfo checkEntrantPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+		public SubBlockInfo checkIncomingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
 			switch (current_step) {
 			case NOT_CONNECTED:
 			case WAITING_FOR_SIGNATURE_DATA:
@@ -809,7 +809,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 			return res;			
 		}
 		@Override
-		public SubBlock signIfPossibleSortantPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+		public SubBlock signIfPossibleOutgoingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
 			try {
 				switch (current_step) {
 				case NOT_CONNECTED:

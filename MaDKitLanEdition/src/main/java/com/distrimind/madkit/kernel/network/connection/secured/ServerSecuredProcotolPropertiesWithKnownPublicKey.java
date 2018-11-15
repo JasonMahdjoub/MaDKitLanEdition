@@ -37,7 +37,9 @@
  */
 package com.distrimind.madkit.kernel.network.connection.secured;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.distrimind.madkit.exceptions.BlockParserException;
@@ -248,7 +250,7 @@ public class ServerSecuredProcotolPropertiesWithKnownPublicKey
 	
 
 	public int getMaximumSignatureSizeBits() {
-		int res = -1;
+		int res = 0;
 		for (SymmetricAuthentifiedSignatureType v : signatures.values()) {
 			res = Math.max(res, v.getSignatureSizeInBits());
 		}
@@ -492,39 +494,43 @@ public class ServerSecuredProcotolPropertiesWithKnownPublicKey
 	public boolean canBeServer() {
 		return true;
 	}
-	private SymmetricEncryptionAlgorithm maxAlgo=null;
+	private transient List<SymmetricEncryptionAlgorithm> maxAlgos=null;
 	@Override
 	public int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException
 	{
 	    if (!isEncrypted())
 	        return size;
 		try {
-			if (maxAlgo==null)
-			{
-				int res=0;
-				SymmetricEncryptionAlgorithm maxAlgo;
-				
-				for (Map.Entry<Integer, SymmetricEncryptionType> e : this.symmetricEncryptionTypes.entrySet())
-				{
-					maxAlgo=new SymmetricEncryptionAlgorithm(SecureRandomType.DEFAULT.getInstance(null), e.getValue().getKeyGenerator(SecureRandomType.DEFAULT.getInstance(null), this.symmetricEncryptionKeySizeBits.get(e.getKey())).generateKey());
-					int v=maxAlgo.getOutputSizeForEncryption(size);
-					if (v>=res)
-					{
-						res=v;
-						this.maxAlgo=maxAlgo;
-					}
+			int res=0;
+			if (maxAlgos==null) {
+				List<SymmetricEncryptionAlgorithm> maxAlgos=new ArrayList<>(this.symmetricEncryptionTypes.size());
+				for (Map.Entry<Integer, SymmetricEncryptionType> e : this.symmetricEncryptionTypes.entrySet()) {
+					maxAlgos.add(new SymmetricEncryptionAlgorithm(SecureRandomType.DEFAULT.getInstance(null), e.getValue().getKeyGenerator(SecureRandomType.DEFAULT.getInstance(null), this.symmetricEncryptionKeySizeBits.get(e.getKey())).generateKey()));
 				}
-				return res;
+                this.maxAlgos=maxAlgos;
 			}
-			return maxAlgo.getOutputSizeForEncryption(size);
+			for (SymmetricEncryptionAlgorithm maxAlgo : maxAlgos)
+			{
+				int v=maxAlgo.getOutputSizeForEncryption(size)+4;
+				if (v>=res)
+				{
+					res=v;
+				}
+			}
+
+			return res;
 		} catch (Exception e) {
 			throw new BlockParserException(e);
 		}
 	}
 
+	private transient Integer maxSizeHead=null;
+
     @Override
     public int getMaximumSizeHead() throws BlockParserException {
-        return getMaximumSignatureSizeBits()/8;
+        if (maxSizeHead==null)
+            maxSizeHead=getMaximumSignatureSizeBits()/8;
+        return maxSizeHead;
     }
 
 }

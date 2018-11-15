@@ -1104,14 +1104,16 @@ class MadkitKernel extends Agent {
     private static void removeDistantKernelAddress(Map<KernelAddress, Set<Group>> groupsPerKernelAddress, Map<Group, Set<KernelAddress>> kernelAddressesPerGroups, KernelAddress ka)
     {
         Set<Group> l=groupsPerKernelAddress.remove(ka);
-        for (Group g : l) {
-            Set<KernelAddress> lka=kernelAddressesPerGroups.get(g);
-            if (lka!=null) {
-                lka.remove(ka);
-                if (lka.isEmpty())
-                    kernelAddressesPerGroups.remove(g);
-            }
-        }
+        if (l!=null) {
+			for (Group g : l) {
+				Set<KernelAddress> lka = kernelAddressesPerGroups.get(g);
+				if (lka != null) {
+					lka.remove(ka);
+					if (lka.isEmpty())
+						kernelAddressesPerGroups.remove(g);
+				}
+			}
+		}
     }
 
 	void informHooks(HookMessage hook_message) {

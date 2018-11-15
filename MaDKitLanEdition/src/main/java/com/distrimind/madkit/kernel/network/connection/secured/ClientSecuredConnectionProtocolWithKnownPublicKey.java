@@ -494,7 +494,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 
 
 		@Override
-		public SubBlockInfo checkEntrantPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+		public SubBlockInfo checkIncomingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
 			SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getSizeHead(),
 					_block.getSize() - getSizeHead());
 			if (current_step==Step.NOT_CONNECTED)
@@ -517,7 +517,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 		}
 
 		@Override
-		public SubBlock signIfPossibleSortantPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+		public SubBlock signIfPossibleOutgoingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
 			try {
 				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() - getSizeHead(),
 						_block.getSize() + getSizeHead());
@@ -655,7 +655,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 
 
 		@Override
-		public SubBlockInfo checkEntrantPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+		public SubBlockInfo checkIncomingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
 			SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getSizeHead(),
 					_block.getSize() - getSizeHead());
 			if (current_step==Step.NOT_CONNECTED)
@@ -678,7 +678,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 		}
 
 		@Override
-		public SubBlock signIfPossibleSortantPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+		public SubBlock signIfPossibleOutgoingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
 			try {
 				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() - getSizeHead(),
 						_block.getSize() + getSizeHead());

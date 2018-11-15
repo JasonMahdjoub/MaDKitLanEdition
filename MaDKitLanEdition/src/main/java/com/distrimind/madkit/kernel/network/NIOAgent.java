@@ -781,7 +781,6 @@ final class NIOAgent extends Agent {
 					this.launchAgent(dka);
 					AgentAddress dkaaa = dka.getAgentAddressIn(LocalCommunity.Groups.NETWORK,
 							LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
-
 					AgentSocket agent = new AgentSocket(ip, dkaaa, socketChannel, myAgentAddress, isaRemote, isaLocal,
 							local_asking);
 					this.launchAgent(agent);

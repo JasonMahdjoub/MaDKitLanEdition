@@ -288,7 +288,7 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	public boolean isEncrypted() {
 		return enableEncryption;
 	}
-	private transient volatile Integer maxBodyOutputSize=null;
+	private transient SymmetricEncryptionAlgorithm maxAlgo=null;
 
 	@Override
 	public int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException {
@@ -296,23 +296,26 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 			return size;
 		else
 		{
+
 			try {
-				if (maxBodyOutputSize==null)
-				{
-					maxBodyOutputSize=new SymmetricEncryptionAlgorithm(SecureRandomType.DEFAULT.getSingleton(null), symmetricEncryptionType.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), getSymmetricKeySizeBits()).generateKey()).getOutputSizeForEncryption(size)+4;
-				}
-				return maxBodyOutputSize;
+				if (maxAlgo==null)
+					maxAlgo=new SymmetricEncryptionAlgorithm(SecureRandomType.DEFAULT.getSingleton(null), symmetricEncryptionType.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), getSymmetricKeySizeBits()).generateKey());
+				return maxAlgo.getOutputSizeForEncryption(size)+4;
 			} catch (Exception e) {
 				throw new BlockParserException(e);
 			}
 
 		}
 	}
+    private transient Integer maxSizeHead=null;
 
     @Override
-    public int getMaximumSizeHead() {
-        return signatureType.getSignatureSizeInBits()/8;
+    public int getMaximumSizeHead() throws BlockParserException {
+        if (maxSizeHead==null)
+            maxSizeHead=signatureType.getSignatureSizeInBits()/8;
+        return maxSizeHead;
     }
+
 
     @Override
 	public boolean needsServerSocketImpl() {

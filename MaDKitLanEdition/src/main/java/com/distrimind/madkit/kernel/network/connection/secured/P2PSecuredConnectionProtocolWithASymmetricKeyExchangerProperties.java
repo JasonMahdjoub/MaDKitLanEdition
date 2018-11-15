@@ -145,7 +145,8 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties ex
 	public boolean isEncrypted() {
 		return enableEncryption;
 	}
-    private transient volatile Integer maxBodyOutputSize=null;
+
+	private transient SymmetricEncryptionAlgorithm maxAlgo=null;
 
 	@Override
 	public int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException {
@@ -153,19 +154,19 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties ex
 			return size;
 		else
 		{
-            try {
-                if (maxBodyOutputSize==null)
-                {
-                    maxBodyOutputSize=new SymmetricEncryptionAlgorithm(SecureRandomType.DEFAULT.getSingleton(null), symmetricEncryptionType.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), symmetricKeySizeBits).generateKey()).getOutputSizeForEncryption(size)+4;
-                }
-                return maxBodyOutputSize;
-            } catch (Exception e) {
-                throw new BlockParserException(e);
-            }
 
+			try {
+				if (maxAlgo==null)
+					maxAlgo=new SymmetricEncryptionAlgorithm(SecureRandomType.DEFAULT.getSingleton(null), symmetricEncryptionType.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), symmetricKeySizeBits).generateKey());
+				return maxAlgo.getOutputSizeForEncryption(size)+4;
+			} catch (Exception e) {
+				throw new BlockParserException(e);
+			}
 
 		}
 	}
+
+
     private transient volatile Integer maxHeadSize=null;
     @SuppressWarnings("deprecation")
     @Override

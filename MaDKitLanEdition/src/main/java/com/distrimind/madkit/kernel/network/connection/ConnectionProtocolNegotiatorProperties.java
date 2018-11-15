@@ -148,7 +148,7 @@ public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolPr
             Integer v=connectionProtocolsPriorities.get(e.getKey());
             if (v!=null) {
                 int s=v+e.getValue();
-                if (s > max) {
+                if (s > max || (s==max && res!=null && res<e.getKey())) {
                     max = s;
                     res = e.getKey();
                 }
@@ -216,6 +216,8 @@ public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolPr
         for (Map.Entry<Integer, ConnectionProtocolProperties<?>> e : connectionProtocolProperties.entrySet())
         {
             Boolean val=validationOfConnectionProtocols.get(e.getKey());
+            if (e.getValue().subProtocolProperties!=null)
+                throw new ConnectionException("Impossible to use sub protocols into connection associated to protocol negotiator");
             if (val==null)
                 throw new ConnectionException();
             if (val) {
@@ -256,11 +258,15 @@ public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolPr
         return res;
     }
 
+    private transient Integer maxHeadSize=null;
     @Override
     public int getMaximumSizeHead() throws BlockParserException {
-        int res=0;
-        for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties.values())
-            res=Math.max(cpp.getMaximumSizeHead(), res);
-        return res;
+        if (maxHeadSize==null) {
+            int res = 0;
+            for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties.values())
+                res = Math.max(cpp.getMaximumSizeHead(), res);
+            maxHeadSize=res;
+        }
+        return maxHeadSize;
     }
 }

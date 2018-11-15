@@ -491,7 +491,7 @@ public class JunitMadkit {
 						checkKilledKernelsNb(agent, m, 10000);
 					}
 					for (Madkit m : helperInstances) {
-						checkEmptyConversationIDTraces(agent, m, 20000);
+						checkEmptyConversationIDTraces(agent, m, 30000);
 					}
 					for (Madkit m : helperInstances) {
 						checkReleasedGroups(agent, m);
@@ -682,6 +682,7 @@ public class JunitMadkit {
 		do {
 			if (t.getMili() < timeout && !m.getKernel().isGlobalInterfacedIDsEmpty()) {
 				System.out.println(m.getKernel() + " : global conversation ID interfaces empty = false");
+				System.gc();
 				System.gc();
 				pause(agent, 1000);
 			}

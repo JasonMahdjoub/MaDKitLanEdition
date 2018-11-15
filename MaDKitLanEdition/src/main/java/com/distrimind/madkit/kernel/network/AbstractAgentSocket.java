@@ -333,7 +333,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			connection_protocol = getMadkitConfig().networkProperties.getConnectionProtocolInstance(
 					distant_inet_address, local_interface_address, getMadkitConfig().getDatabaseWrapper(),getMadkitConfig(),
 					!this_ask_connection, this instanceof IndirectAgentSocket);
-			
+
 			if (connection_protocol == null)
 				throw new IllegalArgumentException(
 						"The properties must have at least one connection protocol comptatible !");

@@ -73,7 +73,7 @@ public abstract class SubBlockParser {
 
 	public abstract int getBodyOutputSizeForDecryption(int size) throws BlockParserException;
 	
-	public abstract SubBlockInfo checkEntrantPointToPointTransferedBlock(SubBlock _block) throws BlockParserException;
+	public abstract SubBlockInfo checkIncomingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException;
 	
-	public abstract SubBlock signIfPossibleSortantPointToPointTransferedBlock(SubBlock _block) throws BlockParserException;
+	public abstract SubBlock signIfPossibleOutgoingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException;
 }

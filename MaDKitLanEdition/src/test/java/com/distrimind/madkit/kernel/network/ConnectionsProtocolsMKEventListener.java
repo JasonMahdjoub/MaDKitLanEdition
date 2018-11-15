@@ -147,7 +147,7 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 		encryptionProfileIdentifier = s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.DEFAULT, ASymmetricKeyWrapperType.DEFAULT);
 		if (includeP2PConnectionPossibilityForClients) {
 			P2PSecuredConnectionProtocolWithKeyAgreementProperties p2p = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
-			p2p.isServer = false;
+			p2p.isServer = true;
 			res.add(new ConnectionsProtocolsMKEventListener(s, p2p));
 		} else
 			res.add(new ConnectionsProtocolsMKEventListener(s));
@@ -169,26 +169,35 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 
 
 		ConnectionProtocolNegotiatorProperties cpnp=new ConnectionProtocolNegotiatorProperties();
-		P2PSecuredConnectionProtocolWithKeyAgreementProperties p2pp_ecdh=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
-		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
-		p2pp_ecdh.keyAgreementType= KeyAgreementType.BCPQC_NEW_HOPE;
-		p2pp_ecdh.enableEncryption=true;
-		p2pp_ecdh.symmetricKeySizeBits=256;
-		cpnp.addConnectionProtocol(p2pp_ecdh, 1);
+		s=new ServerSecuredProcotolPropertiesWithKnownPublicKey();
+		s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.AES_CTR, ASymmetricKeyWrapperType.BC_FIPS_RSA_OAEP_WITH_SHA3_384);
+		cpnp.addConnectionProtocol(s, 0);
+		s=new ServerSecuredProcotolPropertiesWithKnownPublicKey();
+		s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.AES_GCM, ASymmetricKeyWrapperType.BC_FIPS_RSA_OAEP_WITH_PARAMETERS_SHA3_512);
+		cpnp.addConnectionProtocol(s, 1);
 
-		p2pp_ecdh = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
-		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
-		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
-		p2pp_ecdh.enableEncryption=false;
-		cpnp.addConnectionProtocol(p2pp_ecdh, 0);
-		res.add(new ConnectionsProtocolsMKEventListener(cpnp));
+		if (includeP2PConnectionPossibilityForClients) {
+			ConnectionProtocolNegotiatorProperties cpnp2=new ConnectionProtocolNegotiatorProperties();
+			P2PSecuredConnectionProtocolWithKeyAgreementProperties cpp2=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+			cpp2.symmetricEncryptionType=SymmetricEncryptionType.AES_GCM;
+
+			cpnp2.addConnectionProtocol(cpp2, 0);
+			cpp2=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+			cpp2.symmetricEncryptionType=SymmetricEncryptionType.AES_CTR;
+
+			cpnp2.addConnectionProtocol(cpp2, 1);
+
+			res.add(new ConnectionsProtocolsMKEventListener(cpnp, cpnp2));
+		} else
+			res.add(new ConnectionsProtocolsMKEventListener(cpnp));
+
 
 		return res;
 	}
 
 	public static ArrayList<ConnectionsProtocolsMKEventListener> getConnectionsProtocolsMKEventListenerForClientConnection(
 			boolean includeP2PConnectionPossibilityForClients)
-			throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+			throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, ConnectionException {
 		ArrayList<ConnectionsProtocolsMKEventListener> res = new ArrayList<>();
 		UnsecuredConnectionProtocolProperties u = new UnsecuredConnectionProtocolProperties();
 		u.isServer = false;
@@ -226,6 +235,30 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 		cs.subProtocolProperties = u;
 		cs.isServer = false;
 		res.add(new ConnectionsProtocolsMKEventListener(cs));
+
+		ConnectionProtocolNegotiatorProperties cpnp=new ConnectionProtocolNegotiatorProperties();
+		c=new ClientSecuredProtocolPropertiesWithKnownPublicKey();
+		c.setEncryptionProfile(encryptionProfileIdentifier, getKeyPairForSignature().getASymmetricPublicKey(), SymmetricEncryptionType.AES_CTR,ASymmetricKeyWrapperType.BC_FIPS_RSA_OAEP_WITH_SHA3_384);
+		cpnp.addConnectionProtocol(c, 0);
+		c=new ClientSecuredProtocolPropertiesWithKnownPublicKey();
+		c.setEncryptionProfile(encryptionProfileIdentifier, getKeyPairForSignature().getASymmetricPublicKey(), SymmetricEncryptionType.AES_GCM,ASymmetricKeyWrapperType.BC_FIPS_RSA_OAEP_WITH_PARAMETERS_SHA3_512);
+		cpnp.addConnectionProtocol(c, 1);
+
+		if (includeP2PConnectionPossibilityForClients) {
+			ConnectionProtocolNegotiatorProperties cpnp2=new ConnectionProtocolNegotiatorProperties();
+			P2PSecuredConnectionProtocolWithKeyAgreementProperties cpp2=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+			cpp2.isServer=false;
+			cpp2.symmetricEncryptionType=SymmetricEncryptionType.AES_GCM;
+			cpnp2.addConnectionProtocol(cpp2, 0);
+			cpp2=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+			cpp2.symmetricEncryptionType=SymmetricEncryptionType.AES_CTR;
+            cpp2.isServer=false;
+			cpnp2.addConnectionProtocol(cpp2, 1);
+
+			res.add(new ConnectionsProtocolsMKEventListener(cpnp, cpnp2));
+		} else
+			res.add(new ConnectionsProtocolsMKEventListener(cpnp));
+
 		return res;
 	}
 }
