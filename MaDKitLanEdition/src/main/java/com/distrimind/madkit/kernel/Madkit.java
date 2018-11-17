@@ -149,11 +149,13 @@ final public class Madkit {
 			d.addItem("Detect security anomalies during big data transfers.");
             d.addItem("Correction of Group.equals() with null references.");
             d.addItem("Better manage ban with deserialization process.");
-			d.addItem("Update Utils to 3.22.0.");
-			d.addItem("Update OOD to 2.0.0 Beta 90.");
+			d.addItem("Update Utils to 3.22.1.");
+			d.addItem("Update OOD to 2.0.0 Beta 91.");
 			d.addItem("Add function AbstractAgent.getAccessibleKernelsFilteredByGroupsGivenByDistantPeer(Group).");
 			d.addItem("Add function AbstractAgent.getAccessibleKernelsFilteredByGroupsGivenToDistantPeer(Group).");
 			d.addItem("Check public key validity with client/server connexion protocol.");
+            d.addItem("Add ConnectionProtocolNegotiator and ConnectionProtocolNegotiatorProperties classes.");
+            d.addItem("Fix issue with client/server vs peer-to-peer protocol negotiation.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();

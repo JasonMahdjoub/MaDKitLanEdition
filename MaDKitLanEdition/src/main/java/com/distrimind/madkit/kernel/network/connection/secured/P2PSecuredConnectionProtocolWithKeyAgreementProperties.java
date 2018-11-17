@@ -146,12 +146,13 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementProperties extends Conn
 	private transient volatile Integer maxHeadSize=null;
     @Override
     public int getMaximumSizeHead() throws BlockParserException {
-        if (maxHeadSize==null) {
+        if (maxHeadSize==null)
+		{
             try {
 
                 SymmetricAuthentifiedSignerAlgorithm signerTmp = new SymmetricAuthentifiedSignerAlgorithm(symmetricSignatureType.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), symmetricEncryptionType.getDefaultKeySizeBits()).generateKey());
                 signerTmp.init();
-                maxHeadSize = signerTmp.getMacLength()/8;
+                maxHeadSize = signerTmp.getMacLengthBytes();
 
             } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidKeyException | InvalidKeySpecException e) {
                 throw new BlockParserException(e);

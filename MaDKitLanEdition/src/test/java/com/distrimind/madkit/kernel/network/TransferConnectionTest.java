@@ -44,8 +44,11 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 import java.util.logging.Level;
 
+import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolNegotiator;
+import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolNegotiatorProperties;
 import com.distrimind.util.OS;
 import org.junit.Assert;
 import org.junit.Test;
@@ -220,6 +223,13 @@ public class TransferConnectionTest extends JunitMadkit {
 			UnsecuredConnectionProtocolProperties sold = (UnsecuredConnectionProtocolProperties) cpp;
 			UnsecuredConnectionProtocolProperties s = new UnsecuredConnectionProtocolProperties();
 			s.isServer = sold.isServer;
+			res = s;
+		}
+		else if (cpp.getClass() == ConnectionProtocolNegotiatorProperties.class) {
+			ConnectionProtocolNegotiatorProperties sold = (ConnectionProtocolNegotiatorProperties) cpp;
+			ConnectionProtocolNegotiatorProperties s = new ConnectionProtocolNegotiatorProperties(sold);
+			for (Map.Entry<Integer, ConnectionProtocolProperties<?>> e : sold.getConnectionProtocolProperties().entrySet())
+				s.getConnectionProtocolProperties().put(e.getKey(), cloneAndChangeConnectionProtocolProperty(e.getValue()));
 			res = s;
 		}
 		if (cpp.subProtocolProperties != null)

@@ -70,6 +70,14 @@ public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolPr
         validationOfConnectionProtocols=new HashMap<>();
         connectionProtocolsPriorities=new HashMap<>();
     }
+    public ConnectionProtocolNegotiatorProperties(ConnectionProtocolNegotiatorProperties c) {
+        super(ConnectionProtocolNegotiator.class);
+
+        lastIdentifier=c.lastIdentifier;
+        connectionProtocolProperties=new HashMap<>(c.connectionProtocolProperties);
+        validationOfConnectionProtocols=new HashMap<>(c.validationOfConnectionProtocols);
+        connectionProtocolsPriorities=new HashMap<>(c.connectionProtocolsPriorities);
+    }
 
 
     /**
@@ -276,5 +284,9 @@ public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolPr
             maxHeadSize=res;
         }
         return maxHeadSize;
+    }
+
+    public HashMap<Integer, ConnectionProtocolProperties<?>> getConnectionProtocolProperties() {
+        return connectionProtocolProperties;
     }
 }
