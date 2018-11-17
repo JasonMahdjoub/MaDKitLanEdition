@@ -225,10 +225,9 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 			p2p.isServer = false;
 			cpp2.subProtocolProperties = p2p;
 			res.add(new ConnectionsProtocolsMKEventListener(cpp, cpp2));
-		} else {
-
+		} else
 			res.add(new ConnectionsProtocolsMKEventListener(cpp));
-		}
+
 
 		u = new UnsecuredConnectionProtocolProperties();
 		u.isServer = false;

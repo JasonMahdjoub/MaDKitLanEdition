@@ -310,7 +310,7 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
     private transient Integer maxSizeHead=null;
 
     @Override
-    public int getMaximumSizeHead() throws BlockParserException {
+    public int getMaximumSizeHead() {
         if (maxSizeHead==null)
             maxSizeHead=signatureType.getSignatureSizeInBits()/8;
         return maxSizeHead;

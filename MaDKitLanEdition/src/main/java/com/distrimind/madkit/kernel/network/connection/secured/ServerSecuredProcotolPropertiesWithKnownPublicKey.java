@@ -527,7 +527,7 @@ public class ServerSecuredProcotolPropertiesWithKnownPublicKey
 	private transient Integer maxSizeHead=null;
 
     @Override
-    public int getMaximumSizeHead() throws BlockParserException {
+    public int getMaximumSizeHead() {
         if (maxSizeHead==null)
             maxSizeHead=getMaximumSignatureSizeBits()/8;
         return maxSizeHead;

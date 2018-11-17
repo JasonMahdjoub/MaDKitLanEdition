@@ -145,8 +145,7 @@ public class UnsecuredConnectionProtocol extends ConnectionProtocol<UnsecuredCon
 
 		@Override
 		public SubBlockInfo getSubBlock(SubBlock _block) throws BlockParserException {
-			return new SubBlockInfo(new SubBlock(_block.getBytes(), _block.getOffset() + getSizeHead(),
-					getBodyOutputSizeForDecryption(_block.getSize() - getSizeHead())), true, false);
+			return new SubBlockInfo(_block, true, false);
 		}
 
 		@Override

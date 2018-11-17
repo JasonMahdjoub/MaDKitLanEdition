@@ -105,7 +105,7 @@ public class UnsecuredConnectionProtocolProperties extends ConnectionProtocolPro
 	}
 
 	@Override
-	public int getMaximumSizeHead() throws BlockParserException {
+	public int getMaximumSizeHead() {
 		return 0;
 	}
 

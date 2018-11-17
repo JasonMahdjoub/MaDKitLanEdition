@@ -284,8 +284,8 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		cpnp.addConnectionProtocol(p2pp_ecdh, 1);
 		p2pp_ecdh = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
-		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
-		p2pp_ecdh.enableEncryption=false;
+		p2pp_ecdh.keyAgreementType=KeyAgreementType.BC_ECCDH_512_CURVE_25519;
+		p2pp_ecdh.enableEncryption=true;
 		cpnp.addConnectionProtocol(p2pp_ecdh, 0);
 		o[0] = cpnp;
 		cpnp=new ConnectionProtocolNegotiatorProperties();
@@ -298,8 +298,8 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		cpnp.addConnectionProtocol(p2pp_ecdh, 1);
 		p2pp_ecdh = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
-		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
-		p2pp_ecdh.enableEncryption=false;
+		p2pp_ecdh.keyAgreementType=KeyAgreementType.BC_ECCDH_512_CURVE_25519;
+		p2pp_ecdh.enableEncryption=true;
 		cpnp.addConnectionProtocol(p2pp_ecdh, 0);
 		o[1] = cpnp;
 		res.add(o);
@@ -315,8 +315,8 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		cpnp.addConnectionProtocol(p2pp_ecdh, 0);
 		p2pp_ecdh = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
-		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
-		p2pp_ecdh.enableEncryption=false;
+		p2pp_ecdh.keyAgreementType=KeyAgreementType.BC_ECCDH_512_CURVE_25519;
+		p2pp_ecdh.enableEncryption=true;
 		cpnp.addConnectionProtocol(p2pp_ecdh, 1);
 		o[0] = cpnp;
 		cpnp=new ConnectionProtocolNegotiatorProperties();
@@ -329,8 +329,8 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		cpnp.addConnectionProtocol(p2pp_ecdh, 0);
 		p2pp_ecdh = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
-		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
-		p2pp_ecdh.enableEncryption=false;
+		p2pp_ecdh.keyAgreementType=KeyAgreementType.BC_ECCDH_512_CURVE_25519;
+		p2pp_ecdh.enableEncryption=true;
 		cpnp.addConnectionProtocol(p2pp_ecdh, 1);
 		o[1] = cpnp;
 		res.add(o);

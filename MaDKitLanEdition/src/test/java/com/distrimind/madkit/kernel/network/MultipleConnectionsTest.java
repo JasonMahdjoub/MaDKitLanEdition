@@ -142,8 +142,16 @@ public class MultipleConnectionsTest extends JunitMadkit {
 		eventListener4.setGlobalDataAmountAcc(globalDataAmountAcc);
 		eventListener5.setLocalDataAmountAcc(localDataAmountAcc);
 		eventListener5.setGlobalDataAmountAcc(globalDataAmountAcc);
-		for (ConnectionProtocolProperties<?> cpp : eventListener1.madkitEventListenerForConnectionProtocols.getConnectionProtocolProperties())
+		for (ConnectionProtocolProperties<?> cpp : eventListener1.madkitEventListenerForConnectionProtocols.getConnectionProtocolProperties()) {
 			System.out.println(cpp);
+			while((cpp=cpp.subProtocolProperties)!=null)
+				System.out.println("\t"+cpp);
+		}
+		for (ConnectionProtocolProperties<?> cpp : eventListener2.madkitEventListenerForConnectionProtocols.getConnectionProtocolProperties()) {
+			System.out.println(cpp);
+			while((cpp=cpp.subProtocolProperties)!=null)
+				System.out.println("\t"+cpp);
+		}
 		cleanHelperMDKs();
 		// addMadkitArgs(LevelOption.networkLogLevel.toString(),"FINER");
 		launchTest(new AbstractAgent() {
