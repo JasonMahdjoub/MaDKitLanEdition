@@ -166,5 +166,9 @@ public class NetworkPongAgent extends AgentAddressAgentTester {
 		networkPingAgent.printOK();
 		System.out.println();
 	}
-
+	@Override
+	protected void end() {
+		//noinspection StatementWithEmptyBody
+		while (nextMessage()!=null);
+	}
 }

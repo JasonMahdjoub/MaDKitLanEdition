@@ -465,6 +465,7 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 		
 	}
 	private SubBlocksStructure lastSBS;
+
 	public SubBlock initSubBlock(int packetSize) throws NIOException
 	{
 		try {

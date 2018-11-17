@@ -406,7 +406,11 @@ public class AgentBigTransfer extends AgentFakeThread {
 			}
 		}
 	}
-
+	@Override
+	protected void end() {
+		//noinspection StatementWithEmptyBody
+		while (nextMessage()!=null);
+	}
 	@Override
 	public String toString() {
 		if (myTransferFinished && otherTransferFinished && ok && nextBigTransfer != null)

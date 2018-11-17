@@ -361,6 +361,12 @@ class AgentsToLaunch extends AbstractAgent {
 		launchAgent(networkPingAgent);
 	}
 
+	@Override
+	protected void end() {
+		//noinspection StatementWithEmptyBody
+		while (nextMessage()!=null);
+	}
+
 	public ReturnCode launchBigDataTransferAgent() {
 		return launchAgent(agentBigTransfer);
 	}
