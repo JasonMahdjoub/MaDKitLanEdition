@@ -55,6 +55,7 @@ import com.distrimind.util.crypto.*;
 import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
 import gnu.vm.jgnu.security.NoSuchAlgorithmException;
 import gnu.vm.jgnu.security.NoSuchProviderException;
+import org.junit.Assert;
 
 /**
  * 
@@ -154,7 +155,7 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 
 		ConnectionProtocolProperties<?> cpp = new UnsecuredConnectionProtocolProperties();
 		s = new ServerSecuredProcotolPropertiesWithKnownPublicKey();
-		encryptionProfileIdentifier = s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.DEFAULT, ASymmetricKeyWrapperType.DEFAULT);
+		Assert.assertEquals(s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.DEFAULT, ASymmetricKeyWrapperType.DEFAULT), encryptionProfileIdentifier);
 		cpp.subProtocolProperties = s;
 		if (includeP2PConnectionPossibilityForClients) {
 			ConnectionProtocolProperties<?> cpp2 = new UnsecuredConnectionProtocolProperties();
@@ -170,21 +171,21 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 
 		ConnectionProtocolNegotiatorProperties cpnp=new ConnectionProtocolNegotiatorProperties();
 		s=new ServerSecuredProcotolPropertiesWithKnownPublicKey();
-		s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.AES_CTR, ASymmetricKeyWrapperType.BC_FIPS_RSA_OAEP_WITH_SHA3_384);
+		Assert.assertEquals(s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.AES_CTR, ASymmetricKeyWrapperType.BC_FIPS_RSA_OAEP_WITH_SHA3_384), encryptionProfileIdentifier);
 		cpnp.addConnectionProtocol(s, 0);
 		s=new ServerSecuredProcotolPropertiesWithKnownPublicKey();
-		s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.AES_GCM, ASymmetricKeyWrapperType.BC_FIPS_RSA_OAEP_WITH_PARAMETERS_SHA3_512);
+		Assert.assertEquals(s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.AES_GCM, ASymmetricKeyWrapperType.BC_FIPS_RSA_OAEP_WITH_PARAMETERS_SHA3_512), encryptionProfileIdentifier);
 		cpnp.addConnectionProtocol(s, 1);
 
 		if (includeP2PConnectionPossibilityForClients) {
 			ConnectionProtocolNegotiatorProperties cpnp2=new ConnectionProtocolNegotiatorProperties();
 			P2PSecuredConnectionProtocolWithKeyAgreementProperties cpp2=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
 			cpp2.symmetricEncryptionType=SymmetricEncryptionType.AES_GCM;
-
+            cpp2.isServer=true;
 			cpnp2.addConnectionProtocol(cpp2, 0);
 			cpp2=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
 			cpp2.symmetricEncryptionType=SymmetricEncryptionType.AES_CTR;
-
+            cpp2.isServer=true;
 			cpnp2.addConnectionProtocol(cpp2, 1);
 
 			res.add(new ConnectionsProtocolsMKEventListener(cpnp, cpnp2));

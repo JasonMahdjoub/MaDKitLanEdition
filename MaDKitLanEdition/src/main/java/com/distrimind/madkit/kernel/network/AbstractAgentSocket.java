@@ -329,10 +329,11 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			if (logger != null)
 				logger.info("Starting connection (distant_inet_address=" + distant_inet_address + ", local_interface="
 						+ local_interface_address + ")");
-
 			connection_protocol = getMadkitConfig().networkProperties.getConnectionProtocolInstance(
 					distant_inet_address, local_interface_address, getMadkitConfig().getDatabaseWrapper(),getMadkitConfig(),
 					!this_ask_connection, this instanceof IndirectAgentSocket);
+
+
 
 			if (connection_protocol == null)
 				throw new IllegalArgumentException(

@@ -88,7 +88,8 @@ public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolPr
             if (needsServerSocketImpl()!=cpp.needsServerSocketImpl() ||
                     canTakeConnectionInitiativeImpl()!=cpp.canTakeConnectionInitiativeImpl() ||
                     supportBidirectionalConnectionInitiativeImpl()!=cpp.supportBidirectionalConnectionInitiativeImpl() ||
-                    canBeServer()!=cpp.canBeServer())
+                    canBeServer()!=cpp.canBeServer() ||
+                    isEncrypted()!=cpp.isEncrypted())
                 throw new IllegalArgumentException("Incompatible connection protocol with presents connection protocols");
         }
         if (connectionProtocolProperties.size()>MAXIMUM_NUMBER_OF_CONNECTION_PROTOCOLS)
@@ -177,23 +178,31 @@ public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolPr
 
     @Override
     public boolean needsServerSocketImpl() {
-        return !connectionProtocolsPriorities.isEmpty() && connectionProtocolProperties.values().iterator().next().needsServerSocketImpl();
+        if (connectionProtocolProperties.isEmpty())
+            throw new IllegalAccessError("You must first add a connection protocol to this connection protocol negotiator !");
+        return connectionProtocolProperties.get(lastIdentifier).needsServerSocketImpl();
     }
 
     @Override
     public boolean supportBidirectionalConnectionInitiativeImpl() {
-        return !connectionProtocolsPriorities.isEmpty() && connectionProtocolProperties.values().iterator().next().supportBidirectionalConnectionInitiativeImpl();
+        if (connectionProtocolProperties.isEmpty())
+            throw new IllegalAccessError("You must first add a connection protocol to this connection protocol negotiator !");
+        return connectionProtocolProperties.get(lastIdentifier).supportBidirectionalConnectionInitiativeImpl();
 
     }
 
     @Override
     public boolean canTakeConnectionInitiativeImpl() {
-        return !connectionProtocolsPriorities.isEmpty() && connectionProtocolProperties.values().iterator().next().canTakeConnectionInitiativeImpl();
+        if (connectionProtocolProperties.isEmpty())
+            throw new IllegalAccessError("You must first add a connection protocol to this connection protocol negotiator !");
+        return connectionProtocolProperties.get(lastIdentifier).canTakeConnectionInitiativeImpl();
     }
 
     @Override
     public boolean canBeServer() {
-        return !connectionProtocolsPriorities.isEmpty() && connectionProtocolProperties.values().iterator().next().canBeServer();
+        if (connectionProtocolProperties.isEmpty())
+            throw new IllegalAccessError("You must first add a connection protocol to this connection protocol negotiator !");
+        return connectionProtocolProperties.get(lastIdentifier).canBeServer();
     }
 
     public HashMap<Integer, Integer> getConnectionProtocolsPriorities() {
@@ -243,11 +252,10 @@ public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolPr
 
     @Override
     public boolean isEncrypted() {
+        if (connectionProtocolProperties.isEmpty())
+            throw new IllegalAccessError("You must first add a connection protocol to this connection protocol negotiator !");
 
-        for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties.values())
-            if (!cpp.needsMadkitLanEditionDatabase())
-                return false;
-        return true;
+        return connectionProtocolProperties.get(lastIdentifier).isEncrypted();
     }
 
     @Override

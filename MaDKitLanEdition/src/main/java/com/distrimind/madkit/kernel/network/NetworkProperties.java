@@ -612,11 +612,21 @@ public class NetworkProperties extends MultiFormatProperties {
 	public ConnectionProtocol<?> getConnectionProtocolInstance(InetSocketAddress _distant_inet_address,
 			InetSocketAddress _local_interface_address, DatabaseWrapper sql_connection, MadkitProperties mkProperties, boolean isServer,
 			boolean needBiDirectionnalConnectionInitiationAbility) throws NIOException {
+
 		for (ConnectionProtocolProperties<?> cpp : getConnectionProtocolList()) {
 			if (cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
-					_distant_inet_address.getAddress(), isServer, needBiDirectionnalConnectionInitiationAbility)) {
+					_distant_inet_address.getAddress(), isServer, true)) {
 				return cpp.getConnectionProtocolInstance(_distant_inet_address, _local_interface_address,
-						sql_connection, mkProperties, isServer, needBiDirectionnalConnectionInitiationAbility);
+						sql_connection, mkProperties, isServer, true);
+			}
+		}
+		if (!needBiDirectionnalConnectionInitiationAbility) {
+			for (ConnectionProtocolProperties<?> cpp : getConnectionProtocolList()) {
+				if (cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
+						_distant_inet_address.getAddress(), isServer, needBiDirectionnalConnectionInitiationAbility)) {
+					return cpp.getConnectionProtocolInstance(_distant_inet_address, _local_interface_address,
+							sql_connection, mkProperties, isServer, needBiDirectionnalConnectionInitiationAbility);
+				}
 			}
 		}
 		return null;

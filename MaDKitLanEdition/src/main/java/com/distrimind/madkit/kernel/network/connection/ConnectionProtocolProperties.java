@@ -150,6 +150,7 @@ public abstract class ConnectionProtocolProperties<CP extends ConnectionProtocol
      */
     public boolean isConcernedBy(InetAddress _local_inet_address, int _local_port, InetAddress _distant_inet_address,
                                  boolean isServer, boolean needBiDirectionnalConnectionInitiationAbility) {
+
         return isConcernedByLocalNetworkInterface(_local_inet_address, _local_port)
                 && isConcernedByDistantPeer(_distant_inet_address, _local_port)
                 && (!needBiDirectionnalConnectionInitiationAbility || this.supportBidirectionnalConnectionInitiative())
