@@ -347,11 +347,11 @@ public class AgentBigTransfer extends AgentFakeThread {
 					if (m.getConversationID().equals(myTransferID)) {
 						System.out.println(
 								"\tTransfer speed through stats : " + (((double) myStat.getNumberOfIndentifiedBytes())
-										/ ((double) myStat.getDuration()) * 1000.0));
+										/ ((double) myStat.getDurationMilli()) * 1000.0));
 					} else if (m.getConversationID().equals(otherConversationID))
 						System.out.println("\tTransfer speed through stats : "
 								+ (((double) otherStat.getNumberOfIndentifiedBytes())
-										/ ((double) otherStat.getDuration()) * 1000.0));
+										/ ((double) otherStat.getDurationMilli()) * 1000.0));
 					RealTimeTransfertStat globalStatUp = getMadkitConfig().networkProperties.getGlobalStatsBandwith()
 							.getBytesUploadedInRealTime(
 									NetworkProperties.DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS);
@@ -360,10 +360,10 @@ public class AgentBigTransfer extends AgentFakeThread {
 									NetworkProperties.DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS);
 					System.out.println("\tGlobal transfer speed (upload) :"
 							+ (((double) globalStatUp.getNumberOfIndentifiedBytes())
-									/ ((double) globalStatUp.getDuration()) * 1000.0));
+									/ ((double) globalStatUp.getDurationMilli()) * 1000.0));
 					System.out.println("\tGlobal transfer speed (download) :"
 							+ (((double) globalStatDown.getNumberOfIndentifiedBytes())
-									/ ((double) globalStatDown.getDuration()) * 1000.0));
+									/ ((double) globalStatDown.getDurationMilli()) * 1000.0));
 
 					if (inputStream != null)
 						Assert.assertEquals(inputStream.length(), m.getTransferedDataLength());
@@ -427,7 +427,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 			RealTimeTransfertStat myStat = myStats.get(s);
 
 			res.append(", upload(").append(s).append(")=").append(myStat == null ? Double.valueOf(-1)
-					: Double.valueOf((((double) myStat.getNumberOfIndentifiedBytes()) / ((double) myStat.getDuration()))));
+					: Double.valueOf((((double) myStat.getNumberOfIndentifiedBytes()) / ((double) myStat.getDurationMilli()))));
 		}
 		res.append("\n\t");
 		for (ConversationID s : ((HashMap<ConversationID, RealTimeTransfertStat>) otherStats.clone()).keySet()) {
@@ -435,7 +435,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 
 			res.append(", download(").append(s).append(")=").append(otherStat == null ? Double.valueOf(-1)
 					: Double.valueOf(
-					(((double) otherStat.getNumberOfIndentifiedBytes()) / ((double) otherStat.getDuration()))));
+					(((double) otherStat.getNumberOfIndentifiedBytes()) / ((double) otherStat.getDurationMilli()))));
 		}
 		return res.toString();
 	}

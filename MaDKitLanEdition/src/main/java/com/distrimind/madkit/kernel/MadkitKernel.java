@@ -1177,29 +1177,46 @@ class MadkitKernel extends Agent {
 		return Collections.unmodifiableSet(distantKernelAddresses);
 	}
 
+	private Set<Group> filterGroups(Set<Group> in, AbstractAgent requester)
+	{
+		HashSet<Group> res=new HashSet<>();
+		for (Group g : in)
+			if (requester.hasGroup(g))
+				res.add(g);
+		return res;
+	}
+
+	private Set<KernelAddress> filterKernelAddresses(Map<Group, Set<KernelAddress>> in, Group group, AbstractAgent requester)
+	{
+		if (requester.hasGroup(group))
+			return new HashSet<>(in.get(group));
+		else
+			return new HashSet<>();
+	}
+
 	Set<Group> getAccessibleGroupsGivenByDistantPeer(AbstractAgent requester, KernelAddress kernelAddress) {
 		if (kernelAddress == null)
 			throw new NullPointerException("kernelAddress");
-		return distantAccessibleGroupsGivenByDistantPeer.get(kernelAddress);
+		return filterGroups(distantAccessibleGroupsGivenByDistantPeer.get(kernelAddress), requester);
 	}
 
 	Set<Group> getAccessibleGroupsGivenToDistantPeer(AbstractAgent requester, KernelAddress kernelAddress) {
 		if (kernelAddress == null)
 			throw new NullPointerException("kernelAddress");
-		return distantAccessibleGroupsGivenToDistantPeer.get(kernelAddress);
+		return filterGroups(distantAccessibleGroupsGivenToDistantPeer.get(kernelAddress), requester);
 	}
-	@SuppressWarnings("unused")
+
 	Set<KernelAddress> getAccessibleKernelsPerGroupGivenByDistantPeer(AbstractAgent requester, Group group) {
 		if (kernelAddress == null)
 			throw new NullPointerException("kernelAddress");
-		return distantAccessibleKernelsPerGroupsGivenByDistantPeer.get(group);
+		return filterKernelAddresses(distantAccessibleKernelsPerGroupsGivenByDistantPeer, group, requester);
 	}
 
-	@SuppressWarnings("unused")
+
 	Set<KernelAddress> getAccessibleKernelsPerGroupGivenToDistantPeer(AbstractAgent requester, Group group) {
 		if (kernelAddress == null)
 			throw new NullPointerException("kernelAddress");
-		return distantAccessibleKernelsPerGroupsGivenToDistantPeer.get(group);
+		return filterKernelAddresses(distantAccessibleKernelsPerGroupsGivenToDistantPeer, group, requester);
 	}
 
 	Set<PairOfIdentifiers> getEffectiveDistantLogins(AbstractAgent requester, KernelAddress kernelAddress) {

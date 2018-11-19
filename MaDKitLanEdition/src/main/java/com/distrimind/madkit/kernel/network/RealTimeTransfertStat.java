@@ -67,7 +67,7 @@ public class RealTimeTransfertStat {
 	 * elapsed duration, specified with the next arguments.
 	 * 
 	 * @param _duration
-	 *            the duration. Must be greater or equal than 3.
+	 *            the duration in milliseconds. Must be greater or equal than 3.
 	 * @param _segment
 	 *            the duration segment. Must be lower than _duration. A lower
 	 *            segment size gives statistics that are more precise, but takes
@@ -95,11 +95,11 @@ public class RealTimeTransfertStat {
 	}
 
 	/**
-	 * The duration used to computed the average of transfered bytes.
+	 * The duration in milliseconds used to computed the average of transfered bytes.
 	 * 
-	 * @return the duration used to computed the average of transfered bytes.
+	 * @return the duration in milliseconds used to computed the average of transfered bytes.
 	 */
-	public long getDuration() {
+	public long getDurationMilli() {
 		return duration;
 	}
 
