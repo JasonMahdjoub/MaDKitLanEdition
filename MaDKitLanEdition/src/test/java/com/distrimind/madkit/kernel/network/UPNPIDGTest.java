@@ -235,7 +235,7 @@ public class UPNPIDGTest extends JunitMadkit {
 				_properties.networkProperties.upnpIGDEnabled = true;
 				_properties.madkitLogLevel = Level.INFO;
 				_properties.agentLogLevel = Level.INFO;
-				_properties.networkProperties.UpnpIGDLogLevel = Level.INFO;
+				_properties.networkProperties.upnpIGDLogLevel = Level.INFO;
 				_properties.networkProperties.networkLogLevel = Level.INFO;
 			}
 		});

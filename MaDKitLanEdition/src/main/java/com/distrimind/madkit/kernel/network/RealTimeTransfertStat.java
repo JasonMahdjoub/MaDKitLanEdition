@@ -37,9 +37,8 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Arrays;
 
-import com.distrimind.util.Timer;
 
 /**
  * This class represents an average of bytes transfered during the last elapsed
@@ -54,13 +53,13 @@ import com.distrimind.util.Timer;
  * @since MadkitLanEdition 1.0
  */
 public class RealTimeTransfertStat {
-	private final int stats[];
+	private final long stats[];
 	private long totalBytes;
 	private int cursor;
-	private Timer timer = new Timer();
+	private long previousUpdateTime;
 	private final long segment;
 	private final long duration;
-	private final AtomicBoolean one_cycle_done = new AtomicBoolean(false);
+	private volatile boolean one_cycle_done ;
 
 	/**
 	 * Construct a metric that computes number of transfered bytes during the last
@@ -88,10 +87,10 @@ public class RealTimeTransfertStat {
 			throw new IllegalArgumentException("The value '_duration/_segment' must be lower than Interger.MAX_VALUE");
 		if (duration / segment < 3)
 			throw new IllegalArgumentException("The value '_duration/_segment' must be greater than 3");
-		stats = new int[(int) (duration / segment)];
+		stats = new long[(int) (duration / segment)];
 		reset();
-		timer.reset();
-		timer.play();
+		one_cycle_done = false;
+		previousUpdateTime=System.currentTimeMillis();
 	}
 
 	/**
@@ -104,32 +103,31 @@ public class RealTimeTransfertStat {
 	}
 
 	private void reset() {
-		for (int i = 0; i < stats.length; i++)
-			stats[i] = 0;
+        Arrays.fill(stats,0);
 		totalBytes = 0;
 	}
 
 	private void update() {
-		long t = timer.getMili();
+		long time=System.currentTimeMillis();
+		long t = time-previousUpdateTime;
 
 		if (t > duration) {
 			reset();
-			one_cycle_done.set(true);
-			timer.setMilli(t % duration);
+			one_cycle_done=true;
+			previousUpdateTime=time;
 		} else {
-			if (t > segment) {
-				while (t > segment) {
-					if (++cursor >= stats.length) {
-						one_cycle_done.set(true);
-						cursor = cursor % stats.length;
-					}
-					totalBytes -= stats[cursor];
-					stats[cursor] = 0;
-					t -= segment;
-				}
-				timer.setMilli(t % duration);
-			}
-		}
+            while (t > segment) {
+                if (++cursor == stats.length) {
+                    one_cycle_done=true;
+                    cursor = 0;
+                }
+                totalBytes -= stats[cursor];
+                stats[cursor] = 0;
+                t -= segment;
+                previousUpdateTime+=segment;
+            }
+        }
+
 	}
 
 	/**
@@ -162,7 +160,10 @@ public class RealTimeTransfertStat {
 	 * @return true if sufficient bytes has been observed to give a correct metrics.
 	 */
 	public boolean isOneCycleDone() {
-		return one_cycle_done.get();
+		return one_cycle_done;
 	}
 
+	public long getSegment() {
+		return segment;
+	}
 }

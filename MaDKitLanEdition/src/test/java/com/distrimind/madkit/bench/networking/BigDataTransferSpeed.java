@@ -78,98 +78,16 @@ import com.distrimind.madkit.testing.util.agent.NormalAgent;
  * @version 1.0
  * 
  */
-public class BigDataTransferSpeed extends JunitMadkit {
-	final MadkitEventListener eventListener1;
-	final NetworkEventListener eventListener2;
-	
+public class BigDataTransferSpeed extends com.distrimind.madkit.testing.util.agent.BigDataTransferSpeed {
+
 
 	public BigDataTransferSpeed() throws UnknownHostException {
-
-		this.eventListener1 = new MadkitEventListener() {
-
-			@Override
-			public void onMadkitPropertiesLoaded(MadkitProperties _properties) {
-				AbstractAccessProtocolProperties app = new AccessProtocolWithP2PAgreementProperties();
-
-				try {
-					P2PSecuredConnectionProtocolWithKeyAgreementProperties p2pprotocol=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
-					p2pprotocol.isServer = true;
-					p2pprotocol.symmetricEncryptionType=SymmetricEncryptionType.AES_CTR;
-                    p2pprotocol.symmetricSignatureType= SymmetricAuthentifiedSignatureType.HMAC_SHA2_256;
-					new NetworkEventListener(true, false, false, null,
-							new ConnectionsProtocolsMKEventListener(p2pprotocol),
-							new AccessProtocolPropertiesMKEventListener(app),
-							new AccessDataMKEventListener(AccessDataMKEventListener.getDefaultAccessData(GROUP)), 5000,
-							null, InetAddress.getByName("0.0.0.0")).onMadkitPropertiesLoaded(_properties);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				_properties.networkProperties.networkLogLevel = Level.INFO;
-				_properties.networkProperties.maxBufferSize=Short.MAX_VALUE*4;
-			}
-		};
-
-		P2PSecuredConnectionProtocolWithKeyAgreementProperties u = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
-		u.isServer = false;
-        u.symmetricEncryptionType=SymmetricEncryptionType.AES_CTR;
-		u.symmetricSignatureType= SymmetricAuthentifiedSignatureType.HMAC_SHA2_256;
-
-		AbstractAccessProtocolProperties app = new AccessProtocolWithP2PAgreementProperties();
-		
-		this.eventListener2 = new NetworkEventListener(true, false, false, null,
-				new ConnectionsProtocolsMKEventListener(u), new AccessProtocolPropertiesMKEventListener(app),
-				new AccessDataMKEventListener(AccessDataMKEventListener.getDefaultAccessData(GROUP)), 5000,
-				Collections.singletonList((AbstractIP) new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"),
-						(Inet6Address) InetAddress.getByName("::1"))),
-				InetAddress.getByName("0.0.0.0"));
-		this.eventListener2.maxBufferSize=Short.MAX_VALUE*4;
+		super(Integer.MAX_VALUE, Integer.MAX_VALUE);
 	}
 	@Test
+	@Override
 	public void bigDataTransfer() {
-		final BigDataTransferReceiverAgent bigDataTransferAgent = new BigDataTransferReceiverAgent(2);
-		final AtomicBoolean transfered1=new AtomicBoolean(false);
-		final AtomicBoolean transfered2=new AtomicBoolean(false);
-		// addMadkitArgs("--kernelLogLevel",Level.INFO.toString(),"--networkLogLevel",Level.FINEST.toString());
-		launchTest(new NormalAgent() {
-			@Override
-			protected void activate() throws InterruptedException {
-				setLogLevel(Level.OFF);
-				requestRole(GROUP, ROLE);
-				launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, bigDataTransferAgent, eventListener2);
-				sleep(2000);
-
-				AgentAddress aa=getAgentsWithRole(GROUP, ROLE).iterator().next();
-				assert aa!=null;
-				try {
-					int size=400000000;
-					Assert.assertNotNull(this.sendBigData(aa, new RandomByteArrayInputStream(new byte[size]), 0, size, null, null, true));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				Message m=this.waitNextMessage(60000);
-				transfered1.set(m instanceof BigDataResultMessage && ((BigDataResultMessage) m).getType() == BigDataResultMessage.Type.BIG_DATA_TRANSFERED);
-				Assert.assertTrue(""+m, transfered1.get());
-
-				try {
-					int size=400000000;
-					Assert.assertNotNull(this.sendBigData(aa, new RandomByteArrayInputStream(new byte[size]), 0, size, null, null, false));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				m=this.waitNextMessage(60000);
-				transfered2.set(m instanceof BigDataResultMessage && ((BigDataResultMessage) m).getType() == BigDataResultMessage.Type.BIG_DATA_TRANSFERED);
-				Assert.assertTrue(""+m, transfered2.get());
-
-			}
-
-			@Override
-			protected void liveCycle() {
-				this.killAgent(this);
-			}
-		}, eventListener1);
-		Assert.assertTrue(transfered1.get());
-		Assert.assertTrue(transfered2.get());
-		cleanHelperMDKs();
+		super.bigDataTransfer();
 	}
 	
 	

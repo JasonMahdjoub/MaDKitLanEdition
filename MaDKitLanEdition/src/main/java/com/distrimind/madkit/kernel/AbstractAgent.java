@@ -4737,4 +4737,50 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		return getMadkitKernel().removeBlackboard(this, group, blackboardName);
 	}
 
+
+	/**
+	 * Set global network upload speed in bytes per second.
+	 * Set to {@link Integer#MAX_VALUE} if there is no limit
+	 *
+	 * @param value global network upload speed in bytes per second
+	 * @see NetworkProperties#maximumGlobalUploadSpeedInBytesPerSecond to make this limit persistant
+	 */
+	public void setMaximumGlobalUploadSpeedInBytesPerSecond(int value)
+	{
+		getMadkitKernel().setMaximumGlobalUploadSpeedInBytesPerSecond(this, value);
+	}
+
+	/**
+	 * Set global network download speed in bytes per second.
+	 * Set to {@link Integer#MAX_VALUE} if there is no limit
+	 *
+	 * @param value global network download speed in bytes per second
+	 * @see NetworkProperties#maximumGlobalDownloadSpeedInBytesPerSecond to make this limit persistant
+	 */
+	public void setMaximumGlobalDownloadSpeedInBytesPerSecond(int value)
+	{
+		getMadkitKernel().setMaximumGlobalDownloadSpeedInBytesPerSecond(this, value);
+	}
+
+	/**
+	 * Gets global network upload speed in bytes per second.
+	 *
+	 * @see NetworkProperties#maximumGlobalUploadSpeedInBytesPerSecond to get the persistant limit
+	 * @return global network upload speed in bytes per second. Return {@link Integer#MAX_VALUE} if there is no limit.
+	 */
+	public int getMaximumGlobalUploadSpeedInBytesPerSecond()
+	{
+		return getMadkitKernel().getMaximumGlobalUploadSpeedInBytesPerSecond(this);
+	}
+
+	/**
+	 * Gets global network download speed in bytes per second.
+	 *
+	 * @see NetworkProperties#maximumGlobalDownloadSpeedInBytesPerSecond to get the persistant limit
+	 * @return global network download speed in bytes per second. Return {@link Integer#MAX_VALUE} if there is no limit.
+	 */
+	public int getMaximumGlobalDownloadSpeedInBytesPerSecond()
+	{
+		return getMadkitKernel().getMaximumGlobalDownloadSpeedInBytesPerSecond(this);
+	}
 }

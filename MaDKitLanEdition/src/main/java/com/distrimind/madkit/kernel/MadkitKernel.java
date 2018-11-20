@@ -203,6 +203,9 @@ class MadkitKernel extends Agent {
 	final private ThreadPoolExecutor lifeExecutor/* , lifeExecutorWithBlockQueue */;
 	protected volatile int threadPriorityForLifeExecutor = DEFAULT_THREAD_PRIORITY;
 	private final HashMap<Long, LockerCondition> agentsSendingNetworkMessage = new HashMap<>();
+    private volatile int maximumGlobalUploadSpeedInBytesPerSecond;
+    private volatile int maximumGlobalDownloadSpeedInBytesPerSecond;
+
 	// final private HashMap<String, ScheduledThreadPoolExecutor>
 	// dedicatedServiceExecutors=new HashMap<>();
 
@@ -487,9 +490,13 @@ class MadkitKernel extends Agent {
 		if (logger != null)
 			logger.setWarningLogLevel(Level.INFO);
 
-		createGroup(LocalCommunity.Groups.SYSTEM);
+        maximumGlobalDownloadSpeedInBytesPerSecond=Math.max(0, getMadkitConfig().networkProperties.maximumGlobalDownloadSpeedInBytesPerSecond);
+        maximumGlobalUploadSpeedInBytesPerSecond=Math.max(0, getMadkitConfig().networkProperties.maximumGlobalUploadSpeedInBytesPerSecond);
+        createGroup(LocalCommunity.Groups.SYSTEM);
 		createGroup(LocalCommunity.Groups.KERNELS);
-		
+
+
+
 		// building the network group
 		createGroup(Groups.NETWORK);
 		if (!requestRole(Groups.NETWORK, Roles.KERNEL, null).equals(ReturnCode.SUCCESS)) {
@@ -1226,8 +1233,34 @@ class MadkitKernel extends Agent {
 	}
 
 
-	 ReturnCode requestRole(AbstractAgent requester, Group group, String role, ExternalizableAndSizable memberCard,
-			boolean manually_requested) {
+
+    @SuppressWarnings("unused")
+	void setMaximumGlobalUploadSpeedInBytesPerSecond(AbstractAgent requester, int max)
+    {
+        if (max<=0)
+            throw new IllegalArgumentException("max must be greater than zero !");
+        maximumGlobalUploadSpeedInBytesPerSecond=max;
+    }
+    @SuppressWarnings("unused")
+    void setMaximumGlobalDownloadSpeedInBytesPerSecond(AbstractAgent requester, int max)
+    {
+        if (max<=0)
+            throw new IllegalArgumentException("max must be greater than zero !");
+        maximumGlobalDownloadSpeedInBytesPerSecond=max;
+    }
+
+    @SuppressWarnings("unused")
+    int getMaximumGlobalUploadSpeedInBytesPerSecond(AbstractAgent requester) {
+        return maximumGlobalUploadSpeedInBytesPerSecond;
+    }
+
+    @SuppressWarnings("unused")
+    int getMaximumGlobalDownloadSpeedInBytesPerSecond(AbstractAgent requester) {
+        return maximumGlobalDownloadSpeedInBytesPerSecond;
+    }
+
+    ReturnCode requestRole(AbstractAgent requester, Group group, String role, ExternalizableAndSizable memberCard,
+                           boolean manually_requested) {
 		if (group.isUsedSubGroups())
 			return ReturnCode.MULTI_GROUP_NOT_ACCEPTED;
 

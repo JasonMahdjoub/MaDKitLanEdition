@@ -45,6 +45,7 @@ import com.distrimind.madkit.kernel.Agent;
 import com.distrimind.madkit.kernel.BigDataPropositionMessage;
 import com.distrimind.madkit.kernel.BigDataResultMessage;
 import com.distrimind.madkit.kernel.Message;
+import org.junit.Assert;
 
 /**
  * @author Jason Mahdjoub
@@ -53,16 +54,18 @@ import com.distrimind.madkit.kernel.Message;
  * 
  */
 public class BigDataTransferReceiverAgent extends Agent {
-	private int dataToReceiveNumber; 
-	
-	public BigDataTransferReceiverAgent(int dataToReceiveNumber) {
-		this.dataToReceiveNumber=dataToReceiveNumber;
-	}
+	private int dataToReceiveNumber;
+	private int uploadLimitInBytesPerSecond, downloadLimitInBytesPerSecond;
 
+	public BigDataTransferReceiverAgent(int dataToReceiveNumber, int uploadLimitInBytesPerSecond) {
+		this.dataToReceiveNumber=dataToReceiveNumber;
+		this.uploadLimitInBytesPerSecond=uploadLimitInBytesPerSecond;
+	}
 	@Override
 	protected void activate() {
 
 		requestRole(GROUP, ROLE);
+		downloadLimitInBytesPerSecond=getMaximumGlobalDownloadSpeedInBytesPerSecond();
 	}
 
 	@Override
@@ -73,7 +76,14 @@ public class BigDataTransferReceiverAgent extends Agent {
 			System.out.println("receiving big data proposition message");
 			BigDataPropositionMessage bdpm=((BigDataPropositionMessage) m);
 			bdpm.acceptTransfer(new RandomByteArrayOutputStream());
-			m = waitNextMessage(60000);
+			int delay;
+			int size=(int)bdpm.getTransferLength();
+			if (downloadLimitInBytesPerSecond!=Integer.MAX_VALUE || uploadLimitInBytesPerSecond!=Integer.MAX_VALUE)
+				delay=Math.max(60000, size/Math.min(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond)*1000+20000);
+			else
+				delay=60000;
+
+			m = waitNextMessage(delay);
 			if (m instanceof BigDataResultMessage)
 			{
 				BigDataResultMessage rm=((BigDataResultMessage) m);
@@ -81,6 +91,8 @@ public class BigDataTransferReceiverAgent extends Agent {
 				{
 					System.out.println(rm.getTransferedDataLength() +" bytes transfered in "+rm.getTransferDuration()+" ms"+(bdpm.bigDataExcludedFromEncryption()?" without encryption":" with encryption"));
 					System.out.println("Transfer speed (MiO per seconds) : "+(((double)rm.getTransferedDataLength())/(((double)rm.getTransferDuration())/1000.0)/1024.0/1024.0));
+					if (getMaximumGlobalDownloadSpeedInBytesPerSecond()!=Integer.MAX_VALUE)
+						Assert.assertTrue(((double)rm.getTransferedDataLength())/((double)rm.getTransferDuration())*1000.0<getMaximumGlobalDownloadSpeedInBytesPerSecond()*2);
 				}
 				else
 					System.err.println("Problem during transfer : "+rm.getType());

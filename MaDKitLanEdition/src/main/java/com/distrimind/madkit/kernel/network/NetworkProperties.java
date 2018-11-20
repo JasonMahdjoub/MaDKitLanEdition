@@ -95,18 +95,22 @@ public class NetworkProperties extends MultiFormatProperties {
 		super(new MultiFormatPropertiesObjectParser());
 		globalStatBandwith = new StatsBandwidth();
 
-		globalStatBandwith.putBytesDownloadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS,
+        globalStatBandwith.putBytesDownloadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS,
+                globalRealTimeTransferStatPerOneSecondForDownload);
+		/*globalStatBandwith.putBytesDownloadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS,
 				globalRealTimeTransferStatPer30SecondsForDownload);
 		globalStatBandwith.putBytesDownloadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS,
-				globalRealTimeTransferStatPer5MinutesForDownload);
-		globalStatBandwith.putBytesUploadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS,
+				globalRealTimeTransferStatPer5MinutesForDownload);*/
+        globalStatBandwith.putBytesUploadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS,
+                globalRealTimeTransferStatPerOneSecondForUpload);
+		/*globalStatBandwith.putBytesUploadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS,
 				globalRealTimeTransferStatPer30SecondsForUpload);
 		globalStatBandwith.putBytesUploadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS,
 				globalRealTimeTransferStatPer5MinutesForUpload);
 		globalStatBandwith.putBytesUploadedInRealBytes(DEFAULT_STAT_PER_512KB_SEGMENTS,
 				globalTransferSpeedStatPer512SegmentsForUpload);
 		globalStatBandwith.putBytesDownloadedInRealBytes(DEFAULT_STAT_PER_512KB_SEGMENTS,
-				globalTransferSpeedStatPer512SegmentsForDownload);
+				globalTransferSpeedStatPer512SegmentsForDownload);*/
 		try {
 			whiteInetAddressesList = new ArrayList<>();
 			whiteInetAddressesList.add(InetAddress.getByName("0.0.0.0"));
@@ -405,7 +409,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	/**
 	 * Log level for UpnpIGD agent
 	 */
-	public Level UpnpIGDLogLevel = Level.INFO;
+	public Level upnpIGDLogLevel = Level.INFO;
 
 	/**
 	 * This value represents the time between each local router scan, this in order
@@ -885,15 +889,26 @@ public class NetworkProperties extends MultiFormatProperties {
 
 	/**
 	 * Tag/key corresponding to LAN statistics per segments of 512Kb
-	 * 
+	 * Work with individual connexion
+     *
 	 * @see StatsBandwidth#getBytesDownloadedInRealBytes(String)
 	 * @see StatsBandwidth#getBytesUploadedInRealBytes(String)
 	 */
 	public static final String DEFAULT_STAT_PER_512KB_SEGMENTS = "~~DEFAULT_UPLOAD_STAT_PER_BYTES_SEGMENTS";
 
 	/**
+	 * Tag/key corresponding to real time LAN statistics per segments of 1 second
+     * Work only with global peer stats
+	 *
+	 * @see StatsBandwidth#getBytesDownloadedInRealTime(String)
+	 * @see StatsBandwidth#getBytesUploadedInRealTime(String)
+	 */
+	public static final String DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS = "~~DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS";
+
+	/**
 	 * Tag/key corresponding to real time LAN statistics per segments of 30 seconds
-	 * 
+	 * Work with individual connexion
+     *
 	 * @see StatsBandwidth#getBytesDownloadedInRealTime(String)
 	 * @see StatsBandwidth#getBytesUploadedInRealTime(String)
 	 */
@@ -901,31 +916,40 @@ public class NetworkProperties extends MultiFormatProperties {
 
 	/**
 	 * Tag/key corresponding to real time LAN statistics per segments of 5 minutes
-	 * 
+	 *Work with individual connexion
+     *
 	 * @see StatsBandwidth#getBytesDownloadedInRealTime(String)
 	 * @see StatsBandwidth#getBytesUploadedInRealTime(String)
 	 */
 	public static final String DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS = "~~DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS";
 
-	private final TransferSpeedStat globalTransferSpeedStatPer512SegmentsForDownload = new TransferSpeedStat(524288L,
+	/*private final TransferSpeedStat globalTransferSpeedStatPer512SegmentsForDownload = new TransferSpeedStat(524288L,
             32768L, 300000L);
 	private final TransferSpeedStat globalTransferSpeedStatPer512SegmentsForUpload = new TransferSpeedStat(524288L,
-            32768L, 300000L);
-	private final RealTimeTransfertStat globalRealTimeTransferStatPer30SecondsForDownload = new RealTimeTransfertStat(
+            32768L, 300000L);*/
+	private final RealTimeTransfertStat globalRealTimeTransferStatPerOneSecondForDownload = new RealTimeTransfertStat(
+			1000L, 200L);
+	private final RealTimeTransfertStat globalRealTimeTransferStatPerOneSecondForUpload = new RealTimeTransfertStat(
+			1000L, 200L);
+	/*private final RealTimeTransfertStat globalRealTimeTransferStatPer30SecondsForDownload = new RealTimeTransfertStat(
             30000L, 3000L);
 	private final RealTimeTransfertStat globalRealTimeTransferStatPer30SecondsForUpload = new RealTimeTransfertStat(
             30000L, 3000L);
 	private final RealTimeTransfertStat globalRealTimeTransferStatPer5MinutesForDownload = new RealTimeTransfertStat(
             300000L, 3000L);
 	private final RealTimeTransfertStat globalRealTimeTransferStatPer5MinutesForUpload = new RealTimeTransfertStat(
-            300000L, 3000L);
+            300000L, 3000L);*/
 	private final StatsBandwidth globalStatBandwith;
 
 	private void initializeStatsBandwitdh(StatsBandwidth stats) {
+		/*stats.putBytesDownloadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS,
+				new RealTimeTransfertStat(1000L, 200L));*/
 		stats.putBytesDownloadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS,
 				new RealTimeTransfertStat(30000L, 3000L));
 		stats.putBytesDownloadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS,
 				new RealTimeTransfertStat(300000L, 3000L));
+		/*stats.putBytesUploadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS,
+				new RealTimeTransfertStat(1000L, 200L));*/
 		stats.putBytesUploadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS,
 				new RealTimeTransfertStat(30000L, 3000L));
 		stats.putBytesUploadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS,
@@ -936,18 +960,22 @@ public class NetworkProperties extends MultiFormatProperties {
 				new TransferSpeedStat(524288L, 32768L, 300000L));
 
 		String globalStats = "(For global statistics)";
-		stats.putBytesDownloadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS + globalStats,
+		stats.putBytesDownloadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS+ globalStats,
+				globalRealTimeTransferStatPerOneSecondForDownload);
+		/*stats.putBytesDownloadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS + globalStats,
 				globalRealTimeTransferStatPer30SecondsForDownload);
 		stats.putBytesDownloadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS + globalStats,
-				globalRealTimeTransferStatPer5MinutesForDownload);
-		stats.putBytesUploadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS + globalStats,
+				globalRealTimeTransferStatPer5MinutesForDownload);*/
+		stats.putBytesUploadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS + globalStats,
+				globalRealTimeTransferStatPerOneSecondForUpload);
+		/*stats.putBytesUploadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS + globalStats,
 				globalRealTimeTransferStatPer30SecondsForUpload);
 		stats.putBytesUploadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS + globalStats,
 				globalRealTimeTransferStatPer5MinutesForUpload);
 		stats.putBytesUploadedInRealBytes(DEFAULT_STAT_PER_512KB_SEGMENTS + globalStats,
 				globalTransferSpeedStatPer512SegmentsForUpload);
 		stats.putBytesDownloadedInRealBytes(DEFAULT_STAT_PER_512KB_SEGMENTS + globalStats,
-				globalTransferSpeedStatPer512SegmentsForDownload);
+				globalTransferSpeedStatPer512SegmentsForDownload);*/
 
 	}
 
@@ -1208,7 +1236,22 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * False if only end to end message check are accepted
 	 */
 	public boolean canUsePointToPointTransferedBlockChecker=true;
-	
+
+
+	/**
+	 * Maximum global upload speed in bytes per second.
+	 * Set to {@link Integer#MAX_VALUE} if there is no limit
+	 */
+	public int maximumGlobalUploadSpeedInBytesPerSecond=Integer.MAX_VALUE;
+
+	/**
+	 * Maximum global download speed in bytes per second.
+	 * Set to {@link Integer#MAX_VALUE} if there is no limit
+	 */
+	public int maximumGlobalDownloadSpeedInBytesPerSecond=Integer.MAX_VALUE;
+
+
+
 	public static volatile int GLOBAL_MAX_SHORT_DATA_SIZE=20971520;
 	//public static volatile int GLOBAL_MAX_BUFFER_SIZE=Short.MAX_VALUE;
 	

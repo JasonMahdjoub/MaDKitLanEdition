@@ -83,7 +83,6 @@ import com.distrimind.madkit.kernel.Task;
 import com.distrimind.madkit.kernel.network.AbstractData.DataTransferType;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
 import com.distrimind.madkit.kernel.network.TransferAgent.TryDirectConnection;
-import com.distrimind.madkit.kernel.network.UpnpIGDAgent.NetworkInterfaceInformationMessage;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
 import com.distrimind.madkit.message.ObjectMessage;
 import com.distrimind.util.Timer;
@@ -101,6 +100,8 @@ import gnu.vm.jgnu.security.NoSuchProviderException;
  */
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 final class NIOAgent extends Agent {
+
+
 
 	/*
 	 * //the The host:port combination to listen on private final InetAddress
@@ -144,6 +145,9 @@ final class NIOAgent extends Agent {
 	private boolean stoping = false;
 	protected AgentAddress myAgentAddress = null;
 	protected long localOnlineTime = -1;
+	protected long delayToWaitToRespectGlobalBandwidthLimit=0;
+    private RealTimeTransfertStat realTimeGlobalDownloadStat =null, realTimeGlobalUploadStat=null;
+    private double realTimeDownloadStatDuration=0.0, realTimeUploadStatDuration=0.0;
 
 	NIOAgent() throws ConnectionException {
 		/*
@@ -205,6 +209,10 @@ final class NIOAgent extends Agent {
 		if (logger != null && logger.isLoggable(Level.FINE))
 			logger.fine("Launching NIOAgent ...");
 		localOnlineTime = System.currentTimeMillis();
+        this.realTimeGlobalDownloadStat =getMadkitConfig().networkProperties.getGlobalStatsBandwith().getBytesDownloadedInRealTime(NetworkProperties.DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS);
+        this.realTimeGlobalUploadStat=getMadkitConfig().networkProperties.getGlobalStatsBandwith().getBytesUploadedInRealTime(NetworkProperties.DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS);
+        this.realTimeDownloadStatDuration=((double)this.realTimeGlobalDownloadStat.getDurationMilli())/1000.0;
+        this.realTimeUploadStatDuration=((double)this.realTimeGlobalUploadStat.getDurationMilli())/1000.0;
 		this.requestRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.NIO_ROLE);
 		this.requestRole(LocalCommunity.Groups.LOCAL_NETWORKS, LocalCommunity.Roles.NIO_ROLE);
 		myAgentAddress = this.getAgentAddressIn(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.NIO_ROLE);
@@ -261,6 +269,52 @@ final class NIOAgent extends Agent {
 
 	}
 
+	private long getDownloadToWaitInMsToBecomeUnderBandwidthLimit()
+    {
+        long res=0;
+        long limit=getMaximumGlobalDownloadSpeedInBytesPerSecond()*2;
+        if (limit!=Integer.MAX_VALUE)
+        {
+            double l=limit;
+
+            if (realTimeGlobalDownloadStat.isOneCycleDone()) {
+                double v = ((double) realTimeGlobalDownloadStat.getNumberOfIndentifiedBytes()) / realTimeDownloadStatDuration ;
+                if (v >= l) {
+                    res = (long) ((v - l) / l * 1000.0);
+                }
+            }
+        }
+
+        return res;
+    }
+
+    private long getUploadToWaitInMsToBecomeUnderBandwidthLimit()
+    {
+        long res=0;
+        long limit=getMaximumGlobalUploadSpeedInBytesPerSecond()*2;
+
+        if (limit!=Integer.MAX_VALUE)
+        {
+            double l=limit;
+
+            if (realTimeGlobalUploadStat.isOneCycleDone()) {
+
+                double v = ((double) realTimeGlobalUploadStat.getNumberOfIndentifiedBytes()) / realTimeUploadStatDuration ;
+                if (v>=l)
+                {
+                    res=(long)((v-l)/l*1000.0);
+                }
+
+            }
+
+        }
+
+
+        return res;
+    }
+
+
+
 	@SuppressWarnings("deprecation")
 	@Override
 	public void finalize() {
@@ -291,9 +345,25 @@ final class NIOAgent extends Agent {
 			long delay;
 			if (pending_connections.size() > 0)
 				delay = getMadkitConfig().networkProperties.selectorTimeOutWhenWaitingPendingConnections;
-			else
-				delay = getMadkitConfig().networkProperties.selectorTimeOut;
-			this.selector.select(delay);
+			else {
+                delay = getMadkitConfig().networkProperties.selectorTimeOut;
+
+                if (delayToWaitToRespectGlobalBandwidthLimit > 0) {
+
+                    delayToWaitToRespectGlobalBandwidthLimit -= System.currentTimeMillis();
+
+                    if (delayToWaitToRespectGlobalBandwidthLimit > 0) {
+                        this.sleep(delayToWaitToRespectGlobalBandwidthLimit);
+
+                        delay -= delayToWaitToRespectGlobalBandwidthLimit;
+                        if (delay < 0)
+                            delay = 0;
+                        delayToWaitToRespectGlobalBandwidthLimit = 0;
+                    }
+                }
+            }
+            if (delay>0)
+                this.selector.select(delay);
 
 			ArrayList<PersonalSocket> connections_to_close = new ArrayList<>();
 			for (PersonalSocket ps : personal_sockets_list) {
@@ -465,7 +535,7 @@ final class NIOAgent extends Agent {
 						if (multicastToRemove)
 							personal_datagram_channels_per_ni_address.get(addr.getAddress()).closeConnection(false);
 					}
-				} else if (m instanceof NetworkInterfaceInformationMessage) {
+				} else if (m instanceof UpnpIGDAgent.NetworkInterfaceInformationMessage) {
 					// TODO manage network interface information, especially the deconnection
 					// information (for now, the deconnection should be triggered by the
 					// socketchannel)
@@ -577,15 +647,18 @@ final class NIOAgent extends Agent {
             // Iterate over the set of keys for which events are available
 			Iterator<SelectionKey> selectedKeys = this.selector.selectedKeys().iterator();
 
+            long limitDownload=Long.MIN_VALUE;
+            long limitUpload=Long.MIN_VALUE;
 			while (selectedKeys.hasNext()) {
 				SelectionKey key = selectedKeys.next();
-				selectedKeys.remove();
+
 				/*
 				 * if (((Map<?, ?>) key.attachment()).get(channelType).equals( serverChannel)) {
 				 * 
 				 * }
 				 */
 				if (!key.channel().isOpen() || !key.isValid()) {
+                    selectedKeys.remove();
 					continue;
 				}
 				// Check what event is available and deal with it
@@ -594,9 +667,22 @@ final class NIOAgent extends Agent {
 				 * if (key.isConnectable()) { System.out.println(key); ///finishConnection(key);
 				 * } else
 				 */if (key.isAcceptable()) {
+                    selectedKeys.remove();
 					this.accept(key);
 				} else {
 					if (key.isReadable()) {
+
+                        long ld=getDownloadToWaitInMsToBecomeUnderBandwidthLimit();
+                        if (ld>0) {
+                            long curTime=System.currentTimeMillis();
+                            limitDownload = ld+curTime;
+                            if (limitUpload > curTime) {
+                                this.delayToWaitToRespectGlobalBandwidthLimit = Math.min(limitDownload, limitUpload);
+                                return;
+                            }
+                            continue;
+                        }
+                        selectedKeys.remove();
 						SelectableChannel sc = key.channel();
 						if (sc instanceof SocketChannel)
 							((PersonalSocket) key.attachment()).read(key);
@@ -604,6 +690,17 @@ final class NIOAgent extends Agent {
 							personal_datagram_channels.get(sc).read(key);
 						}
 					} else if (key.isValid() && key.isWritable()) {
+                        long lu=getUploadToWaitInMsToBecomeUnderBandwidthLimit();
+                        if (lu>0) {
+                            long curTime = System.currentTimeMillis();
+                            limitUpload = lu+ curTime;
+                            if (limitDownload > curTime) {
+                                this.delayToWaitToRespectGlobalBandwidthLimit = Math.min(limitDownload, limitUpload);
+                                return;
+                            }
+                            continue;
+                        }
+                        selectedKeys.remove();
 						SelectableChannel sc = key.channel();
 						if (sc instanceof SocketChannel) {
 							PersonalSocket ps = (PersonalSocket) key.attachment();
@@ -614,10 +711,21 @@ final class NIOAgent extends Agent {
 						} else {
 							personal_datagram_channels.get(sc).write(key);
 						}
-					}
-				}
 
+					}
+					else
+                        selectedKeys.remove();
+
+				}
 			}
+            long curTime=System.currentTimeMillis();
+			if (limitDownload>curTime)
+			    this.delayToWaitToRespectGlobalBandwidthLimit=limitDownload;
+			else if (limitUpload>curTime)
+                this.delayToWaitToRespectGlobalBandwidthLimit=limitUpload;
+			else
+                this.delayToWaitToRespectGlobalBandwidthLimit=0;
+
 
 		} catch (SelfKillException e) {
 			throw e;
@@ -1740,10 +1848,10 @@ final class NIOAgent extends Agent {
 			try {
 				if (is_closed)
 					return;
-				
+
 				NoBackData data = getNextNoBackData();
 
-				while (data != null) {
+				//while (data != null) {
 					boolean datafinished;
 					int remaining = -1;
 					if ((datafinished = data.isFinished()) || !data.isReady()) {
@@ -1780,6 +1888,7 @@ final class NIOAgent extends Agent {
 											timer_send.getDeltaMili());
 								}
 							}
+
 							data_sended = socketChannel.write(buf);
 
 							if (firstPacketSent)
@@ -1803,7 +1912,9 @@ final class NIOAgent extends Agent {
 					}
 					if (remaining > 0)
 						return;
-					data = getNextNoBackData();
+					data=getNextNoBackData();
+					if (data!=null)
+					    return;
 					/*if (data == null) {
 						timer_send = null;
 
@@ -1813,7 +1924,7 @@ final class NIOAgent extends Agent {
 					 * return; }
 					 */
 
-				}
+				//}
 				if (!is_closed)
 					key.interestOps(SelectionKey.OP_CONNECT | SelectionKey.OP_READ);
 
@@ -1859,7 +1970,7 @@ final class NIOAgent extends Agent {
                 NIOAgent.this.scheduleTask(new Task<>(new Callable<Void>() {
 
                     @Override
-                    public Void call() throws Exception {
+                    public Void call() {
                         if (isAlive())
                             receiveMessage(new ObjectMessage<>(PersonalSocket.this));
                         else
@@ -2095,6 +2206,7 @@ final class NIOAgent extends Agent {
 							LocalCommunity.Roles.NIO_ROLE);
 					pc.getAskerMessage().setJoinedPiece(null, null);
 				}
+
 				it.remove();
 				return;
 			}

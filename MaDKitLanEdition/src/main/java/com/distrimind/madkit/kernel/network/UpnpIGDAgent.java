@@ -848,7 +848,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 	}
 
 	protected void activate() {
-		setLogLevel(getMadkitConfig().networkProperties.UpnpIGDLogLevel);
+		setLogLevel(getMadkitConfig().networkProperties.upnpIGDLogLevel);
 		// loggerModified(logger);
 		if (logger != null && logger.isLoggable(Level.FINE))
 			logger.fine("Launching UPNPIGDAgent ...");
