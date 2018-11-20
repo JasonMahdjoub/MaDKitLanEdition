@@ -206,10 +206,13 @@ class LocalNetworkAffectationAgent extends AgentFakeThread {
 			}
 			for (int i = 0; i < lnas.size(); i++) {
 				LocalNetworkAgent lna = lnas.get(i);
-				AgentAddress aa = lna.getAgentAddressIn(LocalCommunity.Groups.LOCAL_NETWORKS,
-						LocalCommunity.Roles.LOCAL_NETWORK_AFFECTATION_ROLE);
-				sendMessageWithRole(aa, new LocalNetworkAgent.ActivateAskConnection(lnas_activated[i]),
-						LocalCommunity.Roles.LOCAL_NETWORK_AFFECTATION_ROLE);
+				if (lna.isAlive()) {
+					AgentAddress aa = lna.getAgentAddressIn(LocalCommunity.Groups.LOCAL_NETWORKS,
+							LocalCommunity.Roles.LOCAL_NETWORK_AFFECTATION_ROLE);
+
+					sendMessageWithRole(aa, new LocalNetworkAgent.ActivateAskConnection(lnas_activated[i]),
+								LocalCommunity.Roles.LOCAL_NETWORK_AFFECTATION_ROLE);
+				}
 			}
 
 			local_network_agents = lnas;
