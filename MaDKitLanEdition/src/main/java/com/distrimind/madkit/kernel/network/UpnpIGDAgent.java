@@ -161,6 +161,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 	private final HashMap<InetAddress, Router> upnp_igd_routers = new HashMap<>();
 	private final ArrayList<AskForRouterDetectionInformation> askers_for_router_detection = new ArrayList<>();
 
+
 	protected void addRouter(InetAddress ia, Router router) {
 		if (ia == null)
 			throw new NullPointerException("ia");
@@ -970,7 +971,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 				if (shutdown)
 					return;
 				boolean removed = false;
-				long old_delay = min_delay;
+				final long old_delay = min_delay;
 				if (askers.remove(_message.getSender()) != null) {
 					min_delay = -1;
 					removed = true;
@@ -996,14 +997,37 @@ class UpnpIGDAgent extends AgentFakeThread {
 					}
 
 					if (min_delay != -1) {
-						task = new Task<>(new Callable<Object>() {
 
+						task = new Task<>(new Callable<Object>() {
+                            long oldTime=System.currentTimeMillis();
+                            long maxDelayBeforeDetectingOSWakeUp=min_delay*2;
 							@Override
 							public Object call() {
+
+
 								synchronized (UpnpIGDAgent.NetworkInterfaceInfo.this) {
 									ArrayList<NetworkInterface> cur_nis = init();
 									ArrayList<NetworkInterface> new_nis = new ArrayList<>();
 									ArrayList<NetworkInterface> del_nis = new ArrayList<>();
+									long newTime=System.currentTimeMillis();
+									if (newTime>oldTime+maxDelayBeforeDetectingOSWakeUp) {//detect OS wake up
+                                        del_nis.addAll(network_interfaces);
+
+                                        if (del_nis.size() > 0) {
+                                            network_interfaces = new ArrayList<>();
+                                            if (new_nis.size() != 0 || del_nis.size() != 0) {
+                                                for (Iterator<AskForNetworkInterfacesMessage> it = askers.values()
+                                                        .iterator(); it.hasNext(); ) {
+                                                    AskForNetworkInterfacesMessage m = it.next();
+                                                    if (!sendReply(m, new NetworkInterfaceInformationMessage(
+                                                            new_nis, del_nis)).equals(ReturnCode.SUCCESS))
+                                                        it.remove();
+                                                }
+                                            }
+                                            del_nis = new ArrayList<>();
+                                        }
+                                    }
+                                    oldTime = newTime;
 
 									for (NetworkInterface ni : network_interfaces) {
 										boolean found = false;

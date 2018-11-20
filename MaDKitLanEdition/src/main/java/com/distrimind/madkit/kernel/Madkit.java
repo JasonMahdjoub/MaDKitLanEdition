@@ -158,6 +158,7 @@ final public class Madkit {
             d.addItem("Fix issue with client/server vs peer-to-peer protocol negotiation.");
 			d.addItem("Optimizing a problem of simultaneous network data send to several peers : data was sent peer after peer, and not to all peers at the same time.");
 			d.addItem("Add possibility to limit global download bandwidth and global upload bandwidth.");
+			d.addItem("Detect OS wake up after a sleep mode.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
