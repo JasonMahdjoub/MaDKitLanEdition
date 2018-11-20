@@ -1000,7 +1000,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 
 						task = new Task<>(new Callable<Object>() {
                             long oldTime=System.currentTimeMillis();
-                            long maxDelayBeforeDetectingOSWakeUp=min_delay*2;
+                            long maxDelayBeforeDetectingOSWakeUp=Math.min(min_delay*2, getMadkitConfig().networkProperties.connectionTimeOut);
 							@Override
 							public Object call() {
 
