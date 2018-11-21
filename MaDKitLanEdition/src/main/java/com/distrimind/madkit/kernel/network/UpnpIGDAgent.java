@@ -918,7 +918,6 @@ class UpnpIGDAgent extends AgentFakeThread {
 						else
 							e.printStackTrace();
 					}
-					System.out.println("Shuting down !");
 					upnpService.shutdown();
 					upnpService = null;
 				}
