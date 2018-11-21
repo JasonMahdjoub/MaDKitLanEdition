@@ -176,6 +176,7 @@ public class UPNPIDGTest extends JunitMadkit {
 												m.getExternalPort() <= portEnd && m.getExternalPort() >= portStart);
 	
 										portMapped.set(true);
+										sleep(1000);
 										AskForPortMappingDeleteMessage m2 = new AskForPortMappingDeleteMessage(
 												m.getConcernedRouter(), m.getExternalPort(), Protocol.TCP);
 										this.sendMessageWithRole(LocalCommunity.Groups.NETWORK,
@@ -207,6 +208,11 @@ public class UPNPIDGTest extends JunitMadkit {
 								Assert.fail();
 							}
 						}
+
+						@Override
+						protected void end() {
+							while(nextMessage()!=null);
+						}
 					});
 					do {
 						JunitMadkit.pause(this, 1000);
@@ -222,11 +228,14 @@ public class UPNPIDGTest extends JunitMadkit {
 					Assert.assertTrue(connectionStatus.get());
 					Assert.assertTrue(portMapped.get());
 					Assert.assertTrue(portUnmapped.get());
+
 				} catch (Exception e) {
 					e.printStackTrace();
 					Assert.fail();
 				}
+
 			}
+
 		}, new MadkitEventListener() {
 
 			@Override
@@ -239,5 +248,6 @@ public class UPNPIDGTest extends JunitMadkit {
 				_properties.networkProperties.networkLogLevel = Level.INFO;
 			}
 		});
+		cleanHelperMDKs();
 	}
 }

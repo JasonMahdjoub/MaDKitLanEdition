@@ -181,7 +181,9 @@ class UpnpIGDAgent extends AgentFakeThread {
 	protected void updateRouter(RemoteDevice router) {
 		if (router == null)
 			throw new NullPointerException("router");
-
+        RemoteService connectionService;
+        if ((connectionService=discoverConnectionService(router)) == null)
+            return;
 		boolean unkowDeviceDetected = false;
 		synchronized (upnp_igd_routers) {
 			try {
@@ -201,12 +203,12 @@ class UpnpIGDAgent extends AgentFakeThread {
 					unkowDeviceDetected = true;
 				else {
 
-					RemoteService connectionService;
-					if ((connectionService = discoverConnectionService(router)) == null) {
+
+					/*if ((connectionService = discoverConnectionService(router)) == null) {
 						for (AskForRouterDetectionInformation m : askers_for_router_detection) {
 							sendReply(m, new IGDRouterLostMessage(r.internal_address));
 						}
-					} else {
+					} else {*/
 
 						if (!r.internal_address.equals(ia)) {
 							for (AskForRouterDetectionInformation m : askers_for_router_detection) {
@@ -217,7 +219,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 						}
 						r.service = connectionService;
 						upnp_igd_routers.put(ia, r);
-					}
+					//}
 				}
 			} catch (UnknownHostException e) {
 				if (getLogger1() != null)
@@ -367,7 +369,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 			if (o == null)
 				return false;
 			if (o instanceof Router)
-				return device.equals(((Router) o).device);
+				return internal_address.equals(((Router) o).internal_address);
 			else
 				return false;
 		}
@@ -380,7 +382,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 
 		@Override
 		public int hashCode() {
-			return device.hashCode();
+			return internal_address.hashCode();
 		}
 
 		void setRemoved(boolean manual) {
@@ -751,8 +753,10 @@ class UpnpIGDAgent extends AgentFakeThread {
 		}
 
 		public void newMessage(final AskForPortMappingDeleteMessage m) {
+
 			if (UpnpIGDAgent.upnpService != null && !removed.get()) {
 				PortMapping pmfound = null;
+
 				synchronized (desired_mappings) {
 
 					for (PortMapping pm : desired_mappings) {
@@ -765,6 +769,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 				}
 				if (pmfound != null) {
 					final PortMapping pm = pmfound;
+
 					upnpService.getControlPoint().execute(new PortMappingDelete(service, pm) {
 
 						@Override
@@ -904,6 +909,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 			synchronized (UpnpIGDAgent.class) {
 				upnpService.getRegistry().removeListener(registeryListener);
 				if (--pointedUpnpServiceNumber == 0) {
+
 					try {
 						Thread.sleep(2000);
 					} catch (InterruptedException e) {
@@ -912,6 +918,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 						else
 							e.printStackTrace();
 					}
+					System.out.println("Shuting down !");
 					upnpService.shutdown();
 					upnpService = null;
 				}
@@ -1841,6 +1848,7 @@ class DefaultUpnpServiceConfiguration implements org.fourthline.cling.UpnpServic
 
 	@Override
 	public void shutdown() {
+
 		usc.shutdown();
 	}
 

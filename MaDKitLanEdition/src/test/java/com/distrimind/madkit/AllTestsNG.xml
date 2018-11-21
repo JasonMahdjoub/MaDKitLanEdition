@@ -108,6 +108,7 @@
   			<class name="com.distrimind.madkit.api.abstractAgent.LaunchAgentBucketWithRolesWithListTest"/>
   			<class name="com.distrimind.madkit.i18n.I18nFileTest"/>
   			<class name="com.distrimind.madkit.scenari.kill.KillingWorkingThreadedAgentsTest"/>
+			<class name="com.distrimind.madkit.kernel.network.NetworkGlobalBandwidthLimitTest"/>
   		</classes>
   	</test>
 		
