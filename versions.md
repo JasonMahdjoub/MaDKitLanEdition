@@ -1,6 +1,6 @@
 MadkitLanEdition
 ================
-1.7.6 Stable (Build: 139) (from 22/05/2015 to 01/08/2018)
+1.8.0 Stable (Build: 176) (from 22/05/2015 to 21/11/2018)
 
 # Creator(s):
 Jason MAHDJOUB
@@ -12,6 +12,24 @@ Olivier GUTKNECHT (Entred in the team at 01/02/1997)
 Jacques FERBER (Entred in the team at 01/02/1997)
 
 # Modifications:
+
+
+### 1.8.0 Stable (21/11/2018)
+* Detect security anomalies during big data transfers.
+* Correction of Group.equals() with null references.
+* Better manage ban with deserialization process.
+* Update Utils to 3.22.1.
+* Update OOD to 2.0.0 Beta 91.
+* Add function AbstractAgent.getAccessibleKernelsFilteredByGroupsGivenByDistantPeer(Group).
+* Add function AbstractAgent.getAccessibleKernelsFilteredByGroupsGivenToDistantPeer(Group).
+* Check public key validity with client/server connexion protocol.
+* Add ConnectionProtocolNegotiator and ConnectionProtocolNegotiatorProperties classes.
+* Fix issue with client/server vs peer-to-peer protocol negotiation.
+* Optimizing a problem of simultaneous network data send to several peers : data was sent peer after peer, and not to all peers at the same time.
+* Add possibility to limit global download bandwidth and global upload bandwidth.
+* Detect OS wake up after a sleep mode.
+* Update Cling to 2.1.2.
+* Fix issue with router updating.
 
 
 ### 1.7.6 Stable (01/08/2018)

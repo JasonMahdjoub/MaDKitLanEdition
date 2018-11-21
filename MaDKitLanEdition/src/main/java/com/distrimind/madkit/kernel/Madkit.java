@@ -121,7 +121,7 @@ final public class Madkit {
 		Calendar c = Calendar.getInstance();
 		c.set(2015, Calendar.MAY, 22);
 		Calendar c2 = Calendar.getInstance();
-		c2.set(2018, Calendar.NOVEMBER, 14);
+		c2.set(2018, Calendar.NOVEMBER, 21);
 		Version VERSION = new Version("MadkitLanEdition", "MKLE", (short)1, (short)8, (short)0, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
 		try {
 
@@ -144,7 +144,7 @@ final public class Madkit {
 			VERSION.addDeveloper(new PersonDeveloper("Ferber", "Jacques", c.getTime()));
 
 			c = Calendar.getInstance();
-			c.set(2018, Calendar.NOVEMBER, 14);
+			c.set(2018, Calendar.NOVEMBER, 21);
 			Description d = new Description((short)1, (short)8, (short)0, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Detect security anomalies during big data transfers.");
             d.addItem("Correction of Group.equals() with null references.");
