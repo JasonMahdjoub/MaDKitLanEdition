@@ -89,7 +89,7 @@ public class XmlFeaturesTest extends JunitMadkit {
 
 	@Test
 	public void launchNodeSuccessFromConfig() {
-		addMadkitArgs("--configFiles", "{com/distrimind/madkit/xml/success.xml}");
+		addMadkitArgs("--configFiles", "{src/test/resources/com/distrimind/madkit/xml/success.xml}");
 		addMadkitArgs("--kernelLogLevel", "ALL");
 		launchTest(new AbstractAgent() {
 			@Override

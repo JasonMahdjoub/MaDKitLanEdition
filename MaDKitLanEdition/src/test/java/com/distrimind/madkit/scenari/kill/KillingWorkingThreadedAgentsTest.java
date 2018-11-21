@@ -276,7 +276,7 @@ public class KillingWorkingThreadedAgentsTest extends JunitMadkit {
 				a = new WorkingAgent(true, false, true);
 				r = launchAgent(a, 1);
 				assertTrue(TIMEOUT == r || r == SUCCESS);
-				killAgent(a, 2);
+				killAgent(a, 1);
 				assertTrue(State.ZOMBIE == a.getState() || State.ENDING == a.getState());
 
 				a = new WorkingAgent(true, true, true);
