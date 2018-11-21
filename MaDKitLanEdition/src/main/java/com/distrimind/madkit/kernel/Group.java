@@ -1614,11 +1614,14 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 				KernelReferences kr = m_kernel_references.get(ka);
 
 				if (kr == null) {
-					throw new IllegalAccessError();
-					/*
-					 * kr=new KernelReferences(ka); m_kernel_references.put(ka, kr);
-					 * kr.m_madkit_references=1;
-					 */
+
+                    setMadKitCreated(ka, true);
+                    kr = m_kernel_references.get(ka);
+                    if (kr==null)
+                        throw new IllegalAccessError();
+					/*kr=new KernelReferences(ka);
+					m_kernel_references.put(ka, kr);
+					kr.m_madkit_references=1;*/
 				}
 
 				if (kr.m_madkit_references < 0)

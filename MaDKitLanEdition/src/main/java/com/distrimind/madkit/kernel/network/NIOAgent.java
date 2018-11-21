@@ -1270,6 +1270,8 @@ final class NIOAgent extends Agent {
 
 		NoBackData getNextNoBackData() throws TransfertException
 		{
+		    if (is_closed)
+		        return null;
 			NoBackData res;
 			
 			do
@@ -2001,6 +2003,8 @@ final class NIOAgent extends Agent {
 				if (key != null) {
 					key.cancel();
 					key.channel().close();
+					if (socketChannel.isConnected())
+                        socketChannel.close();//TODO remove ?
 				} else
 					socketChannel.close();
 			} catch (Exception e) {
@@ -2048,6 +2052,8 @@ final class NIOAgent extends Agent {
 			shortDataToSend = new LinkedList<>();
 			bigDataToSend = new ArrayList<>();
 			dataToTransfer = new LinkedList<>();
+			if (stoping && isAlive() && personal_sockets.isEmpty())
+			    killAgent(NIOAgent.this);
 		}
 		public void closeIndirectConnection(ConnectionClosedReason cs, IDTransfer transferID,
 				AgentAddress indirectAgentAddress) {

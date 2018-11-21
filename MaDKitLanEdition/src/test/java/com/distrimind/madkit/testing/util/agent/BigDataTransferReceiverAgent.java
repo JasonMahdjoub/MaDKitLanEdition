@@ -91,8 +91,12 @@ public class BigDataTransferReceiverAgent extends Agent {
 				{
 					System.out.println(rm.getTransferedDataLength() +" bytes transfered in "+rm.getTransferDuration()+" ms"+(bdpm.bigDataExcludedFromEncryption()?" without encryption":" with encryption"));
 					System.out.println("Transfer speed (MiO per seconds) : "+(((double)rm.getTransferedDataLength())/(((double)rm.getTransferDuration())/1000.0)/1024.0/1024.0));
-					if (getMaximumGlobalDownloadSpeedInBytesPerSecond()!=Integer.MAX_VALUE)
-						Assert.assertTrue(((double)rm.getTransferedDataLength())/((double)rm.getTransferDuration())*1000.0<getMaximumGlobalDownloadSpeedInBytesPerSecond()*2);
+					if (getMaximumGlobalDownloadSpeedInBytesPerSecond()!=Integer.MAX_VALUE) {
+
+                        double speed=((double) rm.getTransferedDataLength()) / ((double) rm.getTransferDuration()) * 1000.0;
+                        Assert.assertTrue(speed< getMaximumGlobalDownloadSpeedInBytesPerSecond() * 2);
+                        Assert.assertTrue(speed> getMaximumGlobalDownloadSpeedInBytesPerSecond() / 2);
+                    }
 				}
 				else
 					System.err.println("Problem during transfer : "+rm.getType());
@@ -116,4 +120,8 @@ public class BigDataTransferReceiverAgent extends Agent {
 		}
 	}
 
+    @Override
+    protected void end() {
+        while(nextMessage()!=null);
+    }
 }

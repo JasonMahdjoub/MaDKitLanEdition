@@ -136,7 +136,7 @@ public class JunitMadkit {
 				if (timeOut > 0)
 					helperInstances.wait(timeOut);
 			}
-			Assert.assertEquals(helperInstances.size(), nb);
+			Assert.assertEquals(nb, helperInstances.size());
 			ArrayList<Madkit> res = new ArrayList<>();
 			res.addAll(helperInstances);
 			return res;
@@ -235,6 +235,7 @@ public class JunitMadkit {
 		} finally {
 			System.err.println("\n\n------------------------ " + name.getMethodName()
 					+ " TEST FINISHED ---------------------\n\n");
+
 			cleanHelperMDKs(a);
 			closeMadkit(madkit);
 			madkit = null;
@@ -505,6 +506,9 @@ public class JunitMadkit {
 							e.printStackTrace();
 						}
 					}
+
+
+
 				} finally {
 					helperInstances.clear();
 					externalProcesses.clear();

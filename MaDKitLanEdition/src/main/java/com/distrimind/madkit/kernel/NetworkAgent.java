@@ -148,7 +148,7 @@ public final class NetworkAgent extends AgentFakeThread {
 					new StopNetworkMessage(NetworkCloseReason.NORMAL_DETECTION));
 			sendMessage(LocalNetworkAffectationAgentAddress,
 					new StopNetworkMessage(NetworkCloseReason.NORMAL_DETECTION));
-			sendMessage(NIOAgentAddress, new StopNetworkMessage(NetworkCloseReason.NORMAL_DETECTION));
+			sendMessage(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.NIO_ROLE, new StopNetworkMessage(NetworkCloseReason.NORMAL_DETECTION));
 			this.broadcastMessageWithRole(LocalCommunity.Groups.NETWORK,
 					LocalCommunity.Roles.LOCAL_NETWORK_EXPLORER_ROLE, new KernelMessage(KernelAction.STOP_NETWORK),
 					LocalCommunity.Roles.NET_AGENT);

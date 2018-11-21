@@ -187,6 +187,7 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 			}
 		}
 		if (number == 1) {
+
 			group.incrementMadKitReferences(kernelAddress);
 		}
 	}

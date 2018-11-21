@@ -11,6 +11,7 @@ public class NetworkGlobalBandwidthLimitTest {
     public void testUploadLimit() throws UnknownHostException {
         BigDataTransferSpeed test=new BigDataTransferSpeed(Integer.MAX_VALUE, 40000000);
         test.bigDataTransfer();
+
     }
     @Test
     public void testDownloadLimit() throws UnknownHostException {

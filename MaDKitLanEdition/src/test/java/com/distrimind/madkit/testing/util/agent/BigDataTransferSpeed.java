@@ -54,6 +54,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 
@@ -64,14 +65,37 @@ import java.util.logging.Level;
  * 
  */
 public class BigDataTransferSpeed extends JunitMadkit {
-	final MadkitEventListener eventListener1;
+	final NetworkEventListener eventListener1;
 	final NetworkEventListener eventListener2;
     final int downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond;
 
 	public BigDataTransferSpeed(final int downloadLimitInBytesPerSecond, final int uploadLimitInBytesPerSecond) throws UnknownHostException {
         this.downloadLimitInBytesPerSecond=downloadLimitInBytesPerSecond;
         this.uploadLimitInBytesPerSecond=uploadLimitInBytesPerSecond;
-		this.eventListener1 = new MadkitEventListener() {
+        P2PSecuredConnectionProtocolWithKeyAgreementProperties p2pprotocol=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+        p2pprotocol.isServer = true;
+        p2pprotocol.symmetricEncryptionType=SymmetricEncryptionType.AES_CTR;
+        p2pprotocol.symmetricSignatureType= SymmetricAuthentifiedSignatureType.HMAC_SHA2_256;
+
+        AbstractAccessProtocolProperties app = new AccessProtocolWithP2PAgreementProperties();
+        this.eventListener1 = new NetworkEventListener(true, false, false, null,
+                new ConnectionsProtocolsMKEventListener(p2pprotocol), new AccessProtocolPropertiesMKEventListener(app),
+                new AccessDataMKEventListener(AccessDataMKEventListener.getDefaultAccessData(GROUP)), 5000,
+                Collections.singletonList((AbstractIP) new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"),
+                        (Inet6Address) InetAddress.getByName("::1"))),
+                InetAddress.getByName("0.0.0.0")) {
+
+            @Override
+            public void onMadkitPropertiesLoaded(MadkitProperties _properties) {
+                super.onMadkitPropertiesLoaded(_properties);
+                _properties.networkProperties.networkLogLevel = Level.INFO;
+                _properties.networkProperties.maxBufferSize=Short.MAX_VALUE*4;
+                _properties.networkProperties.maximumGlobalDownloadSpeedInBytesPerSecond=downloadLimitInBytesPerSecond;
+                _properties.networkProperties.maximumGlobalUploadSpeedInBytesPerSecond=uploadLimitInBytesPerSecond;
+
+            }
+        };
+		/*this.eventListener1 = new MadkitEventListener() {
 
 			@Override
 			public void onMadkitPropertiesLoaded(MadkitProperties _properties) {
@@ -95,14 +119,14 @@ public class BigDataTransferSpeed extends JunitMadkit {
                 _properties.networkProperties.maximumGlobalDownloadSpeedInBytesPerSecond=downloadLimitInBytesPerSecond;
 				_properties.networkProperties.maximumGlobalUploadSpeedInBytesPerSecond=uploadLimitInBytesPerSecond;
 			}
-		};
+		};*/
 
 		P2PSecuredConnectionProtocolWithKeyAgreementProperties u = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
 		u.isServer = false;
         u.symmetricEncryptionType=SymmetricEncryptionType.AES_CTR;
 		u.symmetricSignatureType= SymmetricAuthentifiedSignatureType.HMAC_SHA2_256;
 
-		AbstractAccessProtocolProperties app = new AccessProtocolWithP2PAgreementProperties();
+		app = new AccessProtocolWithP2PAgreementProperties();
 		
 		this.eventListener2 = new NetworkEventListener(true, false, false, null,
 				new ConnectionsProtocolsMKEventListener(u), new AccessProtocolPropertiesMKEventListener(app),
@@ -114,75 +138,132 @@ public class BigDataTransferSpeed extends JunitMadkit {
 			@Override
 			public void onMadkitPropertiesLoaded(MadkitProperties _properties) {
 			    super.onMadkitPropertiesLoaded(_properties);
-				_properties.networkProperties.maximumGlobalDownloadSpeedInBytesPerSecond=downloadLimitInBytesPerSecond;
+                _properties.networkProperties.networkLogLevel = Level.INFO;
+                _properties.networkProperties.maxBufferSize=Short.MAX_VALUE*4;
+
+                _properties.networkProperties.maximumGlobalDownloadSpeedInBytesPerSecond=downloadLimitInBytesPerSecond;
 				_properties.networkProperties.maximumGlobalUploadSpeedInBytesPerSecond=uploadLimitInBytesPerSecond;
 
 			}
 		};
-		this.eventListener2.maxBufferSize=Short.MAX_VALUE*4;
 	}
-
+    private static final long timeOut = 20000;
 	public void bigDataTransfer() {
-		final BigDataTransferReceiverAgent bigDataTransferAgent = new BigDataTransferReceiverAgent(2, uploadLimitInBytesPerSecond);
-		final AtomicBoolean transfered1=new AtomicBoolean(false);
-		final AtomicBoolean transfered2=new AtomicBoolean(false);
+
+		final AtomicReference<Boolean> transfered1=new AtomicReference<>(null);
+		final AtomicReference<Boolean> transfered2=new AtomicReference<>(null);
 		// addMadkitArgs("--kernelLogLevel",Level.INFO.toString(),"--networkLogLevel",Level.FINEST.toString());
-		launchTest(new NormalAgent() {
-			@Override
-			protected void activate() throws InterruptedException {
-				setLogLevel(Level.OFF);
-				requestRole(GROUP, ROLE);
-				launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, bigDataTransferAgent, eventListener2);
-				sleep(2000);
-                int size=400000000;
-                int delay;
-                if (downloadLimitInBytesPerSecond!=Integer.MAX_VALUE || uploadLimitInBytesPerSecond!=Integer.MAX_VALUE)
-                    delay=Math.max(60000, size/Math.min(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond)*1000+20000);
-                else
-                    delay=60000;
-				AgentAddress aa=getAgentsWithRole(GROUP, ROLE).iterator().next();
-				assert aa!=null;
+		launchTest(new AbstractAgent() {
+            @Override
+            protected void end() {
+                while(nextMessage()!=null);
+            }
 
-				try {
+            @Override
+            protected void activate() throws InterruptedException {
+                AbstractAgent bigDataSenderAgent=new NormalAgent() {
+                            @Override
+                            protected void activate() throws InterruptedException {
+                                requestRole(GROUP, ROLE);
+                                sleep(2000);
+                                int size=400000000;
+                                int delay;
+                                if (downloadLimitInBytesPerSecond!=Integer.MAX_VALUE || uploadLimitInBytesPerSecond!=Integer.MAX_VALUE)
+                                    delay=Math.max(60000, size/Math.min(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond)*1000+20000);
+                                else
+                                    delay=60000;
+                                AgentAddress aa=getAgentsWithRole(GROUP, ROLE).iterator().next();
+                                assert aa!=null;
 
-					Assert.assertNotNull(this.sendBigData(aa, new RandomByteArrayInputStream(new byte[size]), 0, size, null, null, true));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				Message m=this.waitNextMessage(delay);
+                                try {
 
-				transfered1.set(m instanceof BigDataResultMessage && ((BigDataResultMessage) m).getType() == BigDataResultMessage.Type.BIG_DATA_TRANSFERED);
-				if (transfered1.get()) {
-                    BigDataResultMessage br=(BigDataResultMessage)m;
-                    if (this.getMaximumGlobalUploadSpeedInBytesPerSecond() != Integer.MAX_VALUE)
-                        Assert.assertTrue(((double) br.getTransferedDataLength()) / ((double) br.getTransferDuration()) * 1000.0 < getMaximumGlobalUploadSpeedInBytesPerSecond() * 2);
+                                    Assert.assertNotNull(this.sendBigData(aa, new RandomByteArrayInputStream(new byte[size]), 0, size, null, null, true));
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                                Message m=this.waitNextMessage(delay);
+
+                                boolean tr1=m instanceof BigDataResultMessage && ((BigDataResultMessage) m).getType() == BigDataResultMessage.Type.BIG_DATA_TRANSFERED;
+                                if (tr1) {
+                                    BigDataResultMessage br=(BigDataResultMessage)m;
+                                    if (this.getMaximumGlobalUploadSpeedInBytesPerSecond() != Integer.MAX_VALUE){
+                                        double speed=((double) br.getTransferedDataLength()) / ((double) br.getTransferDuration()) * 1000.0;
+                                        Assert.assertTrue(speed< getMaximumGlobalUploadSpeedInBytesPerSecond() * 2);
+                                        Assert.assertTrue(speed> getMaximumGlobalUploadSpeedInBytesPerSecond() / 2);
+                                    }
+                                }
+                                transfered1.set(tr1);
+
+                                Assert.assertTrue(""+m, transfered1.get());
+
+                                try {
+                                    Assert.assertNotNull(this.sendBigData(aa, new RandomByteArrayInputStream(new byte[size]), 0, size, null, null, false));
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                                m=this.waitNextMessage(delay);
+                                boolean tr2=m instanceof BigDataResultMessage && ((BigDataResultMessage) m).getType() == BigDataResultMessage.Type.BIG_DATA_TRANSFERED;
+                                if (tr2) {
+                                    BigDataResultMessage br=(BigDataResultMessage)m;
+                                    if (this.getMaximumGlobalUploadSpeedInBytesPerSecond() != Integer.MAX_VALUE) {
+                                        double speed=((double) br.getTransferedDataLength()) / ((double) br.getTransferDuration()) * 1000.0;
+                                        Assert.assertTrue(speed< getMaximumGlobalUploadSpeedInBytesPerSecond() * 2);
+                                        Assert.assertTrue(speed> getMaximumGlobalUploadSpeedInBytesPerSecond() / 2);
+                                    }
+                                }
+                                transfered2.set(tr2);
+
+                                Assert.assertTrue(""+m, transfered2.get());
+
+
+                            }
+
+                            @Override
+                            protected void liveCycle() {
+                                this.killAgent(this);
+                            }
+
+                            @Override
+                            protected void end() {
+                                while(nextMessage()!=null);
+                            }
+                        };
+                launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, bigDataSenderAgent, eventListener1);
+                sleep(400);
+                BigDataTransferReceiverAgent bigDataTransferAgent = new BigDataTransferReceiverAgent(2, uploadLimitInBytesPerSecond);
+                launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, bigDataTransferAgent, eventListener2);
+
+                int counter=0;
+                while(transfered1.get()==null || transfered2.get()==null)
+                {
+
+                    Thread.sleep(1000);
                 }
+                Assert.assertTrue(transfered1.get());
+                Assert.assertTrue(transfered2.get());
 
-				Assert.assertTrue(""+m, transfered1.get());
+                //noinspection UnusedAssignment
+                bigDataTransferAgent=null;
+                //noinspection UnusedAssignment
+                bigDataSenderAgent=null;
+                for (Madkit mk : getHelperInstances(2))
+                    stopNetwork(mk);
 
-				try {
-					Assert.assertNotNull(this.sendBigData(aa, new RandomByteArrayInputStream(new byte[size]), 0, size, null, null, false));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-                m=this.waitNextMessage(delay);
-				transfered2.set(m instanceof BigDataResultMessage && ((BigDataResultMessage) m).getType() == BigDataResultMessage.Type.BIG_DATA_TRANSFERED);
-                if (transfered2.get()) {
-                    BigDataResultMessage br=(BigDataResultMessage)m;
-                    if (this.getMaximumGlobalUploadSpeedInBytesPerSecond() != Integer.MAX_VALUE)
-                        Assert.assertTrue(((double) br.getTransferedDataLength()) / ((double) br.getTransferDuration()) * 1000.0 < getMaximumGlobalUploadSpeedInBytesPerSecond() * 2);
+                for (Madkit mk : getHelperInstances(2)) {
+                    checkConnectedKernelsNb(this, mk, 0, timeOut);
+                    checkConnectedIntancesNb(this, mk, 0, timeOut);
                 }
-				Assert.assertTrue(""+m, transfered2.get());
+                sleep(400);
 
-			}
+                cleanHelperMDKs(this);
+                Assert.assertEquals(getHelperInstances(0).size(), 0);
 
-			@Override
-			protected void liveCycle() {
-				this.killAgent(this);
-			}
-		}, eventListener1);
-		Assert.assertTrue(transfered1.get());
-		Assert.assertTrue(transfered2.get());
+
+            }
+        });
+        Assert.assertTrue(transfered1.get());
+        Assert.assertTrue(transfered2.get());
+
 		cleanHelperMDKs();
 	}
 	
