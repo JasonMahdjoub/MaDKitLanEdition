@@ -67,7 +67,7 @@ class AskClientServerConnection extends AskConnection {
 
 	//private final transient byte[] distantPublicKeyForEncryptionEncoded;
 	private byte[] secretKeyForEncryption, secretKeyForSignature, signatureOfSecretKeyForEncryption;
-
+	private byte[] randomBytes;
 
 	@SuppressWarnings("unused")
 	AskClientServerConnection()
@@ -80,14 +80,15 @@ class AskClientServerConnection extends AskConnection {
 		super.readExternal(in);
 		secretKeyForEncryption=SerializationTools.readBytes(in, MAX_SECRET_KEY_LENGTH, true);
 		secretKeyForSignature=SerializationTools.readBytes(in, MAX_SECRET_KEY_LENGTH, false);
-		signatureOfSecretKeyForEncryption=SerializationTools.readBytes(in, MAX_SIGNATURE_LENGTH, true);
+		signatureOfSecretKeyForEncryption=SerializationTools.readBytes(in, MAX_SIGNATURE_LENGTH, false);
 		if (secretKeyForEncryption!=null && secretKeyForEncryption.length == 0)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		if (secretKeyForSignature.length == 0)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		if (this.isYouAreAsking())
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		if (secretKeyForEncryption!=null && signatureOfSecretKeyForEncryption==null)
+		randomBytes=SerializationTools.readBytes(in, 256, false);
+		if (randomBytes.length!=256)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 	}
 
@@ -97,8 +98,8 @@ class AskClientServerConnection extends AskConnection {
 		super.writeExternal(oos);
 		SerializationTools.writeBytes(oos, secretKeyForEncryption, MAX_SECRET_KEY_LENGTH, true);
 		SerializationTools.writeBytes(oos, secretKeyForSignature, MAX_SECRET_KEY_LENGTH, false);
-		SerializationTools.writeBytes(oos, signatureOfSecretKeyForEncryption, MAX_SIGNATURE_LENGTH, true);
-		
+		SerializationTools.writeBytes(oos, signatureOfSecretKeyForEncryption, MAX_SIGNATURE_LENGTH, false);
+		SerializationTools.writeBytes(oos,randomBytes, 256, false);
 	}
 	
 	
@@ -118,14 +119,19 @@ class AskClientServerConnection extends AskConnection {
 		
 		this.secretKeyForEncryption=keyWrapper.wrapKey(random, distantPublicKeyForEncryption, encryptionSecretKey);
 		this.secretKeyForSignature=keyWrapper.wrapKey(random, distantPublicKeyForEncryption, signatureSecretKey);
+		this.randomBytes=new byte[256];
+		random.nextBytes(randomBytes);
 		SymmetricAuthentifiedSignerAlgorithm signer=new SymmetricAuthentifiedSignerAlgorithm(signatureSecretKey);
-		this.signatureOfSecretKeyForEncryption=signer.sign(secretKeyForEncryption);
+		signer.init();
+		signer.update(secretKeyForEncryption);
+		signer.update(randomBytes);
+		this.signatureOfSecretKeyForEncryption=signer.getSignature();
 		//this.distantPublicKeyForEncryptionEncoded = asymmetricAlgo.encode(distantPublicKeyForEncryption.encode());
 	}
 	AskClientServerConnection(AbstractSecureRandom random, ASymmetricKeyWrapperType keyWrapper, SymmetricSecretKey signatureSecretKey,			
 			ASymmetricPublicKey distantPublicKeyForEncryption) throws InvalidKeyException, InvalidAlgorithmParameterException,
 			IllegalBlockSizeException, IOException, IllegalStateException,
-			NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException, NoSuchPaddingException {
+			NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException, NoSuchPaddingException, SignatureException {
 		super(false);
 		if (keyWrapper == null)
 			throw new NullPointerException("symmetricAlgo");
@@ -136,7 +142,12 @@ class AskClientServerConnection extends AskConnection {
 		
 		this.secretKeyForEncryption=null;
 		this.secretKeyForSignature=keyWrapper.wrapKey(random, distantPublicKeyForEncryption, signatureSecretKey);
-		this.signatureOfSecretKeyForEncryption=null;
+		this.randomBytes=new byte[256];
+		random.nextBytes(randomBytes);
+		SymmetricAuthentifiedSignerAlgorithm signer=new SymmetricAuthentifiedSignerAlgorithm(signatureSecretKey);
+		signer.init();
+		signer.update(randomBytes);
+		this.signatureOfSecretKeyForEncryption=signer.getSignature();
 		//this.distantPublicKeyForEncryptionEncoded = asymmetricAlgo.encode(distantPublicKeyForEncryption.encode());
 	}
 
@@ -147,14 +158,18 @@ class AskClientServerConnection extends AskConnection {
 		return secretKeyForSignature;
 	}
 	
-	boolean checkSignedSecretKey(SymmetricSecretKey signatureSecretKey)
+	boolean checkSignedMessage(SymmetricSecretKey signatureSecretKey)
 	{
 		if (secretKeyForEncryption!=null)
 		{
 			
 			try {
 				SymmetricAuthentifiedSignatureCheckerAlgorithm checker=new SymmetricAuthentifiedSignatureCheckerAlgorithm(signatureSecretKey);
-				return checker.verify(this.secretKeyForEncryption, this.signatureOfSecretKeyForEncryption);
+				checker.init(this.signatureOfSecretKeyForEncryption);
+				if (secretKeyForEncryption!=null)
+					checker.update(this.secretKeyForEncryption);
+				checker.update(this.randomBytes);
+				return checker.verify();
 			} catch (InvalidKeyException | SignatureException | NoSuchAlgorithmException | InvalidKeySpecException
 					| IllegalStateException | NoSuchProviderException
 					| InvalidAlgorithmParameterException | InvalidParameterSpecException | IOException e) {
