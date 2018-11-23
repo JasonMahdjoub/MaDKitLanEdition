@@ -160,24 +160,19 @@ class AskClientServerConnection extends AskConnection {
 	
 	boolean checkSignedMessage(SymmetricSecretKey signatureSecretKey)
 	{
-		if (secretKeyForEncryption!=null)
-		{
-			
-			try {
-				SymmetricAuthentifiedSignatureCheckerAlgorithm checker=new SymmetricAuthentifiedSignatureCheckerAlgorithm(signatureSecretKey);
-				checker.init(this.signatureOfSecretKeyForEncryption);
-				if (secretKeyForEncryption!=null)
-					checker.update(this.secretKeyForEncryption);
-				checker.update(this.randomBytes);
-				return checker.verify();
-			} catch (InvalidKeyException | SignatureException | NoSuchAlgorithmException | InvalidKeySpecException
-					| IllegalStateException | NoSuchProviderException
-					| InvalidAlgorithmParameterException | InvalidParameterSpecException | IOException e) {
-				return false;
-			}
-		}
-		else
+
+		try {
+			SymmetricAuthentifiedSignatureCheckerAlgorithm checker=new SymmetricAuthentifiedSignatureCheckerAlgorithm(signatureSecretKey);
+			checker.init(this.signatureOfSecretKeyForEncryption);
+			if (secretKeyForEncryption!=null)
+				checker.update(this.secretKeyForEncryption);
+			checker.update(this.randomBytes);
+			return checker.verify();
+		} catch (InvalidKeyException | SignatureException | NoSuchAlgorithmException | InvalidKeySpecException
+				| IllegalStateException | NoSuchProviderException
+				| InvalidAlgorithmParameterException | InvalidParameterSpecException | IOException e) {
 			return false;
+		}
 	}
 
 	/*byte[] getEncodedPublicKeyForEncryption() {

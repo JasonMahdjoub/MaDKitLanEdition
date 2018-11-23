@@ -183,11 +183,12 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 			if (askMessage.getSecretKeyForEncryption()==null && hproperties.enableEncryption)
 				throw new ConnectionException("Secret key empty !");
 
-			if (!askMessage.checkSignedMessage(mySecretKeyForSignature))
-				throw new ConnectionException("Message signature is not checked !");
 
 			mySecretKeyForSignature=keyWrapper.unwrapKey(myKeyPairForEncryption.getASymmetricPrivateKey(), askMessage.getSecretKeyForSignature());
-			
+
+			if (mySecretKeyForSignature==null || !askMessage.checkSignedMessage(mySecretKeyForSignature))
+				throw new ConnectionException("Message signature is not checked !");
+
 			if (hproperties.enableEncryption)
 			{
 				mySecretKeyForEncryption=keyWrapper.unwrapKey(myKeyPairForEncryption.getASymmetricPrivateKey(), askMessage.getSecretKeyForEncryption());

@@ -336,12 +336,14 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 						signatureChecker.update(_block.getBytes(),
 								off, _block.getSize() - getSizeHead());
 						boolean check = signatureChecker.verify();
-						
+						if (!check)
+							System.out.println("here1");
 						return new SubBlockInfo(res, check, !check);
 					} catch (Exception e) {
 
 						SubBlock res = new SubBlock(_block.getBytes(), off,
 								getBodyOutputSizeForDecryption(_block.getSize() - getSizeHead()));
+
 						return new SubBlockInfo(res, false, true);
 					}
 				}
@@ -371,6 +373,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 							check = signatureChecker.verify();
 						}
 						SubBlock res;
+
 						if (check)
 						{
 							if (getPacketCounter().isLocalActivated())
@@ -388,6 +391,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 					} catch (Exception e) {
 						SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getSizeHead(),
 								getBodyOutputSizeForDecryption(_block.getSize() - getSizeHead()));
+
 						return new SubBlockInfo(res, false, true);
 					}
 				}
@@ -578,9 +582,10 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 					}
 					signatureChecker.update(res.getBytes(), res.getOffset(), _block.getSize() - getSizeHead());
 					boolean check = signatureChecker.verify();
-	
+
 					return new SubBlockInfo(res, check, !check);
 				} catch (Exception e) {
+
 					return new SubBlockInfo(res, false, true);
 				}
 			}
