@@ -327,8 +327,8 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 		return false;
 	}
 
-	Map<String, Set<AgentAddress>> getGroupMap() {
-		final Map<String, Set<AgentAddress>> export = new TreeMap<>();
+	Map<String, Collection<AgentAddress>> getGroupMap() {
+		final Map<String, Collection<AgentAddress>> export = new TreeMap<>();
 		for (final Map.Entry<String, InternalRole> org : entrySet()) {
 			export.put(org.getKey(), org.getValue().buildAndGetAddresses());
 		}
@@ -336,9 +336,9 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 	}
 
 
-	void importDistantOrg(final Map<String, Set<AgentAddress>> map, MadkitKernel madkitKernel) {
+	void importDistantOrg(final Map<String, Collection<AgentAddress>> map, MadkitKernel madkitKernel) {
 		for (final String roleName : map.keySet()) {
-			final Set<AgentAddress> list = map.get(roleName);
+			final Collection<AgentAddress> list = map.get(roleName);
 			if (list == null)
 				continue;
 			synchronized (this) {

@@ -44,15 +44,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.ConcurrentModificationException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -1594,7 +1586,7 @@ class DistantKernelAgent extends AgentFakeThread {
 				MadkitKernelAccess.informHooks(this, new NetworkGroupsAccessEvent(
 						AgentActionEvent.ACCESSIBLE_LAN_GROUPS_GIVEN_TO_DISTANT_PEER, mg, ag, distant_kernel_address));
 
-				Map<String, Map<Group, Map<String, Set<AgentAddress>>>> agent_addresses = getOrganizationSnapShot(
+				Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> agent_addresses = getOrganizationSnapShot(
 						newAcceptedGroups, false);
 
 				if (!agent_addresses.isEmpty()) {

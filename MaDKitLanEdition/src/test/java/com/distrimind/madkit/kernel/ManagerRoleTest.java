@@ -70,7 +70,7 @@ public class ManagerRoleTest extends JunitMadkit {
 					System.err.println(
 							"\nplayers=" + getKernel().getRole(GROUP, Organization.GROUP_MANAGER_ROLE).players + "\n");
 					assertEquals(1, getKernel().getRole(GROUP, Organization.GROUP_MANAGER_ROLE).players.size());
-					assertEquals(this, getKernel().getRole(GROUP, Organization.GROUP_MANAGER_ROLE).players.get(0));
+					assertEquals(this, getKernel().getRole(GROUP, Organization.GROUP_MANAGER_ROLE).players.iterator().next());
 				} catch (CGRNotAvailable e) {
 					e.printStackTrace();
 				}

@@ -151,8 +151,8 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 	}
 
 
-	Map<Group, Map<String, Set<AgentAddress>>> getOrgMap(boolean global) {
-		Map<Group, Map<String, Set<AgentAddress>>> export = new TreeMap<>();
+	Map<Group, Map<String, Collection<AgentAddress>>> getOrgMap(boolean global) {
+		Map<Group, Map<String, Collection<AgentAddress>>> export = new TreeMap<>();
 		for (Map.Entry<Group, InternalGroup> org : entrySet()) {
 			if (global || org.getValue().isDistributed()) {
 				export.put(org.getKey(), org.getValue().getGroupMap());
@@ -161,14 +161,14 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 		return export;
 	}
 
-	Map<Group, Map<String, Set<AgentAddress>>> getOrgMap(Collection<Group> concerned_groups, boolean global) {
-		Map<Group, Map<String, Set<AgentAddress>>> export = new TreeMap<>();
+	Map<Group, Map<String, Collection<AgentAddress>>> getOrgMap(Collection<Group> concerned_groups, boolean global) {
+		Map<Group, Map<String, Collection<AgentAddress>>> export = new TreeMap<>();
 		for (Map.Entry<Group, InternalGroup> org : entrySet()) {
 			if (global || org.getValue().isDistributed()) {
 				for (Group concerned_group : concerned_groups) {
 					if (concerned_group.getCommunity().equals(this.communityName)
 							&& concerned_group.equals(org.getKey())) {
-						Map<String, Set<AgentAddress>> m = org.getValue().getGroupMap();
+						Map<String, Collection<AgentAddress>> m = org.getValue().getGroupMap();
 						if (!m.isEmpty()) {
 							export.put(org.getKey(), m);
 						}
@@ -182,7 +182,7 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 	}
 
 
-	void importDistantOrg(Map<Group, Map<String, Set<AgentAddress>>> map, MadkitKernel madkitKernel) {
+	void importDistantOrg(Map<Group, Map<String, Collection<AgentAddress>>> map, MadkitKernel madkitKernel) {
 		for (Group groupName : map.keySet()) {
 			InternalGroup group = get(groupName);
 			if (group == null) {

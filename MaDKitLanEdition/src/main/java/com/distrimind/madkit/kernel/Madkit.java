@@ -147,6 +147,7 @@ final public class Madkit {
 			c.set(2018, Calendar.NOVEMBER, 24);
 			Description d = new Description((short)1, (short)8, (short)2, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Improve security of Client/Server connection protocol.");
+			d.addItem("Resolve a concurrent modification exception into internal role.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();

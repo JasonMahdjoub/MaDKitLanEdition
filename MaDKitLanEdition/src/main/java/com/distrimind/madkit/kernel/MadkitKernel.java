@@ -1516,6 +1516,7 @@ class MadkitKernel extends Agent {
 	final AgentAddress resolveAddress(AgentAddress receiver) {
 		final InternalRole roleObject = receiver.getRoleObject();
 		if (roleObject != null) {
+
 			if (roleObject.players == null) {// has been traveling
 				try {
 					return getRole(roleObject.getGroup(), roleObject.getRoleName()).resolveAgentAddress(receiver);
@@ -1523,7 +1524,9 @@ class MadkitKernel extends Agent {
 					return null;
 				}
 			}
-			return receiver;
+			else
+				return roleObject.resolveAgentAddress(receiver);
+			//return receiver;
 		}
 		return null;
 	}
@@ -2571,7 +2574,7 @@ class MadkitKernel extends Agent {
 	}
 
 	final void importDistantOrg(CGRSynchros synchros) {
-		final Map<String, Map<Group, Map<String, Set<AgentAddress>>>> distantOrg = synchros.getOrganizationSnapShot();
+		final Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> distantOrg = synchros.getOrganizationSnapShot();
 
 		synchronized (organizations) {
 			for (final String communityName : distantOrg.keySet()) {
@@ -2595,11 +2598,11 @@ class MadkitKernel extends Agent {
 	}
 
 	@Override
-	final public Map<String, Map<Group, Map<String, Set<AgentAddress>>>> getOrganizationSnapShot(boolean global) {
-		Map<String, Map<Group, Map<String, Set<AgentAddress>>>> export = new TreeMap<>();
+	final public Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> getOrganizationSnapShot(boolean global) {
+		Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> export = new TreeMap<>();
 		synchronized (organizations) {
 			for (Map.Entry<String, Organization> org : organizations.entrySet()) {
-				Map<Group, Map<String, Set<AgentAddress>>> currentOrg = org.getValue().getOrgMap(global);
+				Map<Group, Map<String, Collection<AgentAddress>>> currentOrg = org.getValue().getOrgMap(global);
 				if (!currentOrg.isEmpty())
 					export.put(org.getKey(), org.getValue().getOrgMap(global));
 			}
@@ -2608,18 +2611,18 @@ class MadkitKernel extends Agent {
 	}
 
 	@Override
-	final public Map<String, Map<Group, Map<String, Set<AgentAddress>>>> getOrganizationSnapShot(
+	final public Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> getOrganizationSnapShot(
 			Collection<Group> concerned_groups, boolean global) {
 
 		if (concerned_groups == null)
 			throw new NullPointerException("concerned_group");
-		Map<String, Map<Group, Map<String, Set<AgentAddress>>>> export = new TreeMap<>();
+		Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> export = new TreeMap<>();
 		synchronized (organizations) {
 			for (Map.Entry<String, Organization> org : organizations.entrySet()) {
-				Map<Group, Map<String, Set<AgentAddress>>> m = org.getValue().getOrgMap(concerned_groups, global);
+				Map<Group, Map<String, Collection<AgentAddress>>> m = org.getValue().getOrgMap(concerned_groups, global);
 				if (!m.isEmpty()) {
 					String com = org.getKey();
-					Map<Group, Map<String, Set<AgentAddress>>> cur = export.get(com);
+					Map<Group, Map<String, Collection<AgentAddress>>> cur = export.get(com);
 					if (cur == null) {
 						export.put(com, m);
 					} else
