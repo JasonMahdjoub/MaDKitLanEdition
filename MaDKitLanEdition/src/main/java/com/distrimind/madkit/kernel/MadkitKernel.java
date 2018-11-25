@@ -1377,7 +1377,7 @@ class MadkitKernel extends Agent {
 			for (Group g : getRepresentedGroups(group, role)) {
 				try {
 					if (callerIncluded) {
-						set.addAll(getRole(g, role).getAgentAddressesCopy());
+						set.addAll(getRole(g, role).buildAndGetAddresses());
 					} else {
 						List<AgentAddress> l = getOtherRolePlayers(requester, g, role);
 						if (l != null)

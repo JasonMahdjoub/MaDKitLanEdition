@@ -73,7 +73,7 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 
 	protected transient Collection<AbstractAgent> players;//=new HashSet<>();// TODO test copyonarraylist and linkedhashset
 	private transient List<AbstractAgent> tmpReferenceableAgents;
-	protected volatile transient Collection<AgentAddress> agentAddresses;
+	protected volatile transient List<AgentAddress> agentAddresses;
     protected transient Collection<AgentAddress> distantAgentAddresses;
 	protected transient boolean modified = true;
 	private transient AtomicReference<Set<Overlooker<? extends AbstractAgent>>> overlookers = new AtomicReference<>(
@@ -464,7 +464,7 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 
 	}
 
-	final Collection<AgentAddress> buildAndGetAddresses() {
+	final List<AgentAddress> buildAndGetAddresses() {
 		if (agentAddresses == null) {
 			ArrayList<AgentAddress> set=new ArrayList<>(players.size()+distantAgentAddresses.size());
 			synchronized (players) {
@@ -473,7 +473,7 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 							!getMyGroup().getCommunityObject().getMyKernel().isAutoCreateGroup(a)));
 				}
 				set.addAll(distantAgentAddresses);
-                agentAddresses = set;
+                agentAddresses = Collections.unmodifiableList(set);
 			}
 
 		}
@@ -576,9 +576,7 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 	}
 
 	final List<AgentAddress> getAgentAddressesCopy() {
-		synchronized (players) {
-			return new ArrayList<>(buildAndGetAddresses());
-		}
+		return new ArrayList<>(buildAndGetAddresses());
 	}
 
 
