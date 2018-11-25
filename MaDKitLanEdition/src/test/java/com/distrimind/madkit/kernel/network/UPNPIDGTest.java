@@ -198,7 +198,7 @@ public class UPNPIDGTest extends JunitMadkit {
 						public void activate() {
 							try {
 								requestRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.LOCAL_NETWORK_ROLE);
-								launchAgent(UpnpIGDAgent.getInstance());
+								//launchAgent(UpnpIGDAgent.getInstance());//TODO to reenable
 								this.sendMessageWithRole(LocalCommunity.Groups.NETWORK,
 										LocalCommunity.Roles.LOCAL_NETWORK_EXPLORER_ROLE,
 										new AskForRouterDetectionInformation(true),
