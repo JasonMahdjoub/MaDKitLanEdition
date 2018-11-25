@@ -1,1 +1,1 @@
-1.8.1-Stable
+1.8.2-Stable
