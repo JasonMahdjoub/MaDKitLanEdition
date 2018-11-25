@@ -42,6 +42,7 @@ import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ROLE_NOT_HAN
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 
 import java.util.HashSet;
+import java.util.Set;
 
 import com.distrimind.madkit.agr.Organization;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
@@ -69,11 +70,13 @@ final class ManagerRole extends InternalRole {
 		super(groupObject, Organization.GROUP_MANAGER_ROLE);
 		synchronized (players) {
 			players.add(requester);
-			agentAddresses = new HashSet<>(1, 1);
-			agentAddresses.add(new GroupManagerAddress(requester, this, getKernelAddress(), true, securedGroup));
+
+			/*Set<AgentAddress> set= new HashSet<>(1, 1);
+			set.add(new GroupManagerAddress(requester, this, getKernelAddress(), true, securedGroup));*/
 			// System.err.println(requester.getName() + " is now playing " +
 			// getCGRString(communityName, groupName, roleName));
 			// System.err.println(this+" current players---\n"+players+"\n\n");
+			agentAddresses=null;
 			modified = true;
 		}
 	}
@@ -81,9 +84,13 @@ final class ManagerRole extends InternalRole {
 	ManagerRole(final InternalGroup groupObject, AgentAddress creator) {
 		super(groupObject, Organization.GROUP_MANAGER_ROLE);
 		synchronized (players) {
-			agentAddresses = new HashSet<>(1, 1);
-			agentAddresses.add(creator);
-			creator.setRoleObject(this);// required for equals to work
+            creator.setRoleObject(this);// required for equals to work
+		    distantAgentAddresses.add(creator);
+		    agentAddresses=null;
+			/*Set<AgentAddress> set=new HashSet<>(1, 1);
+			set.add(creator);
+			agentAddresses=set;*/
+
 		}
 	}
 

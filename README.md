@@ -34,6 +34,7 @@ You can also find inspiration into Junit tests.
     * Several encryption algorithms, including authenticated encryption algorithms and Post Quantum Cryptography encryptions
     * Several signature algorithms, including  Post Quantum Cryptography signers
     * There is a possibility to choose between several key agreement algorithms, including Post Quantum Cryptography agreements
+    * ConnectionProtocolNegotiator has a list of possible connection protocols annoted with level of priorities. Then During the negotitation, choosen connection protocol is the connection protocol that is common with the two peers, and that sum of the two priorities, given by the two peers, is the higher sum.
     * Sending the same packet from "the man in the middle" is impossible :
     	* Initialization vectors used with encryption has a secret part composed of counter that is increased at each data exchange.
     	* More over, signatures are computed with a secret part composed of counter that is increased at each data exchange.     	
@@ -56,17 +57,17 @@ You can also find inspiration into Junit tests.
 * Conversation ID's are also interfaced for security reasons
 * Agents that send distant messages are blocked until the message is sent, this in order to avoid increasing memory use while network is slower than agent's simulation
 * possibility to get network metrics for each connection, and for each big data transfer.
+* possibility to limit global download bandwidth and global upload bandwidth
 * Connections are automatically closed if the distant peer does not answer to ping messages. Lost messages are identified, and messages which have not been sent are returned to sender agents.
 * large scale conception (i.e. use of socket channel)
 * Serialization of classes are now externalized. More over, there is a white list of classes that can be externalized and a black list that cannot. Moreover, over memory allocation (arrays or strings) is controlled during the deserialization process.
+* Detect OS wake up after a sleep mode. Then reconnect all peers.
 * Configuration files can be in several formats :
 	* YAML format (default)
 	* XML format
 	* Properties format
 
 All described features are tested and considered as stable.
-
-
 
 ###### Other futures of MaDKit Lan Edition :
 * Agents can launch tasks (multi-threaded)
@@ -109,7 +110,7 @@ Adapt into your build.gradle file, the next code :
 	...
 	dependencies {
 		...
-		compile(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '1.8.0-Stable')
+		compile(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '1.8.1-Stable')
 		...
 	}
 	...
@@ -125,7 +126,7 @@ Adapt into your pom.xml file, the next code :
 			<dependency>
 				<groupId>com.distrimind.madkit</groupId>
 				<artifactId>MaDKitLanEdition</artifactId>
-				<version>1.8.0-Stable</version>
+				<version>1.8.1-Stable</version>
 			</dependency>
 			...
 		</dependencies>

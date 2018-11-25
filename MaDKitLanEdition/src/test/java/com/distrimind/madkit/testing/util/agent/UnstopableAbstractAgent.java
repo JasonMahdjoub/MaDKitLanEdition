@@ -49,7 +49,7 @@ public class UnstopableAbstractAgent extends AbstractAgent {
 	@Override
 	protected void activate() {
 		int i = 0;
-		while (i < 990000000) {
+		while (i < 2000000000) {
 			i++;
 			if (i % 10000000 == 0)
 				if (logger != null)
@@ -63,7 +63,7 @@ public class UnstopableAbstractAgent extends AbstractAgent {
 	@Override
 	protected void end() {
 		int i = 0;
-		while (i < 990000000) {
+		while (i < 2000000000) {
 			i++;
 			if (i % 10000000 == 0) {
 				if (logger != null)

@@ -38,8 +38,8 @@
 package com.distrimind.madkit.kernel.network;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 
 import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.kernel.Group;
@@ -55,11 +55,11 @@ import com.distrimind.madkit.kernel.Message;
 public class CGRSynchros extends Message {
 
 
-	private final Map<String, Map<Group, Map<String, Set<AgentAddress>>>> organization_snap_shot;
+	private final Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> organization_snap_shot;
 	private final ArrayList<Group> removedGroups;
 	private final KernelAddress distantKernelAddress;
 
-	CGRSynchros(Map<String, Map<Group, Map<String, Set<AgentAddress>>>> organization_snap_shop,
+	CGRSynchros(Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> organization_snap_shop,
 			KernelAddress distantKernelAddress, ArrayList<Group> removedGroups) {
 		if (organization_snap_shop == null)
 			throw new NullPointerException("organization_snap_shop");
@@ -68,7 +68,7 @@ public class CGRSynchros extends Message {
 		this.distantKernelAddress = distantKernelAddress;
 	}
 
-	public Map<String, Map<Group, Map<String, Set<AgentAddress>>>> getOrganizationSnapShot() {
+	public Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> getOrganizationSnapShot() {
 		return organization_snap_shot;
 	}
 

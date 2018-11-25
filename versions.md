@@ -1,6 +1,6 @@
 MadkitLanEdition
 ================
-1.8.0 Stable (Build: 176) (from 22/05/2015 to 21/11/2018)
+1.8.1 Stable (Build: 183) (from 22/05/2015 to 23/11/2018)
 
 # Creator(s):
 Jason MAHDJOUB
@@ -12,6 +12,10 @@ Olivier GUTKNECHT (Entred in the team at 01/02/1997)
 Jacques FERBER (Entred in the team at 01/02/1997)
 
 # Modifications:
+
+
+### 1.8.1 Stable (23/11/2018)
+* Improve security of Client/Server connection protocol.
 
 
 ### 1.8.0 Stable (21/11/2018)

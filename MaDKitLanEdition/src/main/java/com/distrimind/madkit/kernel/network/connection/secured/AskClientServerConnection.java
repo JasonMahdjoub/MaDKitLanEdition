@@ -67,7 +67,7 @@ class AskClientServerConnection extends AskConnection {
 
 	//private final transient byte[] distantPublicKeyForEncryptionEncoded;
 	private byte[] secretKeyForEncryption, secretKeyForSignature, signatureOfSecretKeyForEncryption;
-
+	private byte[] randomBytes;
 
 	@SuppressWarnings("unused")
 	AskClientServerConnection()
@@ -87,7 +87,12 @@ class AskClientServerConnection extends AskConnection {
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		if (this.isYouAreAsking())
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		if (secretKeyForEncryption!=null && signatureOfSecretKeyForEncryption==null)
+		randomBytes=SerializationTools.readBytes(in, 256, true);
+		if (secretKeyForEncryption==null && (signatureOfSecretKeyForEncryption!=null || randomBytes!=null))
+			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+		if (secretKeyForEncryption!=null && (signatureOfSecretKeyForEncryption==null || randomBytes==null))
+			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+		if (randomBytes!=null  && randomBytes.length!=256)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 	}
 
@@ -98,7 +103,7 @@ class AskClientServerConnection extends AskConnection {
 		SerializationTools.writeBytes(oos, secretKeyForEncryption, MAX_SECRET_KEY_LENGTH, true);
 		SerializationTools.writeBytes(oos, secretKeyForSignature, MAX_SECRET_KEY_LENGTH, false);
 		SerializationTools.writeBytes(oos, signatureOfSecretKeyForEncryption, MAX_SIGNATURE_LENGTH, true);
-		
+		SerializationTools.writeBytes(oos,randomBytes, 256, true);
 	}
 	
 	
@@ -118,8 +123,13 @@ class AskClientServerConnection extends AskConnection {
 		
 		this.secretKeyForEncryption=keyWrapper.wrapKey(random, distantPublicKeyForEncryption, encryptionSecretKey);
 		this.secretKeyForSignature=keyWrapper.wrapKey(random, distantPublicKeyForEncryption, signatureSecretKey);
+		this.randomBytes=new byte[256];
+		random.nextBytes(randomBytes);
 		SymmetricAuthentifiedSignerAlgorithm signer=new SymmetricAuthentifiedSignerAlgorithm(signatureSecretKey);
-		this.signatureOfSecretKeyForEncryption=signer.sign(secretKeyForEncryption);
+		signer.init();
+		signer.update(secretKeyForEncryption);
+		signer.update(randomBytes);
+		this.signatureOfSecretKeyForEncryption=signer.getSignature();
 		//this.distantPublicKeyForEncryptionEncoded = asymmetricAlgo.encode(distantPublicKeyForEncryption.encode());
 	}
 	AskClientServerConnection(AbstractSecureRandom random, ASymmetricKeyWrapperType keyWrapper, SymmetricSecretKey signatureSecretKey,			
@@ -136,6 +146,7 @@ class AskClientServerConnection extends AskConnection {
 		
 		this.secretKeyForEncryption=null;
 		this.secretKeyForSignature=keyWrapper.wrapKey(random, distantPublicKeyForEncryption, signatureSecretKey);
+		this.randomBytes=null;
 		this.signatureOfSecretKeyForEncryption=null;
 		//this.distantPublicKeyForEncryptionEncoded = asymmetricAlgo.encode(distantPublicKeyForEncryption.encode());
 	}
@@ -147,22 +158,25 @@ class AskClientServerConnection extends AskConnection {
 		return secretKeyForSignature;
 	}
 	
-	boolean checkSignedSecretKey(SymmetricSecretKey signatureSecretKey)
+	boolean checkSignedMessage(SymmetricSecretKey signatureSecretKey, boolean encryptionEnabled)
 	{
-		if (secretKeyForEncryption!=null)
-		{
-			
-			try {
-				SymmetricAuthentifiedSignatureCheckerAlgorithm checker=new SymmetricAuthentifiedSignatureCheckerAlgorithm(signatureSecretKey);
-				return checker.verify(this.secretKeyForEncryption, this.signatureOfSecretKeyForEncryption);
-			} catch (InvalidKeyException | SignatureException | NoSuchAlgorithmException | InvalidKeySpecException
-					| IllegalStateException | NoSuchProviderException
-					| InvalidAlgorithmParameterException | InvalidParameterSpecException | IOException e) {
-				return false;
-			}
-		}
-		else
+		if (secretKeyForEncryption==null)
+			return !encryptionEnabled;
+		if (!encryptionEnabled)
 			return false;
+		try {
+
+			SymmetricAuthentifiedSignatureCheckerAlgorithm checker=new SymmetricAuthentifiedSignatureCheckerAlgorithm(signatureSecretKey);
+			checker.init(this.signatureOfSecretKeyForEncryption);
+			if (secretKeyForEncryption!=null)
+				checker.update(this.secretKeyForEncryption);
+			checker.update(this.randomBytes);
+			return checker.verify();
+		} catch (InvalidKeyException | SignatureException | NoSuchAlgorithmException | InvalidKeySpecException
+				| IllegalStateException | NoSuchProviderException
+				| InvalidAlgorithmParameterException | InvalidParameterSpecException | IOException e) {
+			return false;
+		}
 	}
 
 	/*byte[] getEncodedPublicKeyForEncryption() {

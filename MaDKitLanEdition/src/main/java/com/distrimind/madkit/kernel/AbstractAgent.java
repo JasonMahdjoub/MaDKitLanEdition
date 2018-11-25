@@ -2539,7 +2539,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * 
 	 * @return a data containing all the organization structure
 	 */
-	public Map<String, Map<Group, Map<String, Set<AgentAddress>>>> getOrganizationSnapShot(boolean global) {
+	public Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> getOrganizationSnapShot(boolean global) {
 		return getKernel().getOrganizationSnapShot(global);
 	}
 
@@ -2555,7 +2555,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * 
 	 * @return a data containing all the organization structure
 	 */
-	public Map<String, Map<Group, Map<String, Set<AgentAddress>>>> getOrganizationSnapShot(
+	public Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> getOrganizationSnapShot(
 			Collection<Group> concerned_groups, boolean global) {
 		return getKernel().getOrganizationSnapShot(concerned_groups, global);
 	}
