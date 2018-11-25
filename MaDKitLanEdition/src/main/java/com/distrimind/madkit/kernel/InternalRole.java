@@ -372,6 +372,7 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 		synchronized (players) {
 			content.setRoleObject(this);// required for equals to work
 			ok = distantAgentAddresses.add(content);
+			agentAddresses=null;
 		}
 		if (ok && content.isManuallyRequested())
 			incrementReferences(content.getKernelAddress());
