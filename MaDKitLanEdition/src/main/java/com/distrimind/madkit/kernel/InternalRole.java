@@ -75,7 +75,7 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 	private transient List<AbstractAgent> tmpReferenceableAgents;
 	protected volatile transient List<AgentAddress> agentAddresses;
     protected transient Collection<AgentAddress> distantAgentAddresses;
-	protected transient boolean modified = true;
+	protected volatile transient boolean modified = true;
 	private transient AtomicReference<Set<Overlooker<? extends AbstractAgent>>> overlookers = new AtomicReference<>(
 			null);
 	protected transient InternalGroup myGroup;
@@ -122,7 +122,7 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 	InternalRole(final InternalGroup groupObject, final String roleName) {
 		players = new ArrayList<>();
 		distantAgentAddresses=new ArrayList<>();
-		tmpReferenceableAgents = new ArrayList<>();// should not be necessary but ...
+		tmpReferenceableAgents = null;
 		group = groupObject.getGroup();
 		this.roleName = roleName;
 		final MadkitKernel k = groupObject.getCommunityObject().getMyKernel();
@@ -637,18 +637,23 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 	}
 
 	final List<AbstractAgent> getAgentsList() {
+		List<AbstractAgent> res=tmpReferenceableAgents;
 		if (modified) {
 			synchronized (players) {
-				modified = false;// TODO do a bench : new seems a little bit better
-				// long startTime = System.nanoTime();
-				tmpReferenceableAgents = new ArrayList<>(players);
-				// tmpReferenceableAgents =
-				// (ArrayList<AbstractAgent>)referenceableAgents.clone();
-				// long estimatedTime = System.nanoTime() - startTime;
-				// System.err.println(estimatedTime);
+				if (modified) {
+					modified = false;// TODO do a bench : new seems a little bit better
+					// long startTime = System.nanoTime();
+					res=tmpReferenceableAgents = Collections.unmodifiableList(new ArrayList<>(players));
+					// tmpReferenceableAgents =
+					// (ArrayList<AbstractAgent>)referenceableAgents.clone();
+					// long estimatedTime = System.nanoTime() - startTime;
+					// System.err.println(estimatedTime);
+				}
+				else
+					res=tmpReferenceableAgents;
 			}
 		}
-		return tmpReferenceableAgents;
+		return res;
 	}
 
 	final void addToOverlookers(AbstractAgent a) {
