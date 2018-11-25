@@ -47,11 +47,13 @@ public class BucketBench extends AbstractAgent {
 	@Override
 	protected void activate() {
 		getLogger().createLogFile();
+		long timeStart=System.currentTimeMillis();
 		for (int i = 0; i < 30; i++) {
 			startTimer();
 			launchAgentBucket(AbstractAgent.class.getName(), 1000000);
 			stopTimer("launch time ");
 		}
+		System.out.println("Total time : "+(System.currentTimeMillis()-timeStart)+" ms");
 	}
 
 

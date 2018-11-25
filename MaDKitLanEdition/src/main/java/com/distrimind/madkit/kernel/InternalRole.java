@@ -74,7 +74,6 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 	protected transient Collection<AbstractAgent> players;//=new HashSet<>();// TODO test copyonarraylist and linkedhashset
 	private transient List<AbstractAgent> tmpReferenceableAgents;
 	protected volatile transient List<AgentAddress> agentAddresses;
-    protected transient List<AgentAddress> agentAddressesReturned;
     protected transient Collection<AgentAddress> distantAgentAddresses;
 	protected transient boolean modified = true;
 	private transient AtomicReference<Set<Overlooker<? extends AbstractAgent>>> overlookers = new AtomicReference<>(
@@ -467,22 +466,23 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 	}
 
 	final List<AgentAddress> buildAndGetAddresses() {
-
-        if (agentAddresses == null) {
-            ArrayList<AgentAddress> set=new ArrayList<>(players.size()+distantAgentAddresses.size());
+        List<AgentAddress> set=agentAddresses;
+        if (set == null) {
             synchronized (players) {
                 if (agentAddresses==null) {
+                    set=new ArrayList<>(players.size()+distantAgentAddresses.size());
                     for (final AbstractAgent a : players) {
                         set.add(new AgentAddress(a, this, kernelAddress,
                                 !getMyGroup().getCommunityObject().getMyKernel().isAutoCreateGroup(a)));
                     }
                     set.addAll(distantAgentAddresses);
-                    agentAddresses = agentAddressesReturned = Collections.unmodifiableList(set);
+                    agentAddresses = set=Collections.unmodifiableList(set);
                 }
+                else
+                    set=agentAddresses;
             }
-
         }
-        return agentAddressesReturned;
+        return set;
 
 
 	}
@@ -558,7 +558,6 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 		tmpReferenceableAgents = null;
 		// players = null;
 		agentAddresses = null;
-		agentAddressesReturned=null;
 		distantAgentAddresses.clear();
 		players.clear();
 	}

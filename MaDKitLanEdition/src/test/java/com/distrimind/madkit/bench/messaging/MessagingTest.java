@@ -52,6 +52,7 @@ public class MessagingTest extends AbstractAgent {
 	protected void activate() {
 		requestRole(GROUP, ROLE);
 		AgentAddress a = getAgentsWithRole(GROUP, ROLE, true).iterator().next();
+		long timeStart=System.currentTimeMillis();
 		for (int i = 0; i < 25; i++) {
 			startTimer();
 			for (int j = 0; j < 3_000_000; j++) {
@@ -60,6 +61,7 @@ public class MessagingTest extends AbstractAgent {
 			purgeMailbox();
 			stopTimer("message creation time: ");
 		}
+		System.out.println("Total time : "+(System.currentTimeMillis()-timeStart)+" ms");
 	}
 	// 86 ms on beltegeuse
 
