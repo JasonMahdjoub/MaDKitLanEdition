@@ -48,7 +48,7 @@ import com.distrimind.util.crypto.AbstractSecureRandom;
 /**
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 2.0
  * @since MadkitLanEdition 1.0
  */
 @SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
@@ -60,6 +60,7 @@ public class JPakeAccessInitialized extends AccessInitialized {
 	
 	public byte[] generatedSalt;
 	public static final int generatedSaltSize=32;
+	private
 	
 	@SuppressWarnings("unused")
 	JPakeAccessInitialized()

@@ -40,6 +40,7 @@ package com.distrimind.madkit.kernel.network;
 import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.kernel.MadkitEventListener;
 import com.distrimind.madkit.kernel.MadkitProperties;
+import com.distrimind.madkit.kernel.network.connection.access.HostIdentifier;
 import com.distrimind.ood.database.EmbeddedHSQLDBDatabaseFactory;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
@@ -198,7 +199,7 @@ public class NetworkEventListener implements MadkitEventListener {
 	public static ArrayList<NetworkEventListener> getNetworkEventListenersForPeerToPeerConnectionsWithRandomProperties(
 			boolean network, boolean upnpIGDEnabled, final boolean databaseEnabled,
 			final boolean canTakeLoginInitiative, final boolean isServer, final Runnable invalidPassord,
-			CustumHostIdentifier hostIdentifier, int... loginIndexes) throws UnknownHostException {
+			HostIdentifier hostIdentifier, int... loginIndexes) throws UnknownHostException {
 		ArrayList<NetworkEventListener> res = new ArrayList<>();
 		for (ConnectionsProtocolsMKEventListener cp : ConnectionsProtocolsMKEventListener
 				.getConnectionsProtocolsMKEventListenerForPeerToPeerConnections(isServer)) {
@@ -307,7 +308,7 @@ public class NetworkEventListener implements MadkitEventListener {
 	public static ArrayList<NetworkEventListener> getNetworkEventListenersForPeerToPeerConnectionsWithRandomProperties(
 			boolean network, boolean upnpIGDEnabled, boolean databaseEnabled, final boolean canTakeLoginInitiative,
 			boolean isServer, boolean autoConnectWithLocalSitePeers, final Runnable invalidPassord,
-			CustumHostIdentifier hostIdentifier, int... loginIndexes) {
+			HostIdentifier hostIdentifier, int... loginIndexes) {
 		ArrayList<NetworkEventListener> res = new ArrayList<>();
 		for (ConnectionsProtocolsMKEventListener cp : ConnectionsProtocolsMKEventListener
 				.getConnectionsProtocolsMKEventListenerForPeerToPeerConnections(isServer)) {

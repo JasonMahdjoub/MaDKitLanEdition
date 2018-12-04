@@ -46,17 +46,10 @@ import com.distrimind.madkit.kernel.AbstractGroup;
 import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.MadkitEventListener;
 import com.distrimind.madkit.kernel.MadkitProperties;
-import com.distrimind.madkit.kernel.network.connection.access.AccessData;
-import com.distrimind.madkit.kernel.network.connection.access.AccessException;
-import com.distrimind.madkit.kernel.network.connection.access.Identifier;
-import com.distrimind.madkit.kernel.network.connection.access.IdentifierPassword;
-import com.distrimind.madkit.kernel.network.connection.access.LoginData;
-import com.distrimind.madkit.kernel.network.connection.access.PasswordKey;
-import com.distrimind.util.crypto.AbstractSecureRandom;
-import com.distrimind.util.crypto.SecureRandomType;
-import com.distrimind.util.crypto.SymmetricAuthentifiedSignatureType;
-import com.distrimind.util.crypto.SymmetricSecretKey;
+import com.distrimind.madkit.kernel.network.connection.access.*;
+import com.distrimind.util.crypto.*;
 
+import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
 import gnu.vm.jgnu.security.NoSuchAlgorithmException;
 import gnu.vm.jgnu.security.NoSuchProviderException;
 
@@ -119,8 +112,28 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 		
 	}
 
-	public static CustumHostIdentifier getCustumHostIdentifier(int hostNumber) {
-		return new CustumHostIdentifier("host" + hostNumber);
+	private static final ASymmetricKeyPair hostKeyPairs[];
+	static
+	{
+		hostKeyPairs=new ASymmetricKeyPair[cloudIdentifiers.length];
+		AbstractSecureRandom random;
+		try {
+			random = SecureRandomType.DEFAULT.getSingleton(null);
+			for (int i = 0; i < hostKeyPairs.length; i++) {
+				hostKeyPairs[i]=ASymmetricAuthentifiedSignatureType.BC_SHA256withECDSA_CURVE_25519.getKeyPairGenerator(random).generateKeyPair();
+			}
+		} catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
+			e.printStackTrace();
+			System.exit(-1);
+		}
+
+	}
+
+	public static HostIdentifier getCustumHostIdentifier(int hostNumber) {
+		if (hostNumber%2==1)
+			return new CustomHostIdentierWithPublicKey(hostKeyPairs[hostNumber]);
+		else
+			return new CustumHostIdentifier("host" + hostNumber);
 	}
 
 	public static ArrayList<IdentifierPassword> getServerLogins(CustumHostIdentifier host) {
@@ -131,7 +144,7 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 		return res;
 	}
 
-	public static ArrayList<IdentifierPassword> getClientOrPeerToPeerLogins(CustumHostIdentifier host, int... indexes) {
+	public static ArrayList<IdentifierPassword> getClientOrPeerToPeerLogins(HostIdentifier host, int... indexes) {
 		ArrayList<IdentifierPassword> res = new ArrayList<>(indexes.length);
 		for (int i : indexes) {
 			res.add(new IdentifierPassword(new Identifier(cloudIdentifiers[i], host), paswordIdentifiers[i]));
@@ -139,12 +152,15 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 		return res;
 	}
 
-	public static Identifier getIdentifier(CustumHostIdentifier host, int index) {
+	public static Identifier getIdentifier(HostIdentifier host, int index) {
 		return new Identifier(cloudIdentifiers[index], host);
 	}
 
-	public static IdentifierPassword getIdentifierPassword(CustumHostIdentifier host, int index) {
-		return new IdentifierPassword(new Identifier(cloudIdentifiers[index], host), paswordIdentifiers[index]);
+	public static IdentifierPassword getIdentifierPassword(HostIdentifier host, int index) {
+		if (host instanceof CustomHostIdentierWithPublicKey)
+			return null;
+		else
+			return new IdentifierPassword(new Identifier(cloudIdentifiers[index], host), paswordIdentifiers[index]);
 	}
 
 	public static AccessData getDefaultAccessData(final AbstractGroup defaultGroupAccess) {
@@ -235,7 +251,7 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 	}
 
 	public static ArrayList<AccessDataMKEventListener> getAccessDataMKEventListenerForPeerToPeerConnections(
-			final boolean canTakeLoginInitiative, final Runnable invalidPassord, CustumHostIdentifier hostIdentifier,
+			final boolean canTakeLoginInitiative, final Runnable invalidPassord, HostIdentifier hostIdentifier,
 			int... loginIndexes) {
 		ArrayList<AccessDataMKEventListener> res = new ArrayList<>();
 
@@ -251,14 +267,14 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 	}
 
 	public static ArrayList<AccessDataMKEventListener> getAccessDataMKEventListenerForServerConnections(
-			final boolean canTakeLoginInitiative, final Runnable invalidPassord, CustumHostIdentifier hostIdentifier,
+			final boolean canTakeLoginInitiative, final Runnable invalidPassord, HostIdentifier hostIdentifier,
 			int... loginIndexes) {
 		return getAccessDataMKEventListenerForPeerToPeerConnections(canTakeLoginInitiative, invalidPassord,
 				hostIdentifier, loginIndexes);
 	}
 
 	public static ArrayList<AccessDataMKEventListener> getAccessDataMKEventListenerForClientConnections(
-			final boolean canTakeLoginInitiative, final Runnable invalidPassord, CustumHostIdentifier hostIdentifier,
+			final boolean canTakeLoginInitiative, final Runnable invalidPassord, HostIdentifier hostIdentifier,
 			int... loginIndexes) {
 		return getAccessDataMKEventListenerForPeerToPeerConnections(canTakeLoginInitiative, invalidPassord,
 				hostIdentifier, loginIndexes);

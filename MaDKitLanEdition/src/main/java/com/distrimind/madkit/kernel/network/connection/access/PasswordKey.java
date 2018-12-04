@@ -37,6 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
+import com.distrimind.util.crypto.ASymmetricPublicKey;
 import com.distrimind.util.crypto.SymmetricSecretKey;
 
 /**
@@ -45,10 +46,11 @@ import com.distrimind.util.crypto.SymmetricSecretKey;
  * @author Jason Mahdjoub
  * @version 1.0
  * @since MadkitLanEdition 1.0
- * @see Identifier
+ *
  */
 public abstract class PasswordKey {
 	public static final int MAX_PASSWORD_LENGTH=16392;
+
 	/**
 	 * Gets the password with a byte tab format.
 	 * 
@@ -80,5 +82,8 @@ public abstract class PasswordKey {
 	 * @return the symmetric secret ke for signature or null if no secret key is available
 	 */
 	public abstract SymmetricSecretKey getSecretKeyForSignature();
+
+
+
 
 }

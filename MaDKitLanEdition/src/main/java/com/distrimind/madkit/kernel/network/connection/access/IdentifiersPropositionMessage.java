@@ -42,6 +42,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.*;
 
+import com.distrimind.util.crypto.*;
 import gnu.vm.jgnu.security.DigestException;
 import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
 import gnu.vm.jgnu.security.InvalidKeyException;
@@ -57,11 +58,6 @@ import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.madkit.util.SerializationTools;
 import com.distrimind.madkit.util.ExternalizableAndSizable;
-import com.distrimind.util.crypto.AbstractMessageDigest;
-import com.distrimind.util.crypto.AbstractSecureRandom;
-import com.distrimind.util.crypto.P2PASymmetricSecretMessageExchanger;
-import com.distrimind.util.crypto.P2PLoginAgreement;
-import com.distrimind.util.crypto.P2PLoginAgreementType;
 
 /**
  * 
@@ -76,7 +72,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 	 */
 	private static final long serialVersionUID = 1409236452371137326L;
 
-	private Identifier identifiers[];
+	private Identifier[] identifiers;
 	private boolean isEncrypted;
 	private final transient short nbAnomalies;
 
@@ -242,7 +238,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 						? ((res.size() == 0 && identifiers.length > 0) ? (short) 1 : (short) 0)
 						: (nbAno > Short.MAX_VALUE) ? Short.MAX_VALUE : (short) nbAno);
 }
-	public JPakeMessage getJPakeMessage(LoginData loginData, Map<Identifier, P2PLoginAgreement> agreements, P2PLoginAgreementType agreementType, AbstractSecureRandom random, AbstractMessageDigest messageDigest,
+	public JPakeMessage getJPakeMessage(LoginData loginData, Map<Identifier, P2PLoginAgreement> agreements, P2PLoginAgreementType agreementType, ASymmetricLoginAgreementType aSymmetricLoginAgreementType, AbstractSecureRandom random, AbstractMessageDigest messageDigest,
 										boolean encryptIdentifiers, byte[] distantGeneratedSalt, byte[] localGeneratedSalt) throws Exception {
 		int nbAno = 0;
 		if (encryptIdentifiers) {
@@ -251,11 +247,20 @@ class IdentifiersPropositionMessage extends AccessMessage {
 
 				if (i != null) {
 					Identifier localId = loginData.localiseIdentifier(i);
-					PasswordKey pw = loginData.getPassword(localId);
-					if (pw != null)
-					{
-						P2PLoginAgreement agreement=agreementType.getAgreementAlgorithm(random, localId, pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature());
-						agreements.put(localId, agreement);
+					if (localId!=null) {
+						ASymmetricPublicKey pubKey;
+						if (localId.getHostIdentifier().isAutoIdentifiedHostWithPublicKey() && (pubKey=localId.getHostIdentifier().getHostPublicKey()).getAuthentifiedSignatureAlgorithmType()!=null)
+						{
+							agreements.put(localId, aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureReceiver(random, pubKey));
+						}
+						else {
+							PasswordKey pw = loginData.getPassword(localId);
+							if (pw != null) {
+								P2PLoginAgreement agreement = agreementType.getAgreementAlgorithm(random, localId, pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature());
+								agreements.put(localId, agreement);
+							} else
+								++nbAno;
+						}
 					}
 					else
 						++nbAno;
@@ -266,11 +271,18 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		} else {
 			for (Identifier id : identifiers) {
 				Identifier localId = loginData.localiseIdentifier(id);
-				PasswordKey pw = loginData.getPassword(localId);
-				if (pw != null)
-				{
-					P2PLoginAgreement agreement=agreementType.getAgreementAlgorithm(random, localId, pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature());
-					agreements.put(localId, agreement);
+				if (localId!=null) {
+					if (localId.getHostIdentifier().isAutoIdentifiedHostWithPublicKey()) {
+						agreements.put(localId, aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureReceiver(random, localId.getHostIdentifier().getHostPublicKey()));
+					} else {
+						PasswordKey pw = loginData.getPassword(localId);
+						if (pw != null) {
+							P2PLoginAgreement agreement = agreementType.getAgreementAlgorithm(random, localId, pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature());
+							agreements.put(localId, agreement);
+						}
+						else
+							++nbAno;
+					}
 				}
 				else
 					++nbAno;

@@ -121,8 +121,8 @@ final public class Madkit {
 		Calendar c = Calendar.getInstance();
 		c.set(2015, Calendar.MAY, 22);
 		Calendar c2 = Calendar.getInstance();
-		c2.set(2018, Calendar.NOVEMBER, 24);
-		Version VERSION = new Version("MadkitLanEdition", "MKLE", (short)1, (short)8, (short)2, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
+		c2.set(2018, Calendar.DECEMBER, 24);
+		Version VERSION = new Version("MadkitLanEdition", "MKLE", (short)1, (short)9, (short)0, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
 		try {
 
 			InputStream is = Madkit.class.getResourceAsStream("build.txt");
@@ -144,8 +144,15 @@ final public class Madkit {
 			VERSION.addDeveloper(new PersonDeveloper("Ferber", "Jacques", c.getTime()));
 
 			c = Calendar.getInstance();
+			c.set(2018, Calendar.DECEMBER, 4);
+			Description d = new Description((short)1, (short)9, (short)0, Version.Type.Stable, (short)1, c.getTime());
+			d.addItem("Update OOD to 2.0.0 Beta 92.");
+			d.addItem("Update Utils to 3.23.0.");
+			VERSION.addDescription(d);
+
+			c = Calendar.getInstance();
 			c.set(2018, Calendar.NOVEMBER, 24);
-			Description d = new Description((short)1, (short)8, (short)2, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)1, (short)8, (short)2, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Improve security of Client/Server connection protocol.");
 			d.addItem("Resolve a concurrent modification exception into internal role.");
 			VERSION.addDescription(d);

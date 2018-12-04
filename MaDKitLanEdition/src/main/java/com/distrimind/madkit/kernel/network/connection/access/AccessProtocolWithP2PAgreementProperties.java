@@ -40,6 +40,7 @@ package com.distrimind.madkit.kernel.network.connection.access;
 import java.net.InetSocketAddress;
 
 import com.distrimind.madkit.kernel.MadkitProperties;
+import com.distrimind.util.crypto.ASymmetricLoginAgreementType;
 import com.distrimind.util.crypto.MessageDigestType;
 import com.distrimind.util.crypto.P2PLoginAgreementType;
 
@@ -47,7 +48,7 @@ import com.distrimind.util.crypto.P2PLoginAgreementType;
  * Represents properties of a specific connection protocol
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 2.0
  * @since MadkitLanEdition 1.2
  *
  */
@@ -67,9 +68,13 @@ public class AccessProtocolWithP2PAgreementProperties extends AbstractAccessProt
 	/**
 	 * P2P Login agreement type
 	 */
-	public P2PLoginAgreementType p2pLoginAgreementType=P2PLoginAgreementType.JPAKE_AND_AGREEMENT_WITH_SIGNATURE;
-	
-	
+	public P2PLoginAgreementType p2pLoginAgreementType=P2PLoginAgreementType.JPAKE_AND_AGREEMENT_WITH_SYMMETRIC_SIGNATURE;
+
+	/**
+	 * Asymmetric login agreement type
+	 */
+	public ASymmetricLoginAgreementType asymmetricLoginAgreementType= ASymmetricLoginAgreementType.AGREEMENT_WITH_ASYMMETRIC_SIGNATURE;
+
 	@Override
 	void checkProperties() throws AccessException {
 		if (this.encryptIdentifiersBeforeSendingToDistantPeer)

@@ -1,14 +1,14 @@
 /*
  * MadKitLanEdition (created by Jason MAHDJOUB (jason.mahdjoub@distri-mind.fr)) Copyright (c)
- * 2015 is a fork of MadKit and MadKitGroupExtension. 
- * 
+ * 2015 is a fork of MadKit and MadKitGroupExtension.
+ *
  * Copyright or © or Copr. Jason Mahdjoub, Fabien Michel, Olivier Gutknecht, Jacques Ferber (1997)
- * 
+ *
  * jason.mahdjoub@distri-mind.fr
  * fmichel@lirmm.fr
  * olg@no-distance.net
  * ferber@lirmm.fr
- * 
+ *
  * This software is a computer program whose purpose is to
  * provide a lightweight Java library for designing and simulating Multi-Agent Systems (MAS).
  * This software is governed by the CeCILL-C license under French law and
@@ -21,7 +21,7 @@
  * with a limited warranty  and the software's author,  the holder of the
  * economic rights,  and the successive licensors  have only  limited
  * liability.
- * 
+ *
  * In this respect, the user's attention is drawn to the risks associated
  * with loading,  using,  modifying and/or developing or reproducing the
  * software by the user in light of its specific status of free software,
@@ -37,85 +37,78 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
+import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.network.connection.access.HostIdentifier;
 import com.distrimind.madkit.util.SerializationTools;
 import com.distrimind.util.crypto.ASymmetricKeyPair;
 import com.distrimind.util.crypto.ASymmetricPublicKey;
+import com.distrimind.util.crypto.Key;
+
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 
 /**
- * 
  * @author Jason Mahdjoub
  * @version 1.0
- * @since MadkitLanEdition 1.0
+ * @since MaDKitLanEdition 1.9
  */
-public class CustumHostIdentifier extends HostIdentifier {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -6217098004734389347L;
+public class CustomHostIdentierWithPublicKey extends HostIdentifier {
+    private ASymmetricKeyPair keyPair;
+    private ASymmetricPublicKey publicKey;
 
-	private String name;
-	
-	CustumHostIdentifier()
-	{
-		
-	}
+    public CustomHostIdentierWithPublicKey(ASymmetricKeyPair keyPair) {
+        assert keyPair!=null;
+        this.keyPair = keyPair;
+        this.publicKey=keyPair.getASymmetricPublicKey();
+    }
 
-	@Override
-	public int getInternalSerializedSize() {
-		return SerializationTools.getInternalSize(name, 1000);
-	}
-	
-	public void readExternal(final ObjectInput in) throws IOException {
-		name=SerializationTools.readString(in, 1000, false);
-	}
-	public void writeExternal(final ObjectOutput oos) throws IOException
-	{
-		SerializationTools.writeString(oos, name, 1000, false);
-	}
-	
-	CustumHostIdentifier(String name) {
-		this.name = name;
-	}
+    @Override
+    public boolean equals(Object _object) {
+        if (_object instanceof CustomHostIdentierWithPublicKey)
+            return publicKey.equals(((CustomHostIdentierWithPublicKey) _object).publicKey);
+        else
+            return false;
+    }
 
-	@Override
-	public boolean equals(Object _cloud_identifier) {
-		if (_cloud_identifier == null)
-			return false;
-		if (_cloud_identifier instanceof CustumHostIdentifier) {
-			CustumHostIdentifier cci = (CustumHostIdentifier) _cloud_identifier;
-			return name.equals(cci.name);
-		}
-		return false;
-	}
+    @Override
+    public int hashCode() {
+        return publicKey.hashCode();
+    }
 
-	@Override
-	public String toString() {
-		return name;
-	}
+    @Override
+    public boolean isAutoIdentifiedHostWithPublicKey() {
+        return true;
+    }
 
-	@Override
-	public int hashCode() {
-		return name.hashCode();
-	}
+    @Override
+    public ASymmetricPublicKey getHostPublicKey() {
+        return publicKey;
+    }
 
-	@Override
-	public boolean isAutoIdentifiedHostWithPublicKey() {
-		return false;
-	}
+    @Override
+    public ASymmetricKeyPair getHostKeyPair() {
+        return keyPair;
+    }
 
-	@Override
-	public ASymmetricPublicKey getHostPublicKey() {
-		return null;
-	}
+    @Override
+    public int getInternalSerializedSize() {
+        return SerializationTools.getInternalSize(publicKey, Short.MAX_VALUE);
+    }
 
-	@Override
-	public ASymmetricKeyPair getHostKeyPair() {
-		return null;
-	}
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        SerializationTools.writeKey(out, publicKey, false);
+    }
 
+    @Override
+    public void readExternal(ObjectInput in) throws IOException {
+        Key k=SerializationTools.readKey(in, false);
+        if (!(k instanceof ASymmetricPublicKey))
+            throw new MessageSerializationException(SystemMessage.Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+        publicKey=(ASymmetricPublicKey)k;
+        if (publicKey.getAuthentifiedSignatureAlgorithmType()==null)
+            throw new MessageSerializationException(SystemMessage.Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+        keyPair=null;
+    }
 }

@@ -48,8 +48,7 @@ import com.distrimind.madkit.util.ExternalizableAndSizable;
 import com.distrimind.util.AbstractDecentralizedID;
 import com.distrimind.util.RenforcedDecentralizedIDGenerator;
 import com.distrimind.util.SecuredDecentralizedID;
-import com.distrimind.util.crypto.AbstractSecureRandom;
-import com.distrimind.util.crypto.SecureRandomType;
+import com.distrimind.util.crypto.*;
 
 import gnu.vm.jgnu.security.NoSuchAlgorithmException;
 import gnu.vm.jgnu.security.NoSuchProviderException;
@@ -88,6 +87,13 @@ public abstract class HostIdentifier implements ExternalizableAndSizable {
 
 	@Override
 	public abstract int hashCode();
+
+	public abstract boolean isAutoIdentifiedHostWithPublicKey();
+
+	public abstract ASymmetricPublicKey getHostPublicKey();
+
+	public abstract ASymmetricKeyPair getHostKeyPair();
+
 
 	/**
 	 * Generates a unique host identifier
@@ -140,6 +146,22 @@ public abstract class HostIdentifier implements ExternalizableAndSizable {
 		public int hashCode() {
 			return id.hashCode();
 		}
+
+		@Override
+		public boolean isAutoIdentifiedHostWithPublicKey() {
+			return false;
+		}
+
+		@Override
+		public ASymmetricPublicKey getHostPublicKey() {
+			throw new IllegalAccessError();
+		}
+
+		@Override
+		public ASymmetricKeyPair getHostKeyPair() {
+			return null;
+		}
+
 		@Override
 		public int getInternalSerializedSize() {
 			return SerializationTools.getInternalSize(id, 0);

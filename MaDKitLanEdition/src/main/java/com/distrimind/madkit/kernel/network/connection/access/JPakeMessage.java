@@ -41,10 +41,7 @@ import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.madkit.util.ExternalizableAndSizable;
 import com.distrimind.madkit.util.SerializationTools;
-import com.distrimind.util.crypto.AbstractMessageDigest;
-import com.distrimind.util.crypto.AbstractSecureRandom;
-import com.distrimind.util.crypto.P2PLoginAgreement;
-import com.distrimind.util.crypto.P2PLoginAgreementType;
+import com.distrimind.util.crypto.*;
 import gnu.vm.jgnu.security.DigestException;
 import gnu.vm.jgnu.security.NoSuchAlgorithmException;
 
@@ -66,7 +63,7 @@ import java.util.Map;
 /**
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 2.0
  * @since MadkitLanEdition 1.2
  */
 @SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
@@ -93,7 +90,7 @@ class JPakeMessage extends AccessMessage{
 	{
 		identifiersIsEncrypted=in.readBoolean();
 		int globalSize=NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
-		ExternalizableAndSizable tab[]=SerializationTools.readExternalizableAndSizables(in, globalSize, false);
+		ExternalizableAndSizable[] tab = SerializationTools.readExternalizableAndSizables(in, globalSize, false);
 		int totalSize=1;
 		assert tab != null;
 		identifiers=new Identifier[tab.length];
@@ -244,8 +241,8 @@ class JPakeMessage extends AccessMessage{
 	}
 	
 	
-	public AccessMessage getJPakeMessageNewStep(short newStep, LoginData lp, AbstractSecureRandom random, AbstractMessageDigest messageDigest, Collection<PairOfIdentifiers> deniedIdentifiers,
-			Map<Identifier, P2PLoginAgreement> jpakes, byte[] distantGeneratedSalt, byte[] localGeneratedSalt)
+	public AccessMessage getJPakeMessageNewStep(short newStep, ASymmetricLoginAgreementType aSymmetricLoginAgreementType, LoginData lp, AbstractSecureRandom random, AbstractMessageDigest messageDigest, Collection<PairOfIdentifiers> deniedIdentifiers,
+												Map<Identifier, P2PLoginAgreement> jpakes, byte[] distantGeneratedSalt, byte[] localGeneratedSalt)
 			throws Exception {
 
 		int nbAno=0;
@@ -269,8 +266,13 @@ class JPakeMessage extends AccessMessage{
 				Identifier localID = lp.localiseIdentifier(decodedID);
 				if (localID != null) {
 					P2PLoginAgreement jpake=jpakes.get(localID);
+					if (jpake==null && localID.getHostIdentifier().isAutoIdentifiedHostWithPublicKey())
+					{
+						jpakes.put(localID,jpake=aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureRequester(random, localID.getHostIdentifier().getHostKeyPair()) );
+					}
 					if (jpake!=null)
 					{
+
 						try
 						{
 							if (!jpake.hasFinishedReceiption())
@@ -310,7 +312,7 @@ class JPakeMessage extends AccessMessage{
 		return new JPakeMessage(identifiersIsEncrypted, nbAno > Short.MAX_VALUE ? Short.MAX_VALUE : (short)nbAno, random, messageDigest, newStep, jpkms, distantGeneratedSalt);
 	}
 	
-	public AccessMessage receiveLastMessage(LoginData lp, AbstractMessageDigest messageDigest, Collection<PairOfIdentifiers> acceptedIdentifiers, Collection<PairOfIdentifiers> deniedIdentifiers,
+	public AccessMessage receiveLastMessage(ASymmetricLoginAgreementType aSymmetricLoginAgreementType, LoginData lp, AbstractSecureRandom random, AbstractMessageDigest messageDigest, Collection<PairOfIdentifiers> acceptedIdentifiers, Collection<PairOfIdentifiers> deniedIdentifiers,
 			Map<Identifier, P2PLoginAgreement> jpakes, byte[] localGeneratedSalt)
 			throws Exception {
 
@@ -334,7 +336,13 @@ class JPakeMessage extends AccessMessage{
 			if (decodedID != null) {
 				Identifier localID = lp.localiseIdentifier(decodedID);
 				if (localID != null) {
+
 					P2PLoginAgreement jpake=jpakes.get(localID);
+					if (jpake==null && localID.getHostIdentifier().isAutoIdentifiedHostWithPublicKey())
+					{
+						jpakes.put(localID,jpake=aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureRequester(random, localID.getHostIdentifier().getHostKeyPair()) );
+					}
+
 					if (jpake!=null)
 					{
 						try
