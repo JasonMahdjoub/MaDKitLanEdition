@@ -88,11 +88,6 @@ public abstract class HostIdentifier implements ExternalizableAndSizable {
 	@Override
 	public abstract int hashCode();
 
-	public abstract boolean isAutoIdentifiedHostWithPublicKey();
-
-	public abstract ASymmetricPublicKey getHostPublicKey();
-
-	public abstract ASymmetricKeyPair getHostKeyPair();
 
 
 	/**
@@ -113,6 +108,45 @@ public abstract class HostIdentifier implements ExternalizableAndSizable {
 
 	public static HostIdentifier getDefaultHostIdentifier(byte[] bytes, int off, int len) {
 		return new DefaultHostIdentifier(bytes, off, len);
+	}
+
+	private static final NullHostIdentifier nullHostIdentifierSingleton=new NullHostIdentifier();
+	private static class NullHostIdentifier extends HostIdentifier
+	{
+
+		@Override
+		public boolean equals(Object _object) {
+			return _object==this || _object instanceof NullHostIdentifier;
+		}
+
+		@Override
+		public int hashCode() {
+			return 0;
+		}
+
+		@Override
+		public int getInternalSerializedSize() {
+			return 0;
+		}
+
+		@Override
+		public void writeExternal(ObjectOutput out) throws IOException {
+
+		}
+
+		@Override
+		public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+
+		}
+
+		@Override
+		public String toString() {
+			return "NullHostIdentifier";
+		}
+	}
+
+	public static NullHostIdentifier getNullHostIdentifierSingleton() {
+		return nullHostIdentifierSingleton;
 	}
 
 	private static class DefaultHostIdentifier extends HostIdentifier {
@@ -147,20 +181,6 @@ public abstract class HostIdentifier implements ExternalizableAndSizable {
 			return id.hashCode();
 		}
 
-		@Override
-		public boolean isAutoIdentifiedHostWithPublicKey() {
-			return false;
-		}
-
-		@Override
-		public ASymmetricPublicKey getHostPublicKey() {
-			throw new IllegalAccessError();
-		}
-
-		@Override
-		public ASymmetricKeyPair getHostKeyPair() {
-			return null;
-		}
 
 		@Override
 		public int getInternalSerializedSize() {
@@ -181,7 +201,13 @@ public abstract class HostIdentifier implements ExternalizableAndSizable {
 			
 			SerializationTools.writeDecentralizedID(oos, id, false);
 		}
-		
+
+		@Override
+		public String toString() {
+			return "DefaultHostIdentifier[" +
+					"id=" + id +
+					']';
+		}
 	}
 
 }

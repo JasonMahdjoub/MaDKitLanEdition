@@ -37,13 +37,13 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.util.ArrayList;
-import java.util.Collections;
-
 import com.distrimind.madkit.kernel.MadkitEventListener;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.connection.access.AbstractAccessProtocolProperties;
 import com.distrimind.madkit.kernel.network.connection.access.AccessProtocolWithP2PAgreementProperties;
+
+import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * 
@@ -85,4 +85,16 @@ public class AccessProtocolPropertiesMKEventListener implements MadkitEventListe
 	public static ArrayList<AccessProtocolPropertiesMKEventListener> getConnectionsProtocolsMKEventListenerForClientConnections() {
 		return getConnectionsProtocolsMKEventListenerForPeerToPeerConnections();
 	}
+
+	public ArrayList<AbstractAccessProtocolProperties> getAccessProtocolProperties() {
+		return accessProtocolProperties;
+	}
+
+	/*public boolean canUseAutoSignedLogin()
+	{
+		for (AbstractAccessProtocolProperties a : accessProtocolProperties)
+			if (a.getClass()== AccessProtocolWithASymmetricKeyExchangerProperties.class)
+				return false;
+		return true;
+	}*/
 }

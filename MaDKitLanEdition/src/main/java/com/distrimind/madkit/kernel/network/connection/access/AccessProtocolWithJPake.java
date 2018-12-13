@@ -69,9 +69,14 @@ public class AccessProtocolWithJPake extends AbstractAccessProtocol {
 	
 	private final AbstractMessageDigest messageDigest;
 	private byte[] localGeneratedSalt=null, distantGeneratedSalt=null;
-
 	private short step;
 	private int maxSteps;
+
+	private IdentifiersPropositionMessage suspendedTransaction=null;
+	private JPakeMessage suspendedJpakeMessage=null;
+	private Map<Identifier, P2PLoginAgreement> suspendedJpakes=null;
+	private short suspendedStep;
+	private int suspendMaxSteps;
 	public AccessProtocolWithJPake(InetSocketAddress _distant_inet_address,
 			InetSocketAddress _local_interface_address, LoginEventsTrigger loginTrigger, MadkitProperties _properties)
 			throws AccessException {
@@ -154,7 +159,7 @@ public class AccessProtocolWithJPake extends AbstractAccessProtocol {
 							access_state = AccessState.WAITING_FOR_IDENTIFIERS;
 							return new IdentifiersPropositionMessage(getIdentifiers(), properties.getApprovedSecureRandom(), messageDigest,
 									this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer,
-									(short) 0, distantGeneratedSalt);
+									(short) 0, distantGeneratedSalt, jpakes, access_protocol_properties.asymmetricLoginAgreementType);
 						} else {
 							if (!isOtherCanTakesInitiative()) {
 								access_state = AccessState.ACCESS_NOT_INITIALIZED;
@@ -181,18 +186,20 @@ public class AccessProtocolWithJPake extends AbstractAccessProtocol {
 						
 						if (getIdentifiers() != null) {
 							access_state = AccessState.WAITING_FOR_PASSWORD_VALIDATION;
-							JPakeMessage res=((IdentifiersPropositionMessage) _m).getJPakeMessage(lp, jpakes,access_protocol_properties.p2pLoginAgreementType, access_protocol_properties.asymmetricLoginAgreementType, properties.getApprovedSecureRandom(),  messageDigest,
-									this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, distantGeneratedSalt, localGeneratedSalt);
+							JPakeMessage res=((IdentifiersPropositionMessage) _m).getJPakeMessage(getAllAcceptedIdentifiers(), lp, jpakes,access_protocol_properties.p2pLoginAgreementType, access_protocol_properties.asymmetricLoginAgreementType, properties.getApprovedSecureRandom(), messageDigest,
+									this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, distantGeneratedSalt, localGeneratedSalt, null);
 							maxSteps=res.getMaxSteps();
 							return res;
 						} else {
 							access_state = AccessState.WAITING_FOR_PASSWORD_VALIDATION;
 							setIdentifiers(new ArrayList<Identifier>());
-							JPakeMessage res=((IdentifiersPropositionMessage) _m).getJPakeMessage(lp, jpakes,access_protocol_properties.p2pLoginAgreementType, access_protocol_properties.asymmetricLoginAgreementType,properties.getApprovedSecureRandom(), messageDigest,
-									this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, distantGeneratedSalt, localGeneratedSalt);
+							IdentifiersPropositionMessage propRep=((IdentifiersPropositionMessage) _m).getIdentifiersPropositionMessageAnswer(lp, properties.getApprovedSecureRandom(), messageDigest,
+									this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, getIdentifiers(), distantGeneratedSalt,  localGeneratedSalt, jpakes, access_protocol_properties.asymmetricLoginAgreementType);
+							JPakeMessage res=((IdentifiersPropositionMessage) _m).getJPakeMessage(getAllAcceptedIdentifiers(), lp, jpakes,access_protocol_properties.p2pLoginAgreementType, access_protocol_properties.asymmetricLoginAgreementType, properties.getApprovedSecureRandom(), messageDigest,
+									this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, distantGeneratedSalt, localGeneratedSalt, null);
 							maxSteps=res.getMaxSteps();
-							return new AccessMessagesList(((IdentifiersPropositionMessage) _m).getIdentifiersPropositionMessageAnswer(lp, properties.getApprovedSecureRandom(), messageDigest,
-											this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, getIdentifiers(), distantGeneratedSalt,  localGeneratedSalt),
+
+							return new AccessMessagesList(propRep,
 									res);
 
 						}
@@ -217,12 +224,13 @@ public class AccessProtocolWithJPake extends AbstractAccessProtocol {
 					}
 					if (step==1)
 					{
+
 						setAcceptedIdentifiers(new ArrayList<PairOfIdentifiers>());
 						setDeniedIdentifiers(new ArrayList<PairOfIdentifiers>());
 					}
 					if (step<maxSteps)
 					{
-						AccessMessage res=jpakem.getJPakeMessageNewStep(++step, access_protocol_properties.asymmetricLoginAgreementType, lp, properties.getApprovedSecureRandom(), messageDigest, getDeniedIdentifiers(), jpakes, distantGeneratedSalt, localGeneratedSalt);
+						AccessMessage res=jpakem.getJPakeMessageNewStep(++step, lp, properties.getApprovedSecureRandom(), messageDigest, getDeniedIdentifiers(), jpakes, distantGeneratedSalt, localGeneratedSalt);
 						if (res instanceof AccessErrorMessage)
 						{
 							access_state = AccessState.ACCESS_NOT_INITIALIZED;
@@ -231,7 +239,7 @@ public class AccessProtocolWithJPake extends AbstractAccessProtocol {
 					}
 					else if (step==maxSteps)
 					{
-						AccessMessage res=jpakem.receiveLastMessage(access_protocol_properties.asymmetricLoginAgreementType, lp, properties.getApprovedSecureRandom(), messageDigest, getAcceptedIdentifiers(), getDeniedIdentifiers(), jpakes, localGeneratedSalt);
+						AccessMessage res=jpakem.receiveLastMessage(lp, messageDigest, getAcceptedIdentifiers(), getDeniedIdentifiers(), jpakes, localGeneratedSalt);
 						if (res instanceof AccessErrorMessage)
 						{
 							access_state = AccessState.ACCESS_NOT_INITIALIZED;
@@ -261,7 +269,6 @@ public class AccessProtocolWithJPake extends AbstractAccessProtocol {
 
 					for (PairOfIdentifiers id : getAcceptedIdentifiers()) {
 						PairOfIdentifiers found_id = null;
-
 						for (Identifier id2 : ((LoginConfirmationMessage) _m).accepted_identifiers) {
 							if (id.getLocalIdentifier().equalsCloudIdentifier(id2)) {
 								found_id = id;
@@ -292,12 +299,23 @@ public class AccessProtocolWithJPake extends AbstractAccessProtocol {
 			}
 			case ACCESS_FINALIZED: {
 				if (_m instanceof IdentifiersPropositionMessage && access_data instanceof LoginData) {
-					JPakeMessage res=((IdentifiersPropositionMessage) _m).getJPakeMessage((LoginData)access_data, jpakes, access_protocol_properties.p2pLoginAgreementType,access_protocol_properties.asymmetricLoginAgreementType, properties.getApprovedSecureRandom(), messageDigest, this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, distantGeneratedSalt, localGeneratedSalt);
+					LoginData lp = (LoginData) access_data;
+					IdentifiersPropositionMessage ipm=((IdentifiersPropositionMessage) _m);
+					ArrayList<Identifier> newIdentifiersToAdd=new ArrayList<>();
+
+					/*IdentifiersPropositionMessage propRep=ipm.getIdentifiersPropositionMessageAnswer(lp, properties.getApprovedSecureRandom(), messageDigest,
+							this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, getIdentifiers(), distantGeneratedSalt,  localGeneratedSalt, jpakes, access_protocol_properties.asymmetricLoginAgreementType);*/
+
+					JPakeMessage res=ipm.getJPakeMessage(getAllAcceptedIdentifiers(), lp, jpakes, access_protocol_properties.p2pLoginAgreementType,access_protocol_properties.asymmetricLoginAgreementType, properties.getApprovedSecureRandom(), messageDigest, this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, distantGeneratedSalt, localGeneratedSalt, newIdentifiersToAdd);
 					maxSteps=res.getMaxSteps();
-				
+
 					step=1;
 					access_state = AccessState.WAITING_FOR_NEW_LOGIN;
+					if (newIdentifiersToAdd.size()>0) {
+						differrAccessMessage(new NewLocalLoginAddedMessage(newIdentifiersToAdd, true));
+					}
 					return res;
+
 				} else if (_m instanceof AccessFinalizedMessage) {
 					updateGroupAccess();
 					return null;
@@ -309,12 +327,36 @@ public class AccessProtocolWithJPake extends AbstractAccessProtocol {
 					return manageDifferableAccessMessage(_m);
 				}
 			}
-			
-			
+
+
 			case WAITING_FOR_NEW_LOGIN:{
+				if (_m instanceof IdentifiersPropositionMessage && access_data instanceof LoginData)
+				{
+					suspendedTransaction=(IdentifiersPropositionMessage)_m;
+
+					if (this.isThisAskForConnection())
+					{
+						return null;
+					}
+					else
+					{
+						suspendedJpakes=jpakes;
+						jpakes=new HashMap<>();
+						suspendedStep=step;
+						step=1;
+						suspendMaxSteps=maxSteps;
+						access_state = AccessState.ACCESS_FINALIZED;
+						return this.subSetAndGetNextMessage(_m);
+					}
+				}
 				if (_m instanceof JPakeMessage) {
-					LoginData lp = (LoginData) access_data;
+
 					JPakeMessage jpakem = (JPakeMessage) _m;
+					if (suspendedTransaction!=null && suspendedJpakeMessage==null && this.isThisAskForConnection()) {
+						suspendedJpakeMessage = jpakem;
+						return null;
+					}
+					LoginData lp = (LoginData) access_data;
 					if (jpakem.getStep()!=step)
 					{
 						access_state = AccessState.ACCESS_NOT_INITIALIZED;
@@ -327,7 +369,7 @@ public class AccessProtocolWithJPake extends AbstractAccessProtocol {
 					}
 					if (step<maxSteps)
 					{
-						AccessMessage res=jpakem.getJPakeMessageNewStep(++step, access_protocol_properties.asymmetricLoginAgreementType,lp, properties.getApprovedSecureRandom(), messageDigest, getDeniedIdentifiers(), jpakes, distantGeneratedSalt, localGeneratedSalt);
+						AccessMessage res=jpakem.getJPakeMessageNewStep(++step, lp, properties.getApprovedSecureRandom(), messageDigest, getDeniedIdentifiers(), jpakes, distantGeneratedSalt, localGeneratedSalt);
 						if (res instanceof AccessErrorMessage)
 						{
 							access_state = AccessState.ACCESS_NOT_INITIALIZED;
@@ -336,7 +378,7 @@ public class AccessProtocolWithJPake extends AbstractAccessProtocol {
 					}
 					else if (step==maxSteps)
 					{
-						AccessMessage res=jpakem.receiveLastMessage(access_protocol_properties.asymmetricLoginAgreementType,lp, properties.getApprovedSecureRandom(), messageDigest, getAcceptedIdentifiers(), getDeniedIdentifiers(), jpakes, localGeneratedSalt);
+						AccessMessage res=jpakem.receiveLastMessage(lp, messageDigest, getAcceptedIdentifiers(), getDeniedIdentifiers(), jpakes, localGeneratedSalt);
 						if (res instanceof AccessErrorMessage)
 						{
 							access_state = AccessState.ACCESS_NOT_INITIALIZED;
@@ -375,7 +417,6 @@ public class AccessProtocolWithJPake extends AbstractAccessProtocol {
 
 					for (PairOfIdentifiers id : getAcceptedIdentifiers()) {
 						PairOfIdentifiers found_id = null;
-
 						for (Identifier id2 : ((LoginConfirmationMessage) _m).accepted_identifiers) {
 							if (id.getLocalIdentifier().equalsCloudIdentifier(id2)) {
 								found_id = id;
@@ -421,26 +462,68 @@ public class AccessProtocolWithJPake extends AbstractAccessProtocol {
 
 		return isAccessFinalizedMessage() && access_state.compareTo(AccessState.ACCESS_FINALIZED) >= 0;
 	}
+
+	@Override
+	protected boolean hasSuspendedAccessMessage()
+	{
+		return suspendedTransaction!=null;
+	}
+
+	@Override
+	protected AccessMessage manageSuspendedAccessMessage() throws AccessException
+	{
+		if (suspendedTransaction!=null)
+		{
+			try
+			{
+				if (this.isThisAskForConnection())
+				{
+					return new AccessMessagesList(setAndGetNextMessage(suspendedTransaction), setAndGetNextMessage(suspendedJpakeMessage));
+				}
+				else
+				{
+					jpakes=suspendedJpakes;
+					step=suspendedStep;
+					maxSteps=suspendMaxSteps;
+					access_state=AccessState.WAITING_FOR_NEW_LOGIN;
+					return null;
+				}
+			}
+			finally
+			{
+				suspendedTransaction=null;
+				suspendedJpakes=null;
+				suspendedJpakeMessage=null;
+			}
+		}
+		else
+			throw new InternalError();
+
+	}
+
 	@Override
 	protected  AccessMessage manageDifferableAccessMessage(AccessMessage _m) throws AccessException {
 		try
 		{
+
+
 			if (_m instanceof NewLocalLoginAddedMessage) {
-				if (access_data instanceof LoginData && ((LoginData) access_data).canTakesLoginInitiative()) {
+				NewLocalLoginAddedMessage m=((NewLocalLoginAddedMessage) _m);
+				if (access_data instanceof LoginData && (((LoginData) access_data).canTakesLoginInitiative() || m.isForceLoginInitiative())) {
 					step=1;
 					
 					access_state = AccessState.WAITING_FOR_NEW_LOGIN;
-					List<Identifier> identifiers = new ArrayList<>(((NewLocalLoginAddedMessage) _m).identifiers);
+					List<Identifier> identifiers = new ArrayList<>(m.identifiers);
 					setIdentifiers(identifiers);
 					IdentifiersPropositionMessage m1= new IdentifiersPropositionMessage(identifiers, properties.getApprovedSecureRandom(), messageDigest,
-							this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, (short) 0, distantGeneratedSalt);
+							this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, (short) 0, distantGeneratedSalt, jpakes, access_protocol_properties.asymmetricLoginAgreementType);
 					
-					JPakeMessage m2=new JPakeMessage((LoginData)access_data, properties.getApprovedSecureRandom(), messageDigest, jpakes, access_protocol_properties.p2pLoginAgreementType, access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, identifiers, distantGeneratedSalt);
+					JPakeMessage m2=new JPakeMessage((LoginData)access_data, properties.getApprovedSecureRandom(), messageDigest, jpakes, access_protocol_properties.p2pLoginAgreementType, access_protocol_properties.asymmetricLoginAgreementType, access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, identifiers, distantGeneratedSalt);
 					maxSteps=m2.getMaxSteps();
-					
 					return new AccessMessagesList(m1, m2);
-				} else
+				} else {
 					return null;
+				}
 			} else if (_m instanceof NewLocalLoginRemovedMessage) {
 				NewLocalLoginRemovedMessage nlrm = (NewLocalLoginRemovedMessage) _m;
 				UnlogMessage um = removeAcceptedIdentifiers(nlrm.removed_identifiers);

@@ -39,6 +39,8 @@ package com.distrimind.madkit.kernel.network.connection.access;
 
 
 import com.distrimind.madkit.util.ExternalizableAndSizable;
+import com.distrimind.util.crypto.ASymmetricKeyPair;
+import com.distrimind.util.crypto.ASymmetricPublicKey;
 
 /**
  * This identifier is related to a cloud associated to a user, or an entity.
@@ -78,5 +80,12 @@ public abstract class CloudIdentifier implements ExternalizableAndSizable {
 	 * @return the salt with a byte tab format. The returned value cannot be null.
 	 */
 	public abstract byte[] getSaltBytes();
+
+	public abstract boolean isAutoIdentifiedHostWithPublicKey();
+
+	public abstract ASymmetricPublicKey getHostPublicKey();
+
+	public abstract ASymmetricKeyPair getHostKeyPair();
+
 
 }

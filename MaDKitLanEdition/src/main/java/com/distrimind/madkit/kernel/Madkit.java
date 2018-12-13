@@ -148,6 +148,7 @@ final public class Madkit {
 			Description d = new Description((short)1, (short)9, (short)0, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Update OOD to 2.0.0 Beta 92.");
 			d.addItem("Update Utils to 3.23.0.");
+			d.addItem("Manage asymmetric auto-signed login.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();

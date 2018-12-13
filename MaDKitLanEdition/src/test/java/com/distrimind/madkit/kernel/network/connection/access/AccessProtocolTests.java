@@ -81,7 +81,7 @@ import gnu.vm.jgnu.security.spec.InvalidKeySpecException;
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("SameParameterValue")
+@SuppressWarnings({"SameParameterValue", "deprecation"})
 @RunWith(Parameterized.class)
 public class AccessProtocolTests implements AccessGroupsNotifier, LoginEventsTrigger {
 	private static final int numberMaxExchange = 100;
@@ -111,12 +111,12 @@ public class AccessProtocolTests implements AccessGroupsNotifier, LoginEventsTri
 	}
 
 	public static Collection<Object[]> data(boolean databaseEnabled) {
+		AccessProtocolWithP2PAgreementProperties app2=new AccessProtocolWithP2PAgreementProperties();
+		Collection<Object[]> res=data(databaseEnabled, app2);
 		AccessProtocolWithASymmetricKeyExchangerProperties app1=new AccessProtocolWithASymmetricKeyExchangerProperties();
 		app1.aSymetricKeySize = 2048;
 		app1.passwordHashCost = 7;
-		Collection<Object[]> res=data(databaseEnabled, app1);
-		AccessProtocolWithP2PAgreementProperties app2=new AccessProtocolWithP2PAgreementProperties();
-		res.addAll(data(databaseEnabled, app2));
+		res.addAll(data(databaseEnabled, app1));
 		return res;
 	}
 	
@@ -130,6 +130,7 @@ public class AccessProtocolTests implements AccessGroupsNotifier, LoginEventsTri
 		ArrayList<Identifier> acceptedReceiverIdentifiers = new ArrayList<>();
 		ArrayList<IdentifierPassword> identifierPassordsAsker;
 		ArrayList<IdentifierPassword> identifierPassordsReceiver;
+		boolean autoSignedLogin=accessProtocolProperties.getClass()!=AccessProtocolWithASymmetricKeyExchangerProperties.class;
 		Object[] o = new Object[8];
 		adasker.add(AccessDataMKEventListener.getDefaultAccessData(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA));
 		adreceiver
@@ -151,7 +152,7 @@ public class AccessProtocolTests implements AccessGroupsNotifier, LoginEventsTri
 		acceptedReceiverIdentifiers = new ArrayList<>();
 		adasker.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsAsker = AccessDataMKEventListener
-						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustumHostIdentifier(0), 2, 5, 6, 9),
+						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustumHostIdentifier(0), 4, 5, 6, 9),
 				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, true, new Runnable() {
 
 					@Override
@@ -161,7 +162,7 @@ public class AccessProtocolTests implements AccessGroupsNotifier, LoginEventsTri
 				}));
 		adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsReceiver = AccessDataMKEventListener
-						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustumHostIdentifier(1), 3, 5, 6, 7),
+						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustumHostIdentifier(1), 2, 5, 6, 7),
 				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, false, new Runnable() {
 
 					@Override
@@ -403,7 +404,7 @@ public class AccessProtocolTests implements AccessGroupsNotifier, LoginEventsTri
 			mpasker.setDatabaseFactory(new EmbeddedHSQLDBDatabaseFactory(dbfileasker));
 			mpreceiver.setDatabaseFactory(new EmbeddedHSQLDBDatabaseFactory(dbfilereceiver));
 		}
-		System.out.println(accessProtocolProperties.getClass());
+		//System.out.println(accessProtocolProperties.getClass());
 	}
 
 	@Before
@@ -542,11 +543,14 @@ public class AccessProtocolTests implements AccessGroupsNotifier, LoginEventsTri
 				new InetSocketAddress(InetAddress.getByName("192.168.0.55"), 5000))
 				.getAccessProtocolInstance(new InetSocketAddress(InetAddress.getByName("56.41.158.221"), 5000),
 				new InetSocketAddress(InetAddress.getByName("192.168.0.55"), 5000), this, mpreceiver);
+		System.out.println(apasker.getClass());
+
+
 		KernelAddress kaasker=KernelAddressTest.getKernelAddressInstance();
 		KernelAddress kareceiver=KernelAddressTest.getKernelAddressInstance();
-		apasker.setKernelAddress(kaasker);
+		apasker.setKernelAddress(kaasker, true);
 		//apreceiver.setDistantKernelAddress(kaasker);
-		apreceiver.setKernelAddress(kareceiver);
+		apreceiver.setKernelAddress(kareceiver, false);
 		//apasker.setDistantKernelAddress(kareceiver);
 
 		Assert.assertFalse(apasker.isAccessFinalized());
@@ -650,24 +654,37 @@ public class AccessProtocolTests implements AccessGroupsNotifier, LoginEventsTri
 		return cycles;
 	}
 
-	private void testAddingOneNewIdentifier(int newid) throws AccessException, ClassNotFoundException, IOException,
-			NoSuchAlgorithmException, InvalidKeySpecException {
+	private void testAddingOneNewIdentifier(int newid) throws AccessException, ClassNotFoundException, IOException {
+		HostIdentifier hostIDAsker=AccessDataMKEventListener.getCustumHostIdentifier(0);
+		HostIdentifier hostIDReceiver=AccessDataMKEventListener.getCustumHostIdentifier(1);
 		IdentifierPassword idpwAsker = AccessDataMKEventListener
-				.getIdentifierPassword(AccessDataMKEventListener.getCustumHostIdentifier(0), newid);
+				.getIdentifierPassword(hostIDAsker, newid);
 		IdentifierPassword idpwReceiver = AccessDataMKEventListener
-				.getIdentifierPassword(AccessDataMKEventListener.getCustumHostIdentifier(1), newid);
-		identifierPassordsAsker.add(idpwAsker);
-		identifierPassordsReceiver.add(idpwReceiver);
-		acceptedAskerIdentifiers.add(idpwAsker.getIdentifier());
-		acceptedReceiverIdentifiers.add(idpwReceiver.getIdentifier());
+				.getIdentifierPassword(hostIDReceiver, newid);
 		ArrayList<Identifier> addedForAsker = new ArrayList<>();
 		ArrayList<Identifier> addedForReceiver = new ArrayList<>();
-		addedForAsker.add(idpwAsker.getIdentifier());
-		addedForReceiver.add(idpwReceiver.getIdentifier());
+		if (idpwAsker!=null) {
+			identifierPassordsAsker.add(idpwAsker);
+			acceptedAskerIdentifiers.add(idpwAsker.getIdentifier());
+			addedForAsker.add(idpwAsker.getIdentifier());
+		}
+		else {
+			addedForAsker.add(AccessDataMKEventListener.getIdentifier(hostIDAsker, newid));
+			acceptedAskerIdentifiers.add(AccessDataMKEventListener.getIdentifier(hostIDAsker, newid));
+		}
+		if (idpwReceiver!=null) {
+			identifierPassordsReceiver.add(idpwReceiver);
+			acceptedReceiverIdentifiers.add(idpwReceiver.getIdentifier());
+			addedForReceiver.add(idpwReceiver.getIdentifier());
+		}
+		else {
+			addedForReceiver.add(AccessDataMKEventListener.getIdentifier(hostIDReceiver, newid));
+			acceptedReceiverIdentifiers.add(AccessDataMKEventListener.getIdentifier(hostIDReceiver, newid));
+		}
+
 		testAddingNewIdentifier(addedForAsker, addedForReceiver);
 	}
-	private void testAddingOneNewIdentifierNonUsable(int newid) throws AccessException, ClassNotFoundException, IOException,
-	NoSuchAlgorithmException, InvalidKeySpecException {
+	private void testAddingOneNewIdentifierNonUsable(int newid) throws AccessException, ClassNotFoundException, IOException {
 		IdentifierPassword idpwAsker = AccessDataMKEventListener
 				.getIdentifierPassword(AccessDataMKEventListener.getCustumHostIdentifier(0), newid);
 		identifierPassordsAsker.add(idpwAsker);
@@ -697,8 +714,7 @@ public class AccessProtocolTests implements AccessGroupsNotifier, LoginEventsTri
 			testAddingNewIdentifier(addedForAsker, addedForReceiver);
 }	
 
-	private void testRemovingOneNewIdentifier(int newid) throws AccessException, ClassNotFoundException, IOException,
-			NoSuchAlgorithmException, InvalidKeySpecException {
+	private void testRemovingOneNewIdentifier(int newid) throws AccessException, ClassNotFoundException, IOException {
 		IdentifierPassword idpwAsker = AccessDataMKEventListener
 				.getIdentifierPassword(AccessDataMKEventListener.getCustumHostIdentifier(0), newid);
 		IdentifierPassword idpwReceiver = AccessDataMKEventListener
@@ -715,8 +731,7 @@ public class AccessProtocolTests implements AccessGroupsNotifier, LoginEventsTri
 	}
 
 	private void testAddingNewIdentifier(ArrayList<Identifier> addedForAsker, ArrayList<Identifier> addedForReceiver)
-			throws AccessException, ClassNotFoundException, IOException, NoSuchAlgorithmException,
-			InvalidKeySpecException {
+			throws AccessException, ClassNotFoundException, IOException {
 		Assert.assertTrue(apasker.isAccessFinalized());
 		Assert.assertTrue(apreceiver.isAccessFinalized());
 
@@ -727,8 +742,7 @@ public class AccessProtocolTests implements AccessGroupsNotifier, LoginEventsTri
 	}
 
 	private void testRemovingNewIdentifier(ArrayList<Identifier> addedForAsker, ArrayList<Identifier> addedForReceiver)
-			throws AccessException, ClassNotFoundException, IOException, NoSuchAlgorithmException,
-			InvalidKeySpecException {
+			throws AccessException, ClassNotFoundException, IOException {
 		Assert.assertTrue(apasker.isAccessFinalized());
 		Assert.assertTrue(apreceiver.isAccessFinalized());
 
@@ -738,27 +752,57 @@ public class AccessProtocolTests implements AccessGroupsNotifier, LoginEventsTri
 	}
 
 	private void testAddingTwoNewIdentifier(int newid1, int newid2, boolean differed) throws AccessException,
-			ClassNotFoundException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+			ClassNotFoundException, IOException {
+		HostIdentifier hostIDAsker=AccessDataMKEventListener.getCustumHostIdentifier(0);
+		HostIdentifier hostIDReceiver=AccessDataMKEventListener.getCustumHostIdentifier(1);
 		IdentifierPassword idpwAsker = AccessDataMKEventListener
-				.getIdentifierPassword(AccessDataMKEventListener.getCustumHostIdentifier(0), newid1);
+				.getIdentifierPassword(hostIDAsker, newid1);
 		IdentifierPassword idpwReceiver = AccessDataMKEventListener
-				.getIdentifierPassword(AccessDataMKEventListener.getCustumHostIdentifier(1), newid1);
-		identifierPassordsAsker.add(idpwAsker);
-		identifierPassordsReceiver.add(idpwReceiver);
-		acceptedAskerIdentifiers.add(idpwAsker.getIdentifier());
-		acceptedReceiverIdentifiers.add(idpwReceiver.getIdentifier());
+				.getIdentifierPassword(hostIDReceiver, newid1);
+
+		if (idpwAsker!=null) {
+			identifierPassordsAsker.add(idpwAsker);
+			acceptedAskerIdentifiers.add(idpwAsker.getIdentifier());
+		}
+		else {
+			acceptedAskerIdentifiers.add(AccessDataMKEventListener.getIdentifier(hostIDAsker, newid1));
+		}
+		if (idpwReceiver!=null) {
+			identifierPassordsReceiver.add(idpwReceiver);
+			acceptedReceiverIdentifiers.add(idpwReceiver.getIdentifier());
+		}
+		else {
+			acceptedReceiverIdentifiers.add(AccessDataMKEventListener.getIdentifier(hostIDReceiver, newid1));
+		}
+
+
+
+		hostIDAsker=AccessDataMKEventListener.getCustumHostIdentifier(0);
+		hostIDReceiver=AccessDataMKEventListener.getCustumHostIdentifier(1);
+
 		ArrayList<Identifier> addedForAsker = new ArrayList<>();
 		ArrayList<Identifier> addedForReceiver = new ArrayList<>();
 		addedForAsker.add(idpwAsker.getIdentifier());
 		addedForReceiver.add(idpwReceiver.getIdentifier());
 		idpwAsker = AccessDataMKEventListener
-				.getIdentifierPassword(AccessDataMKEventListener.getCustumHostIdentifier(0), newid2);
+				.getIdentifierPassword(hostIDAsker, newid2);
 		idpwReceiver = AccessDataMKEventListener
-				.getIdentifierPassword(AccessDataMKEventListener.getCustumHostIdentifier(1), newid2);
-		identifierPassordsAsker.add(idpwAsker);
-		identifierPassordsReceiver.add(idpwReceiver);
-		acceptedAskerIdentifiers.add(idpwAsker.getIdentifier());
-		acceptedReceiverIdentifiers.add(idpwReceiver.getIdentifier());
+				.getIdentifierPassword(hostIDReceiver, newid2);
+		if (idpwAsker!=null) {
+			identifierPassordsAsker.add(idpwAsker);
+			acceptedAskerIdentifiers.add(idpwAsker.getIdentifier());
+		}
+		else {
+			acceptedAskerIdentifiers.add(AccessDataMKEventListener.getIdentifier(hostIDAsker, newid1));
+		}
+		if (idpwReceiver!=null) {
+			identifierPassordsReceiver.add(idpwReceiver);
+			acceptedReceiverIdentifiers.add(idpwReceiver.getIdentifier());
+		}
+		else {
+			acceptedReceiverIdentifiers.add(AccessDataMKEventListener.getIdentifier(hostIDReceiver, newid1));
+		}
+
 		addedForAsker.add(idpwAsker.getIdentifier());
 		addedForReceiver.add(idpwReceiver.getIdentifier());
 
@@ -839,52 +883,55 @@ public class AccessProtocolTests implements AccessGroupsNotifier, LoginEventsTri
 		Assert.assertTrue(apasker.isAccessFinalized());
 		testExpectedLogins();
 	}
+	private void checkExpectedLogins(AbstractAccessProtocol ap, List<Identifier> expectedAcceptedIdentifiers, List<Identifier> expectedAcceptedIdentifiersOtherSide)
+	{
 
+		for (PairOfIdentifiers poi : ap.getAllAcceptedIdentifiers()) {
+			boolean found = false;
+			for (Identifier id : expectedAcceptedIdentifiers) {
+				if (id.equals(poi.getLocalIdentifier())) {
+					found = true;
+					break;
+				}
+			}
+			Assert.assertTrue(found);
+			found = false;
+			for (Identifier id : expectedAcceptedIdentifiersOtherSide) {
+				if (id.equals(poi.getDistantIdentifier())) {
+					found = true;
+					break;
+				}
+			}
+
+			Assert.assertTrue(""+poi, found);
+			/*if (!poi.getDistantIdentifier().getCloudIdentifier().isAutoIdentifiedHostWithPublicKey())
+				Assert.assertTrue(""+poi.getDistantIdentifier(), found);
+			else
+				Assert.assertTrue(""+poi.getDistantIdentifier(), !found);*/
+		}
+		for (Identifier id : expectedAcceptedIdentifiers) {
+			boolean found=false;
+			for (PairOfIdentifiers poi : ap.getAllAcceptedIdentifiers()) {
+				if(poi.getLocalIdentifier().equals(id))
+					found=true;
+			}
+			if (!found)
+				Assert.fail("Impossible to found : "+id);
+		}
+
+		Assert.assertEquals(expectedAcceptedIdentifiers.size(), ap.getAllAcceptedIdentifiers().size());
+	}
 	private void testExpectedLogins() {
-		Assert.assertEquals(acceptedAskerIdentifiers.size(), apasker.getAllAcceptedIdentifiers().size());
-		for (PairOfIdentifiers poi : apasker.getAllAcceptedIdentifiers()) {
-			boolean found = false;
-			for (Identifier id : acceptedAskerIdentifiers) {
-				if (id.equals(poi.getLocalIdentifier())) {
-					found = true;
-					break;
-				}
-			}
-			Assert.assertTrue(found);
-			found = false;
-			for (Identifier id : acceptedReceiverIdentifiers) {
-				if (id.equals(poi.getDistantIdentifier())) {
-					found = true;
-					break;
-				}
-			}
-			Assert.assertTrue(found);
-		}
-		Assert.assertEquals(acceptedReceiverIdentifiers.size(), apreceiver.getAllAcceptedIdentifiers().size());
-		for (PairOfIdentifiers poi : apreceiver.getAllAcceptedIdentifiers()) {
-			boolean found = false;
-			for (Identifier id : acceptedAskerIdentifiers) {
-				if (id.equals(poi.getDistantIdentifier())) {
-					found = true;
-					break;
-				}
-			}
-			Assert.assertTrue(found);
-			found = false;
-			for (Identifier id : acceptedReceiverIdentifiers) {
-				if (id.equals(poi.getLocalIdentifier())) {
-					found = true;
-					break;
-				}
-			}
-			Assert.assertTrue(found);
-		}
+
+		checkExpectedLogins(apasker, acceptedAskerIdentifiers, acceptedReceiverIdentifiers);
+		checkExpectedLogins(apreceiver, acceptedReceiverIdentifiers, acceptedAskerIdentifiers);
+
 
 	}
 
 	private void testDifferedAddingNewIdentifier(ArrayList<Identifier> addedForAsker,
-			ArrayList<Identifier> addedForReceiver) throws AccessException, ClassNotFoundException, IOException,
-			NoSuchAlgorithmException, InvalidKeySpecException {
+			ArrayList<Identifier> addedForReceiver) throws AccessException, ClassNotFoundException, IOException
+			{
 		Assert.assertTrue(apasker.isAccessFinalized());
 		Assert.assertTrue(apreceiver.isAccessFinalized());
 
@@ -903,8 +950,8 @@ public class AccessProtocolTests implements AccessGroupsNotifier, LoginEventsTri
 	}
 
 	private void testDifferedRemovingNewIdentifier(ArrayList<Identifier> addedForAsker,
-			ArrayList<Identifier> addedForReceiver) throws AccessException, ClassNotFoundException, IOException,
-			NoSuchAlgorithmException, InvalidKeySpecException {
+			ArrayList<Identifier> addedForReceiver) throws AccessException, ClassNotFoundException, IOException
+			{
 		Assert.assertTrue(apasker.isAccessFinalized());
 		Assert.assertTrue(apreceiver.isAccessFinalized());
 

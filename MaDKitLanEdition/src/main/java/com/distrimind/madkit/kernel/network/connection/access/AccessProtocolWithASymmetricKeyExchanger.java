@@ -66,6 +66,7 @@ import gnu.vm.jgnux.crypto.ShortBufferException;
  * @since MadkitLanEdition 1.0
  *
  */
+@Deprecated
 public class AccessProtocolWithASymmetricKeyExchanger extends AbstractAccessProtocol {
 
 	private final AccessProtocolWithASymmetricKeyExchangerProperties access_protocol_properties;
@@ -506,6 +507,17 @@ public class AccessProtocolWithASymmetricKeyExchanger extends AbstractAccessProt
 	public final boolean isAccessFinalized() {
 
 		return isAccessFinalizedMessage() && access_state.compareTo(AccessState.ACCESS_FINALIZED) >= 0;
+	}
+	@Override
+	protected boolean hasSuspendedAccessMessage()
+	{
+		return false;
+	}
+
+	@Override
+	protected AccessMessage manageSuspendedAccessMessage()
+	{
+		throw new InternalError();
 	}
 	@Override
 	protected  AccessMessage manageDifferableAccessMessage(AccessMessage _m) throws AccessException {

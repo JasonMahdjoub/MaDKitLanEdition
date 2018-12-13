@@ -53,6 +53,7 @@ import com.distrimind.util.crypto.PasswordHashType;
  * @since MadkitLanEdition 1.0
  *
  */
+@Deprecated
 public class AccessProtocolWithASymmetricKeyExchangerProperties extends AbstractAccessProtocolProperties{
 
 	/**

@@ -80,15 +80,26 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 		}
 
 	}
-
-	private static final byte SALT[] = new byte[30];
 	public static final int CLOUD_ID_NUMBER = 20;
-	private static final CustumCloudIdentifier cloudIdentifiers[];
+	private static final byte SALT[] = new byte[30];
+
+	private static final CloudIdentifier cloudIdentifiers[];
 	static {
 		new Random(System.currentTimeMillis()).nextBytes(SALT);
-		cloudIdentifiers = new CustumCloudIdentifier[CLOUD_ID_NUMBER];
-		for (int i = 0; i < CLOUD_ID_NUMBER; i++) {
-			cloudIdentifiers[i] = new CustumCloudIdentifier("cloud" + i, SALT);
+		cloudIdentifiers = new CloudIdentifier[CLOUD_ID_NUMBER];
+		try {
+			AbstractSecureRandom random = SecureRandomType.DEFAULT.getSingleton(null);
+			for (int i = 0; i < CLOUD_ID_NUMBER; i++) {
+				if (i % 2 == 1)
+					cloudIdentifiers[i] = new CustomCloudIdentifierWithPublicKey(ASymmetricAuthentifiedSignatureType.BC_SHA256withECDSA_CURVE_25519.getKeyPairGenerator(random).generateKeyPair(),SALT);
+				else
+					cloudIdentifiers[i] = new CustumCloudIdentifier("cloud" + i, SALT);
+			}
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			System.exit(-1);
 		}
 	}
 
@@ -112,28 +123,10 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 		
 	}
 
-	private static final ASymmetricKeyPair hostKeyPairs[];
-	static
-	{
-		hostKeyPairs=new ASymmetricKeyPair[cloudIdentifiers.length];
-		AbstractSecureRandom random;
-		try {
-			random = SecureRandomType.DEFAULT.getSingleton(null);
-			for (int i = 0; i < hostKeyPairs.length; i++) {
-				hostKeyPairs[i]=ASymmetricAuthentifiedSignatureType.BC_SHA256withECDSA_CURVE_25519.getKeyPairGenerator(random).generateKeyPair();
-			}
-		} catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
-			e.printStackTrace();
-			System.exit(-1);
-		}
 
-	}
 
 	public static HostIdentifier getCustumHostIdentifier(int hostNumber) {
-		if (hostNumber%2==1)
-			return new CustomHostIdentierWithPublicKey(hostKeyPairs[hostNumber]);
-		else
-			return new CustumHostIdentifier("host" + hostNumber);
+		return new CustumHostIdentifier("host" + hostNumber);
 	}
 
 	public static ArrayList<IdentifierPassword> getServerLogins(CustumHostIdentifier host) {
@@ -157,10 +150,7 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 	}
 
 	public static IdentifierPassword getIdentifierPassword(HostIdentifier host, int index) {
-		if (host instanceof CustomHostIdentierWithPublicKey)
-			return null;
-		else
-			return new IdentifierPassword(new Identifier(cloudIdentifiers[index], host), paswordIdentifiers[index]);
+		return new IdentifierPassword(new Identifier(cloudIdentifiers[index], host), paswordIdentifiers[index]);
 	}
 
 	public static AccessData getDefaultAccessData(final AbstractGroup defaultGroupAccess) {
@@ -206,12 +196,15 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 
 			@Override
 			public Identifier localiseIdentifier(Identifier _identifier) {
+				/*if (_identifier.getHostIdentifier().isAutoIdentifiedHostWithPublicKey())
+					return _identifier;*/
 				for (IdentifierPassword idpw : identifersAndPasswords) {
 					if (idpw.getIdentifier().getCloudIdentifier().equals(_identifier.getCloudIdentifier()))
 						return idpw.getIdentifier();
 				}
 				return null;
 			}
+
 
 			@Override
 			public void invalidPassword(Identifier _identifier) {
@@ -221,6 +214,8 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 
 			@Override
 			public PasswordKey getPassword(Identifier _identifier) {
+				if (_identifier.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey())
+					return null;
 				for (IdentifierPassword idpw : identifersAndPasswords) {
 					if (idpw.getIdentifier().getCloudIdentifier().equals(_identifier.getCloudIdentifier()))
 						return idpw.getPassword();

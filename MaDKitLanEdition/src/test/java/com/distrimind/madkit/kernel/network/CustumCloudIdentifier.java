@@ -43,6 +43,8 @@ import java.io.ObjectOutput;
 
 import com.distrimind.madkit.kernel.network.connection.access.CloudIdentifier;
 import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.util.crypto.ASymmetricKeyPair;
+import com.distrimind.util.crypto.ASymmetricPublicKey;
 
 /**
  * 
@@ -108,6 +110,21 @@ public class CustumCloudIdentifier extends CloudIdentifier {
 	@Override
 	public byte[] getSaltBytes() {
 		return salt;
+	}
+
+	@Override
+	public boolean isAutoIdentifiedHostWithPublicKey() {
+		return false;
+	}
+
+	@Override
+	public ASymmetricPublicKey getHostPublicKey() {
+		return null;
+	}
+
+	@Override
+	public ASymmetricKeyPair getHostKeyPair() {
+		return null;
 	}
 
 	public String toString() {

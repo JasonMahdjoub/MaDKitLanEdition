@@ -182,7 +182,7 @@ class NetworkBlackboard {
 	protected TaskID taskIDToRemoveDatatagramMessages = null;
 	protected final HashSet<DatagramLocalNetworkPresenceMessage> datagramMessages = new HashSet<>();
 
-	protected boolean addMessage(MultiCastListenerAgent agent, DatagramLocalNetworkPresenceMessage m) {
+	protected boolean addMessage(MulticastListenerAgent agent, DatagramLocalNetworkPresenceMessage m) {
 		synchronized (datagramMessages) {
 			if (datagramMessages.contains(m))
 				return false;
@@ -198,7 +198,7 @@ class NetworkBlackboard {
 										.hasNext();) {
 									DatagramLocalNetworkPresenceMessage m = it.next();
 									if (m.getOnlineTime()
-											+ MultiCastListenerAgent.durationBeforeRemovingMulticastMessages < System
+											+ MulticastListenerAgent.durationBeforeRemovingMulticastMessages < System
 													.currentTimeMillis())
 										it.remove();
 								}
@@ -210,8 +210,8 @@ class NetworkBlackboard {
 							}
 							return null;
 						}
-					}, MultiCastListenerAgent.durationBeforeRemovingMulticastMessages,
-							MultiCastListenerAgent.durationBeforeRemovingMulticastMessages));
+					}, MulticastListenerAgent.durationBeforeRemovingMulticastMessages,
+							MulticastListenerAgent.durationBeforeRemovingMulticastMessages));
 				}
 				return true;
 			}

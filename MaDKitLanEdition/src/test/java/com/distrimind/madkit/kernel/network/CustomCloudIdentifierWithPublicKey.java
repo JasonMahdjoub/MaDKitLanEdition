@@ -38,7 +38,7 @@
 package com.distrimind.madkit.kernel.network;
 
 import com.distrimind.madkit.exceptions.MessageSerializationException;
-import com.distrimind.madkit.kernel.network.connection.access.HostIdentifier;
+import com.distrimind.madkit.kernel.network.connection.access.CloudIdentifier;
 import com.distrimind.madkit.util.SerializationTools;
 import com.distrimind.util.crypto.ASymmetricKeyPair;
 import com.distrimind.util.crypto.ASymmetricPublicKey;
@@ -53,20 +53,28 @@ import java.io.ObjectOutput;
  * @version 1.0
  * @since MaDKitLanEdition 1.9
  */
-public class CustomHostIdentierWithPublicKey extends HostIdentifier {
+@SuppressWarnings({"unused", "ExternalizableWithoutPublicNoArgConstructor"})
+public class CustomCloudIdentifierWithPublicKey extends CloudIdentifier {
     private ASymmetricKeyPair keyPair;
     private ASymmetricPublicKey publicKey;
+    private byte[] salt;
 
-    public CustomHostIdentierWithPublicKey(ASymmetricKeyPair keyPair) {
+    private CustomCloudIdentifierWithPublicKey()
+    {
+
+    }
+
+    public CustomCloudIdentifierWithPublicKey(ASymmetricKeyPair keyPair, byte[] salt) {
         assert keyPair!=null;
         this.keyPair = keyPair;
         this.publicKey=keyPair.getASymmetricPublicKey();
+        this.salt=salt;
     }
 
     @Override
     public boolean equals(Object _object) {
-        if (_object instanceof CustomHostIdentierWithPublicKey)
-            return publicKey.equals(((CustomHostIdentierWithPublicKey) _object).publicKey);
+        if (_object instanceof CustomCloudIdentifierWithPublicKey)
+            return publicKey.equals(((CustomCloudIdentifierWithPublicKey) _object).publicKey);
         else
             return false;
     }
@@ -77,8 +85,23 @@ public class CustomHostIdentierWithPublicKey extends HostIdentifier {
     }
 
     @Override
+    public byte[] getIdentifierBytes() {
+        return publicKey.encode();
+    }
+
+    @Override
+    public byte[] getSaltBytes() {
+        return salt;
+    }
+
+    @Override
     public boolean isAutoIdentifiedHostWithPublicKey() {
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "CloudID["+publicKey.toString()+"]";
     }
 
     @Override
@@ -98,11 +121,14 @@ public class CustomHostIdentierWithPublicKey extends HostIdentifier {
 
     @Override
     public void writeExternal(ObjectOutput out) throws IOException {
+        SerializationTools.writeBytes(out, salt, 64, false);
         SerializationTools.writeKey(out, publicKey, false);
+
     }
 
     @Override
     public void readExternal(ObjectInput in) throws IOException {
+        salt=SerializationTools.readBytes(in, 64, false);
         Key k=SerializationTools.readKey(in, false);
         if (!(k instanceof ASymmetricPublicKey))
             throw new MessageSerializationException(SystemMessage.Integrity.FAIL_AND_CANDIDATE_TO_BAN);

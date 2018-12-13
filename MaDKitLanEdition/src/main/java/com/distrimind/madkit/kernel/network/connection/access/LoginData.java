@@ -63,19 +63,18 @@ public abstract class LoginData extends AccessData {
 	 * @param _id
 	 *            the identifier of the distant user
 	 * @return the authorized group(s)
-	 * @throws AccessException
-	 *             if a problem occurs
+	 * @throws com.distrimind.madkit.exceptions.AccessException if a problem occurs
 	 */
 	public abstract AbstractGroup getGroupsAccess(Identifier _id) throws AccessException;
 
 	/**
 	 * Parse all identifiers and call
-	 * {@link IdentifierParser#newIdentifier(Identifier)} function for each
+	 * {@link IdentifierParser#newIdentifier(Identifier)}  function for each
 	 * identifier parsed.
 	 * 
 	 * @param notifier
 	 *            the notifier
-	 * @throws AccessException
+	 * @throws com.distrimind.madkit.exceptions.AccessException
 	 *             if a problem occurs
 	 * @see IdentifierParser
 	 */
@@ -90,7 +89,7 @@ public abstract class LoginData extends AccessData {
 	 *            the cipher which will enable to check the parsed identifiers with
 	 *            the given encrypted identifier
 	 * @return the corresponding clear identifier
-	 * @throws AccessException
+	 * @throws com.distrimind.madkit.exceptions.AccessException
 	 *             if a problem occurs
 	 */
 	public Identifier getIdentifier(final EncryptedIdentifier encryptedIdentifier,
@@ -145,6 +144,43 @@ public abstract class LoginData extends AccessData {
 		return res.get();
 	}
 	/**
+	 * Transform the given identifier to a local identifier
+	 *
+	 * @param encryptedIdentifier
+	 *            the encrypted identifier
+	 * @param messageDigest
+	 *            the message digest type used to hide cloud identifier
+	 * @param localGeneratedSalt
+	 * 			  the used salt (can be null)
+	 *
+	 *
+	 * @return an identifier transformed to be understood locally
+	 */
+	public Identifier getLocalIdentifier(final EncryptedIdentifier encryptedIdentifier,
+									final AbstractMessageDigest messageDigest, final byte[] localGeneratedSalt) throws AccessException {
+		final AtomicReference<Identifier> res = new AtomicReference<>(null);
+
+		parseIdentifiers(new IdentifierParser() {
+
+			@Override
+			public boolean newIdentifier(Identifier _identifier) throws AccessException {
+				try {
+					if (encryptedIdentifier.getCloudIdentifier() instanceof EncryptedCloudIdentifier
+							&& ((EncryptedCloudIdentifier) encryptedIdentifier.getCloudIdentifier())
+							.verifyWithLocalCloudIdentifier(_identifier.getCloudIdentifier(), messageDigest, localGeneratedSalt)) {
+						res.set(_identifier);
+						return false;
+					} else
+						return true;
+				} catch (Exception e) {
+					throw new AccessException(e);
+				}
+			}
+		});
+
+		return res.get();
+	}
+	/**
 	 * Parse the identifiers corresponding to the cloud identifier itself
 	 * corresponding to the given encrypted identifier
 	 * 
@@ -156,7 +192,7 @@ public abstract class LoginData extends AccessData {
 	 *            the cipher which will enable to check the parsed identifiers with
 	 *            the given encrypted identifier
 	 * 
-	 * @throws AccessException
+	 * @throws com.distrimind.madkit.exceptions.AccessException
 	 *             if a problem occurs
 	 * @see IdentifierParser
 	 */
@@ -187,7 +223,7 @@ public abstract class LoginData extends AccessData {
 	 * 
 	 * @return the list of possible identifiers to initiate
 	 * @see #canTakesLoginInitiative()
-	 * @throws AccessException if an access problem occurs
+	 * @throws com.distrimind.madkit.exceptions.AccessException if an access problem occurs
 	 */
 	public abstract List<Identifier> getIdentifiersToInitiate() throws AccessException;
 
@@ -212,7 +248,7 @@ public abstract class LoginData extends AccessData {
 		 * @param identifier
 		 *            the new identifier parsed
 		 * @return true if the identifier parsing can continue
-		 * @throws AccessException if access problem occurs
+		 * @throws com.distrimind.madkit.exceptions.AccessException if access problem occurs
 		 */
 		public abstract boolean newIdentifier(Identifier identifier) throws AccessException;
 	}
@@ -242,6 +278,8 @@ public abstract class LoginData extends AccessData {
 	 * @return an identifier transformed to be understood locally
 	 */
 	public abstract Identifier localiseIdentifier(Identifier _identifier);
+
+
 
 	private boolean containsTrigger(LoginEventsTrigger logts[], LoginEventsTrigger _trigger) {
 		if (logts == null)

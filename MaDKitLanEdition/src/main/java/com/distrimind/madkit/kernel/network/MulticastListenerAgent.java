@@ -59,7 +59,7 @@ import gnu.vm.jgnu.security.NoSuchProviderException;
  * @since MaDKitLanEdition 1.0
  *
  */
-final class MultiCastListenerAgent extends AgentFakeThread {
+final class MulticastListenerAgent extends AgentFakeThread {
 
 	private final NetworkInterface networkInterface;
 	private final InetAddress networkInterfaceAddress;
@@ -68,7 +68,7 @@ final class MultiCastListenerAgent extends AgentFakeThread {
 	private NetworkBlackboard networkBlackboard;
 	static final long durationBeforeRemovingMulticastMessages = 2000;
 
-	MultiCastListenerAgent(NetworkInterface networkInterface, InetAddress networkInterfaceAddress) {
+	MulticastListenerAgent(NetworkInterface networkInterface, InetAddress networkInterfaceAddress) {
 		this.networkInterface = networkInterface;
 		this.networkInterfaceAddress = networkInterfaceAddress;
 		this.groupIPAddress = null;

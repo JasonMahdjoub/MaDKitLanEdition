@@ -61,16 +61,27 @@ public class NewLocalLoginAddedMessage extends LocalLogingAccessMessage {
 	private static final long serialVersionUID = -3460749333775219720L;
 
 	public ArrayList<Identifier> identifiers;
+	private transient boolean forceLoginInitiative;
 
 	@SuppressWarnings("unused")
 	NewLocalLoginAddedMessage()
 	{
 		
 	}
-	
-	public NewLocalLoginAddedMessage(ArrayList<Identifier> _identifiers) {
+
+	public NewLocalLoginAddedMessage(ArrayList<Identifier> _identifiers, boolean forceLoginInitiative) {
 		identifiers = _identifiers;
+		this.forceLoginInitiative=forceLoginInitiative;
 	}
+
+	public NewLocalLoginAddedMessage(ArrayList<Identifier> _identifiers) {
+		this(_identifiers, false);
+	}
+
+	boolean isForceLoginInitiative() {
+		return forceLoginInitiative;
+	}
+
 	@Override
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		super.readExternal(in);

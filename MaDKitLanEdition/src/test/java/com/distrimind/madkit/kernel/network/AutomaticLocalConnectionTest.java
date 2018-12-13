@@ -1,5 +1,6 @@
 package com.distrimind.madkit.kernel.network;
 
+import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.logging.Level;
 
@@ -19,7 +20,7 @@ public class AutomaticLocalConnectionTest extends JunitMadkit {
 	final NetworkEventListener eventListener2;
 
 	@Parameters
-	public static Collection<Object[]> data() {
+	public static Collection<Object[]> data() throws UnknownHostException {
 		return NetworkEventListener.getNetworkEventListenersForPeerToPeerConnectionsWithRandomProperties(true, false,
 				true, true, true, null, 2, 1, 2);
 	}

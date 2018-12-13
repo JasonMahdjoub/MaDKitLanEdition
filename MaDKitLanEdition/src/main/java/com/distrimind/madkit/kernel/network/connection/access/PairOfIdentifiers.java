@@ -37,6 +37,9 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
+import gnu.vm.jgnu.security.NoSuchAlgorithmException;
+import gnu.vm.jgnu.security.NoSuchProviderException;
+
 /**
  * Represents a pair of identifiers, each equivalent between one peer and one
  * other. Each local and distant identifiers has the same cloud identifier, but
@@ -51,14 +54,16 @@ public class PairOfIdentifiers {
 	private final Identifier distantIdentifier;
 
 	PairOfIdentifiers(Identifier _localIdentifier, Identifier _distant_identifier) {
-		if (_localIdentifier == null)
+		if (_localIdentifier == null) {
 			throw new NullPointerException("_localIdentifier");
+		}
 		if (_distant_identifier == null)
 			throw new NullPointerException("_distant_identifier");
 
+
 		if (_localIdentifier.equalsHostIdentifier(_distant_identifier)) {
 			throw new IllegalArgumentException(
-					"_localIdentifier and _distant_identifier cannot have the same host identifiers !");
+					"_localIdentifier and _distant_identifier cannot have the same host identifiers : "+_localIdentifier.getHostIdentifier());
 		}
 
 		if (_localIdentifier.equalsCloudIdentifier(_distant_identifier)) {
@@ -82,6 +87,11 @@ public class PairOfIdentifiers {
 		if (o instanceof PairOfIdentifiers)
 			return this.equals((PairOfIdentifiers) o);
 		return false;
+	}
+
+	@Override
+	public String toString() {
+		return "PairOfIdentifiers["+localIdentifier+", "+distantIdentifier+"]";
 	}
 
 	/**

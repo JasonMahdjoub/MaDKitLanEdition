@@ -750,7 +750,7 @@ final class NIOAgent extends Agent {
 				NetworkInterface ni = NetworkInterface.getByInetAddress(addr.getAddress());
 
 				if (ni != null && ni.supportsMulticast()) {
-					MultiCastListenerAgent mtlAgent = new MultiCastListenerAgent(
+					MulticastListenerAgent mtlAgent = new MulticastListenerAgent(
 							NetworkInterface.getByInetAddress(addr.getAddress()), addr.getAddress());
 					launchAgent(mtlAgent);
 				}

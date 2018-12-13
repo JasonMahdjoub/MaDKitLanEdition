@@ -422,7 +422,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				logger.severe("Cannot request group "
 						+ LocalCommunity.Groups.getDistantKernelAgentGroup(agent_for_distant_kernel_aa) + " and role "
 						+ LocalCommunity.Roles.SOCKET_AGENT_ROLE);
-			access_protocol.setKernelAddress(getKernelAddress());
+			access_protocol.setKernelAddress(getKernelAddress(), this_ask_connection);
 
 			sendMessageWithRole(this.agent_for_distant_kernel_aa,
 					new ObjectMessage<>(new AgentSocketData(this)),

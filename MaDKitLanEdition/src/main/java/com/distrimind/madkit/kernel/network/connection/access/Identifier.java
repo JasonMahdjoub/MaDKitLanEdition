@@ -92,6 +92,11 @@ public class Identifier implements ExternalizableAndSizable {
 	}
 
 	@Override
+	public String toString() {
+		return "Identifier["+cloud_identifier.toString()+", "+host_identifier.toString()+"]";
+	}
+
+	@Override
 	public int hashCode()
 	{
 		return cloud_identifier.hashCode()^host_identifier.hashCode();

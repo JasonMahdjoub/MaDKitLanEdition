@@ -55,10 +55,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchProviderException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 
@@ -110,9 +107,9 @@ class JPakeMessage extends AccessMessage{
 		totalSize+=SerializationTools.getInternalSize(jpakeMessages, identifiers.length);
 		if (totalSize>globalSize)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		for (byte[] b : jpakeMessages)
-			if (b!=null && b.length==0)
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+		/*for (byte[] b : jpakeMessages)
+			if (b==null)
+				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);*/
 		if (step<1 || step>5)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		
@@ -171,7 +168,7 @@ class JPakeMessage extends AccessMessage{
 		this.nbAnomalies=nbAnomalies;
 	}
 	
-	JPakeMessage(LoginData loginData, AbstractSecureRandom random, AbstractMessageDigest messageDigest, Map<Identifier, P2PLoginAgreement> agreements, P2PLoginAgreementType agreementType, boolean encryptIdentifiers, List<Identifier> newIdentifiers, byte[] distantGeneratedSalt) throws Exception
+	JPakeMessage(LoginData loginData, AbstractSecureRandom random, AbstractMessageDigest messageDigest, Map<Identifier, P2PLoginAgreement> agreements, P2PLoginAgreementType agreementType, ASymmetricLoginAgreementType aSymmetricLoginAgreementType, boolean encryptIdentifiers, List<Identifier> newIdentifiers, byte[] distantGeneratedSalt) throws Exception
 	{
 		try
 		{
@@ -181,14 +178,24 @@ class JPakeMessage extends AccessMessage{
 				Identifier localId = loginData.localiseIdentifier(id);
 				if (localId==null)
 					throw new AccessException(new NullPointerException());
-				PasswordKey pw = loginData.getPassword(localId);
-				if (pw != null)
+
+				if (localId.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey())
 				{
-					P2PLoginAgreement agreement=agreementType.getAgreementAlgorithm(random, localId, pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature());
+					P2PLoginAgreement agreement=aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureRequester(random, localId.getCloudIdentifier().getHostKeyPair());
 					agreements.put(localId, agreement);
+
 				}
 				else
-					throw new IllegalAccessError();
+				{
+					PasswordKey pw = loginData.getPassword(localId);
+					if (pw != null) {
+						P2PLoginAgreement agreement = agreementType.getAgreementAlgorithm(random, localId, pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature());
+						agreements.put(localId, agreement);
+					}
+					else
+						throw new IllegalAccessError();
+				}
+
 			}
 			this.identifiersIsEncrypted=encryptIdentifiers;
 			this.identifiers=new Identifier[agreements.size()];
@@ -239,9 +246,31 @@ class JPakeMessage extends AccessMessage{
 	public boolean checkDifferedMessages() {
 		return false;
 	}
-	
-	
-	public AccessMessage getJPakeMessageNewStep(short newStep, ASymmetricLoginAgreementType aSymmetricLoginAgreementType, LoginData lp, AbstractSecureRandom random, AbstractMessageDigest messageDigest, Collection<PairOfIdentifiers> deniedIdentifiers,
+
+
+
+	static void addPairOfIdentifiers(Identifier distantIdentifier, Identifier localID, Collection<PairOfIdentifiers> list)
+	{
+		Identifier toCompare=new Identifier(localID.getCloudIdentifier(), HostIdentifier.getNullHostIdentifierSingleton());
+		if (distantIdentifier.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey() && distantIdentifier.equalsHostIdentifier(localID))
+		{
+			for (PairOfIdentifiers pio : list)
+				if (pio.getLocalIdentifier().equals(localID) && pio.getDistantIdentifier().equalsCloudIdentifier(localID))
+					return;
+			list.add(new PairOfIdentifiers(localID, toCompare));
+		}
+		else {
+
+			for (Iterator<PairOfIdentifiers> it = list.iterator(); it.hasNext();) {
+				PairOfIdentifiers poi=it.next();
+				if (poi.getLocalIdentifier().equals(localID) && poi.getDistantIdentifier().equals(toCompare))
+					it.remove();
+			}
+
+			list.add(new PairOfIdentifiers(localID, distantIdentifier));
+		}
+	}
+	public AccessMessage getJPakeMessageNewStep(short newStep, LoginData lp, AbstractSecureRandom random, AbstractMessageDigest messageDigest, Collection<PairOfIdentifiers> deniedIdentifiers,
 												Map<Identifier, P2PLoginAgreement> jpakes, byte[] distantGeneratedSalt, byte[] localGeneratedSalt)
 			throws Exception {
 
@@ -265,11 +294,13 @@ class JPakeMessage extends AccessMessage{
 			if (decodedID != null) {
 				Identifier localID = lp.localiseIdentifier(decodedID);
 				if (localID != null) {
-					P2PLoginAgreement jpake=jpakes.get(localID);
-					if (jpake==null && localID.getHostIdentifier().isAutoIdentifiedHostWithPublicKey())
-					{
-						jpakes.put(localID,jpake=aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureRequester(random, localID.getHostIdentifier().getHostKeyPair()) );
-					}
+					P2PLoginAgreement jpake;
+					Identifier destID;
+					if (decodedID.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey())
+						jpake=jpakes.get(destID=decodedID);
+					else
+						jpake=jpakes.get(destID=localID);
+
 					if (jpake!=null)
 					{
 
@@ -277,42 +308,66 @@ class JPakeMessage extends AccessMessage{
 						{
 							if (!jpake.hasFinishedReceiption())
 							{
-								jpake.receiveData(this.jpakeMessages[i]);
+								if (jpakeMessages[i]==null)
+								{
+									addPairOfIdentifiers(decodedID, localID, deniedIdentifiers);
+									jpakes.remove(localID);
+									if (localID!=destID) {
+										jpakes.remove(destID);
+									}
+									++nbAno;
+								}
+								else {
+
+									jpake.receiveData(this.jpakeMessages[i]);
+								}
 							}
 							else if (this.jpakeMessages[i]!=null)
 							{
-								deniedIdentifiers.add(new PairOfIdentifiers(localID, decodedID));
+								addPairOfIdentifiers(decodedID, localID, deniedIdentifiers);
 								jpakes.remove(localID);
+								if (localID!=destID) {
+									jpakes.remove(destID);
+								}
 								++nbAno;
 							}
 							if (!jpake.hasFinishedSend())
 							{
 								byte[] jpakeMessage=jpake.getDataToSend();
-								jpkms.put(localID, jpakeMessage);
+
+								jpkms.put(destID, jpakeMessage);
 							}
 							else
-								jpkms.put(localID, null);
+								jpkms.put(destID, null);
 						}
 						catch(Exception e)
 						{
-							deniedIdentifiers.add(new PairOfIdentifiers(localID, decodedID));
+							e.printStackTrace();
+							addPairOfIdentifiers(decodedID, localID, deniedIdentifiers);
 							jpakes.remove(localID);
+							if (localID!=destID) {
+								jpakes.remove(destID);
+							}
 							++nbAno;
 						}
 					}
 					else
 					{
-						deniedIdentifiers.add(new PairOfIdentifiers(localID, decodedID));
+						addPairOfIdentifiers(decodedID, localID, deniedIdentifiers);
 						++nbAno;
 					}
 				}
+
+
+
+
 			}
 		}
 		
 		return new JPakeMessage(identifiersIsEncrypted, nbAno > Short.MAX_VALUE ? Short.MAX_VALUE : (short)nbAno, random, messageDigest, newStep, jpkms, distantGeneratedSalt);
 	}
 	
-	public AccessMessage receiveLastMessage(ASymmetricLoginAgreementType aSymmetricLoginAgreementType, LoginData lp, AbstractSecureRandom random, AbstractMessageDigest messageDigest, Collection<PairOfIdentifiers> acceptedIdentifiers, Collection<PairOfIdentifiers> deniedIdentifiers,
+	public AccessMessage receiveLastMessage(LoginData lp, AbstractMessageDigest messageDigest, Collection<PairOfIdentifiers> acceptedIdentifiers, Collection<PairOfIdentifiers> deniedIdentifiers,
 			Map<Identifier, P2PLoginAgreement> jpakes, byte[] localGeneratedSalt)
 			throws Exception {
 
@@ -335,45 +390,69 @@ class JPakeMessage extends AccessMessage{
 				decodedID = id;
 			if (decodedID != null) {
 				Identifier localID = lp.localiseIdentifier(decodedID);
+
 				if (localID != null) {
 
-					P2PLoginAgreement jpake=jpakes.get(localID);
-					if (jpake==null && localID.getHostIdentifier().isAutoIdentifiedHostWithPublicKey())
-					{
-						jpakes.put(localID,jpake=aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureRequester(random, localID.getHostIdentifier().getHostKeyPair()) );
-					}
+					P2PLoginAgreement jpake;
+					Identifier destID;
+					if (decodedID.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey())
+						jpake=jpakes.get(destID=decodedID);
+					else
+						jpake=jpakes.get(destID=localID);
 
 					if (jpake!=null)
 					{
+
 						try
 						{
 							if (!jpake.hasFinishedReceiption())
 							{
-								jpake.receiveData(this.jpakeMessages[i]);
+								if (jpakeMessages[i]==null)
+								{
+									addPairOfIdentifiers(decodedID, localID, deniedIdentifiers);
+									jpakes.remove(localID);
+									if (localID!=destID) {
+										jpakes.remove(destID);
+									}
+									++nbAno;
+								}
+								else {
+
+									jpake.receiveData(this.jpakeMessages[i]);
+								}
 							}
 							else if (this.jpakeMessages[i]!=null)
 							{
-								deniedIdentifiers.add(new PairOfIdentifiers(localID, decodedID));
+								addPairOfIdentifiers(decodedID, localID, deniedIdentifiers);
 								jpakes.remove(localID);
+								if (localID!=destID) {
+									jpakes.remove(destID);
+								}
 								++nbAno;
 							}
 							if (jpake.isAgreementProcessValid())
 							{
-								acceptedIdentifiers.add(new PairOfIdentifiers(localID, decodedID));
+								addPairOfIdentifiers(decodedID, localID, acceptedIdentifiers);
 							}
-							else
-								deniedIdentifiers.add(new PairOfIdentifiers(localID, decodedID));	
+							else {
+								addPairOfIdentifiers(decodedID, localID, deniedIdentifiers);
+							}
 						}
 						catch(Exception e)
 						{
-							deniedIdentifiers.add(new PairOfIdentifiers(localID, decodedID));
+							e.printStackTrace();
+							addPairOfIdentifiers(decodedID, localID, deniedIdentifiers);
 							jpakes.remove(localID);
+							if (localID!=destID) {
+								jpakes.remove(destID);
+							}
+
 							++nbAno;
 						}
 					}
 					else
 					{
-						deniedIdentifiers.add(new PairOfIdentifiers(localID, decodedID));
+						addPairOfIdentifiers(decodedID, localID, deniedIdentifiers);
 						++nbAno;
 					}
 				}

@@ -42,6 +42,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Arrays;
 
+import com.distrimind.util.crypto.*;
 import gnu.vm.jgnu.security.DigestException;
 import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
 import gnu.vm.jgnu.security.InvalidKeyException;
@@ -54,9 +55,6 @@ import gnu.vm.jgnux.crypto.NoSuchPaddingException;
 import gnu.vm.jgnux.crypto.ShortBufferException;
 
 import com.distrimind.madkit.util.SerializationTools;
-import com.distrimind.util.crypto.AbstractMessageDigest;
-import com.distrimind.util.crypto.AbstractSecureRandom;
-import com.distrimind.util.crypto.P2PASymmetricSecretMessageExchanger;
 
 /**
  * Represent a cloud identifier encrypted
@@ -195,7 +193,22 @@ public final class EncryptedCloudIdentifier extends CloudIdentifier {
 	public byte[] getSaltBytes() {
 		return null;
 	}
-	
+
+	@Override
+	public boolean isAutoIdentifiedHostWithPublicKey() {
+		return false;
+	}
+
+	@Override
+	public ASymmetricPublicKey getHostPublicKey() {
+		return null;
+	}
+
+	@Override
+	public ASymmetricKeyPair getHostKeyPair() {
+		return null;
+	}
+
 	@Override
 	public int getInternalSerializedSize() {
 		return SerializationTools.getInternalSize(bytes, MAX_ENCRYPTED_CLOUD_IDENTIFIER_LENGTH);

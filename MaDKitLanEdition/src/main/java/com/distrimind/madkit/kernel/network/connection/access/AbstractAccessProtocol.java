@@ -39,6 +39,7 @@ package com.distrimind.madkit.kernel.network.connection.access;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -73,10 +74,15 @@ public abstract class AbstractAccessProtocol {
 	
 	private LinkedList<AccessMessage> differedAccessMessages = new LinkedList<>();
 	private boolean accessFinalizedMessageReceived = false;
+	private boolean thisAskForConnection;
+
+	boolean isThisAskForConnection() {
+		return thisAskForConnection;
+	}
 
 	public AbstractAccessProtocol(InetSocketAddress _distant_inet_address, InetSocketAddress _local_interface_address,
-			LoginEventsTrigger loginTrigger,
-			MadkitProperties _properties) throws AccessException {
+								  LoginEventsTrigger loginTrigger,
+								  MadkitProperties _properties) throws AccessException {
 		if (_distant_inet_address == null)
 			throw new NullPointerException("_distant_inet_address");
 		if (_local_interface_address == null)
@@ -115,8 +121,9 @@ public abstract class AbstractAccessProtocol {
 		return false;
 	}
 
-	public void setKernelAddress(KernelAddress ka) {
-		kernel_address = ka;
+	public void setKernelAddress(KernelAddress ka, boolean thisAskForConnection) {
+		this.kernel_address = ka;
+		this.thisAskForConnection=thisAskForConnection;
 	}
 	
 	protected KernelAddress getKernelAddress()
@@ -154,7 +161,8 @@ public abstract class AbstractAccessProtocol {
 
 	public AccessMessage manageDifferedAccessMessage()
 			throws AccessException {
-		
+			if (hasSuspendedAccessMessage())
+				return manageSuspendedAccessMessage();
 			while (differedAccessMessages.size() != 0) {
 				AccessMessage res = manageDifferableAccessMessage(differedAccessMessages.poll());
 				if (res != null)
@@ -164,6 +172,10 @@ public abstract class AbstractAccessProtocol {
 			return null;
 
 	}
+
+	protected abstract boolean hasSuspendedAccessMessage();
+
+	protected abstract AccessMessage manageSuspendedAccessMessage() throws AccessException;
 
 	protected abstract AccessMessage manageDifferableAccessMessage(AccessMessage _m) throws AccessException;
 
@@ -197,8 +209,38 @@ public abstract class AbstractAccessProtocol {
 	
 	protected void addLastAcceptedAndDeniedIdentifiers(ArrayList<PairOfIdentifiers> _accepted_identifiers,
 			ArrayList<PairOfIdentifiers> _denied_identifiers) {
-		last_accepted_identifiers.addAll(_accepted_identifiers);
-		all_accepted_identifiers.addAll(_accepted_identifiers);
+
+
+		for (PairOfIdentifiers poi : _accepted_identifiers)
+		{
+			Identifier toCompare=new Identifier(poi.getLocalIdentifier().getCloudIdentifier(), HostIdentifier.getNullHostIdentifierSingleton());
+			boolean doNotAdd=false;
+			for (Iterator<PairOfIdentifiers> it=all_accepted_identifiers.iterator();it.hasNext();)
+			{
+				PairOfIdentifiers poiAccepted=it.next();
+				if (poiAccepted.getLocalIdentifier().equals(poi.getLocalIdentifier())) {
+					if (poiAccepted.getDistantIdentifier().equals(toCompare))
+					{
+						it.remove();
+						last_accepted_identifiers.remove(poiAccepted);
+						last_unlogged_identifiers.add(poiAccepted);
+					}
+					else if (poiAccepted.getDistantIdentifier().equalsCloudIdentifier(poi.getDistantIdentifier()))
+					{
+						doNotAdd=true;
+					}
+					break;
+				}
+				else if (poiAccepted.getDistantIdentifier().equals(poi.getDistantIdentifier()) && !poiAccepted.getDistantIdentifier().getHostIdentifier().equals(HostIdentifier.getNullHostIdentifierSingleton()))
+				{
+					doNotAdd=true;
+				}
+			}
+			if (doNotAdd)
+				continue;
+			all_accepted_identifiers.add(poi);
+			last_accepted_identifiers.add(poi);
+		}
 		last_denied_identifiers_from_other.addAll(_denied_identifiers);
 	}
 

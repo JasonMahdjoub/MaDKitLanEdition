@@ -132,7 +132,7 @@ public class NetworkEventListener implements MadkitEventListener {
 			inetAddressesToBind = new InetAddress[1];
 			inetAddressesToBind[0] = inetAddress;
 		} else {
-			InetAddress ias[] = new InetAddress[inetAddressesToBind.length + 1];
+			InetAddress[] ias = new InetAddress[inetAddressesToBind.length + 1];
 			System.arraycopy(inetAddressesToBind, 0, ias, 0, inetAddressesToBind.length);
 			ias[inetAddressesToBind.length] = inetAddress;
 			inetAddressesToBind = ias;
@@ -233,7 +233,7 @@ public class NetworkEventListener implements MadkitEventListener {
 				for (AccessDataMKEventListener ad : AccessDataMKEventListener
 						.getAccessDataMKEventListenerForServerConnections(canTakeLoginInitiative, invalidPassord,
 								AccessDataMKEventListener.getCustumHostIdentifier(0), loginIndexes)) {
-					Object o[] = new Object[clientNumber + 1];
+					Object[] o = new Object[clientNumber + 1];
 					if (bindDoubleInetAddress)
 						o[0] = new NetworkEventListener(network, upnpIGDEnabled, false,
 								databaseEnabled ? new File("tmpfortest0.database") : null, cp, app, ad, 5001, null,
@@ -296,7 +296,7 @@ public class NetworkEventListener implements MadkitEventListener {
 
 		ArrayList<Object[]> res = new ArrayList<>();
 		for (int i = 0; i < col.get(0).size(); i++) {
-			Object params[] = new Object[hostNumber];
+			Object[] params = new Object[hostNumber];
 			for (int j = 0; j < hostNumber; j++)
 				params[j] = col.get(j).get(i);
 			res.add(params);
@@ -340,7 +340,7 @@ public class NetworkEventListener implements MadkitEventListener {
 
 		ArrayList<Object[]> res = new ArrayList<>();
 		for (int i = 0; i < col.get(0).size(); i++) {
-			Object params[] = new Object[hostNumber];
+			Object[] params = new Object[hostNumber];
 			for (int j = 0; j < hostNumber; j++)
 				params[j] = col.get(j).get(i);
 			res.add(params);

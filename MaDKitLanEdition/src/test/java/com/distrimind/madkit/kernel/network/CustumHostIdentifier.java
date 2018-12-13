@@ -103,19 +103,5 @@ public class CustumHostIdentifier extends HostIdentifier {
 		return name.hashCode();
 	}
 
-	@Override
-	public boolean isAutoIdentifiedHostWithPublicKey() {
-		return false;
-	}
-
-	@Override
-	public ASymmetricPublicKey getHostPublicKey() {
-		return null;
-	}
-
-	@Override
-	public ASymmetricKeyPair getHostKeyPair() {
-		return null;
-	}
 
 }
