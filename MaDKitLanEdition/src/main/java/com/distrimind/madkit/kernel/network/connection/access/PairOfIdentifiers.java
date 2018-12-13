@@ -61,7 +61,7 @@ public class PairOfIdentifiers {
 			throw new NullPointerException("_distant_identifier");
 
 
-		if (_localIdentifier.equalsHostIdentifier(_distant_identifier)) {
+		if (!_localIdentifier.getHostIdentifier().equals(HostIdentifier.getNullHostIdentifierSingleton()) && _localIdentifier.equalsHostIdentifier(_distant_identifier)) {
 			throw new IllegalArgumentException(
 					"_localIdentifier and _distant_identifier cannot have the same host identifiers : "+_localIdentifier.getHostIdentifier());
 		}
