@@ -93,7 +93,9 @@ class IdentifiersPropositionMessage extends AccessMessage {
 			if (!(s[i] instanceof Identifier))
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			identifiers[i]=(Identifier)s[i];
-			if (isEncrypted && !(identifiers[i] instanceof EncryptedIdentifier))
+			if (isEncrypted && !identifiers[i].getCloudIdentifier().isAutoIdentifiedHostWithPublicKey() && !(identifiers[i] instanceof EncryptedIdentifier))
+				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			if (isEncrypted && identifiers[i].getCloudIdentifier().isAutoIdentifiedHostWithPublicKey() && (identifiers[i] instanceof EncryptedIdentifier))
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		}
 		
@@ -115,7 +117,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		isEncrypted = encryptIdentifiers;
 		int index = 0;
 		for (Identifier ip : _id_pws) {
-			if (encryptIdentifiers)
+			if (encryptIdentifiers && !ip.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey())
 				identifiers[index++] = new EncryptedIdentifier(ip, cipher);
 			else
 				identifiers[index++] = ip;
@@ -129,7 +131,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		isEncrypted = encryptIdentifiers;
 		int index = 0;
 		for (Identifier ip : _id_pws) {
-			if (encryptIdentifiers)
+			if (encryptIdentifiers && !ip.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey())
 			{
 				identifiers[index++] = new EncryptedIdentifier(ip, random, messageDigest, distantGeneratedSalt);
 			}
@@ -158,9 +160,13 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		ArrayList<Identifier> res = new ArrayList<>();
 		if (isEncrypted) {
 			for (Identifier id : identifiers) {
-				Identifier i = loginData.getIdentifier((EncryptedIdentifier) id, cipher);
-				if (i != null)
-					res.add(i);
+				if (id instanceof EncryptedIdentifier) {
+					Identifier i = loginData.getIdentifier((EncryptedIdentifier) id, cipher);
+					if (i != null)
+						res.add(i);
+				}
+				else
+					res.add(id);
 			}
 		} else {
 			res.addAll(Arrays.asList(identifiers));
@@ -173,15 +179,24 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		ArrayList<Identifier> res = new ArrayList<>();
 		if (isEncrypted) {
 			for (Identifier id : identifiers) {
-				Identifier i = loginData.getLocalIdentifier((EncryptedIdentifier) id, messageDigest, localGeneratedSalt);
-				//Identifier idLocal=loginData.localiseIdentifier(i);
-				if (i != null)
-					res.add(i);
+				if (id instanceof EncryptedIdentifier) {
+					Identifier i = loginData.getLocalIdentifier((EncryptedIdentifier) id, messageDigest, localGeneratedSalt);
+					//Identifier idLocal=loginData.localiseIdentifier(i);
+					if (i != null && (!i.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey() || i.getCloudIdentifier().getHostKeyPair() != null))
+						res.add(i);
+				}
+				else
+				{
+					Identifier i = loginData.localiseIdentifier(id);
+					if (i != null && (!i.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey() || i.getCloudIdentifier().getHostKeyPair() != null))
+						res.add(i);
+				}
 			}
 		} else {
 			for(Identifier id : identifiers) {
 				Identifier idLocal=loginData.localiseIdentifier(id);
-				if (idLocal!=null)
+
+				if (idLocal!=null && (!idLocal.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey() || idLocal.getCloudIdentifier().getHostKeyPair()!=null))
 					res.add(idLocal);
 			}
 		}
@@ -221,7 +236,11 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		int nbAno = 0;
 		if (isEncrypted) {
 			for (Identifier id : identifiers) {
-				Identifier i = loginData.getIdentifier((EncryptedIdentifier) id, cipher);
+				Identifier i;
+				if (id instanceof EncryptedIdentifier)
+					i = loginData.getIdentifier((EncryptedIdentifier) id, cipher);
+				else
+					i=id;
 
 				if (i != null) {
 					Identifier localId = loginData.localiseIdentifier(i);
@@ -238,6 +257,10 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		} else {
 			for (Identifier id : identifiers) {
 				Identifier localId = loginData.localiseIdentifier(id);
+				if (localId==null) {
+					++nbAno;
+					continue;
+				}
 				PasswordKey pw = loginData.getPassword(localId);
 				if (pw != null)
 					res.add(new IdentifierPassword(localId, pw));
@@ -270,7 +293,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 					if (acceptedIdentifiers != null) {
 
 						for (PairOfIdentifiers poi : acceptedIdentifiers)
-							if (poi.getLocalIdentifier().equals(localId) && !poi.getDistantIdentifier().equals(HostIdentifier.getNullHostIdentifierSingleton()))
+							if (poi.getLocalIdentifier().equals(localId) && !poi.getDistantIdentifier().getHostIdentifier().equals(HostIdentifier.getNullHostIdentifierSingleton()))
 								found = true;
 					}
 					if (!found) {
@@ -303,7 +326,11 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		int nbAno = 0;
 		if (encryptIdentifiers) {
 			for (Identifier id : identifiers) {
-				Identifier i = loginData.getIdentifier((EncryptedIdentifier) id, messageDigest, localGeneratedSalt);
+				Identifier i;
+				if (id instanceof EncryptedIdentifier)
+					i = loginData.getIdentifier((EncryptedIdentifier) id, messageDigest, localGeneratedSalt);
+				else
+					i = id;
 				if (i != null) {
 					nbAno+=getJakeMessageSub(i, acceptedIdentifiers, loginData, agreements, agreementType, aSymmetricLoginAgreementType, random, newIdentifiersToAdd);
 				} else

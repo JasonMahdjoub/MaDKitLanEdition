@@ -80,7 +80,7 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 		}
 
 	}
-	public static final int CLOUD_ID_NUMBER = 20;
+	public static final int CLOUD_ID_NUMBER = 28;
 	private static final byte SALT[] = new byte[30];
 
 	private static final CloudIdentifier cloudIdentifiers[];
@@ -126,6 +126,8 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 
 
 	public static HostIdentifier getCustumHostIdentifier(int hostNumber) {
+	    if (hostNumber<0)
+	        return HostIdentifier.getNullHostIdentifierSingleton();
 		return new CustumHostIdentifier("host" + hostNumber);
 	}
 
@@ -202,6 +204,8 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 					if (idpw.getIdentifier().getCloudIdentifier().equals(_identifier.getCloudIdentifier()))
 						return idpw.getIdentifier();
 				}
+				if (_identifier.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey())
+					return new Identifier(_identifier.getCloudIdentifier(), HostIdentifier.getNullHostIdentifierSingleton());
 				return null;
 			}
 

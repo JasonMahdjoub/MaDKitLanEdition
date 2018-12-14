@@ -153,8 +153,8 @@ public class AccessProtocolWithJPake extends AbstractAccessProtocol {
 							setIdentifiers(lp.getIdentifiersToInitiate());
 						else
 							setIdentifiers(null);
-						if (getIdentifiers() != null && getIdentifiers().size() == 0)
-							setIdentifiers(null);
+						/*if (getIdentifiers() != null && getIdentifiers().size() == 0)
+							setIdentifiers(null);*/
 						if (getIdentifiers() != null) {
 							access_state = AccessState.WAITING_FOR_IDENTIFIERS;
 							return new IdentifiersPropositionMessage(getIdentifiers(), properties.getApprovedSecureRandom(), messageDigest,
@@ -277,8 +277,9 @@ public class AccessProtocolWithJPake extends AbstractAccessProtocol {
 						}
 						if (found_id != null)
 							ai.add(found_id);
-						else
+						else {
 							denied_identiers.add(id);
+						}
 					}
 					setAcceptedIdentifiers(ai);
 

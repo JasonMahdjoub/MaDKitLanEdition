@@ -133,7 +133,7 @@ class JPakeMessage extends AccessMessage{
 		int i=0;
 		for (Map.Entry<Identifier, P2PLoginAgreement> e : agreements.entrySet())
 		{
-			if (identifiersIsEncrypted)
+			if (identifiersIsEncrypted && !e.getKey().getCloudIdentifier().isAutoIdentifiedHostWithPublicKey())
 				this.identifiers[i] = new EncryptedIdentifier(e.getKey(), random, messageDigest, distantGeneratedSalt);
 			else
 				this.identifiers[i] = e.getKey();
@@ -158,7 +158,7 @@ class JPakeMessage extends AccessMessage{
 		int i=0;
 		for (Map.Entry<Identifier, byte[]> e : jakeMessages.entrySet())
 		{
-			if (identifiersIsEncrypted)
+			if (identifiersIsEncrypted && !e.getKey().getCloudIdentifier().isAutoIdentifiedHostWithPublicKey())
 				this.identifiers[i] = new EncryptedIdentifier(e.getKey(), random, messageDigest, distantGeneratedSalt);
 			else
 				this.identifiers[i] = e.getKey();
@@ -204,7 +204,7 @@ class JPakeMessage extends AccessMessage{
 			int i=0;
 			for (Map.Entry<Identifier, P2PLoginAgreement> e : agreements.entrySet())
 			{
-				if (identifiersIsEncrypted)
+				if (identifiersIsEncrypted && !e.getKey().getCloudIdentifier().isAutoIdentifiedHostWithPublicKey())
 					this.identifiers[i] = new EncryptedIdentifier(e.getKey(), random, messageDigest, distantGeneratedSalt);
 				else
 					this.identifiers[i] = e.getKey();
@@ -287,7 +287,7 @@ class JPakeMessage extends AccessMessage{
 		for (int i = 0; i < identifiers.length; i++) {
 			Identifier id = identifiers[i];
 			Identifier decodedID;
-			if (identifiersIsEncrypted)
+			if (identifiersIsEncrypted && id instanceof EncryptedIdentifier)
 				decodedID = lp.getIdentifier((EncryptedIdentifier) id, messageDigest, localGeneratedSalt);
 			else
 				decodedID = id;
@@ -384,7 +384,7 @@ class JPakeMessage extends AccessMessage{
 		for (int i = 0; i < identifiers.length; i++) {
 			Identifier id = identifiers[i];
 			Identifier decodedID;
-			if (identifiersIsEncrypted)
+			if (identifiersIsEncrypted  && id instanceof EncryptedIdentifier)
 				decodedID = lp.getIdentifier((EncryptedIdentifier) id, messageDigest, localGeneratedSalt);
 			else
 				decodedID = id;
