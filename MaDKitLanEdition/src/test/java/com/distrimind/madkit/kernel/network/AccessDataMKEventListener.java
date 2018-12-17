@@ -112,8 +112,8 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 			for (int i = 0; i < paswordIdentifiers.length; i++) {
 				String pw = "pw" + i;
 				SymmetricSecretKey sk=null;
-				if (random.nextBoolean())
-					sk=SymmetricAuthentifiedSignatureType.BC_FIPS_HMAC_SHA2_512.getKeyGenerator(random).generateKey();
+
+				sk=SymmetricAuthentifiedSignatureType.BC_FIPS_HMAC_SHA2_512.getKeyGenerator(random).generateKey();
 				paswordIdentifiers[i] = new CustumPassword(pw, SALT, sk);
 			}
 		} catch (NoSuchAlgorithmException | NoSuchProviderException e) {

@@ -102,7 +102,7 @@
   			<class name="com.distrimind.madkit.kernel.network.AutomaticLocalConnectionTest"/>
   			<class name="com.distrimind.madkit.logging.LoggingWithGUIStartingWithOFFTest"/>
   			<class name="com.distrimind.madkit.kernel.network.TransferConnectionTest"/>
-  			<class name="com.distrimind.madkit.kernel.network.connection.access.AccessProtocolTests"/>
+  			<class name="com.distrimind.madkit.kernel.network.connection.access.AccessProtocolWithP2PAgreementTests"/>
   			<class name="com.distrimind.madkit.simulation.BasicSchedulerTest"/>
   			<class name="com.distrimind.madkit.roles.manager.CandidateTest"/>
   			<class name="com.distrimind.madkit.api.abstractAgent.LaunchAgentBucketWithRolesWithListTest"/>

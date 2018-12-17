@@ -40,9 +40,7 @@ package com.distrimind.madkit.kernel.network.connection.access;
 import java.net.InetSocketAddress;
 
 import com.distrimind.madkit.kernel.MadkitProperties;
-import com.distrimind.util.crypto.ASymmetricLoginAgreementType;
-import com.distrimind.util.crypto.MessageDigestType;
-import com.distrimind.util.crypto.P2PLoginAgreementType;
+import com.distrimind.util.crypto.*;
 
 /**
  * Represents properties of a specific connection protocol
@@ -75,6 +73,49 @@ public class AccessProtocolWithP2PAgreementProperties extends AbstractAccessProt
 	 */
 	public ASymmetricLoginAgreementType asymmetricLoginAgreementType= ASymmetricLoginAgreementType.AGREEMENT_WITH_ASYMMETRIC_SIGNATURE;
 
+
+	/**
+	 * The asymetric cipher key size used for
+	 * {@link P2PASymmetricSecretMessageExchanger}
+	 */
+	public short aSymetricKeySize = 4096;
+
+	/**
+	 * The minimum asymetric cipher RSA Key size used for
+	 * {@link P2PASymmetricSecretMessageExchanger}
+	 */
+	public final int minASymetricKeySize = 1024;
+
+	/**
+	 * Asymmetric encryption algorithm used for
+	 * {@link P2PASymmetricSecretMessageExchanger}
+	 */
+	public ASymmetricEncryptionType aSymetricEncryptionType = ASymmetricEncryptionType.DEFAULT;
+
+	/**
+	 * PasswordDigestType used for {@link P2PASymmetricSecretMessageExchanger}
+	 */
+	public PasswordHashType passwordHashType = PasswordHashType.DEFAULT;
+
+	/**
+	 * Password hash cost (iterations=2^passwordHashCost)
+	 */
+	public byte passwordHashCost = 16;
+
+	/**
+	 * Default duration of a public key before being regenerated. Must be greater or
+	 * equal than 0.
+	 */
+	public final long defaultASymmetricKeyExpirationMs = 15552000000L;
+
+	/**
+	 * The duration of a public key before being regenerated. Must be greater or
+	 * equal than 0.
+	 */
+	public long aSymmetricKeyExpirationMs = defaultASymmetricKeyExpirationMs;
+
+
+
 	@Override
 	void checkProperties() throws AccessException {
 		if (this.encryptIdentifiersBeforeSendingToDistantPeer)
@@ -82,7 +123,19 @@ public class AccessProtocolWithP2PAgreementProperties extends AbstractAccessProt
 			if (identifierDigestionTypeUsedForAnonymization==null)
 				throw new AccessException(new NullPointerException("identifierDigestionTypeUsedForAnonymization can't be null !"));
 		}
-		
+		if (p2pLoginAgreementType==P2PLoginAgreementType.ASYMMETRIC_SECRET_MESSAGE_EXCHANGER
+				|| p2pLoginAgreementType==P2PLoginAgreementType.ASYMMETRIC_SECRET_MESSAGE_EXCHANGER_AND_AGREEMENT_WITH_SYMMETRIC_SIGNATURE) {
+			if (aSymetricKeySize < minASymetricKeySize)
+				throw new AccessException("aSymetricKeySize value must be greter than " + minASymetricKeySize);
+			int tmp = aSymetricKeySize;
+			while (tmp != 1) {
+				if (tmp % 2 == 0)
+					tmp = tmp / 2;
+				else
+					throw new AccessException("The RSA key size have a size of " + aSymetricKeySize
+							+ ". This number must correspond to this schema : _rsa_key_size=2^x.");
+			}
+		}
 	}
 
 
@@ -90,7 +143,7 @@ public class AccessProtocolWithP2PAgreementProperties extends AbstractAccessProt
 	public AbstractAccessProtocol getAccessProtocolInstance(InetSocketAddress _distant_inet_address,
 			InetSocketAddress _local_interface_address, LoginEventsTrigger loginTrigger, MadkitProperties _properties)
 			throws AccessException {
-		return new AccessProtocolWithJPake(_distant_inet_address, _local_interface_address, loginTrigger, _properties);
+		return new AccessProtocolWithP2PAgreement(_distant_inet_address, _local_interface_address, loginTrigger, _properties);
 	}
 
 	

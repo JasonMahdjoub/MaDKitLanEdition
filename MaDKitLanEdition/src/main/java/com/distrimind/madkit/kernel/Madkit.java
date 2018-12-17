@@ -340,7 +340,7 @@ final public class Madkit {
 			d.addItem("Adding P2PSecuredConnectionProtocolWithECDHAlgorithm connection protocol (speedest)");
 			d.addItem("Adding Client/ServerSecuredConnectionProtocolWithKnwonPublicKeyWithECDHAlgorithm connection protocol (speedest)");
 			d.addItem("Now all connection protocols use different keys for encryption and for signature");
-			d.addItem("Adding AccessProtocolWithJPake (speedest)");
+			d.addItem("Adding AccessProtocolWithP2PAgreement (speedest)");
 			d.addItem("Debugging desktop Jframe closing (however the JMV still become opened when all windows are closed)");
 			d.addItem("Several minimal bug fix");
 			d.addItem("Correction of JavaDoc");

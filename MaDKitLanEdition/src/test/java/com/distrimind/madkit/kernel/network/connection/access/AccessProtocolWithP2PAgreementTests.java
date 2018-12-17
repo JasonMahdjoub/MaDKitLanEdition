@@ -45,6 +45,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.*;
 
+import com.distrimind.util.crypto.P2PLoginAgreementType;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -74,9 +75,9 @@ import gnu.vm.jgnu.security.NoSuchProviderException;
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings({"SameParameterValue", "deprecation"})
+@SuppressWarnings({"SameParameterValue"})
 @RunWith(Parameterized.class)
-public class AccessProtocolTests implements AccessGroupsNotifier, LoginEventsTrigger {
+public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier, LoginEventsTrigger {
 	private static final int numberMaxExchange = 100;
 	final ArrayList<AccessData> adasker;
 	final ArrayList<AccessData> adreceiver;
@@ -100,48 +101,25 @@ public class AccessProtocolTests implements AccessGroupsNotifier, LoginEventsTri
 	@Parameters
 	public static Collection<Object[]> data() {
 		Collection<Object[]> res=null;
-		for (boolean databaseEnabled : new boolean[]{true, false} )
-		{
-			for (boolean identifierEncrypted : new boolean[]{true, false} )
-			{
-				for (boolean loginInitiativeAsker : new boolean[]{false, true} )
-				{
-					for (boolean loginInitiativeReceiver : new boolean[]{true, false} )
-					{
-						AccessProtocolWithP2PAgreementProperties app2=new AccessProtocolWithP2PAgreementProperties();
-						app2.encryptIdentifiersBeforeSendingToDistantPeer=identifierEncrypted;
-
-						Collection<Object[]> r=data(databaseEnabled, app2, loginInitiativeAsker, loginInitiativeReceiver);
-						if (res==null)
-							res=r;
-						else
-							res.addAll(r);
+		for (P2PLoginAgreementType agreement : P2PLoginAgreementType.values()) {
+			for (boolean databaseEnabled : new boolean[]{true, false}) {
+				for (boolean identifierEncrypted : new boolean[]{true, false}) {
+					for (boolean loginInitiativeAsker : new boolean[]{false, true}) {
+						for (boolean loginInitiativeReceiver : new boolean[]{true, false}) {
+							AccessProtocolWithP2PAgreementProperties app2 = new AccessProtocolWithP2PAgreementProperties();
+							app2.encryptIdentifiersBeforeSendingToDistantPeer = identifierEncrypted;
+							app2.p2pLoginAgreementType=agreement;
+							Collection<Object[]> r = data(databaseEnabled, app2, loginInitiativeAsker, loginInitiativeReceiver);
+							if (res == null)
+								res = r;
+							else
+								res.addAll(r);
+						}
 					}
 				}
 			}
 		}
-		for (boolean databaseEnabled : new boolean[]{true, false} )
-		{
-			for (boolean identifierEncrypted : new boolean[]{true, false} )
-			{
-				for (boolean loginInitiativeAsker : new boolean[]{true, false} )
-				{
-					for (boolean loginInitiativeReceiver : new boolean[]{true, false} )
-					{
-						AccessProtocolWithASymmetricKeyExchangerProperties app1=new AccessProtocolWithASymmetricKeyExchangerProperties();
-						app1.aSymetricKeySize = 2048;
-						app1.passwordHashCost = 7;
-						app1.encryptIdentifiersBeforeSendingToDistantPeer=identifierEncrypted;
 
-						Collection<Object[]> r=data(databaseEnabled, app1, loginInitiativeAsker, loginInitiativeReceiver);
-						if (res==null)
-							res=r;
-						else
-							res.addAll(r);
-					}
-				}
-			}
-		}
 		return res;
 	}
 	
@@ -155,7 +133,7 @@ public class AccessProtocolTests implements AccessGroupsNotifier, LoginEventsTri
 		ArrayList<Identifier> acceptedReceiverIdentifiers = new ArrayList<>();
 		ArrayList<IdentifierPassword> identifierPassordsAsker;
 		ArrayList<IdentifierPassword> identifierPassordsReceiver;
-		boolean testAsymmetricLogins=!(accessProtocolProperties instanceof AccessProtocolWithASymmetricKeyExchangerProperties);
+
 		Object[] o = new Object[8];
 		adasker.add(AccessDataMKEventListener.getDefaultAccessData(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA));
 		adreceiver
@@ -171,153 +149,153 @@ public class AccessProtocolTests implements AccessGroupsNotifier, LoginEventsTri
 		res.add(o);
 
 
-		if (testAsymmetricLogins) {
-			o = new Object[8];
-			adasker = new ArrayList<>();
-			adreceiver = new ArrayList<>();
-			acceptedAskerIdentifiers = new ArrayList<>();
-			acceptedReceiverIdentifiers = new ArrayList<>();
-			adasker.add(AccessDataMKEventListener.getDefaultLoginData(
-					identifierPassordsAsker = AccessDataMKEventListener
-							.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustumHostIdentifier(0), 4, 5, 6, 10),
-					null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeAsker, new Runnable() {
 
-						@Override
-						public void run() {
-							Assert.fail();
-						}
-					}));
-			adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
-					identifierPassordsReceiver = AccessDataMKEventListener
-							.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustumHostIdentifier(1), 2, 5, 6, 12),
-					null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeReceiver, new Runnable() {
+		o = new Object[8];
+		adasker = new ArrayList<>();
+		adreceiver = new ArrayList<>();
+		acceptedAskerIdentifiers = new ArrayList<>();
+		acceptedReceiverIdentifiers = new ArrayList<>();
+		adasker.add(AccessDataMKEventListener.getDefaultLoginData(
+				identifierPassordsAsker = AccessDataMKEventListener
+						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustumHostIdentifier(0), 4, 5, 6, 10),
+				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeAsker, new Runnable() {
 
-						@Override
-						public void run() {
-							Assert.fail();
-						}
-					}));
-			if (loginInitiativeAsker || loginInitiativeReceiver) {
-				acceptedAskerIdentifiers
-						.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(0), 5));
-				acceptedAskerIdentifiers
-						.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(0), 6));
-				acceptedReceiverIdentifiers
-						.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(1), 5));
-				acceptedReceiverIdentifiers
-						.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(1), 6));
-			}
-			o[0] = adasker;
-			o[1] = adreceiver;
-			o[2] = acceptedAskerIdentifiers;
-			o[3] = acceptedReceiverIdentifiers;
-			o[4] = identifierPassordsAsker;
-			o[5] = identifierPassordsReceiver;
-			o[6] = databaseEnabled;
-			o[7] = accessProtocolProperties;
-			res.add(o);
+					@Override
+					public void run() {
+						Assert.fail();
+					}
+				}));
+		adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
+				identifierPassordsReceiver = AccessDataMKEventListener
+						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustumHostIdentifier(1), 2, 5, 6, 12),
+				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeReceiver, new Runnable() {
 
-
-			o = new Object[8];
-			adasker = new ArrayList<>();
-			adreceiver = new ArrayList<>();
-			acceptedAskerIdentifiers = new ArrayList<>();
-			acceptedReceiverIdentifiers = new ArrayList<>();
-			adasker.add(AccessDataMKEventListener.getDefaultLoginData(
-					identifierPassordsAsker = AccessDataMKEventListener
-							.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustumHostIdentifier(0), 2, 5, 6, 9),
-					null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeAsker, new Runnable() {
-
-						@Override
-						public void run() {
-							Assert.fail();
-						}
-					}));
-			adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
-					identifierPassordsReceiver = AccessDataMKEventListener
-							.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustumHostIdentifier(1), 3, 5, 6, 12),
-					null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeReceiver, new Runnable() {
-
-						@Override
-						public void run() {
-							Assert.fail();
-						}
-					}));
-			if (loginInitiativeAsker || loginInitiativeReceiver) {
-				acceptedAskerIdentifiers
-						.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(0), 5));
-				acceptedAskerIdentifiers
-						.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(0), 6));
-				if (loginInitiativeReceiver)
-					acceptedAskerIdentifiers
-							.add(new Identifier(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(0), 3).getCloudIdentifier(), HostIdentifier.getNullHostIdentifierSingleton()));
-				if (loginInitiativeAsker)
-					acceptedAskerIdentifiers
-							.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(0), 9));
-				acceptedReceiverIdentifiers
-						.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(1), 5));
-				acceptedReceiverIdentifiers
-						.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(1), 6));
-				if (loginInitiativeReceiver)
-					acceptedReceiverIdentifiers
-							.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(1), 3));
-				if (loginInitiativeAsker)
-					acceptedReceiverIdentifiers
-							.add(new Identifier(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(1), 9).getCloudIdentifier(), HostIdentifier.getNullHostIdentifierSingleton()));
-			}
-			o[0] = adasker;
-			o[1] = adreceiver;
-			o[2] = acceptedAskerIdentifiers;
-			o[3] = acceptedReceiverIdentifiers;
-			o[4] = identifierPassordsAsker;
-			o[5] = identifierPassordsReceiver;
-			o[6] = databaseEnabled;
-			o[7] = accessProtocolProperties;
-			res.add(o);
-
-			o = new Object[8];
-			adasker = new ArrayList<>();
-			adreceiver = new ArrayList<>();
-			acceptedAskerIdentifiers = new ArrayList<>();
-			acceptedReceiverIdentifiers = new ArrayList<>();
-			adasker.add(AccessDataMKEventListener.getDefaultLoginData(
-					identifierPassordsAsker = AccessDataMKEventListener
-							.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustumHostIdentifier(-1), 1),
-					null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeAsker, new Runnable() {
-
-						@Override
-						public void run() {
-							Assert.fail();
-						}
-					}));
-			adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
-					identifierPassordsReceiver = AccessDataMKEventListener
-							.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustumHostIdentifier(-1)),
-					null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeReceiver, new Runnable() {
-
-						@Override
-						public void run() {
-							Assert.fail();
-						}
-					}));
-			if (loginInitiativeAsker || loginInitiativeReceiver) {
-				if (loginInitiativeAsker)
-					acceptedAskerIdentifiers
-							.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(-1), 1));
-				if (loginInitiativeAsker)
-					acceptedReceiverIdentifiers
-							.add(new Identifier(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(-1), 1).getCloudIdentifier(), HostIdentifier.getNullHostIdentifierSingleton()));
-			}
-			o[0] = adasker;
-			o[1] = adreceiver;
-			o[2] = acceptedAskerIdentifiers;
-			o[3] = acceptedReceiverIdentifiers;
-			o[4] = identifierPassordsAsker;
-			o[5] = identifierPassordsReceiver;
-			o[6] = databaseEnabled;
-			o[7] = accessProtocolProperties;
-			res.add(o);
+					@Override
+					public void run() {
+						Assert.fail();
+					}
+				}));
+		if (loginInitiativeAsker || loginInitiativeReceiver) {
+			acceptedAskerIdentifiers
+					.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(0), 5));
+			acceptedAskerIdentifiers
+					.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(0), 6));
+			acceptedReceiverIdentifiers
+					.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(1), 5));
+			acceptedReceiverIdentifiers
+					.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(1), 6));
 		}
+		o[0] = adasker;
+		o[1] = adreceiver;
+		o[2] = acceptedAskerIdentifiers;
+		o[3] = acceptedReceiverIdentifiers;
+		o[4] = identifierPassordsAsker;
+		o[5] = identifierPassordsReceiver;
+		o[6] = databaseEnabled;
+		o[7] = accessProtocolProperties;
+		res.add(o);
+
+
+		o = new Object[8];
+		adasker = new ArrayList<>();
+		adreceiver = new ArrayList<>();
+		acceptedAskerIdentifiers = new ArrayList<>();
+		acceptedReceiverIdentifiers = new ArrayList<>();
+		adasker.add(AccessDataMKEventListener.getDefaultLoginData(
+				identifierPassordsAsker = AccessDataMKEventListener
+						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustumHostIdentifier(0), 2, 5, 6, 9),
+				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeAsker, new Runnable() {
+
+					@Override
+					public void run() {
+						Assert.fail();
+					}
+				}));
+		adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
+				identifierPassordsReceiver = AccessDataMKEventListener
+						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustumHostIdentifier(1), 3, 5, 6, 12),
+				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeReceiver, new Runnable() {
+
+					@Override
+					public void run() {
+						Assert.fail();
+					}
+				}));
+		if (loginInitiativeAsker || loginInitiativeReceiver) {
+			acceptedAskerIdentifiers
+					.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(0), 5));
+			acceptedAskerIdentifiers
+					.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(0), 6));
+			if (loginInitiativeReceiver)
+				acceptedAskerIdentifiers
+						.add(new Identifier(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(0), 3).getCloudIdentifier(), HostIdentifier.getNullHostIdentifierSingleton()));
+			if (loginInitiativeAsker)
+				acceptedAskerIdentifiers
+						.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(0), 9));
+			acceptedReceiverIdentifiers
+					.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(1), 5));
+			acceptedReceiverIdentifiers
+					.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(1), 6));
+			if (loginInitiativeReceiver)
+				acceptedReceiverIdentifiers
+						.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(1), 3));
+			if (loginInitiativeAsker)
+				acceptedReceiverIdentifiers
+						.add(new Identifier(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(1), 9).getCloudIdentifier(), HostIdentifier.getNullHostIdentifierSingleton()));
+		}
+		o[0] = adasker;
+		o[1] = adreceiver;
+		o[2] = acceptedAskerIdentifiers;
+		o[3] = acceptedReceiverIdentifiers;
+		o[4] = identifierPassordsAsker;
+		o[5] = identifierPassordsReceiver;
+		o[6] = databaseEnabled;
+		o[7] = accessProtocolProperties;
+		res.add(o);
+
+		o = new Object[8];
+		adasker = new ArrayList<>();
+		adreceiver = new ArrayList<>();
+		acceptedAskerIdentifiers = new ArrayList<>();
+		acceptedReceiverIdentifiers = new ArrayList<>();
+		adasker.add(AccessDataMKEventListener.getDefaultLoginData(
+				identifierPassordsAsker = AccessDataMKEventListener
+						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustumHostIdentifier(-1), 1),
+				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeAsker, new Runnable() {
+
+					@Override
+					public void run() {
+						Assert.fail();
+					}
+				}));
+		adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
+				identifierPassordsReceiver = AccessDataMKEventListener
+						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustumHostIdentifier(-1)),
+				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeReceiver, new Runnable() {
+
+					@Override
+					public void run() {
+						Assert.fail();
+					}
+				}));
+		if (loginInitiativeAsker || loginInitiativeReceiver) {
+			if (loginInitiativeAsker)
+				acceptedAskerIdentifiers
+						.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(-1), 1));
+			if (loginInitiativeAsker)
+				acceptedReceiverIdentifiers
+						.add(new Identifier(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustumHostIdentifier(-1), 1).getCloudIdentifier(), HostIdentifier.getNullHostIdentifierSingleton()));
+		}
+		o[0] = adasker;
+		o[1] = adreceiver;
+		o[2] = acceptedAskerIdentifiers;
+		o[3] = acceptedReceiverIdentifiers;
+		o[4] = identifierPassordsAsker;
+		o[5] = identifierPassordsReceiver;
+		o[6] = databaseEnabled;
+		o[7] = accessProtocolProperties;
+		res.add(o);
+
 		o = new Object[8];
 		adasker = new ArrayList<>();
 		adreceiver = new ArrayList<>();
@@ -371,10 +349,10 @@ public class AccessProtocolTests implements AccessGroupsNotifier, LoginEventsTri
 		return res;
 	}
 
-	public AccessProtocolTests(ArrayList<AccessData> adasker, ArrayList<AccessData> adreceiver,
-			ArrayList<Identifier> acceptedAskerIdentifiers, ArrayList<Identifier> acceptedReceiverIdentifiers,
-			ArrayList<IdentifierPassword> identifierPassordsAsker,
-			ArrayList<IdentifierPassword> identifierPassordsReceiver, boolean databaseEnabled, AbstractAccessProtocolProperties accessProtocolProperties)
+	public AccessProtocolWithP2PAgreementTests(ArrayList<AccessData> adasker, ArrayList<AccessData> adreceiver,
+											   ArrayList<Identifier> acceptedAskerIdentifiers, ArrayList<Identifier> acceptedReceiverIdentifiers,
+											   ArrayList<IdentifierPassword> identifierPassordsAsker,
+											   ArrayList<IdentifierPassword> identifierPassordsReceiver, boolean databaseEnabled, AbstractAccessProtocolProperties accessProtocolProperties)
 			throws IllegalArgumentException, DatabaseException {
 		this.adasker = adasker;
 		this.adreceiver = adreceiver;
@@ -550,7 +528,7 @@ public class AccessProtocolTests implements AccessGroupsNotifier, LoginEventsTri
 				.getAccessProtocolInstance(new InetSocketAddress(InetAddress.getByName("56.41.158.221"), 5000),
 				new InetSocketAddress(InetAddress.getByName("192.168.0.55"), 5000), this, mpreceiver);
 		if (!infoScreened) {
-			System.out.println(apasker.getClass());
+			System.out.println("agreement : "+((AccessProtocolWithP2PAgreementProperties)app).p2pLoginAgreementType);
 			System.out.println("encrypted : " + app.encryptIdentifiersBeforeSendingToDistantPeer);
 			System.out.println("login data asker : " + (apasker.access_data instanceof LoginData));
 			System.out.println("login data receiver : " + (apreceiver.access_data instanceof LoginData));
@@ -655,7 +633,7 @@ public class AccessProtocolTests implements AccessGroupsNotifier, LoginEventsTri
 				new InetSocketAddress(InetAddress.getByName("56.41.158.221"), 5000),
 				new InetSocketAddress(InetAddress.getByName("192.168.0.55"), 5000))).canTakesLoginInitiative()) {
 			testAddingOneNewIdentifier(10);
-			boolean testASymmetricLogin=apasker instanceof AccessProtocolWithJPake;
+			boolean testASymmetricLogin=apasker instanceof AccessProtocolWithP2PAgreement;
 			if (testASymmetricLogin) {
 				testAddingTwoNewIdentifier(11, 12, false);
 				testAddingTwoNewIdentifier(13, 14, true);

@@ -44,12 +44,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.distrimind.madkit.database.KeysPairs;
 import com.distrimind.madkit.kernel.MadkitProperties;
-import com.distrimind.util.crypto.AbstractMessageDigest;
-import com.distrimind.util.crypto.AbstractSecureRandom;
-import com.distrimind.util.crypto.P2PLoginAgreement;
+import com.distrimind.madkit.kernel.network.NetworkProperties;
+import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.util.crypto.*;
 
 import gnu.vm.jgnu.security.DigestException;
+import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
 import gnu.vm.jgnu.security.NoSuchAlgorithmException;
 import gnu.vm.jgnu.security.NoSuchProviderException;
 
@@ -61,7 +63,7 @@ import gnu.vm.jgnu.security.NoSuchProviderException;
  * @since MadkitLanEdition 1.2
  *
  */
-public class AccessProtocolWithJPake extends AbstractAccessProtocol {
+public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 
 	private final AccessProtocolWithP2PAgreementProperties access_protocol_properties;
 	private AccessState access_state = AccessState.ACCESS_NOT_INITIALIZED;
@@ -77,8 +79,37 @@ public class AccessProtocolWithJPake extends AbstractAccessProtocol {
 	private Map<Identifier, P2PLoginAgreement> suspendedJpakes=null;
 	private short suspendedStep;
 	private int suspendMaxSteps;
-	public AccessProtocolWithJPake(InetSocketAddress _distant_inet_address,
-			InetSocketAddress _local_interface_address, LoginEventsTrigger loginTrigger, MadkitProperties _properties)
+	private ASymmetricKeyPair myKeyPair = null;
+
+	private void initKeyPair() throws NoSuchAlgorithmException, DatabaseException, NoSuchProviderException, InvalidAlgorithmParameterException {
+		if (myKeyPair == null || myKeyPair.getTimeExpirationUTC()<System.currentTimeMillis()) {
+			if (properties.getDatabaseWrapper() == null)
+				myKeyPair = access_protocol_properties.aSymetricEncryptionType
+						.getKeyPairGenerator(properties.getApprovedSecureRandomForKeys(), access_protocol_properties.aSymetricKeySize).generateKeyPair();
+			else
+				myKeyPair = (((KeysPairs) properties.getDatabaseWrapper().getTableInstance(KeysPairs.class)).getKeyPair(
+						distant_inet_address.getAddress(), NetworkProperties.accessProtocolDatabaseUsingCode,
+						access_protocol_properties.aSymetricEncryptionType, access_protocol_properties.aSymetricKeySize,
+						properties.getApprovedSecureRandomForKeys(), access_protocol_properties.aSymmetricKeyExpirationMs,
+						properties.networkProperties.maximumNumberOfCryptoKeysForIpsSpectrum));
+		}
+	}
+
+	/*private void initNewKeyPair() throws NoSuchAlgorithmException, DatabaseException, NoSuchProviderException, InvalidAlgorithmParameterException {
+		if (properties.getDatabaseWrapper() == null)
+			myKeyPair = access_protocol_properties.aSymetricEncryptionType
+					.getKeyPairGenerator(properties.getApprovedSecureRandomForKeys(), access_protocol_properties.aSymetricKeySize).generateKeyPair();
+		else
+			myKeyPair = (((KeysPairs) properties.getDatabaseWrapper().getTableInstance(KeysPairs.class)).getNewKeyPair(
+					distant_inet_address.getAddress(), NetworkProperties.accessProtocolDatabaseUsingCode,
+					access_protocol_properties.aSymetricEncryptionType, access_protocol_properties.aSymetricKeySize,
+					properties.getApprovedSecureRandomForKeys(), access_protocol_properties.aSymmetricKeyExpirationMs,
+					properties.networkProperties.maximumNumberOfCryptoKeysForIpsSpectrum));
+	}*/
+
+
+	public AccessProtocolWithP2PAgreement(InetSocketAddress _distant_inet_address,
+										  InetSocketAddress _local_interface_address, LoginEventsTrigger loginTrigger, MadkitProperties _properties)
 			throws AccessException {
 		super(_distant_inet_address, _local_interface_address, loginTrigger, _properties);
 
@@ -104,12 +135,22 @@ public class AccessProtocolWithJPake extends AbstractAccessProtocol {
 	}
 
 	@Override
-	protected void reset()
+	protected void reset() throws AccessException
 	{
 		super.reset();
 		jpakes=new HashMap<>();
 		setAcceptedIdentifiers(null);
 		setDeniedIdentifiers(null);
+
+		if (access_protocol_properties.p2pLoginAgreementType== P2PLoginAgreementType.ASYMMETRIC_SECRET_MESSAGE_EXCHANGER
+				||
+				access_protocol_properties.p2pLoginAgreementType== P2PLoginAgreementType.ASYMMETRIC_SECRET_MESSAGE_EXCHANGER_AND_AGREEMENT_WITH_SYMMETRIC_SIGNATURE) {
+			try {
+				initKeyPair();
+			} catch (NoSuchAlgorithmException | DatabaseException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	@Override
 	public AccessMessage subSetAndGetNextMessage(AccessMessage _m) throws AccessException {
@@ -187,7 +228,7 @@ public class AccessProtocolWithJPake extends AbstractAccessProtocol {
 						if (getIdentifiers() != null) {
 							access_state = AccessState.WAITING_FOR_PASSWORD_VALIDATION;
 							JPakeMessage res=((IdentifiersPropositionMessage) _m).getJPakeMessage(getAllAcceptedIdentifiers(), lp, jpakes,access_protocol_properties.p2pLoginAgreementType, access_protocol_properties.asymmetricLoginAgreementType, properties.getApprovedSecureRandom(), messageDigest,
-									this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, distantGeneratedSalt, localGeneratedSalt, null);
+									this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, distantGeneratedSalt, localGeneratedSalt, null, access_protocol_properties.identifierDigestionTypeUsedForAnonymization, access_protocol_properties.passwordHashType, myKeyPair==null?null:myKeyPair.getASymmetricPublicKey());
 							maxSteps=res.getMaxSteps();
 							return res;
 						} else {
@@ -196,7 +237,7 @@ public class AccessProtocolWithJPake extends AbstractAccessProtocol {
 							IdentifiersPropositionMessage propRep=((IdentifiersPropositionMessage) _m).getIdentifiersPropositionMessageAnswer(lp, properties.getApprovedSecureRandom(), messageDigest,
 									this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, getIdentifiers(), distantGeneratedSalt,  localGeneratedSalt, jpakes, access_protocol_properties.asymmetricLoginAgreementType);
 							JPakeMessage res=((IdentifiersPropositionMessage) _m).getJPakeMessage(getAllAcceptedIdentifiers(), lp, jpakes,access_protocol_properties.p2pLoginAgreementType, access_protocol_properties.asymmetricLoginAgreementType, properties.getApprovedSecureRandom(), messageDigest,
-									this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, distantGeneratedSalt, localGeneratedSalt, null);
+									this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, distantGeneratedSalt, localGeneratedSalt, null, access_protocol_properties.identifierDigestionTypeUsedForAnonymization, access_protocol_properties.passwordHashType, myKeyPair==null?null:myKeyPair.getASymmetricPublicKey());
 							maxSteps=res.getMaxSteps();
 
 							return new AccessMessagesList(propRep,
@@ -307,7 +348,7 @@ public class AccessProtocolWithJPake extends AbstractAccessProtocol {
 					/*IdentifiersPropositionMessage propRep=ipm.getIdentifiersPropositionMessageAnswer(lp, properties.getApprovedSecureRandom(), messageDigest,
 							this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, getIdentifiers(), distantGeneratedSalt,  localGeneratedSalt, jpakes, access_protocol_properties.asymmetricLoginAgreementType);*/
 
-					JPakeMessage res=ipm.getJPakeMessage(getAllAcceptedIdentifiers(), lp, jpakes, access_protocol_properties.p2pLoginAgreementType,access_protocol_properties.asymmetricLoginAgreementType, properties.getApprovedSecureRandom(), messageDigest, this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, distantGeneratedSalt, localGeneratedSalt, newIdentifiersToAdd);
+					JPakeMessage res=ipm.getJPakeMessage(getAllAcceptedIdentifiers(), lp, jpakes, access_protocol_properties.p2pLoginAgreementType,access_protocol_properties.asymmetricLoginAgreementType, properties.getApprovedSecureRandom(), messageDigest, this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, distantGeneratedSalt, localGeneratedSalt, newIdentifiersToAdd, access_protocol_properties.identifierDigestionTypeUsedForAnonymization, access_protocol_properties.passwordHashType, myKeyPair==null?null:myKeyPair.getASymmetricPublicKey());
 					maxSteps=res.getMaxSteps();
 
 					step=1;
@@ -519,7 +560,7 @@ public class AccessProtocolWithJPake extends AbstractAccessProtocol {
 					IdentifiersPropositionMessage m1= new IdentifiersPropositionMessage(identifiers, properties.getApprovedSecureRandom(), messageDigest,
 							this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, (short) 0, distantGeneratedSalt, jpakes, access_protocol_properties.asymmetricLoginAgreementType);
 					
-					JPakeMessage m2=new JPakeMessage((LoginData)access_data, properties.getApprovedSecureRandom(), messageDigest, jpakes, access_protocol_properties.p2pLoginAgreementType, access_protocol_properties.asymmetricLoginAgreementType, access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, identifiers, distantGeneratedSalt);
+					JPakeMessage m2=new JPakeMessage((LoginData)access_data, properties.getApprovedSecureRandom(), messageDigest, jpakes, access_protocol_properties.p2pLoginAgreementType, access_protocol_properties.asymmetricLoginAgreementType, access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, identifiers, distantGeneratedSalt, access_protocol_properties.identifierDigestionTypeUsedForAnonymization, access_protocol_properties.passwordHashType, myKeyPair==null?null:myKeyPair.getASymmetricPublicKey());
 					maxSteps=m2.getMaxSteps();
 					return new AccessMessagesList(m1, m2);
 				} else {

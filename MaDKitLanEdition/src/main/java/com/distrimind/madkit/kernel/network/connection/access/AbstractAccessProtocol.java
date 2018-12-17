@@ -131,7 +131,7 @@ public abstract class AbstractAccessProtocol {
 		return kernel_address;
 	}
 	
-	protected void reset()
+	protected void reset() throws AccessException
 	{
 		identifiers=null;
 		acceptedIdentifiers=null;

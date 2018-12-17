@@ -168,7 +168,7 @@ class JPakeMessage extends AccessMessage{
 		this.nbAnomalies=nbAnomalies;
 	}
 	
-	JPakeMessage(LoginData loginData, AbstractSecureRandom random, AbstractMessageDigest messageDigest, Map<Identifier, P2PLoginAgreement> agreements, P2PLoginAgreementType agreementType, ASymmetricLoginAgreementType aSymmetricLoginAgreementType, boolean encryptIdentifiers, List<Identifier> newIdentifiers, byte[] distantGeneratedSalt) throws Exception
+	JPakeMessage(LoginData loginData, AbstractSecureRandom random, AbstractMessageDigest messageDigest, Map<Identifier, P2PLoginAgreement> agreements, P2PLoginAgreementType agreementType, ASymmetricLoginAgreementType aSymmetricLoginAgreementType, boolean encryptIdentifiers, List<Identifier> newIdentifiers, byte[] distantGeneratedSalt, MessageDigestType messageDigestType, PasswordHashType passwordHashType, ASymmetricPublicKey myPublicKey) throws Exception
 	{
 		try
 		{
@@ -189,7 +189,7 @@ class JPakeMessage extends AccessMessage{
 				{
 					PasswordKey pw = loginData.getPassword(localId);
 					if (pw != null) {
-						P2PLoginAgreement agreement = agreementType.getAgreementAlgorithm(random, localId, pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature());
+						P2PLoginAgreement agreement = agreementType.getAgreementAlgorithm(random, localId, pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature(), messageDigestType, passwordHashType, myPublicKey);
 						agreements.put(localId, agreement);
 					}
 					else

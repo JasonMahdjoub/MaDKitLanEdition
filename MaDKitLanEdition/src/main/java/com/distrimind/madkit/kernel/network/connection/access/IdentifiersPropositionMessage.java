@@ -274,7 +274,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 						: (nbAno > Short.MAX_VALUE) ? Short.MAX_VALUE : (short) nbAno);
 }
 	private int getJakeMessageSub(Identifier distantID, List<PairOfIdentifiers> acceptedIdentifiers, LoginData loginData, Map<Identifier, P2PLoginAgreement> agreements, P2PLoginAgreementType agreementType, ASymmetricLoginAgreementType aSymmetricLoginAgreementType, AbstractSecureRandom random,
-								   ArrayList<Identifier> newIdentifiersToAdd) throws InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException, IOException {
+								   ArrayList<Identifier> newIdentifiersToAdd, MessageDigestType messageDigestType, PasswordHashType passwordHashType, ASymmetricPublicKey myPublicKey) throws InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException, IOException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException {
 		int nbAno=0;
 		if (acceptedIdentifiers!=null) {
 			for (PairOfIdentifiers poi : acceptedIdentifiers)
@@ -311,7 +311,8 @@ class IdentifiersPropositionMessage extends AccessMessage {
 
 				PasswordKey pw = loginData.getPassword(localId);
 				if (pw != null) {
-					P2PLoginAgreement agreement = agreementType.getAgreementAlgorithm(random, localId, pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature());
+
+					P2PLoginAgreement agreement = agreementType.getAgreementAlgorithm(random, localId, pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature(), messageDigestType, passwordHashType, myPublicKey);
 					agreements.put(localId, agreement);
 				} else
 					++nbAno;
@@ -322,7 +323,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		return nbAno;
 	}
 	public JPakeMessage getJPakeMessage(List<PairOfIdentifiers> acceptedIdentifiers, LoginData loginData, Map<Identifier, P2PLoginAgreement> agreements, P2PLoginAgreementType agreementType, ASymmetricLoginAgreementType aSymmetricLoginAgreementType, AbstractSecureRandom random, AbstractMessageDigest messageDigest,
-										boolean encryptIdentifiers, byte[] distantGeneratedSalt, byte[] localGeneratedSalt, ArrayList<Identifier> newIdentifiersToAdd) throws Exception {
+										boolean encryptIdentifiers, byte[] distantGeneratedSalt, byte[] localGeneratedSalt, ArrayList<Identifier> newIdentifiersToAdd,MessageDigestType messageDigestType, PasswordHashType passwordHashType, ASymmetricPublicKey myPublicKey) throws Exception {
 		int nbAno = 0;
 		if (encryptIdentifiers) {
 			for (Identifier id : identifiers) {
@@ -332,14 +333,14 @@ class IdentifiersPropositionMessage extends AccessMessage {
 				else
 					i = id;
 				if (i != null) {
-					nbAno+=getJakeMessageSub(i, acceptedIdentifiers, loginData, agreements, agreementType, aSymmetricLoginAgreementType, random, newIdentifiersToAdd);
+					nbAno+=getJakeMessageSub(i, acceptedIdentifiers, loginData, agreements, agreementType, aSymmetricLoginAgreementType, random, newIdentifiersToAdd, messageDigestType, passwordHashType, myPublicKey);
 				} else
 					++nbAno;
 			}
 
 		} else {
 			for (Identifier id : identifiers) {
-				nbAno+=getJakeMessageSub(id, acceptedIdentifiers, loginData, agreements, agreementType, aSymmetricLoginAgreementType, random, newIdentifiersToAdd);
+				nbAno+=getJakeMessageSub(id, acceptedIdentifiers, loginData, agreements, agreementType, aSymmetricLoginAgreementType, random, newIdentifiersToAdd, messageDigestType, passwordHashType, myPublicKey);
 			}
 		}
 		return new JPakeMessage(agreements, encryptIdentifiers,
