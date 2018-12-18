@@ -116,6 +116,8 @@ public class AccessProtocolWithP2PAgreementProperties extends AbstractAccessProt
 
 
 
+
+
 	@Override
 	void checkProperties() throws AccessException {
 		if (this.encryptIdentifiersBeforeSendingToDistantPeer)

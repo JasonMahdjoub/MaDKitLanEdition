@@ -109,7 +109,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 	}
 	
 	
-	public IdentifiersPropositionMessage(Collection<Identifier> _id_pws, P2PASymmetricSecretMessageExchanger cipher,
+	/*public IdentifiersPropositionMessage(Collection<Identifier> _id_pws, P2PASymmetricSecretMessageExchanger cipher,
 			boolean encryptIdentifiers, short nbAnomalies) throws InvalidKeyException, IOException,
 			IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException,
 			NoSuchPaddingException, InvalidAlgorithmParameterException, NoSuchProviderException, IllegalStateException, ShortBufferException {
@@ -119,11 +119,12 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		for (Identifier ip : _id_pws) {
 			if (encryptIdentifiers && !ip.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey())
 				identifiers[index++] = new EncryptedIdentifier(ip, cipher);
-			else
+			else {
 				identifiers[index++] = ip;
+			}
 		}
 		this.nbAnomalies = nbAnomalies;
-	}
+	}*/
 
 	public IdentifiersPropositionMessage(Collection<Identifier> _id_pws, AbstractSecureRandom random, AbstractMessageDigest messageDigest,
 			boolean encryptIdentifiers, short nbAnomalies, byte[] distantGeneratedSalt, Map<Identifier, P2PLoginAgreement> jpakes, ASymmetricLoginAgreementType aSymmetricLoginAgreementType) throws  DigestException {
@@ -155,7 +156,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		return nbAnomalies;
 	}
 
-	public ArrayList<Identifier> getValidDecodedIdentifiers(LoginData loginData,
+	/*public ArrayList<Identifier> getValidDecodedIdentifiers(LoginData loginData,
 			P2PASymmetricSecretMessageExchanger cipher) throws AccessException {
 		ArrayList<Identifier> res = new ArrayList<>();
 		if (isEncrypted) {
@@ -173,7 +174,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		}
 
 		return res;
-	}
+	}*/
 	public ArrayList<Identifier> getValidDecodedLocalIdentifiers(LoginData loginData,
 			AbstractMessageDigest messageDigest, byte[] localGeneratedSalt ) throws AccessException {
 		ArrayList<Identifier> res = new ArrayList<>();
@@ -181,6 +182,8 @@ class IdentifiersPropositionMessage extends AccessMessage {
 			for (Identifier id : identifiers) {
 				if (id instanceof EncryptedIdentifier) {
 					Identifier i = loginData.getLocalIdentifier((EncryptedIdentifier) id, messageDigest, localGeneratedSalt);
+					if (i!=null && i.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey() && !loginData.acceptAutoSignedLogin())
+						continue;
 					//Identifier idLocal=loginData.localiseIdentifier(i);
 					if (i != null && (!i.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey() || i.getCloudIdentifier().getHostKeyPair() != null))
 						res.add(i);
@@ -188,13 +191,21 @@ class IdentifiersPropositionMessage extends AccessMessage {
 				else
 				{
 					Identifier i = loginData.localiseIdentifier(id);
+					if (i!=null && i.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey() && !loginData.acceptAutoSignedLogin())
+						continue;
+
 					if (i != null && (!i.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey() || i.getCloudIdentifier().getHostKeyPair() != null))
 						res.add(i);
 				}
 			}
 		} else {
 			for(Identifier id : identifiers) {
+				if (id.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey() && !loginData.acceptAutoSignedLogin())
+					continue;
+
 				Identifier idLocal=loginData.localiseIdentifier(id);
+				if (idLocal!=null && idLocal.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey() && !loginData.acceptAutoSignedLogin())
+					continue;
 
 				if (idLocal!=null && (!idLocal.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey() || idLocal.getCloudIdentifier().getHostKeyPair()!=null))
 					res.add(idLocal);
@@ -204,7 +215,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		return res;
 	}
 
-	public IdentifiersPropositionMessage getIdentifiersPropositionMessageAnswer(LoginData loginData,
+	/*public IdentifiersPropositionMessage getIdentifiersPropositionMessageAnswer(LoginData loginData,
 			P2PASymmetricSecretMessageExchanger cipher, boolean encryptIdentifiers)
 			throws AccessException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException,
 			NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException,
@@ -215,7 +226,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 				loginData.canTakesLoginInitiative()
 						? ((validID.size() == 0 && identifiers.length > 0) ? (short) 1 : (short) 0)
 						: (nbAno > Short.MAX_VALUE) ? Short.MAX_VALUE : (short) nbAno);
-	}
+	}*/
 	public IdentifiersPropositionMessage getIdentifiersPropositionMessageAnswer(LoginData loginData,
 			AbstractSecureRandom random, AbstractMessageDigest messageDigest, boolean encryptIdentifiers, List<Identifier> identifiers, byte[] distantGeneratedSalt, byte[] localGeneratedSalt, Map<Identifier, P2PLoginAgreement> jpakes, ASymmetricLoginAgreementType aSymmetricLoginAgreementType)
 			throws AccessException,  DigestException {
@@ -228,7 +239,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 						: (nbAno > Short.MAX_VALUE) ? Short.MAX_VALUE : (short) nbAno, distantGeneratedSalt, jpakes, aSymmetricLoginAgreementType);
 	}
 
-	public IdPwMessage getIdPwMessage(LoginData loginData, P2PASymmetricSecretMessageExchanger cipher,
+	/*public IdPwMessage getIdPwMessage(LoginData loginData, P2PASymmetricSecretMessageExchanger cipher,
 			boolean encryptIdentifiers) throws AccessException, InvalidKeyException, IOException,
 			IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException,
 			NoSuchPaddingException, InvalidAlgorithmParameterException, NoSuchProviderException, IllegalStateException, ShortBufferException {
@@ -272,9 +283,11 @@ class IdentifiersPropositionMessage extends AccessMessage {
 				loginData.canTakesLoginInitiative()
 						? ((res.size() == 0 && identifiers.length > 0) ? (short) 1 : (short) 0)
 						: (nbAno > Short.MAX_VALUE) ? Short.MAX_VALUE : (short) nbAno);
-}
+}*/
 	private int getJakeMessageSub(Identifier distantID, List<PairOfIdentifiers> acceptedIdentifiers, LoginData loginData, Map<Identifier, P2PLoginAgreement> agreements, P2PLoginAgreementType agreementType, ASymmetricLoginAgreementType aSymmetricLoginAgreementType, AbstractSecureRandom random,
 								   ArrayList<Identifier> newIdentifiersToAdd, MessageDigestType messageDigestType, PasswordHashType passwordHashType, ASymmetricPublicKey myPublicKey) throws InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException, IOException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException {
+		if (distantID==null)
+			return 1;
 		int nbAno=0;
 		if (acceptedIdentifiers!=null) {
 			for (PairOfIdentifiers poi : acceptedIdentifiers)
@@ -288,6 +301,8 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		if (localId!=null) {
 
 			if (distantID.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey()) {
+				if (!loginData.acceptAutoSignedLogin())
+					return nbAno;
 				if (newIdentifiersToAdd != null && localId.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey() && !localId.getHostIdentifier().equals(HostIdentifier.getNullHostIdentifierSingleton())) {
 					boolean found = false;
 					if (acceptedIdentifiers != null) {

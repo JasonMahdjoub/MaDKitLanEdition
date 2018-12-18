@@ -386,4 +386,10 @@ public abstract class LoginData extends AccessData {
 				lt.removingIdentifiers(_identifiers);
 		}
 	}
+	/**
+	 * Tells if auto signed logins are autorized
+	 * @see AccessProtocolWithP2PAgreementProperties#asymmetricLoginAgreementType
+	 * @return true if auto signed logins are autorized
+	 */
+	public abstract boolean acceptAutoSignedLogin();
 }
