@@ -38,7 +38,11 @@ You can also find inspiration into Junit tests.
     * Sending the same packet from "the man in the middle" is impossible :
     	* Initialization vectors used with encryption has a secret part composed of counter that is increased at each data exchange.
     	* More over, signatures are computed with a secret part composed of counter that is increased at each data exchange.     	
-* Access protocol manage peer to peer login and gives rights to specified groups of agents. A specific login protocol has been established in order to exchange password or secret keys, without compromising them if the distant peer is not a trusting peer. Same thing with the user login. More over, if the user provide a symmetric secret key for signature, it is used to authentifie random messages during the authentication process.
+* Access protocol manage peer to peer login and gives rights to specified groups of agents. 
+  * A specific login protocol has been established in order to exchange password or secret keys, without compromising them if the distant peer is not a trusting peer. 
+  * Same thing with the user login. 
+  * If the user provide a symmetric secret key for signature, it is used to authentify random messages during the authentication process.
+  * If is possible to auto-sign a login with an asymmetric secret key. Then the authentication is validated thanks to an auto-signed login. Server side only check that the login identified by its public key, is well signed thanks to its private key. Auto-signed logins can also be rejected, even if the login is well auto-signed.
 * possibility to connect randomly to one server between several available servers (simple load balancing)
 * ability to ban IP's that generates a number of anomalies above a threshold. Banned IP's are stored into a database. A white ip list is possible. Anomalies can be a problem that occurs during the authentication process, the encryption and signature process, the deserialization process, and in every part of the network protocol. Anomalies considered as attacks trigger ban immediately whereas others anomalies that are suspected as attacks trigger ban only a threshold is reached.  
 * There are several levels of ban duration

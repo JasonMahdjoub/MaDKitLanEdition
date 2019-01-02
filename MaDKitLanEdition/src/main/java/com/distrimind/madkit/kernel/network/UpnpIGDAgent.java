@@ -37,10 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
@@ -813,6 +810,19 @@ class UpnpIGDAgent extends AgentFakeThread {
 			}
 		}
 
+		public boolean networkInterfaceRemoved(NetworkInterface ni) {
+			for (InterfaceAddress ia : ni.getInterfaceAddresses())
+			{
+				if ((ia.getAddress() instanceof Inet4Address && this.internal_address instanceof Inet4Address)
+					||
+						(ia.getAddress() instanceof Inet6Address && this.internal_address instanceof Inet6Address))
+					if (InetAddressFilter.isSameLocalNetwork(ia.getAddress().getAddress(), this.internal_address.getAddress(), ia.getNetworkPrefixLength()))
+						return true;
+			}
+			return false;
+
+		}
+
 		/*public void removeAllPortMappings() {
 			if (UpnpIGDAgent.upnpService != null && !removed.get()) {
 				synchronized (desired_mappings) {
@@ -851,6 +861,19 @@ class UpnpIGDAgent extends AgentFakeThread {
 	 */
 	public static UpnpIGDAgent getInstance() {
 		return new UpnpIGDAgent();
+	}
+
+	private void networkInterfaceRemoved(NetworkInterface ni)
+	{
+		ArrayList<InetAddress> removed=new ArrayList<>();
+		for (Router r : this.upnp_igd_routers.values())
+		{
+			if (r.networkInterfaceRemoved(ni))
+				removed.add(r.internal_address);
+		}
+		for (InetAddress ia : removed) {
+			removeRouter(ia, false);
+		}
 	}
 
 	protected void activate() {
@@ -1011,6 +1034,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 							public Object call() {
 
 
+								boolean scanRouters=false;
 								synchronized (UpnpIGDAgent.NetworkInterfaceInfo.this) {
 									ArrayList<NetworkInterface> cur_nis = init();
 									ArrayList<NetworkInterface> new_nis = new ArrayList<>();
@@ -1020,6 +1044,10 @@ class UpnpIGDAgent extends AgentFakeThread {
                                         del_nis.addAll(network_interfaces);
 
                                         if (del_nis.size() > 0) {
+                                        	for (NetworkInterface ni : del_nis)
+											{
+												networkInterfaceRemoved(ni);
+											}
                                             network_interfaces = new ArrayList<>();
                                             if (new_nis.size() != 0 || del_nis.size() != 0) {
                                                 for (Iterator<AskForNetworkInterfacesMessage> it = askers.values()
@@ -1031,6 +1059,7 @@ class UpnpIGDAgent extends AgentFakeThread {
                                                 }
                                             }
                                             del_nis = new ArrayList<>();
+											scanRouters=true;
                                         }
                                     }
                                     oldTime = newTime;
@@ -1068,6 +1097,12 @@ class UpnpIGDAgent extends AgentFakeThread {
 													new_nis, del_nis)).equals(ReturnCode.SUCCESS))
 												it.remove();
 
+										}
+									}
+									if (new_nis.size()>0 && scanRouters) {
+										upnpService.getControlPoint().search();
+										for (RemoteDevice d : upnpService.getRegistry().getRemoteDevices()) {
+											remoteDeviceDetected(d);
 										}
 									}
 									return null;
