@@ -178,7 +178,7 @@ public enum GUIManagerAction {
 										new KernelMessage(KernelAction.MANAGE_DIRECT_DONNECTION,
 												new AskForConnectionMessage(Type.CONNECT,
 														new DoubleIP(new InetSocketAddress(InetAddress.getByName(ip),
-																Integer.parseInt(port))))));
+																Integer.parseInt(port))), false)));
 							}
 						} catch (HeadlessException e1) {
 							e1.printStackTrace();

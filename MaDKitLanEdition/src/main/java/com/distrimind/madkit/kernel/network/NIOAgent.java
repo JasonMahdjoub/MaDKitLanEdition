@@ -337,7 +337,7 @@ final class NIOAgent extends Agent {
 		return _m;
 	}
 
-	@SuppressWarnings({"SuspiciousMethodCalls", "ConstantConditions"})
+	@SuppressWarnings({"SuspiciousMethodCalls"})
     @Override
 	protected void liveCycle() {
 		try {
@@ -431,7 +431,7 @@ final class NIOAgent extends Agent {
 				for (PendingConnection pc : pendingConnectionsFinished)
 					finishConnection(pc.getIP(), pc.getSocketChannel());
 				for (PendingConnection pc : pendingConnectionsCanceled)
-					pendingConnectionFailed(pc.getSocketChannel());
+					pendingConnectionFailed(pc.getSocketChannel(), null);
 			}
 			for (PersonalSocket ps : connections_to_close) {
 				if (logger != null && logger.isLoggable(Level.FINER))
@@ -826,7 +826,7 @@ final class NIOAgent extends Agent {
 			if (logger != null)
 				logger.severeLog("Connection failed ", e);
 			if (socket != null)
-				pendingConnectionFailed(socket);
+				pendingConnectionFailed(socket, null);
 			throw e;
 		}
 	}
@@ -866,7 +866,7 @@ final class NIOAgent extends Agent {
 			} catch (IOException e) {
 				if (logger != null)
 					logger.severeLog("Connection failed ", e);
-				pendingConnectionFailed(sc);
+				pendingConnectionFailed(sc, null);
 				throw e;
 			}
 		} catch (IOException e) {
@@ -930,19 +930,19 @@ final class NIOAgent extends Agent {
 							killAgent(agent);
 
 						if (local_asking)
-							pendingConnectionFailed(socketChannel);
+							pendingConnectionFailed(socketChannel, ConnectionClosedReason.CONNECTION_ANOMALY);
 
 						socketChannel.close();
 
 					}
 				} else {
 					if (local_asking)
-						pendingConnectionFailed(socketChannel);
+						pendingConnectionFailed(socketChannel, ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED);
 					socketChannel.close();
 				}
 			} catch (Exception e) {
 				if (local_asking)
-					pendingConnectionFailed(socketChannel);
+					pendingConnectionFailed(socketChannel, ConnectionClosedReason.CONNECTION_ANOMALY);
 				socketChannel.close();
 				throw e;
 			}
@@ -2221,7 +2221,7 @@ final class NIOAgent extends Agent {
 			logger.warning("Pending connection not found ! (socketChannel=" + socketChannel + ")");
 	}
 
-	private void pendingConnectionFailed(SocketChannel socketChannel) {
+	private void pendingConnectionFailed(SocketChannel socketChannel, ConnectionClosedReason reason) {
 		if (logger != null && logger.isLoggable(Level.FINER))
 			logger.finer("Connection FAILED (socketChannel=" + socketChannel + "]");
 
@@ -2235,6 +2235,15 @@ final class NIOAgent extends Agent {
 							new ObjectMessage<>(new TransferAgent.DirectConnectionFailed(
 									((TryDirectConnection) pc.getAskerMessage().getJoinedPiece()).getIDTransfer())),
 							LocalCommunity.Roles.NIO_ROLE);
+				}
+				else if (pc.getAskerMessage().getOriginalSender()!=null)
+				{
+					if (reason==null)
+						reason=ConnectionClosedReason.IP_NOT_REACHED;
+					sendMessageWithRole(pc.getAskerMessage().getOriginalSender(),
+							new ConnectionStatusMessage(ConnectionStatusMessage.Type.DISCONNECT, pc.getIP(), pc.getAskerMessage().getChoosenIP(), pc.getAskerMessage().interface_address, reason, pc.getAskerMessage().getNumberOfAnomalies(), pc.getAskerMessage().getTimeUTCOfAnomaliesCycle()),
+							LocalCommunity.Roles.NIO_ROLE);
+
 				}
 				it.remove();
 				return;

@@ -572,6 +572,16 @@ public class NetworkProperties extends MultiFormatProperties {
 	public long delayInMsBetweenEachConnectionAsk=0;
 
 	/**
+	 * Maximum number of anomalies in one day before canceling connexion retry
+	 */
+	public int maxAnomaliesPerDayBeforeCancelingConnexionRetry=6;
+
+	/**
+	 * Delay in millisecond between each connection retry, after a fail, and if the connection is marked to accept to retry failed connection
+	 */
+	public long delayInMsBetweenEachConnectionRetry=1L*60L*60L*1000L;
+
+	/**
 	 * Represents properties of each used connection protocol and each sub network
 	 * 
 	 * @see InetAddressFilter

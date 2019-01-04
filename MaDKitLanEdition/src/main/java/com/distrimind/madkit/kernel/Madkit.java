@@ -149,6 +149,8 @@ final public class Madkit {
 			d.addItem("Update OOD to 2.0.0 Beta 92.");
 			d.addItem("Update Utils to 3.23.0.");
 			d.addItem("Manage asymmetric auto-signed login.");
+			d.addItem("Manage moment of connection, and connection retry when failed");
+
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();

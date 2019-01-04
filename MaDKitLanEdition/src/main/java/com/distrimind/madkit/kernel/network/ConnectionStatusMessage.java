@@ -56,7 +56,9 @@ public class ConnectionStatusMessage extends Message {
 	final Type type;
 	InetSocketAddress interface_address;
 	final ConnectionClosedReason connection_closed_reason;
-	protected InetSocketAddress choosenIP = null;
+	protected InetSocketAddress choosenIP;
+	protected transient int numberOfAnomalies=0;
+	protected transient long timeUTCOfAnomaliesCycle=-1;
 
 	@Override
 	public String toString() {
@@ -91,6 +93,21 @@ public class ConnectionStatusMessage extends Message {
 		this.choosenIP = choosenIP;
 	}
 
+	ConnectionStatusMessage(Type _type, AbstractIP _address, InetSocketAddress choosenIP,
+							InetSocketAddress _interface_address, ConnectionClosedReason _connection_closed_reason, int numberOfAnomalies, long timeUTCOfAnomaliesCycle){
+		this(_type, _address, choosenIP, _interface_address, _connection_closed_reason);
+		this.numberOfAnomalies=numberOfAnomalies;
+		this.timeUTCOfAnomaliesCycle=timeUTCOfAnomaliesCycle;
+	}
+
+	int getNumberOfAnomalies() {
+		return numberOfAnomalies;
+	}
+
+	long getTimeUTCOfAnomaliesCycle() {
+		return timeUTCOfAnomaliesCycle;
+	}
+
 	ConnectionStatusMessage(ConnectionStatusMessage m) {
 		super(m);
 		address = m.address;
@@ -98,6 +115,9 @@ public class ConnectionStatusMessage extends Message {
 		interface_address = m.interface_address;
 		connection_closed_reason = m.connection_closed_reason;
 		this.choosenIP = m.choosenIP;
+		this.numberOfAnomalies=m.numberOfAnomalies;
+		this.timeUTCOfAnomaliesCycle=m.timeUTCOfAnomaliesCycle;
+
 	}
 
 	public AbstractIP getIP() {
@@ -110,5 +130,23 @@ public class ConnectionStatusMessage extends Message {
 
 	public enum Type {
 		CONNECT, DISCONNECT
+	}
+
+	boolean incrementNumberOfAnomaliesAndTellsIfReconnectionIsPossible(boolean anomalyPresent, int maxAnomalies)
+	{
+		if (numberOfAnomalies==-1)
+			return false;
+		if (anomalyPresent)
+		{
+			if (numberOfAnomalies==0)
+				timeUTCOfAnomaliesCycle=System.currentTimeMillis();
+			else if (timeUTCOfAnomaliesCycle<System.currentTimeMillis()-86400000L)
+			{
+				timeUTCOfAnomaliesCycle=System.currentTimeMillis();
+				numberOfAnomalies=0;
+			}
+			return ++numberOfAnomalies <= maxAnomalies;
+		}
+		return true;
 	}
 }

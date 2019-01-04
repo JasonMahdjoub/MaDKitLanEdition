@@ -123,6 +123,11 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 		CONNECTION_LOST(AgentActionEvent.CONNEXION_LOST),
 
 		/**
+		 * The given ip was not reacheable
+		 */
+		IP_NOT_REACHED(AgentActionEvent.CONNEXION_LOST),
+
+		/**
 		 * The connection encountered an anomaly, which can be security problem. If too
 		 * much anomalies has been reached, the distant peer ip will be banned.
 		 */

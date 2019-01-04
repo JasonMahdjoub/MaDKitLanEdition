@@ -153,7 +153,7 @@ final class MulticastListenerAgent extends AgentFakeThread {
 										ConnectionStatusMessage.Type.CONNECT,
 										new DoubleIP(
 												getMadkitConfig().networkProperties.portsToBindForAutomaticLocalConnections,
-												ia));
+												ia), false);
 								sendMessageWithRole(LocalCommunity.Groups.NETWORK,
 										LocalCommunity.Roles.LOCAL_NETWORK_AFFECTATION_ROLE, am,
 										LocalCommunity.Roles.MULTICAST_LISTENER_ROLE);

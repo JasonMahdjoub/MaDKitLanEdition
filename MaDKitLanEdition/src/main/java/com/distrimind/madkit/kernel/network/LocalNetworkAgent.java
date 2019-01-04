@@ -44,25 +44,16 @@ import java.net.InetSocketAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
 
+import com.distrimind.madkit.kernel.*;
 import org.fourthline.cling.support.model.Connection.Status;
 import org.fourthline.cling.support.model.Connection.StatusInfo;
 import org.fourthline.cling.support.model.PortMapping.Protocol;
 
 import com.distrimind.madkit.agr.LocalCommunity;
-import com.distrimind.madkit.kernel.AgentFakeThread;
-import com.distrimind.madkit.kernel.Message;
-import com.distrimind.madkit.kernel.NetworkAgent;
-import com.distrimind.madkit.kernel.Task;
 import com.distrimind.madkit.kernel.network.UpnpIGDAgent.AskForRouterDetectionInformation;
 import com.distrimind.madkit.kernel.network.UpnpIGDAgent.ConnexionStatusMessage;
 import com.distrimind.madkit.kernel.network.UpnpIGDAgent.ExternalIPMessage;
@@ -94,6 +85,8 @@ class LocalNetworkAgent extends AgentFakeThread {
 	private HashMap<InetAddress, Router> routers = new HashMap<>();
 	private final Stack<AskForConnectionMessage> standby_connections = new Stack<>();
 	private final ArrayList<ConnectionStatusMessage> effective_connections = new ArrayList<>();
+	private final ArrayList<AskForConnectionMessage> connections_to_differ =new ArrayList<>();
+	private TaskID taskIDThatDifferConnections=null;
 	private boolean askConnectionActivated = false;
 
 	@Override
@@ -235,7 +228,7 @@ class LocalNetworkAgent extends AgentFakeThread {
 			ArrayList<LocalNetworkAgent> _local_network_agents, Collection<NetworkInterface> nis) {
 
 		ArrayList<LocalNetworkAgent> res = new ArrayList<>();
-		int toRemove[] = new int[_local_network_agents.size()];
+		int[] toRemove = new int[_local_network_agents.size()];
 		for (int i = 0; i < toRemove.length; i++)
 			toRemove[i] = 0;
 		for (NetworkInterface ni : nis) {
@@ -533,27 +526,59 @@ class LocalNetworkAgent extends AgentFakeThread {
 						if (logger != null && logger.isLoggable(Level.FINER))
 							logger.finer("Ask for connection : " + con);
 
-						boolean found = false;
-						con.chooseIP(isIPV6ConnectionPossible());
-						if (con.choosenIP != null) {
-							boolean local = isConcernedBy(con.getChoosenIP().getAddress());
-							for (BindInetSocketAddressMessage b : effective_socket_binds) {
-								found = isConcernedBy(b, con, local);
-								if (found) {
-									con = con.clone();
-									con.interface_address = b.getInetSocketAddress();
-									if (this.broadcastMessageWithRole(LocalCommunity.Groups.LOCAL_NETWORKS,
-											LocalCommunity.Roles.NIO_ROLE, con, LocalCommunity.Roles.LOCAL_NETWORK_ROLE)
-											.equals(ReturnCode.NO_RECIPIENT_FOUND) && logger != null) {
-										logger.severe("No NIO agent found !");
+						if (con.getTimeUTCOfConnection()>System.currentTimeMillis())
+						{
+							if (this.taskIDThatDifferConnections!=null)
+								cancelTask(taskIDThatDifferConnections, false);
+							synchronized (connections_to_differ) {
+								int i = 0;
+								for (; i < connections_to_differ.size(); i++) {
+									if (connections_to_differ.get(i).getTimeUTCOfConnection() < con.getTimeUTCOfConnection())
+										break;
+								}
 
+								connections_to_differ.add(i, con);
+								taskIDThatDifferConnections=scheduleTask(new Task<>(new Callable<Void>(){
+
+									@Override
+									public Void call() {
+										synchronized (connections_to_differ) {
+											if (connections_to_differ.size()>0)
+											{
+												receiveMessage(connections_to_differ.remove(connections_to_differ.size()-1));
+											}
+										}
+										return null;
 									}
-									break;
+								}, Math.min(0, 1000L+ connections_to_differ.get(connections_to_differ.size()-1).getTimeUTCOfConnection()-System.currentTimeMillis())));
+							}
+
+						}
+						else {
+
+							boolean found = false;
+							con = con.clone();
+							con.chooseIP(isIPV6ConnectionPossible());
+							if (con.choosenIP != null) {
+								boolean local = isConcernedBy(con.getChoosenIP().getAddress());
+								for (BindInetSocketAddressMessage b : effective_socket_binds) {
+									found = isConcernedBy(b, con, local);
+									if (found) {
+										//con = con.clone();
+										con.interface_address = b.getInetSocketAddress();
+										if (this.broadcastMessageWithRole(LocalCommunity.Groups.LOCAL_NETWORKS,
+												LocalCommunity.Roles.NIO_ROLE, con, LocalCommunity.Roles.LOCAL_NETWORK_ROLE)
+												.equals(ReturnCode.NO_RECIPIENT_FOUND) && logger != null) {
+											logger.severe("No NIO agent found !");
+
+										}
+										break;
+									}
 								}
 							}
-						}
-						if (!found) {
-							addStandbyAskedConnection(con);
+							if (!found) {
+								addStandbyAskedConnection(con);
+							}
 						}
 					}
 				} else {
@@ -590,21 +615,33 @@ class LocalNetworkAgent extends AgentFakeThread {
 					logger.finer("Receving : " + cs);
 
 			} else if (cs.type.equals(ConnectionStatusMessage.Type.DISCONNECT)) {
+				boolean retry=false;
 				for (Iterator<ConnectionStatusMessage> it = effective_connections.iterator(); it.hasNext();) {
 					ConnectionStatusMessage cs2 = it.next();
 					if (cs2.getIP().equals(cs.getIP()) && cs2.interface_address.equals(cs.interface_address)) {
+						retry=cs2.getNumberOfAnomalies()>=0;
 						it.remove();
 						break;
 					}
 				}
+
 				if (cs.connection_closed_reason.equals(ConnectionClosedReason.CONNECTION_LOST)) {
-					receiveMessage(new AskForConnectionMessage(ConnectionStatusMessage.Type.CONNECT, cs.getIP()));
+					receiveMessage(new AskForConnectionMessage(ConnectionStatusMessage.Type.CONNECT, cs.getIP(), retry));
 				} else if (cs.connection_closed_reason.equals(ConnectionClosedReason.CONNECTION_ANOMALY)) {
 					for (Iterator<AskForConnectionMessage> it = standby_connections.iterator(); it.hasNext();) {
-						if (it.next().getIP().equals(cs.getIP()))
+						AskForConnectionMessage cm=it.next();
+						if (cm.getIP().equals(cs.getIP())) {
 							it.remove();
+							break;
+						}
 					}
 				}
+				if (cs.connection_closed_reason.equals(ConnectionClosedReason.CONNECTION_ANOMALY) || cs.connection_closed_reason.equals(ConnectionClosedReason.IP_NOT_REACHED))
+				{
+					if (cs.incrementNumberOfAnomaliesAndTellsIfReconnectionIsPossible(cs.connection_closed_reason.equals(ConnectionClosedReason.CONNECTION_ANOMALY), getMadkitConfig().networkProperties.maxAnomaliesPerDayBeforeCancelingConnexionRetry))
+						receiveMessage(new AskForConnectionMessage(ConnectionStatusMessage.Type.CONNECT, cs.getIP(), System.currentTimeMillis()+getMadkitConfig().networkProperties.delayInMsBetweenEachConnectionRetry, cs.getNumberOfAnomalies(), cs.getTimeUTCOfAnomaliesCycle()));
+				}
+
 				if (logger != null && logger.isLoggable(Level.FINER))
 					logger.finer("Receving : " + cs);
 
@@ -816,7 +853,7 @@ class LocalNetworkAgent extends AgentFakeThread {
 		}
 	}
 	
-	public static void main(String args[]) throws SocketException
+	/*public static void main(String[] args) throws SocketException
 	{
 		Enumeration<NetworkInterface> nis=NetworkInterface.getNetworkInterfaces();
 		for (;nis.hasMoreElements();)
@@ -831,14 +868,14 @@ class LocalNetworkAgent extends AgentFakeThread {
 				}
 			}
 		}
-	}
+	}*/
 
 	private ArrayList<BindInetSocketAddressMessage> selectNetworkInterfaces(BindInetSocketAddressMessage bind,
 			ArrayList<NetworkInterface> nis) {
 		ArrayList<BindInetSocketAddressMessage> res = new ArrayList<>();
 		if (bind.getInetSocketAddress().getAddress().isAnyLocalAddress()) {
 			ArrayList<NetworkInterface> selected_nis = new ArrayList<>();
-			long speeds[] = new long[nis.size()];
+			long[] speeds = new long[nis.size()];
 			long max = Long.MIN_VALUE;
 			for (int i = 0; i < nis.size(); i++) {
 				NetworkInterface ni = nis.get(i);

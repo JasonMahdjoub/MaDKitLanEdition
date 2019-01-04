@@ -59,12 +59,33 @@ public class AskForConnectionMessage extends ConnectionStatusMessage {
 	private Object joinedPiece = null;
 	private AgentAddress originalSender = null;
 	private boolean candidateToBan = false;
+
+	private long timeUTCOfConnection;
 	private transient IDTransfer transferID = null;
 	private transient AgentAddress indirectAgentAddress = null;
 
-	public AskForConnectionMessage(Type _type, AbstractIP _address) {
+	AskForConnectionMessage(Type _type, AbstractIP _address, long utcTimeOfConnection, int numberOfAnomalies, long timeUTCOfAnomaliesCycle) {
+		this(_type, _address, numberOfAnomalies!=-1, utcTimeOfConnection);
+		this.numberOfAnomalies=numberOfAnomalies;
+		this.timeUTCOfAnomaliesCycle=timeUTCOfAnomaliesCycle;
+	}
+	public AskForConnectionMessage(Type _type, AbstractIP _address, boolean acceptConnectionRetry, long utcTimeOfConnection) {
 		super(_type, _address);
 		now = false;
+		if (acceptConnectionRetry)
+			this.numberOfAnomalies=-1;
+		this.timeUTCOfConnection=utcTimeOfConnection;
+
+	}
+
+
+
+	public AskForConnectionMessage(Type _type, AbstractIP _address, boolean acceptConnectionRetry) {
+		this(_type, _address, acceptConnectionRetry, System.currentTimeMillis());
+	}
+
+	public long getTimeUTCOfConnection() {
+		return timeUTCOfConnection;
 	}
 
 	void chooseIP(boolean enableIPv6) {
@@ -123,6 +144,7 @@ public class AskForConnectionMessage extends ConnectionStatusMessage {
 		this.now = m.now;
 		this.joinedPiece = m.joinedPiece;
 		this.originalSender = m.originalSender;
+		this.timeUTCOfConnection=m.timeUTCOfConnection;
 
 	}
 
@@ -148,4 +170,6 @@ public class AskForConnectionMessage extends ConnectionStatusMessage {
 	boolean getCandidateToBan() {
 		return candidateToBan;
 	}
+
+
 }

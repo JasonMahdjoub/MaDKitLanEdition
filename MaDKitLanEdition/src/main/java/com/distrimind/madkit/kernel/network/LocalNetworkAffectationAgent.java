@@ -113,20 +113,18 @@ class LocalNetworkAffectationAgent extends AgentFakeThread {
 					if (first || getMadkitConfig().networkProperties.delayInMsBetweenEachConnectionAsk==0)
 					{
 						first=false;
-						receiveMessage(new AskForConnectionMessage(ConnectionStatusMessage.Type.CONNECT, isa));
+						receiveMessage(new AskForConnectionMessage(ConnectionStatusMessage.Type.CONNECT, isa, true));
 						timeUTC=System.currentTimeMillis();
 					}
 					else
 					{
-						System.out.println("ici1");
 						timeUTC+=getMadkitConfig().networkProperties.delayInMsBetweenEachConnectionAsk;
 						scheduleTask(new Task<>(new Callable<Void>() {
 
 							@Override
-							public Void call() throws Exception {
-								System.out.println("ici2");
+							public Void call() {
 								if (isAlive())
-									receiveMessage(new AskForConnectionMessage(ConnectionStatusMessage.Type.CONNECT, isa));
+									receiveMessage(new AskForConnectionMessage(ConnectionStatusMessage.Type.CONNECT, isa, true));
 								return null;
 							}
 						}, timeUTC));
@@ -166,7 +164,7 @@ class LocalNetworkAffectationAgent extends AgentFakeThread {
 
 			ArrayList<LocalNetworkAgent> lnas = LocalNetworkAgent.putAndRemoveNetworkInterfaces(
 					this.local_network_agents, m.getNewConnectedInterfaces(), m.getNewDisconnectedInterfaces());
-			boolean lnas_activated[] = new boolean[lnas.size()];
+			boolean[] lnas_activated = new boolean[lnas.size()];
 			for (int i = 0; i < lnas.size(); i++) {
 				lnas_activated[i] = true;
 			}
@@ -276,7 +274,6 @@ class LocalNetworkAffectationAgent extends AgentFakeThread {
 			askedConnections.add(m);
 		if (logger != null && logger.isLoggable(Level.FINER))
 			logger.finer("Connection asked : " + m);
-
 	}
 
 }
