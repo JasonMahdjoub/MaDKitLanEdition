@@ -122,7 +122,7 @@ final public class Madkit {
 		c.set(2015, Calendar.MAY, 22);
 		Calendar c2 = Calendar.getInstance();
 		c2.set(2018, Calendar.DECEMBER, 24);
-		Version VERSION = new Version("MadkitLanEdition", "MKLE", (short)1, (short)9, (short)0, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
+		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)1, (short)9, (short)0, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
 		try {
 
 			InputStream is = Madkit.class.getResourceAsStream("build.txt");
@@ -149,6 +149,7 @@ final public class Madkit {
 			d.addItem("Update OOD to 2.0.0 Beta 92.");
 			d.addItem("Update Utils to 3.23.0.");
 			d.addItem("Manage asymmetric auto-signed login.");
+			d.addItem("Better computer manage sleep mode.");
 			d.addItem("Manage moment of connection, and connection retry when failed");
 
 			VERSION.addDescription(d);
@@ -192,7 +193,7 @@ final public class Madkit {
 			d.addItem("Update OOD to 2.0.0 Beta 86.");
 			d.addItem("Update Utils to 3.19.0.");
 			d.addItem("Add save functions into MadKit Properties.");
-			d.addItem("Fiw network messages serialization problem.");
+			d.addItem("Fix network messages serialization problem.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
@@ -208,7 +209,7 @@ final public class Madkit {
 			d = new Description((short)1, (short)7, (short)3, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Update OOD to 2.0.0 Beta 84.");
 			d.addItem("Update Utils to 3.17.0.");
-			d.addItem("Correct version's control of distant peer.");
+			d.addItem("Fix version's control issue of distant peer.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
@@ -226,21 +227,21 @@ final public class Madkit {
 			d = new Description((short)1, (short)7, (short)0, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Update OOD to 2.0.0 Beta 82.");
 			d.addItem("Update Utils to 3.15.0.");
-			d.addItem("Add P2P connection protocol that support parametrisation of key aggreement.");
-			d.addItem("Support several key agreement (including Post Quantum Cryptography key agreement (New Hope).");
+			d.addItem("Add P2P connection protocol that support parametrisation of key agreement.");
+			d.addItem("Support several key agreement (including Post Quantum Cryptography key agreement (New Hope)).");
 			d.addItem("Fix security issue : when data is sent without being writed (default memory state), fill it with zeros.");
-			d.addItem("Fix security issue : sign symmetric encryption key into client/server connnection protocol.");
-			d.addItem("Fix security issue : with P2P key agreements, generate signature and encryptions keys with two steps (instead of one), in order to sign the exchanged symmetric encryption key.");
-			d.addItem("Fix security issue : class serialization are now filtered with white list and black list. Classes that are not into white list must implement the interfance 'SerializableAndSizable'. Messages sent to the network must implement the interface NetworkMessage.");
-			d.addItem("Optimization : use externalization process instead of desialization process during lan transfer.");
-			d.addItem("Fix security issue : classes exterlization processes control now the allocated memory during de-externalization phase.");
+			d.addItem("Fix security issue : sign symmetric encryption key into client/server connection protocol.");
+			d.addItem("Fix security issue : with P2P key agreements, generate signature and encryption keys with two steps (instead of one), in order to sign the exchanged symmetric encryption key.");
+			d.addItem("Fix security issue : class serialization are now filtered with white list and black list. Classes that are not into white list must implement the interference 'SerializableAndSizable'. Messages sent to the network must implement the interface NetworkMessage.");
+			d.addItem("Optimization : use externalization process instead of deserialization process during lan transfer.");
+			d.addItem("Fix security issue : classes externalization processes control now the allocated memory during de-externalization phase.");
 			d.addItem("Security enhancement : initialisation vectors used with encryption has now a secret part composed of counter that is increased at each data exchange.");
 			d.addItem("Security enhancement : signature and encryption process use now a secret message that is increased at each data exchange.");
 			d.addItem("Security enhancement : P2P login agreement use now JPAKE and a signature authentication if secret key for signature is available (PassworKey.getSecretKeyForSignature()).");
 			d.addItem("Fix issue with dead lock into indirect connection process.");
 			d.addItem("Fix issue with dual connection between two same kernels.");
 			d.addItem("Externalising Java rewrited classes into JDKRewriteUtils project.");
-			d.addItem("Support of authenticated encryption algorithms. When use these algorithms, MKLE do not add a signature with independant MAC.");
+			d.addItem("Support of authenticated encryption algorithms. When use these algorithms, MKLE do not add a signature with independent MAC.");
 			d.addItem("Add some benchmarks.");
 			d.addItem("Support of YAML file properties.");
 			VERSION.addDescription(d);	
@@ -263,7 +264,7 @@ final public class Madkit {
 			c.set(2018, Calendar.FEBRUARY, 15);
 			d = new Description((short)1, (short)6, (short)4, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Fix problem of port unbind with Windows.");
-			d.addItem("Fix problem of simulatenous connections with Mac OS");
+			d.addItem("Fix problem of simultaneous connections with Mac OS");
 			d.addItem("Fix problem with interface address filtering");
 			VERSION.addDescription(d);	
 			
@@ -324,9 +325,9 @@ final public class Madkit {
 			d = new Description((short)1, (short)4, (short)0, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Updating OOD to 2.0.0 Beta 48");
 			d.addItem("Several modifications into connection and access protocols");
-			d.addItem("Adding approved randoms parameters into MadkitProperties");
-			d.addItem("Adding point to point transfert connection signature and verification");
-			d.addItem("Saving automaticaly random's seed to be reload with the next application loading");
+			d.addItem("Adding approved randoms parameters into MaDKitProperties");
+			d.addItem("Adding point to point transfer connection signature and verification");
+			d.addItem("Saving automatically random's seed to be reload with the next application loading");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
@@ -339,11 +340,11 @@ final public class Madkit {
 			c.set(2017, Calendar.AUGUST, 5);
 			d = new Description((short)1, (short)2, (short)0, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Correction a problem with database");
-			d.addItem("Adding P2PSecuredConnectionProtocolWithECDHAlgorithm connection protocol (speedest)");
-			d.addItem("Adding Client/ServerSecuredConnectionProtocolWithKnwonPublicKeyWithECDHAlgorithm connection protocol (speedest)");
+			d.addItem("Adding P2PSecuredConnectionProtocolWithECDHAlgorithm connection protocol (speediest)");
+			d.addItem("Adding Client/ServerSecuredConnectionProtocolWithKnwonPublicKeyWithECDHAlgorithm connection protocol (speediest)");
 			d.addItem("Now all connection protocols use different keys for encryption and for signature");
-			d.addItem("Adding AccessProtocolWithP2PAgreement (speedest)");
-			d.addItem("Debugging desktop Jframe closing (however the JMV still become opened when all windows are closed)");
+			d.addItem("Adding AccessProtocolWithP2PAgreement (speediest)");
+			d.addItem("Debugging desktop JFrame closing (however the JMV still become opened when all windows are closed)");
 			d.addItem("Several minimal bug fix");
 			d.addItem("Correction of JavaDoc");
 			d.addItem("Updating OOD to 2.0.0 Beta 20 version");
@@ -371,13 +372,13 @@ final public class Madkit {
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.JUNE, 4);
 			d = new Description((short)1, (short)0, (short)0, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Correction of a bug with database deconnection");
+			d.addItem("Correction of a bug with database disconnection");
 			d.addItem("Debugging indirect connections");
 			d.addItem("Solving a memory leak problem with ConversationID");
 			d.addItem("Solving a memory leak problem with TransferAgent (not killed)");
-			d.addItem("Solbing problem when deny BigDataProposition and kill agent just after");
+			d.addItem("Solving problem when deny BigDataProposition and kill agent just after");
 			d.addItem("Indirect connection send now ping message");
-			d.addItem("Adding white list for inet addresses in network properties");
+			d.addItem("Adding white list for InetAddresses in network properties");
 			d.addItem("Correcting problems of internal group/role references/dereferences");
 			VERSION.addDescription(d);
 
@@ -400,14 +401,14 @@ final public class Madkit {
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.MARCH, 7);
 			d = new Description((short)1, (short)0, (short)0, Version.Type.Beta, (short)2, c.getTime());
-			d.addItem("Renforce secret identifier/password exchange");
+			d.addItem("Reinforce secret identifier/password exchange");
 			d.addItem("Add agent to launch into MKDesktop windows");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.MARCH, 4);
 			d = new Description((short)1, (short)0, (short)0, Version.Type.Beta, (short)0, c.getTime());
-			d.addItem("First MadkitLanEdition release, based on Madkit");
+			d.addItem("First MaDKitLanEdition release, based on MaDKit");
 			VERSION.addDescription(d);
 		} catch (Exception e) {
 			e.printStackTrace();
