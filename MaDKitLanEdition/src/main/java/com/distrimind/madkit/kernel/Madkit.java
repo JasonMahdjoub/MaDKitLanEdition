@@ -146,8 +146,8 @@ final public class Madkit {
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.DECEMBER, 4);
 			Description d = new Description((short)1, (short)9, (short)0, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 Beta 92.");
-			d.addItem("Update Utils to 3.23.0.");
+			d.addItem("Update OOD to 2.0.0 Beta 94.");
+			d.addItem("Update Utils to 3.24.0.");
 			d.addItem("Manage asymmetric auto-signed login.");
 			d.addItem("Better computer manage sleep mode.");
 			d.addItem("Manage moment of connection, and connection retry when failed");
