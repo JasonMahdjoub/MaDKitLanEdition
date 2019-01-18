@@ -57,7 +57,7 @@ import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolNegotia
 import com.distrimind.madkit.kernel.network.connection.unsecured.UnsecuredConnectionProtocolProperties;
 import com.distrimind.madkit.util.SerializationTools;
 import com.distrimind.ood.database.DatabaseConfiguration;
-import com.distrimind.ood.database.EmbeddedHSQLDBWrapper;
+import com.distrimind.ood.database.EmbeddedH2DatabaseWrapper;
 import com.distrimind.util.crypto.*;
 import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
 import gnu.vm.jgnu.security.NoSuchAlgorithmException;
@@ -85,22 +85,22 @@ import java.util.Iterator;
  */
 @RunWith(Parameterized.class)
 public class ConnectionsProtocolsTests extends JunitMadkit {
-	private static final EmbeddedHSQLDBWrapper sql_connection_asker;
-	private static final EmbeddedHSQLDBWrapper sql_connection_recveiver;
+	private static final EmbeddedH2DatabaseWrapper sql_connection_asker;
+	private static final EmbeddedH2DatabaseWrapper sql_connection_recveiver;
 	private static final File dbasker = new File("dbasker.database");
 	private static final File dbreceiver = new File("dbreceiver.database");
 
 	static {
-		EmbeddedHSQLDBWrapper asker = null;
-		EmbeddedHSQLDBWrapper receiver = null;
+		EmbeddedH2DatabaseWrapper asker = null;
+		EmbeddedH2DatabaseWrapper receiver = null;
 		try {
 
 			if (dbasker.exists())
-				EmbeddedHSQLDBWrapper.deleteDatabaseFiles(dbasker);
+				EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(dbasker);
 			if (dbreceiver.exists())
-				EmbeddedHSQLDBWrapper.deleteDatabaseFiles(dbreceiver);
-			asker = new EmbeddedHSQLDBWrapper(dbasker);
-			receiver = new EmbeddedHSQLDBWrapper(dbreceiver);
+				EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(dbreceiver);
+			asker = new EmbeddedH2DatabaseWrapper(dbasker);
+			receiver = new EmbeddedH2DatabaseWrapper(dbreceiver);
 			asker.loadDatabase(new DatabaseConfiguration(KeysPairs.class.getPackage()), true);
 			receiver.loadDatabase(new DatabaseConfiguration(KeysPairs.class.getPackage()), true);
 		} catch (Exception e) {
@@ -114,8 +114,8 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 	public static void removeDatabase() {
 		sql_connection_asker.close();
 		sql_connection_recveiver.close();
-		EmbeddedHSQLDBWrapper.deleteDatabaseFiles(dbasker);
-		EmbeddedHSQLDBWrapper.deleteDatabaseFiles(dbreceiver);
+		EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(dbasker);
+		EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(dbreceiver);
 	}
 
 	private static final int numberMaxExchange = 100;
@@ -142,7 +142,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		ArrayList<ConnectionProtocolProperties<?>[]> res = new ArrayList<>();
 		ArrayList<ConnectionProtocolProperties<?>[]> l=dataOneLevel();
 		@SuppressWarnings("unchecked")
-		ArrayList<ConnectionProtocolProperties<?>[]> firstLevel[] = new ArrayList[l.size()];
+		ArrayList<ConnectionProtocolProperties<?>[]>[] firstLevel = new ArrayList[l.size()];
 		firstLevel[0]=l;
 		for (int i = 1;i<firstLevel.length;i++)
 			firstLevel[i]=dataOneLevel();
@@ -399,7 +399,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		Collection<Object[]> res = new ArrayList<>();
 
 		for (ConnectionProtocolProperties<?>[] base : data) {
-			Object o[] = new Object[4];
+			Object[] o = new Object[4];
 
             MadkitProperties madkitProperties=new MadkitProperties();
 			madkitProperties.networkProperties= new NetworkProperties();
@@ -840,8 +840,8 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		return message;
 	}
 
-	public static ArrayList<Block> getBlocks(byte message[], boolean excludeFromEncryption, ConnectionProtocol<?> cp, NetworkProperties np,
-			int idPacket, int transferType, TransferedBlockChecker tbc) throws PacketException, IOException,
+	public static ArrayList<Block> getBlocks(byte[] message, boolean excludeFromEncryption, ConnectionProtocol<?> cp, NetworkProperties np,
+											 int idPacket, int transferType, TransferedBlockChecker tbc) throws PacketException, IOException,
 			NIOException, NoSuchAlgorithmException, NoSuchProviderException {
 		ArrayList<Block> res = new ArrayList<>();
 		WritePacket wp = new WritePacket(PacketPartHead.TYPE_PACKET, idPacket, np.maxBufferSize,

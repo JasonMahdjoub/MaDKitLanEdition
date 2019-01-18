@@ -212,3 +212,7 @@ gradle-app.setting
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 
+
+#H2 database
+*.database.mv.db
+*.database.mv.db

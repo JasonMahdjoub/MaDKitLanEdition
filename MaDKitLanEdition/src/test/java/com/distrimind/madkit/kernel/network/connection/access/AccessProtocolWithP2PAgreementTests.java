@@ -45,6 +45,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.*;
 
+import com.distrimind.ood.database.EmbeddedH2DatabaseFactory;
 import com.distrimind.util.crypto.P2PLoginAgreementType;
 import org.junit.After;
 import org.junit.Assert;
@@ -62,7 +63,6 @@ import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.AccessDataMKEventListener;
 import com.distrimind.madkit.kernel.network.ConnectionsProtocolsTests;
 import com.distrimind.ood.database.DatabaseConfiguration;
-import com.distrimind.ood.database.EmbeddedHSQLDBDatabaseFactory;
 import com.distrimind.ood.database.EmbeddedHSQLDBWrapper;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 
@@ -381,8 +381,8 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 			initialIdentifierPassordsReceiver.addAll(identifierPassordsReceiver);
 		}
 		if (databaseEnabled) {
-			mpasker.setDatabaseFactory(new EmbeddedHSQLDBDatabaseFactory(dbfileasker));
-			mpreceiver.setDatabaseFactory(new EmbeddedHSQLDBDatabaseFactory(dbfilereceiver));
+			mpasker.setDatabaseFactory(new EmbeddedH2DatabaseFactory(dbfileasker));
+			mpreceiver.setDatabaseFactory(new EmbeddedH2DatabaseFactory(dbfilereceiver));
 		}
 		//System.out.println(accessProtocolProperties.getClass());
 	}
@@ -396,9 +396,9 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 				EmbeddedHSQLDBWrapper.deleteDatabaseFiles(dbfileasker);
 			if (dbfilereceiver.exists())
 				EmbeddedHSQLDBWrapper.deleteDatabaseFiles(dbfilereceiver);
-			JunitMadkit.setDatabaseFactory(mpasker, new EmbeddedHSQLDBDatabaseFactory(dbfileasker));
+			JunitMadkit.setDatabaseFactory(mpasker, new EmbeddedH2DatabaseFactory(dbfileasker));
 			mpasker.getDatabaseWrapper().loadDatabase(new DatabaseConfiguration(KeysPairs.class.getPackage()), true);
-			JunitMadkit.setDatabaseFactory(mpreceiver, new EmbeddedHSQLDBDatabaseFactory(dbfilereceiver));
+			JunitMadkit.setDatabaseFactory(mpreceiver, new EmbeddedH2DatabaseFactory(dbfilereceiver));
 			mpreceiver.getDatabaseWrapper().loadDatabase(new DatabaseConfiguration(KeysPairs.class.getPackage()), true);
 		}
 	}

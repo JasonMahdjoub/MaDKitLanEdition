@@ -41,7 +41,7 @@ import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.kernel.MadkitEventListener;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.connection.access.HostIdentifier;
-import com.distrimind.ood.database.EmbeddedHSQLDBDatabaseFactory;
+import com.distrimind.ood.database.EmbeddedH2DatabaseFactory;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
 import gnu.vm.jgnu.security.NoSuchAlgorithmException;
@@ -171,7 +171,7 @@ public class NetworkEventListener implements MadkitEventListener {
 		_properties.networkProperties.autoConnectWithLocalSitePeers = autoConnectWithLocalSitePeers;
 		try {
 			if (databaseFile != null)
-				_properties.setDatabaseFactory(new EmbeddedHSQLDBDatabaseFactory(databaseFile));
+				_properties.setDatabaseFactory(new EmbeddedH2DatabaseFactory(databaseFile));
 		} catch (DatabaseException e) {
 			e.printStackTrace();
 		}

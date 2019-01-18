@@ -42,6 +42,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Collection;
 
+import com.distrimind.ood.database.EmbeddedH2DatabaseWrapper;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -50,7 +51,6 @@ import org.junit.Test;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.ood.database.DatabaseConfiguration;
 import com.distrimind.ood.database.DatabaseWrapper;
-import com.distrimind.ood.database.EmbeddedHSQLDBWrapper;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.crypto.ASymmetricEncryptionType;
 import com.distrimind.util.crypto.ASymmetricKeyPair;
@@ -72,7 +72,7 @@ public class DatabaseTests {
 	@BeforeClass
 	public static void loadDatabase() throws IllegalArgumentException, DatabaseException {
 		closeAndDeleleteDatabase();
-		databaseWrapper = new EmbeddedHSQLDBWrapper(databaseFile);
+		databaseWrapper = new EmbeddedH2DatabaseWrapper(databaseFile);
 		databaseWrapper.loadDatabase(new DatabaseConfiguration(KeysPairs.class.getPackage()), true);
 		ipbanned = (IPBanned) databaseWrapper.getTableInstance(IPBanned.class);
 		ipbanstat = (IPBanStat) databaseWrapper.getTableInstance(IPBanStat.class);
@@ -84,7 +84,7 @@ public class DatabaseTests {
 	public static void closeAndDeleleteDatabase() {
 		if (databaseWrapper != null)
 			databaseWrapper.close();
-		EmbeddedHSQLDBWrapper.deleteDatabaseFiles(databaseFile);
+		EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(databaseFile);
 		databaseWrapper = null;
 		ipbanned = null;
 		ipbanstat = null;
