@@ -39,8 +39,10 @@ package com.distrimind.madkit.kernel.network;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.logging.Level;
 
+import com.distrimind.ood.database.EmbeddedH2DatabaseWrapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -53,7 +55,6 @@ import com.distrimind.madkit.kernel.Madkit;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
 import com.distrimind.madkit.testing.util.agent.AgentBigTransfer;
 import com.distrimind.madkit.testing.util.agent.NetworkPongAgent;
-import com.distrimind.ood.database.EmbeddedHSQLDBWrapper;
 import com.distrimind.util.Timer;
 
 /**
@@ -73,15 +74,15 @@ public class MultipleConnectionsTest extends JunitMadkit {
 	public static Collection<Object[]> data() {
 		try {
 			ArrayList<Object[]> res = new ArrayList<>();
-			res.addAll(data(NetworkEventListener.getNetworkEventListenersForLocalClientServerConnection(true, true,
-					false, true, true, false, null, HOST_NUMBERS - 1, 1, 2, 3, 4, 5), null, null));
-			res.addAll(data(NetworkEventListener.getNetworkEventListenersForLocalClientServerConnection(true, true,
-					false, true, true, false, null, HOST_NUMBERS - 1, 1, 2, 3, 4, 5), 100, null));
-			res.addAll(data(NetworkEventListener.getNetworkEventListenersForLocalClientServerConnection(true, true,
-					false, true, true, false, null, HOST_NUMBERS - 1, 1, 2, 3, 4, 5), null, 200));
-			res.addAll(data(NetworkEventListener.getNetworkEventListenersForLocalClientServerConnection(true, true,
+			res.addAll(Objects.requireNonNull(data(NetworkEventListener.getNetworkEventListenersForLocalClientServerConnection(true, true,
+					false, true, true, false, null, HOST_NUMBERS - 1, 1, 2, 3, 4, 5), null, null)));
+			res.addAll(Objects.requireNonNull(data(NetworkEventListener.getNetworkEventListenersForLocalClientServerConnection(true, true,
+					false, true, true, false, null, HOST_NUMBERS - 1, 1, 2, 3, 4, 5), 100, null)));
+			res.addAll(Objects.requireNonNull(data(NetworkEventListener.getNetworkEventListenersForLocalClientServerConnection(true, true,
+					false, true, true, false, null, HOST_NUMBERS - 1, 1, 2, 3, 4, 5), null, 200)));
+			res.addAll(Objects.requireNonNull(data(NetworkEventListener.getNetworkEventListenersForLocalClientServerConnection(true, true,
 					false, true, true, false, null, HOST_NUMBERS - 1, 1, 2, 3, 4, 5), 100,
-					200));
+					200)));
 			return res;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -302,15 +303,15 @@ public class MultipleConnectionsTest extends JunitMadkit {
 
 	protected void removeDatabase() {
 		if (eventListener1.databaseFile != null && eventListener1.databaseFile.exists())
-			EmbeddedHSQLDBWrapper.deleteDatabaseFiles(eventListener1.databaseFile);
+			EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(eventListener1.databaseFile);
 		if (eventListener2.databaseFile != null && eventListener2.databaseFile.exists())
-			EmbeddedHSQLDBWrapper.deleteDatabaseFiles(eventListener2.databaseFile);
+			EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(eventListener2.databaseFile);
 		if (eventListener3.databaseFile != null && eventListener3.databaseFile.exists())
-			EmbeddedHSQLDBWrapper.deleteDatabaseFiles(eventListener3.databaseFile);
+			EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(eventListener3.databaseFile);
 		if (eventListener4.databaseFile != null && eventListener4.databaseFile.exists())
-			EmbeddedHSQLDBWrapper.deleteDatabaseFiles(eventListener4.databaseFile);
+			EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(eventListener4.databaseFile);
 		if (eventListener5.databaseFile != null && eventListener5.databaseFile.exists())
-			EmbeddedHSQLDBWrapper.deleteDatabaseFiles(eventListener5.databaseFile);
+			EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(eventListener5.databaseFile);
 	}
 }
 
@@ -319,6 +320,7 @@ class AgentsToLaunch extends AbstractAgent {
 	public final NetworkPongAgent networkPingAgent;
 	public final AgentBigTransfer agentBigTransfer;
 
+	@SuppressWarnings("unused")
 	public AgentsToLaunch(int thisKernelNumber, int distantKernelNumber, boolean includeMoreThanOneBigDataTest) {
 		this.networkPingAgent = new NetworkPongAgent(distantKernelNumber);
 		agentBigTransfer = new AgentBigTransfer(0, true, true, false, true, true, distantKernelNumber, false,

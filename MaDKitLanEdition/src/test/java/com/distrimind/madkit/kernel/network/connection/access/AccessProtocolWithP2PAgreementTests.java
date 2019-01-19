@@ -46,6 +46,7 @@ import java.net.InetSocketAddress;
 import java.util.*;
 
 import com.distrimind.ood.database.EmbeddedH2DatabaseFactory;
+import com.distrimind.ood.database.EmbeddedH2DatabaseWrapper;
 import com.distrimind.util.crypto.P2PLoginAgreementType;
 import org.junit.After;
 import org.junit.Assert;
@@ -63,7 +64,6 @@ import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.AccessDataMKEventListener;
 import com.distrimind.madkit.kernel.network.ConnectionsProtocolsTests;
 import com.distrimind.ood.database.DatabaseConfiguration;
-import com.distrimind.ood.database.EmbeddedHSQLDBWrapper;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 
 import gnu.vm.jgnu.security.NoSuchAlgorithmException;
@@ -393,9 +393,9 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 			mpasker.getDatabaseWrapper().close();
 			mpreceiver.getDatabaseWrapper().close();
 			if (dbfileasker.exists())
-				EmbeddedHSQLDBWrapper.deleteDatabaseFiles(dbfileasker);
+				EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(dbfileasker);
 			if (dbfilereceiver.exists())
-				EmbeddedHSQLDBWrapper.deleteDatabaseFiles(dbfilereceiver);
+				EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(dbfilereceiver);
 			JunitMadkit.setDatabaseFactory(mpasker, new EmbeddedH2DatabaseFactory(dbfileasker));
 			mpasker.getDatabaseWrapper().loadDatabase(new DatabaseConfiguration(KeysPairs.class.getPackage()), true);
 			JunitMadkit.setDatabaseFactory(mpreceiver, new EmbeddedH2DatabaseFactory(dbfilereceiver));
@@ -409,9 +409,9 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 			mpasker.getDatabaseWrapper().close();
 			mpreceiver.getDatabaseWrapper().close();
 			if (dbfileasker.exists())
-				EmbeddedHSQLDBWrapper.deleteDatabaseFiles(dbfileasker);
+				EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(dbfileasker);
 			if (dbfilereceiver.exists())
-				EmbeddedHSQLDBWrapper.deleteDatabaseFiles(dbfilereceiver);
+				EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(dbfilereceiver);
 		}
 
 	}
