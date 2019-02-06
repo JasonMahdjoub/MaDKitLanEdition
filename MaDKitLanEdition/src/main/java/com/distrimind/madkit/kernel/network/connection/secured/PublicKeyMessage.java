@@ -88,11 +88,20 @@ class PublicKeyMessage extends ConnectionMessage {
 		public_key_for_signature_bytes=SerializationTools.readBytes(in, AskConnection.MAX_SIGNATURE_LENGTH, false);
 		try
 		{
-			public_key_for_encryption = (ASymmetricPublicKey) Key.decode(public_key_for_encryption_bytes);
+			Key k=Key.decode(public_key_for_encryption_bytes);
+			if (!(k instanceof ASymmetricPublicKey))
+				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			public_key_for_encryption = (ASymmetricPublicKey) k;
 
-			assert public_key_for_signature_bytes != null;
-			public_key_for_signature = (ASymmetricPublicKey) Key.decode(public_key_for_signature_bytes);
-			ASymmetricAuthentifiedSignatureCheckerAlgorithm checker=new ASymmetricAuthentifiedSignatureCheckerAlgorithm(public_key_for_signature);
+			if (public_key_for_signature_bytes==null)
+				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			k=Key.decode(public_key_for_signature_bytes);
+
+			if (!(k instanceof ASymmetricPublicKey))
+				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			public_key_for_signature = (ASymmetricPublicKey) k;
+
+ 			ASymmetricAuthentifiedSignatureCheckerAlgorithm checker=new ASymmetricAuthentifiedSignatureCheckerAlgorithm(public_key_for_signature);
 			if (!checker.verify(public_key_for_encryption_bytes, signedPublicKey))
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			

@@ -258,7 +258,8 @@ public class SerializationTools {
 			byte[] k=readBytes(in, MAX_KEY_SIZE, false);
 			try
 			{
-				assert k != null;
+				if (k == null)
+					throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 				return Key.decode(k);
 			}
 			catch(Exception e)
