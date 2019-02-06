@@ -1,1 +1,1 @@
-1.9.1-Stable
+1.9.2-Stable

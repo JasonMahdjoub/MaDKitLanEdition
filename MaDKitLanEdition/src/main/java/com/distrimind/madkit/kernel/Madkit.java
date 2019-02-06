@@ -121,8 +121,8 @@ final public class Madkit {
 		Calendar c = Calendar.getInstance();
 		c.set(2015, Calendar.MAY, 22);
 		Calendar c2 = Calendar.getInstance();
-		c2.set(2019, Calendar.JANUARY, 18);
-		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)1, (short)9, (short)1, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
+		c2.set(2019, Calendar.FEBRUARY, 5);
+		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)1, (short)9, (short)2, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
 		try {
 
 			InputStream is = Madkit.class.getResourceAsStream("build.txt");
@@ -144,8 +144,16 @@ final public class Madkit {
 			VERSION.addDeveloper(new PersonDeveloper("Ferber", "Jacques", c.getTime()));
 
 			c = Calendar.getInstance();
+			c.set(2019, Calendar.FEBRUARY, 5);
+			Description d = new Description((short)1, (short)9, (short)2, Version.Type.Stable, (short)1, c.getTime());
+			d.addItem("Update OOD to 2.0.0 Beta 97.");
+			d.addItem("OOD - Security fix : disable cache for tables that use secret ou private keys");
+			d.addItem("OOD - Security improvement : add Field.disableCache property");
+
+
+			c = Calendar.getInstance();
 			c.set(2019, Calendar.JANUARY, 18);
-			Description d = new Description((short)1, (short)9, (short)1, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)1, (short)9, (short)1, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Update OOD to 2.0.0 Beta 95.");
 			d.addItem("Set default OOD driver to H2 database.");
 
