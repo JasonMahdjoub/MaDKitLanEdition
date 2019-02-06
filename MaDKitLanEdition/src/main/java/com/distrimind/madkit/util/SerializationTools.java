@@ -137,11 +137,11 @@ public class SerializationTools {
 		}
 	}
 	
-	public static void writeBytes(final DataOutput oos, byte tab[], int sizeMax, boolean supportNull) throws IOException
+	public static void writeBytes(final DataOutput oos, byte[] tab, int sizeMax, boolean supportNull) throws IOException
 	{
 		writeBytes(oos, tab, 0, tab==null?0:tab.length, sizeMax, supportNull);
 	}
-	public static void writeBytes(final DataOutput oos, byte tab[], int off, int size, int sizeMax, boolean supportNull) throws IOException
+	public static void writeBytes(final DataOutput oos, byte[] tab, int off, int size, int sizeMax, boolean supportNull) throws IOException
 	{
 		if (tab==null)
 		{
@@ -162,11 +162,11 @@ public class SerializationTools {
 			oos.writeShort(tab.length);
 		oos.write(tab, off, size);
 	}
-	public static void writeBytes2D(final DataOutput oos, byte tab[][], int sizeMax1,int sizeMax2, boolean supportNull1, boolean supportNull2) throws IOException
+	public static void writeBytes2D(final DataOutput oos, byte[][] tab, int sizeMax1, int sizeMax2, boolean supportNull1, boolean supportNull2) throws IOException
 	{
 		writeBytes2D(oos, tab, 0, tab==null?0:tab.length, sizeMax1, sizeMax2, supportNull1, supportNull2);
 	}
-	public static void writeBytes2D(final DataOutput oos, byte tab[][], int off, int size, int sizeMax1, int sizeMax2,  boolean supportNull1, boolean supportNull2) throws IOException
+	public static void writeBytes2D(final DataOutput oos, byte[][] tab, int off, int size, int sizeMax1, int sizeMax2, boolean supportNull1, boolean supportNull2) throws IOException
 	{
 		if (tab==null)
 		{
@@ -299,7 +299,8 @@ public class SerializationTools {
 			byte[] k=readBytes(in, MAX_KEY_SIZE*2, false);
 			try
 			{
-				assert k != null;
+				if (k==null)
+					throw new MessageSerializationException(Integrity.FAIL);
 				return ASymmetricKeyPair.decode(k);
 			}
 			catch(Exception e)
@@ -314,7 +315,7 @@ public class SerializationTools {
 			return null;
 		}
 	}
-	public static void writeObjects(final ObjectOutput oos, Object tab[], int sizeMax, boolean supportNull) throws IOException
+	public static void writeObjects(final ObjectOutput oos, Object[] tab, int sizeMax, boolean supportNull) throws IOException
 	{
 		if (tab==null)
 		{
@@ -366,7 +367,7 @@ public class SerializationTools {
 		return tab;
 		
 	}
-	public static void writeExternalizableAndSizables(final ObjectOutput oos, ExternalizableAndSizable tab[], int sizeMaxBytes, boolean supportNull) throws IOException
+	public static void writeExternalizableAndSizables(final ObjectOutput oos, ExternalizableAndSizable[] tab, int sizeMaxBytes, boolean supportNull) throws IOException
 	{
 		if (tab==null)
 		{
@@ -472,7 +473,9 @@ public class SerializationTools {
 			byte[] address=readBytes(ois, 20, false);
 			try
 			{
-				assert address != null;
+				if (address==null)
+					throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+
 				return InetAddress.getByAddress(address);
 			}
 			catch(Exception e)
@@ -539,7 +542,6 @@ public class SerializationTools {
 		SerializationTools.writeString(oos, e.name(), 1000, false);
 	}
 	public final static int MAX_CLASS_LENGTH=16396;
-	@SuppressWarnings("unchecked")
 	public static Enum<?> readEnum(final DataInput ois, boolean supportNull) throws IOException, ClassNotFoundException
 	{
 		if (ois.readBoolean())
@@ -552,7 +554,8 @@ public class SerializationTools {
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			try
 			{
-				assert value != null;
+				if (value==null)
+					throw new MessageSerializationException(Integrity.FAIL);
 				return Enum.valueOf(c, value);
 			}
 			catch(ClassCastException e)
@@ -596,7 +599,8 @@ public class SerializationTools {
 		}
 		oos.writeBoolean(true);
 		SerializationTools.writeString(oos, clazz.getName(), MAX_CLASS_LENGTH, false);
-		assert e != null;
+		if (e==null)
+			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		e.writeExternal(oos);
 		
 	}
@@ -827,7 +831,7 @@ public class SerializationTools {
 		}
 		else if (o instanceof byte[][])
 		{
-			byte tab[][]=((byte[][])o);
+			byte[][] tab = ((byte[][]) o);
 			int res=sizeMax>Short.MAX_VALUE?4:2;
 			for (byte[] b : tab)
 				res+=2+(b==null?0:b.length);
@@ -846,7 +850,7 @@ public class SerializationTools {
 		}
 		else if (o instanceof Object[])
 		{
-			Object tab[]=(Object[])o;
+			Object[] tab = (Object[]) o;
 			int size=sizeMax>Short.MAX_VALUE?4:2;
 			for (Object so : tab)
 			{

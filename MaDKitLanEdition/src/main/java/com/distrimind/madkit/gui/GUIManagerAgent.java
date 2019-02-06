@@ -248,7 +248,8 @@ class GUIManagerAgent extends Agent {
 						jf.setLocation(checkLocation(jf));
 						jf.setVisible(true);
 					} else {
-                        assert af != null;
+                        if (af==null)
+                        	throw new NullPointerException();
                         af.setLocation(checkLocation(af));
 						af.setVisible(true);
 					}

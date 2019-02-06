@@ -736,7 +736,9 @@ class TransferAgent extends AgentFakeThread {
 		public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 			super.readExternal(in);
 			inetSocketAddress=SerializationTools.readInetSocketAddress(in, false);
-            assert inetSocketAddress != null;
+			if (inetSocketAddress==null)
+				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+
             if (inetSocketAddress.getPort() < 0)
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		}

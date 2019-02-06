@@ -858,7 +858,9 @@ public class MadkitProperties extends MultiFormatProperties {
      * @throws PropertiesParseException if the property file parsing failed
      */
 	public void saveConfiguration(File file) throws IOException, PropertiesParseException {
-		assert file!=null;
+		if (file==null)
+			throw new NullPointerException();
+
         prepareCurrentRandomSeedsForBackup();
 		save(file, reference);
 	}

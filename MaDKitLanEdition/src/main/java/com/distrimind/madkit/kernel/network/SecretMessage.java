@@ -72,7 +72,9 @@ final class SecretMessage extends KernelAddressNegociationMessage {
 	@Override
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		secretMessage=SerializationTools.readBytes(in, secretMessageSize, false);
-		assert secretMessage != null;
+		if (secretMessage==null)
+			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+
 		if (secretMessage.length != secretMessageSize)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		Object o=SerializationTools.readExternalizableAndSizable(in, true);
@@ -130,7 +132,7 @@ final class SecretMessage extends KernelAddressNegociationMessage {
 		if (o == this)
 			return true;
 		if (o instanceof SecretMessage) {
-			byte b[] = ((SecretMessage) o).secretMessage;
+			byte[] b = ((SecretMessage) o).secretMessage;
 			if (b == null)
 				return false;
 			if (secretMessage.length != b.length)

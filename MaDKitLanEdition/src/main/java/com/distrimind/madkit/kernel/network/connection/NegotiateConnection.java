@@ -8,6 +8,7 @@ import java.io.ObjectOutput;
 import java.util.HashMap;
 import java.util.Map;
 
+@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public class NegotiateConnection extends AskConnection {
     private Map<Integer, Integer> priorities;
 
@@ -18,7 +19,8 @@ public class NegotiateConnection extends AskConnection {
     }
     public NegotiateConnection(boolean _you_are_asking, Map<Integer, Integer> priorities) {
         super(_you_are_asking);
-        assert priorities!=null;
+        if (priorities==null)
+            throw new NullPointerException();
         this.priorities=priorities;
     }
 

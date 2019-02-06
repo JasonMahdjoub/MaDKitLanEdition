@@ -304,7 +304,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 						return new ConnectionFinished(distant_inet_address, ConnectionClosedReason.CONNECTION_ANOMALY);
 					}
 					keyAgreementForSignature.receiveData(kadm.getData());
-					byte data[]=null;
+					byte[] data = null;
 					if (!keyAgreementForSignature.hasFinishedSend())
 						data=keyAgreementForSignature.getDataToSend();
 					doNotTakeIntoAccountNextState=false;
@@ -364,9 +364,10 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 				try
 				{
 					KeyAgreementDataMessage kadm=(KeyAgreementDataMessage)_m;
+
 					assert keyAgreementForEncryption != null;
 					keyAgreementForEncryption.receiveData(kadm.getData());
-					byte data[]=null;
+					byte[] data = null;
 					if (!keyAgreementForEncryption.hasFinishedSend())
 						data=keyAgreementForEncryption.getDataToSend();
 					doNotTakeIntoAccountNextState=false;

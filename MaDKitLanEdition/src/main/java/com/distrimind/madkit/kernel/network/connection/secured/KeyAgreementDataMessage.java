@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
+import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.madkit.kernel.network.connection.ConnectionMessage;
 import com.distrimind.madkit.util.SerializationTools;
@@ -72,7 +73,8 @@ public class KeyAgreementDataMessage extends ConnectionMessage {
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		int totalSize=NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
 		data=SerializationTools.readBytes(in, totalSize, false);
-		assert data != null;
+		if (data==null)
+			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		materialKey=SerializationTools.readBytes(in, totalSize-data.length, true);
 	}
 

@@ -998,7 +998,7 @@ class MadkitKernel extends Agent {
 	}
 
 	void informHooks(AgentActionEvent action, Object parameter) {
-		Object o[] = new Object[1];
+		Object[] o = new Object[1];
 		o[0] = parameter;
 		informHooks(action, o);
 
@@ -1397,7 +1397,7 @@ class MadkitKernel extends Agent {
 
 	AgentAddress getAgentWithRole(AbstractAgent requester, AbstractGroup group, String role) {
 		try {
-			Group groups[] = getRepresentedGroups(group, role);
+			Group[] groups = getRepresentedGroups(group, role);
 			ArrayList<AgentAddress> laa = new ArrayList<>(groups.length);
 			for (Group g : groups) {
 				AgentAddress aa = getAnotherRolePlayer(requester, g, role);
@@ -1438,7 +1438,7 @@ class MadkitKernel extends Agent {
 		if (role == null)
 			throw new NullPointerException("role");
 		// Group groups[]=group.getRepresentedGroups(kernelAddress);
-		Group groups[] = group.getRepresentedGroups(kernelAddress);
+		Group[] groups = group.getRepresentedGroups(kernelAddress);
 		if (groups.length == 0) {
 			if (group instanceof Group) {
 				if (role.equals(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE)) {
@@ -1570,7 +1570,7 @@ class MadkitKernel extends Agent {
 			messageToSend.setNeedReply(true);
 		}
 		messageToSend.getConversationID().setOrigin(kernelAddress);
-		Group representedGroups[];
+		Group[] representedGroups;
 		try {
 			representedGroups = getRepresentedGroups(group, role);
 			for (Group g : representedGroups) {
@@ -1687,7 +1687,9 @@ class MadkitKernel extends Agent {
 				m.getConversationID().setOrigin(kernelAddress);
                 LocalLanMessage bllm = MadkitNetworkAccess.getBroadcastLocalLanMessage(m, _destination_groups,
 						_destination_role, _agentAddressesSender);
-                assert bllm != null;
+                if (bllm==null)
+                	throw new NullPointerException();
+
                 ((Message)Objects.requireNonNull(bllm)).setSender(netEmmiter);
                 ((Message)bllm).setReceiver(netAgent);
 				netAgent.getAgent().receiveMessage(bllm);
@@ -1747,7 +1749,9 @@ class MadkitKernel extends Agent {
 			try {
 
                 DirectLocalLanMessage dllm = MadkitNetworkAccess.getDirectLocalLanMessageInstance(m);
-                assert dllm != null;
+                if (dllm==null)
+                	throw new NullPointerException();
+
                 ((Message)Objects.requireNonNull(dllm)).setSender(netEmmiter);
                 ((Message)dllm).setReceiver(netAgent);
 				netAgent.getAgent().receiveMessage(dllm);
@@ -3515,8 +3519,8 @@ class MadkitKernel extends Agent {
 		public void potentialChangementInGroups() {
 			// detect changement
 			boolean change = false;
-			Group gps[] = group == null ? new Group[0] : group.getRepresentedGroups(kernel.getKernelAddress());
-			Group current_groups[] = groups.get();
+			Group[] gps = group == null ? new Group[0] : group.getRepresentedGroups(kernel.getKernelAddress());
+			Group[] current_groups = groups.get();
 			if (current_groups != gps && !(current_groups != null && current_groups.length == 0 && gps.length == 0)) {
 				change = true;
 			}
@@ -3740,7 +3744,9 @@ abstract class AgentsJob implements Callable<Void>, Cloneable {
 		} catch (CloneNotSupportedException e) {
 			// cannot be
 		}
-        assert aj != null;
+		if (aj==null)
+			throw new NullPointerException();
+
         aj.list = l;
 		return aj;
 	}

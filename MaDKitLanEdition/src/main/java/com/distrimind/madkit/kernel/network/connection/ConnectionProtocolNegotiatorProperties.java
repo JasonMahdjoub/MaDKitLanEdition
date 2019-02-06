@@ -89,8 +89,10 @@ public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolPr
      * @throws ConnectionException if the limit of connection protocols have been reached
      * @throws IllegalArgumentException if the connection protocol is incompatible with presents connection protocols (see {@link #needsServerSocketImpl()}, {@link #supportBidirectionalConnectionInitiativeImpl()}, {@link #needsServerSocketImpl()}, {@link #canBeServer()})
      */
+    @SuppressWarnings("UnusedReturnValue")
     public int addConnectionProtocol(ConnectionProtocolProperties<?> cpp, int priority) throws ConnectionException {
-        assert cpp!=null;
+        if (cpp==null)
+            throw new NullPointerException();
         if (!connectionProtocolProperties.isEmpty())
         {
             if (needsServerSocketImpl()!=cpp.needsServerSocketImpl() ||

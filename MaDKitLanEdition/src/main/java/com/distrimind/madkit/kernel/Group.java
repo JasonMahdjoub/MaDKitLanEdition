@@ -1500,7 +1500,9 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 				return this;
 			if (_group.length == 1 && _group[0].contains("/"))
 				_group = getGroupsStringFromPath(_group[0]);
-            assert _group != null;
+			if (_group==null)
+				throw new NullPointerException();
+
             return getGroup(_isDistributed, _theIdentifier, 0, _isReserved, forceReserved, _group);
 		}
 

@@ -132,9 +132,10 @@ public class HostIP extends AbstractIP {
 	@Override
 	public Inet6Address getInet6Address() {
 		try {
-			InetAddress ias[] = InetAddress.getAllByName(host);
+			InetAddress[] ias = InetAddress.getAllByName(host);
 			ArrayList<Inet6Address> res = new ArrayList<>(ias == null ? 0 : ias.length);
-			assert ias != null;
+			if (ias==null)
+				throw new NullPointerException();
 			for (InetAddress ia : ias) {
 				if (ia instanceof Inet6Address)
 					res.add((Inet6Address) ia);
@@ -154,9 +155,10 @@ public class HostIP extends AbstractIP {
 	@Override
 	public Inet4Address getInet4Address() {
 		try {
-			InetAddress ias[] = InetAddress.getAllByName(host);
+			InetAddress[] ias = InetAddress.getAllByName(host);
 			ArrayList<Inet4Address> res = new ArrayList<>(ias == null ? 0 : ias.length);
-			assert ias != null;
+			if (ias==null)
+				throw new NullPointerException();
 			for (InetAddress ia : ias) {
 				if (ia instanceof Inet4Address)
 					res.add((Inet4Address) ia);
@@ -187,13 +189,13 @@ public class HostIP extends AbstractIP {
 	public Inet6Address[] getInet6Addresses() {
 		try {
 
-			InetAddress ias[] = InetAddress.getAllByName(host);
+			InetAddress[] ias = InetAddress.getAllByName(host);
 			int size = 0;
 			for (InetAddress ia : ias)
 				if (ia instanceof Inet6Address)
 					++size;
 
-			Inet6Address res[] = new Inet6Address[size];
+			Inet6Address[] res = new Inet6Address[size];
 			size = 0;
 			for (InetAddress ia : ias)
 				if (ia instanceof Inet6Address)
@@ -208,13 +210,13 @@ public class HostIP extends AbstractIP {
 	public Inet4Address[] getInet4Addresses() {
 		try {
 
-			InetAddress ias[] = InetAddress.getAllByName(host);
+			InetAddress[] ias = InetAddress.getAllByName(host);
 			int size = 0;
 			for (InetAddress ia : ias)
 				if (ia instanceof Inet4Address)
 					++size;
 
-			Inet4Address res[] = new Inet4Address[size];
+			Inet4Address[] res = new Inet4Address[size];
 			size = 0;
 			for (InetAddress ia : ias)
 				if (ia instanceof Inet4Address)

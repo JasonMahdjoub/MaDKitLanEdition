@@ -37,17 +37,17 @@
  */
 package com.distrimind.madkit.simulation.activator;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.AbstractGroup;
 import com.distrimind.madkit.kernel.Activator;
 import com.distrimind.madkit.kernel.Scheduler;
 import com.distrimind.madkit.simulation.SimulationException;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * An activator that invokes a single method with no parameters on a group of
@@ -153,7 +153,9 @@ public class GenericBehaviorActivator<A extends AbstractAgent> extends Activator
 				}
 				try {
 					Thread.currentThread().setName(a.getAgentThreadName(a.getState()));
-					assert cachedM != null;
+					if (cachedM==null)
+						throw new NullPointerException();
+
 					cachedM.invoke(a);
 				} catch (IllegalAccessException e) {
 					throw new SimulationException(toString(), e);

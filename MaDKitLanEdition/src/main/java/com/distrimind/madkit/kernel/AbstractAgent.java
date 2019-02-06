@@ -3194,7 +3194,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		 */
 		TERMINATED(ENDING);
 
-		private final State included_states[];
+		private final State[] included_states;
 
 		private int previousState;
 
@@ -3718,8 +3718,9 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 				break;
 			}
 		}
+		if (element==null)
+			throw new NullPointerException();
 
-        assert element != null;
         final ArrayList<String> arguments = new ArrayList<>(Arrays.asList("--launchAgents",
 				"{" + element.getClassName() + "," + createFrame + "," + nbOfInstances + "}"));
 		if (args != null) {

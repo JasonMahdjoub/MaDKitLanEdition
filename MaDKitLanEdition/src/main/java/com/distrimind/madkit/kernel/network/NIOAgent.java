@@ -275,7 +275,7 @@ final class NIOAgent extends Agent {
         long limit=getMaximumGlobalDownloadSpeedInBytesPerSecond()*2;
         if (limit!=Integer.MAX_VALUE)
         {
-            double l=limit;
+            @SuppressWarnings("UnnecessaryLocalVariable") double l=limit;
 
             if (realTimeGlobalDownloadStat.isOneCycleDone()) {
                 double v = ((double) realTimeGlobalDownloadStat.getNumberOfIndentifiedBytes()) / realTimeDownloadStatDuration ;
@@ -295,7 +295,7 @@ final class NIOAgent extends Agent {
 
         if (limit!=Integer.MAX_VALUE)
         {
-            double l=limit;
+            @SuppressWarnings("UnnecessaryLocalVariable") double l=limit;
 
             if (realTimeGlobalUploadStat.isOneCycleDone()) {
 
@@ -535,11 +535,11 @@ final class NIOAgent extends Agent {
 						if (multicastToRemove)
 							personal_datagram_channels_per_ni_address.get(addr.getAddress()).closeConnection(false);
 					}
-				} else if (m instanceof UpnpIGDAgent.NetworkInterfaceInformationMessage) {
+				} /*else if (m instanceof UpnpIGDAgent.NetworkInterfaceInformationMessage) {
 					// TODO manage network interface information, especially the deconnection
 					// information (for now, the deconnection should be triggered by the
 					// socketchannel)
-				} else if (m instanceof AskForConnectionMessage) {
+				} */else if (m instanceof AskForConnectionMessage) {
 					try {
 						if (logger != null && logger.isLoggable(Level.FINER))
 							logger.finer("Receiving : " + m);
@@ -1486,8 +1486,9 @@ final class NIOAgent extends Agent {
 					final AtomicReference<TransfertException> exception=new AtomicReference<>();
 					if (!hasData.get() || validData.get())
 						return hasData.get();
+				if (first==null)
+					throw new NullPointerException();
 
-                assert first != null;
                 NIOAgent.this.wait(new LockerCondition(first.getLocker()) {
 						
 						@Override
@@ -2019,7 +2020,9 @@ final class NIOAgent extends Agent {
 						try {
 							if (sc.socketChannel.getLocalAddress().equals(s.address)) {
 								InetSocketAddress isa2 = (InetSocketAddress) sc.socketChannel.getRemoteAddress();
-                                assert isa != null;
+								if (isa==null)
+									throw new NullPointerException();
+
                                 if (isa.equals(isa2)) {
 									found = true;
 									break;
@@ -2034,7 +2037,8 @@ final class NIOAgent extends Agent {
 						if (!stoping) {
 							for (AgentAddress aa : getAgentsWithRole(LocalCommunity.Groups.LOCAL_NETWORKS,
 									LocalCommunity.Roles.LOCAL_NETWORK_ROLE)) {
-                                assert isa != null;
+								if (isa==null)
+									throw new NullPointerException();
                                 sendMessageWithRole(aa,
                                         new ConnectionStatusMessage(ConnectionStatusMessage.Type.DISCONNECT,
                                                 new DoubleIP(isa), isa, s.address, cs),
@@ -2236,14 +2240,19 @@ final class NIOAgent extends Agent {
 									((TryDirectConnection) pc.getAskerMessage().getJoinedPiece()).getIDTransfer())),
 							LocalCommunity.Roles.NIO_ROLE);
 				}
-				else if (pc.getAskerMessage().getOriginalSender()!=null)
-				{
-					if (reason==null)
-						reason=ConnectionClosedReason.IP_NOT_REACHED;
-					sendMessageWithRole(pc.getAskerMessage().getOriginalSender(),
-							new ConnectionStatusMessage(ConnectionStatusMessage.Type.DISCONNECT, pc.getIP(), pc.getAskerMessage().getChoosenIP(), pc.getAskerMessage().interface_address, reason, pc.getAskerMessage().getNumberOfAnomalies(), pc.getAskerMessage().getTimeUTCOfAnomaliesCycle()),
-							LocalCommunity.Roles.NIO_ROLE);
+				else {
+					if (pc.getAskerMessage()==null)
+						throw new NullPointerException();
 
+					if (pc.getAskerMessage().getOriginalSender()!=null)
+					{
+						if (reason==null)
+							reason=ConnectionClosedReason.IP_NOT_REACHED;
+						sendMessageWithRole(pc.getAskerMessage().getOriginalSender(),
+								new ConnectionStatusMessage(ConnectionStatusMessage.Type.DISCONNECT, pc.getIP(), pc.getAskerMessage().getChoosenIP(), pc.getAskerMessage().interface_address, reason, pc.getAskerMessage().getNumberOfAnomalies(), pc.getAskerMessage().getTimeUTCOfAnomaliesCycle()),
+								LocalCommunity.Roles.NIO_ROLE);
+
+					}
 				}
 				it.remove();
 				return;

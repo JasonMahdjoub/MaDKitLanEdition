@@ -89,7 +89,9 @@ class JPakeMessage extends AccessMessage{
 		int globalSize=NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
 		ExternalizableAndSizable[] tab = SerializationTools.readExternalizableAndSizables(in, globalSize, false);
 		int totalSize=1;
-		assert tab != null;
+		if (tab==null)
+			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+
 		identifiers=new Identifier[tab.length];
 		for (int i=0;i<tab.length;i++)
 		{

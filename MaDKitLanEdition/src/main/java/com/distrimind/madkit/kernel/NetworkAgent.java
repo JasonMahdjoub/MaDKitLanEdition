@@ -111,7 +111,9 @@ public final class NetworkAgent extends AgentFakeThread {
 		if (getMadkitConfig().networkProperties.upnpIGDEnabled
 				|| getMadkitConfig().networkProperties.networkInterfaceScan) {
 			AbstractAgent aa = MadkitNetworkAccess.getUpngIDGAgent(this);
-			assert aa != null;
+			if (aa==null)
+				throw new NullPointerException();
+
 			if (aa.getState() == State.NOT_LAUNCHED)
 				launchAgent(aa);
 		}
