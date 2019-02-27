@@ -405,17 +405,7 @@ public class ServerSecuredProcotolPropertiesWithKnownPublicKey
 	 */
 	private Map<Integer, Short> symmetricEncryptionKeySizeBits = new HashMap<>();
 
-	/**
-	 * Default duration of a public key before being regenerated. Must be greater or
-	 * equal than 0.
-	 */
-	public final long defaultASymmetricKeyExpirationMs = 15552000000L;
 
-	/**
-	 * The duration of a public key before being regenerated. Must be greater or
-	 * equal than 0.
-	 */
-	public long aSymmetricKeyExpirationMs = defaultASymmetricKeyExpirationMs;
 
 	private boolean checkKeyPairs(Map<Integer, ASymmetricKeyPair> keyPairs) throws ConnectionException
 	{

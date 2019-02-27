@@ -49,7 +49,6 @@ import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.connection.access.*;
 import com.distrimind.util.crypto.*;
 
-import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
 import gnu.vm.jgnu.security.NoSuchAlgorithmException;
 import gnu.vm.jgnu.security.NoSuchProviderException;
 
@@ -198,13 +197,13 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 
 			@Override
 			public Identifier localiseIdentifier(Identifier _identifier) {
-				/*if (_identifier.getHostIdentifier().isAutoIdentifiedHostWithPublicKey())
+				/*if (_identifier.getHostIdentifier().isAutoIdentifiedCloudWithPublicKey())
 					return _identifier;*/
 				for (IdentifierPassword idpw : identifersAndPasswords) {
 					if (idpw.getIdentifier().getCloudIdentifier().equals(_identifier.getCloudIdentifier()))
 						return idpw.getIdentifier();
 				}
-				if (_identifier.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey())
+				if (_identifier.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
 					return new Identifier(_identifier.getCloudIdentifier(), HostIdentifier.getNullHostIdentifierSingleton());
 				return null;
 			}
@@ -223,7 +222,7 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 
 			@Override
 			public PasswordKey getPassword(Identifier _identifier) {
-				if (_identifier.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey())
+				if (_identifier.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
 					return null;
 				for (IdentifierPassword idpw : identifersAndPasswords) {
 					if (idpw.getIdentifier().getCloudIdentifier().equals(_identifier.getCloudIdentifier()))

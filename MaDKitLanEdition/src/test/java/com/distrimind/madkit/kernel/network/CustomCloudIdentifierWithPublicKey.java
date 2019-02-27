@@ -95,7 +95,7 @@ public class CustomCloudIdentifierWithPublicKey extends CloudIdentifier {
     }
 
     @Override
-    public boolean isAutoIdentifiedHostWithPublicKey() {
+    public boolean isAutoIdentifiedCloudWithPublicKey() {
         return true;
     }
 
@@ -105,12 +105,12 @@ public class CustomCloudIdentifierWithPublicKey extends CloudIdentifier {
     }
 
     @Override
-    public ASymmetricPublicKey getHostPublicKey() {
+    public ASymmetricPublicKey getCloudPublicKey() {
         return publicKey;
     }
 
     @Override
-    public ASymmetricKeyPair getHostKeyPair() {
+    public ASymmetricKeyPair getCloudKeyPair() {
         return keyPair;
     }
 

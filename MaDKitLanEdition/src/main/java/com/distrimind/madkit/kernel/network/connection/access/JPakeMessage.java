@@ -135,7 +135,7 @@ class JPakeMessage extends AccessMessage{
 		int i=0;
 		for (Map.Entry<Identifier, P2PLoginAgreement> e : agreements.entrySet())
 		{
-			if (identifiersIsEncrypted && !e.getKey().getCloudIdentifier().isAutoIdentifiedHostWithPublicKey())
+			if (identifiersIsEncrypted && !e.getKey().getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
 				this.identifiers[i] = new EncryptedIdentifier(e.getKey(), random, messageDigest, distantGeneratedSalt);
 			else
 				this.identifiers[i] = e.getKey();
@@ -160,7 +160,7 @@ class JPakeMessage extends AccessMessage{
 		int i=0;
 		for (Map.Entry<Identifier, byte[]> e : jakeMessages.entrySet())
 		{
-			if (identifiersIsEncrypted && !e.getKey().getCloudIdentifier().isAutoIdentifiedHostWithPublicKey())
+			if (identifiersIsEncrypted && !e.getKey().getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
 				this.identifiers[i] = new EncryptedIdentifier(e.getKey(), random, messageDigest, distantGeneratedSalt);
 			else
 				this.identifiers[i] = e.getKey();
@@ -181,11 +181,11 @@ class JPakeMessage extends AccessMessage{
 				if (localId==null)
 					throw new AccessException(new NullPointerException());
 
-				if (localId.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey())
+				if (localId.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
 				{
 					if (!loginData.acceptAutoSignedLogin())
 						continue;
-					P2PLoginAgreement agreement=aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureRequester(random, localId.getCloudIdentifier().getHostKeyPair());
+					P2PLoginAgreement agreement=aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureRequester(random, localId.getCloudIdentifier().getCloudKeyPair());
 					agreements.put(localId, agreement);
 
 				}
@@ -208,7 +208,7 @@ class JPakeMessage extends AccessMessage{
 			int i=0;
 			for (Map.Entry<Identifier, P2PLoginAgreement> e : agreements.entrySet())
 			{
-				if (identifiersIsEncrypted && !e.getKey().getCloudIdentifier().isAutoIdentifiedHostWithPublicKey())
+				if (identifiersIsEncrypted && !e.getKey().getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
 					this.identifiers[i] = new EncryptedIdentifier(e.getKey(), random, messageDigest, distantGeneratedSalt);
 				else
 					this.identifiers[i] = e.getKey();
@@ -256,7 +256,7 @@ class JPakeMessage extends AccessMessage{
 	static void addPairOfIdentifiers(Identifier distantIdentifier, Identifier localID, Collection<PairOfIdentifiers> list)
 	{
 		Identifier toCompare=new Identifier(localID.getCloudIdentifier(), HostIdentifier.getNullHostIdentifierSingleton());
-		if (distantIdentifier.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey() && distantIdentifier.equalsHostIdentifier(localID))
+		if (distantIdentifier.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey() && distantIdentifier.equalsHostIdentifier(localID))
 		{
 			for (PairOfIdentifiers pio : list)
 				if (pio.getLocalIdentifier().equals(localID) && pio.getDistantIdentifier().equalsCloudIdentifier(localID))
@@ -300,7 +300,7 @@ class JPakeMessage extends AccessMessage{
 				if (localID != null) {
 					P2PLoginAgreement jpake;
 					Identifier destID;
-					if (decodedID.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey())
+					if (decodedID.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
 						jpake=jpakes.get(destID=decodedID);
 					else
 						jpake=jpakes.get(destID=localID);
@@ -399,7 +399,7 @@ class JPakeMessage extends AccessMessage{
 
 					P2PLoginAgreement jpake;
 					Identifier destID;
-					if (decodedID.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey())
+					if (decodedID.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
 						jpake=jpakes.get(destID=decodedID);
 					else
 						jpake=jpakes.get(destID=localID);

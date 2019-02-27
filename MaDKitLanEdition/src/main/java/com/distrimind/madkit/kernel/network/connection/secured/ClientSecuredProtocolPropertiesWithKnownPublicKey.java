@@ -231,17 +231,7 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	 */
 	public ASymmetricKeyWrapperType keyWrapper=null;
 	
-	/**
-	 * Default duration of a public key before being regenerated. Must be greater or
-	 * equal than 0.
-	 */
-	public final long defaultASymmetricKeyExpirationMs = 15552000000L;
 
-	/**
-	 * The duration of a public key before being regenerated. Must be greater or
-	 * equal than 0.
-	 */
-	public long aSymmetricKeyExpirationMs = defaultASymmetricKeyExpirationMs;
 
 	private void checkPublicKey(ASymmetricPublicKey publicKey) throws ConnectionException
 	{

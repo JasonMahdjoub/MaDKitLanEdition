@@ -89,9 +89,9 @@ class IdentifiersPropositionMessage extends AccessMessage {
 			if (!(s[i] instanceof Identifier))
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			identifiers[i]=(Identifier)s[i];
-			if (isEncrypted && !identifiers[i].getCloudIdentifier().isAutoIdentifiedHostWithPublicKey() && !(identifiers[i] instanceof EncryptedIdentifier))
+			if (isEncrypted && !identifiers[i].getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey() && !(identifiers[i] instanceof EncryptedIdentifier))
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			if (isEncrypted && identifiers[i].getCloudIdentifier().isAutoIdentifiedHostWithPublicKey() && (identifiers[i] instanceof EncryptedIdentifier))
+			if (isEncrypted && identifiers[i].getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey() && (identifiers[i] instanceof EncryptedIdentifier))
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		}
 		
@@ -113,7 +113,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		isEncrypted = encryptIdentifiers;
 		int index = 0;
 		for (Identifier ip : _id_pws) {
-			if (encryptIdentifiers && !ip.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey())
+			if (encryptIdentifiers && !ip.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
 				identifiers[index++] = new EncryptedIdentifier(ip, cipher);
 			else {
 				identifiers[index++] = ip;
@@ -128,7 +128,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		isEncrypted = encryptIdentifiers;
 		int index = 0;
 		for (Identifier ip : _id_pws) {
-			if (encryptIdentifiers && !ip.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey())
+			if (encryptIdentifiers && !ip.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
 			{
 				identifiers[index++] = new EncryptedIdentifier(ip, random, messageDigest, distantGeneratedSalt);
 			}
@@ -136,9 +136,9 @@ class IdentifiersPropositionMessage extends AccessMessage {
 			{
 				identifiers[index++] = ip;
 			}
-			if (jpakes!=null && ip.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey())
+			if (jpakes!=null && ip.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
 			{
-				jpakes.put(ip, aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureRequester(random, ip.getCloudIdentifier().getHostKeyPair()));
+				jpakes.put(ip, aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureRequester(random, ip.getCloudIdentifier().getCloudKeyPair()));
 			}
 
 		}
@@ -178,32 +178,32 @@ class IdentifiersPropositionMessage extends AccessMessage {
 			for (Identifier id : identifiers) {
 				if (id instanceof EncryptedIdentifier) {
 					Identifier i = loginData.getLocalIdentifier((EncryptedIdentifier) id, messageDigest, localGeneratedSalt);
-					if (i!=null && i.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey() && !loginData.acceptAutoSignedLogin())
+					if (i!=null && i.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey() && !loginData.acceptAutoSignedLogin())
 						continue;
 					//Identifier idLocal=loginData.localiseIdentifier(i);
-					if (i != null && (!i.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey() || i.getCloudIdentifier().getHostKeyPair() != null))
+					if (i != null && (!i.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey() || i.getCloudIdentifier().getCloudKeyPair() != null))
 						res.add(i);
 				}
 				else
 				{
 					Identifier i = loginData.localiseIdentifier(id);
-					if (i!=null && i.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey() && !loginData.acceptAutoSignedLogin())
+					if (i!=null && i.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey() && !loginData.acceptAutoSignedLogin())
 						continue;
 
-					if (i != null && (!i.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey() || i.getCloudIdentifier().getHostKeyPair() != null))
+					if (i != null && (!i.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey() || i.getCloudIdentifier().getCloudKeyPair() != null))
 						res.add(i);
 				}
 			}
 		} else {
 			for(Identifier id : identifiers) {
-				if (id.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey() && !loginData.acceptAutoSignedLogin())
+				if (id.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey() && !loginData.acceptAutoSignedLogin())
 					continue;
 
 				Identifier idLocal=loginData.localiseIdentifier(id);
-				if (idLocal!=null && idLocal.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey() && !loginData.acceptAutoSignedLogin())
+				if (idLocal!=null && idLocal.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey() && !loginData.acceptAutoSignedLogin())
 					continue;
 
-				if (idLocal!=null && (!idLocal.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey() || idLocal.getCloudIdentifier().getHostKeyPair()!=null))
+				if (idLocal!=null && (!idLocal.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey() || idLocal.getCloudIdentifier().getCloudKeyPair()!=null))
 					res.add(idLocal);
 			}
 		}
@@ -296,10 +296,10 @@ class IdentifiersPropositionMessage extends AccessMessage {
 
 		if (localId!=null) {
 
-			if (distantID.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey()) {
+			if (distantID.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey()) {
 				if (!loginData.acceptAutoSignedLogin())
 					return nbAno;
-				if (newIdentifiersToAdd != null && localId.getCloudIdentifier().isAutoIdentifiedHostWithPublicKey() && !localId.getHostIdentifier().equals(HostIdentifier.getNullHostIdentifierSingleton())) {
+				if (newIdentifiersToAdd != null && localId.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey() && !localId.getHostIdentifier().equals(HostIdentifier.getNullHostIdentifierSingleton())) {
 					boolean found = false;
 					if (acceptedIdentifiers != null) {
 
@@ -313,7 +313,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 					}
 				}
 
-				if ((pubKey = distantID.getCloudIdentifier().getHostPublicKey()).getAuthentifiedSignatureAlgorithmType() != null) {
+				if ((pubKey = distantID.getCloudIdentifier().getCloudPublicKey()).getAuthentifiedSignatureAlgorithmType() != null) {
 					P2PLoginAgreement agreement = aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureReceiver(random, pubKey);
 					agreements.put(distantID, agreement);
 				} else

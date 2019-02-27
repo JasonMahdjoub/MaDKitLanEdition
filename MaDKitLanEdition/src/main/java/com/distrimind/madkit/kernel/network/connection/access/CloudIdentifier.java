@@ -81,11 +81,11 @@ public abstract class CloudIdentifier implements ExternalizableAndSizable {
 	 */
 	public abstract byte[] getSaltBytes();
 
-	public abstract boolean isAutoIdentifiedHostWithPublicKey();
+	public abstract boolean isAutoIdentifiedCloudWithPublicKey();
 
-	public abstract ASymmetricPublicKey getHostPublicKey();
+	public abstract ASymmetricPublicKey getCloudPublicKey();
 
-	public abstract ASymmetricKeyPair getHostKeyPair();
+	public abstract ASymmetricKeyPair getCloudKeyPair();
 
 
 }

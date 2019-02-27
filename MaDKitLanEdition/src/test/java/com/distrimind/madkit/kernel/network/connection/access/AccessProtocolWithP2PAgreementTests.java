@@ -875,7 +875,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 			}
 
 			Assert.assertTrue(""+poi, found);
-			/*if (!poi.getDistantIdentifier().getCloudIdentifier().isAutoIdentifiedHostWithPublicKey())
+			/*if (!poi.getDistantIdentifier().getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
 				Assert.assertTrue(""+poi.getDistantIdentifier(), found);
 			else
 				Assert.assertTrue(""+poi.getDistantIdentifier(), !found);*/
