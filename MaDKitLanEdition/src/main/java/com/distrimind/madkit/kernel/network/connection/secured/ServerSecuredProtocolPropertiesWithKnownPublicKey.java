@@ -65,7 +65,7 @@ import gnu.vm.jgnu.security.NoSuchProviderException;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-public class ServerSecuredProcotolPropertiesWithKnownPublicKey
+public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 		extends ConnectionProtocolProperties<ServerSecuredConnectionProtocolWithKnwonPublicKey> {
 
 	/**
@@ -73,7 +73,7 @@ public class ServerSecuredProcotolPropertiesWithKnownPublicKey
 	 */
 	private static final long serialVersionUID = -4979144000199527880L;
 
-	public ServerSecuredProcotolPropertiesWithKnownPublicKey() {
+	public ServerSecuredProtocolPropertiesWithKnownPublicKey() {
 		super(ServerSecuredConnectionProtocolWithKnwonPublicKey.class);
 	}
 
@@ -132,7 +132,7 @@ public class ServerSecuredProcotolPropertiesWithKnownPublicKey
 
 	/**
 	 * Add an encryption profile with a new key pair, etc.
-	 * 
+	 *
 	 * @param keyPairForEncryption
 	 *            the key pair for encryption
 	 * @param symmetricEncryptionType
@@ -142,13 +142,30 @@ public class ServerSecuredProcotolPropertiesWithKnownPublicKey
 	 * @return the encryption profile identifier
 	 */
 	public int addEncryptionProfile(ASymmetricKeyPair keyPairForEncryption, SymmetricEncryptionType symmetricEncryptionType, ASymmetricKeyWrapperType keyWrapper) {
-		return this.addEncryptionProfile(keyPairForEncryption, symmetricEncryptionType,
+		return this.addEncryptionProfile(generateNewKeyPairIdentifier(), keyPairForEncryption, symmetricEncryptionType, keyWrapper);
+
+	}
+	/**
+	 * Add an encryption profile with a new key pair, etc.
+	 *
+	 * @param profileIdentifier the profile identifier
+	 * @param keyPairForEncryption
+	 *            the key pair for encryption
+	 * @param symmetricEncryptionType
+	 *            the symmetric encryption type (if null, use default encryption
+	 *            type)
+	 * @param keyWrapper the key wrapper type
+	 * @return the encryption profile identifier
+	 */
+	public int addEncryptionProfile(int profileIdentifier, ASymmetricKeyPair keyPairForEncryption, SymmetricEncryptionType symmetricEncryptionType, ASymmetricKeyWrapperType keyWrapper) {
+		return this.addEncryptionProfile(profileIdentifier, keyPairForEncryption, symmetricEncryptionType,
 				symmetricEncryptionType == null ? (short) -1 : symmetricEncryptionType.getDefaultKeySizeBits(), keyWrapper, null);
 	}
 
 	/**
 	 * Add an encryption profile with a new key pair, etc.
-	 * 
+	 *
+	 *
 	 * @param keyPairForEncryption
 	 *            the key pair for encryption
 	 * @param symmetricEncryptionType
@@ -162,28 +179,51 @@ public class ServerSecuredProcotolPropertiesWithKnownPublicKey
 	 * @return the encryption profile identifier
 	 */
 	public int addEncryptionProfile(ASymmetricKeyPair keyPairForEncryption,
+									SymmetricEncryptionType symmetricEncryptionType, short symmetricKeySizeBits, ASymmetricKeyWrapperType keyWrapper, SymmetricAuthentifiedSignatureType signatureType) {
+		return addEncryptionProfile(generateNewKeyPairIdentifier(), keyPairForEncryption, symmetricEncryptionType, symmetricKeySizeBits, keyWrapper, signatureType);
+	}
+	/**
+	 * Add an encryption profile with a new key pair, etc.
+	 *
+	 * @param profileIdentifier the profile identifier
+	 * @param keyPairForEncryption
+	 *            the key pair for encryption
+	 * @param symmetricEncryptionType
+	 *            the symmetric encryption type (if null, use default encryption
+	 *            type)
+	 * @param symmetricKeySizeBits
+	 *            the symmetric key size in bits
+	 * @param keyWrapper the key wrapper type
+	 * @param signatureType
+	 *            the signature type (if null, use default signature type)
+	 * @return the encryption profile identifier
+	 */
+	public int addEncryptionProfile(int profileIdentifier, ASymmetricKeyPair keyPairForEncryption,
 			SymmetricEncryptionType symmetricEncryptionType, short symmetricKeySizeBits, ASymmetricKeyWrapperType keyWrapper, SymmetricAuthentifiedSignatureType signatureType) {
 		if (keyPairForEncryption == null)
 			throw new NullPointerException("keyPairForEncryption");
-		keyPairsForEncryption.put(generateNewKeyPairIdentifier(), keyPairForEncryption);
-		validProfiles.put(lastIdentifier, true);
+		if (keyPairsForEncryption.containsKey(profileIdentifier))
+			throw new IllegalArgumentException("The profile identifier is already used");
+		lastIdentifier=profileIdentifier;
+		keyPairsForEncryption.put(profileIdentifier, keyPairForEncryption);
+		validProfiles.put(profileIdentifier, true);
 		if (symmetricEncryptionType == null) {
 			symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
 			symmetricKeySizeBits = symmetricEncryptionType.getDefaultKeySizeBits();
 		}
-		symmetricEncryptionTypes.put(lastIdentifier, symmetricEncryptionType);
-		symmetricEncryptionKeySizeBits.put(lastIdentifier, symmetricKeySizeBits);
+		symmetricEncryptionTypes.put(profileIdentifier, symmetricEncryptionType);
+		symmetricEncryptionKeySizeBits.put(profileIdentifier, symmetricKeySizeBits);
 		if (signatureType == null)
-			signatures.put(lastIdentifier, symmetricEncryptionType.getDefaultSignatureAlgorithm());
+			signatures.put(profileIdentifier, symmetricEncryptionType.getDefaultSignatureAlgorithm());
 		else
-			signatures.put(lastIdentifier, signatureType);
+			signatures.put(profileIdentifier, signatureType);
 		
 		if (keyWrapper==null)
 			keyWrapper=ASymmetricKeyWrapperType.DEFAULT;
-		keyWrappers.put(lastIdentifier, keyWrapper);
+		keyWrappers.put(profileIdentifier, keyWrapper);
 			
 		
-		return lastIdentifier;
+		return profileIdentifier;
 	}
 
 	/**
@@ -387,7 +427,11 @@ public class ServerSecuredProcotolPropertiesWithKnownPublicKey
 	private int lastIdentifier = 0;
 
 	private int generateNewKeyPairIdentifier() {
-		return ++lastIdentifier;
+		++lastIdentifier;
+		for (int k : keyPairsForEncryption.keySet())
+			if (k>lastIdentifier)
+				lastIdentifier=k+1;
+		return lastIdentifier;
 	}
 
 	/**

@@ -47,7 +47,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.logging.Level;
 
-import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolNegotiator;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolNegotiatorProperties;
 import com.distrimind.util.OS;
 import org.junit.Assert;
@@ -65,7 +64,7 @@ import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolPropert
 import com.distrimind.madkit.kernel.network.connection.secured.ClientSecuredProtocolPropertiesWithKnownPublicKey;
 import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties;
 import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolWithKeyAgreementProperties;
-import com.distrimind.madkit.kernel.network.connection.secured.ServerSecuredProcotolPropertiesWithKnownPublicKey;
+import com.distrimind.madkit.kernel.network.connection.secured.ServerSecuredProtocolPropertiesWithKnownPublicKey;
 import com.distrimind.madkit.kernel.network.connection.unsecured.CheckSumConnectionProtocolProperties;
 import com.distrimind.madkit.kernel.network.connection.unsecured.UnsecuredConnectionProtocolProperties;
 import com.distrimind.madkit.kernel.AgentFakeThread;
@@ -186,9 +185,9 @@ public class TransferConnectionTest extends JunitMadkit {
 	private ConnectionProtocolProperties<?> cloneAndChangeConnectionProtocolProperty(
 			ConnectionProtocolProperties<?> cpp) {
 		ConnectionProtocolProperties<?> res = null;
-		if (cpp.getClass() == ServerSecuredProcotolPropertiesWithKnownPublicKey.class) {
-			ServerSecuredProcotolPropertiesWithKnownPublicKey sold = (ServerSecuredProcotolPropertiesWithKnownPublicKey) cpp;
-			ServerSecuredProcotolPropertiesWithKnownPublicKey s = new ServerSecuredProcotolPropertiesWithKnownPublicKey();
+		if (cpp.getClass() == ServerSecuredProtocolPropertiesWithKnownPublicKey.class) {
+			ServerSecuredProtocolPropertiesWithKnownPublicKey sold = (ServerSecuredProtocolPropertiesWithKnownPublicKey) cpp;
+			ServerSecuredProtocolPropertiesWithKnownPublicKey s = new ServerSecuredProtocolPropertiesWithKnownPublicKey();
 			s.addEncryptionProfile(sold.getDefaultKeyPairForEncryption(), 
 					sold.getDefaultSymmetricEncryptionType(), sold.getDefaultSymmetricEncryptionKeySizeBits(), sold.getDefaultKeyWrapper(), sold.getDefaultSignatureType());
 			res = s;

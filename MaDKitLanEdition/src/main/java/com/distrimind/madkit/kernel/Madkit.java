@@ -121,7 +121,7 @@ final public class Madkit {
 		Calendar c = Calendar.getInstance();
 		c.set(2015, Calendar.MAY, 22);
 		Calendar c2 = Calendar.getInstance();
-		c2.set(2019, Calendar.FEBRUARY, 27);
+		c2.set(2019, Calendar.MARCH, 1);
 		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)1, (short)9, (short)6, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
 		try {
 
@@ -145,10 +145,12 @@ final public class Madkit {
 
 
 			c = Calendar.getInstance();
-			c.set(2019, Calendar.FEBRUARY, 27);
+			c.set(2019, Calendar.MARCH, 1);
 			Description d = new Description((short)1, (short)9, (short)6, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Remove obsolete code.");
 			d.addItem("Rename function into HostIdentifier class.");
+			d.addItem("Typo corrections.");
+			d.addItem("Add possibility to specify the profile identifier into class ServerSecuredProtocolPropertiesWithKnownPublicKey.");
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.FEBRUARY, 8);

@@ -82,7 +82,7 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 	protected short secretKeySizeBits;
 	private final SubBlockParser parser;
 
-	protected final ServerSecuredProcotolPropertiesWithKnownPublicKey hproperties;
+	protected final ServerSecuredProtocolPropertiesWithKnownPublicKey hproperties;
 	private final AbstractSecureRandom approvedRandom;
 	final int maximumSignatureSize;
 	boolean firstMessageReceived = false;
@@ -97,7 +97,7 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 			boolean mustSupportBidirectionnalConnectionInitiative) throws ConnectionException {
 		super(_distant_inet_address, _local_interface_address, _subProtocol, sql_connection, mkProperties,cpp,
 				subProtocolLevel, isServer, mustSupportBidirectionnalConnectionInitiative);
-		hproperties = (ServerSecuredProcotolPropertiesWithKnownPublicKey) super.connection_protocol_properties;
+		hproperties = (ServerSecuredProtocolPropertiesWithKnownPublicKey) super.connection_protocol_properties;
 
 		hproperties.checkProperties();
 

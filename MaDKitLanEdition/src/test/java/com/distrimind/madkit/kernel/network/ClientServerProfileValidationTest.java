@@ -1,6 +1,6 @@
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.kernel.network.connection.secured.ServerSecuredProcotolPropertiesWithKnownPublicKey;
+import com.distrimind.madkit.kernel.network.connection.secured.ServerSecuredProtocolPropertiesWithKnownPublicKey;
 import com.distrimind.util.crypto.*;
 import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
 import gnu.vm.jgnu.security.NoSuchAlgorithmException;
@@ -11,7 +11,7 @@ import org.junit.Test;
 public class ClientServerProfileValidationTest {
     @Test
     public void testProfileValidation() throws NoSuchProviderException, NoSuchAlgorithmException, InvalidAlgorithmParameterException {
-        ServerSecuredProcotolPropertiesWithKnownPublicKey server=new ServerSecuredProcotolPropertiesWithKnownPublicKey();
+        ServerSecuredProtocolPropertiesWithKnownPublicKey server=new ServerSecuredProtocolPropertiesWithKnownPublicKey();
         int id=server.generateAndAddEncryptionProfile(SecureRandomType.DEFAULT.getSingleton(null), ASymmetricEncryptionType.DEFAULT, SymmetricEncryptionType.DEFAULT, ASymmetricKeyWrapperType.DEFAULT);
         Assert.assertTrue(server.isValidProfile(id));
         server.invalidateProfile(id);

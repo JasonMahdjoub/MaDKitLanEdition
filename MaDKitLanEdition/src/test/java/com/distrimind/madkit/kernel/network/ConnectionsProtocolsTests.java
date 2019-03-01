@@ -51,7 +51,7 @@ import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.Connec
 import com.distrimind.madkit.kernel.network.connection.secured.ClientSecuredProtocolPropertiesWithKnownPublicKey;
 import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties;
 import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolWithKeyAgreementProperties;
-import com.distrimind.madkit.kernel.network.connection.secured.ServerSecuredProcotolPropertiesWithKnownPublicKey;
+import com.distrimind.madkit.kernel.network.connection.secured.ServerSecuredProtocolPropertiesWithKnownPublicKey;
 import com.distrimind.madkit.kernel.network.connection.unsecured.CheckSumConnectionProtocolProperties;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolNegotiatorProperties;
 import com.distrimind.madkit.kernel.network.connection.unsecured.UnsecuredConnectionProtocolProperties;
@@ -336,7 +336,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		res.add(o);
 
 		o = new ConnectionProtocolProperties<?>[2];
-		ServerSecuredProcotolPropertiesWithKnownPublicKey sp = new ServerSecuredProcotolPropertiesWithKnownPublicKey();
+		ServerSecuredProtocolPropertiesWithKnownPublicKey sp = new ServerSecuredProtocolPropertiesWithKnownPublicKey();
 		ClientSecuredProtocolPropertiesWithKnownPublicKey cp = new ClientSecuredProtocolPropertiesWithKnownPublicKey();
 		ASymmetricKeyPair kpe = ASymmetricEncryptionType.DEFAULT
 				.getKeyPairGenerator(SecureRandomType.DEFAULT.getSingleton(null), (short) 2048).generateKeyPair();
@@ -350,7 +350,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 
 		
 		o = new ConnectionProtocolProperties<?>[2];
-		sp = new ServerSecuredProcotolPropertiesWithKnownPublicKey();
+		sp = new ServerSecuredProtocolPropertiesWithKnownPublicKey();
 		cp = new ClientSecuredProtocolPropertiesWithKnownPublicKey();
 		kpe = ASymmetricEncryptionType.DEFAULT
 				.getKeyPairGenerator(SecureRandomType.DEFAULT.getSingleton(null), (short) 2048).generateKeyPair();
@@ -363,7 +363,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		res.add(o);
 
 		o = new ConnectionProtocolProperties<?>[2];
-		sp = new ServerSecuredProcotolPropertiesWithKnownPublicKey();
+		sp = new ServerSecuredProtocolPropertiesWithKnownPublicKey();
 		cp = new ClientSecuredProtocolPropertiesWithKnownPublicKey();
 		sp.addEncryptionProfile(kpe, SymmetricEncryptionType.DEFAULT, ASymmetricKeyWrapperType.DEFAULT);
 		cp.setEncryptionProfile(sp);

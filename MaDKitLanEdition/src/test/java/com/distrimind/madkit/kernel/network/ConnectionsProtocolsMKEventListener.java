@@ -46,7 +46,7 @@ import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
 import com.distrimind.madkit.kernel.network.connection.secured.ClientSecuredProtocolPropertiesWithKnownPublicKey;
 import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolWithKeyAgreementProperties;
-import com.distrimind.madkit.kernel.network.connection.secured.ServerSecuredProcotolPropertiesWithKnownPublicKey;
+import com.distrimind.madkit.kernel.network.connection.secured.ServerSecuredProtocolPropertiesWithKnownPublicKey;
 import com.distrimind.madkit.kernel.network.connection.unsecured.CheckSumConnectionProtocolProperties;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolNegotiatorProperties;
 import com.distrimind.madkit.kernel.network.connection.unsecured.UnsecuredConnectionProtocolProperties;
@@ -143,7 +143,7 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 		ArrayList<ConnectionsProtocolsMKEventListener> res = new ArrayList<>();
 		res.add(new ConnectionsProtocolsMKEventListener(new UnsecuredConnectionProtocolProperties()));
 
-		ServerSecuredProcotolPropertiesWithKnownPublicKey s = new ServerSecuredProcotolPropertiesWithKnownPublicKey();
+		ServerSecuredProtocolPropertiesWithKnownPublicKey s = new ServerSecuredProtocolPropertiesWithKnownPublicKey();
 
 		encryptionProfileIdentifier = s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.DEFAULT, ASymmetricKeyWrapperType.DEFAULT);
 		if (includeP2PConnectionPossibilityForClients) {
@@ -154,7 +154,7 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 			res.add(new ConnectionsProtocolsMKEventListener(s));
 
 		ConnectionProtocolProperties<?> cpp = new UnsecuredConnectionProtocolProperties();
-		s = new ServerSecuredProcotolPropertiesWithKnownPublicKey();
+		s = new ServerSecuredProtocolPropertiesWithKnownPublicKey();
 		Assert.assertEquals(s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.DEFAULT, ASymmetricKeyWrapperType.DEFAULT), encryptionProfileIdentifier);
 		cpp.subProtocolProperties = s;
 		if (includeP2PConnectionPossibilityForClients) {
@@ -170,10 +170,10 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 
 
 		ConnectionProtocolNegotiatorProperties cpnp=new ConnectionProtocolNegotiatorProperties();
-		s=new ServerSecuredProcotolPropertiesWithKnownPublicKey();
+		s=new ServerSecuredProtocolPropertiesWithKnownPublicKey();
 		Assert.assertEquals(s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.AES_CTR, ASymmetricKeyWrapperType.BC_FIPS_RSA_OAEP_WITH_SHA3_384), encryptionProfileIdentifier);
 		cpnp.addConnectionProtocol(s, 0);
-		s=new ServerSecuredProcotolPropertiesWithKnownPublicKey();
+		s=new ServerSecuredProtocolPropertiesWithKnownPublicKey();
 		Assert.assertEquals(s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.AES_GCM, ASymmetricKeyWrapperType.BC_FIPS_RSA_OAEP_WITH_PARAMETERS_SHA3_512), encryptionProfileIdentifier);
 		cpnp.addConnectionProtocol(s, 1);
 

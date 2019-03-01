@@ -139,7 +139,7 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	 * @param serverProperties
 	 *            the server side properties
 	 */
-	public void setEncryptionProfile(ServerSecuredProcotolPropertiesWithKnownPublicKey serverProperties) {
+	public void setEncryptionProfile(ServerSecuredProtocolPropertiesWithKnownPublicKey serverProperties) {
 		enableEncryption = serverProperties.enableEncryption;
 		setEncryptionProfile(serverProperties.getLastEncryptionProfileIdentifier(),
 				serverProperties.getDefaultKeyPairForEncryption().getASymmetricPublicKey(),
