@@ -114,7 +114,7 @@ Adapt into your build.gradle file, the next code :
 	...
 	dependencies {
 		...
-		compile(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '1.9.5-Stable')
+		compile(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '1.9.6-Stable')
 		...
 	}
 	...
@@ -130,7 +130,7 @@ Adapt into your pom.xml file, the next code :
 			<dependency>
 				<groupId>com.distrimind.madkit</groupId>
 				<artifactId>MaDKitLanEdition</artifactId>
-				<version>1.9.5-Stable</version>
+				<version>1.9.6-Stable</version>
 			</dependency>
 			...
 		</dependencies>
