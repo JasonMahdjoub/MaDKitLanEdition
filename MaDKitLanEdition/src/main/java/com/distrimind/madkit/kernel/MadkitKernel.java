@@ -400,7 +400,7 @@ class MadkitKernel extends Agent {
 		madkitConfig.getApprovedRandomType();
 		madkitConfig.getApprovedRandomTypeForKeys();
 		
-		if (madkitConfig.isDatatabaseEnabled()) {
+		if (madkitConfig.isDatabaseEnabled()) {
 			try {
 				madkitConfig.getDatabaseWrapper().loadDatabase(new DatabaseConfiguration(IPBanned.class.getPackage()),
 						true);

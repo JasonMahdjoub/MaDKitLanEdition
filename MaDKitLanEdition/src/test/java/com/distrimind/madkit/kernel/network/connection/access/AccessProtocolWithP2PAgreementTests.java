@@ -389,7 +389,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 
 	@Before
 	public void activateDatabase() throws DatabaseException {
-		if (mpasker.isDatatabaseEnabled()) {
+		if (mpasker.isDatabaseEnabled()) {
 			mpasker.getDatabaseWrapper().close();
 			mpreceiver.getDatabaseWrapper().close();
 			if (dbfileasker.exists())
@@ -405,7 +405,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 
 	@After
 	public void removeDatabase() throws DatabaseException {
-		if (mpasker.isDatatabaseEnabled()) {
+		if (mpasker.isDatabaseEnabled()) {
 			mpasker.getDatabaseWrapper().close();
 			mpreceiver.getDatabaseWrapper().close();
 			if (dbfileasker.exists())

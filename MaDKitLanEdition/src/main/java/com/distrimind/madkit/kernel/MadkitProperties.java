@@ -190,13 +190,13 @@ public class MadkitProperties extends MultiFormatProperties {
 	 */
 	public boolean console = false;
 
-	public boolean noMadkitConsoleLog = false;
+	//public boolean noMadkitConsoleLog = false;
 
 	public File MadkitLogFile = null;
 
-	public Level orgLogLevel = Level.OFF;
+	//public Level orgLogLevel = Level.OFF;
 
-	public boolean noOrgConsolLog = false;
+	//public boolean noOrgConsolLog = false;
 
 	/**
 	 * Option defining the default agent log level for newly launched agents.
@@ -298,7 +298,7 @@ public class MadkitProperties extends MultiFormatProperties {
 		databaseFactory = df;
 	}
 
-	public boolean isDatatabaseEnabled() {
+	public boolean isDatabaseEnabled() {
 		return databaseFactory != null;
 	}
 
@@ -321,7 +321,7 @@ public class MadkitProperties extends MultiFormatProperties {
 		return databaseFactory.getDatabaseWrapperSingleton();
 	}
 
-	public ArrayList<AgentToLaunch> launchAgents;
+	public ArrayList<AgentToLaunch> launchAgents=null;
 
 	public NetworkProperties networkProperties = new NetworkProperties();
 
