@@ -104,9 +104,9 @@ public class StatsBandwidth {
 	 * @param stat
 	 *            the statistic
 	 * @see RealTimeTransfertStat
-	 * @see NetworkProperties#DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS
-	 * @see NetworkProperties#DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS
-	 * @see NetworkProperties#DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS
+	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS
+	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS
+	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS
 	 */
 	public void putBytesUploadedInRealTime(String key, RealTimeTransfertStat stat) {
 		synchronized (this) {
@@ -122,9 +122,9 @@ public class StatsBandwidth {
 	 *            the key
 	 * @return the removed {@link RealTimeTransfertStat}
 	 * @see RealTimeTransfertStat
-	 * @see NetworkProperties#DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS
-	 * @see NetworkProperties#DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS
-	 * @see NetworkProperties#DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS
+	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS
+	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS
+	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS
 	 */
 	public RealTimeTransfertStat removeBytesUploadedInRealTime(String key) {
 		synchronized (this) {
@@ -139,9 +139,9 @@ public class StatsBandwidth {
 	 * @param key
 	 *            the key
 	 * @see RealTimeTransfertStat
-	 * @see NetworkProperties#DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS
-	 * @see NetworkProperties#DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS
-	 * @see NetworkProperties#DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS
+	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS
+	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS
+	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS
 	 * @return a {@link RealTimeTransfertStat} related LAN upload statistics
 	 */
 	public RealTimeTransfertStat getBytesUploadedInRealTime(String key) {
@@ -206,9 +206,9 @@ public class StatsBandwidth {
 	 * @param stat
 	 *            the statistic
 	 * @see RealTimeTransfertStat
-	 * @see NetworkProperties#DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS
-	 * @see NetworkProperties#DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS
-	 * @see NetworkProperties#DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS
+	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS
+	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS
+	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS
 	 */
 	public void putBytesDownloadedInRealTime(String key, RealTimeTransfertStat stat) {
 		synchronized (this) {
@@ -224,9 +224,9 @@ public class StatsBandwidth {
 	 *            the key
 	 * @return the removed {@link RealTimeTransfertStat}
 	 * @see RealTimeTransfertStat
-	 * @see NetworkProperties#DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS
-	 * @see NetworkProperties#DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS
-	 * @see NetworkProperties#DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS
+	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS
+	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS
+	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS
 	 */
 	public RealTimeTransfertStat removeBytesDownloadedInRealTime(String key) {
 		synchronized (this) {
@@ -241,9 +241,9 @@ public class StatsBandwidth {
 	 * @param key
 	 *            the key
 	 * @see RealTimeTransfertStat
-	 * @see NetworkProperties#DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS
-	 * @see NetworkProperties#DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS
-	 * @see NetworkProperties#DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS
+	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS
+	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS
+	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS
 	 * @return a {@link RealTimeTransfertStat} related LAN upload statistics
 	 */
 	public RealTimeTransfertStat getBytesDownloadedInRealTime(String key) {

@@ -228,7 +228,7 @@ class TransferAgent extends AgentFakeThread {
 				}
 				if (ok) {
 					if (confirmation1 != null && confirmation2 != null) {
-						getMadkitConfig().networkProperties.addIfNecessaryAndGetStatsBandwitdh(this.idTransfer.getID());
+						getMadkitConfig().networkProperties.addIfNecessaryAndGetStatsBandwidth(this.idTransfer.getID());
 
 						sendMessageWithRole(candidate1.getAgentAddress(),
 								new ObjectMessage<>(new TransferConfirmationSystemMessage(null,
@@ -428,7 +428,7 @@ class TransferAgent extends AgentFakeThread {
 
 	protected void resetTransfer() {
 		if (idTransfer != null)
-			getMadkitConfig().networkProperties.removeStatsBandwitdh(this.idTransfer.getID());
+			getMadkitConfig().networkProperties.removeStatsBandwidth(this.idTransfer.getID());
 		candidate1 = null;
 		candidate2 = null;
 		numberOfIntermediatePeers = 0;

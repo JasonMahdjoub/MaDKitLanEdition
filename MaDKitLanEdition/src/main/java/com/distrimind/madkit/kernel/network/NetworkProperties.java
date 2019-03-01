@@ -95,17 +95,17 @@ public class NetworkProperties extends MultiFormatProperties {
 		super(new MultiFormatPropertiesObjectParser());
 		globalStatBandwith = new StatsBandwidth();
 
-        globalStatBandwith.putBytesDownloadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS,
+        globalStatBandwith.putBytesDownloadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS,
                 globalRealTimeTransferStatPerOneSecondForDownload);
-		/*globalStatBandwith.putBytesDownloadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS,
+		/*globalStatBandwith.putBytesDownloadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS,
 				globalRealTimeTransferStatPer30SecondsForDownload);
-		globalStatBandwith.putBytesDownloadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS,
+		globalStatBandwith.putBytesDownloadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS,
 				globalRealTimeTransferStatPer5MinutesForDownload);*/
-        globalStatBandwith.putBytesUploadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS,
+        globalStatBandwith.putBytesUploadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS,
                 globalRealTimeTransferStatPerOneSecondForUpload);
-		/*globalStatBandwith.putBytesUploadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS,
+		/*globalStatBandwith.putBytesUploadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS,
 				globalRealTimeTransferStatPer30SecondsForUpload);
-		globalStatBandwith.putBytesUploadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS,
+		globalStatBandwith.putBytesUploadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS,
 				globalRealTimeTransferStatPer5MinutesForUpload);
 		globalStatBandwith.putBytesUploadedInRealBytes(DEFAULT_STAT_PER_512KB_SEGMENTS,
 				globalTransferSpeedStatPer512SegmentsForUpload);
@@ -913,7 +913,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * @see StatsBandwidth#getBytesDownloadedInRealTime(String)
 	 * @see StatsBandwidth#getBytesUploadedInRealTime(String)
 	 */
-	public static final String DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS = "~~DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS";
+	public static final String DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS = "~~DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS";
 
 	/**
 	 * Tag/key corresponding to real time LAN statistics per segments of 30 seconds
@@ -922,7 +922,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * @see StatsBandwidth#getBytesDownloadedInRealTime(String)
 	 * @see StatsBandwidth#getBytesUploadedInRealTime(String)
 	 */
-	public static final String DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS = "~~DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS";
+	public static final String DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS = "~~DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS";
 
 	/**
 	 * Tag/key corresponding to real time LAN statistics per segments of 5 minutes
@@ -931,7 +931,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * @see StatsBandwidth#getBytesDownloadedInRealTime(String)
 	 * @see StatsBandwidth#getBytesUploadedInRealTime(String)
 	 */
-	public static final String DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS = "~~DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS";
+	public static final String DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS = "~~DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS";
 
 	/*private final TransferSpeedStat globalTransferSpeedStatPer512SegmentsForDownload = new TransferSpeedStat(524288L,
             32768L, 300000L);
@@ -951,18 +951,18 @@ public class NetworkProperties extends MultiFormatProperties {
             300000L, 3000L);*/
 	private final StatsBandwidth globalStatBandwith;
 
-	private void initializeStatsBandwitdh(StatsBandwidth stats) {
-		/*stats.putBytesDownloadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS,
+	private void initializeStatsBandwidth(StatsBandwidth stats) {
+		/*stats.putBytesDownloadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS,
 				new RealTimeTransfertStat(1000L, 200L));*/
-		stats.putBytesDownloadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS,
+		stats.putBytesDownloadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS,
 				new RealTimeTransfertStat(30000L, 3000L));
-		stats.putBytesDownloadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS,
+		stats.putBytesDownloadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS,
 				new RealTimeTransfertStat(300000L, 3000L));
-		/*stats.putBytesUploadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS,
+		/*stats.putBytesUploadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS,
 				new RealTimeTransfertStat(1000L, 200L));*/
-		stats.putBytesUploadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS,
+		stats.putBytesUploadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS,
 				new RealTimeTransfertStat(30000L, 3000L));
-		stats.putBytesUploadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS,
+		stats.putBytesUploadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS,
 				new RealTimeTransfertStat(300000L, 3000L));
 		stats.putBytesUploadedInRealBytes(DEFAULT_STAT_PER_512KB_SEGMENTS,
 				new TransferSpeedStat(524288L, 32768L, 300000L));
@@ -970,17 +970,17 @@ public class NetworkProperties extends MultiFormatProperties {
 				new TransferSpeedStat(524288L, 32768L, 300000L));
 
 		String globalStats = "(For global statistics)";
-		stats.putBytesDownloadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS+ globalStats,
+		stats.putBytesDownloadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS + globalStats,
 				globalRealTimeTransferStatPerOneSecondForDownload);
-		/*stats.putBytesDownloadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS + globalStats,
+		/*stats.putBytesDownloadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS + globalStats,
 				globalRealTimeTransferStatPer30SecondsForDownload);
-		stats.putBytesDownloadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS + globalStats,
+		stats.putBytesDownloadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS + globalStats,
 				globalRealTimeTransferStatPer5MinutesForDownload);*/
-		stats.putBytesUploadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS + globalStats,
+		stats.putBytesUploadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS + globalStats,
 				globalRealTimeTransferStatPerOneSecondForUpload);
-		/*stats.putBytesUploadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS + globalStats,
+		/*stats.putBytesUploadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS + globalStats,
 				globalRealTimeTransferStatPer30SecondsForUpload);
-		stats.putBytesUploadedInRealTime(DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS + globalStats,
+		stats.putBytesUploadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS + globalStats,
 				globalRealTimeTransferStatPer5MinutesForUpload);
 		stats.putBytesUploadedInRealBytes(DEFAULT_STAT_PER_512KB_SEGMENTS + globalStats,
 				globalTransferSpeedStatPer512SegmentsForUpload);
@@ -996,7 +996,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 *            the connection identifier
 	 * @return the corresponding statistics or null if no statistics were found.
 	 */
-	StatsBandwidth addIfNecessaryAndGetStatsBandwitdh(ConnectionIdentifier connectionIdentifier) {
+	StatsBandwidth addIfNecessaryAndGetStatsBandwidth(ConnectionIdentifier connectionIdentifier) {
 		synchronized (transfer_stat_per_network_interface) {
 			if (connectionIdentifier == null)
 				throw new NullPointerException("connectionIdentifier");
@@ -1005,7 +1005,7 @@ public class NetworkProperties extends MultiFormatProperties {
 			if (sb != null)
 				return sb;
 			transfer_stat_per_network_interface.put(connectionIdentifier, sb = new StatsBandwidth());
-			initializeStatsBandwitdh(sb);
+			initializeStatsBandwidth(sb);
 
 			return sb;
 		}
@@ -1018,7 +1018,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 *            the transfer identifier
 	 * @return the corresponding statistics or null if no statistics were found.
 	 */
-	StatsBandwidth addIfNecessaryAndGetStatsBandwitdh(int transferIdentifier) {
+	StatsBandwidth addIfNecessaryAndGetStatsBandwidth(int transferIdentifier) {
 		synchronized (transfer_stat_per_id_transfer) {
 			if (transferIdentifier == TransferAgent.NullIDTransfer.getID())
 				throw new NullPointerException("transferIdentifier is a NullIDTransfer");
@@ -1028,7 +1028,7 @@ public class NetworkProperties extends MultiFormatProperties {
 			if (sb != null)
 				return sb;
 			transfer_stat_per_id_transfer.put(i, sb = new StatsBandwidth());
-			initializeStatsBandwitdh(sb);
+			initializeStatsBandwidth(sb);
 
 			return sb;
 		}
@@ -1041,7 +1041,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 *            the transfer identifier
 	 * @return the corresponding statistics or null if no statistics were found.
 	 */
-	public StatsBandwidth getStatsBandwith(int transferIdentifier) {
+	public StatsBandwidth getStatsBandwidth(int transferIdentifier) {
 		synchronized (transfer_stat_per_id_transfer) {
 			return transfer_stat_per_id_transfer.get(transferIdentifier);
 		}
@@ -1055,7 +1055,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 *            the transfer identifier
 	 * @return the corresponding statistics or null if no statistics were found.
 	 */
-	StatsBandwidth removeStatsBandwitdh(int transferIdentifier) {
+	StatsBandwidth removeStatsBandwidth(int transferIdentifier) {
 		synchronized (transfer_stat_per_id_transfer) {
 			Integer i = transferIdentifier;
 			return transfer_stat_per_id_transfer.remove(i);
@@ -1070,7 +1070,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 *            the connection identifier
 	 * @return the corresponding statistics or null if no statistics were found.
 	 */
-	StatsBandwidth removeStatsBandwitdh(ConnectionIdentifier connectionIdentifier) {
+	StatsBandwidth removeStatsBandwidth(ConnectionIdentifier connectionIdentifier) {
 		synchronized (transfer_stat_per_network_interface) {
 			if (connectionIdentifier == null)
 				throw new NullPointerException("connectionIdentifier");
@@ -1087,7 +1087,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 *            the Madkit kernel
 	 * @return the corresponding statistics or null if no statistics were found.
 	 */
-	StatsBandwidth addIfNecessaryAndGetStatsBandwitdh(KernelAddress kernel_address) {
+	StatsBandwidth addIfNecessaryAndGetStatsBandwidth(KernelAddress kernel_address) {
 		synchronized (transfer_stat_per_kernel_address) {
 			if (kernel_address == null)
 				throw new NullPointerException("kernel_address");
@@ -1096,7 +1096,7 @@ public class NetworkProperties extends MultiFormatProperties {
 			if (sb != null)
 				return sb;
 			transfer_stat_per_kernel_address.put(kernel_address, sb = new StatsBandwidth());
-			initializeStatsBandwitdh(sb);
+			initializeStatsBandwidth(sb);
 
 			return sb;
 		}
@@ -1109,7 +1109,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 *            the Madkit kernel
 	 * @return the corresponding statistics or null if no statistics were found.
 	 */
-	StatsBandwidth removeStatsBandwitdh(KernelAddress kernel_address) {
+	StatsBandwidth removeStatsBandwidth(KernelAddress kernel_address) {
 		synchronized (transfer_stat_per_kernel_address) {
 			if (kernel_address == null)
 				throw new NullPointerException("kernel_address");
@@ -1125,7 +1125,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 *            the connection identifier
 	 * @return the corresponding statistics or null if no statistics were found.
 	 */
-	public StatsBandwidth getStatsBandwith(ConnectionIdentifier connectionIdentifier) {
+	public StatsBandwidth getStatsBandwidth(ConnectionIdentifier connectionIdentifier) {
 		synchronized (transfer_stat_per_network_interface) {
 			return transfer_stat_per_network_interface.get(connectionIdentifier);
 		}
@@ -1138,7 +1138,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 *            the Madkit kernel
 	 * @return the corresponding statistics or null if no statistics were found.
 	 */
-	public StatsBandwidth getStatsBandwith(KernelAddress kernel_address) {
+	public StatsBandwidth getStatsBandwidth(KernelAddress kernel_address) {
 		synchronized (transfer_stat_per_kernel_address) {
 			return transfer_stat_per_kernel_address.get(kernel_address);
 		}
@@ -1149,7 +1149,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * 
 	 * @return the corresponding global statistics
 	 */
-	public StatsBandwidth getGlobalStatsBandwith() {
+	public StatsBandwidth getGlobalStatsBandwidth() {
 		return globalStatBandwith;
 	}
 

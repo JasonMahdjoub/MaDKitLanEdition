@@ -272,7 +272,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 
 	public StatsBandwidth getStatistics() {
 		if (stats.get() == null)
-			stats.set(getMadkitConfig().networkProperties.addIfNecessaryAndGetStatsBandwitdh(
+			stats.set(getMadkitConfig().networkProperties.addIfNecessaryAndGetStatsBandwidth(
 					new ConnectionIdentifier(getTransfertType(), distant_inet_address, local_interface_address)));
 		return stats.get();
 	}
@@ -484,7 +484,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			nbb.unlockSimultaneousConnections(distant_kernel_address);
 
 		cancelTaskTransferNodeChecker();
-		getMadkitConfig().networkProperties.removeStatsBandwitdh(
+		getMadkitConfig().networkProperties.removeStatsBandwidth(
 				new ConnectionIdentifier(getTransfertType(), distant_inet_address, local_interface_address));
 		if (logger != null && logger.isLoggable(Level.FINE))
 			logger.fine(this.getClass().getName() + " (" + this.distant_inet_address + ") killed !");
@@ -1173,7 +1173,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			return null;
 		transfer_ids.removeTransferPropositionSystemMessage(idt.getLocalID());
 		transfer_ids.removeTransferAgentAddress(idt.getLocalID());
-		getMadkitConfig().networkProperties.removeStatsBandwitdh(idt.getLocalID().getID());
+		getMadkitConfig().networkProperties.removeStatsBandwidth(idt.getLocalID().getID());
 		getStatistics().removeTransferAgentStats(idt.getLocalID());
 
 		return idt;
@@ -1431,7 +1431,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 							broadcastDataTowardEachIntermediatePeer(sender, ti, t.getIdTransferDestination(), d);
 						}
 						getStatistics().putTransferAgentStats(t.getYourIDTransfer(), getMadkitConfig().networkProperties
-								.addIfNecessaryAndGetStatsBandwitdh(idDist.getLocalID().getID()));
+								.addIfNecessaryAndGetStatsBandwidth(idDist.getLocalID().getID()));
 
 					}
 
@@ -1769,7 +1769,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			transfer_ids.removeLocal(idLocal.getLocalID());
 			transfer_ids.removeDistant(idDist.getDistantID());
 			getStatistics().removeTransferAgentStats(idLocal.getLocalID());
-			getMadkitConfig().networkProperties.removeStatsBandwitdh(idLocal.getLocalID().getID());
+			getMadkitConfig().networkProperties.removeStatsBandwidth(idLocal.getLocalID().getID());
 			killAgent(indirectAgentSocket);
 			killAgent(dka);
 			TransferClosedSystemMessage tc = new TransferClosedSystemMessage(getTransfertType(),
@@ -1866,7 +1866,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				transfer_ids_to_finalize.putDistant(idDist);
 
 				getStatistics().putTransferAgentStats(idDist.getLocalID(), getMadkitConfig().networkProperties
-						.addIfNecessaryAndGetStatsBandwitdh(idDist.getLocalID().getID()));
+						.addIfNecessaryAndGetStatsBandwidth(idDist.getLocalID().getID()));
 			}
 
 			sendMessageWithRole(aat, new ObjectMessage<>(ti), LocalCommunity.Roles.SOCKET_AGENT_ROLE);
@@ -3285,7 +3285,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			AbstractAgentSocket.this.removeTaskTransferCheckerIfNecessary();
 
 			for (Map.Entry<Integer, InterfacedIDTransfer> e : distant_transfer_ids.entrySet()) {
-				getMadkitConfig().networkProperties.removeStatsBandwitdh(e.getValue().getLocalID().getID());
+				getMadkitConfig().networkProperties.removeStatsBandwidth(e.getValue().getLocalID().getID());
 				AgentAddress aa = transfer_agents.get(e.getValue().getLocalID().getID());
 				if (aa == null) {
 					if (e.getValue().getTransferToAgentAddress() != null)

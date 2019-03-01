@@ -144,7 +144,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		if (distant_kernel_address != null && kernelAddressActivated)
 			networkBlacboard.removeDistantKernelAddressInterfaced(distant_kernel_address);
 		if (stats != null && kernelAddressActivated)
-			getMadkitConfig().networkProperties.removeStatsBandwitdh(distant_kernel_address);
+			getMadkitConfig().networkProperties.removeStatsBandwidth(distant_kernel_address);
 
 		purgeTotalDataQueue();
 
@@ -470,9 +470,9 @@ class DistantKernelAgent extends AgentFakeThread {
 														ExceededDataQueueSize e = globalExeceededDataQueueSize.get();
 														if (isAlive() && e != null && e.isPaused() && e.mustPurge()) {
 															if (getMadkitConfig().networkProperties
-																	.getStatsBandwith(getKernelAddress())
+																	.getStatsBandwidth(getKernelAddress())
 																	.getBytesDownloadedInRealTime(
-																			NetworkProperties.DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS)
+																			NetworkProperties.DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS)
 																	.getNumberOfIndentifiedBytes() == 0) {
 																exeededDataSize.purgeCanceled(DistantKernelAgent.this);
 																processPotentialDDOS();
@@ -1039,7 +1039,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			if (!previous_activated) {
 				// activate the current distant kernel agent
 				kernelAddressActivated = true;
-				stats = getMadkitConfig().networkProperties.addIfNecessaryAndGetStatsBandwitdh(distant_kernel_address);
+				stats = getMadkitConfig().networkProperties.addIfNecessaryAndGetStatsBandwidth(distant_kernel_address);
 
 				if (hasUsableDistantSocketAgent()) {
 					

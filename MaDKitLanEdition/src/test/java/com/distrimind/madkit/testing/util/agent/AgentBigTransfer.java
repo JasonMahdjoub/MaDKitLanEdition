@@ -352,12 +352,12 @@ public class AgentBigTransfer extends AgentFakeThread {
 						System.out.println("\tTransfer speed through stats : "
 								+ (((double) otherStat.getNumberOfIndentifiedBytes())
 										/ ((double) otherStat.getDurationMilli()) * 1000.0));
-					RealTimeTransfertStat globalStatUp = getMadkitConfig().networkProperties.getGlobalStatsBandwith()
+					RealTimeTransfertStat globalStatUp = getMadkitConfig().networkProperties.getGlobalStatsBandwidth()
 							.getBytesUploadedInRealTime(
-									NetworkProperties.DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS);
-					RealTimeTransfertStat globalStatDown = getMadkitConfig().networkProperties.getGlobalStatsBandwith()
+									NetworkProperties.DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS);
+					RealTimeTransfertStat globalStatDown = getMadkitConfig().networkProperties.getGlobalStatsBandwidth()
 							.getBytesDownloadedInRealTime(
-									NetworkProperties.DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS);
+									NetworkProperties.DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS);
 					System.out.println("\tGlobal transfer speed (upload) :"
 							+ (((double) globalStatUp.getNumberOfIndentifiedBytes())
 									/ ((double) globalStatUp.getDurationMilli()) * 1000.0));

@@ -209,8 +209,8 @@ final class NIOAgent extends Agent {
 		if (logger != null && logger.isLoggable(Level.FINE))
 			logger.fine("Launching NIOAgent ...");
 		localOnlineTime = System.currentTimeMillis();
-        this.realTimeGlobalDownloadStat =getMadkitConfig().networkProperties.getGlobalStatsBandwith().getBytesDownloadedInRealTime(NetworkProperties.DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS);
-        this.realTimeGlobalUploadStat=getMadkitConfig().networkProperties.getGlobalStatsBandwith().getBytesUploadedInRealTime(NetworkProperties.DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS);
+        this.realTimeGlobalDownloadStat =getMadkitConfig().networkProperties.getGlobalStatsBandwidth().getBytesDownloadedInRealTime(NetworkProperties.DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS);
+        this.realTimeGlobalUploadStat=getMadkitConfig().networkProperties.getGlobalStatsBandwidth().getBytesUploadedInRealTime(NetworkProperties.DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS);
         this.realTimeDownloadStatDuration=((double)this.realTimeGlobalDownloadStat.getDurationMilli())/1000.0;
         this.realTimeUploadStatDuration=((double)this.realTimeGlobalUploadStat.getDurationMilli())/1000.0;
 		this.requestRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.NIO_ROLE);
@@ -378,7 +378,7 @@ final class NIOAgent extends Agent {
 				} else {
 					StatsBandwidth sb = ps.agentSocket.getStatistics();
 					RealTimeTransfertStat upload = sb.getBytesUploadedInRealTime(
-							NetworkProperties.DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS);
+							NetworkProperties.DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS);
 					boolean ping = false;
 					if (ps.hasDataToSend() && upload.getNumberOfIndentifiedBytes() == 0 && System.currentTimeMillis()
 							- ps.getLastDataWritedUTC() > getMadkitConfig().networkProperties.connectionTimeOut) {
@@ -386,14 +386,14 @@ final class NIOAgent extends Agent {
 						ping = true;
 					} else {
 						RealTimeTransfertStat download = sb.getBytesDownloadedInRealTime(
-								NetworkProperties.DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS);
+								NetworkProperties.DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS);
 
 						if (download.getNumberOfIndentifiedBytes() == 0 && upload.getNumberOfIndentifiedBytes() == 0
 								&& download.isOneCycleDone() && upload.isOneCycleDone()) {
 							ping = true;
 						} else if (sb
 								.getBytesDownloadedInRealTime(
-										NetworkProperties.DEFAULT_TRANSFERT_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS)
+										NetworkProperties.DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS)
 								.getNumberOfIndentifiedBytes() == 0
 								&& System.currentTimeMillis() - ps
 										.getLastDataWritedUTC() > getMadkitConfig().networkProperties.connectionTimeOut) {

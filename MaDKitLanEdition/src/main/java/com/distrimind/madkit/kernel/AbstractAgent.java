@@ -4491,7 +4491,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @return the corresponding statistics or null if no statistics were found.
 	 */
 	public StatsBandwidth getStatsBandwith(ConnectionIdentifier connectionIdentifier) {
-		return getMadkitConfig().networkProperties.getStatsBandwith(connectionIdentifier);
+		return getMadkitConfig().networkProperties.getStatsBandwidth(connectionIdentifier);
 	}
 
 	/**
@@ -4502,7 +4502,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @return the corresponding statistics or null if no statistics were found.
 	 */
 	public StatsBandwidth getStatsBandwith(KernelAddress kernel_address) {
-		return getMadkitConfig().networkProperties.getStatsBandwith(kernel_address);
+		return getMadkitConfig().networkProperties.getStatsBandwidth(kernel_address);
 	}
 
 	/**
