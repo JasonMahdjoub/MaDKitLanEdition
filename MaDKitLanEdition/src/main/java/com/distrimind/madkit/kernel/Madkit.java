@@ -122,7 +122,7 @@ final public class Madkit {
 		c.set(2015, Calendar.MAY, 22);
 		Calendar c2 = Calendar.getInstance();
 		c2.set(2019, Calendar.MARCH, 1);
-		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)1, (short)9, (short)6, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
+		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)1, (short)10, (short)0, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
 		try {
 
 			InputStream is = Madkit.class.getResourceAsStream("build.txt");
@@ -146,16 +146,25 @@ final public class Madkit {
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.MARCH, 1);
-			Description d = new Description((short)1, (short)9, (short)6, Version.Type.Stable, (short)1, c.getTime());
+			Description d = new Description((short)1, (short)10, (short)0, Version.Type.Stable, (short)1, c.getTime());
+			d.addItem("Update OOD to 2.0.0 Beta 100.");
+			VERSION.addDescription(d);
+
+
+			c = Calendar.getInstance();
+			c.set(2019, Calendar.MARCH, 1);
+			d = new Description((short)1, (short)9, (short)6, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Remove obsolete code.");
 			d.addItem("Rename function into HostIdentifier class.");
 			d.addItem("Typo corrections.");
 			d.addItem("Add possibility to specify the profile identifier into class ServerSecuredProtocolPropertiesWithKnownPublicKey.");
+			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.FEBRUARY, 8);
 			d = new Description((short)1, (short)9, (short)4, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Code cleaning/optimizing.");
+			VERSION.addDescription(d);
 
 
 
@@ -164,6 +173,7 @@ final public class Madkit {
 			d = new Description((short)1, (short)9, (short)5, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Update OOD to 2.0.0 Beta 99.");
 			d.addItem("Update Utils to 3.25.1");
+			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.FEBRUARY, 5);
@@ -171,6 +181,7 @@ final public class Madkit {
 			d.addItem("Update OOD to 2.0.0 Beta 97.");
 			d.addItem("OOD - Security fix : disable cache for tables that use secret ou private keys");
 			d.addItem("OOD - Security improvement : add Field.disableCache property");
+			VERSION.addDescription(d);
 
 
 			c = Calendar.getInstance();
@@ -178,6 +189,7 @@ final public class Madkit {
 			d = new Description((short)1, (short)9, (short)1, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Update OOD to 2.0.0 Beta 95.");
 			d.addItem("Set default OOD driver to H2 database.");
+			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.JANUARY, 13);
@@ -187,7 +199,6 @@ final public class Madkit {
 			d.addItem("Manage asymmetric auto-signed login.");
 			d.addItem("Better computer manage sleep mode.");
 			d.addItem("Manage moment of connection, and connection retry when failed");
-
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
