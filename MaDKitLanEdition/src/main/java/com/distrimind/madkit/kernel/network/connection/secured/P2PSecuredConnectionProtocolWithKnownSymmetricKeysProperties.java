@@ -65,6 +65,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties extend
 	private Map<Integer, SymmetricSecretKey> secretKeysForEncryption=new HashMap<>();
 	private Map<Integer, SymmetricSecretKey> secretKeysForSignature=new HashMap<>();
 	private Map<Integer, Boolean> validProfiles=new HashMap<>();
+	private int defaultProfileIdentifier=0;
 
 	/**
 	 * Invalidate given profile
@@ -251,4 +252,15 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties extend
 		return maxHeadSize;
 	}
 
+	public int getDefaultProfileIdentifier() {
+		return defaultProfileIdentifier;
+	}
+
+	/**
+	 * Set the default profile identifier to use with this connection protocol
+	 * @param defaultProfileIdentifier the default profile identifier
+	 */
+	public void setDefaultProfileIdentifier(int defaultProfileIdentifier) {
+		this.defaultProfileIdentifier = defaultProfileIdentifier;
+	}
 }
