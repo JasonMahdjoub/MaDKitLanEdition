@@ -169,6 +169,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 		keyAgreementForSignature=null;
 		signer=null;
 		signatureChecker=null;
+		blockCheckerChanged=true;
 		
 	}
 
