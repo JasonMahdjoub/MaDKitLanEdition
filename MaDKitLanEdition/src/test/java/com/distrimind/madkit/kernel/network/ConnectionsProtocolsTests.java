@@ -48,10 +48,7 @@ import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.connection.*;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionState;
-import com.distrimind.madkit.kernel.network.connection.secured.ClientSecuredProtocolPropertiesWithKnownPublicKey;
-import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties;
-import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolWithKeyAgreementProperties;
-import com.distrimind.madkit.kernel.network.connection.secured.ServerSecuredProtocolPropertiesWithKnownPublicKey;
+import com.distrimind.madkit.kernel.network.connection.secured.*;
 import com.distrimind.madkit.kernel.network.connection.unsecured.CheckSumConnectionProtocolProperties;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolNegotiatorProperties;
 import com.distrimind.madkit.kernel.network.connection.unsecured.UnsecuredConnectionProtocolProperties;
@@ -271,6 +268,42 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
 		p2pp_ecdh.enableEncryption=false;
 		o[1] = p2pp_ecdh;
+		res.add(o);
+
+		SymmetricSecretKey secretKeyForEncryption=SymmetricEncryptionType.AES_CTR.getKeyGenerator(rand).generateKey();
+		SymmetricSecretKey secretKeyForSignature=SymmetricAuthentifiedSignatureType.BC_FIPS_HMAC_SHA2_256.getKeyGenerator(rand).generateKey();
+		SymmetricSecretKey secretKeyForEncryption2=SymmetricEncryptionType.AES_CTR.getKeyGenerator(rand).generateKey();
+		SymmetricSecretKey secretKeyForSignature2=SymmetricAuthentifiedSignatureType.BC_FIPS_HMAC_SHA2_256.getKeyGenerator(rand).generateKey();
+
+
+		o = new ConnectionProtocolProperties<?>[2];
+		P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties p2psym=new P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties();
+		p2psym.enableEncryption=true;
+		p2psym.addProfile(1, secretKeyForEncryption, secretKeyForSignature);
+		p2psym.addProfile(0, secretKeyForEncryption2, secretKeyForSignature2);
+		p2psym.setDefaultProfileIdentifier(1);
+		o[0] = p2psym;
+		p2psym = new P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties();
+		p2psym.enableEncryption=true;
+		p2psym.addProfile(1, secretKeyForEncryption, secretKeyForSignature);
+		p2psym.addProfile(0, secretKeyForEncryption2, secretKeyForSignature2);
+		p2psym.setDefaultProfileIdentifier(1);
+		o[1] = p2psym;
+		res.add(o);
+
+		o = new ConnectionProtocolProperties<?>[2];
+		p2psym=new P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties();
+		p2psym.enableEncryption=false;
+		p2psym.addProfile(1, secretKeyForEncryption, secretKeyForSignature);
+		p2psym.addProfile(0, secretKeyForEncryption2, secretKeyForSignature2);
+		p2psym.setDefaultProfileIdentifier(1);
+		o[0] = p2psym;
+		p2psym = new P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties();
+		p2psym.enableEncryption=false;
+		p2psym.addProfile(1, secretKeyForEncryption, secretKeyForSignature);
+		p2psym.addProfile(0, secretKeyForEncryption2, secretKeyForSignature2);
+		p2psym.setDefaultProfileIdentifier(1);
+		o[1] = p2psym;
 		res.add(o);
 
 		o = new ConnectionProtocolProperties<?>[2];

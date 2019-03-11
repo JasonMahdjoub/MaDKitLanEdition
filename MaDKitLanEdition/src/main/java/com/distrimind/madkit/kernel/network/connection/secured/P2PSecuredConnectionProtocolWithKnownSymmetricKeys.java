@@ -63,7 +63,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 	private enum Status{
 		NOT_CONNECTED,
 		WAITING_FOR_CONNECTION_CONFIRMATION,
-		CONNECTED;
+		CONNECTED
 	}
 	private Status status=Status.NOT_CONNECTED;
 	private P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties properties;
@@ -106,9 +106,17 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 		else
 			this.cipher=null;
 
-		signature_size_bytes = signer.getMacLengthBytes();
+		if (!isCurrentServerAskingConnection())
+			initSizeHead();
 
 
+	}
+
+	private void initSizeHead()
+	{
+		if (signer!=null && signature_size_bytes==0) {
+			signature_size_bytes = signer.getMacLengthBytes();
+		}
 	}
 	private void reinitSymmetricAlgorithmIfNecessary() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, NoSuchProviderException, InvalidKeySpecException
 	{
@@ -233,7 +241,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 	}
 
 	@Override
-	protected void closeConnection(ConnectionClosedReason _reason) throws ConnectionException {
+	protected void closeConnection(ConnectionClosedReason _reason) {
 		if (_reason.equals(ConnectionClosedReason.CONNECTION_ANOMALY))
 			reset();
 		status = Status.NOT_CONNECTED;
@@ -286,6 +294,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 				case NOT_CONNECTED:
 					return getSubBlockWithNoEncryption(_block);
 				case WAITING_FOR_CONNECTION_CONFIRMATION:
+
 				case CONNECTED:
 					return getSubBlockWithEncryption(_block, true);
 
@@ -384,8 +393,19 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 			try {
 				switch (status) {
 					case NOT_CONNECTED:
-					case WAITING_FOR_CONNECTION_CONFIRMATION:
 						return getParentBlockWithNoTreatments(_block);
+					case WAITING_FOR_CONNECTION_CONFIRMATION:
+						if (isCurrentServerAskingConnection()) {
+							try {
+								return getParentBlockWithNoTreatments(_block);
+							}
+							finally {
+								initSizeHead();
+							}
+						}
+						else {
+							return getParentBlockWithEncryption(_block, excludeFromEncryption);
+						}
 					case CONNECTED: {
 						return getParentBlockWithEncryption(_block, excludeFromEncryption);
 					}
@@ -469,17 +489,17 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 					case NOT_CONNECTED:
 						return size;
 					case WAITING_FOR_CONNECTION_CONFIRMATION:
-						if (doNotTakeIntoAccountNextState)
+						if (isCurrentServerAskingConnection())
 							return size;
 						else
-							return size+4;
+							return cipher.getOutputSizeForEncryption(size)+4;
 
 					case CONNECTED:
 						if (packetCounter.isDistantActivated())
 						{
 							reinitSymmetricAlgorithmIfNecessary();
 						}
-						return size+4;
+						return cipher.getOutputSizeForEncryption(size)+4;
 				}
 			} catch (Exception e) {
 				throw new BlockParserException(e);
@@ -494,7 +514,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 					case NOT_CONNECTED:
 						return size;
 					case WAITING_FOR_CONNECTION_CONFIRMATION:
-						return size-4;
+						return cipher.getOutputSizeForDecryption(size-4);
 					case CONNECTED:
 						if (getPacketCounter().isLocalActivated())
 						{
@@ -531,9 +551,9 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 		public SubBlockInfo checkIncomingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
 			switch (status) {
 				case NOT_CONNECTED:
-				case WAITING_FOR_CONNECTION_CONFIRMATION:
-					return checkEntrantPointToPointTransferedBlockWithNoEncryptin(_block);
 
+					return checkEntrantPointToPointTransferedBlockWithNoEncryptin(_block);
+				case WAITING_FOR_CONNECTION_CONFIRMATION:
 				case CONNECTED: {
 					return checkEntrantPointToPointTransferedBlockWithEncryption(_block);
 				}
@@ -593,11 +613,6 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 			return size;
 		}
 
-
-		@Override
-		public int getSizeHead() {
-			return P2PSecuredConnectionProtocolWithKnownSymmetricKeys.this.signature_size_bytes;
-		}
 
 		@Override
 		public int getBodyOutputSizeForDecryption(int _size) {
