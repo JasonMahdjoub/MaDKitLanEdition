@@ -196,8 +196,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 
 					if (otherSendData)
 						otherBigTransferAgent.sendData(myAgentAddress);
-					if (sendData)
-						sendData(otherAgentAddress);
+					sendData(otherAgentAddress);
 				}
 			}
 
@@ -218,11 +217,12 @@ public class AgentBigTransfer extends AgentFakeThread {
 				BigDataTransferID myTransferID;
 
 				RandomByteArrayInputStream inputStream = new RandomByteArrayInputStream(new byte[inputStreamLengh]);
-
 				myTransferID = sendBigDataWithRole(destination, inputStream, 0, inputStream.length(), attachedData,
 						useMessageDigest ? MessageDigestType.BC_FIPS_SHA3_512 : null, thisRole, false);
-				ok &= myTransferID != null;
 				Assert.assertTrue(ok);
+				ok &= myTransferID != null;
+				if (!ok)
+					Assert.assertTrue(""+thisPeerNumber, ok);
 
 				inputStreams.put(myTransferID, inputStream);
 				myStats.put(myTransferID, myTransferID.getBytePerSecondsStat());
@@ -247,10 +247,12 @@ public class AgentBigTransfer extends AgentFakeThread {
 				if (m.getSourceAgent().getRole().equals(thisRole) && (!m.getSourceAgent().representsSameAgentThan(
 						getAgentAddressIn(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, thisRole)) && !isLocal)) {
 					if (otherConnected.put(m.getSourceAgent(), Boolean.TRUE) == null) {
+
 						sendMessageWithRole(m.getSourceAgent(),
 								new OrganizationEvent(AgentActionEvent.REQUEST_ROLE,
 										getAgentAddressIn(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, thisRole)),
 								thisRole);
+
 						/*
 						 * if (otherSendData) ++otherSendDataNumber;
 						 */
@@ -289,7 +291,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 						if (ok && nextBigTransfer != null) {
 							launchAgent(nextBigTransfer);
 						}
-						this.sleep(300);
+						//this.sleep(300);
 
 						this.killAgent(this);
 					}
@@ -382,7 +384,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 					ok &= otherConversationID == null;
 					Assert.assertTrue(ok);
 					++otherRepliedManaged;
-					myTransferFinished=true;
+					//myTransferFinished=true;
 					/*otherTransferFinished=true;*/
 
 				}
@@ -412,9 +414,10 @@ public class AgentBigTransfer extends AgentFakeThread {
 		}
 	}
 	@Override
-	protected void end() throws InterruptedException {
+	protected void end() {
 		//noinspection StatementWithEmptyBody
 		while (nextMessage()!=null);
+
 	}
 	@Override
 	public String toString() {
@@ -463,7 +466,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 		if (nextBigTransfer != null)
 			return ok && (otherBigTransferAgent==null || otherBigTransferAgent.ok)  && nextBigTransfer.isOK();
 		else
-			return ok;
+			return ok && (otherBigTransferAgent==null || otherBigTransferAgent.ok);
 	}
 
 }

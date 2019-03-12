@@ -148,6 +148,8 @@ final public class Madkit {
 			c.set(2019, Calendar.MARCH, 1);
 			Description d = new Description((short)1, (short)10, (short)0, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Update OOD to 2.0.0 Beta 100.");
+			d.addItem("Add new connection protocol with symmetric keys: P2PSecuredConnectionProtocolWithKnownSymmetricKeys.");
+			d.addItem("Better tests for network transfers.");
 			VERSION.addDescription(d);
 
 

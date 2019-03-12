@@ -560,7 +560,6 @@ public class JunitMadkit {
 								return true;
 							}
 							if (isNetwork!=null && aa.getKernelAddress().equals(m.kernelAddress)!=isNetwork) {
-								System.out.println(ir.getRoleName());
 								return true;
 							}
 						}

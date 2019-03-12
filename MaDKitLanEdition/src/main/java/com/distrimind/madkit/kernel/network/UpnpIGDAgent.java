@@ -58,6 +58,7 @@ import org.fourthline.cling.UpnpServiceImpl;
 import org.fourthline.cling.android.AndroidNetworkAddressFactory;
 import org.fourthline.cling.binding.xml.DeviceDescriptorBinder;
 import org.fourthline.cling.binding.xml.ServiceDescriptorBinder;
+import org.fourthline.cling.controlpoint.ControlPoint;
 import org.fourthline.cling.controlpoint.ControlPointImpl;
 import org.fourthline.cling.model.Namespace;
 import org.fourthline.cling.model.action.ActionInvocation;
@@ -1099,10 +1100,14 @@ class UpnpIGDAgent extends AgentFakeThread {
 
 										}
 									}
-									if (new_nis.size()>0 && scanRouters) {
-										upnpService.getControlPoint().search();
-										for (RemoteDevice d : upnpService.getRegistry().getRemoteDevices()) {
-											remoteDeviceDetected(d);
+									if (new_nis.size()>0 && scanRouters && upnpService!=null) {
+
+										ControlPoint cp=upnpService.getControlPoint();
+										if (cp!=null) {
+											cp.search();
+											for (RemoteDevice d : upnpService.getRegistry().getRemoteDevices()) {
+												remoteDeviceDetected(d);
+											}
 										}
 									}
 									return null;

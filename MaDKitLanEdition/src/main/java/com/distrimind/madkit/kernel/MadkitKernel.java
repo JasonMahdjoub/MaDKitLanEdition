@@ -2675,13 +2675,16 @@ class MadkitKernel extends Agent {
 				if (target != null) {
 					// updating sender address
 					receiver.setAgent(target);
+
 					try {
-						sender.setRoleObject(kernel.getRole(sender.getGroup(), sender.getRole()));
+						InternalRole senderRole=kernel.getRole(sender.getGroup(), sender.getRole());
+						senderRole.addDistantMemberIfNecessary(sender);
 					} catch (CGRNotAvailable e) {
 						sender.setRoleObject(null);
 					}
 					((Message) m).setReceiver(receiver);
 					((Message) m).setSender(sender);
+
 					target.receiveMessage(m);
                     informHooks(AgentActionEvent.SEND_MESSAGE, m.getOriginalMessage());
                 } else {

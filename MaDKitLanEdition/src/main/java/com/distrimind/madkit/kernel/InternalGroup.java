@@ -353,7 +353,7 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 		synchronized (this) {
 			r = getOrCreateRole(roleName);
 		}
-		r.addDistantMember(content);
+		r.addDistantMemberIfNecessary(content);
 	}
 
 	InternalRole getOrCreateRole(final String roleName) {

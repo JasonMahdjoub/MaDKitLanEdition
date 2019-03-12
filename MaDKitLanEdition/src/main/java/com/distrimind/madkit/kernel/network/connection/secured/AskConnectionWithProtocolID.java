@@ -12,7 +12,7 @@ import java.io.ObjectOutput;
  * @version 1.0
  * @since MaDKitLanEdition 1.10
  */
-public class AskConnectionWithProtocolID extends AskConnection {
+class AskConnectionWithProtocolID extends AskConnection {
 
 	private int protocolID;
 	public AskConnectionWithProtocolID() {

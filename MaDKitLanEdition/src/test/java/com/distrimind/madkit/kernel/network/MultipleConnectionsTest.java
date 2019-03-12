@@ -262,9 +262,6 @@ public class MultipleConnectionsTest extends JunitMadkit {
 					for (Madkit m : getHelperInstances(5))
 					{
 						Assert.assertFalse(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, AgentBigTransfer.class, false));
-					}
-					for (Madkit m : getHelperInstances(5))
-					{
 						Assert.assertFalse(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, AgentBigTransfer.class, true));
 					}
 					if (logger != null)

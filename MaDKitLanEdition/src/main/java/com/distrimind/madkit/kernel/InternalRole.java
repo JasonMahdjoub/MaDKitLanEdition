@@ -367,12 +367,30 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 		}
 	}
 
-	final void addDistantMember(final AgentAddress content) {
+	/*final void addDistantMember(final AgentAddress content) {
 		boolean ok;
 		synchronized (players) {
 			content.setRoleObject(this);// required for equals to work
 			ok = distantAgentAddresses.add(content);
 			agentAddresses=null;
+		}
+		if (ok && content.isManuallyRequested())
+			incrementReferences(content.getKernelAddress());
+	}*/
+
+	final void addDistantMemberIfNecessary(final AgentAddress content) {
+		boolean ok;
+		content.setRoleObject(this);// required for equals to work
+		synchronized (players) {
+
+			if (!distantAgentAddresses.contains(content)) {
+				ok = distantAgentAddresses.add(content);
+				if (!ok)
+					content.setRoleObject(null);
+				agentAddresses = null;
+			}
+			else
+				ok=false;
 		}
 		if (ok && content.isManuallyRequested())
 			incrementReferences(content.getKernelAddress());
@@ -523,10 +541,11 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 						iterator.remove();
 						aa.setRoleObject(null);
 						++number;
+						agentAddresses=null;
 						madkitKernel.informHooks(AgentActionEvent.LEAVE_ROLE, aa);
 					}
 				}
-				agentAddresses=null;
+
 				checkEmptyness();
 			}
 			updateReferences(kernelAddress2, -number);
