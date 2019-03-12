@@ -216,3 +216,4 @@ hs_err_pid*
 #H2 database
 *.database.mv.db
 *.database.mv.db.old
+*.database.trace.db
