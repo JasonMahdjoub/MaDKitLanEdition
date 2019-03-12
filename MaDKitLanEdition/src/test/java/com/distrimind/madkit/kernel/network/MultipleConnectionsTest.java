@@ -207,11 +207,25 @@ public class MultipleConnectionsTest extends JunitMadkit {
 					Assert.assertTrue(agentsToLaunch4.networkPingAgent.isOK());
 					Assert.assertTrue(agentsToLaunch5.networkPingAgent.isOK());
 
+					agentsToLaunch1.networkPingAgent.killPingPongAgents();
+					agentsToLaunch2.networkPingAgent.killPingPongAgents();
+					agentsToLaunch3.networkPingAgent.killPingPongAgents();
+					agentsToLaunch4.networkPingAgent.killPingPongAgents();
+					agentsToLaunch5.networkPingAgent.killPingPongAgents();
+
+
 					Assert.assertEquals(ReturnCode.SUCCESS, agentsToLaunch1.launchBigDataTransferAgent());
 					Assert.assertEquals(ReturnCode.SUCCESS, agentsToLaunch2.launchBigDataTransferAgent());
 					Assert.assertEquals(ReturnCode.SUCCESS, agentsToLaunch3.launchBigDataTransferAgent());
 					Assert.assertEquals(ReturnCode.SUCCESS, agentsToLaunch4.launchBigDataTransferAgent());
 					Assert.assertEquals(ReturnCode.SUCCESS, agentsToLaunch5.launchBigDataTransferAgent());
+					sleep(500);
+					for (Madkit m : getHelperInstances(5))
+					{
+						Assert.assertTrue(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, AgentBigTransfer.class, true));
+						Assert.assertTrue(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, AgentBigTransfer.class, false));
+					}
+
 					int nb = 0;
 					while (nb++ < 200 && (!agentsToLaunch1.agentBigTransfer.isFinished()
 							|| !agentsToLaunch2.agentBigTransfer.isFinished()
@@ -239,6 +253,20 @@ public class MultipleConnectionsTest extends JunitMadkit {
 					Assert.assertTrue(agentsToLaunch4.agentBigTransfer.isOK());
 					Assert.assertTrue(agentsToLaunch5.agentBigTransfer.isOK());
 					sleep(1000);
+					Assert.assertTrue(agentsToLaunch1.agentBigTransfer.isKilled());
+					Assert.assertTrue(agentsToLaunch2.agentBigTransfer.isKilled());
+					Assert.assertTrue(agentsToLaunch3.agentBigTransfer.isKilled());
+					Assert.assertTrue(agentsToLaunch4.agentBigTransfer.isKilled());
+					Assert.assertTrue(agentsToLaunch5.agentBigTransfer.isKilled());
+
+					for (Madkit m : getHelperInstances(5))
+					{
+						Assert.assertFalse(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, AgentBigTransfer.class, false));
+					}
+					for (Madkit m : getHelperInstances(5))
+					{
+						Assert.assertFalse(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, AgentBigTransfer.class, true));
+					}
 					if (logger != null)
 						logger.info("stoping networks");
 					// pause(1000);

@@ -529,6 +529,54 @@ public class JunitMadkit {
 		pause(agent, pause);
 	}
 
+	public boolean isAgentsPresentInGroupRole(Madkit m, Group group, String role)
+	{
+		InternalRole r= null;
+		try {
+			r = m.getKernel().getRole(group, role);
+		} catch (CGRNotAvailable cgrNotAvailable) {
+			return false;
+		}
+		return !r.getAgentsList().isEmpty();
+	}
+	public boolean isAgentsPresentInGroup(Madkit m, Group group)
+	{
+		return isAgentsPresentInGroup(m, group, null, null);
+	}
+	public boolean isAgentsPresentInGroup(Madkit m, Group group, Class<?> agentClass, Boolean isNetwork)
+	{
+
+		try {
+			InternalGroup g = m.getKernel().getGroup(group);
+			for (InternalRole ir : g.values())
+			{
+
+				if (!ir.getAgentAddressesCopy().isEmpty()) {
+					if (agentClass!=null || isNetwork!=null)
+					{
+						for (AgentAddress aa : ir.getAgentAddressesCopy()) {
+							if (agentClass != null && (isNetwork==null || !isNetwork) && aa.getAgent() != null && agentClass.isAssignableFrom(aa.getAgent().getClass())) {
+
+								return true;
+							}
+							if (isNetwork!=null && aa.getKernelAddress().equals(m.kernelAddress)!=isNetwork) {
+								System.out.println(ir.getRoleName());
+								return true;
+							}
+						}
+						continue;
+					}
+					return true;
+				}
+			}
+		} catch (CGRNotAvailable cgrNotAvailable) {
+			return false;
+		}
+		return false;
+	}
+
+
+
 	public void cleanHelperMDKs() {
 		cleanHelperMDKs(null);
 	}

@@ -158,6 +158,11 @@ public class NetworkPongAgent extends AgentAddressAgentTester {
 				&& testTraveledAgentAddress && networkPingAgent.isOK();
 	}
 
+	public void killPingPongAgents()
+	{
+		this.killAgent(networkPingAgent);
+		this.killAgent(this);
+	}
 	public void printOK() {
 		System.out.print("numberOfLocalPingAgents=" + numberOfLocalPingAgents + " ; " + "numberOfDistantPingAgents="
 				+ numberOfDistantPingAgents + " ; " + "numberOfLocalPongAgents=" + numberOfLocalPongAgents + " ; "

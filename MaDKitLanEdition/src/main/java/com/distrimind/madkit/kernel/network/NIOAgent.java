@@ -54,11 +54,7 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.ListIterator;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -120,6 +116,13 @@ final class NIOAgent extends Agent {
 		@Override
 		public String toString() {
 			return "ServerSocketChannel[server=" + serverChannels + ", address=" + address + "]";
+		}
+
+		public boolean isConcernedBy(NetworkInterface ni) {
+			for (Enumeration e = ni.getInetAddresses(); e.hasMoreElements();)
+				if (e.nextElement().equals(this.address.getAddress()))
+					return true;
+			return false;
 		}
 	}
 
@@ -521,7 +524,29 @@ final class NIOAgent extends Agent {
 							Server s = it.next();
 							if (s.address.equals(addr)) {
 								s.serverChannels.close();
-								// TODO check if corresponding socket channels must also be closed !
+
+								List<PendingConnection> pcs=new ArrayList<>();
+								for (PendingConnection pc : this.pending_connections)
+								{
+									if (pc.isConcernedBy(s))
+									{
+										pcs.add(pc);
+									}
+								}
+								for (PendingConnection pc : pcs)
+								{
+									pendingConnectionFailed(pc.socketChannel, ConnectionClosedReason.CONNECTION_LOST);
+								}
+
+								for (PersonalSocket ps : this.personal_sockets_list)
+								{
+									if (ps.isConcernedBy(s))
+										sendMessage(ps.agentAddress,
+											new AskForConnectionMessage(ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED,
+													ps.agentSocket.distantIP,
+													(InetSocketAddress) ps.socketChannel.getRemoteAddress(), null, false, false));
+								}
+
 								it.remove();
 
 								if (personal_datagram_channels_per_ni_address.size() == 0)
@@ -535,11 +560,49 @@ final class NIOAgent extends Agent {
 						if (multicastToRemove)
 							personal_datagram_channels_per_ni_address.get(addr.getAddress()).closeConnection(false);
 					}
-				} /*else if (m instanceof UpnpIGDAgent.NetworkInterfaceInformationMessage) {
-					// TODO manage network interface information, especially the deconnection
-					// information (for now, the deconnection should be triggered by the
-					// socketchannel)
-				} */else if (m instanceof AskForConnectionMessage) {
+				} else if (m instanceof UpnpIGDAgent.NetworkInterfaceInformationMessage) {
+					UpnpIGDAgent.NetworkInterfaceInformationMessage nm=(UpnpIGDAgent.NetworkInterfaceInformationMessage)m;
+					for (NetworkInterface ni : nm.getNewDisconnectedInterfaces())
+					{
+						for (PersonalSocket ps : this.personal_sockets_list)
+						{
+							sendMessage(ps.agentAddress,
+									new AskForConnectionMessage(ConnectionClosedReason.CONNECTION_LOST,
+											ps.agentSocket.distantIP,
+											(InetSocketAddress) ps.socketChannel.getRemoteAddress(), null, false, false));
+						}
+						List<PendingConnection> pcs=new ArrayList<>();
+						for (PendingConnection pc : this.pending_connections)
+						{
+							if (pc.isConcernedBy(ni))
+							{
+								pcs.add(pc);
+							}
+						}
+						for (PendingConnection pc : pcs)
+						{
+							pendingConnectionFailed(pc.socketChannel, ConnectionClosedReason.CONNECTION_LOST);
+						}
+						for (Iterator<Server> it = serverChannels.iterator(); it.hasNext();) {
+							Server s = it.next();
+							if (s.isConcernedBy(ni)) {
+								PersonalDatagramChannel mc=personal_datagram_channels_per_ni_address.get(s.address.getAddress());
+
+								s.serverChannels.close();
+								it.remove();
+
+								if (mc!=null)
+									mc.closeConnection(false);
+								if (logger != null)
+									logger.finer("Server channel closed : " + s);
+
+							}
+
+						}
+
+					}
+
+				} else if (m instanceof AskForConnectionMessage) {
 					try {
 						if (logger != null && logger.isLoggable(Level.FINER))
 							logger.finer("Receiving : " + m);
@@ -616,6 +679,9 @@ final class NIOAgent extends Agent {
 					NetworkAgent.StopNetworkMessage message = (NetworkAgent.StopNetworkMessage) m;
 					for (Server s : this.serverChannels)
 						s.serverChannels.close();
+					List<PendingConnection> pcs=new ArrayList<>(this.pending_connections);
+					for (PendingConnection pc : pcs)
+						pendingConnectionFailed(pc.socketChannel, ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED);
 					for (PersonalSocket ps : personal_sockets_list) {
 						kill = false;
 						sendMessage(ps.agentAddress,
@@ -2075,6 +2141,10 @@ final class NIOAgent extends Agent {
 					LocalCommunity.Roles.NIO_ROLE);
 		}
 
+		public boolean isConcernedBy(Server s) throws IOException {
+
+			return this.socketChannel.getLocalAddress().equals(s.address);
+		}
 	}
 
 	private class PersonalDatagramChannel {
@@ -2311,6 +2381,17 @@ final class NIOAgent extends Agent {
 				return false;
 			else
 				return this.socketChannel.equals(socketChannel);
+		}
+
+		boolean isConcernedBy(NetworkInterface ni) {
+			for (Enumeration e=ni.getInetAddresses();e.hasMoreElements();)
+				if (e.nextElement().equals(this.local_interface))
+					return true;
+			return false;
+		}
+
+		boolean isConcernedBy(Server s) throws IOException {
+			return this.socketChannel.getLocalAddress().equals(s.address);
 		}
 
 		@Override

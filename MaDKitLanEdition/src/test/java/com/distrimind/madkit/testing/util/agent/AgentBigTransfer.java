@@ -125,6 +125,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 	private int otherRepliedManaged = 0;
 	private final boolean otherSendData;
 	private boolean hasReceivedProposition = false;
+	private AgentBigTransfer otherBigTransferAgent=null;
 
 	public AgentBigTransfer(int thisPeerNumber, boolean accept, boolean useMessageDigest, boolean sendShortData,
 			boolean sendData, boolean otherSendData, int otherNumber, boolean isLocal,
@@ -176,15 +177,15 @@ public class AgentBigTransfer extends AgentFakeThread {
 				if (launchOtherLocalAgent) {
 					AgentAddress myAgentAddress = getAgentAddressIn(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA,
 							thisRole);
-					AgentBigTransfer agb = new AgentBigTransfer(thisPeerNumber, accept, useMessageDigest, sendShortData,
-							otherSendData, true, 1, isLocal, false, null);
-					agb.otherConnected.put(myAgentAddress, Boolean.TRUE);
+					otherBigTransferAgent = new AgentBigTransfer(thisPeerNumber, accept, useMessageDigest, sendShortData,
+							otherSendData, sendData, 1, isLocal, false, null);
+					otherBigTransferAgent.otherConnected.put(myAgentAddress, Boolean.TRUE);
 					// agb.otherNumber++;
-					launchAgent(agb);
-					ok &= agb.getKernelAddress().equals(this.getKernelAddress());
+					launchAgent(otherBigTransferAgent);
+					ok &= otherBigTransferAgent.getKernelAddress().equals(this.getKernelAddress());
 					Assert.assertTrue(ok);
 
-					AgentAddress otherAgentAddress = agb
+					AgentAddress otherAgentAddress = otherBigTransferAgent
 							.getAgentAddressIn(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, thisRole);
 					ok &= otherAgentAddress != null;
 					Assert.assertNotNull(otherAgentAddress);
@@ -194,8 +195,9 @@ public class AgentBigTransfer extends AgentFakeThread {
 					 */
 
 					if (otherSendData)
-						agb.sendData(myAgentAddress);
-					sendData(otherAgentAddress);
+						otherBigTransferAgent.sendData(myAgentAddress);
+					if (sendData)
+						sendData(otherAgentAddress);
 				}
 			}
 
@@ -287,6 +289,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 						if (ok && nextBigTransfer != null) {
 							launchAgent(nextBigTransfer);
 						}
+						this.sleep(300);
 
 						this.killAgent(this);
 					}
@@ -379,6 +382,8 @@ public class AgentBigTransfer extends AgentFakeThread {
 					ok &= otherConversationID == null;
 					Assert.assertTrue(ok);
 					++otherRepliedManaged;
+					myTransferFinished=true;
+					/*otherTransferFinished=true;*/
 
 				}
 				inputStreams.remove(m.getConversationID());
@@ -407,16 +412,19 @@ public class AgentBigTransfer extends AgentFakeThread {
 		}
 	}
 	@Override
-	protected void end() {
+	protected void end() throws InterruptedException {
 		//noinspection StatementWithEmptyBody
 		while (nextMessage()!=null);
 	}
 	@Override
 	public String toString() {
-		if (myTransferFinished && otherTransferFinished && ok && nextBigTransfer != null)
+		String otherLocalAgent=otherBigTransferAgent==null?"":" (other local: "+otherBigTransferAgent+") ";
+		if (myTransferFinished && otherTransferFinished && ok
+			&& (otherBigTransferAgent==null || (otherBigTransferAgent.myTransferFinished && otherBigTransferAgent.otherTransferFinished && otherBigTransferAgent.ok))
+				&& nextBigTransfer != null)
 			return "Agent " + this.thisPeerNumber + ", Sub " + nextBigTransfer.toString();
 		else
-			return "Agent " + this.thisPeerNumber + getStatString();
+			return "Agent " + this.thisPeerNumber + otherLocalAgent+getStatString();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -440,16 +448,20 @@ public class AgentBigTransfer extends AgentFakeThread {
 		return res.toString();
 	}
 
+	public boolean isKilled()
+	{
+		return !isAlive() && getState().equals(State.TERMINATED) && (otherBigTransferAgent==null || otherBigTransferAgent.isKilled())  && (nextBigTransfer==null || nextBigTransfer.isKilled());
+	}
 	public boolean isFinished() {
 		if (nextBigTransfer != null)
-			return myTransferFinished && otherTransferFinished && (!ok || nextBigTransfer.isFinished());
+			return (myTransferFinished && otherTransferFinished && (otherBigTransferAgent==null || otherBigTransferAgent.isFinished()) && nextBigTransfer.isFinished()) || !ok;
 		else
-			return myTransferFinished && otherTransferFinished;
+			return (myTransferFinished && otherTransferFinished && (otherBigTransferAgent==null || otherBigTransferAgent.isFinished()) ) || !ok;
 	}
 
 	public boolean isOK() {
 		if (nextBigTransfer != null)
-			return ok && nextBigTransfer.isOK();
+			return ok && (otherBigTransferAgent==null || otherBigTransferAgent.ok)  && nextBigTransfer.isOK();
 		else
 			return ok;
 	}
