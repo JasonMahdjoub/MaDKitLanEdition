@@ -253,7 +253,10 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties extend
 	}
 
 	public int getDefaultProfileIdentifier() {
-		return defaultProfileIdentifier;
+		if (isValidProfile(defaultProfileIdentifier))
+			return defaultProfileIdentifier;
+		else
+			return lastIdentifier;
 	}
 
 	/**

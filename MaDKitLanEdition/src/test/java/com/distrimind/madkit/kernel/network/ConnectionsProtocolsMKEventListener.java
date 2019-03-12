@@ -46,6 +46,7 @@ import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
 import com.distrimind.madkit.kernel.network.connection.secured.ClientSecuredProtocolPropertiesWithKnownPublicKey;
 import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolWithKeyAgreementProperties;
+import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties;
 import com.distrimind.madkit.kernel.network.connection.secured.ServerSecuredProtocolPropertiesWithKnownPublicKey;
 import com.distrimind.madkit.kernel.network.connection.unsecured.CheckSumConnectionProtocolProperties;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolNegotiatorProperties;
@@ -123,6 +124,7 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 	private static ASymmetricKeyPair keyPairForSignature = null;
 	private static final short keyPairSize = 2048;
 	private static int encryptionProfileIdentifier = -1;
+	private static SymmetricSecretKey secretKeyForEncryption=null, secretKeyForSignature=null;
 
 	public static ASymmetricKeyPair getKeyPairForEncryption() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
 		if (keyPairForEncryption == null)
@@ -163,6 +165,15 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 			res.add(new ConnectionsProtocolsMKEventListener(cpp, cpp2));
 		} else
 			res.add(new ConnectionsProtocolsMKEventListener(cpp));
+
+		P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties p2psym=new P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties();
+		secretKeyForEncryption=SymmetricEncryptionType.AES_CTR.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), (short)128).generateKey();
+		secretKeyForSignature=SymmetricAuthentifiedSignatureType.HMAC_SHA2_256.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), (short)128).generateKey();
+		p2psym.addProfile(1,secretKeyForEncryption, secretKeyForSignature );
+		p2psym.enableEncryption=true;
+		p2psym.isServer=true;
+		res.add(new ConnectionsProtocolsMKEventListener(p2psym));
+
 
 		cpp = new CheckSumConnectionProtocolProperties();
 		cpp.subProtocolProperties = new UnsecuredConnectionProtocolProperties();
@@ -227,6 +238,13 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 			res.add(new ConnectionsProtocolsMKEventListener(cpp, cpp2));
 		} else
 			res.add(new ConnectionsProtocolsMKEventListener(cpp));
+
+		P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties p2psym=new P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties();
+		p2psym.addProfile(1,secretKeyForEncryption, secretKeyForSignature );
+		p2psym.enableEncryption=true;
+		p2psym.isServer=false;
+		res.add(new ConnectionsProtocolsMKEventListener(p2psym));
+
 
 
 		u = new UnsecuredConnectionProtocolProperties();
