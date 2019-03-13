@@ -38,12 +38,12 @@
 package com.distrimind.madkit.kernel;
 
 import static com.distrimind.madkit.i18n.I18nUtilities.getCGRString;
-import static com.distrimind.madkit.kernel.CGRSynchro.Code.CREATE_GROUP;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
@@ -90,8 +90,8 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 	}
 
 
-	boolean addGroup(final AbstractAgent creator, Group group, boolean manually_created) throws CGRNotAvailable {
-		boolean res;
+	boolean addGroup(final AbstractAgent creator, Group group, boolean manually_created) {
+
 		synchronized (this) {
 			if (!group.getCommunity().equals(communityName))
 				throw new IllegalAccessError();
@@ -104,22 +104,12 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 				if (logger != null)
 					logger.fine(getCGRString(group) + "created by " + creator.getName() + "\n");
 
-				res=true;
+				return true;
 			}
-			else {
-				if (logger != null)
-					logger.finer(group + "already exists: Creation aborted" + "\n");
-				res=false;
-			}
+			if (logger != null)
+				logger.finer(group + "already exists: Creation aborted" + "\n");
+			return false;
 		}
-		if (res && group.isDistributed()) {
-
-			creator.getMadkitKernel().sendNetworkCGRSynchroMessageWithRole(new CGRSynchro(CREATE_GROUP,
-					creator.getKernel().getRole(group, com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE)
-							.getAgentAddressOf(creator),
-					true));
-		}
-		return res;
 	}
 
 
@@ -194,22 +184,20 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 
 	void importDistantOrg(Map<Group, Map<String, Collection<AgentAddress>>> map, MadkitKernel madkitKernel) {
 		for (Group groupName : map.keySet()) {
-			if (groupName.isDistributed()) {
-				InternalGroup group = get(groupName);
-				if (group == null) {
-					AgentAddress manager;
-					try {
-						manager = map.get(groupName).get(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE)
-								.iterator().next();
-					} catch (NullPointerException e) {// TODO a clean protocol to get the groupManager
-						manager = map.get(groupName).values().iterator().next().iterator().next();
-					}
-					group = new InternalGroup(groupName, manager, this, false);
-					put(groupName, group);
+			InternalGroup group = get(groupName);
+			if (group == null) {
+				AgentAddress manager;
+				try {
+					manager = map.get(groupName).get(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE)
+							.iterator().next();
+				} catch (NullPointerException e) {// TODO a clean protocol to get the groupManager
+					manager = map.get(groupName).values().iterator().next().iterator().next();
 				}
-				if (group.isDistributed())
-					group.importDistantOrg(map.get(groupName), madkitKernel);
+				group = new InternalGroup(groupName, manager, this, false);
+				put(groupName, group);
 			}
+			group.importDistantOrg(map.get(groupName), madkitKernel);
+
 		}
 	}
 
