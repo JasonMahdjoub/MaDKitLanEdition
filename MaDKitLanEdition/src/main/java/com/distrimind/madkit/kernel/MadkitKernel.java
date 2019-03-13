@@ -37,9 +37,69 @@
  */
 package com.distrimind.madkit.kernel;
 
+<<<<<<< HEAD
 import com.distrimind.jdkrewrite.concurrent.ScheduledThreadPoolExecutor;
 import com.distrimind.jdkrewrite.concurrent.ThreadPoolExecutor;
 import com.distrimind.jdkrewrite.concurrent.*;
+=======
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.AGENT_CRASH;
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ALREADY_GROUP;
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ALREADY_KILLED;
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ALREADY_LAUNCHED;
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.INVALID_AGENT_ADDRESS;
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_COMMUNITY;
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_GROUP;
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_IN_GROUP;
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_ROLE;
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_YET_LAUNCHED;
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NO_RECIPIENT_FOUND;
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ROLE_NOT_HANDLED;
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SEVERE;
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.TIMEOUT;
+import static com.distrimind.madkit.kernel.AbstractAgent.State.ACTIVATING;
+import static com.distrimind.madkit.kernel.AbstractAgent.State.INITIALIZING;
+import static com.distrimind.madkit.kernel.AbstractAgent.State.LIVING;
+import static com.distrimind.madkit.kernel.AbstractAgent.State.NOT_LAUNCHED;
+import static com.distrimind.madkit.kernel.CGRSynchro.Code.CREATE_GROUP;
+import static com.distrimind.madkit.kernel.CGRSynchro.Code.LEAVE_GROUP;
+import static com.distrimind.madkit.kernel.CGRSynchro.Code.LEAVE_ROLE;
+import static com.distrimind.madkit.kernel.CGRSynchro.Code.REQUEST_ROLE;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.net.InetAddress;
+import java.net.URL;
+import java.util.*;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
+
+import javax.xml.parsers.ParserConfigurationException;
+
+import com.distrimind.util.properties.PropertiesParseException;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
+
+>>>>>>> parent of 34bccca... Better test synchronization of distant agents list
 import com.distrimind.madkit.action.GlobalAction;
 import com.distrimind.madkit.action.KernelAction;
 import com.distrimind.madkit.agr.LocalCommunity;
@@ -746,12 +806,10 @@ class MadkitKernel extends Agent {
 				for (String s : platform.args) {
 					args.append(s).append(" ");
 				}
-
-				Process p=Runtime.getRuntime().exec(// TODO not used yet
+				Runtime.getRuntime().exec(// TODO not used yet
 						System.getProperty("java.home") + File.separatorChar + "bin" + File.separatorChar + "java -cp "
 								+ System.getProperty("java.class.path") + " "
 								+ platform.getConfigOption().madkitMainClass.getCanonicalName() + " " + args);
-				Utils.flushAndDestroyProcess(p);
 			} catch (IOException e) {
 				bugReport(e);
 			}
