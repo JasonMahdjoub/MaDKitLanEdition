@@ -2608,7 +2608,7 @@ class MadkitKernel extends Agent {
 			for (Map.Entry<String, Organization> org : organizations.entrySet()) {
 				Map<Group, Map<String, Collection<AgentAddress>>> currentOrg = org.getValue().getOrgMap(global);
 				if (!currentOrg.isEmpty())
-					export.put(org.getKey(), org.getValue().getOrgMap(global));
+					export.put(org.getKey(), currentOrg);
 			}
 		}
 		return export;
@@ -2670,15 +2670,16 @@ class MadkitKernel extends Agent {
 		try {
 			final InternalRole receiverRole = kernel.getRole(receiver.getGroup(), receiver.getRole());
 			receiver.setRoleObject(receiverRole);
-			if (receiverRole != null) {
+			if (receiverRole != null && receiverRole.getMyGroup().isDistributed() && sender.getGroup().isDistributed()) {
 				final AbstractAgent target = receiverRole.getAbstractAgentWithAddress(receiver);
 				if (target != null) {
 					// updating sender address
 					receiver.setAgent(target);
 
 					try {
-						InternalRole senderRole=kernel.getRole(sender.getGroup(), sender.getRole());
-						senderRole.addDistantMemberIfNecessary(sender);
+						InternalGroup senderGroup=kernel.getGroup(sender.getGroup());
+						if (senderGroup.addDistantMember(sender))
+							informHooks(AgentActionEvent.REQUEST_ROLE, sender);
 					} catch (CGRNotAvailable e) {
 						sender.setRoleObject(null);
 					}
@@ -2710,21 +2711,23 @@ class MadkitKernel extends Agent {
 		int receiversSize = 0;
 		try {
 			for (Group g : getRepresentedGroups(m.getAbstractGroup(), m.getRole())) {
-				try {
-					List<AgentAddress> receivers = getOtherRolePlayers(null, g, m.getRole());
-					if (receivers != null && receivers.size() > 0) {
-						final AgentAddress senderAgentAddress = m
-								.getAgentAddressSenderFromReceiver(receivers.iterator().next());
-						if (senderAgentAddress != null) {
-							receiversSize += receivers.size();
-							oneReceiver = receivers.iterator().next();
-							oneSender = senderAgentAddress;
-							((Message) m).setSender(senderAgentAddress);
-							broadcasting(receivers, m, null, false);
+				if (g.isDistributed()) {
+					try {
+						List<AgentAddress> receivers = getOtherRolePlayers(null, g, m.getRole());
+						if (receivers != null && receivers.size() > 0) {
+							final AgentAddress senderAgentAddress = m
+									.getAgentAddressSenderFromReceiver(receivers.iterator().next());
+							if (senderAgentAddress != null) {
+								receiversSize += receivers.size();
+								oneReceiver = receivers.iterator().next();
+								oneSender = senderAgentAddress;
+								((Message) m).setSender(senderAgentAddress);
+								broadcasting(receivers, m, null, false);
+							}
 						}
+					} catch (CGRNotAvailable e) {
+						kernel.bugReport("Cannot inject " + m + "\n" + getOrganizationSnapShot(false), e);
 					}
-				} catch (CGRNotAvailable e) {
-					kernel.bugReport("Cannot inject " + m + "\n" + getOrganizationSnapShot(false), e);
 				}
 			}
 		} catch (CGRNotAvailable e) {
@@ -2746,38 +2749,53 @@ class MadkitKernel extends Agent {
 		synchronized (organizations) {
 			switch (m.getCode()) {
 			case CREATE_GROUP:
-				Organization organization;
-				try {
-					organization = getCommunity(group.getCommunity());
-				} catch (CGRNotAvailable e) {
-					organization = new Organization(group.getCommunity(), this);
-					organizations.put(group.getCommunity(), organization);
+				if (group.isDistributed()) {
+					Organization organization;
+					try {
+						organization = getCommunity(group.getCommunity());
+					} catch (CGRNotAvailable e) {
+						organization = new Organization(group.getCommunity(), this);
+						organizations.put(group.getCommunity(), organization);
+					}
+					if (organization.putIfAbsent(group,
+							new InternalGroup(group, agentAddress, organization, false)) == null) {
+						informHooks(AgentActionEvent.CREATE_GROUP, agentAddress);
+					}
 				}
-				if (organization.putIfAbsent(group,
-						new InternalGroup(group, agentAddress, organization, false)) == null) {
-					informHooks(AgentActionEvent.CREATE_GROUP, agentAddress);
-				}
+				else
+					logInjectOperationFailure(m, agentAddress, null);
 				break;
 			case REQUEST_ROLE:
 				try {
-					getGroup(group).addDistantMember(agentAddress);
-					informHooks(AgentActionEvent.REQUEST_ROLE, agentAddress);
+					InternalGroup g=getGroup(group);
+					if (g.isDistributed())
+					{
+						if (g.addDistantMember(agentAddress))
+							informHooks(AgentActionEvent.REQUEST_ROLE, agentAddress);
+					}
+					else
+						logInjectOperationFailure(m, agentAddress, null);
 				} catch (CGRNotAvailable e) {
 					logInjectOperationFailure(m, agentAddress, e);
 				}
 				break;
 			case LEAVE_ROLE:
 				try {
-					getRole(agentAddress.getGroup(), roleName).removeDistantMember(agentAddress, m.isManualOperation());
-					informHooks(AgentActionEvent.LEAVE_ROLE, agentAddress);
+					if (getRole(agentAddress.getGroup(), roleName).removeDistantMember(agentAddress, m.isManualOperation()))
+						informHooks(AgentActionEvent.LEAVE_ROLE, agentAddress);
 				} catch (CGRNotAvailable e) {
 					logInjectOperationFailure(m, agentAddress, e);
 				}
 				break;
 			case LEAVE_GROUP:
 				try {
-					getGroup(group).removeDistantMember(agentAddress, m.isManualOperation());
-					informHooks(AgentActionEvent.LEAVE_GROUP, agentAddress);
+					InternalGroup g=getGroup(group);
+					if (g.isDistributed()) {
+						if (g.removeDistantMember(agentAddress, m.isManualOperation()))
+							informHooks(AgentActionEvent.LEAVE_GROUP, agentAddress);
+					}
+					else
+						logInjectOperationFailure(m, agentAddress, null);
 				} catch (CGRNotAvailable e) {
 					logInjectOperationFailure(m, agentAddress, e);
 				}

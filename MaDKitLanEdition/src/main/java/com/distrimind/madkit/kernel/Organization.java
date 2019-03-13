@@ -184,19 +184,24 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 
 	void importDistantOrg(Map<Group, Map<String, Collection<AgentAddress>>> map, MadkitKernel madkitKernel) {
 		for (Group groupName : map.keySet()) {
-			InternalGroup group = get(groupName);
-			if (group == null) {
-				AgentAddress manager;
-				try {
-					manager = map.get(groupName).get(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE)
-							.iterator().next();
-				} catch (NullPointerException e) {// TODO a clean protocol to get the groupManager
-					manager = map.get(groupName).values().iterator().next().iterator().next();
+			if (groupName.isDistributed()) {
+				InternalGroup group = get(groupName);
+				if (group == null) {
+					AgentAddress manager;
+					try {
+						manager = map.get(groupName).get(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE)
+								.iterator().next();
+					} catch (NullPointerException e) {// TODO a clean protocol to get the groupManager
+						manager = map.get(groupName).values().iterator().next().iterator().next();
+					}
+					group = new InternalGroup(groupName, manager, this, false);
+					put(groupName, group);
 				}
-				group = new InternalGroup(groupName, manager, this, false);
-				put(groupName, group);
+				if (group.isDistributed())
+					group.importDistantOrg(map.get(groupName), madkitKernel);
 			}
-			group.importDistantOrg(map.get(groupName), madkitKernel);
+
+
 
 		}
 	}

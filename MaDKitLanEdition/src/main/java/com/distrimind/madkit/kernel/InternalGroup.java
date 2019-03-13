@@ -347,13 +347,13 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 		}
 	}
 
-	void addDistantMember(AgentAddress content) {
+	boolean addDistantMember(AgentAddress content) {
 		final String roleName = content.getRole();
 		final InternalRole r;
 		synchronized (this) {
 			r = getOrCreateRole(roleName);
 		}
-		r.addDistantMemberIfNecessary(content);
+		return r.addDistantMemberIfNecessary(content);
 	}
 
 	InternalRole getOrCreateRole(final String roleName) {
@@ -364,12 +364,14 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 	}
 
 
-	void removeDistantMember(final AgentAddress aa, boolean manually_requested) {
+	boolean removeDistantMember(final AgentAddress aa, boolean manually_requested) {
 		// boolean in = false;
+		boolean changed=false;
 		for (final InternalRole r : values()) {
 			aa.setRoleObject(r);// required for equals to work
-			r.removeDistantMember(aa, manually_requested);
+			changed|=r.removeDistantMember(aa, manually_requested);
 		}
+
 		// if (manager.get().equals(aa)){
 		// manager.set(null);
 		// in = true;
@@ -379,6 +381,7 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 		// communityObject.removeGroup(groupName);
 		// }
 		// }
+		return changed;
 	}
 
 	void removeAgentsFromDistantKernel(final KernelAddress kernelAddress, MadkitKernel madkitKernel) {

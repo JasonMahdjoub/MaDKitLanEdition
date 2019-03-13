@@ -40,6 +40,7 @@ package com.distrimind.madkit.kernel;
 import static com.distrimind.madkit.i18n.I18nUtilities.getCGRString;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ROLE_NOT_HANDLED;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
+import static com.distrimind.madkit.kernel.CGRSynchro.Code.LEAVE_ROLE;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -378,7 +379,7 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 			incrementReferences(content.getKernelAddress());
 	}*/
 
-	final void addDistantMemberIfNecessary(final AgentAddress content) {
+	final boolean addDistantMemberIfNecessary(final AgentAddress content) {
 		boolean ok;
 		content.setRoleObject(this);// required for equals to work
 		synchronized (players) {
@@ -394,6 +395,7 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 		}
 		if (ok && content.isManuallyRequested())
 			incrementReferences(content.getKernelAddress());
+		return ok;
 	}
 
 	ReturnCode removeMember(final AbstractAgent requester, boolean manually_requested) {
@@ -432,6 +434,9 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 
 	final void removeMembers(final List<AbstractAgent> bucket, boolean manually_requested) {
 		int number;
+		List<AbstractAgent> removed=null;
+		if (group.isDistributed())
+			removed=new ArrayList<>(bucket.size());
 		synchronized (players) {
 			number = 0;
 			for (AbstractAgent aa : bucket)
@@ -443,7 +448,8 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 					{
 						it.remove();
 						++number;
-						
+						if (removed!=null && aa!=null)
+							removed.add(aa);
 						break;
 					}
 				}
@@ -466,11 +472,16 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 		if (manually_requested)
 			updateReferences(null, number);
 		removeFromOverlookers(bucket);
+		if (removed!=null)
+			for (AbstractAgent aa : removed)
+				aa.getMadkitKernel().sendNetworkCGRSynchroMessageWithRole(new CGRSynchro(LEAVE_ROLE,
+						new AgentAddress(aa, this, kernelAddress, manually_requested), manually_requested));
+
 	}
 
 
 	@SuppressWarnings("unused")
-	void removeDistantMember(final AgentAddress content, boolean manually_requested) {
+	boolean removeDistantMember(final AgentAddress content, boolean manually_requested) {
 
         AgentAddress aa;
         synchronized (players) {
@@ -479,7 +490,7 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
         if (aa != null && aa.isManuallyRequested())
             decrementReferences(aa.getKernelAddress());
         checkEmptyness();
-
+		return aa!=null;
 
 	}
 
@@ -706,12 +717,14 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 			//buildAndGetAddresses();
 			for (final AgentAddress aa : list) {
 				aa.setRoleObject(this);
-				distantAgentAddresses.add(aa);
-				//agentAddresses.add(aa);
-				if (aa.isManuallyRequested())
-					incrementReferences(aa.getKernelAddress());
-                agentAddresses=null;
-				madkitKernel.informHooks(AgentActionEvent.REQUEST_ROLE, aa);
+				if (!distantAgentAddresses.contains(aa)) {
+					distantAgentAddresses.add(aa);
+					//agentAddresses.add(aa);
+					if (aa.isManuallyRequested())
+						incrementReferences(aa.getKernelAddress());
+					agentAddresses = null;
+					madkitKernel.informHooks(AgentActionEvent.REQUEST_ROLE, aa);
+				}
 				// if (agentAddresses.add(aa)) {
 				// }
 				// else{
