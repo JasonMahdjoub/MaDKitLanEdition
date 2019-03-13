@@ -541,9 +541,9 @@ public class JunitMadkit {
 	}
 	public boolean isAgentsPresentInGroup(Madkit m, Group group)
 	{
-		return isAgentsPresentInGroup(m, group, null, null);
+		return isAgentsPresentInGroup(m, group, null, null, null);
 	}
-	public boolean isAgentsPresentInGroup(Madkit m, Group group, Class<?> agentClass, Boolean isNetwork)
+	public boolean isAgentsPresentInGroup(Madkit m, Group group, Class<?> agentClass, Boolean isNetwork, String roleStartWith)
 	{
 
 		try {
@@ -551,15 +551,16 @@ public class JunitMadkit {
 			for (InternalRole ir : g.values())
 			{
 
-				if (!ir.getAgentAddressesCopy().isEmpty()) {
+				if ((roleStartWith==null || ir.getRoleName().startsWith(roleStartWith)) && !ir.getAgentAddressesCopy().isEmpty()) {
 					if (agentClass!=null || isNetwork!=null)
 					{
 						for (AgentAddress aa : ir.getAgentAddressesCopy()) {
 							if (agentClass != null && (isNetwork==null || !isNetwork) && aa.getAgent() != null && agentClass.isAssignableFrom(aa.getAgent().getClass())) {
-
+								System.out.println(aa);
 								return true;
 							}
 							if (isNetwork!=null && aa.getKernelAddress().equals(m.kernelAddress)!=isNetwork) {
+								System.out.println(ir.getRoleName());
 								return true;
 							}
 						}

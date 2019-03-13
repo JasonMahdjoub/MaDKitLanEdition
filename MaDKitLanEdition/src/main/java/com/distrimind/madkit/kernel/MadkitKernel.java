@@ -61,10 +61,7 @@ import static com.distrimind.madkit.kernel.CGRSynchro.Code.LEAVE_GROUP;
 import static com.distrimind.madkit.kernel.CGRSynchro.Code.LEAVE_ROLE;
 import static com.distrimind.madkit.kernel.CGRSynchro.Code.REQUEST_ROLE;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
@@ -90,6 +87,7 @@ import java.util.logging.Level;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import com.distrimind.util.Utils;
 import com.distrimind.util.properties.PropertiesParseException;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
@@ -802,10 +800,12 @@ class MadkitKernel extends Agent {
 				for (String s : platform.args) {
 					args.append(s).append(" ");
 				}
-				Runtime.getRuntime().exec(// TODO not used yet
+
+				Process p=Runtime.getRuntime().exec(// TODO not used yet
 						System.getProperty("java.home") + File.separatorChar + "bin" + File.separatorChar + "java -cp "
 								+ System.getProperty("java.class.path") + " "
 								+ platform.getConfigOption().madkitMainClass.getCanonicalName() + " " + args);
+				Utils.flushAndDestroyProcess(p);
 			} catch (IOException e) {
 				bugReport(e);
 			}
