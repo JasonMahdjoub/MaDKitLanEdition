@@ -40,6 +40,7 @@ package com.distrimind.madkit.kernel;
 import static com.distrimind.madkit.i18n.I18nUtilities.getCGRString;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ROLE_NOT_HANDLED;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
+import static com.distrimind.madkit.kernel.CGRSynchro.Code.LEAVE_ROLE;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -414,6 +415,7 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 				}
 				return ReturnCode.NOT_IN_GROUP;
 			}
+
 			agentAddresses=null;
 			/*if (agentAddresses != null) {
 				Objects.requireNonNull(removeAgentAddressOf(requester, agentAddresses)).setRoleObject(null);
@@ -427,6 +429,12 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 		if (manually_requested)
 			decrementReferences(null);
 		checkEmptyness();
+		if (group.isDistributed() && requester!=null)
+		{
+			requester.getKernel().sendNetworkCGRSynchroMessageWithRole(new CGRSynchro(LEAVE_ROLE,
+					new AgentAddress(requester, this, kernelAddress, manually_requested), manually_requested));
+
+		}
 		return SUCCESS;
 	}
 
@@ -443,7 +451,12 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 					{
 						it.remove();
 						++number;
-						
+						if (group.isDistributed() && aa!=null)
+						{
+							aa.getKernel().sendNetworkCGRSynchroMessageWithRole(new CGRSynchro(LEAVE_ROLE,
+									new AgentAddress(aa, this, kernelAddress, manually_requested), manually_requested));
+
+						}
 						break;
 					}
 				}

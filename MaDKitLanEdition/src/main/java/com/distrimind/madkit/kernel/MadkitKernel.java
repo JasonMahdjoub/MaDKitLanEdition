@@ -1343,7 +1343,7 @@ class MadkitKernel extends Agent {
 			}
 			ReturnCode rc;
 			// this is apart because I need the address before the leave
-			if (r.getMyGroup().isDistributed()) {
+			/*if (r.getMyGroup().isDistributed()) {
 				AgentAddress leaver = r.getAgentAddressOf(requester);
 				if (leaver == null)
 					return ReturnCode.ROLE_NOT_HANDLED;
@@ -1352,9 +1352,9 @@ class MadkitKernel extends Agent {
 					throw new AssertionError("cannot remove " + requester + " from " + r.buildAndGetAddresses());
 				sendNetworkCGRSynchroMessageWithRole(new CGRSynchro(LEAVE_ROLE,
 						new AgentAddress(requester, r, kernelAddress, mannual_requested), mannual_requested));
-			} else {
-				rc = r.removeMember(requester, mannual_requested);
-			}
+			} else {*/
+			rc = r.removeMember(requester, mannual_requested);
+			//}
 			if (rc == SUCCESS) {
 				r.removeFromOverlookers(requester);
                 informHooks(AgentActionEvent.LEAVE_ROLE,
