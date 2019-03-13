@@ -50,6 +50,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.*;
+import static com.distrimind.madkit.kernel.CGRSynchro.Code.LEAVE_GROUP;
+import static com.distrimind.madkit.kernel.CGRSynchro.Code.REQUEST_ROLE;
 
 /**
  * @author Oliver Gutknecht
@@ -177,16 +179,21 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 			}
 		}
 		// TODO there is another RC : manager role is already handled
+		InternalRole r;
+		ReturnCode res;
 		synchronized (this) {
-			final InternalRole r = getOrCreateRole(roleName);
+			r = getOrCreateRole(roleName);
 			if (r.addMember(requester, manually_requested)) {
 				// now trigger overlooker updates if needed. Note that the role always still
 				// exits here because requester is in
 				r.addToOverlookers(requester);
-				return SUCCESS;
+				res=SUCCESS;
 			}
-			return ROLE_ALREADY_HANDLED;
+			else
+				res=ROLE_ALREADY_HANDLED;
 		}
+
+		return res;
 	}
 
 	/**
@@ -237,6 +244,8 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 			}
 
 		}
+
+
 		return affectedRoles;
 	}
 
@@ -364,11 +373,12 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 	}
 
 
-	void removeDistantMember(final AgentAddress aa, boolean manually_requested) {
+	boolean removeDistantMember(final AgentAddress aa, boolean manually_requested) {
 		// boolean in = false;
+		boolean changed=false;
 		for (final InternalRole r : values()) {
 			aa.setRoleObject(r);// required for equals to work
-			r.removeDistantMember(aa, manually_requested);
+			changed|=r.removeDistantMember(aa, manually_requested);
 		}
 		// if (manager.get().equals(aa)){
 		// manager.set(null);
@@ -379,6 +389,7 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 		// communityObject.removeGroup(groupName);
 		// }
 		// }
+		return changed;
 	}
 
 	void removeAgentsFromDistantKernel(final KernelAddress kernelAddress, MadkitKernel madkitKernel) {

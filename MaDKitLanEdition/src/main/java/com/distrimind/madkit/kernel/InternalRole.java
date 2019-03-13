@@ -429,34 +429,26 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 		if (manually_requested)
 			decrementReferences(null);
 		checkEmptyness();
-		if (group.isDistributed() && requester!=null)
-		{
-			requester.getKernel().sendNetworkCGRSynchroMessageWithRole(new CGRSynchro(LEAVE_ROLE,
-					new AgentAddress(requester, this, kernelAddress, manually_requested), manually_requested));
 
-		}
 		return SUCCESS;
 	}
 
 	final void removeMembers(final List<AbstractAgent> bucket, boolean manually_requested) {
 		int number;
+		ArrayList<AbstractAgent> removed=null;
+		if (group.isDistributed())
+			removed= new ArrayList<>(bucket.size());
 		synchronized (players) {
 			number = 0;
-			for (AbstractAgent aa : bucket)
-			{
-				for (Iterator<AbstractAgent> it=players.iterator();it.hasNext();)
-				{
-				
-					if (it.next()==aa)
-					{
+			for (AbstractAgent aa : bucket) {
+				for (Iterator<AbstractAgent> it = players.iterator(); it.hasNext(); ) {
+
+					if (it.next() == aa) {
 						it.remove();
 						++number;
-						if (group.isDistributed() && aa!=null)
-						{
-							aa.getKernel().sendNetworkCGRSynchroMessageWithRole(new CGRSynchro(LEAVE_ROLE,
-									new AgentAddress(aa, this, kernelAddress, manually_requested), manually_requested));
+						if (removed!=null)
+							removed.add(aa);
 
-						}
 						break;
 					}
 				}
@@ -473,17 +465,26 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 					}
 				}
             }*/
-            agentAddresses=null;
+			agentAddresses = null;
 			modified = true;
 		}
 		if (manually_requested)
 			updateReferences(null, number);
 		removeFromOverlookers(bucket);
+		if (removed!=null) {
+			for (AbstractAgent aa : removed) {
+				if (aa!=null)
+					aa.getMadkitKernel().sendNetworkCGRSynchroMessageWithRole(new CGRSynchro(LEAVE_ROLE,
+						new AgentAddress(aa, this, kernelAddress, manually_requested), manually_requested));
+
+			}
+
+		}
 	}
 
 
 	@SuppressWarnings("unused")
-	void removeDistantMember(final AgentAddress content, boolean manually_requested) {
+	boolean removeDistantMember(final AgentAddress content, boolean manually_requested) {
 
         AgentAddress aa;
         synchronized (players) {
@@ -492,6 +493,7 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
         if (aa != null && aa.isManuallyRequested())
             decrementReferences(aa.getKernelAddress());
         checkEmptyness();
+        return aa!=null;
 
 
 	}
@@ -620,8 +622,9 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 
 
 
+	@SuppressWarnings("UnusedReturnValue")
 	static AgentAddress removeAgentAddressOf(final AbstractAgent requester,
-			final Collection<AgentAddress> agentAddresses2) {
+											 final Collection<AgentAddress> agentAddresses2) {
 		// if(requester == null)
 		// throw new AssertionError("Wrong use ^^");
 		for (final Iterator<AgentAddress> iterator = agentAddresses2.iterator(); iterator.hasNext();) {

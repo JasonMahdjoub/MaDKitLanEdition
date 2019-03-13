@@ -37,61 +37,9 @@
  */
 package com.distrimind.madkit.kernel;
 
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.AGENT_CRASH;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ALREADY_GROUP;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ALREADY_KILLED;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ALREADY_LAUNCHED;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.INVALID_AGENT_ADDRESS;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_COMMUNITY;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_GROUP;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_IN_GROUP;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_ROLE;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_YET_LAUNCHED;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NO_RECIPIENT_FOUND;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ROLE_NOT_HANDLED;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SEVERE;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.TIMEOUT;
-import static com.distrimind.madkit.kernel.AbstractAgent.State.ACTIVATING;
-import static com.distrimind.madkit.kernel.AbstractAgent.State.INITIALIZING;
-import static com.distrimind.madkit.kernel.AbstractAgent.State.LIVING;
-import static com.distrimind.madkit.kernel.AbstractAgent.State.NOT_LAUNCHED;
-import static com.distrimind.madkit.kernel.CGRSynchro.Code.CREATE_GROUP;
-import static com.distrimind.madkit.kernel.CGRSynchro.Code.LEAVE_GROUP;
-import static com.distrimind.madkit.kernel.CGRSynchro.Code.LEAVE_ROLE;
-import static com.distrimind.madkit.kernel.CGRSynchro.Code.REQUEST_ROLE;
-
-import java.io.*;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.net.InetAddress;
-import java.net.URL;
-import java.util.*;
-import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
-
-import javax.xml.parsers.ParserConfigurationException;
-
-import com.distrimind.util.Utils;
-import com.distrimind.util.properties.PropertiesParseException;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
-
+import com.distrimind.jdkrewrite.concurrent.ScheduledThreadPoolExecutor;
+import com.distrimind.jdkrewrite.concurrent.ThreadPoolExecutor;
+import com.distrimind.jdkrewrite.concurrent.*;
 import com.distrimind.madkit.action.GlobalAction;
 import com.distrimind.madkit.action.KernelAction;
 import com.distrimind.madkit.agr.LocalCommunity;
@@ -103,48 +51,46 @@ import com.distrimind.madkit.i18n.ErrorMessages;
 import com.distrimind.madkit.io.RandomInputStream;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
-import com.distrimind.madkit.kernel.network.AnomalyDetectedMessage;
-import com.distrimind.madkit.kernel.network.AskForConnectionMessage;
-import com.distrimind.madkit.kernel.network.AskForTransferMessage;
-import com.distrimind.madkit.kernel.network.BroadcastLocalLanMessage;
-import com.distrimind.madkit.kernel.network.CGRSynchros;
-import com.distrimind.madkit.kernel.network.Connection;
-import com.distrimind.madkit.kernel.network.ConnectionIdentifier;
-import com.distrimind.madkit.kernel.network.DirectLocalLanMessage;
-import com.distrimind.madkit.kernel.network.KernelAddressInterfaced;
-import com.distrimind.madkit.kernel.network.LocalLanMessage;
-import com.distrimind.madkit.kernel.network.RealTimeTransfertStat;
+import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.BooleanMessage;
 import com.distrimind.madkit.message.KernelMessage;
 import com.distrimind.madkit.message.ObjectMessage;
-import com.distrimind.madkit.message.hook.AgentLifeEvent;
-import com.distrimind.madkit.message.hook.DistantKernelAgentEventMessage;
-import com.distrimind.madkit.message.hook.HookMessage;
-import com.distrimind.madkit.message.hook.MessageEvent;
-import com.distrimind.madkit.message.hook.NetworkAnomalyEvent;
-import com.distrimind.madkit.message.hook.NetworkEventMessage;
-import com.distrimind.madkit.message.hook.OrganizationEvent;
-import com.distrimind.madkit.message.hook.TransferEventMessage;
+import com.distrimind.madkit.message.hook.*;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
-import com.distrimind.madkit.message.hook.IPBannedEvent;
-import com.distrimind.madkit.message.hook.NetworkGroupsAccessEvent;
-import com.distrimind.madkit.message.hook.NetworkLoginAccessEvent;
 import com.distrimind.madkit.message.task.TasksExecutionConfirmationMessage;
 import com.distrimind.madkit.util.ExternalizableAndSizable;
 import com.distrimind.madkit.util.XMLUtilities;
-import com.distrimind.jdkrewrite.concurrent.FutureWithSpecializedWait;
-import com.distrimind.jdkrewrite.concurrent.LockerCondition;
-import com.distrimind.jdkrewrite.concurrent.ScheduledFutureWithSpecializedWait;
-import com.distrimind.jdkrewrite.concurrent.ScheduledThreadPoolExecutor;
-import com.distrimind.jdkrewrite.concurrent.ThreadPoolExecutor;
 import com.distrimind.ood.database.DatabaseConfiguration;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.IDGeneratorInt;
+import com.distrimind.util.Utils;
 import com.distrimind.util.crypto.MessageDigestType;
-
+import com.distrimind.util.properties.PropertiesParseException;
 import gnu.vm.jgnu.security.NoSuchAlgorithmException;
 import gnu.vm.jgnu.security.NoSuchProviderException;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.net.InetAddress;
+import java.net.URL;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
+
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.*;
+import static com.distrimind.madkit.kernel.AbstractAgent.State.*;
+import static com.distrimind.madkit.kernel.CGRSynchro.Code.*;
 
 /**
  * The brand new MaDKit kernel and it is now a real Agent :)
@@ -975,17 +921,11 @@ class MadkitKernel extends Agent {
 		if (tmpOrg != null) {
 			organization = tmpOrg;
 		}
-		synchronized (organization) {
-			if (!organization.addGroup(creator, group, manual_creation)) {
-				return ALREADY_GROUP;
-			}
-			try {// TODO bof...
-				if (group.isDistributed()) {
+		//synchronized (organization) {
 
-					sendNetworkCGRSynchroMessageWithRole(new CGRSynchro(CREATE_GROUP,
-							getRole(group, com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE)
-									.getAgentAddressOf(creator),
-							true));
+			try {// TODO bof...
+				if (!organization.addGroup(creator, group, manual_creation)) {
+					return ALREADY_GROUP;
 				}
                 informHooks(AgentActionEvent.CREATE_GROUP,
                         getRole(group, com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE)
@@ -993,7 +933,7 @@ class MadkitKernel extends Agent {
             } catch (CGRNotAvailable e) {
 				getLogger().severeLog("Please bug report", e);
 			}
-		}
+		//}
 		return SUCCESS;
 	}
 
@@ -1278,10 +1218,11 @@ class MadkitKernel extends Agent {
 			}
 			result = g.requestRole(requester, role, memberCard, manually_requested);
 		}
+
 		if (result == SUCCESS) {
-			if (g.isDistributed()) {
+			if (group.isDistributed()) {
 				sendNetworkCGRSynchroMessageWithRole(new CGRSynchro(REQUEST_ROLE,
-						new AgentAddress(requester, g.get(role), kernelAddress, manually_requested),
+						new AgentAddress(requester, g.get(role), requester.getKernelAddress(), manually_requested),
 						manually_requested));
 			}
             informHooks(AgentActionEvent.REQUEST_ROLE,
@@ -1315,9 +1256,10 @@ class MadkitKernel extends Agent {
 				role.removeFromOverlookers(requester);
 			}
 			if (g.isDistributed()) {
-				sendNetworkCGRSynchroMessageWithRole(new CGRSynchro(LEAVE_GROUP, new AgentAddress(requester,
-						new InternalRole(group), kernelAddress, isAutoCreateGroup(requester)), manually_requested));
+				requester.getMadkitKernel().sendNetworkCGRSynchroMessageWithRole(new CGRSynchro(LEAVE_GROUP, new AgentAddress(requester,
+						new InternalRole(group), requester.getKernelAddress(), requester.getKernel().isAutoCreateGroup(requester)), manually_requested));
 			}
+
             informHooks(AgentActionEvent.LEAVE_GROUP, new AgentAddress(requester, new InternalRole(group),
                     kernelAddress, isAutoCreateGroup(requester)));
 			return SUCCESS;
@@ -1343,7 +1285,7 @@ class MadkitKernel extends Agent {
 			}
 			ReturnCode rc;
 			// this is apart because I need the address before the leave
-			/*if (r.getMyGroup().isDistributed()) {
+			if (r.getMyGroup().isDistributed()) {
 				AgentAddress leaver = r.getAgentAddressOf(requester);
 				if (leaver == null)
 					return ReturnCode.ROLE_NOT_HANDLED;
@@ -1352,9 +1294,9 @@ class MadkitKernel extends Agent {
 					throw new AssertionError("cannot remove " + requester + " from " + r.buildAndGetAddresses());
 				sendNetworkCGRSynchroMessageWithRole(new CGRSynchro(LEAVE_ROLE,
 						new AgentAddress(requester, r, kernelAddress, mannual_requested), mannual_requested));
-			} else {*/
-			rc = r.removeMember(requester, mannual_requested);
-			//}
+			} else {
+				rc = r.removeMember(requester, mannual_requested);
+			}
 			if (rc == SUCCESS) {
 				r.removeFromOverlookers(requester);
                 informHooks(AgentActionEvent.LEAVE_ROLE,
@@ -2511,6 +2453,7 @@ class MadkitKernel extends Agent {
 		removeAllAutoRequestedGroups(theAgent);
 		synchronized (organizations) {
 			for (final Organization org : organizations.values()) {
+				//org.removeAgentFromAllGroups(theAgent, true);
 				for (final Group group : org.removeAgentFromAllGroups(theAgent, true)) {
 					sendNetworkCGRSynchroMessageWithRole(new CGRSynchro(LEAVE_GROUP, new AgentAddress(theAgent,
 							new InternalRole(group), kernelAddress, isAutoCreateGroup(theAgent)), true));
@@ -2768,16 +2711,20 @@ class MadkitKernel extends Agent {
 				break;
 			case LEAVE_ROLE:
 				try {
-					getRole(agentAddress.getGroup(), roleName).removeDistantMember(agentAddress, m.isManualOperation());
-					informHooks(AgentActionEvent.LEAVE_ROLE, agentAddress);
+					InternalRole ir=getRole(agentAddress.getGroup(), roleName);
+
+					if (ir.removeDistantMember(agentAddress, m.isManualOperation()))
+						informHooks(AgentActionEvent.LEAVE_ROLE, agentAddress);
+
+
 				} catch (CGRNotAvailable e) {
 					logInjectOperationFailure(m, agentAddress, e);
 				}
 				break;
 			case LEAVE_GROUP:
 				try {
-					getGroup(group).removeDistantMember(agentAddress, m.isManualOperation());
-					informHooks(AgentActionEvent.LEAVE_GROUP, agentAddress);
+					if (getGroup(group).removeDistantMember(agentAddress, m.isManualOperation()))
+						informHooks(AgentActionEvent.LEAVE_GROUP, agentAddress);
 				} catch (CGRNotAvailable e) {
 					logInjectOperationFailure(m, agentAddress, e);
 				}
