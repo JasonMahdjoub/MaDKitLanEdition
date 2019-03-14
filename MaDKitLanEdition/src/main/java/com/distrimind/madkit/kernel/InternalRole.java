@@ -498,8 +498,6 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 
 		int number;
 		synchronized (players) {
-			if (!number_of_manually_distant_requested_role.containsKey(ka))
-				return;
 			number = removeDistantAgentAddress(ka);
 		}
 		if (number>0)

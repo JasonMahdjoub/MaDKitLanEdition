@@ -559,11 +559,12 @@ public class JunitMadkit {
 								System.out.println(aa);
 								return true;
 							}
-							if (isNetwork!=null && aa.getKernelAddress().equals(m.kernelAddress)!=isNetwork) {
+							if (isNetwork!=null && aa.getKernelAddress().equals(m.getKernelAddress())!=isNetwork) {
 								System.out.println(aa);
 								return true;
 							}
 						}
+
 						continue;
 					}
 					return true;

@@ -1172,7 +1172,7 @@ class DistantKernelAgent extends AgentFakeThread {
 				&& !((old == null || old.length == 0) && distant_accepted_groups.length == 0))
 			MadkitKernelAccess.informHooks(this,
 					new NetworkGroupsAccessEvent(AgentActionEvent.ACCESSIBLE_LAN_GROUPS_GIVEN_BY_DISTANT_PEER, general,
-							distant_accepted_groups, distant_kernel_address));
+							distant_accepted_groups, distant_kernel_address, false));
 		if (logger != null && logger.isLoggable(Level.FINEST))
 			logger.finest(
 					"Distant accepted groups updated (distantInterfacedKernelAddress=" + distant_kernel_address + ")");
@@ -1515,7 +1515,7 @@ class DistantKernelAgent extends AgentFakeThread {
 							|| ((cgr.getCode() == Code.LEAVE_ROLE || cgr.getCode() == Code.LEAVE_GROUP)
 									&& computeMissedGroups(ag, this.localAcceptedAndRequestedGroups).size() > 0)))
 				MadkitKernelAccess.informHooks(this, new NetworkGroupsAccessEvent(
-						AgentActionEvent.ACCESSIBLE_LAN_GROUPS_GIVEN_TO_DISTANT_PEER, mg, ag, distant_kernel_address));
+						AgentActionEvent.ACCESSIBLE_LAN_GROUPS_GIVEN_TO_DISTANT_PEER, mg, ag, distant_kernel_address, false));
 			localAcceptedAndRequestedGroups = ag;
 			// localGeneralAcceptedGroups=mg;
 		}
@@ -1584,7 +1584,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			if (newAcceptedGroups.size() > 0 || removedAcceptedGroups.size() > 0) {
 				MultiGroup mg = computeLocalGeneralAcceptedGroups();
 				MadkitKernelAccess.informHooks(this, new NetworkGroupsAccessEvent(
-						AgentActionEvent.ACCESSIBLE_LAN_GROUPS_GIVEN_TO_DISTANT_PEER, mg, ag, distant_kernel_address));
+						AgentActionEvent.ACCESSIBLE_LAN_GROUPS_GIVEN_TO_DISTANT_PEER, mg, ag, distant_kernel_address, removedAcceptedGroups.size() > 0));
 
 				Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> agent_addresses = getOrganizationSnapShot(
 						newAcceptedGroups, false);

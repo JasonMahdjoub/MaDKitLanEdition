@@ -917,4 +917,9 @@ final public class Madkit {
 		return myKernel;
 	}
 
+	KernelAddress getKernelAddress()
+	{
+		return this.getKernel().getKernelAddress();
+	}
+
 }

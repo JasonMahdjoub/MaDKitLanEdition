@@ -2297,7 +2297,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					sendMessageWithRole(this.agent_for_distant_kernel_aa,
 							new NetworkGroupsAccessEvent(AgentActionEvent.ACCESSIBLE_LAN_GROUPS_GIVEN_BY_DISTANT_PEER,
 									distant_general_accepted_groups, distant_accepted_and_requested_groups,
-									distant_kernel_address),
+									distant_kernel_address, false),
 							LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 				} else if (obj.getClass() == TooMuchConnectionWithTheSamePeers.class) {
 					startDeconnectionProcess(ConnectionClosedReason.CONNECTION_LOST);
@@ -2532,7 +2532,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				rc=sendMessageWithRole(this.agent_for_distant_kernel_aa,
 						new NetworkGroupsAccessEvent(AgentActionEvent.ACCESSIBLE_LAN_GROUPS_GIVEN_BY_DISTANT_PEER,
 								distant_general_accepted_groups, distant_accepted_and_requested_groups,
-								distant_kernel_address),
+								distant_kernel_address, false),
 						LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 				if (!rc.equals(ReturnCode.SUCCESS) && logger!=null)
 					logger.severe("Unable to send message to distant kernel agent");

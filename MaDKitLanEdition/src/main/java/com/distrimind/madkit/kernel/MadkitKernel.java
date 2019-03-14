@@ -1036,7 +1036,7 @@ class MadkitKernel extends Agent {
 			case ACCESSIBLE_LAN_GROUPS_GIVEN_BY_DISTANT_PEER:
 			case ACCESSIBLE_LAN_GROUPS_GIVEN_TO_DISTANT_PEER:
 				hm = new NetworkGroupsAccessEvent(action, (AbstractGroup) parameters[0], (Group[]) parameters[1],
-						(KernelAddressInterfaced) parameters[2]);
+						(KernelAddressInterfaced) parameters[2], (Boolean) parameters[3]);
 				break;
 			case LOGGED_IDENTIFIERS_UPDATE:
 				hm = new NetworkLoginAccessEvent((KernelAddress) parameters[0],
@@ -1069,7 +1069,7 @@ class MadkitKernel extends Agent {
 		}
 	}
 
-	private void updateKernelMapPerGroups(Map<KernelAddress, Set<Group>> groupsPerKernelAddress, Map<Group, Set<KernelAddress>> kernelAddressesPerGroups, KernelAddress ka, List<Group> l, AbstractGroup generalAcceptedGroup)
+	private void updateKernelMapPerGroups(Map<KernelAddress, Set<Group>> groupsPerKernelAddress, Map<Group, Set<KernelAddress>> kernelAddressesPerGroups, KernelAddress ka, List<Group> l)
     {
 
         Set<Group> ol;
@@ -1106,13 +1106,7 @@ class MadkitKernel extends Agent {
             lka.add(ka);
         }
 
-		synchronized (organizations) {
-			for (Iterator<Organization> it =organizations.values().iterator();it.hasNext();) {
-				it.next().updateAcceptedDistantGroups(ka, generalAcceptedGroup);
-				if (organizations.isEmpty())
-					it.remove();
-			}
-		}
+
 
     }
 
@@ -1162,10 +1156,19 @@ class MadkitKernel extends Agent {
 			} else if (hook_message.getClass() == NetworkGroupsAccessEvent.class) {
 				NetworkGroupsAccessEvent n = (NetworkGroupsAccessEvent) hook_message;
 				if (hook_message.getContent() == AgentActionEvent.ACCESSIBLE_LAN_GROUPS_GIVEN_BY_DISTANT_PEER) {
-				    updateKernelMapPerGroups(distantAccessibleGroupsGivenByDistantPeer, distantAccessibleKernelsPerGroupsGivenByDistantPeer, n.getConcernedKernelAddress(), n.getRequestedAccessibleGroups(), n.getGeneralAcceptedGroups());
+				    updateKernelMapPerGroups(distantAccessibleGroupsGivenByDistantPeer, distantAccessibleKernelsPerGroupsGivenByDistantPeer, n.getConcernedKernelAddress(), n.getRequestedAccessibleGroups());
 
 				} else if (hook_message.getContent() == AgentActionEvent.ACCESSIBLE_LAN_GROUPS_GIVEN_TO_DISTANT_PEER) {
-                    updateKernelMapPerGroups(distantAccessibleGroupsGivenToDistantPeer, distantAccessibleKernelsPerGroupsGivenToDistantPeer, n.getConcernedKernelAddress(), n.getRequestedAccessibleGroups(), n.getGeneralAcceptedGroups());
+                    updateKernelMapPerGroups(distantAccessibleGroupsGivenToDistantPeer, distantAccessibleKernelsPerGroupsGivenToDistantPeer, n.getConcernedKernelAddress(), n.getRequestedAccessibleGroups());
+                    if (n.isLocalGroupsRemoved()) {
+						synchronized (organizations) {
+							for (Iterator<Organization> it = organizations.values().iterator(); it.hasNext(); ) {
+								it.next().updateAcceptedDistantGroups(n.getConcernedKernelAddress(), n.getGeneralAcceptedGroups());
+								if (organizations.isEmpty())
+									it.remove();
+							}
+						}
+					}
 
 				}
 			} else if (hook_message.getClass() == NetworkLoginAccessEvent.class) {

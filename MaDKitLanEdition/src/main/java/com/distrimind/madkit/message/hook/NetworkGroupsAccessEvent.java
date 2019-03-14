@@ -66,6 +66,7 @@ public class NetworkGroupsAccessEvent extends HookMessage {
 	private final List<Group> effective_accessible_groups;
 	private final AbstractGroup general_accessible_groups;
 	private KernelAddress concerned_kernel_address_interfaced;
+	private final boolean localGroupsRemoved;
 
 	private static Group[] toArray(Collection<Group> _accessible_groups) {
 		Group res[] = new Group[_accessible_groups.size()];
@@ -76,13 +77,17 @@ public class NetworkGroupsAccessEvent extends HookMessage {
 		return res;
 	}
 
-	public NetworkGroupsAccessEvent(AgentActionEvent action, AbstractGroup general_accessible_groups,
-			Collection<Group> _accessible_groups, KernelAddress _concerned_kernel_address_interfaced) {
-		this(action, general_accessible_groups, toArray(_accessible_groups), _concerned_kernel_address_interfaced);
+	public boolean isLocalGroupsRemoved() {
+		return localGroupsRemoved;
 	}
 
 	public NetworkGroupsAccessEvent(AgentActionEvent action, AbstractGroup general_accessible_groups,
-			Group[] _accessible_groups, KernelAddress _concerned_kernel_address_interfaced) {
+									Collection<Group> _accessible_groups, KernelAddress _concerned_kernel_address_interfaced, boolean localGroupsRemoved) {
+		this(action, general_accessible_groups, toArray(_accessible_groups), _concerned_kernel_address_interfaced, localGroupsRemoved);
+	}
+
+	public NetworkGroupsAccessEvent(AgentActionEvent action, AbstractGroup general_accessible_groups,
+			Group[] _accessible_groups, KernelAddress _concerned_kernel_address_interfaced, boolean localGroupsRemoved) {
 		super(action);
 		if (action == null)
 			throw new NullPointerException("action");
@@ -96,6 +101,7 @@ public class NetworkGroupsAccessEvent extends HookMessage {
 		effective_accessible_groups = Collections.unmodifiableList(Arrays.asList(_accessible_groups));
 		concerned_kernel_address_interfaced = _concerned_kernel_address_interfaced;
 		this.general_accessible_groups = general_accessible_groups;
+		this.localGroupsRemoved =localGroupsRemoved;
 	}
 
 	@Override
