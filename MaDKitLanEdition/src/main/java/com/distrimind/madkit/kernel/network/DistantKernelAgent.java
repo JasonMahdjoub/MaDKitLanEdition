@@ -396,7 +396,7 @@ class DistantKernelAgent extends AgentFakeThread {
 							logger.finer(
 									"Agent socket killed and removed from distant kernel agent list (distantInterfacedKernelAddress="
 											+ distant_kernel_address + ")");
-
+						updateLocalAcceptedGroups();
 						if (agents_socket.size() == 0 && indirect_agents_socket.size() == 0) {
 							for (AbstractData ad : m.shortDataNotSent) {
 								if (ad instanceof AbstractPacketData) {

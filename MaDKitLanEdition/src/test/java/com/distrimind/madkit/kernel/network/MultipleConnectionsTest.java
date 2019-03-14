@@ -253,7 +253,7 @@ public class MultipleConnectionsTest extends JunitMadkit {
 					Assert.assertTrue(agentsToLaunch3.agentBigTransfer.isOK());
 					Assert.assertTrue(agentsToLaunch4.agentBigTransfer.isOK());
 					Assert.assertTrue(agentsToLaunch5.agentBigTransfer.isOK());
-					sleep(3000);
+					sleep(4000);
 					Assert.assertTrue(agentsToLaunch1.agentBigTransfer.isKilled());
 					Assert.assertTrue(agentsToLaunch2.agentBigTransfer.isKilled());
 					Assert.assertTrue(agentsToLaunch3.agentBigTransfer.isKilled());

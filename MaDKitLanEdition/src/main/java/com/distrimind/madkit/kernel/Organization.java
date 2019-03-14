@@ -162,6 +162,18 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 
 	}
 
+	void updateAcceptedDistantGroups(KernelAddress ka, AbstractGroup generalAcceptedGroup)
+	{
+		for (final Iterator<Map.Entry<Group, InternalGroup>> e = this.entrySet().iterator(); e.hasNext();) {
+			final Map.Entry<Group, InternalGroup> entry = e.next();
+			final InternalGroup g = entry.getValue();
+			if (!generalAcceptedGroup.includes(g.getGroup()))
+				removeDistantKernelAddressForAllGroups(ka);
+			if (g.isEmpty())
+				e.remove();
+		}
+	}
+
 
 	Map<Group, Map<String, Collection<AgentAddress>>> getOrgMap(boolean global) {
 		Map<Group, Map<String, Collection<AgentAddress>>> export = new TreeMap<>();

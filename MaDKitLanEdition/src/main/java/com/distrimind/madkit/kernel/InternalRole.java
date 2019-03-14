@@ -223,16 +223,13 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 		}
 	}
 	private void decrementReferences(KernelAddress distant) {
-		decrementReferences(distant, 1);
-	}
-	private void decrementReferences(KernelAddress distant, int numberToDecrement) {
 		long number = 1;
 		if (!this.roleName.equals(Organization.GROUP_MANAGER_ROLE))
-			number = number_of_manually_requested_role.addAndGet(numberToDecrement);
+			number = number_of_manually_requested_role.decrementAndGet();
 
 		if (distant != null) {
 			synchronized (players) {
-				int v = getReference(distant).addAndGet(-numberToDecrement);
+				int v = getReference(distant).decrementAndGet();
 				if (v < 0)
 					logger.log(Level.WARNING,
 							"Incoherent reference v (v<0) : " + number + " for kernel address " + distant,
@@ -498,12 +495,15 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 
 	public void removeDistantMembers(KernelAddress ka)
 	{
+
 		int number;
 		synchronized (players) {
+			if (!number_of_manually_distant_requested_role.containsKey(ka))
+				return;
 			number = removeDistantAgentAddress(ka);
 		}
 		if (number>0)
-			decrementReferences(ka, number);
+			updateReferences(ka, -number);
 		checkEmptyness();
 	}
 

@@ -244,16 +244,12 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 	{
 		synchronized (this) {
 			for (final InternalRole r : values()) {
-				/*
-				 * boolean remove=true; if (manually_requested)
-				 * remove=!this.getCommunityObject().getMyKernel().isConcernedByAutoRequestRole(
-				 * requester, r.getGroup(), r.getRoleName());
-				 */
 				r.removeDistantMembers(ka);
 
 			}
 		}
 	}
+
 
 	boolean isIn(AbstractAgent agent) {
 		for (final InternalRole r : values()) {

@@ -1069,7 +1069,7 @@ class MadkitKernel extends Agent {
 		}
 	}
 
-	private static void updateKernelMapPerGroups(Map<KernelAddress, Set<Group>> groupsPerKernelAddress, Map<Group, Set<KernelAddress>> kernelAddressesPerGroups, KernelAddress ka, List<Group> l)
+	private void updateKernelMapPerGroups(Map<KernelAddress, Set<Group>> groupsPerKernelAddress, Map<Group, Set<KernelAddress>> kernelAddressesPerGroups, KernelAddress ka, List<Group> l, AbstractGroup generalAcceptedGroup)
     {
 
         Set<Group> ol;
@@ -1105,6 +1105,14 @@ class MadkitKernel extends Agent {
             }
             lka.add(ka);
         }
+
+		synchronized (organizations) {
+			for (Iterator<Organization> it =organizations.values().iterator();it.hasNext();) {
+				it.next().updateAcceptedDistantGroups(ka, generalAcceptedGroup);
+				if (organizations.isEmpty())
+					it.remove();
+			}
+		}
 
     }
 
@@ -1154,10 +1162,10 @@ class MadkitKernel extends Agent {
 			} else if (hook_message.getClass() == NetworkGroupsAccessEvent.class) {
 				NetworkGroupsAccessEvent n = (NetworkGroupsAccessEvent) hook_message;
 				if (hook_message.getContent() == AgentActionEvent.ACCESSIBLE_LAN_GROUPS_GIVEN_BY_DISTANT_PEER) {
-				    updateKernelMapPerGroups(distantAccessibleGroupsGivenByDistantPeer, distantAccessibleKernelsPerGroupsGivenByDistantPeer, n.getConcernedKernelAddress(), n.getRequestedAccessibleGroups());
+				    updateKernelMapPerGroups(distantAccessibleGroupsGivenByDistantPeer, distantAccessibleKernelsPerGroupsGivenByDistantPeer, n.getConcernedKernelAddress(), n.getRequestedAccessibleGroups(), n.getGeneralAcceptedGroups());
 
 				} else if (hook_message.getContent() == AgentActionEvent.ACCESSIBLE_LAN_GROUPS_GIVEN_TO_DISTANT_PEER) {
-                    updateKernelMapPerGroups(distantAccessibleGroupsGivenToDistantPeer, distantAccessibleKernelsPerGroupsGivenToDistantPeer, n.getConcernedKernelAddress(), n.getRequestedAccessibleGroups());
+                    updateKernelMapPerGroups(distantAccessibleGroupsGivenToDistantPeer, distantAccessibleKernelsPerGroupsGivenToDistantPeer, n.getConcernedKernelAddress(), n.getRequestedAccessibleGroups(), n.getGeneralAcceptedGroups());
 
 				}
 			} else if (hook_message.getClass() == NetworkLoginAccessEvent.class) {
