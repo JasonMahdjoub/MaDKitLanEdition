@@ -2188,7 +2188,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						}
 
 						AccessMessage tsm = access_protocol.setAndGetNextMessage((AccessMessage) obj);
-						AccessMessage messagesToSend[]=(tsm instanceof AccessMessagesList)?((AccessMessagesList)tsm).getMessages():new AccessMessage[] {tsm};
+						AccessMessage[] messagesToSend = (tsm instanceof AccessMessagesList) ? ((AccessMessagesList) tsm).getMessages() : new AccessMessage[]{tsm};
 						for (AccessMessage toSend : messagesToSend)
 						{
 							if (toSend != null) {
@@ -2393,8 +2393,10 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						logger.finer("Receiving CGRSynchro message (distantInterfacedKernelAddress="
 								+ distant_kernel_address + ") : " + obj);
 					CGRSynchroSystemMessage cgr = ((CGRSynchroSystemMessage) obj);
-
-					sendMessageWithRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.NET_AGENT,
+					if (!cgr.checkWithInterfaceKernelAddress(distantInterfacedKernelAddress))
+						processInvalidSerializedObject(null, cgr, "Invalid CGR Synchro with local interfaced kernel address");
+					else
+						sendMessageWithRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.NET_AGENT,
 							cgr.getCGRSynchro(), LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 				} else if (obj.getClass() == CGRSynchrosSystemMessage.class) {
 					sendMessageWithRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.NET_AGENT,

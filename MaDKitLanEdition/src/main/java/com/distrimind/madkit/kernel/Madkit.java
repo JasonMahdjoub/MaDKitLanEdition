@@ -152,6 +152,7 @@ final public class Madkit {
 			d.addItem("Add new connection protocol with symmetric keys: P2PSecuredConnectionProtocolWithKnownSymmetricKeys.");
 			d.addItem("Better tests for network transfers.");
 			d.addItem("Improve synchronization of list of distant agents.");
+			d.addItem("Security issue : control that received distant agents list synchronization concerns the good distant kernel address.");
 			VERSION.addDescription(d);
 
 
