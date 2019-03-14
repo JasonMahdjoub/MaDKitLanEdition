@@ -240,6 +240,21 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 		return affectedRoles;
 	}
 
+	void removeDistantKernelAddressForAllRoles(KernelAddress ka)
+	{
+		synchronized (this) {
+			for (final InternalRole r : values()) {
+				/*
+				 * boolean remove=true; if (manually_requested)
+				 * remove=!this.getCommunityObject().getMyKernel().isConcernedByAutoRequestRole(
+				 * requester, r.getGroup(), r.getRoleName());
+				 */
+				r.removeDistantMembers(ka);
+
+			}
+		}
+	}
+
 	boolean isIn(AbstractAgent agent) {
 		for (final InternalRole r : values()) {
 			if (r.contains(agent))
@@ -367,11 +382,12 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 	boolean removeDistantMember(final AgentAddress aa, boolean manually_requested) {
 		// boolean in = false;
 		boolean changed=false;
+
 		for (final InternalRole r : values()) {
 			aa.setRoleObject(r);// required for equals to work
 			changed|=r.removeDistantMember(aa, manually_requested);
 		}
-
+		aa.setRoleObject(null);
 		// if (manager.get().equals(aa)){
 		// manager.set(null);
 		// in = true;

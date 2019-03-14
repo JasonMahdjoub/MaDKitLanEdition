@@ -222,15 +222,17 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 						new IllegalAccessError());
 		}
 	}
-
 	private void decrementReferences(KernelAddress distant) {
+		decrementReferences(distant, 1);
+	}
+	private void decrementReferences(KernelAddress distant, int numberToDecrement) {
 		long number = 1;
 		if (!this.roleName.equals(Organization.GROUP_MANAGER_ROLE))
-			number = number_of_manually_requested_role.decrementAndGet();
+			number = number_of_manually_requested_role.addAndGet(numberToDecrement);
 
 		if (distant != null) {
 			synchronized (players) {
-				int v = getReference(distant).decrementAndGet();
+				int v = getReference(distant).addAndGet(-numberToDecrement);
 				if (v < 0)
 					logger.log(Level.WARNING,
 							"Incoherent reference v (v<0) : " + number + " for kernel address " + distant,
@@ -494,6 +496,17 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 
 	}
 
+	public void removeDistantMembers(KernelAddress ka)
+	{
+		int number;
+		synchronized (players) {
+			number = removeDistantAgentAddress(ka);
+		}
+		if (number>0)
+			decrementReferences(ka, number);
+		checkEmptyness();
+	}
+
 	final List<AgentAddress> buildAndGetAddresses() {
         List<AgentAddress> set=agentAddresses;
         if (set == null) {
@@ -517,15 +530,33 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 	}
 
 	private AgentAddress getAndRemoveDistantAgentAddress(AgentAddress aa) {
+		AgentAddress res=null;
 		for (Iterator<AgentAddress> it = distantAgentAddresses.iterator(); it.hasNext();) {
 			AgentAddress a = it.next();
 			if (a.equals(aa)) {
 				it.remove();
 				agentAddresses=null;
-				return a;
+				/*if (res!=null)
+					throw new InternalError();*/
+				res=aa;
+				break;
 			}
 		}
-		return null;
+		return res;
+	}
+
+	private int removeDistantAgentAddress(KernelAddress ka) {
+		int number=0;
+		for (Iterator<AgentAddress> it = distantAgentAddresses.iterator(); it.hasNext();) {
+			AgentAddress a = it.next();
+			if (a.getKernelAddress().equals(ka)) {
+				it.remove();
+				agentAddresses=null;
+				if (a.isManuallyRequested())
+					++number;
+			}
+		}
+		return number;
 	}
 
 	private AgentAddress removeDistantAgentAddress(AgentAddress aa) {
@@ -538,7 +569,6 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 		}
 		return a;
 	}
-
 
 	void removeAgentsFromDistantKernel(final KernelAddress kernelAddress2, MadkitKernel madkitKernel) {
 		if (distantAgentAddresses != null) {

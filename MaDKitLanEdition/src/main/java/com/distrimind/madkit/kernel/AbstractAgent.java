@@ -640,10 +640,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 
 		Thread.currentThread().setName(getAgentThreadName(TERMINATED));
 
-		synchronized (state) {
-			state.set(TERMINATED);
-			state.notify();
-		}
+
 		kernel = getMadkitKernel();
 
 		if (hasGUI) {
@@ -672,7 +669,10 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 			AgentLogLevelMenu.remove(this);
 			AgentStatusPanel.remove(this);
 		}
-
+		synchronized (state) {
+			state.set(TERMINATED);
+			state.notify();
+		}
 		if (kernel.isHooked())
 			kernel.informHooks(AgentActionEvent.AGENT_TERMINATED, this);
 

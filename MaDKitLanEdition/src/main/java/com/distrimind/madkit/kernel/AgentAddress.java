@@ -252,9 +252,7 @@ public class AgentAddress implements ExternalizableAndSizable, Cloneable {
 			return true;
 		if (agentAddress instanceof AgentAddress) {
 			final AgentAddress aa = (AgentAddress) agentAddress;
-			if (aa.getAgentID() != getAgentID())
-				return false;
-			return kernelAddress.equals(aa.kernelAddress) && getRole().equals(aa.getRole())
+			return aa.getAgentID() == getAgentID() && kernelAddress.equals(aa.kernelAddress) && getRole().equals(aa.getRole())
 					&& getGroup().equals(aa.getGroup()) && getCommunity().equals(aa.getCommunity());
 		}
 		return false;

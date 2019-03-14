@@ -253,7 +253,7 @@ public class MultipleConnectionsTest extends JunitMadkit {
 					Assert.assertTrue(agentsToLaunch3.agentBigTransfer.isOK());
 					Assert.assertTrue(agentsToLaunch4.agentBigTransfer.isOK());
 					Assert.assertTrue(agentsToLaunch5.agentBigTransfer.isOK());
-					sleep(2000);
+					sleep(3000);
 					Assert.assertTrue(agentsToLaunch1.agentBigTransfer.isKilled());
 					Assert.assertTrue(agentsToLaunch2.agentBigTransfer.isKilled());
 					Assert.assertTrue(agentsToLaunch3.agentBigTransfer.isKilled());
@@ -263,7 +263,15 @@ public class MultipleConnectionsTest extends JunitMadkit {
 					for (Madkit m : getHelperInstances(5))
 					{
 						Assert.assertFalse(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, AgentBigTransfer.class, false, AgentBigTransfer.bigTransferRole));
+					}
+					for (Madkit m : getHelperInstances(5))
+					{
 						Assert.assertFalse(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, AgentBigTransfer.class, true, AgentBigTransfer.bigTransferRole));
+					}
+					for (Madkit m : getHelperInstances(5))
+					{
+						Assert.assertTrue(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, NetworkPongAgent.class, true, NetworkPingAgent.pongRole));
+						Assert.assertTrue(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, NetworkPingAgent.class, true, NetworkPingAgent.pingRole));
 					}
 					if (logger != null)
 						logger.info("stoping networks");
@@ -273,6 +281,10 @@ public class MultipleConnectionsTest extends JunitMadkit {
 					for (Madkit m : getHelperInstances(5)) {
 						checkConnectedKernelsNb(this, m, 0, timeOut);
 						checkConnectedIntancesNb(this, m, 0, timeOut);
+					}
+					for (Madkit m : getHelperInstances(5))
+					{
+						Assert.assertFalse(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, null, true, null));
 					}
 
 					sleep(800);
@@ -296,15 +308,20 @@ public class MultipleConnectionsTest extends JunitMadkit {
 					}
 					sleep(400);
 					for (Madkit m : getHelperInstances(5))
+					{
+						Assert.assertTrue(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, NetworkPongAgent.class, true, NetworkPingAgent.pongRole));
+						Assert.assertTrue(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, NetworkPingAgent.class, true, NetworkPingAgent.pingRole));
+					}
+					for (Madkit m : getHelperInstances(5))
 						stopNetwork(m);
 					for (Madkit m : getHelperInstances(5)) {
 						checkConnectedKernelsNb(this, m, 0, timeOut);
 						checkConnectedIntancesNb(this, m, 0, timeOut);
 					}
-					for (Madkit m : getHelperInstances(5))
+
+				    for (Madkit m : getHelperInstances(5))
 					{
-						Assert.assertTrue(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, NetworkPongAgent.class, true, null));
-						Assert.assertTrue(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, NetworkPingAgent.class, true, null));
+						Assert.assertFalse(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, null, true, null));
 					}
 
 					sleep(400);

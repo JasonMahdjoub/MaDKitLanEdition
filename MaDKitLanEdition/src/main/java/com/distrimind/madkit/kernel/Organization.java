@@ -150,6 +150,18 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 
 	}
 
+	void removeDistantKernelAddressForAllGroups(KernelAddress ka)
+	{
+		for (final Iterator<Map.Entry<Group, InternalGroup>> e = this.entrySet().iterator(); e.hasNext();) {
+			final Map.Entry<Group, InternalGroup> entry = e.next();
+			final InternalGroup g = entry.getValue();
+			g.removeDistantKernelAddressForAllRoles(ka);
+			if (g.isEmpty())
+				e.remove();
+		}
+
+	}
+
 
 	Map<Group, Map<String, Collection<AgentAddress>>> getOrgMap(boolean global) {
 		Map<Group, Map<String, Collection<AgentAddress>>> export = new TreeMap<>();
@@ -185,20 +197,32 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 	void importDistantOrg(Map<Group, Map<String, Collection<AgentAddress>>> map, MadkitKernel madkitKernel) {
 		for (Group groupName : map.keySet()) {
 			if (groupName.isDistributed()) {
+				Map<String, Collection<AgentAddress>> groupContent=map.get(groupName);
+				boolean empty=true;
+				for (Collection<AgentAddress> c : groupContent.values())
+				{
+					if (c.size() > 0 && c.iterator().next() != null) {
+						empty=false;
+						break;
+					}
+				}
+				if (empty)
+					continue;
+
 				InternalGroup group = get(groupName);
 				if (group == null) {
 					AgentAddress manager;
 					try {
-						manager = map.get(groupName).get(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE)
+						manager = groupContent.get(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE)
 								.iterator().next();
 					} catch (NullPointerException e) {// TODO a clean protocol to get the groupManager
-						manager = map.get(groupName).values().iterator().next().iterator().next();
+						manager = groupContent.values().iterator().next().iterator().next();
 					}
 					group = new InternalGroup(groupName, manager, this, false);
 					put(groupName, group);
 				}
 				if (group.isDistributed())
-					group.importDistantOrg(map.get(groupName), madkitKernel);
+					group.importDistantOrg(groupContent, madkitKernel);
 			}
 
 
