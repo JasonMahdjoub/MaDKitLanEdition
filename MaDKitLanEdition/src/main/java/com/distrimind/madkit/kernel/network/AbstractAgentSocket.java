@@ -2393,7 +2393,8 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						logger.finer("Receiving CGRSynchro message (distantInterfacedKernelAddress="
 								+ distant_kernel_address + ") : " + obj);
 					CGRSynchroSystemMessage cgr = ((CGRSynchroSystemMessage) obj);
-					if (!cgr.checkWithInterfaceKernelAddress(distantInterfacedKernelAddress))
+
+					if (!my_accepted_groups.acceptSender(cgr.getCGRSynchro().getContent()))
 						processInvalidSerializedObject(null, cgr, "Invalid CGR Synchro with local interfaced kernel address");
 					else
 						sendMessageWithRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.NET_AGENT,
@@ -2420,7 +2421,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 									+ ", conversationID=" + dlm.message.getConversationID() + ")");
 
 						if (dlm.message.getReceiver().getKernelAddress().equals(getKernelAddress())
-								&& my_accepted_groups.acceptGroup(dlm.message.getReceiver())) {
+								&& my_accepted_groups.acceptReceiver(dlm.message.getReceiver())) {
 							this.sendMessageWithRole(this.agent_for_distant_kernel_aa,
 									new ObjectMessage<>(originalMessage),
 									LocalCommunity.Roles.SOCKET_AGENT_ROLE);
@@ -2619,10 +2620,16 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			// MadkitKernelAccess.addGroupChangementNotifier(this);
 		}
 
-		boolean acceptGroup(AgentAddress add) {
+		boolean acceptReceiver(AgentAddress add) {
 			return add.getKernelAddress().equals(AbstractAgentSocket.this.getKernelAddress())
 					&& add.getGroup().isDistributed() && groups.includes(getKernelAddress(), add.getGroup());
 		}
+
+		boolean acceptSender(AgentAddress add) {
+			return add.getKernelAddress().equals(AbstractAgentSocket.this.distantInterfacedKernelAddress)
+					&& add.getGroup().isDistributed() && groups.includes(getKernelAddress(), add.getGroup());
+		}
+
 
 		AbstractGroup getAcceptedGroups(AbstractGroup group) {
 

@@ -37,14 +37,13 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.kernel.CGRSynchro;
+import com.distrimind.madkit.util.SerializationTools;
+
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-
-import com.distrimind.madkit.exceptions.MessageSerializationException;
-import com.distrimind.madkit.kernel.CGRSynchro;
-import com.distrimind.madkit.kernel.KernelAddress;
-import com.distrimind.madkit.util.SerializationTools;
 
 /**
  * 
@@ -111,8 +110,4 @@ final class CGRSynchroSystemMessage implements SystemMessage {
 		
 	}
 
-	public boolean checkWithInterfaceKernelAddress(KernelAddress ka)
-	{
-		return CGRSynchro.getContent().getKernelAddress().equals(ka);
-	}
 }
