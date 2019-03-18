@@ -58,7 +58,7 @@ import java.net.InetSocketAddress;
 import java.util.Arrays;
 
 /**
- * 
+ * Support forward secrecy
  * 
  * @author Jason Mahdjoub
  * @version 2.1

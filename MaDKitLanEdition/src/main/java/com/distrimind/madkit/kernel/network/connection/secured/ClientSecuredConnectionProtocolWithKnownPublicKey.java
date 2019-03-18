@@ -61,6 +61,8 @@ import java.util.Arrays;
  * Represents a connection protocol used between a client and a server. This
  * class must be used by the client. There is no certificate, so the public key
  * must be known in advance with this protocol.
+ *
+ * Doest not support forward secrecy
  * 
  * @author Jason Mahdjoub
  * @version 1.2

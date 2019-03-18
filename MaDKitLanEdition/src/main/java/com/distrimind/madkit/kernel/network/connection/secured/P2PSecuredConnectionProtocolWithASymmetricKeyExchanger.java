@@ -84,7 +84,7 @@ import com.distrimind.util.crypto.SymmetricEncryptionAlgorithm;
 import com.distrimind.util.crypto.SymmetricSecretKey;
 
 /**
- * 
+ * Does not support forward secrecy
  * 
  * @author Jason Mahdjoub
  * @version 1.2

@@ -55,6 +55,7 @@ import java.net.InetSocketAddress;
 import java.util.Arrays;
 
 /**
+ * Does not support forward secrecy
  * @author Jason Mahdjoub
  * @version 1.0
  * @since MaDKitLanEdition 1.10.0

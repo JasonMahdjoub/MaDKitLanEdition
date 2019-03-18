@@ -154,6 +154,7 @@ final public class Madkit {
 			d.addItem("Improve synchronization of list of distant agents.");
 			d.addItem("Security issue : control that received distant agents list synchronization concerns the good distant kernel address.");
 			d.addItem("Insure that list of distant agents are removed when peers are disconnected.");
+			d.addItem("When a connection fail, try another ip.");
 			VERSION.addDescription(d);
 
 

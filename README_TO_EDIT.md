@@ -33,25 +33,27 @@ You can also find inspiration into Junit tests.
     * Client/server secured or unsecured connections
     * Several encryption algorithms, including authenticated encryption algorithms and Post Quantum Cryptography encryptions
     * Several signature algorithms, including  Post Quantum Cryptography signers
+    * Forward secrecy is supported only for this peer to peer secured connection protocol : P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm
+    * Symmetric secret key used for encryption and signature can be generated during the connection process, or can be known in advance by the concerned peers.
     * There is a possibility to choose between several key agreement algorithms, including Post Quantum Cryptography agreements
     * ConnectionProtocolNegotiator has a list of possible connection protocols annoted with level of priorities. Then During the negotitation, choosen connection protocol is the connection protocol that is common with the two peers, and that sum of the two priorities, given by the two peers, is the higher sum.
     * Sending the same packet from "the man in the middle" is impossible :
     	* Initialization vectors used with encryption has a secret part composed of counter that is increased at each data exchange.
-    	* More over, signatures are computed with a secret part composed of counter that is increased at each data exchange.     	
+    	* More over, signatures are computed with a secret part composed of counter that is increased at each data exchange.
 * Access protocol manage peer to peer login and gives rights to specified groups of agents. 
   * A specific login protocol has been established in order to exchange password or secret keys, without compromising them if the distant peer is not a trusting peer. 
   * Same thing with the user login. 
   * If the user provide a symmetric secret key for signature, it is used to authentify random messages during the authentication process.
   * If is possible to auto-sign a login with an asymmetric secret key. Then the authentication is validated thanks to an auto-signed login. Server side only check that the login identified by its public key, is well signed thanks to its private key. Auto-signed logins can also be rejected, even if the login is well auto-signed.
 * possibility to connect randomly to one server between several available servers (simple load balancing)
-* ability to ban IP's that generates a number of anomalies above a threshold. Banned IP's are stored into a database. A white ip list is possible. Anomalies can be a problem that occurs during the authentication process, the encryption and signature process, the deserialization process, and in every part of the network protocol. Anomalies considered as attacks trigger ban immediately whereas others anomalies that are suspected as attacks trigger ban only a threshold is reached.  
+* ability to ban IP's that generates a number of anomalies above a threshold. Banned IP's are stored into a database. A white ip list is possible. Anomalies can be a problem that occurs during the authentication process, the encryption and signature process, the deserialization process, and in every part of the network protocol. Anomalies considered as attacks trigger ban immediately whereas others anomalies that are suspected as attacks trigger ban only a threshold is reached.
 * There are several levels of ban duration
 * Ability to limit DDoS attacks (only limit). If a lot of peers ask for queries at the same time, the attacked peer will block every new query until old queries have been managed, this in order to avoid the explosion of the memory consumption. Moreover if one peer do too much queries, the attacked peer limit only the connexion of this peer. So there a global and a local limitation.
 * Peers can communicate through several middle peers (Transfer connection). The system is able to make connections indirect, but secured (impossible to decode data for middle peers if the connection is secured).
 * UPNP IGD futures :
     * Auto-connect with peers located into local network
     * Auto-open a router's port to enable direct connection with distant peers.
-    * If no opened port is available or if no UPNP IGD rooter is available for two concerned distant peers, the system can choose to make an indirect connection between the two peers, through a dedicated server. This server is not able to decode messages between the two peers if the connection is secured.  
+    * If no opened port is available or if no UPNP IGD rooter is available for two concerned distant peers, the system can choose to make an indirect connection between the two peers, through a dedicated server. This server is not able to decode messages between the two peers if the connection is secured.
 * Enable to send simple messages between agents, or big data transfers (like files) between agents. Each connexion work in parallel. For one connexion, simple agent messages are sent according a FIFO policy (First In, First Out). However, there are some messages that are part of the MKLE protocol that are considered as a priority (i.e. Ping/Pong messages). For one connexion, big data transfers are sent in parallel with other big data transfers and with simple agent messages.
 * individual agent messages can be encrypted or not. By default, all agent messages are encrypted.
 * multiple connections are possible between two same peers (through multiple interfaces). The system will use each connection in parallel by choosing for each packet to send the connection which offer more bandwidth or which is less busy
