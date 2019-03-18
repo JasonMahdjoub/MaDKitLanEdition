@@ -543,27 +543,27 @@ public class NetworkProperties extends MultiFormatProperties {
 	 */
 	public int portsToBindForManualDirectConnections = -1;
 
-	private List<PossibleAddressForDirectConnnection> addressesToConnect = Collections
+	private List<PossibleAddressForDirectConnnection> addressesForDirectConnectionToAttemptFromOtherPeersThisPeer = Collections
 			.synchronizedList(new ArrayList<PossibleAddressForDirectConnnection>());
 
 	void addPossibleAddressForDirectConnection(PossibleAddressForDirectConnnection isa) {
 		if (isa == null)
 			throw new NullPointerException("isa");
-		addressesToConnect.add(isa);
+		addressesForDirectConnectionToAttemptFromOtherPeersThisPeer.add(isa);
 	}
 
 	void removePossibleAddressForDirectConnection(PossibleAddressForDirectConnnection isa) {
-		addressesToConnect.remove(isa);
+		addressesForDirectConnectionToAttemptFromOtherPeersThisPeer.remove(isa);
 	}
 
-	public List<PossibleAddressForDirectConnnection> getPossibleAddressesForDirectConnection() {
-		return addressesToConnect;
+	public List<PossibleAddressForDirectConnnection> getPossibleAddressesForDirectConnectionToAttemptFromOtherPeersToThisPeer() {
+		return addressesForDirectConnectionToAttemptFromOtherPeersThisPeer;
 	}
 
 	/**
-	 * The connections to attempt when LAN become available
+	 * The addresses for connections to attempt to other peers when LAN become available
 	 */
-	public List<AbstractIP> connectionToAttempt = null;
+	public List<AbstractIP> addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers = null;
 	
 	/**
 	 * Delay in milliseconds between each connection to attempt

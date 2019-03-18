@@ -1023,7 +1023,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		if (!ias.isEmpty())
 			mip = new MultipleIP(getMadkitConfig().networkProperties.portsToBindForAutomaticLocalConnections, ias);
 		ConnectionInfoSystemMessage ci = new ConnectionInfoSystemMessage(
-				getMadkitConfig().networkProperties.getPossibleAddressesForDirectConnection(),
+				getMadkitConfig().networkProperties.getPossibleAddressesForDirectConnectionToAttemptFromOtherPeersToThisPeer(),
 				this.local_interface_address.getAddress(),
 				getMadkitConfig().networkProperties.portsToBindForManualDirectConnections,
 				getMadkitConfig().networkProperties.portsToBindForAutomaticLocalConnections,

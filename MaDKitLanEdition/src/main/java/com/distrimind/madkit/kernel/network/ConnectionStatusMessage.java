@@ -37,10 +37,13 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.net.InetSocketAddress;
-
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
+
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Gives a connection status for a given IP and a given port.
@@ -58,6 +61,7 @@ public class ConnectionStatusMessage extends Message {
 	final ConnectionClosedReason connection_closed_reason;
 	protected InetSocketAddress choosenIP;
 	protected transient int numberOfAnomalies=0;
+	protected final transient Set<InetAddress> rejectedIps=new HashSet<>();
 	protected transient long timeUTCOfAnomaliesCycle=-1;
 
 	@Override
@@ -108,6 +112,10 @@ public class ConnectionStatusMessage extends Message {
 		return timeUTCOfAnomaliesCycle;
 	}
 
+	Set<InetAddress> getRejectedIps() {
+		return rejectedIps;
+	}
+
 	ConnectionStatusMessage(ConnectionStatusMessage m) {
 		super(m);
 		address = m.address;
@@ -132,19 +140,27 @@ public class ConnectionStatusMessage extends Message {
 		CONNECT, DISCONNECT
 	}
 
+	protected void cleanAnomaliesIfNecessary()
+	{
+		if (timeUTCOfAnomaliesCycle<System.currentTimeMillis()-86400000L)
+		{
+			timeUTCOfAnomaliesCycle=System.currentTimeMillis();
+			numberOfAnomalies=0;
+			rejectedIps.clear();
+		}
+	}
+
 	boolean incrementNumberOfAnomaliesAndTellsIfReconnectionIsPossible(boolean anomalyPresent, int maxAnomalies)
 	{
+		cleanAnomaliesIfNecessary();
 		if (numberOfAnomalies==-1)
 			return false;
 		if (anomalyPresent)
 		{
+			rejectedIps.add(choosenIP.getAddress());
 			if (numberOfAnomalies==0)
 				timeUTCOfAnomaliesCycle=System.currentTimeMillis();
-			else if (timeUTCOfAnomaliesCycle<System.currentTimeMillis()-86400000L)
-			{
-				timeUTCOfAnomaliesCycle=System.currentTimeMillis();
-				numberOfAnomalies=0;
-			}
+
 			return ++numberOfAnomalies <= maxAnomalies;
 		}
 		return true;

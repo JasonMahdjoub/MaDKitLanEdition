@@ -44,6 +44,7 @@ import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.Collection;
 
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.util.SerializationTools;
@@ -146,12 +147,12 @@ public class DoubleIP extends AbstractIP {
 	}
 
 	@Override
-	public Inet6Address getInet6Address() {
+	public Inet6Address getInet6Address(Collection<InetAddress> rejectedIps) {
 		return inet6Address;
 	}
 
 	@Override
-	public Inet4Address getInet4Address() {
+	public Inet4Address getInet4Address(Collection<InetAddress> rejectedIps) {
 		return inet4Address;
 	}
 

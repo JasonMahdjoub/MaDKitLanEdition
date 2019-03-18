@@ -109,8 +109,6 @@ public class MultipleIP extends AbstractIP {
 		if (size<0 || totalSize+size*4>globalSize)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		this.inet6Adresses = new ArrayList<>(size);
-		if (inet4Adresses.isEmpty() && inet6Adresses.isEmpty())
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		for (int i=0;i<size;i++)
 		{
 			InetAddress o=SerializationTools.readInetAddress(in, false);
@@ -122,6 +120,8 @@ public class MultipleIP extends AbstractIP {
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			inet6Adresses.add(ia);
 		}
+		if (inet4Adresses.isEmpty() && inet6Adresses.isEmpty())
+			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 	}
 
 	@Override
@@ -209,21 +209,43 @@ public class MultipleIP extends AbstractIP {
 
 	@SuppressWarnings("SynchronizeOnNonFinalField")
 	@Override
-	public Inet6Address getInet6Address() {
+	public Inet6Address getInet6Address(Collection<InetAddress> rejectedIps) {
 		synchronized (random) {
 			if (inet6Adresses.isEmpty())
 				return null;
-			return inet6Adresses.get(random.nextInt(inet6Adresses.size()));
+			ArrayList<Inet6Address> res=inet6Adresses;
+			if (rejectedIps!=null && !rejectedIps.isEmpty()) {
+				ArrayList<Inet6Address> res2 = new ArrayList<>(inet6Adresses);
+				for (InetAddress ria : rejectedIps)
+					if (ria instanceof Inet6Address)
+						res2.remove(ria);
+
+				if (res2.size() > 0)
+					res = res2;
+			}
+
+			return res.get(random.nextInt(res.size()));
 		}
 	}
 
 	@SuppressWarnings("SynchronizeOnNonFinalField")
 	@Override
-	public Inet4Address getInet4Address() {
+	public Inet4Address getInet4Address(Collection<InetAddress> rejectedIps) {
 		synchronized (random) {
 			if (inet4Adresses.isEmpty())
 				return null;
-			return inet4Adresses.get(random.nextInt(inet4Adresses.size()));
+			ArrayList<Inet4Address> res=inet4Adresses;
+			if (rejectedIps!=null && !rejectedIps.isEmpty()) {
+				ArrayList<Inet4Address> res2 = new ArrayList<>(inet4Adresses);
+				for (InetAddress ria : rejectedIps)
+					if (ria instanceof Inet4Address)
+						res2.remove(ria);
+
+				if (res2.size() > 0)
+					res = res2;
+			}
+
+			return res.get(random.nextInt(res.size()));
 		}
 	}
 
@@ -240,7 +262,7 @@ public class MultipleIP extends AbstractIP {
 
 	@Override
 	public Inet6Address[] getInet6Addresses() {
-		Inet6Address res[] = new Inet6Address[inet6Adresses.size()];
+		Inet6Address[] res = new Inet6Address[inet6Adresses.size()];
 		int index = 0;
 		for (Inet6Address ia : inet6Adresses)
 			res[index++] = ia;
@@ -249,7 +271,7 @@ public class MultipleIP extends AbstractIP {
 
 	@Override
 	public Inet4Address[] getInet4Addresses() {
-		Inet4Address res[] = new Inet4Address[inet4Adresses.size()];
+		Inet4Address[] res = new Inet4Address[inet4Adresses.size()];
 		int index = 0;
 		for (Inet4Address ia : inet4Adresses)
 			res[index++] = ia;

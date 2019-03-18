@@ -639,7 +639,7 @@ class LocalNetworkAgent extends AgentFakeThread {
 				if (cs.connection_closed_reason.equals(ConnectionClosedReason.CONNECTION_ANOMALY) || cs.connection_closed_reason.equals(ConnectionClosedReason.IP_NOT_REACHED))
 				{
 					if (cs.incrementNumberOfAnomaliesAndTellsIfReconnectionIsPossible(cs.connection_closed_reason.equals(ConnectionClosedReason.CONNECTION_ANOMALY), getMadkitConfig().networkProperties.maxAnomaliesPerDayBeforeCancelingConnexionRetry))
-						receiveMessage(new AskForConnectionMessage(ConnectionStatusMessage.Type.CONNECT, cs.getIP(), System.currentTimeMillis()+getMadkitConfig().networkProperties.delayInMsBetweenEachConnectionRetry, cs.getNumberOfAnomalies(), cs.getTimeUTCOfAnomaliesCycle()));
+						receiveMessage(new AskForConnectionMessage(ConnectionStatusMessage.Type.CONNECT, cs.getIP(), System.currentTimeMillis()+getMadkitConfig().networkProperties.delayInMsBetweenEachConnectionRetry, cs.getNumberOfAnomalies(), cs.getTimeUTCOfAnomaliesCycle(), cs.getRejectedIps()));
 				}
 
 				if (logger != null && logger.isLoggable(Level.FINER))

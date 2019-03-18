@@ -48,6 +48,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Random;
 
 import com.distrimind.madkit.exceptions.MessageSerializationException;
@@ -130,10 +131,11 @@ public class HostIP extends AbstractIP {
 	}
 
 	@Override
-	public Inet6Address getInet6Address() {
+	public Inet6Address getInet6Address(Collection<InetAddress> rejectedIps) {
 		try {
 			InetAddress[] ias = InetAddress.getAllByName(host);
 			ArrayList<Inet6Address> res = new ArrayList<>(ias == null ? 0 : ias.length);
+
 			if (ias==null)
 				throw new NullPointerException();
 			for (InetAddress ia : ias) {
@@ -143,6 +145,15 @@ public class HostIP extends AbstractIP {
 			if (res.isEmpty())
 				return null;
 			else {
+				if (rejectedIps!=null && !rejectedIps.isEmpty()) {
+					ArrayList<Inet6Address> res2 = new ArrayList<>(res);
+					for (InetAddress ria : rejectedIps)
+						if (ria instanceof Inet6Address)
+							res2.remove(ria);
+					if (res2.size() > 0)
+						res = res2;
+				}
+
 				synchronized (random) {
 					return res.get(random.nextInt(res.size()));
 				}
@@ -153,7 +164,7 @@ public class HostIP extends AbstractIP {
 	}
 
 	@Override
-	public Inet4Address getInet4Address() {
+	public Inet4Address getInet4Address(Collection<InetAddress> rejectedIps) {
 		try {
 			InetAddress[] ias = InetAddress.getAllByName(host);
 			ArrayList<Inet4Address> res = new ArrayList<>(ias == null ? 0 : ias.length);
@@ -166,6 +177,16 @@ public class HostIP extends AbstractIP {
 			if (res.isEmpty())
 				return null;
 			else {
+				if (rejectedIps!=null && !rejectedIps.isEmpty()) {
+					ArrayList<Inet4Address> res2 = new ArrayList<>(res);
+					for (InetAddress ria : rejectedIps)
+						if (ria instanceof Inet4Address)
+							res2.remove(ria);
+
+					if (res2.size() > 0)
+						res = res2;
+				}
+
 				synchronized (random) {
 					return res.get(random.nextInt(res.size()));
 				}

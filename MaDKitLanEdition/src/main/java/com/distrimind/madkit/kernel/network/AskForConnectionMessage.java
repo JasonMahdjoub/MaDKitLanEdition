@@ -37,12 +37,13 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-
 import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
+
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.util.Collection;
 
 /**
  * This class represents a message that asks for a connection/disconnection to
@@ -64,10 +65,11 @@ public class AskForConnectionMessage extends ConnectionStatusMessage {
 	private transient IDTransfer transferID = null;
 	private transient AgentAddress indirectAgentAddress = null;
 
-	AskForConnectionMessage(Type _type, AbstractIP _address, long utcTimeOfConnection, int numberOfAnomalies, long timeUTCOfAnomaliesCycle) {
+	AskForConnectionMessage(Type _type, AbstractIP _address, long utcTimeOfConnection, int numberOfAnomalies, long timeUTCOfAnomaliesCycle, Collection<InetAddress> rejectedIps) {
 		this(_type, _address, numberOfAnomalies!=-1, utcTimeOfConnection);
 		this.numberOfAnomalies=numberOfAnomalies;
 		this.timeUTCOfAnomaliesCycle=timeUTCOfAnomaliesCycle;
+		this.rejectedIps.addAll(rejectedIps);
 	}
 	public AskForConnectionMessage(Type _type, AbstractIP _address, boolean acceptConnectionRetry, long utcTimeOfConnection) {
 		super(_type, _address);
@@ -89,11 +91,12 @@ public class AskForConnectionMessage extends ConnectionStatusMessage {
 	}
 
 	void chooseIP(boolean enableIPv6) {
+		cleanAnomaliesIfNecessary();
 		InetAddress ia;
 		if (enableIPv6)
-			ia = getIP().getInetAddress();
+			ia = getIP().getInetAddress(rejectedIps);
 		else
-			ia = getIP().getInet4Address();
+			ia = getIP().getInet4Address(rejectedIps);
 
 		if (ia != null)
 			choosenIP = new InetSocketAddress(ia, getIP().getPort());

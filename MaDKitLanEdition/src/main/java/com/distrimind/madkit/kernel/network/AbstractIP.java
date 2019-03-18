@@ -43,6 +43,8 @@ import java.io.ObjectOutput;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.util.Collection;
 
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.util.ExternalizableAndSizable;
@@ -63,9 +65,19 @@ public abstract class AbstractIP extends MultiFormatProperties implements System
 
 	private int port;
 
-	public abstract Inet6Address getInet6Address();
+	public final Inet6Address getInet6Address()
+	{
+		return getInet6Address(null);
+	}
 
-	public abstract Inet4Address getInet4Address();
+	public final Inet4Address getInet4Address()
+	{
+		return getInet4Address(null);
+	}
+
+	public abstract Inet6Address getInet6Address(Collection<InetAddress> rejectedIps);
+
+	public abstract Inet4Address getInet4Address(Collection<InetAddress> rejectedIps);
 
 	public abstract InetAddress[] getInetAddresses();
 
@@ -124,11 +136,21 @@ public abstract class AbstractIP extends MultiFormatProperties implements System
 	public int getPort() {
 		return port;
 	}
-
 	public InetAddress getInetAddress() {
-		InetAddress res = getInet6Address();
+		return getInetAddress(null);
+	}
+	public InetAddress getInetAddress(Collection<InetAddress> rejectedIps) {
+		InetAddress res = getInet6Address(rejectedIps);
 		if (res == null)
-			return getInet4Address();
+			return getInet4Address(rejectedIps);
+		else if (rejectedIps!=null && rejectedIps.contains(res))
+		{
+			InetAddress res2=getInet4Address(rejectedIps);
+			if (res2!=null && !rejectedIps.contains(res2))
+				return res2;
+			else
+				return res;
+		}
 		else
 			return res;
 

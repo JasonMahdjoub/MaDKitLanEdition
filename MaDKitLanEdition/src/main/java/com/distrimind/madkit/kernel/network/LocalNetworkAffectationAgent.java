@@ -104,10 +104,10 @@ class LocalNetworkAffectationAgent extends AgentFakeThread {
 			receiveMessage(new BindInetSocketAddressMessage(Type.BIND, new InetSocketAddress(
 					getMadkitConfig().networkProperties.portsToBindForAutomaticLocalConnections)));
 
-		if (getMadkitConfig().networkProperties.connectionToAttempt != null) {
+		if (getMadkitConfig().networkProperties.addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers != null) {
 			boolean first=true;
 			long timeUTC=0;
-			for (final AbstractIP isa : getMadkitConfig().networkProperties.connectionToAttempt) {
+			for (final AbstractIP isa : getMadkitConfig().networkProperties.addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers) {
 				if (isa != null)
 				{
 					if (first || getMadkitConfig().networkProperties.delayInMsBetweenEachConnectionAsk==0)
