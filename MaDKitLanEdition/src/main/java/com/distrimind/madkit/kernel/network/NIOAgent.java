@@ -38,13 +38,7 @@
 package com.distrimind.madkit.kernel.network;
 
 import java.io.IOException;
-import java.net.ConnectException;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
-import java.net.SocketAddress;
+import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.DatagramChannel;
@@ -229,13 +223,6 @@ final class NIOAgent extends Agent {
 		if (logger != null && logger.isLoggable(Level.FINER))
 			logger.finer("Closing all sockets !");
 
-		for (PersonalSocket ps : ((ArrayList<PersonalSocket>) this.personal_sockets_list.clone()))
-			if (!ps.isClosed())
-				ps.closeConnection(ConnectionClosedReason.CONNECTION_LOST);
-
-		this.personal_sockets.clear();
-		this.personal_sockets_list.clear();
-
 		for (PendingConnection pc : pending_connections) {
 			try {
 				if (pc.getSocketChannel().isOpen())
@@ -246,6 +233,14 @@ final class NIOAgent extends Agent {
 		}
 
 		pending_connections.clear();
+
+		for (PersonalSocket ps : ((ArrayList<PersonalSocket>) this.personal_sockets_list.clone()))
+			if (!ps.isClosed())
+				ps.closeConnection(ConnectionClosedReason.CONNECTION_LOST);
+
+		this.personal_sockets.clear();
+		this.personal_sockets_list.clear();
+
 
 		if (logger != null)
 			logger.finer("Closing all datagram channels !");
@@ -269,6 +264,17 @@ final class NIOAgent extends Agent {
 			}
 		}
 		this.serverChannels.clear();
+		if (logger != null)
+			logger.finer("Closing selector !");
+		if (this.selector.isOpen()) {
+			try {
+				this.selector.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		if (logger != null)
+			logger.finer("NIO Agent closed !");
 
 	}
 
@@ -500,6 +506,7 @@ final class NIOAgent extends Agent {
 							if (!alreadyBind) {
 								try {
 									ServerSocketChannel serverChannel = ServerSocketChannel.open();
+
 									serverChannel.configureBlocking(false);
 									serverChannel.socket().bind(addr);
 									// Register the server socket channel, indicating an interest in
