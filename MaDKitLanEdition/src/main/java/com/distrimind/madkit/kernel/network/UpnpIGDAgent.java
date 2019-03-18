@@ -1050,7 +1050,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 												networkInterfaceRemoved(ni);
 											}
                                             network_interfaces = new ArrayList<>();
-                                            if (new_nis.size() != 0 || del_nis.size() != 0) {
+                                            if (del_nis.size() != 0) {
                                                 for (Iterator<AskForNetworkInterfacesMessage> it = askers.values()
                                                         .iterator(); it.hasNext(); ) {
                                                     AskForNetworkInterfacesMessage m = it.next();

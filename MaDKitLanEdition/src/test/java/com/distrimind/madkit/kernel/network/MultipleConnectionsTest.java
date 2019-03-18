@@ -229,6 +229,7 @@ public class MultipleConnectionsTest extends JunitMadkit {
 
 					int nb = 0;
 					boolean lanToSynchro=false;
+					int nb2=0;
 					while (nb++ < 200 && (!agentsToLaunch1.agentBigTransfer.isFinished()
 							|| !agentsToLaunch2.agentBigTransfer.isFinished()
 							|| !agentsToLaunch3.agentBigTransfer.isFinished()
@@ -244,31 +245,59 @@ public class MultipleConnectionsTest extends JunitMadkit {
 						sleep(1000);
 						System.err.println("------------------------ localDataAmountAcc=" + localDataAmountAcc
 								+ " --- globalDataAmountAcc=" + globalDataAmountAcc);
-						System.out.println(agentsToLaunch1.agentBigTransfer);
-						System.out.println(agentsToLaunch2.agentBigTransfer);
-						System.out.println(agentsToLaunch3.agentBigTransfer);
-						System.out.println(agentsToLaunch4.agentBigTransfer);
-						System.out.println(agentsToLaunch5.agentBigTransfer);
+						if (agentsToLaunch1.agentBigTransfer.isFinished()
+							&& agentsToLaunch2.agentBigTransfer.isFinished()
+							&& agentsToLaunch3.agentBigTransfer.isFinished()
+							&& agentsToLaunch4.agentBigTransfer.isFinished()
+							&& agentsToLaunch5.agentBigTransfer.isFinished())
+						{
+							if (agentsToLaunch1.agentBigTransfer.isKilled()
+									&& agentsToLaunch2.agentBigTransfer.isKilled()
+									&& agentsToLaunch3.agentBigTransfer.isKilled()
+									&& agentsToLaunch4.agentBigTransfer.isKilled()
+									&& agentsToLaunch5.agentBigTransfer.isKilled())
+							{
+								System.out.println("All agents in all MK killed");
+								int i=0;
+								for (Madkit m : getHelperInstances(5))
+								{
+
+									if (isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, AgentBigTransfer.class, true, AgentBigTransfer.bigTransferRole)) {
+										lanToSynchro = true;
+										if (nb2>3)
+											System.out.print("");
+										System.out.println("Network agents in MK "+i+" cleaned : "+false);
+									}
+									else
+										System.out.println("Network agents in MK "+i+" cleaned : "+true);
+									++i;
+								}
+								if (lanToSynchro)
+									nb2++;
+
+							}
+							else
+							{
+								System.out.println("Agents in MK 1 killed : "+agentsToLaunch1.agentBigTransfer.isKilled());
+								System.out.println("Agents in MK 2 killed : "+agentsToLaunch2.agentBigTransfer.isKilled());
+								System.out.println("Agents in MK 3 killed : "+agentsToLaunch3.agentBigTransfer.isKilled());
+								System.out.println("Agents in MK 4 killed : "+agentsToLaunch4.agentBigTransfer.isKilled());
+								System.out.println("Agents in MK 5 killed : "+agentsToLaunch5.agentBigTransfer.isKilled());
+							}
+						}
+						else {
+							System.out.println(agentsToLaunch1.agentBigTransfer);
+							System.out.println(agentsToLaunch2.agentBigTransfer);
+							System.out.println(agentsToLaunch3.agentBigTransfer);
+							System.out.println(agentsToLaunch4.agentBigTransfer);
+							System.out.println(agentsToLaunch5.agentBigTransfer);
+						}
 						Assert.assertTrue(agentsToLaunch1.agentBigTransfer.isOK());
 						Assert.assertTrue(agentsToLaunch2.agentBigTransfer.isOK());
 						Assert.assertTrue(agentsToLaunch3.agentBigTransfer.isOK());
 						Assert.assertTrue(agentsToLaunch4.agentBigTransfer.isOK());
 						Assert.assertTrue(agentsToLaunch5.agentBigTransfer.isOK());
-						if (agentsToLaunch1.agentBigTransfer.isKilled()
-								&& agentsToLaunch2.agentBigTransfer.isKilled()
-								&& agentsToLaunch3.agentBigTransfer.isKilled()
-								&& agentsToLaunch4.agentBigTransfer.isKilled()
-								&& agentsToLaunch5.agentBigTransfer.isKilled())
-						{
-							for (Madkit m : getHelperInstances(5))
-							{
-								if (isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, AgentBigTransfer.class, true, AgentBigTransfer.bigTransferRole)) {
-									lanToSynchro = true;
-									break;
-								}
-							}
 
-						}
 					}
 
 					Assert.assertTrue(agentsToLaunch1.agentBigTransfer.isOK());
@@ -276,12 +305,13 @@ public class MultipleConnectionsTest extends JunitMadkit {
 					Assert.assertTrue(agentsToLaunch3.agentBigTransfer.isOK());
 					Assert.assertTrue(agentsToLaunch4.agentBigTransfer.isOK());
 					Assert.assertTrue(agentsToLaunch5.agentBigTransfer.isOK());
-					sleep(1000);
+					sleep(500);
 					Assert.assertTrue(agentsToLaunch1.agentBigTransfer.isKilled());
 					Assert.assertTrue(agentsToLaunch2.agentBigTransfer.isKilled());
 					Assert.assertTrue(agentsToLaunch3.agentBigTransfer.isKilled());
 					Assert.assertTrue(agentsToLaunch4.agentBigTransfer.isKilled());
 					Assert.assertTrue(agentsToLaunch5.agentBigTransfer.isKilled());
+					Assert.assertFalse(lanToSynchro);
 
 					for (Madkit m : getHelperInstances(5))
 					{

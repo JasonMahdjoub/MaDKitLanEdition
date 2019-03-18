@@ -273,8 +273,6 @@ final class NIOAgent extends Agent {
 				e.printStackTrace();
 			}
 		}
-		if (logger != null)
-			logger.finer("NIO Agent closed !");
 
 	}
 
@@ -334,8 +332,8 @@ final class NIOAgent extends Agent {
 	protected void end() {
 		closeAllNow();
 
-		if (logger != null && logger.isLoggable(Level.FINE))
-			logger.fine("NIOAgent KILLED !");
+		if (logger != null && logger.isLoggable(Level.INFO))
+			logger.info("NIOAgent KILLED !");
 
 	}
 
