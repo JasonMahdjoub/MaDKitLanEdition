@@ -228,11 +228,19 @@ public class MultipleConnectionsTest extends JunitMadkit {
 					}
 
 					int nb = 0;
+					boolean lanToSynchro=false;
 					while (nb++ < 200 && (!agentsToLaunch1.agentBigTransfer.isFinished()
 							|| !agentsToLaunch2.agentBigTransfer.isFinished()
 							|| !agentsToLaunch3.agentBigTransfer.isFinished()
 							|| !agentsToLaunch4.agentBigTransfer.isFinished()
-							|| !agentsToLaunch5.agentBigTransfer.isFinished())) {
+							|| !agentsToLaunch5.agentBigTransfer.isFinished()
+							|| !agentsToLaunch1.agentBigTransfer.isKilled()
+							|| !agentsToLaunch2.agentBigTransfer.isKilled()
+							|| !agentsToLaunch3.agentBigTransfer.isKilled()
+							|| !agentsToLaunch4.agentBigTransfer.isKilled()
+							|| !agentsToLaunch5.agentBigTransfer.isKilled()
+							|| lanToSynchro)) {
+						lanToSynchro=false;
 						sleep(1000);
 						System.err.println("------------------------ localDataAmountAcc=" + localDataAmountAcc
 								+ " --- globalDataAmountAcc=" + globalDataAmountAcc);
@@ -246,6 +254,21 @@ public class MultipleConnectionsTest extends JunitMadkit {
 						Assert.assertTrue(agentsToLaunch3.agentBigTransfer.isOK());
 						Assert.assertTrue(agentsToLaunch4.agentBigTransfer.isOK());
 						Assert.assertTrue(agentsToLaunch5.agentBigTransfer.isOK());
+						if (agentsToLaunch1.agentBigTransfer.isKilled()
+								&& agentsToLaunch2.agentBigTransfer.isKilled()
+								&& agentsToLaunch3.agentBigTransfer.isKilled()
+								&& agentsToLaunch4.agentBigTransfer.isKilled()
+								&& agentsToLaunch5.agentBigTransfer.isKilled())
+						{
+							for (Madkit m : getHelperInstances(5))
+							{
+								if (isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, AgentBigTransfer.class, true, AgentBigTransfer.bigTransferRole)) {
+									lanToSynchro = true;
+									break;
+								}
+							}
+
+						}
 					}
 
 					Assert.assertTrue(agentsToLaunch1.agentBigTransfer.isOK());
@@ -253,7 +276,7 @@ public class MultipleConnectionsTest extends JunitMadkit {
 					Assert.assertTrue(agentsToLaunch3.agentBigTransfer.isOK());
 					Assert.assertTrue(agentsToLaunch4.agentBigTransfer.isOK());
 					Assert.assertTrue(agentsToLaunch5.agentBigTransfer.isOK());
-					sleep(4000);
+					sleep(1000);
 					Assert.assertTrue(agentsToLaunch1.agentBigTransfer.isKilled());
 					Assert.assertTrue(agentsToLaunch2.agentBigTransfer.isKilled());
 					Assert.assertTrue(agentsToLaunch3.agentBigTransfer.isKilled());
