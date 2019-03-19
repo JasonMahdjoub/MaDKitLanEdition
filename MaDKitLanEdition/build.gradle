@@ -55,7 +55,8 @@ dependencies {
      //testCompile 'org.testng:testng:6.13.1'
      testCompile 'junit:junit:4.12'
      compile(group:'com.distrimind.ood', name: 'OOD', version: '2.0.0-Beta103')
-     compile(group:'com.distrimind.jdkrewrite', name: 'JDKRewriteUtils', version: '1.0.1')
+     compile(group:'com.distrimind.jdkrewrite', name: 'JDKRewriteUtils', version: '1.0.2')
+     //compile project(':JDKRewriteUtils')
      compile(group:'org.fourthline.cling', name: 'cling-core', version: '2.1.2')
      compile(group:'org.fourthline.cling', name: 'cling-support', version: '2.1.2')
      testCompile(group:'com.h2database', name:'h2', version:'1.4.196')
