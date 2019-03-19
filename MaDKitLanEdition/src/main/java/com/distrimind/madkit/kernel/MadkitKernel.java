@@ -3356,6 +3356,10 @@ class MadkitKernel extends Agent {
 		}
 	}
 
+	ConcurrentHashMap<String, Organization> getOrganizations() {
+		return organizations;
+	}
+
 	boolean cancelTask(AbstractAgent agent, TaskID tasks_id, boolean mayInterruptIfRunning) {
 		return tasks_id.cancelTask(mayInterruptIfRunning);
 	}

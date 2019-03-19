@@ -547,27 +547,27 @@ public class JunitMadkit {
 	{
 
 		try {
-			InternalGroup g = m.getKernel().getGroup(group);
-			for (InternalRole ir : g.values())
-			{
+			synchronized (m.getKernel().getOrganizations()) {
+				InternalGroup g = m.getKernel().getGroup(group);
+				for (InternalRole ir : g.values()) {
 
-				if ((roleStartWith==null || ir.getRoleName().startsWith(roleStartWith)) && !ir.getAgentAddressesCopy().isEmpty()) {
-					if (agentClass!=null || isNetwork!=null)
-					{
-						for (AgentAddress aa : ir.getAgentAddressesCopy()) {
-							if (agentClass != null && (isNetwork==null || !isNetwork) && aa.getAgent() != null && agentClass.isAssignableFrom(aa.getAgent().getClass())) {
-								System.out.println(aa);
-								return true;
+					if ((roleStartWith == null || ir.getRoleName().startsWith(roleStartWith)) && !ir.getAgentAddressesCopy().isEmpty()) {
+						if (agentClass != null || isNetwork != null) {
+							for (AgentAddress aa : ir.getAgentAddressesCopy()) {
+								if (agentClass != null && (isNetwork == null || !isNetwork) && aa.getAgent() != null && agentClass.isAssignableFrom(aa.getAgent().getClass())) {
+									System.out.println(aa);
+									return true;
+								}
+								if (isNetwork != null && aa.getKernelAddress().equals(m.getKernelAddress()) != isNetwork) {
+									System.out.println(aa);
+									return true;
+								}
 							}
-							if (isNetwork!=null && aa.getKernelAddress().equals(m.getKernelAddress())!=isNetwork) {
-								System.out.println(aa);
-								return true;
-							}
+
+							continue;
 						}
-
-						continue;
+						return true;
 					}
-					return true;
 				}
 			}
 		} catch (CGRNotAvailable cgrNotAvailable) {
