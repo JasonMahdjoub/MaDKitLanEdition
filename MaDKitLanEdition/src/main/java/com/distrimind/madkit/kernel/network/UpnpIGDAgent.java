@@ -952,7 +952,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 
 	}
 
-	public static long getHardwareAddress(byte hardwareAddress[]) {
+	public static long getHardwareAddress(byte[] hardwareAddress) {
 		long result = 0;
 		if (hardwareAddress != null) {
 			for (final byte value : hardwareAddress) {
@@ -1060,9 +1060,14 @@ class UpnpIGDAgent extends AgentFakeThread {
                                                 }
                                             }
                                             del_nis = new ArrayList<>();
-											scanRouters=true;
                                         }
-                                    }
+										scanRouters=true;
+										try {
+											sleep(1000);
+										} catch (InterruptedException e) {
+											e.printStackTrace();
+										}
+									}
                                     oldTime = newTime;
 
 									for (NetworkInterface ni : network_interfaces) {
@@ -1350,7 +1355,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 	public static class AskForPortMappingAddMessage extends AbstractRouterMessage {
 
 		private final InetAddress concerned_local_ip;
-		private final int external_ports_range[];
+		private final int[] external_ports_range;
 		private final int internal_port;
 		private final String description;
 		private final Protocol protocol;
