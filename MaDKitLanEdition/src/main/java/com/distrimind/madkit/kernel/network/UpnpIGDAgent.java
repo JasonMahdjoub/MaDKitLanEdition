@@ -1029,8 +1029,8 @@ class UpnpIGDAgent extends AgentFakeThread {
 					if (min_delay != -1) {
 
 						task = new Task<>(new Callable<Object>() {
-                            long oldTime=System.currentTimeMillis();
-                            long maxDelayBeforeDetectingOSWakeUp=Math.min(min_delay*2, getMadkitConfig().networkProperties.connectionTimeOut);
+                            long oldTime=System.currentTimeMillis()+(old_delay!=-1?old_delay:0);
+                            long maxDelayBeforeDetectingOSWakeUp=min_delay*2;//Math.min(min_delay*2, getMadkitConfig().networkProperties.connectionTimeOut);
 							@Override
 							public Object call() {
 
@@ -1113,7 +1113,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 									return null;
 								}
 							}
-						}, old_delay != -1 ? old_delay : min_delay, min_delay);
+						}, (old_delay != -1 ? old_delay : 0)+System.currentTimeMillis(), min_delay);
 						task_id = scheduleTask(task);
 					}
 				}
