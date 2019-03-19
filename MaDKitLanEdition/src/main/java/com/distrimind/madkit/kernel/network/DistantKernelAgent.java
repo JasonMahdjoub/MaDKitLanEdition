@@ -308,6 +308,10 @@ class DistantKernelAgent extends AgentFakeThread {
 							CGRSynchroSystemMessage message = new CGRSynchroSystemMessage(m);
 							sendData(asd.getAgentAddress(), message, true, null, false);
 						}
+						else if (logger != null && logger.isLoggable(Level.FINER))
+							logger.finer("No agent socket found for CGRSynchro (distantInterfacedKernelAddress=" + distant_kernel_address
+									+ ") : " + _message);
+
 					}
 				} else if (_message.getClass() == SendDataFromAgentSocket.class) {
 					if (logger != null && logger.isLoggable(Level.FINEST))
