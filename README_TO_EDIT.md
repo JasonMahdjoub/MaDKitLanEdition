@@ -33,7 +33,7 @@ You can also find inspiration into Junit tests.
     * Client/server secured or unsecured connections
     * Several encryption algorithms, including authenticated encryption algorithms and Post Quantum Cryptography encryptions
     * Several signature algorithms, including  Post Quantum Cryptography signers
-    * Forward secrecy is supported only for this peer to peer secured connection protocol : P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm
+    * Forward secrecy is supported only for this peer to peer secured connection protocol : P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm. However it is possible to combine connetion protocols to enable Forward secrecy : for example client/server connection protocol can be used without encryption, and combined with P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm with encryption enabled. Forward secrecy is than possible for client server connetions.
     * Symmetric secret key used for encryption and signature can be generated during the connection process, or can be known in advance by the concerned peers.
     * There is a possibility to choose between several key agreement algorithms, including Post Quantum Cryptography agreements
     * ConnectionProtocolNegotiator has a list of possible connection protocols annoted with level of priorities. Then During the negotitation, choosen connection protocol is the connection protocol that is common with the two peers, and that sum of the two priorities, given by the two peers, is the higher sum.
