@@ -239,6 +239,7 @@ class MadkitKernel extends Agent {
 			res.setKeepAliveTime(timeOutSeconds, TimeUnit.SECONDS);
 		res.allowCoreThreadTimeOut(timeOutSeconds > 0);
 
+
 		return res;
 	}
 
@@ -3341,7 +3342,7 @@ class MadkitKernel extends Agent {
 			ScheduledFuture<?> future;
 			if (_task.isRepetitive()) {
 				future = new ScheduledFutureWithSpecializedWait<>(serviceExecutor, lifeExecutor,
-						executorService.scheduleAtFixedRate(runnable,
+						executorService.scheduleWithFixedDelay(runnable,
 								Math.max(0, _task.getTimeOfExecution() - System.currentTimeMillis()),
 								_task.getDurationBetweenEachRepetition(), TimeUnit.MILLISECONDS));
 			} else {

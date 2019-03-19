@@ -210,7 +210,7 @@ class NetworkBlackboard {
 							}
 							return null;
 						}
-					}, MulticastListenerAgent.durationBeforeRemovingMulticastMessages,
+					}, MulticastListenerAgent.durationBeforeRemovingMulticastMessages+System.currentTimeMillis(),
 							MulticastListenerAgent.durationBeforeRemovingMulticastMessages));
 				}
 				return true;
