@@ -235,14 +235,15 @@ class DistantKernelAgent extends AgentFakeThread {
 										+ distant_kernel_address + ") : " + _message);
 
 							message.getMessageLocker().lock();
+
 							if (!message.abstract_group.isEmpty()) {
 								AbstractGroup groups_lacking = message.abstract_group.clone();
 								updateBestAgent();
 
 								if (broadcastLocalLanMessage(agents_socket, message, groups_lacking))
 									broadcastLocalLanMessage(indirect_agents_socket, message, groups_lacking);
+
 							}
-							message.getMessageLocker().unlock();
 
 						} else if (_message.getClass() == DirectLocalLanMessage.class) {
 							DirectLocalLanMessage message = (DirectLocalLanMessage) _message;
@@ -269,9 +270,21 @@ class DistantKernelAgent extends AgentFakeThread {
 										processInvalidMessage(_message, false);
 										message.getMessageLocker().unlock();
 									}
+									catch(MadkitException e)
+									{
+										message.getMessageLocker().unlock();
+										throw e;
+									}
 								} else {
-									sendData(asd.getAgentAddress(), new DirectLanMessage(m), false,
-											message.getMessageLocker(), false);
+									try {
+										sendData(asd.getAgentAddress(), new DirectLanMessage(m), false,
+												message.getMessageLocker(), false);
+									}
+									catch(MadkitException e)
+									{
+										message.getMessageLocker().unlock();
+										throw e;
+									}
 								}
 
 							} else {
@@ -295,24 +308,40 @@ class DistantKernelAgent extends AgentFakeThread {
 						processInvalidProcess(null, m.getMessage(), m.isCandidateToBan());
 					}
 				} else if (_message.getClass() == CGRSynchro.class) {
+					CGRSynchro m = (CGRSynchro) _message;
+					if (m.getMessageLocker()!=null)
+						m.getMessageLocker().lock();
 					if (this.kernelAddressActivated) {
-						CGRSynchro m = (CGRSynchro) _message;
 						AgentSocketData asd = getBestAgentSocket(distant_kernel_address, m.getContent().getGroup(),
 								false);
-						if (asd != null) {
-							if (logger != null && logger.isLoggable(Level.FINER))
-								logger.finer("CGRSynchro (distantInterfacedKernelAddress=" + distant_kernel_address
-										+ ") : " + _message);
-							newCGRSynchroDetected(m);
-							potentialChangementsInGroups();
-							CGRSynchroSystemMessage message = new CGRSynchroSystemMessage(m);
-							sendData(asd.getAgentAddress(), message, true, null, false);
+						try {
+							if (asd != null) {
+								if (logger != null && logger.isLoggable(Level.FINER))
+									logger.finer("CGRSynchro (distantInterfacedKernelAddress=" + distant_kernel_address
+											+ ") : " + _message);
+								newCGRSynchroDetected(m);
+								potentialChangementsInGroups();
+								CGRSynchroSystemMessage message = new CGRSynchroSystemMessage(m);
+								sendData(asd.getAgentAddress(), message, m.getCode() != Code.LEAVE_GROUP && m.getCode() != Code.LEAVE_ROLE, m.getMessageLocker(), false);
+							} else {
+								if (logger != null && logger.isLoggable(Level.FINER))
+									logger.finer("No agent socket found for CGRSynchro (distantInterfacedKernelAddress=" + distant_kernel_address
+											+ ") : " + _message);
+								if (m.getMessageLocker()!=null)
+									m.getMessageLocker().unlock();
+							}
 						}
-						else if (logger != null && logger.isLoggable(Level.FINER))
-							logger.finer("No agent socket found for CGRSynchro (distantInterfacedKernelAddress=" + distant_kernel_address
-									+ ") : " + _message);
+						catch(MadkitException e)
+						{
+							if (m.getMessageLocker()!=null)
+								m.getMessageLocker().unlock();
+							throw e;
+						}
 
 					}
+					else if (m.getMessageLocker()!=null)
+						m.getMessageLocker().unlock();
+
 				} else if (_message.getClass() == SendDataFromAgentSocket.class) {
 					if (logger != null && logger.isLoggable(Level.FINEST))
 						logger.finest("Rooting message to send from agent socket (distantInterfacedKernelAddress="

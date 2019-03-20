@@ -42,6 +42,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.kernel.network.MessageLocker;
 import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
 import com.distrimind.madkit.message.ObjectMessage;
 import com.distrimind.madkit.util.SerializationTools;
@@ -69,6 +70,7 @@ public class CGRSynchro extends ObjectMessage<AgentAddress> implements Externali
 
 	private Code code;
 	private boolean manual;
+	private transient MessageLocker messageLocker=null;
 
 	@SuppressWarnings("unused")
 	private CGRSynchro()
@@ -84,6 +86,7 @@ public class CGRSynchro extends ObjectMessage<AgentAddress> implements Externali
 	@Override
 	public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException
 	{
+		messageLocker=null;
 		super.readExternal(in, 0);
 		code=Code.valueOf(SerializationTools.readString(in, 1000, false));
 		manual=in.readBoolean();
@@ -99,9 +102,18 @@ public class CGRSynchro extends ObjectMessage<AgentAddress> implements Externali
 	@SuppressWarnings("MethodDoesntCallSuperMethod")
 	@Override
 	public CGRSynchro clone() {
-		return new CGRSynchro(code, getContent(), this.manual);
+		return new CGRSynchro(this);
 	}
-	
+	private CGRSynchro(CGRSynchro cgrSynchro) {
+		super(cgrSynchro);
+		if (cgrSynchro == null)
+			throw new NullPointerException("cgrSynchro");
+
+		this.code = cgrSynchro.getCode();
+		manual = cgrSynchro.manual;
+		this.messageLocker=cgrSynchro.messageLocker;
+	}
+
 	CGRSynchro(final Code code, final AgentAddress aa, boolean manual_operation) {
 		super(aa);
 		if (code == null)
@@ -111,6 +123,7 @@ public class CGRSynchro extends ObjectMessage<AgentAddress> implements Externali
 
 		this.code = code;
 		manual = manual_operation;
+		this.messageLocker=null;
 	}
 
 	@Override
@@ -128,8 +141,17 @@ public class CGRSynchro extends ObjectMessage<AgentAddress> implements Externali
 	public boolean isManualOperation() {
 		return manual;
 	}
+	void initMessageLocker()
+	{
+		if (messageLocker==null)
+			messageLocker=new MessageLocker(this);
 
-	
+	}
+
+	public MessageLocker getMessageLocker()
+	{
+		return messageLocker;
+	}
 
 }
 

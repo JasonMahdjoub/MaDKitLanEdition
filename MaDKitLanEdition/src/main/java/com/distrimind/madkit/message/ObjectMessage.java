@@ -73,7 +73,12 @@ public class ObjectMessage<T> extends Message {
 		this(content, false);
 	}
 	
-	
+	protected ObjectMessage(ObjectMessage<T> m)
+	{
+		super(m);
+		content=m.content;
+		excludeFromEncryption=m.excludeFromEncryption;
+	}
 	
 	public int getInternalSerializedSizeImpl(int maxContentLength) {
 		return super.getInternalSerializedSizeImpl()+1+SerializationTools.getInternalSize(content, maxContentLength);

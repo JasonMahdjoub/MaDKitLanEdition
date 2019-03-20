@@ -1721,7 +1721,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	final void handleException(final Influence i, final Throwable e) {
 		if (isWarningOn()) {
 			setAgentStackTrace(e);
-			logger.log(Level.WARNING, i.failedString(), e);
+			logger.log(Level.WARNING, i==null?"":i.failedString(), e);
 		}
 	}
 

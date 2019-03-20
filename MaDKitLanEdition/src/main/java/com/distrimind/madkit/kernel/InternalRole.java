@@ -473,7 +473,7 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 		removeFromOverlookers(bucket);
 		if (removed!=null)
 			for (AbstractAgent aa : removed)
-				aa.getMadkitKernel().sendNetworkCGRSynchroMessageWithRole(new CGRSynchro(LEAVE_ROLE,
+				aa.getMadkitKernel().sendNetworkCGRSynchroMessageWithRole(null, new CGRSynchro(LEAVE_ROLE,
 						new AgentAddress(aa, this, kernelAddress, manually_requested), manually_requested));
 
 	}

@@ -983,7 +983,7 @@ class MadkitKernel extends Agent {
 			try {// TODO bof...
 				if (group.isDistributed()) {
 
-					sendNetworkCGRSynchroMessageWithRole(new CGRSynchro(CREATE_GROUP,
+					sendNetworkCGRSynchroMessageWithRole(creator, new CGRSynchro(CREATE_GROUP,
 							getRole(group, com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE)
 									.getAgentAddressOf(creator),
 							true));
@@ -1293,10 +1293,11 @@ class MadkitKernel extends Agent {
 		}
 		if (result == SUCCESS) {
 			if (g.isDistributed()) {
-				sendNetworkCGRSynchroMessageWithRole(new CGRSynchro(REQUEST_ROLE,
+				sendNetworkCGRSynchroMessageWithRole(requester, new CGRSynchro(REQUEST_ROLE,
 						new AgentAddress(requester, g.get(role), kernelAddress, manually_requested),
 						manually_requested));
 			}
+
             informHooks(AgentActionEvent.REQUEST_ROLE,
                     new AgentAddress(requester, g.get(role), kernelAddress, manually_requested));
 		}
@@ -1328,7 +1329,7 @@ class MadkitKernel extends Agent {
 				role.removeFromOverlookers(requester);
 			}*/
 			if (g.isDistributed()) {
-				sendNetworkCGRSynchroMessageWithRole(new CGRSynchro(LEAVE_GROUP, new AgentAddress(requester,
+				sendNetworkCGRSynchroMessageWithRole(requester, new CGRSynchro(LEAVE_GROUP, new AgentAddress(requester,
 						new InternalRole(group), kernelAddress, isAutoCreateGroup(requester)), manually_requested));
 			}
             informHooks(AgentActionEvent.LEAVE_GROUP, new AgentAddress(requester, new InternalRole(group),
@@ -1363,7 +1364,7 @@ class MadkitKernel extends Agent {
 				rc = r.removeMember(requester, mannual_requested);
 				if (rc != SUCCESS)// TODO remove that
 					throw new AssertionError("cannot remove " + requester + " from " + r.buildAndGetAddresses());
-				sendNetworkCGRSynchroMessageWithRole(new CGRSynchro(LEAVE_ROLE,
+				sendNetworkCGRSynchroMessageWithRole(requester, new CGRSynchro(LEAVE_ROLE,
 						new AgentAddress(requester, r, kernelAddress, mannual_requested), mannual_requested));
 			} else {
 				rc = r.removeMember(requester, mannual_requested);
@@ -1733,14 +1734,28 @@ class MadkitKernel extends Agent {
 		 */
 	}
 
-	final ReturnCode sendNetworkCGRSynchroMessageWithRole(CGRSynchro m) {
+	final ReturnCode sendNetworkCGRSynchroMessageWithRole(AbstractAgent requester, CGRSynchro m) {
 		updateNetworkAgent();
 		if (netAgent != null) {
 			m.getConversationID().setOrigin(getKernelAddress());
 			((Message) m).setSender(netUpdater);
 			((Message) m).setReceiver(netAgent);
-			netAgent.getAgent().receiveMessage(m);
-			return SUCCESS;
+
+			if (requester!=null) {
+				m.initMessageLocker();
+				netAgent.getAgent().receiveMessage(m);
+				try {
+					return m.getMessageLocker().waitUnlock(requester, true);
+				} catch (InterruptedException e) {
+					if (logger != null)
+						logger.severeLog("A problem occurs during a lan CGR sending", e);
+					return ReturnCode.TRANSFER_FAILED;
+				}
+			}
+			else {
+				netAgent.getAgent().receiveMessage(m);
+				return SUCCESS;
+			}
 		}
 		return SEVERE;
 	}
@@ -2525,7 +2540,7 @@ class MadkitKernel extends Agent {
 		synchronized (organizations) {
 			for (Iterator<Organization> it =organizations.values().iterator();it.hasNext();) {
 				for (final Group group : it.next().removeAgentFromAllGroups(theAgent, true)) {
-					sendNetworkCGRSynchroMessageWithRole(new CGRSynchro(LEAVE_GROUP, new AgentAddress(theAgent,
+					sendNetworkCGRSynchroMessageWithRole(null, new CGRSynchro(LEAVE_GROUP, new AgentAddress(theAgent,
 							new InternalRole(group), kernelAddress, isAutoCreateGroup(theAgent)), true));
 				}
 				if (organizations.isEmpty())
@@ -2714,7 +2729,9 @@ class MadkitKernel extends Agent {
 			final InternalRole receiverRole = kernel.getRole(receiver.getGroup(), receiver.getRole());
 			receiver.setRoleObject(receiverRole);
 			if (receiverRole != null && sender!=null && receiverRole.getMyGroup().isDistributed()) {
-				if (injectRoleFromDistantPeer(sender.getGroup(), sender)) {
+				final InternalRole senderRole = kernel.getRole(sender.getGroup(), sender.getRole());
+				if (senderRole!=null && senderRole.getMyGroup().isDistributed()) {
+				//if (injectRoleFromDistantPeer(sender.getGroup(), sender)) {
 					final AbstractAgent target = receiverRole.getAbstractAgentWithAddress(receiver);
 					if (target != null) {
 						// updating sender address
@@ -2781,6 +2798,7 @@ class MadkitKernel extends Agent {
 		((Message) m).markMessageAsRead();
 	}
 
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	final boolean injectGroupFromDistantPeer(Group group, final AgentAddress agentAddress)
 	{
 		if (group.isDistributed()) {

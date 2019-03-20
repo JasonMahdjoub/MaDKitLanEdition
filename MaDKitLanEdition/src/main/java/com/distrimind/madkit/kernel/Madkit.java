@@ -838,7 +838,7 @@ final public class Madkit {
 			Calendar c=new GregorianCalendar();
 			c.setTime(VERSION.getProjectEndDate());
 			System.out.println("\n-----------------------------------------------------------------------------"
-					+ "\n\t\t\t\t    MadkitLanEdition\n" + "\n\t version: " + VERSION.getMajor() + "."
+					+ "\n\t\t\t\t    MadkitLanEdition\n" + "\n\t Version: " + VERSION.getMajor() + "."
 					+ VERSION.getMinor() + "." + VERSION.getRevision() + " " + VERSION.getType()
 					+ (VERSION.getType().equals(Version.Type.Stable) ? "" : (" " + VERSION.getAlphaBetaVersion()))
 					+ "\n\t MaDKit Team (c) 1997-"+c.get(Calendar.YEAR)

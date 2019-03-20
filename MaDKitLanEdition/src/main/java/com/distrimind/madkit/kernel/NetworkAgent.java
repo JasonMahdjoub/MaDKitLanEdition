@@ -216,9 +216,40 @@ public final class NetworkAgent extends AgentFakeThread {
 		} else if (sender.isFrom(getKernelAddress())) {// contacted locally
 			switch (sender.getRole()) {
 			case Roles.UPDATER:// It is a CGR update
-				for (AgentAddress aa : getAgentsWithRole(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
-						LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE, false))
-					sendMessage(aa, m.clone());
+			{
+				MessageLocker ml = null;
+				if (m instanceof CGRSynchro) {
+					ml = ((CGRSynchro) m).getMessageLocker();
+					if (ml!=null)
+						ml.lock();
+				}
+				//boolean oneFound=false;
+				try {
+					ReturnCode rc = broadcastMessage(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
+							LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE, m, ml != null);
+					if (rc.equals(ReturnCode.SUCCESS)) {
+						if (ml != null)
+							messageLockers.put(m.getConversationID(), ml);
+					} else {
+
+						if (ml != null) {
+							ml.cancelLock();
+						}
+					}
+
+					/*for (AgentAddress aa : getAgentsWithRole(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
+							LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE, false)) {
+						sendMessage(aa, m.clone());
+						oneFound=true;
+					}*/
+
+				} finally {
+
+					if (ml!=null) {
+						ml.cancelLock();
+					}
+				}
+			}
 				break;
 			case Roles.SECURITY:// It is a security problem
 				if (m.getClass() == AnomalyDetectedMessage.class) {
