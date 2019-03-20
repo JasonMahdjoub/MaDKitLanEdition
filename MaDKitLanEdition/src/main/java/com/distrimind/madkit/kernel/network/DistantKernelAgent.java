@@ -311,6 +311,7 @@ class DistantKernelAgent extends AgentFakeThread {
 					CGRSynchro m = (CGRSynchro) _message;
 					if (m.getMessageLocker()!=null)
 						m.getMessageLocker().lock();
+					sendReplyEmpty(m);
 					if (this.kernelAddressActivated) {
 						AgentSocketData asd = getBestAgentSocket(distant_kernel_address, m.getContent().getGroup(),
 								false);
