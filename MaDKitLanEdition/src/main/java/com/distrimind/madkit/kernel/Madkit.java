@@ -147,8 +147,8 @@ final public class Madkit {
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.MARCH, 1);
 			Description d = new Description((short)1, (short)10, (short)0, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 Beta 102.");
-			d.addItem("Update Utils to 3.25.3 Stable.");
+			d.addItem("Update OOD to 2.0.0 Beta 104.");
+			d.addItem("Update Utils to 3.25.5 Stable.");
 			d.addItem("Add new connection protocol with symmetric keys: P2PSecuredConnectionProtocolWithKnownSymmetricKeys.");
 			d.addItem("Better tests for network transfers.");
 			d.addItem("Improve synchronization of list of distant agents.");

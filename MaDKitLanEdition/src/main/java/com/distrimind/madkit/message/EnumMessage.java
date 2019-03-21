@@ -64,7 +64,7 @@ public class EnumMessage<E extends Enum<E>> extends ObjectMessage<Object[]> impl
 
 	protected EnumMessage()
 	{
-		super(null);
+		super((Object[])null);
 	}
 	@Override
 	public int getInternalSerializedSize() {

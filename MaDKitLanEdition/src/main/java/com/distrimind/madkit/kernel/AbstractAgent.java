@@ -2493,6 +2493,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		if (messageTaken != null) {
 			if (messageTaken instanceof LocalLanMessage)
 				getMadkitKernel().receivingPotentialNetworkMessage(this, (LocalLanMessage) messageTaken);
+
+
 			messageBox.offer(messageTaken); // TODO test vs. arraylist and synchronized
 		}
 		// if(messageBox == null)

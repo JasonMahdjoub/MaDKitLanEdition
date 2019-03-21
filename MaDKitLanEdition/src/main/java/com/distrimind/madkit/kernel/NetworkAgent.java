@@ -224,31 +224,23 @@ public final class NetworkAgent extends AgentFakeThread {
 						ml.lock();
 				}
 				//boolean oneFound=false;
-				try {
-					ReturnCode rc = broadcastMessage(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
-							LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE, m, ml != null);
-					if (rc.equals(ReturnCode.SUCCESS)) {
-						if (ml != null)
-							messageLockers.put(m.getConversationID(), ml);
-					} else {
 
-						if (ml != null) {
+				ReturnCode rc = broadcastMessage(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
+						LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE, m, ml != null);
+				if (ml != null)
+				{
+					if (rc.equals(ReturnCode.SUCCESS)) {
+						messageLockers.put(m.getConversationID(), ml);
+					} else  {
 							ml.cancelLock();
-						}
 					}
+				}
 
 					/*for (AgentAddress aa : getAgentsWithRole(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
 							LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE, false)) {
 						sendMessage(aa, m.clone());
 						oneFound=true;
 					}*/
-
-				} finally {
-
-					if (ml!=null) {
-						ml.cancelLock();
-					}
-				}
 			}
 				break;
 			case Roles.SECURITY:// It is a security problem
@@ -273,12 +265,11 @@ public final class NetworkAgent extends AgentFakeThread {
 
 				ReturnCode rc = broadcastMessage(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
 						LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE, m, ml != null);
-				if (rc.equals(ReturnCode.SUCCESS)) {
-					if (ml != null)
+				if (ml != null)
+				{
+					if (rc.equals(ReturnCode.SUCCESS)) {
 						messageLockers.put(m.getConversationID(), ml);
-				} else {
-
-					if (ml != null) {
+					} else  {
 						ml.cancelLock();
 					}
 				}

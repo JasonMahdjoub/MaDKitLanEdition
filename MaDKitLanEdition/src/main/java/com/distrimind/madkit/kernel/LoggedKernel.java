@@ -797,6 +797,9 @@ final class LoggedKernel extends MadkitKernel {
 
 	}
 
+
+
+
 	@Override
 	void waitMessageSent(AbstractAgent requester, LockerCondition locker) throws InterruptedException {
 		kernel.waitMessageSent(requester, locker);
