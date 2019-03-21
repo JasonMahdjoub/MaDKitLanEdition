@@ -1045,9 +1045,10 @@ class DistantKernelAgent extends AgentFakeThread {
 		ReturnCode rc = this.requestRole(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
 				LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 		if (rc.equals(ReturnCode.SUCCESS)) {
+			updateLocalAcceptedGroups();
 			updateDistantAcceptedGroups();
 			informHooksForLoginData();
-			updateLocalAcceptedGroups();
+
 			networkBlacboard.addDistantKernelAddressInterfaced(distant_kernel_address);
 			potentialChangementsInGroups();
 			networkBlacboard.unlockSimultaneousConnections(distant_kernel_address);
@@ -1197,7 +1198,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		updateDistantAcceptedGroups(agents_socket, general, groups);
 		updateDistantAcceptedGroups(indirect_agents_socket, general, groups);
 
-		Group old[] = distant_accepted_groups;
+		Group[] old = distant_accepted_groups;
 		distant_accepted_groups = new Group[groups.size()];
 
 		groups.toArray(distant_accepted_groups);
@@ -1617,8 +1618,6 @@ class DistantKernelAgent extends AgentFakeThread {
 
 			if (newAcceptedGroups.size() > 0 || removedAcceptedGroups.size() > 0) {
 				MultiGroup mg = computeLocalGeneralAcceptedGroups();
-				MadkitKernelAccess.informHooks(this, new NetworkGroupsAccessEvent(
-						AgentActionEvent.ACCESSIBLE_LAN_GROUPS_GIVEN_TO_DISTANT_PEER, mg, ag, distant_kernel_address, removedAcceptedGroups.size() > 0));
 
 				Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> agent_addresses = getOrganizationSnapShot(
 						newAcceptedGroups, false);
@@ -1629,10 +1628,20 @@ class DistantKernelAgent extends AgentFakeThread {
 							removedAcceptedGroups);
 					AgentSocketData asd = getBestAgentSocket(false);
 					if (asd != null) {
-						sendData(asd.getAgentAddress(), message, true, null, false);
+						MessageLocker locker=new MessageLocker();
+
+						locker.lock();
+						sendData(asd.getAgentAddress(), message, true, locker, false);
+						try {
+							locker.waitUnlock(this, true);
+						} catch (InterruptedException e) {
+							logger.warning("Unexpected interrupted exception");
+						}
 					} else if (logger != null)
 						logger.severe("Unexpected access (updateLocalAcceptedGroups)");
 				}
+				MadkitKernelAccess.informHooks(this, new NetworkGroupsAccessEvent(
+						AgentActionEvent.ACCESSIBLE_LAN_GROUPS_GIVEN_TO_DISTANT_PEER, mg, ag, distant_kernel_address, removedAcceptedGroups.size() > 0));
 			}
 			localAcceptedAndRequestedGroups = ag;
 		}

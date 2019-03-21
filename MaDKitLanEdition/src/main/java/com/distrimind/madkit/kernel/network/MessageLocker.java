@@ -37,12 +37,11 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import com.distrimind.jdkrewrite.concurrent.LockerCondition;
+import com.distrimind.madkit.exceptions.MadkitException;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
-import com.distrimind.madkit.exceptions.MadkitException;
-import com.distrimind.madkit.kernel.CGRSynchro;
 import com.distrimind.madkit.kernel.KernelAddress;
-import com.distrimind.jdkrewrite.concurrent.LockerCondition;
 import com.distrimind.madkit.kernel.Message;
 
 /**
@@ -57,8 +56,13 @@ public final class MessageLocker extends LockerCondition {
 	private boolean firstLockDone = false;
 
 	public MessageLocker(Message localLanMessage) {
-		returns_code = new TransfersReturnsCodes();
+		this();
 		setAttachment(localLanMessage);
+	}
+
+	public MessageLocker()
+	{
+		returns_code = new TransfersReturnsCodes();
 	}
 
 

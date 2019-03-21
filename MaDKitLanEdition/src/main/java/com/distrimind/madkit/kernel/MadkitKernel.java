@@ -3193,13 +3193,21 @@ class MadkitKernel extends Agent {
 	}*/
 
 	void waitMessageSent(AbstractAgent requester, LockerCondition locker) throws InterruptedException {
+		if (locker==null)
+			throw new NullPointerException();
 		boolean mustCancelLock = false;
-		if (locker.getAttachment() != null && (locker.getAttachment() instanceof LocalLanMessage) || (locker.getAttachment() instanceof CGRSynchro)) {
+		if ((locker.getAttachment() instanceof LocalLanMessage) || (locker.getAttachment() instanceof CGRSynchro)) {
 			mustCancelLock = true;
 			synchronized (agentsSendingNetworkMessage) {
 				LockerCondition l = agentsSendingNetworkMessage.put(requester.getAgentID(), locker);
-				if (l != null)
+				if (locker==l) {
+					agentsSendingNetworkMessage.remove(requester.getAgentID());
 					l.cancelLock();
+					return;
+				}
+				else if (l != null) {
+					l.cancelLock();
+				}
 			}
 		}
 		try {

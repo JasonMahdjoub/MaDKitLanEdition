@@ -457,10 +457,13 @@ final class NIOAgent extends Agent {
 					PersonalSocket ps = personal_sockets.get(dtsm.socket);
 					if (ps != null)
 						ps.addDataToSend(dtsm.data);
-					else if (logger != null) {
+					else
+					{
 						sendReply(m, new ConnectionClosed(dtsm.socket, ConnectionClosedReason.CONNECTION_LOST, null,
 								null, null));
-						logger.warning("Receiving data to send, but personnal socket not found ! ");
+
+						if (logger != null)
+							logger.warning("Receiving data to send, but personnal socket not found ! ");
 					}
 
 				} else if (m instanceof ConnectionClosed) {
