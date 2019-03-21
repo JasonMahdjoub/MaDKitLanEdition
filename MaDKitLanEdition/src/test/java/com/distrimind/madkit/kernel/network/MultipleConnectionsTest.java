@@ -262,6 +262,18 @@ public class MultipleConnectionsTest extends JunitMadkit {
 								for (Madkit m : getHelperInstances(5))
 								{
 
+									if (isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, AgentBigTransfer.class, false, AgentBigTransfer.bigTransferRole)) {
+										lanToSynchro = true;
+										System.out.println("Local agents in MK "+i+" cleaned : "+false);
+									}
+									else
+										System.out.println("Local agents in MK "+i+" cleaned : "+true);
+									++i;
+								}
+								i=0;
+								for (Madkit m : getHelperInstances(5))
+								{
+
 									if (isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, AgentBigTransfer.class, true, AgentBigTransfer.bigTransferRole)) {
 										lanToSynchro = true;
 										if (nb2>3)
