@@ -47,6 +47,9 @@ import java.util.Objects;
 
 /**
  * Properties of negotiator of connection protocols
+ * It is impossible to use sub protocols into connection associated to protocol negotiator.
+ * Use instead several protocol negotiators as sub protocols of this instance,
+ * and whose negotiated protocols do not contains sub protocols
  *
  * @author Jason Mahdjoub
  * @version 1.0
