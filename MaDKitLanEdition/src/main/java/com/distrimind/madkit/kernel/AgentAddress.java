@@ -98,6 +98,8 @@ public class AgentAddress implements ExternalizableAndSizable, Cloneable {
 	 */
 	AgentAddress(final AbstractAgent agt, final InternalRole role, final KernelAddress ka, boolean manually_requested) {
 		agent = agt;
+		if (role==null)
+			throw new NullPointerException();
 		roleObject = role;
 		kernelAddress = ka;// could have been computed from agt but this is serious optimization for mass
 							// launching//TODO unsure
@@ -166,10 +168,14 @@ public class AgentAddress implements ExternalizableAndSizable, Cloneable {
 	 *            the roleObject to set
 	 */
 	final void setRoleObject(InternalRole newRole) {
-		if (newRole == null && cgr == null) {
-			cgr = roleObject.getGroup().getCommunity() + ";;" + roleObject.getGroup().getPath() + ";;"
-					+ roleObject.getRoleName();
+		if (roleObject!=null) {
+			cgr=null;
+			if (newRole == null) {
+				cgr = roleObject.getGroup().getCommunity() + ";;" + roleObject.getGroup().getPath() + ";;"
+						+ roleObject.getRoleName();
+			}
 		}
+
 		roleObject = newRole;
 	}
 
