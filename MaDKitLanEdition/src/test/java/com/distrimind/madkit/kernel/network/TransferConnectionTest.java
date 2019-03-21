@@ -48,6 +48,7 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolNegotiatorProperties;
+import com.distrimind.madkit.kernel.network.connection.secured.*;
 import com.distrimind.util.OS;
 import org.junit.Assert;
 import org.junit.Test;
@@ -61,10 +62,6 @@ import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.Madkit;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
-import com.distrimind.madkit.kernel.network.connection.secured.ClientSecuredProtocolPropertiesWithKnownPublicKey;
-import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties;
-import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolWithKeyAgreementProperties;
-import com.distrimind.madkit.kernel.network.connection.secured.ServerSecuredProtocolPropertiesWithKnownPublicKey;
 import com.distrimind.madkit.kernel.network.connection.unsecured.CheckSumConnectionProtocolProperties;
 import com.distrimind.madkit.kernel.network.connection.unsecured.UnsecuredConnectionProtocolProperties;
 import com.distrimind.madkit.kernel.AgentFakeThread;
@@ -172,7 +169,12 @@ public class TransferConnectionTest extends JunitMadkit {
 			} else if (cpp.getClass() == CheckSumConnectionProtocolProperties.class) {
 				if (!((CheckSumConnectionProtocolProperties) cpp).isServer)
 					return null;
-			} else if (cpp.getClass() == UnsecuredConnectionProtocolProperties.class) {
+			}
+			else if (cpp.getClass() == P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties.class) {
+				if (!((P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties) cpp).isServer)
+					return null;
+			}
+			else if (cpp.getClass() == UnsecuredConnectionProtocolProperties.class) {
 				if (!((UnsecuredConnectionProtocolProperties) cpp).isServer)
 					return null;
 			}
@@ -210,7 +212,22 @@ public class TransferConnectionTest extends JunitMadkit {
 			s.symmetricEncryptionType = sold.symmetricEncryptionType;
 			s.symmetricSignatureType=sold.symmetricSignatureType;
 			res = s;
-		} else if (cpp.getClass() == CheckSumConnectionProtocolProperties.class) {
+		} else if (cpp.getClass() == P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties.class) {
+			P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties sold = (P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties) cpp;
+			P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties s = new P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties();
+			s.enableEncryption = sold.enableEncryption;
+			s.isServer = sold.isServer;
+			for (Integer i : sold.getProfileIdentifiers())
+			{
+				s.addProfile(i, sold.getSymmetricSecretKeyForEncryption(i), sold.getSymmetricSecretKeyForSignature(i));
+				if (!sold.isValidProfile(i))
+					s.invalidateProfile(i);
+			}
+
+			s.setDefaultProfileIdentifier(sold.getDefaultProfileIdentifier());
+			res = s;
+		}
+		else if (cpp.getClass() == CheckSumConnectionProtocolProperties.class) {
 			CheckSumConnectionProtocolProperties sold = (CheckSumConnectionProtocolProperties) cpp;
 			CheckSumConnectionProtocolProperties s = new CheckSumConnectionProtocolProperties();
 			s.isServer = sold.isServer;

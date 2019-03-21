@@ -49,6 +49,7 @@ import gnu.vm.jgnu.security.spec.InvalidKeySpecException;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Jason Mahdjoub
@@ -96,6 +97,11 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties extend
 	public int addProfile(SymmetricSecretKey symmetricSecretKeyForEncryption, SymmetricSecretKey symmetricSecretKeyForSignature)
 	{
 		return addProfile(generateNewKeyPairIdentifier(),symmetricSecretKeyForEncryption,symmetricSecretKeyForSignature);
+	}
+
+	public Set<Integer> getProfileIdentifiers()
+	{
+		return secretKeysForSignature.keySet();
 	}
 
 	/**
@@ -266,4 +272,5 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties extend
 	public void setDefaultProfileIdentifier(int defaultProfileIdentifier) {
 		this.defaultProfileIdentifier = defaultProfileIdentifier;
 	}
+
 }

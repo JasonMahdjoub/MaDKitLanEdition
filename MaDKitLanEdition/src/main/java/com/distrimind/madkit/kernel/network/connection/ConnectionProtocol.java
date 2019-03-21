@@ -395,7 +395,7 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 				sbi = sbp.getSubBlock(sbi.getSubBlock());
 				valid = sbi.isValid();
 				candidate_to_ban = sbi.isCandidateToBan();
-				
+
 			} catch (BlockParserException e) {
 				valid = false;
 			}
