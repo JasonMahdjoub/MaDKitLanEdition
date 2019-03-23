@@ -3200,12 +3200,12 @@ class MadkitKernel extends Agent {
 			mustCancelLock = true;
 			synchronized (agentsSendingNetworkMessage) {
 				LockerCondition l = agentsSendingNetworkMessage.put(requester.getAgentID(), locker);
-				if (locker==l) {
+				/*if (locker==l) {
 					agentsSendingNetworkMessage.remove(requester.getAgentID());
 					l.cancelLock();
 					return;
 				}
-				else if (l != null) {
+				else */if (l != null) {
 					l.cancelLock();
 				}
 			}

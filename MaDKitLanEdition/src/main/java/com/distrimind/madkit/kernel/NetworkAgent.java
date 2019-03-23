@@ -223,7 +223,25 @@ public final class NetworkAgent extends AgentFakeThread {
 					if (ml!=null)
 						ml.lock();
 				}
-				//boolean oneFound=false;
+				/*boolean oneFound=false;
+
+				for (AgentAddress aa : getAgentsWithRole(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
+						LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE, false)) {
+
+					ReturnCode rc=sendMessage(aa, m.clone());
+					if (ml!=null && rc.equals(ReturnCode.SUCCESS))
+					{
+						oneFound=true;
+					}
+
+				}
+				if (ml!=null) {
+					if (!oneFound)
+						ml.cancelLock();
+					else
+						ml.unlock();
+				}*/
+
 
 				ReturnCode rc = broadcastMessage(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
 						LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE, m, ml != null);
@@ -236,11 +254,7 @@ public final class NetworkAgent extends AgentFakeThread {
 					}
 				}
 
-					/*for (AgentAddress aa : getAgentsWithRole(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
-							LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE, false)) {
-						sendMessage(aa, m.clone());
-						oneFound=true;
-					}*/
+
 			}
 				break;
 			case Roles.SECURITY:// It is a security problem

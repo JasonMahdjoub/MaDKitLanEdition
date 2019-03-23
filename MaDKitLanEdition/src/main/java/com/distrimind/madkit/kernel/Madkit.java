@@ -156,6 +156,7 @@ final public class Madkit {
 			d.addItem("Insure that list of distant agents are removed when peers are disconnected.");
 			d.addItem("When a connection fail, try another ip.");
 			d.addItem("Change information sending order when a new connection was established (fix a problem with synchronization of CGR that is done after network messages are done).");
+			d.addItem("Fix issue with replies not sent with killed agents : killed agent send now empty reply for messages that need reply.");
 			VERSION.addDescription(d);
 
 

@@ -595,7 +595,12 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 				state.notify();
 			}
 			try {
+
 				end();
+				//send empty replies for non read messages
+				for (Message m : messageBox)
+					if (m.needReply())
+						sendReplyEmpty(m);
 			} catch (InterruptedException ignored) {
 			} catch (Throwable e) {
 				validateDeathOnException(e, TERMINATED);

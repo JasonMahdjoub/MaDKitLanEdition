@@ -741,6 +741,7 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 
 
 	void importDistantOrg(Collection<AgentAddress> list, MadkitKernel madkitKernel) {
+		ArrayList<AgentAddress> added=new ArrayList<>(list.size());
 		synchronized (players) {
 			//buildAndGetAddresses();
 			for (final AgentAddress aa : list) {
@@ -748,10 +749,9 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 				if (!distantAgentAddresses.contains(aa)) {
 					distantAgentAddresses.add(aa);
 					//agentAddresses.add(aa);
-					if (aa.isManuallyRequested())
-						incrementReferences(aa.getKernelAddress());
 					agentAddresses = null;
-					madkitKernel.informHooks(AgentActionEvent.REQUEST_ROLE, aa);
+					added.add(aa);
+
 				}
 				// if (agentAddresses.add(aa)) {
 				// }
@@ -762,6 +762,11 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 				// }
 				// }
 			}
+		}
+		for (AgentAddress aa : added){
+			if (aa.isManuallyRequested())
+				incrementReferences(aa.getKernelAddress());
+			madkitKernel.informHooks(AgentActionEvent.REQUEST_ROLE, aa);
 		}
 	}
 
