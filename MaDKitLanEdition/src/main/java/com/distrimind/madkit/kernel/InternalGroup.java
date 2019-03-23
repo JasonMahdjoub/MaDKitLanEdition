@@ -415,10 +415,10 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 		synchronized (this) {
 			if (!isEmpty()) {
 				for (final InternalRole r : values()) {
-                    for (AbstractAgent a : r.getPlayers()) {
-                        if (a != oldManager) {
+                    for (InternalRole.ParametrizedAgent a : r.getPlayers()) {
+                        if (a.agent != oldManager) {
                             put(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE,
-                                    new ManagerRole(this, a, false));
+                                    new ManagerRole(this, a.agent, false));
                             return;
                         }
                     }

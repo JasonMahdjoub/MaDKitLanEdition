@@ -38,14 +38,11 @@
 
 package com.distrimind.madkit.kernel;
 
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ROLE_NOT_HANDLED;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
-
-import java.util.HashSet;
-import java.util.Set;
-
 import com.distrimind.madkit.agr.Organization;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
+
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ROLE_NOT_HANDLED;
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 
 /**
  * @author Fabien Michel
@@ -69,7 +66,7 @@ final class ManagerRole extends InternalRole {
 	ManagerRole(final InternalGroup groupObject, AbstractAgent requester, boolean securedGroup) {
 		super(groupObject, Organization.GROUP_MANAGER_ROLE);
 		synchronized (players) {
-			players.add(requester);
+			players.add(new ParametrizedAgent(requester, true));
 
 			/*Set<AgentAddress> set= new HashSet<>(1, 1);
 			set.add(new GroupManagerAddress(requester, this, getKernelAddress(), true, securedGroup));*/
@@ -83,15 +80,7 @@ final class ManagerRole extends InternalRole {
 
 	ManagerRole(final InternalGroup groupObject, AgentAddress creator) {
 		super(groupObject, Organization.GROUP_MANAGER_ROLE);
-		synchronized (players) {
-            creator.setRoleObject(this);// required for equals to work
-		    distantAgentAddresses.add(creator);
-		    agentAddresses=null;
-			/*Set<AgentAddress> set=new HashSet<>(1, 1);
-			set.add(creator);
-			agentAddresses=set;*/
-
-		}
+		addDistantMemberIfNecessary(creator);
 	}
 
 	/*

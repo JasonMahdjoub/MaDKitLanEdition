@@ -41,6 +41,7 @@ import static com.distrimind.madkit.i18n.I18nUtilities.getCGRString;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ROLE_NOT_HANDLED;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import static com.distrimind.madkit.kernel.CGRSynchro.Code.LEAVE_ROLE;
+import static com.distrimind.madkit.kernel.CGRSynchro.Code.REQUEST_ROLE;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -72,10 +73,22 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 
 	private static final long serialVersionUID = 4447153943733812916L;
 
-	protected transient Collection<AbstractAgent> players;//=new HashSet<>();// TODO test copyonarraylist and linkedhashset
+	static class ParametrizedAgent
+	{
+		AbstractAgent agent;
+		boolean manually_requested;
+
+		public ParametrizedAgent(AbstractAgent agent, boolean manually_requested) {
+			this.agent = agent;
+			this.manually_requested = manually_requested;
+		}
+	}
+
+	protected transient Collection<ParametrizedAgent> players;//=new HashSet<>();// TODO test copyonarraylist and linkedhashset
+
 	private transient List<AbstractAgent> tmpReferenceableAgents;
 	protected volatile transient List<AgentAddress> agentAddresses;
-    protected transient Collection<AgentAddress> distantAgentAddresses;
+    protected transient Map<AgentAddress, AgentAddress> distantAgentAddresses;
 	protected volatile transient boolean modified = true;
 	private transient AtomicReference<Set<Overlooker<? extends AbstractAgent>>> overlookers = new AtomicReference<>(
 			null);
@@ -122,7 +135,7 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 	}
 	InternalRole(final InternalGroup groupObject, final String roleName) {
 		players = new ArrayList<>();
-		distantAgentAddresses=new ArrayList<>();
+		distantAgentAddresses=new HashMap<>();
 		tmpReferenceableAgents = null;
 		group = groupObject.getGroup();
 		this.roleName = roleName;
@@ -180,6 +193,23 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 			number_of_manually_distant_requested_role.put(distant, v);
 		}
 		return v;
+	}
+
+	@SuppressWarnings("UnusedReturnValue")
+	private int removeReference(KernelAddress distant) {
+		if (distant == null)
+			return 0;
+		AtomicInteger v;
+		synchronized (players) {
+			v = number_of_manually_distant_requested_role.remove(distant);
+		}
+		if (v==null)
+			return 0;
+		else
+		{
+			number_of_manually_requested_role.addAndGet(-v.get());
+			return v.get();
+		}
 	}
 
 	private void incrementReferences(KernelAddress distant) {
@@ -264,7 +294,7 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 	/**
 	 * @return the players
 	 */
-	Collection<AbstractAgent> getPlayers() {
+	Collection<ParametrizedAgent> getPlayers() {
 		return players;
 	}
 
@@ -314,11 +344,19 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 
 	boolean addMember(final AbstractAgent requester, boolean manually_requested) {
 		synchronized (players) {
-			for (AbstractAgent aa : players)// TODO looks like I should use linkedhashset
-				if (aa==requester)
+			for (ParametrizedAgent aa : players)// TODO looks like I should use linkedhashset
+			{
+				if (aa.agent == requester) {
+					if (aa.manually_requested != manually_requested) {
+						aa.manually_requested = manually_requested;
+						aa.agent.getMadkitKernel().sendNetworkCGRSynchroMessageWithRole(null, new CGRSynchro(REQUEST_ROLE,
+								new AgentAddress(aa.agent, this, kernelAddress, aa.manually_requested), manually_requested));
+					}
 					return false;
+				}
+			}
 			
-			players.add(requester);
+			players.add(new ParametrizedAgent(requester, manually_requested));
 			if (logger != null) {
 				logger.finest(requester.getName() + " is now playing " + getCGRString(group, roleName));
 			}
@@ -343,7 +381,8 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 	final void addMembers(final List<AbstractAgent> bucket, final boolean roleJustCreated, boolean manually_requested) {
 		// System.err.println("add members "+bucket.size());
 		synchronized (players) {
-			players.addAll(bucket);// is optimized
+			for (AbstractAgent aa : bucket)
+				players.add(new ParametrizedAgent(aa, manually_requested));// is optimized
 			/*if (agentAddresses != null) {
 				final Set<AgentAddress> addresses = new HashSet<>(bucket.size() + agentAddresses.size(), 0.9f);// TODO
 																												// try
@@ -379,30 +418,49 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 	}*/
 
 	final boolean addDistantMemberIfNecessary(final AgentAddress content) {
+		if (content.getKernelAddress()==null)
+			return false;
 		boolean ok;
-		content.setRoleObject(this);// required for equals to work
-		synchronized (players) {
 
-			if (!distantAgentAddresses.contains(content)) {
+		content.setRoleObject(this);// required for equals to work
+		AgentAddress old;
+		synchronized (players) {
+			old = distantAgentAddresses.get(content);
+			if (old==null || old.isManuallyRequested()!=content.isManuallyRequested())
+			{
+				distantAgentAddresses.put(content, content);
+				ok=true;
+				agentAddresses = null;
+			}
+			else
+				ok=false;
+			/*if (!distantAgentAddresses.contains(content)) {
 				ok = distantAgentAddresses.add(content);
 				if (!ok)
 					content.setRoleObject(null);
 				agentAddresses = null;
 			}
 			else
-				ok=false;
+				ok=false;*/
 		}
-		if (ok && content.isManuallyRequested())
-			incrementReferences(content.getKernelAddress());
+		if (ok) {
+			if (content.isManuallyRequested())
+				incrementReferences(content.getKernelAddress());
+			else if (old != null)
+				decrementReferences(content.getKernelAddress());
+		}
+
 		return ok;
 	}
 
 	ReturnCode removeMember(final AbstractAgent requester, boolean manually_requested) {
+		ParametrizedAgent pa=null;
 		synchronized (players) {
 			boolean removed=false;
-			for (Iterator<AbstractAgent> it=players.iterator();it.hasNext();)
+
+			for (Iterator<ParametrizedAgent> it=players.iterator();it.hasNext();)
 			{
-				if (it.next()==requester)
+				if ((pa=it.next()).agent==requester)
 				{
 					it.remove();
 					removed=true;
@@ -425,30 +483,31 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 			modified = true;
 		}
 		removeFromOverlookers(requester);// TODO put that in the synchronized ?
-		if (manually_requested)
+		if (pa.manually_requested)
 			decrementReferences(null);
+
 		checkEmptyness();
 		return SUCCESS;
 	}
 
 	final void removeMembers(final List<AbstractAgent> bucket, boolean manually_requested) {
 		int number;
-		List<AbstractAgent> removed=null;
+		List<ParametrizedAgent> removed=null;
 		if (group.isDistributed())
 			removed=new ArrayList<>(bucket.size());
 		synchronized (players) {
 			number = 0;
 			for (AbstractAgent aa : bucket)
 			{
-				for (Iterator<AbstractAgent> it=players.iterator();it.hasNext();)
+				for (Iterator<ParametrizedAgent> it=players.iterator();it.hasNext();)
 				{
-				
-					if (it.next()==aa)
+					ParametrizedAgent pa=it.next();
+					if (pa.agent==aa)
 					{
 						it.remove();
 						++number;
 						if (removed!=null && aa!=null)
-							removed.add(aa);
+							removed.add(pa);
 						break;
 					}
 				}
@@ -472,9 +531,9 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 			updateReferences(null, number);
 		removeFromOverlookers(bucket);
 		if (removed!=null)
-			for (AbstractAgent aa : removed)
-				aa.getMadkitKernel().sendNetworkCGRSynchroMessageWithRole(null, new CGRSynchro(LEAVE_ROLE,
-						new AgentAddress(aa, this, kernelAddress, manually_requested), manually_requested));
+			for (ParametrizedAgent aa : removed)
+				aa.agent.getMadkitKernel().sendNetworkCGRSynchroMessageWithRole(null, new CGRSynchro(LEAVE_ROLE,
+						new AgentAddress(aa.agent, this, kernelAddress, aa.manually_requested), manually_requested));
 
 	}
 
@@ -486,7 +545,7 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
         synchronized (players) {
             aa = removeDistantAgentAddress(content);
         }
-        if (aa != null && aa.isManuallyRequested())
+        if (aa != null && aa.isManuallyRequested() && aa.getKernelAddress()!=null)
             decrementReferences(aa.getKernelAddress());
         checkEmptyness();
 		return aa!=null;
@@ -495,13 +554,15 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 
 	public void removeDistantMembers(KernelAddress ka)
 	{
+		if (ka==null)
+			return ;
 
-		int number;
 		synchronized (players) {
-			number = removeDistantAgentAddress(ka);
+			removeDistantAgentAddress(ka);
+			removeReference(ka);
+			/*if (number>0)
+				updateReferences(ka, -number);*/
 		}
-		if (number>0)
-			updateReferences(ka, -number);
 		checkEmptyness();
 	}
 
@@ -511,11 +572,14 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
             synchronized (players) {
                 if (agentAddresses==null) {
                     set=new ArrayList<>(players.size()+distantAgentAddresses.size());
-                    for (final AbstractAgent a : players) {
-                        set.add(new AgentAddress(a, this, kernelAddress,
-                                !getMyGroup().getCommunityObject().getMyKernel().isAutoCreateGroup(a)));
+
+                    for (final ParametrizedAgent a : players) {
+
+                        set.add(new AgentAddress(a.agent, this, kernelAddress,
+								a.manually_requested));
                     }
-                    set.addAll(distantAgentAddresses);
+
+                    set.addAll(distantAgentAddresses.values());
                     agentAddresses = set=Collections.unmodifiableList(set);
                 }
                 else
@@ -529,7 +593,7 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 
 	private AgentAddress getAndRemoveDistantAgentAddress(AgentAddress aa) {
 		AgentAddress res=null;
-		for (Iterator<AgentAddress> it = distantAgentAddresses.iterator(); it.hasNext();) {
+		for (Iterator<AgentAddress> it = distantAgentAddresses.values().iterator(); it.hasNext();) {
 			AgentAddress a = it.next();
 			if (a.equals(aa)) {
 				it.remove();
@@ -543,9 +607,12 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 		return res;
 	}
 
+	@SuppressWarnings("UnusedReturnValue")
 	private int removeDistantAgentAddress(KernelAddress ka) {
+		if (ka==null)
+			return 0;
 		int number=0;
-		for (Iterator<AgentAddress> it = distantAgentAddresses.iterator(); it.hasNext();) {
+		for (Iterator<AgentAddress> it = distantAgentAddresses.values().iterator(); it.hasNext();) {
 			AgentAddress a = it.next();
 			if (a.getKernelAddress().equals(ka)) {
 				it.remove();
@@ -574,7 +641,7 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 				logger.finest("Removing all agents from distant kernel " + kernelAddress2 + " in" + this);
 			int number = 0;
 			synchronized (players) {
-				for (Iterator<AgentAddress> iterator = distantAgentAddresses.iterator(); iterator.hasNext();) {// TODO
+				for (Iterator<AgentAddress> iterator = distantAgentAddresses.values().iterator(); iterator.hasNext();) {// TODO
 					AgentAddress aa = iterator.next();
 					if (aa.getKernelAddress().equals(kernelAddress2)) {
 						iterator.remove();
@@ -633,7 +700,7 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 
 	final void destroy() {
 		if (distantAgentAddresses != null) {
-			for (AgentAddress aa : distantAgentAddresses) {
+			for (AgentAddress aa : distantAgentAddresses.values()) {
 				aa.setRoleObject(null);// TODO optimize
 			}
 		}
@@ -646,8 +713,9 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 
 
 
+	@SuppressWarnings("UnusedReturnValue")
 	static AgentAddress removeAgentAddressOf(final AbstractAgent requester,
-			final Collection<AgentAddress> agentAddresses2) {
+											 final Collection<AgentAddress> agentAddresses2) {
 		// if(requester == null)
 		// throw new AssertionError("Wrong use ^^");
 		for (final Iterator<AgentAddress> iterator = agentAddresses2.iterator(); iterator.hasNext();) {
@@ -701,7 +769,10 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 				if (modified) {
 					modified = false;// TODO do a bench : new seems a little bit better
 					// long startTime = System.nanoTime();
-					res=tmpReferenceableAgents = Collections.unmodifiableList(new ArrayList<>(players));
+					res=new ArrayList<>(players.size());
+					for (ParametrizedAgent aa : players)
+						res.add(aa.agent);
+					res=tmpReferenceableAgents = Collections.unmodifiableList(new ArrayList<>(res));
 					// tmpReferenceableAgents =
 					// (ArrayList<AbstractAgent>)referenceableAgents.clone();
 					// long estimatedTime = System.nanoTime() - startTime;
@@ -741,33 +812,33 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 
 
 	void importDistantOrg(Collection<AgentAddress> list, MadkitKernel madkitKernel) {
-		ArrayList<AgentAddress> added=new ArrayList<>(list.size());
+		//ArrayList<AgentAddress> added=new ArrayList<>(list.size());
 		synchronized (players) {
 			//buildAndGetAddresses();
-			for (final AgentAddress aa : list) {
-				aa.setRoleObject(this);
-				if (!distantAgentAddresses.contains(aa)) {
-					distantAgentAddresses.add(aa);
-					//agentAddresses.add(aa);
+			for (final AgentAddress content : list) {
+				if (content.getKernelAddress()==null)
+					continue;
+				content.setRoleObject(this);
+				AgentAddress old = distantAgentAddresses.get(content);
+				if (old==null || old.isManuallyRequested()!=content.isManuallyRequested())
+				{
+					distantAgentAddresses.put(content, content);
 					agentAddresses = null;
-					added.add(aa);
+					if (content.isManuallyRequested())
+						incrementReferences(content.getKernelAddress());
+					else if (old!=null)
+						decrementReferences(content.getKernelAddress());
+					madkitKernel.informHooks(AgentActionEvent.REQUEST_ROLE, content);
+
 
 				}
-				// if (agentAddresses.add(aa)) {
-				// }
-				// else{
-				// Logger l = myGroup.getCommunityObject().getMyKernel().logger;
-				// if (l != null) {
-				// l.log(Level.FINER, "Already have this address ");
-				// }
-				// }
 			}
 		}
-		for (AgentAddress aa : added){
+		/*for (AgentAddress aa : added){
 			if (aa.isManuallyRequested())
 				incrementReferences(aa.getKernelAddress());
 			madkitKernel.informHooks(AgentActionEvent.REQUEST_ROLE, aa);
-		}
+		}*/
 	}
 
 	AgentAddress getAgentAddressOf(final AbstractAgent a) {
@@ -787,9 +858,9 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 		if (players != null) {
 			final int hash = aa.hashCode();
 			synchronized (players) {
-				for (final AbstractAgent agent : players) {
-					if (agent.hashCode() == hash)
-						return agent;
+				for (final ParametrizedAgent pa : players) {
+					if (pa.agent.hashCode() == hash)
+						return pa.agent;
 				}
 			}
 		}
@@ -798,7 +869,10 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 
 	final boolean contains(AbstractAgent agent) {
 		synchronized (players) {
-			return players.contains(agent);
+			for (ParametrizedAgent pa : players)
+				if (pa.agent.equals(agent))
+					return true;
+			return false;
 		}
 	}
 

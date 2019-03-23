@@ -609,6 +609,7 @@ class MadkitKernel extends Agent {
 	 */
     @SuppressWarnings("unused")
     boolean isAutoCreateGroup(AbstractAgent aa) {
+
 		return auto_create_group.get();
 	}
 
