@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-1.9.6 Stable (Build: 226) (from 22/05/2015 to 01/03/2019)
+1.10.0 Stable (Build: 258) (from 22/05/2015 to 01/03/2019)
 
 # Creator(s):
 Jason MAHDJOUB
@@ -12,6 +12,46 @@ Olivier GUTKNECHT (Entred in the team at 01/02/1997)
 Jacques FERBER (Entred in the team at 01/02/1997)
 
 # Modifications:
+
+
+### 1.10.0 Stable (01/03/2019)
+* Update OOD to 2.0.0 Beta 104.
+* Update Utils to 3.25.5 Stable.
+* Add new connection protocol with symmetric keys: P2PSecuredConnectionProtocolWithKnownSymmetricKeys.
+* Better tests for network transfers.
+* Improve synchronization of list of distant agents.
+* Security issue : control that received distant agents list synchronization concerns the good distant kernel address.
+* Insure that list of distant agents are removed when peers are disconnected.
+* When a connection fail, try another ip.
+* Change information sending order when a new connection was established (fix a problem with synchronization of CGR that is done after network messages are done).
+* Fix issue with replies not sent with killed agents : killed agent send now empty reply for messages that need reply.
+
+
+### 1.9.6 Stable (01/03/2019)
+* Remove obsolete code.
+* Rename function into HostIdentifier class.
+* Typo corrections.
+* Add possibility to specify the profile identifier into class ServerSecuredProtocolPropertiesWithKnownPublicKey.
+
+
+### 1.9.4 Stable (08/02/2019)
+* Code cleaning/optimizing.
+
+
+### 1.9.5 Stable (06/02/2019)
+* Update OOD to 2.0.0 Beta 99.
+* Update Utils to 3.25.1
+
+
+### 1.9.2 Stable (05/02/2019)
+* Update OOD to 2.0.0 Beta 97.
+* OOD - Security fix : disable cache for tables that use secret ou private keys
+* OOD - Security improvement : add Field.disableCache property
+
+
+### 1.9.1 Stable (18/01/2019)
+* Update OOD to 2.0.0 Beta 95.
+* Set default OOD driver to H2 database.
 
 
 ### 1.9.0 Stable (13/01/2019)

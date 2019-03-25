@@ -52,7 +52,7 @@ repositories {
 
 
 dependencies {
-     compile(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '1.9.0-Stable')
+     compile(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '1.10.0-Stable')
     
      
 }
