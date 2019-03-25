@@ -45,6 +45,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -100,12 +103,14 @@ public class CreateLogFilesTest extends JunitMadkit {
 				// Option.logDirectory.toString(), getBinTestDir(),
 				// LevelOption.agentLogLevel.toString(), "ALL",
 				"--createLogFiles", "--kernelLogLevel", "INFO", "--logDirectory", dir };
-
+		List<Madkit> lm=new ArrayList<>();
 		for (int i = 0; i < 50; i++) {
 			new Madkit(args);
 		}
 		pause(null, 200);
-		assertEquals(50, new File(dir).listFiles().length);
+		assertEquals(50, Objects.requireNonNull(new File(dir).listFiles()).length);
+		for (Madkit m : lm)
+			closeMadkit(m);
 	}
 
 	@Test

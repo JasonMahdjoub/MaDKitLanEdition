@@ -100,11 +100,11 @@ public class KernelAddress implements ExternalizableAndSizable, Cloneable {
 
 	protected KernelAddress(boolean isSecured, boolean initName) throws NoSuchAlgorithmException, NoSuchProviderException {
 
-		RenforcedDecentralizedIDGenerator generatedid = new RenforcedDecentralizedIDGenerator();
+		//RenforcedDecentralizedIDGenerator generatedid = new RenforcedDecentralizedIDGenerator();
 		if (isSecured) {
-			id = new SecuredDecentralizedID(generatedid, SecureRandomType.FORTUNA_WITH_BC_FIPS_APPROVED.getInstance(null));
+			id = new RenforcedDecentralizedIDGenerator(false, true);//new SecuredDecentralizedID(generatedid, SecureRandomType.FORTUNA_WITH_BC_FIPS_APPROVED.getInstance(null));
 		} else
-			id = generatedid;
+			id = new RenforcedDecentralizedIDGenerator(false, false);//generatedid;
 		internalSize=(short)(id.getBytes().length+1);
 		if (initName)
 			initName();

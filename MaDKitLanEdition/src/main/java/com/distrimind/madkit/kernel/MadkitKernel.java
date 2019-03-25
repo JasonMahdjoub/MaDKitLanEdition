@@ -196,9 +196,9 @@ class MadkitKernel extends Agent {
 	 */
 
 	protected volatile int threadPriorityForServiceExecutor = DEFAULT_THREAD_PRIORITY;
-	final private ScheduledThreadPoolExecutor serviceExecutor;
+	private ScheduledThreadPoolExecutor serviceExecutor;
 
-	final private ThreadPoolExecutor lifeExecutor/* , lifeExecutorWithBlockQueue */;
+	private ThreadPoolExecutor lifeExecutor/* , lifeExecutorWithBlockQueue */;
 	protected volatile int threadPriorityForLifeExecutor = DEFAULT_THREAD_PRIORITY;
 	private final HashMap<Long, LockerCondition> agentsSendingNetworkMessage = new HashMap<>();
     private volatile int maximumGlobalUploadSpeedInBytesPerSecond;
@@ -283,7 +283,7 @@ class MadkitKernel extends Agent {
 	private final ConcurrentHashMap<String, Organization> organizations;
 	final private Set<Overlooker<? extends AbstractAgent>> operatingOverlookers;
 	
-	final protected Madkit platform;
+	protected Madkit platform;
 	final private KernelAddress kernelAddress;
 
 	protected MadkitKernel loggedKernel;
@@ -316,8 +316,8 @@ class MadkitKernel extends Agent {
 			.synchronizedMap(new HashMap<KernelAddress, Set<PairOfIdentifiers>>());
 	// private AtomicInteger proceed = new AtomicInteger(0);
 
-	private final IDGeneratorInt generator_id_transfert;
-	private final Map<KernelAddress, InterfacedIDs> global_interfaced_ids;
+	private IDGeneratorInt generator_id_transfert;
+	private Map<KernelAddress, InterfacedIDs> global_interfaced_ids;
 
 	/**
 	 * Constructing the real one.
@@ -2313,14 +2313,14 @@ class MadkitKernel extends Agent {
 
 	@Override
 	protected void end() {
-		this.lifeExecutor.shutdownNow();
-		this.serviceExecutor.shutdownNow();
-
 		try {
 			getMadkitConfig().setDatabaseFactory(null);
 		} catch (DatabaseException e) {
 			e.printStackTrace();
 		}
+
+
+
 
 	}
 
@@ -2936,6 +2936,26 @@ class MadkitKernel extends Agent {
 			logger.finer("***** SHUTINGDOWN MADKIT ********\n");
 		killAgents(true);
 		killAgent(this);
+		if (this.lifeExecutor!=null) {
+			this.lifeExecutor.shutdown();
+			this.serviceExecutor.shutdown();
+			if (!this.lifeExecutor.awaitTermination(10, TimeUnit.SECONDS))
+				getLogger().warning("Life executor not terminated !");
+			if (!this.serviceExecutor.awaitTermination(10, TimeUnit.SECONDS))
+				getLogger().warning("Service executor not terminated !");
+			this.lifeExecutor = null;
+			this.serviceExecutor = null;
+		}
+		kernel = this;
+		loggedKernel = null;
+		platform = null;
+		/*synchronized (organizations) {
+			organizations.clear();
+		}*/
+		operatingOverlookers.clear();
+		generator_id_transfert = null;
+		global_interfaced_ids = null;
+
 	}
 
 	private void launchNetwork() {

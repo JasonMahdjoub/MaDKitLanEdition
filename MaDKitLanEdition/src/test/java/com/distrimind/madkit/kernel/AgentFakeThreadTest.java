@@ -50,6 +50,7 @@ import static org.junit.Assert.fail;
 import java.util.List;
 import java.util.logging.Level;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -67,12 +68,18 @@ import com.distrimind.madkit.testing.util.agent.SimpleAgentFakeThread;
  */
 public class AgentFakeThreadTest {
 	AgentFakeThread a, b;
-
+	Madkit m;
 	@Before
 	public void setup() {
 		a = new SimpleAgentFakeThread();
 		b = new SimpleAgentFakeThread();
-		new Madkit("--launchAgents", "{" + SimpleAgentFakeThread.class.getName() + "}");
+		m=new Madkit("--launchAgents", "{" + SimpleAgentFakeThread.class.getName() + "}");
+	}
+
+	@After
+	public void after()
+	{
+		MadkitTest.closeMadkit(m);
 	}
 
 	@Test

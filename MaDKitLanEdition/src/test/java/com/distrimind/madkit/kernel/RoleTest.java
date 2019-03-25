@@ -43,6 +43,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -64,14 +65,15 @@ import com.distrimind.madkit.kernel.MadkitKernel;
  */
 public class RoleTest {
 
-	static InternalRole r;
-	static AbstractAgent a;
-	static MadkitKernel mk;
+	InternalRole r;
+	AbstractAgent a;
+	MadkitKernel mk;
+	Madkit m;
 
 	@Before
 	public void before() {
 		String[] args = { "--desktop", "false", "--forceDesktop", "true", "--platformLogLevel", "ALL" };
-		mk = new MadkitKernel(new Madkit(args));
+		mk = (m=new Madkit(args)).getKernel();
 		a = new AbstractAgent();
 		a.setKernel(mk);
 		mk.createGroup(a, new Group("c", "g"), null, false);
@@ -81,6 +83,11 @@ public class RoleTest {
 		} catch (CGRNotAvailable e) {
 			e.printStackTrace();
 		}
+	}
+	@After
+	public void after()
+	{
+		MadkitTest.closeMadkit(m);
 	}
 
 	/**

@@ -37,25 +37,22 @@
  */
 package com.distrimind.madkit.kernel;
 
+import com.distrimind.madkit.kernel.network.RealTimeTransfertStat;
+import com.distrimind.madkit.util.ExternalizableAndSizable;
+
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import java.util.Map;
-
-import com.distrimind.madkit.exceptions.MessageSerializationException;
-import com.distrimind.madkit.kernel.network.RealTimeTransfertStat;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
-import com.distrimind.madkit.util.ExternalizableAndSizable;
-import com.distrimind.madkit.util.SerializationTools;
 
 /**
  * Represent an identifier for a big data transfer.
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 2.0
  * @since MadkitLanEdition 1.0
  * @see AbstractAgent#sendBigDataWithRole(AgentAddress, com.distrimind.madkit.io.RandomInputStream, long, long, ExternalizableAndSizable, com.distrimind.util.crypto.MessageDigestType, String, boolean)
  */
+@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public class BigDataTransferID extends ConversationID {
 	/**
 	 * 
@@ -63,34 +60,40 @@ public class BigDataTransferID extends ConversationID {
 	private static final long serialVersionUID = 6390953335913117132L;
 
 	private transient RealTimeTransfertStat stat;
-	private ConversationID cid;
+
+	@SuppressWarnings("unused")
+	BigDataTransferID() {
+	}
+	//private ConversationID cid;
 
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
 		super.writeExternal(out);
-		SerializationTools.writeExternalizableAndSizable(out, cid, false);
+		//SerializationTools.writeExternalizableAndSizable(out, cid, false);
 		
 	}
 
 	@Override
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		stat=null;
 		super.readExternal(in);
-		Object o=SerializationTools.readExternalizableAndSizable(in, false);
+		/*Object o=SerializationTools.readExternalizableAndSizable(in, false);
 		if (!(o instanceof ConversationID))
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		cid=(ConversationID)o;
+		cid=(ConversationID)o;*/
 	}
 	
 	
 	BigDataTransferID(ConversationID cid, RealTimeTransfertStat stat) {
-		super(-1, null);
-		if (cid == null)
-			throw new NullPointerException("cid");
+		//super(-1, null);
+		super(cid);
+		/*if (cid == null)
+			throw new NullPointerException("cid");*/
 		this.stat = stat;
-		this.cid = cid;
+		//this.cid = cid;
 	}
 
-	@Override
+	/*@Override
 	protected int getID() {
 		return cid.getID();
 	}
@@ -138,7 +141,7 @@ public class BigDataTransferID extends ConversationID {
 	@Override
 	Map<KernelAddress, InterfacedIDs> getGlobalInterfacedIDs() {
 		return cid.getGlobalInterfacedIDs();
-	}
+	}*/
 
 	/**
 	 * Gets statistics in bytes per seconds related to the concerned big data

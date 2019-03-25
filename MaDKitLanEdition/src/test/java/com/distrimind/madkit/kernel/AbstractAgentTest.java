@@ -50,6 +50,7 @@ import static org.junit.Assert.fail;
 import java.util.List;
 import java.util.logging.Level;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -74,12 +75,18 @@ import com.distrimind.madkit.message.StringMessage;
 public class AbstractAgentTest {
 
 	AbstractAgent a, b;
-
+	Madkit m;
 	@Before
 	public void setup() {
 		a = new AbstractAgent();
 		b = new AbstractAgent();
-		new Madkit("--launchAgents", "{" + AbstractAgent.class.getName() + "}");
+		m=new Madkit("--launchAgents", "{" + AbstractAgent.class.getName() + "}");
+	}
+
+	@After
+	public void endSetup()
+	{
+		MadkitTest.closeMadkit(m);
 	}
 
 	@Test

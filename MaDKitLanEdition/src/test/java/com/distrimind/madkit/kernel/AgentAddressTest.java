@@ -37,15 +37,10 @@
  */
 package com.distrimind.madkit.kernel;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.AgentAddress;
-import com.distrimind.madkit.kernel.CGRNotAvailable;
-import com.distrimind.madkit.kernel.InternalRole;
-import com.distrimind.madkit.kernel.Madkit;
-import com.distrimind.madkit.kernel.MadkitKernel;
 
 import static org.junit.Assert.*;
 
@@ -59,14 +54,15 @@ import static org.junit.Assert.*;
  */
 public class AgentAddressTest {
 
-	static InternalRole r;
-	static AbstractAgent a;
-	static MadkitKernel mk;
-	static AgentAddress aa;
+	InternalRole r;
+	AbstractAgent a;
+	MadkitKernel mk;
+	Madkit m;
+	AgentAddress aa;
 
 	@Before
 	public void before() {
-		mk = new MadkitKernel(new Madkit("--desktop", "false", "--forceDesktop", "true"));
+		mk = (m=new Madkit("--desktop", "false", "--forceDesktop", "true")).getKernel();
 		a = new AbstractAgent();
 		a.setKernel(mk);
 		mk.createGroup(new Group("c", "g"), null);
@@ -80,6 +76,12 @@ public class AgentAddressTest {
 		assertTrue(r.addMember(a, false));
 		aa = r.getAgentAddressOf(a);
 		assertNotNull(aa);
+	}
+
+	@After
+	public void after()
+	{
+		MadkitTest.closeMadkit(m);
 	}
 
 

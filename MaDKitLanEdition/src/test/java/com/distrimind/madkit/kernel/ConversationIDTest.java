@@ -64,24 +64,25 @@ public class ConversationIDTest extends JunitMadkit {
 
 	@Test
 	public void multipleTestConversationID() {
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 20; i++) {
 			System.out.println("Test " + i);
 			testConversationID();
 		}
 	}
 
+	@SuppressWarnings("UnusedAssignment")
 	@Test
 	public void testConversationID() {
 
-		launchTest(new AbstractAgent() {
+		/*launchTest(new AbstractAgent() {
 			@SuppressWarnings("UnusedAssignment")
 			@Override
-			protected void activate() {
+			protected void activate() {*/
 				try {
-					KernelAddress ka1 = getKernelAddress();
-					KernelAddress ka2 = new KernelAddress(false);
-					Map<KernelAddress, InterfacedIDs> globaInterfacedIDs1 = getMadkitKernel().getGlobalInterfacedIDs();
-					Map<KernelAddress, InterfacedIDs> globaInterfacedIDs2 = new HashMap<>();
+					final KernelAddress ka1 = new KernelAddress(false);//getKernelAddress();
+					final KernelAddress ka2 = new KernelAddress(false);
+					final Map<KernelAddress, InterfacedIDs> globaInterfacedIDs1 = new HashMap<>();//getMadkitKernel().getGlobalInterfacedIDs();
+					final Map<KernelAddress, InterfacedIDs> globaInterfacedIDs2 = new HashMap<>();
 					int nb = rand.nextInt(100);
 					ArrayList<ConversationID> ids = new ArrayList<>();
 					for (int i = 0; i < nb; i++) {
@@ -109,6 +110,7 @@ public class ConversationIDTest extends JunitMadkit {
 					boolean minka2=false;
 					for (int i = 0; i < nb; i++) {
 						ConversationID id = new ConversationID();
+						// id.setOrigin(ka1);
 						if (!minka1)
 						{
 							minka1=true;
@@ -121,7 +123,7 @@ public class ConversationIDTest extends JunitMadkit {
 						}
 						else
 						{
-							// id.setOrigin(ka1);
+
 							if (rand.nextInt(2) == 0) {
 								id.setOrigin(ka1);
 							} else {
@@ -151,6 +153,7 @@ public class ConversationIDTest extends JunitMadkit {
 					}
 
 					ArrayList<ConversationID> interfacedToOtherIds = new ArrayList<>();
+					ArrayList<ConversationID> interfacedToOtherIdsSerialized = new ArrayList<>();
 
 					for (ConversationID id : ids) {
 						if (id.getOrigin() == null)
@@ -175,14 +178,15 @@ public class ConversationIDTest extends JunitMadkit {
 									Assert.assertEquals(interfacedToOther, deserializedID);
 									for (ConversationID other : interfacedToOtherIds)
 										Assert.assertNotEquals(deserializedID, other);
-
+									interfacedToOtherIdsSerialized.add(deserializedID);
 								}
 							}
 						}
 						interfacedToOtherIds.add(interfacedToOther);
 					}
 					ArrayList<ConversationID> interfacedByOtherIds = new ArrayList<>();
-					for (ConversationID id : interfacedToOtherIds) {
+					ArrayList<ConversationID> interfacedByOtherIdsSerialized = new ArrayList<>();
+					for (ConversationID id : interfacedToOtherIdsSerialized) {
 						ConversationID interfacedByOther = id
 								.getInterfacedConversationIDFromDistantPeer(globaInterfacedIDs2, ka2, ka1);
 
@@ -201,13 +205,15 @@ public class ConversationIDTest extends JunitMadkit {
 									Assert.assertEquals(interfacedByOther, deserializedID);
 									for (ConversationID other : interfacedByOtherIds)
 										Assert.assertNotEquals(deserializedID, other);
+									interfacedByOtherIdsSerialized.add(deserializedID);
 								}
 							}
 						}
 						interfacedByOtherIds.add(interfacedByOther);
 					}
 					ArrayList<ConversationID> interfacedFromOtherIds = new ArrayList<>();
-					for (ConversationID id : interfacedByOtherIds) {
+					ArrayList<ConversationID> interfacedFromOtherIdsSerialized = new ArrayList<>();
+					for (ConversationID id : interfacedByOtherIdsSerialized) {
 						ConversationID interfacedFromOther = id
 								.getInterfacedConversationIDToDistantPeer(globaInterfacedIDs2, ka2, ka1);
 						Assert.assertNotNull(interfacedFromOther.getOrigin());
@@ -225,14 +231,15 @@ public class ConversationIDTest extends JunitMadkit {
 									Assert.assertEquals(interfacedFromOther, deserializedID);
 									for (ConversationID other : interfacedFromOtherIds)
 										Assert.assertNotEquals(deserializedID, other);
-
+									interfacedFromOtherIdsSerialized.add(deserializedID);
 								}
 							}
 						}
 						interfacedFromOtherIds.add(interfacedFromOther);
 					}
 					ArrayList<ConversationID> interfacedByCurrentIds = new ArrayList<>();
-					for (ConversationID id : interfacedFromOtherIds) {
+					ArrayList<ConversationID> interfacedByCurrentIdsSerialized = new ArrayList<>();
+					for (ConversationID id : interfacedFromOtherIdsSerialized) {
 						ConversationID interfacedByCurrent = id
 								.getInterfacedConversationIDFromDistantPeer(globaInterfacedIDs1, ka1, ka2);
 
@@ -251,6 +258,7 @@ public class ConversationIDTest extends JunitMadkit {
 									Assert.assertEquals(interfacedByCurrent, deserializedID);
 									for (ConversationID other : interfacedByCurrentIds)
 										Assert.assertNotEquals(deserializedID, other);
+									interfacedByCurrentIdsSerialized.add(deserializedID);
 								}
 							}
 						}
@@ -266,9 +274,9 @@ public class ConversationIDTest extends JunitMadkit {
                             continue;
 
                         int nbFound = 0;
-                        Assert.assertEquals(interfacedByCurrentIds.get(i++), idOriginal);
+                        Assert.assertEquals(interfacedByCurrentIdsSerialized.get(i++), idOriginal);
 
-                        for (ConversationID id : interfacedByCurrentIds) {
+                        for (ConversationID id : interfacedByCurrentIdsSerialized) {
                             if (id.equals(idOriginal))
                                 nbFound++;
                         }
@@ -281,34 +289,59 @@ public class ConversationIDTest extends JunitMadkit {
 
                     }
 
+                    System.gc();
+					System.gc();
+
+					if (globaInterfacedIDs1.size()==0)
+						System.gc();
 					Assert.assertFalse("size=" + globaInterfacedIDs1.size(), globaInterfacedIDs1.isEmpty());
 					Assert.assertTrue("size=" + globaInterfacedIDs2.size(), globaInterfacedIDs2.isEmpty());
+					i=0;
+					for (ConversationID idOriginal : ids) {
+						if (idOriginal.getOrigin() == null)
+							continue;
+						if (idOriginal.getOrigin().equals(ka2))
+							continue;
+
+						int nbFound = 0;
+						Assert.assertEquals(interfacedByCurrentIdsSerialized.get(i++), idOriginal);
+
+						for (ConversationID id : interfacedByCurrentIdsSerialized) {
+							if (id.equals(idOriginal))
+								nbFound++;
+						}
+						Assert.assertEquals(1, nbFound);
+					}
 
 					ids = null;
 					interfacedByCurrentIds = null;
 					interfacedByOtherIds = null;
 					interfacedFromOtherIds = null;
 					interfacedToOtherIds = null;
+					interfacedByCurrentIdsSerialized = null;
+					interfacedByOtherIdsSerialized = null;
+					interfacedFromOtherIdsSerialized = null;
+					interfacedToOtherIdsSerialized = null;
 
 
 
-					sleep(200);
+					Thread.sleep(200);
 					System.gc();
 					System.gc();
-					sleep(500);
+					Thread.sleep(200);
 					System.gc();
-					sleep(200);
+					Thread.sleep(200);
 					System.gc();
 					Assert.assertTrue("size=" + globaInterfacedIDs2.size(), globaInterfacedIDs2.isEmpty());
 
                     bigDataTransferID = null;
-                    sleep(200);
+					Thread.sleep(200);
 					System.gc();
 					System.gc();
 
 					int cycles = 0;
 					while ((!globaInterfacedIDs1.isEmpty() || !globaInterfacedIDs2.isEmpty()) && cycles++ < 30) {
-						sleep(300);
+						Thread.sleep(200);
 						System.gc();
 					}
 
@@ -319,9 +352,9 @@ public class ConversationIDTest extends JunitMadkit {
 					e.printStackTrace();
 					Assert.fail();
 				}
-			}
+			//}
 
-		});
+		//});
 
 	}
 }

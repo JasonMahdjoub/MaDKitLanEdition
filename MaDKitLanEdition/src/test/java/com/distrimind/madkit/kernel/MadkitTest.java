@@ -40,6 +40,7 @@ package com.distrimind.madkit.kernel;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.distrimind.madkit.action.KernelAction;
@@ -58,7 +59,7 @@ import java.util.Arrays;
  */
 public class MadkitTest {
 
-	static Madkit mk;
+	//static Madkit mk;
 
 	// @Before
 	// public void before() {
@@ -84,6 +85,7 @@ public class MadkitTest {
 	public void noArg() {
 		Madkit m = new Madkit();
 		System.err.println(Arrays.toString(m.args));
+		closeMadkit(m);
 	}
 
 	@Test
@@ -97,6 +99,7 @@ public class MadkitTest {
 		args[0] = "";
 		args[1] = "";
 		assertTrue(m.buildConfigFromArgs(args).isEmpty());
+		closeMadkit(m);
 	}
 
 	@Test
@@ -132,6 +135,7 @@ public class MadkitTest {
 		m = new Madkit(argss);
 		Thread.sleep(100);
 		assertNull(m.getKernel().logger);
+		closeMadkit(m);
 	}
 
 	@Test
@@ -142,6 +146,7 @@ public class MadkitTest {
 		Thread.sleep(100);
 		assertTrue(a.isAlive());
 		Thread.sleep(1000);
+		closeMadkit(m);
 	}
 
 	@Test
@@ -155,11 +160,24 @@ public class MadkitTest {
 		m.doAction(KernelAction.LAUNCH_AGENT, a = new Agent(), Boolean.TRUE);
 		Thread.sleep(2000);
 		assertTrue(a.isAlive());
+		closeMadkit(m);
+
+	}
+
+	public static void closeMadkit(Madkit m) {
+		if (m == null)
+			return;
+		if (m.getKernel().isAlive())
+			m.doAction(KernelAction.STOP_NETWORK);
+
+		if (m.getKernel().isAlive())
+			m.doAction(KernelAction.EXIT);
 	}
 
 	@Test
 	public void buildSessionTest() {
-		new Madkit("--desktop", "false", "--forceDesktop", "true", "--kernelLogLevel", "ALL");
+		Madkit m=new Madkit("--desktop", "false", "--forceDesktop", "true", "--kernelLogLevel", "ALL");
+		closeMadkit(m);
 	}
 
 }
