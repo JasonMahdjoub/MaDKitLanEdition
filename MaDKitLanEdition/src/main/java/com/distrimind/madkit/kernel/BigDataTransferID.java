@@ -37,12 +37,16 @@
  */
 package com.distrimind.madkit.kernel;
 
+import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.network.RealTimeTransfertStat;
+import com.distrimind.madkit.kernel.network.SystemMessage;
 import com.distrimind.madkit.util.ExternalizableAndSizable;
+import com.distrimind.madkit.util.SerializationTools;
 
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.Map;
 
 /**
  * Represent an identifier for a big data transfer.
@@ -79,7 +83,7 @@ public class BigDataTransferID extends ConversationID {
 		super.readExternal(in);
 		/*Object o=SerializationTools.readExternalizableAndSizable(in, false);
 		if (!(o instanceof ConversationID))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageSerializationException(SystemMessage.Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		cid=(ConversationID)o;*/
 	}
 	
