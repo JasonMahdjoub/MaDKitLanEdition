@@ -121,8 +121,8 @@ final public class Madkit {
 		Calendar c = Calendar.getInstance();
 		c.set(2015, Calendar.MAY, 22);
 		Calendar c2 = Calendar.getInstance();
-		c2.set(2019, Calendar.MARCH, 1);
-		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)1, (short)10, (short)0, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
+		c2.set(2019, Calendar.MARCH, 26);
+		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)1, (short)10, (short)1, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
 		try {
 
 			InputStream is = Madkit.class.getResourceAsStream("build.txt");
@@ -143,10 +143,17 @@ final public class Madkit {
 			c.set(1997, Calendar.FEBRUARY, 1);
 			VERSION.addDeveloper(new PersonDeveloper("Ferber", "Jacques", c.getTime()));
 
+			c = Calendar.getInstance();
+			c.set(2019, Calendar.MARCH, 26);
+			Description d = new Description((short)1, (short)10, (short)1, Version.Type.Stable, (short)1, c.getTime());
+			d.addItem("Do not do useless thread locking when CGR groups are synchronized with distant peers.");
+			d.addItem("Restore BigDataTransferID to previous previous (new version caused issues with Junit tests).");
+			d.addItem("Fix issue during MaDKit ending.");
+			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
-			c.set(2019, Calendar.MARCH, 1);
-			Description d = new Description((short)1, (short)10, (short)0, Version.Type.Stable, (short)1, c.getTime());
+			c.set(2019, Calendar.MARCH, 25);
+			d = new Description((short)1, (short)10, (short)0, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Update OOD to 2.0.0 Beta 104.");
 			d.addItem("Update Utils to 3.25.5 Stable.");
 			d.addItem("Add new connection protocol with symmetric keys: P2PSecuredConnectionProtocolWithKnownSymmetricKeys.");

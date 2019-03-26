@@ -316,8 +316,9 @@ class MadkitKernel extends Agent {
 			.synchronizedMap(new HashMap<KernelAddress, Set<PairOfIdentifiers>>());
 	// private AtomicInteger proceed = new AtomicInteger(0);
 
-	private IDGeneratorInt generator_id_transfert;
-	private Map<KernelAddress, InterfacedIDs> global_interfaced_ids;
+	private final IDGeneratorInt generator_id_transfert;
+	private final Map<KernelAddress, InterfacedIDs> global_interfaced_ids;
+	private final boolean lockSocketUntilCGRSynchroIsSent;
 
 	/**
 	 * Constructing the real one.
@@ -412,6 +413,7 @@ class MadkitKernel extends Agent {
 				}
 			}
 		}
+		this.lockSocketUntilCGRSynchroIsSent= madkitConfig.networkProperties != null && madkitConfig.networkProperties.lockSocketUntilCGRSynchroIsSent;
 
 	}
 
@@ -431,6 +433,7 @@ class MadkitKernel extends Agent {
 		this.serviceExecutor = null;
 		generator_id_transfert = null;
 		global_interfaced_ids = null;
+		lockSocketUntilCGRSynchroIsSent=false;
 		// lifeExecutorWithBlockQueue=null;
 	}
 
@@ -452,6 +455,7 @@ class MadkitKernel extends Agent {
 		global_interfaced_ids = null;
 		// lifeExecutorWithBlockQueue=null;
 		kernel = k;
+		this.lockSocketUntilCGRSynchroIsSent= false;
 	}
 
 	Map<KernelAddress, InterfacedIDs> getGlobalInterfacedIDs() {
@@ -1742,7 +1746,7 @@ class MadkitKernel extends Agent {
 			((Message) m).setSender(netUpdater);
 			((Message) m).setReceiver(netAgent);
 
-			if (requester!=null) {
+			if (lockSocketUntilCGRSynchroIsSent && requester!=null) {
 				m.initMessageLocker();
 				netAgent.getAgent().receiveMessage(m);
 				try {
@@ -2312,12 +2316,7 @@ class MadkitKernel extends Agent {
 	}
 
 	@Override
-	protected void end() {
-		try {
-			getMadkitConfig().setDatabaseFactory(null);
-		} catch (DatabaseException e) {
-			e.printStackTrace();
-		}
+	protected void end() throws InterruptedException {
 
 
 
@@ -2912,11 +2911,53 @@ class MadkitKernel extends Agent {
 			}
 
 		}
+		if (this.lifeExecutor!=null) {
+			this.lifeExecutor.shutdownNow();
+			this.serviceExecutor.shutdownNow();
+			boolean valid=true;
+			try {
+				if (!this.lifeExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+					getLogger().warning("Life executor not terminated !");
+					valid = false;
+				}
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				valid=false;
+			}
+
+			try {
+				if (!this.serviceExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+					getLogger().warning("Service executor not terminated !");
+					valid = false;
+				}
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				valid=false;
+			}
+			if (valid && logger!=null)
+				logger.finer("***** Service executors terminated ********\n");
+			this.lifeExecutor = null;
+			this.serviceExecutor = null;
+		}
+		try {
+			getMadkitConfig().setDatabaseFactory(null);
+		} catch (DatabaseException e) {
+			e.printStackTrace();
+		}
+
+
 		if (getMadkitConfig().madkitLogLevel != Level.OFF) {
 			System.out.println("\n-----------------------------------------------------------------------------"
 					+ "\n\t Kernel " + getNetworkID() + "\n\t is shutting down, Bye !"
 					+ "\n-----------------------------------------------------------------------------\n");
 		}
+		kernel = this;
+		loggedKernel = null;
+		platform = null;
+		/*synchronized (organizations) {
+			organizations.clear();
+		}*/
+		operatingOverlookers.clear();
 	}
 
 	protected void exit() throws InterruptedException {
@@ -2933,28 +2974,12 @@ class MadkitKernel extends Agent {
 		}
 		// pause(10);//be sure that last executors have started
 		if (logger != null)
-			logger.finer("***** SHUTINGDOWN MADKIT ********\n");
+			logger.finer("***** SHUTING DOWN MADKIT ********\n");
 		killAgents(true);
 		killAgent(this);
-		if (this.lifeExecutor!=null) {
-			this.lifeExecutor.shutdown();
-			this.serviceExecutor.shutdown();
-			if (!this.lifeExecutor.awaitTermination(10, TimeUnit.SECONDS))
-				getLogger().warning("Life executor not terminated !");
-			if (!this.serviceExecutor.awaitTermination(10, TimeUnit.SECONDS))
-				getLogger().warning("Service executor not terminated !");
-			this.lifeExecutor = null;
-			this.serviceExecutor = null;
-		}
-		kernel = this;
-		loggedKernel = null;
-		platform = null;
-		/*synchronized (organizations) {
-			organizations.clear();
-		}*/
-		operatingOverlookers.clear();
-		generator_id_transfert = null;
-		global_interfaced_ids = null;
+
+		//generator_id_transfert = null;
+		//global_interfaced_ids = null;
 
 	}
 

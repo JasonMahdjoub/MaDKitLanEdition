@@ -135,9 +135,11 @@ class DistantKernelAgent extends AgentFakeThread {
 	NetworkBlackboard networkBlacboard = null;
 	protected TaskID taskForPurgeCheck = null;
 	private ArrayList<ObjectMessage<SecretMessage>> differedSecretMessages = null;
+	private boolean lockSocketUntilCGRSynchroIsSent=false;
 
 	DistantKernelAgent() {
 		super();
+
 	}
 
 	@Override
@@ -1297,6 +1299,7 @@ class DistantKernelAgent extends AgentFakeThread {
 	@Override
 	public void activate() {
 		setLogLevel(getMadkitConfig().networkProperties.networkLogLevel);
+		this.lockSocketUntilCGRSynchroIsSent= getMadkitConfig().networkProperties != null && getMadkitConfig().networkProperties.lockSocketUntilCGRSynchroIsSent;
 		if (logger != null && logger.isLoggable(Level.FINE))
 			logger.fine("Launching DistantKernelAgent  (" + this.distant_kernel_address + ") ... !");
 
@@ -1697,15 +1700,21 @@ class DistantKernelAgent extends AgentFakeThread {
 							removedAcceptedGroups);
 					AgentSocketData asd = getBestAgentSocket(false);
 					if (asd != null) {
-						//MessageLocker locker = new MessageLocker();
 
-						//locker.lock();
-						sendData(asd.getAgentAddress(), message, true, null, false);
-						/*try {
-							locker.waitUnlock(this, true);
-						} catch (InterruptedException e) {
-							logger.warning("Unexpected interrupted exception");
-						}*/
+						MessageLocker locker=null;
+						if (this.lockSocketUntilCGRSynchroIsSent) {
+							locker = new MessageLocker();
+
+							locker.lock();
+						}
+						sendData(asd.getAgentAddress(), message, true, locker, false);
+						if (locker!=null) {
+							try {
+								locker.waitUnlock(this, true);
+							} catch (InterruptedException e) {
+								logger.warning("Unexpected interrupted exception");
+							}
+						}
 					} else if (logger != null)
 						logger.severe("Unexpected access (updateLocalAcceptedGroups)");
 				}

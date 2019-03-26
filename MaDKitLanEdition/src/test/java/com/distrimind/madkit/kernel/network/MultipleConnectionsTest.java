@@ -157,6 +157,7 @@ public class MultipleConnectionsTest extends JunitMadkit {
 		cleanHelperMDKs();
 		// addMadkitArgs(LevelOption.networkLogLevel.toString(),"FINER");
 		launchTest(new AbstractAgent() {
+			@SuppressWarnings("UnusedAssignment")
 			@Override
 			protected void activate() throws InterruptedException {
 				try {
@@ -395,6 +396,11 @@ public class MultipleConnectionsTest extends JunitMadkit {
 					agentsToLaunch3.killAgent(agentsToLaunch3);
 					agentsToLaunch4.killAgent(agentsToLaunch4);
 					agentsToLaunch5.killAgent(agentsToLaunch5);
+					agentsToLaunch1=null;
+					agentsToLaunch2=null;
+					agentsToLaunch3=null;
+					agentsToLaunch4=null;
+					agentsToLaunch5=null;
 
 					cleanHelperMDKs(this);
 					Assert.assertEquals(getHelperInstances(0).size(), 0);
