@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-1.10.0 Stable (Build: 258) (from 22/05/2015 to 01/03/2019)
+1.10.1 Stable (Build: 260) (from 22/05/2015 to 26/03/2019)
 
 # Creator(s):
 Jason MAHDJOUB
@@ -14,7 +14,13 @@ Jacques FERBER (Entred in the team at 01/02/1997)
 # Modifications:
 
 
-### 1.10.0 Stable (01/03/2019)
+### 1.10.1 Stable (26/03/2019)
+* Do not do useless thread locking when CGR groups are synchronized with distant peers.
+* Restore BigDataTransferID to previous previous (new version caused issues with Junit tests).
+* Fix issue during MaDKit ending.
+
+
+### 1.10.0 Stable (25/03/2019)
 * Update OOD to 2.0.0 Beta 104.
 * Update Utils to 3.25.5 Stable.
 * Add new connection protocol with symmetric keys: P2PSecuredConnectionProtocolWithKnownSymmetricKeys.
