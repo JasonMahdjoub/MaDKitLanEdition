@@ -1746,7 +1746,7 @@ class MadkitKernel extends Agent {
 			((Message) m).setSender(netUpdater);
 			((Message) m).setReceiver(netAgent);
 
-			if (lockSocketUntilCGRSynchroIsSent && requester!=null) {
+			/*if (lockSocketUntilCGRSynchroIsSent && requester!=null) {
 				m.initMessageLocker();
 				netAgent.getAgent().receiveMessage(m);
 				try {
@@ -1757,10 +1757,10 @@ class MadkitKernel extends Agent {
 					return ReturnCode.TRANSFER_FAILED;
 				}
 			}
-			else {
+			else {*/
 				netAgent.getAgent().receiveMessage(m);
 				return SUCCESS;
-			}
+			//}
 		}
 		return SEVERE;
 	}

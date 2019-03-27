@@ -217,42 +217,24 @@ public final class NetworkAgent extends AgentFakeThread {
 			switch (sender.getRole()) {
 			case Roles.UPDATER:// It is a CGR update
 			{
-				MessageLocker ml = null;
+				/*MessageLocker ml = null;
 				if (m instanceof CGRSynchro) {
 					ml = ((CGRSynchro) m).getMessageLocker();
 					if (ml!=null)
 						ml.lock();
-				}
-				/*boolean oneFound=false;
-
-				for (AgentAddress aa : getAgentsWithRole(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
-						LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE, false)) {
-
-					ReturnCode rc=sendMessage(aa, m.clone());
-					if (ml!=null && rc.equals(ReturnCode.SUCCESS))
-					{
-						oneFound=true;
-					}
-
-				}
-				if (ml!=null) {
-					if (!oneFound)
-						ml.cancelLock();
-					else
-						ml.unlock();
 				}*/
 
 
-				ReturnCode rc = broadcastMessage(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
-						LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE, m, ml != null);
-				if (ml != null)
+				/*ReturnCode rc = */broadcastMessage(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
+						LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE, m, false/*ml != null*/);
+				/*if (ml != null)
 				{
 					if (rc.equals(ReturnCode.SUCCESS)) {
 						messageLockers.put(m.getConversationID(), ml);
 					} else  {
 							ml.cancelLock();
 					}
-				}
+				}*/
 
 
 			}

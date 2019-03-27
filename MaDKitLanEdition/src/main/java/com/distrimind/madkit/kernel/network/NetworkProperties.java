@@ -583,9 +583,9 @@ public class NetworkProperties extends MultiFormatProperties {
 
 	/**
 	 * Lock thread until CGR synchronization is done and sent to the network.
-	 * Normally, this boolean does not need to be set to 'true'
+	 *
 	 */
-	public boolean lockSocketUntilCGRSynchroIsSent=false;
+	public boolean lockSocketUntilCGRSynchroIsSent=true;
 
 	/**
 	 * Represents properties of each used connection protocol and each sub network

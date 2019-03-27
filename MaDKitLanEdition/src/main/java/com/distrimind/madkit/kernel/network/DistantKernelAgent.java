@@ -329,10 +329,10 @@ class DistantKernelAgent extends AgentFakeThread {
 					CGRSynchro m = (CGRSynchro) _message;
 
 					if (this.kernelAddressActivated && sharedAcceptedAndRequestedGroups.contains(m.getContent().getGroup())) {
-						if (m.getMessageLocker()!=null) {
+						/*if (m.getMessageLocker()!=null) {
 							m.getMessageLocker().lock();
 							sendReplyEmpty(m);
-						}
+						}*/
 
 						AgentSocketData asd = getBestAgentSocket(distant_kernel_address, m.getContent().getGroup(),
 								false);
@@ -342,30 +342,40 @@ class DistantKernelAgent extends AgentFakeThread {
 									logger.finer("CGRSynchro (distantInterfacedKernelAddress=" + distant_kernel_address
 											+ ") : " + _message);
 
+								boolean lock=this.lockSocketUntilCGRSynchroIsSent && m.getCode() != Code.LEAVE_GROUP && m.getCode() != Code.LEAVE_ROLE;
+								MessageLocker ml=null;
+								if (lock)
+								{
+									ml=new MessageLocker();
+									ml.lock();
+								}
 
 								CGRSynchroSystemMessage message = new CGRSynchroSystemMessage(m);
-								sendData(asd.getAgentAddress(), message, m.getCode() != Code.LEAVE_GROUP && m.getCode() != Code.LEAVE_ROLE, m.getMessageLocker(), false);
+								sendData(asd.getAgentAddress(), message, m.getCode() != Code.LEAVE_GROUP && m.getCode() != Code.LEAVE_ROLE, ml, false);
+								if (ml!=null)
+									ml.waitUnlock(this, true);
 								potentialChangementsInGroups();
 								newCGRSynchroDetected(m);
+
 								//sendData(asd.getAgentAddress(), message, true, m.getMessageLocker(), false);
 							} else {
 								if (logger != null && logger.isLoggable(Level.FINER))
 									logger.finer("No agent socket found for CGRSynchro (distantInterfacedKernelAddress=" + distant_kernel_address
 											+ ") : " + _message);
-								if (m.getMessageLocker()!=null)
-									m.getMessageLocker().unlock();
+								/*if (m.getMessageLocker()!=null)
+									m.getMessageLocker().unlock();*/
 							}
 						}
 						catch(MadkitException e)
 						{
-							if (m.getMessageLocker()!=null)
-								m.getMessageLocker().unlock();
+							/*if (m.getMessageLocker()!=null)
+								m.getMessageLocker().unlock();*/
 							throw e;
 						}
 
 					}
-					else if (m.getMessageLocker()!=null)
-						sendReplyEmpty(m);
+					/*else if (m.getMessageLocker()!=null)
+						sendReplyEmpty(m);*/
 
 				} else if (_message.getClass() == SendDataFromAgentSocket.class) {
 					if (logger != null && logger.isLoggable(Level.FINEST))
