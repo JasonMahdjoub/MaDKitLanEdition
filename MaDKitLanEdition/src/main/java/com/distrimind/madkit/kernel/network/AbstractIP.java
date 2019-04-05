@@ -45,6 +45,7 @@ import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Collection;
+import java.util.Objects;
 
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.util.ExternalizableAndSizable;
@@ -64,6 +65,7 @@ public abstract class AbstractIP extends MultiFormatProperties implements System
 	private static final long serialVersionUID = 5670994991069850019L;
 
 	private int port;
+	private transient int hashCode=-1;
 
 	public final Inet6Address getInet6Address()
 	{
@@ -83,6 +85,7 @@ public abstract class AbstractIP extends MultiFormatProperties implements System
 
 	@Override
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		hashCode=-1;
 		port=in.readInt();
 		if (port<0)
 			throw new MessageSerializationException(Integrity.FAIL);
@@ -204,4 +207,21 @@ public abstract class AbstractIP extends MultiFormatProperties implements System
 			return false;
 	}
 
+	@Override
+	public int hashCode() {
+		if (hashCode==-1)
+		{
+			synchronized (this) {
+				if (hashCode==-1) {
+					hashCode = port;
+					for (InetAddress ia : getInetAddresses()) {
+						hashCode = Objects.hash(hashCode, ia);
+					}
+					if (hashCode == -1)
+						hashCode = 0;
+				}
+			}
+		}
+		return hashCode;
+	}
 }

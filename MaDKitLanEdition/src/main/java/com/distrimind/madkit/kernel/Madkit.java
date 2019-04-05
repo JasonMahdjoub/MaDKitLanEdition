@@ -121,8 +121,8 @@ final public class Madkit {
 		Calendar c = Calendar.getInstance();
 		c.set(2015, Calendar.MAY, 22);
 		Calendar c2 = Calendar.getInstance();
-		c2.set(2019, Calendar.MARCH, 26);
-		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)1, (short)10, (short)1, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
+		c2.set(2019, Calendar.APRIL, 5);
+		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)1, (short)10, (short)2, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
 		try {
 
 			InputStream is = Madkit.class.getResourceAsStream("build.txt");
@@ -144,8 +144,15 @@ final public class Madkit {
 			VERSION.addDeveloper(new PersonDeveloper("Ferber", "Jacques", c.getTime()));
 
 			c = Calendar.getInstance();
+			c.set(2019, Calendar.APRIL, 5);
+			Description d = new Description((short)1, (short)10, (short)2, Version.Type.Stable, (short)1, c.getTime());
+			d.addItem("Add hashCode function into class AbstractIP.");
+			d.addItem("Better manage externalization.");
+			VERSION.addDescription(d);
+
+			c = Calendar.getInstance();
 			c.set(2019, Calendar.MARCH, 26);
-			Description d = new Description((short)1, (short)10, (short)1, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)1, (short)10, (short)1, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Do not do useless thread locking when CGR groups are synchronized with distant peers.");
 			d.addItem("Restore BigDataTransferID to previous previous (new version caused issues with Junit tests).");
 			d.addItem("Fix issue during MaDKit ending.");
