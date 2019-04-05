@@ -541,7 +541,7 @@ public class SerializationTools {
 		SerializationTools.writeString(oos, e.getClass().getName(), MAX_CLASS_LENGTH, false);
 		SerializationTools.writeString(oos, e.name(), 1000, false);
 	}
-	public final static int MAX_CLASS_LENGTH=16396;
+	public final static int MAX_CLASS_LENGTH=2048;
 	public static Enum<?> readEnum(final DataInput ois, boolean supportNull) throws IOException, ClassNotFoundException
 	{
 		if (ois.readBoolean())
@@ -669,6 +669,8 @@ public class SerializationTools {
 					c= Class.forName(clazz, false, MadkitClassLoader.getSystemClassLoader());
 				if (!ExternalizableAndSizable.class.isAssignableFrom(c) && !SystemMessage.class.isAssignableFrom(c))
 					throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				if (!isOIS)
+					c= Class.forName(clazz, true, MadkitClassLoader.getSystemClassLoader());
 				Constructor<?> cons=getDefaultConstructor(c);
 				Externalizable res=(Externalizable)cons.newInstance();
 				
