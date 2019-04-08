@@ -121,7 +121,7 @@ final public class Madkit {
 		Calendar c = Calendar.getInstance();
 		c.set(2015, Calendar.MAY, 22);
 		Calendar c2 = Calendar.getInstance();
-		c2.set(2019, Calendar.APRIL, 5);
+		c2.set(2019, Calendar.APRIL, 8);
 		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)1, (short)10, (short)2, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
 		try {
 
@@ -144,10 +144,11 @@ final public class Madkit {
 			VERSION.addDeveloper(new PersonDeveloper("Ferber", "Jacques", c.getTime()));
 
 			c = Calendar.getInstance();
-			c.set(2019, Calendar.APRIL, 5);
+			c.set(2019, Calendar.APRIL, 8);
 			Description d = new Description((short)1, (short)10, (short)2, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Add hashCode function into class AbstractIP.");
 			d.addItem("Better manage externalization.");
+			d.addItem("Better manage identifiers of connection protocol negotiator.");
 			d.addItem("Add possibility to change connection protocols during MaDKit life, and not only during MaDKit loading.");
 			d.addItem("Add possibility to change access protocols during MaDKit life, and not only during MaDKit loading.");
 			d.addItem("Add possibility to change access data during MaDKit life, and not only during MaDKit loading.");

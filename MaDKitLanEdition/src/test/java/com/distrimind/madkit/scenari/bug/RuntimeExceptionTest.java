@@ -43,12 +43,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.distrimind.madkit.kernel.KernelAddress;
 import org.junit.Test;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.testing.util.agent.FaultyAA;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author Fabien Michel
@@ -63,14 +66,25 @@ public class RuntimeExceptionTest extends JunitMadkit {
 
 	@Test
 	public void nullPointerInActivate() {
-		final AbstractAgent a = new FaultyAA(true);
+		final AtomicReference<KernelAddress> kernelAddress=new AtomicReference<>(null);
+		final AbstractAgent a = new FaultyAA(true) {
+			@Override
+			public void activate() {
+				kernelAddress.set(this.getKernelAddress());
+				super.activate();
+
+			}
+		};
 		launchTest(a, ReturnCode.AGENT_CRASH, true, new Runnable() {
 
 			@Override
 			public void run() {
-				System.err.println(getKernel(a.getKernelAddress()).getOrganizationSnapShot(false));
+
+				System.err.println(getKernel(
+						kernelAddress.get())
+						.getOrganizationSnapShot(false));
 				assertAgentIsTerminated(a);
-				assertFalse(getKernel(a.getKernelAddress()).isCommunity(C));
+				assertFalse(getKernel(kernelAddress.get()).isCommunity(C));
 			}
 		});
 	}
