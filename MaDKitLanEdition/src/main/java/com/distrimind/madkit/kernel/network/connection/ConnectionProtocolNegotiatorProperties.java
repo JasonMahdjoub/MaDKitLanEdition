@@ -82,7 +82,6 @@ public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolPr
         connectionProtocolsPriorities=new HashMap<>(c.connectionProtocolsPriorities);
     }
 
-
     /**
      * Add a possible connection protocol that this peer can accept.
      * The given connection protocol will be chosen according the given priority
@@ -94,8 +93,39 @@ public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolPr
      */
     @SuppressWarnings("UnusedReturnValue")
     public int addConnectionProtocol(ConnectionProtocolProperties<?> cpp, int priority) throws ConnectionException {
+        return this.addConnectionProtocol(generateIdentifier(), cpp, priority);
+    }
+
+    private int generateIdentifier()
+    {
+        int id=lastIdentifier+1;
+
+        for (int i : connectionProtocolProperties.keySet()) {
+            if (i >= id) {
+                id=i+1;
+            }
+        }
+
+        return id;
+    }
+
+    /**
+     * Add a possible connection protocol that this peer can accept.
+     * The given connection protocol will be chosen according the given priority
+     * @param protocolIdentifier the protocol identifier
+     * @param cpp the connection protocol
+     * @param priority the priority (higher number means higher priority)
+     * @return the connection protocol identifier
+     * @throws ConnectionException if the limit of connection protocols have been reached
+     * @throws IllegalArgumentException if the connection protocol is incompatible with presents connection protocols (see {@link #needsServerSocketImpl()}, {@link #supportBidirectionalConnectionInitiativeImpl()}, {@link #needsServerSocketImpl()}, {@link #canBeServer()})
+     */
+    @SuppressWarnings("UnusedReturnValue")
+    public int addConnectionProtocol(int protocolIdentifier, ConnectionProtocolProperties<?> cpp, int priority) throws ConnectionException {
         if (cpp==null)
             throw new NullPointerException();
+        for (int i : connectionProtocolProperties.keySet())
+            if (i==protocolIdentifier)
+                throw new IllegalArgumentException("Identifier "+i+" is already taken");
         if (!connectionProtocolProperties.isEmpty())
         {
             if (needsServerSocketImpl()!=cpp.needsServerSocketImpl() ||
@@ -107,12 +137,13 @@ public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolPr
         }
         if (connectionProtocolProperties.size()>MAXIMUM_NUMBER_OF_CONNECTION_PROTOCOLS)
             throw new ConnectionException("Limit of connection protocols is reached");
-        ++lastIdentifier;
-        connectionProtocolProperties.put(lastIdentifier, cpp);
-        validationOfConnectionProtocols.put(lastIdentifier, true);
-        connectionProtocolsPriorities.put(lastIdentifier, priority);
+
+        connectionProtocolProperties.put(protocolIdentifier, cpp);
+        validationOfConnectionProtocols.put(protocolIdentifier, true);
+        connectionProtocolsPriorities.put(protocolIdentifier, priority);
         validPriorities=null;
-        return lastIdentifier;
+        lastIdentifier=protocolIdentifier;
+        return protocolIdentifier;
     }
 
     /**

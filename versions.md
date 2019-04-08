@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-1.10.1 Stable (Build: 260) (from 22/05/2015 to 26/03/2019)
+1.10.2 Stable (Build: 270) (from 22/05/2015 to 05/04/2019)
 
 # Creator(s):
 Jason MAHDJOUB
@@ -12,6 +12,15 @@ Olivier GUTKNECHT (Entred in the team at 01/02/1997)
 Jacques FERBER (Entred in the team at 01/02/1997)
 
 # Modifications:
+
+
+### 1.10.2 Stable (05/04/2019)
+* Add hashCode function into class AbstractIP.
+* Better manage externalization.
+* Add possibility to change connection protocols during MaDKit life, and not only during MaDKit loading.
+* Add possibility to change access protocols during MaDKit life, and not only during MaDKit loading.
+* Add possibility to change access data during MaDKit life, and not only during MaDKit loading.
+* Add possibility to trigger connection/disconnection only if these were not present into the list of connection to attempt at the MaDKit starting defined into NetworkProperties class. Concerned functions are AbstractAgent.manageDirectConnection, AbstractAgent.manageDirectConnections, AbstractAgent.manageDirectConnectionAndAddItToNetworkProperties and AbstractAgent.manageDirectConnectionsAndAddThemToNetworkProperties.
 
 
 ### 1.10.1 Stable (26/03/2019)

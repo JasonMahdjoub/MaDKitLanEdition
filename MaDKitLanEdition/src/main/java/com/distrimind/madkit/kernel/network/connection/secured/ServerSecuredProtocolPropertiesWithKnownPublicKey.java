@@ -429,11 +429,11 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	private int lastIdentifier = 0;
 
 	private int generateNewKeyPairIdentifier() {
-		++lastIdentifier;
+		int id=lastIdentifier+1;
 		for (int k : keyPairsForEncryption.keySet())
-			if (k>lastIdentifier)
-				lastIdentifier=k+1;
-		return lastIdentifier;
+			if (k>=id)
+				id=k+1;
+		return id;
 	}
 
 	/**
