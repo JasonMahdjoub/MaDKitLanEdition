@@ -148,6 +148,11 @@ final public class Madkit {
 			Description d = new Description((short)1, (short)10, (short)2, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Add hashCode function into class AbstractIP.");
 			d.addItem("Better manage externalization.");
+			d.addItem("Add possibility to change connection protocols during MaDKit life, and not only during MaDKit loading.");
+			d.addItem("Add possibility to change access protocols during MaDKit life, and not only during MaDKit loading.");
+			d.addItem("Add possibility to change access data during MaDKit life, and not only during MaDKit loading.");
+			d.addItem("Add possibility to trigger connection/disconnection only if these were not present into the list of connection to attempt at the MaDKit starting defined into NetworkProperties class. " +
+					"Concerned functions are AbstractAgent.manageDirectConnection, AbstractAgent.manageDirectConnections, AbstractAgent.manageDirectConnectionAndItToNetworkProperties and AbstractAgent.manageDirectConnectionsAndItToNetworkProperties.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();

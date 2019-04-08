@@ -185,7 +185,7 @@ public class NetworkEventListener implements MadkitEventListener {
 		}
 
 		if (connectionsToAttempt != null)
-			_properties.networkProperties.addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers = connectionsToAttempt;
+			_properties.networkProperties.setAddressesForDirectConnectionToAttemptFromThisPeerToOtherPeers(connectionsToAttempt);
 
 		if (madkitEventListenerForConnectionProtocols != null)
 			madkitEventListenerForConnectionProtocols.onMadkitPropertiesLoaded(_properties);

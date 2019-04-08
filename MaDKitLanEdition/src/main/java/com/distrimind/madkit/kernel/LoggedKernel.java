@@ -585,12 +585,19 @@ final class LoggedKernel extends MadkitKernel {
 	}
 
 	@Override
-	void manageDirectConnection(AbstractAgent requester, AskForConnectionMessage m) throws IllegalAccessException {
-		kernel.manageDirectConnection(requester, m);
+	void manageDirectConnection(AbstractAgent requester, AskForConnectionMessage m, boolean addToNetworkProperties, boolean actOnlyIfModifyNetworkProperties) throws IllegalAccessException {
+		kernel.manageDirectConnection(requester, m, addToNetworkProperties, actOnlyIfModifyNetworkProperties);
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST, "manageDirectConnection (Agent " + requester + ", Type " + m.getType()
-					+ ", IP " + m.getIP() + ", Port " + m.getIP().getPort() + ")");
+					+ ", IP " + m.getIP() + ", Port " + m.getIP().getPort() + ", addToNetworkProperties="+addToNetworkProperties+", actOnlyIfModifyNetworkProperties="+actOnlyIfModifyNetworkProperties+")");
 	}
+	@Override
+	void manageDirectConnections(AbstractAgent requester, List<AskForConnectionMessage> lm, boolean addToNetworkProperties, boolean actOnlyIfModifyNetworkProperties) throws IllegalAccessException {
+		kernel.manageDirectConnections(requester, lm, addToNetworkProperties, actOnlyIfModifyNetworkProperties);
+		if (requester.isFinestLogOn())
+			requester.logger.log(Level.FINEST, "manageDirectConnection (Agent " + requester + ", listAskForConnectionMessage "+lm +", addToNetworkProperties="+addToNetworkProperties+", actOnlyIfModifyNetworkProperties="+actOnlyIfModifyNetworkProperties+")");
+	}
+
 
 	@Override
 	void manageTransferConnection(AbstractAgent requester, AskForTransferMessage m) throws IllegalAccessException {

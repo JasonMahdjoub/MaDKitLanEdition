@@ -87,6 +87,7 @@ import java.util.logging.Level;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.util.Utils;
 import com.distrimind.util.properties.PropertiesParseException;
 import org.w3c.dom.Document;
@@ -103,17 +104,6 @@ import com.distrimind.madkit.i18n.ErrorMessages;
 import com.distrimind.madkit.io.RandomInputStream;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
-import com.distrimind.madkit.kernel.network.AnomalyDetectedMessage;
-import com.distrimind.madkit.kernel.network.AskForConnectionMessage;
-import com.distrimind.madkit.kernel.network.AskForTransferMessage;
-import com.distrimind.madkit.kernel.network.BroadcastLocalLanMessage;
-import com.distrimind.madkit.kernel.network.CGRSynchros;
-import com.distrimind.madkit.kernel.network.Connection;
-import com.distrimind.madkit.kernel.network.ConnectionIdentifier;
-import com.distrimind.madkit.kernel.network.DirectLocalLanMessage;
-import com.distrimind.madkit.kernel.network.KernelAddressInterfaced;
-import com.distrimind.madkit.kernel.network.LocalLanMessage;
-import com.distrimind.madkit.kernel.network.RealTimeTransfertStat;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.BooleanMessage;
 import com.distrimind.madkit.message.KernelMessage;
@@ -617,16 +607,58 @@ class MadkitKernel extends Agent {
 		return auto_create_group.get();
 	}
 
-	void manageDirectConnection(AbstractAgent requester, AskForConnectionMessage m) throws IllegalAccessException {
+	void manageDirectConnection(AbstractAgent requester, AskForConnectionMessage m, boolean addToNetworkProperties, boolean actOnlyIfModifyNetworkProperties) throws IllegalAccessException {
 		if (m == null)
 			throw new NullPointerException("message");
 		if (getMadkitConfig().networkProperties.network) {
 			updateNetworkAgent();
-			sendNetworkKernelMessageWithRole(new KernelMessage(KernelAction.MANAGE_DIRECT_DONNECTION, m));
+			boolean act=true;
+			if (addToNetworkProperties) {
+				if (m.getType()== ConnectionStatusMessage.Type.CONNECT)
+					act=getMadkitConfig().networkProperties.addAddressForDirectConnectionToAttemptFromThisPeerToOtherPeer(m.getIP());
+				else if (m.getType()== ConnectionStatusMessage.Type.DISCONNECT)
+					act=getMadkitConfig().networkProperties.removeAddressForDirectConnectionToAttemptFromThisPeerToOtherPeer(m.getIP());
+			}
+			act|=!actOnlyIfModifyNetworkProperties;
+			if (act)
+				sendNetworkKernelMessageWithRole(new KernelMessage(KernelAction.MANAGE_DIRECT_DONNECTION, m));
 		} else
 			throw new IllegalAccessException(
 					"The network is disabled into the madkit properties. Impossible to connect to an IP.");
 	}
+
+	void manageDirectConnections(AbstractAgent requester, List<AskForConnectionMessage> lm, boolean addToNetworkProperties, boolean actOnlyIfModifyNetworkProperties) throws IllegalAccessException {
+		if (lm == null)
+			throw new NullPointerException("message");
+		if (lm.size()==0)
+			return;
+		if (getMadkitConfig().networkProperties.network) {
+			updateNetworkAgent();
+
+			if (addToNetworkProperties) {
+				for (AskForConnectionMessage m : lm) {
+					boolean act=true;
+					if (m.getType() == ConnectionStatusMessage.Type.CONNECT)
+						act=getMadkitConfig().networkProperties.addAddressForDirectConnectionToAttemptFromThisPeerToOtherPeer(m.getIP());
+					else if (m.getType() == ConnectionStatusMessage.Type.DISCONNECT)
+						act=getMadkitConfig().networkProperties.removeAddressForDirectConnectionToAttemptFromThisPeerToOtherPeer(m.getIP());
+					act|=!actOnlyIfModifyNetworkProperties;
+					if (act)
+						sendNetworkKernelMessageWithRole(new KernelMessage(KernelAction.MANAGE_DIRECT_DONNECTION, m));
+				}
+			}
+			else {
+				for (AskForConnectionMessage m : lm) {
+					sendNetworkKernelMessageWithRole(new KernelMessage(KernelAction.MANAGE_DIRECT_DONNECTION, m));
+				}
+			}
+
+
+		} else
+			throw new IllegalAccessException(
+					"The network is disabled into the madkit properties. Impossible to connect to an IP.");
+	}
+
 
 	void manageTransferConnection(AbstractAgent requester, AskForTransferMessage m) throws IllegalAccessException {
 		if (m == null)

@@ -62,7 +62,7 @@ import gnu.vm.jgnu.security.NoSuchProviderException;
  * 
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MadkitLanEdition 1.0
  */
 public class ServerSecuredProtocolPropertiesWithKnownPublicKey
@@ -207,6 +207,8 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 		lastIdentifier=profileIdentifier;
 		keyPairsForEncryption.put(profileIdentifier, keyPairForEncryption);
 		validProfiles.put(profileIdentifier, true);
+		maxAlgos=null;
+		maxSizeHead=null;
 		if (symmetricEncryptionType == null) {
 			symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
 			symmetricKeySizeBits = symmetricEncryptionType.getDefaultKeySizeBits();

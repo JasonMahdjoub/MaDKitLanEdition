@@ -173,7 +173,7 @@ import com.distrimind.util.crypto.MessageDigestType;
  * @author Fabien Michel
  * @author Olivier Gutknecht
  * @author Jason Mahdjoub
- * @version 6.2
+ * @version 7.0
  * @since MadKitLanEdition 1.0
  */
 @SuppressWarnings({"StaticInitializerReferencesSubClass", "SameParameterValue", "UnusedReturnValue"})
@@ -4393,18 +4393,71 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	}
 
 	/**
-	 * connect or disconnect two kernels directly in a wide area network. It
-	 * requires a parameter of type {@link AskForConnectionMessage}.
+	 * connect or disconnect two kernels directly in a wide area network.
+	 * It requires a parameter of type {@link AskForConnectionMessage}.
 	 * 
 	 * @param message
-	 *            the connection properties
+	 *            the connection/disconnection message
 	 * @throws IllegalAccessException
 	 *             if the network is not enabled (see
 	 *             {@link NetworkProperties#network}.
 	 * @see AskForConnectionMessage
 	 */
 	public void manageDirectConnection(AskForConnectionMessage message) throws IllegalAccessException {
-		getMadkitKernel().manageDirectConnection(this, message);
+		getMadkitKernel().manageDirectConnection(this, message, false, false);
+	}
+
+	/**
+	 * connect or disconnect two kernels directly in a wide area network.
+	 * It requires a parameter of type {@link AskForConnectionMessage}.
+	 *
+	 * @param message
+	 *            the connection/disconnection message
+	 * @param applyConnectionAskingOnlyIfItModifyNetworkProperties
+	 * 			if true, the connection or the disconnection asking will be applied only if the network properties were modified
+	 *
+	 * @throws IllegalAccessException
+	 *             if the network is not enabled (see
+	 *             {@link NetworkProperties#network}.
+	 * @see AskForConnectionMessage
+	 * @see NetworkProperties#addAddressForDirectConnectionToAttemptFromThisPeerToOtherPeer(Collection)
+	 */
+	public void manageDirectConnectionAndItToNetworkProperties(AskForConnectionMessage message, boolean applyConnectionAskingOnlyIfItModifyNetworkProperties) throws IllegalAccessException {
+		getMadkitKernel().manageDirectConnection(this, message, true, applyConnectionAskingOnlyIfItModifyNetworkProperties);
+	}
+
+	/**
+	 * connect or disconnect several pairs of kernels directly in a wide area network.
+	 * It requires a list of parameters of type {@link AskForConnectionMessage}.
+	 *
+	 * @param messages
+	 *            the connection/disconnection messages
+	 * @throws IllegalAccessException
+	 *             if the network is not enabled (see
+	 *             {@link NetworkProperties#network}.
+	 * @see AskForConnectionMessage
+	 */
+	public void manageDirectConnections(List<AskForConnectionMessage> messages) throws IllegalAccessException {
+		getMadkitKernel().manageDirectConnections(this, messages, false, false);
+	}
+
+	/**
+	 * connect or disconnect several pairs of kernels directly in a wide area network.
+	 * It requires a list of parameters of type {@link AskForConnectionMessage}.
+	 *
+	 * @param messages
+	 *            the connection/disconnection messages
+	 * @param applyConnectionAskingOnlyIfItModifyNetworkProperties
+	 * 			if true, the connection or the disconnection asking will be applied only if the network properties were modified
+	 *
+	 * @throws IllegalAccessException
+	 *             if the network is not enabled (see
+	 *             {@link NetworkProperties#network}.
+	 * @see AskForConnectionMessage
+	 * @see NetworkProperties#addAddressForDirectConnectionToAttemptFromThisPeerToOtherPeer(Collection)
+	 */
+	public void manageDirectConnectionsAndItToNetworkProperties(List<AskForConnectionMessage> messages, boolean applyConnectionAskingOnlyIfItModifyNetworkProperties) throws IllegalAccessException {
+		getMadkitKernel().manageDirectConnections(this, messages, true, applyConnectionAskingOnlyIfItModifyNetworkProperties);
 	}
 
 	/**

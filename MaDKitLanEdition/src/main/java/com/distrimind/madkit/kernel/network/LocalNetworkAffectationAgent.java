@@ -41,6 +41,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
@@ -104,10 +105,11 @@ class LocalNetworkAffectationAgent extends AgentFakeThread {
 			receiveMessage(new BindInetSocketAddressMessage(Type.BIND, new InetSocketAddress(
 					getMadkitConfig().networkProperties.portsToBindForAutomaticLocalConnections)));
 
-		if (getMadkitConfig().networkProperties.addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers != null) {
+		List<AbstractIP> AddressesForDirectConnectionToAttemptFromThisPeerToOtherPeers=getMadkitConfig().networkProperties.getAddressesForDirectConnectionToAttemptFromThisPeerToOtherPeers();
+		if (AddressesForDirectConnectionToAttemptFromThisPeerToOtherPeers != null) {
 			boolean first=true;
 			long timeUTC=0;
-			for (final AbstractIP isa : getMadkitConfig().networkProperties.addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers) {
+			for (final AbstractIP isa : AddressesForDirectConnectionToAttemptFromThisPeerToOtherPeers) {
 				if (isa != null)
 				{
 					if (first || getMadkitConfig().networkProperties.delayInMsBetweenEachConnectionAsk==0)

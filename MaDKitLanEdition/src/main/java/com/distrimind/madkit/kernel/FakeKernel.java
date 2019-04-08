@@ -332,7 +332,11 @@ class FakeKernel extends MadkitKernel {
 	}
 
 	@Override
-	void manageDirectConnection(AbstractAgent requester, AskForConnectionMessage m) {
+	void manageDirectConnection(AbstractAgent requester, AskForConnectionMessage m, boolean addToNetworkProperties, boolean actOnlyIfModifyNetworkProperties) {
+		throw buildKernelException(requester);
+	}
+	@Override
+	void manageDirectConnections(AbstractAgent requester, List<AskForConnectionMessage> lm, boolean addToNetworkProperties, boolean actOnlyIfModifyNetworkProperties) {
 		throw buildKernelException(requester);
 	}
 

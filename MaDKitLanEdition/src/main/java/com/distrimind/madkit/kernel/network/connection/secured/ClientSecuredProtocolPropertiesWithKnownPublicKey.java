@@ -46,7 +46,7 @@ import com.distrimind.util.crypto.*;
  * 
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MadkitLanEdition 1.0
  */
 public class ClientSecuredProtocolPropertiesWithKnownPublicKey
@@ -65,7 +65,7 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	 * Tells if the connection must be encrypted or not. If not, only signature
 	 * packet will be enabled.
 	 */
-	public boolean enableEncryption = true;
+	public volatile boolean enableEncryption = true;
 
 	/**
 	 * Set the encryption profile according properties given by the server side
@@ -108,28 +108,30 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	 */
 	public void setEncryptionProfile(int identifier, ASymmetricPublicKey publicKeyForEncryption, SymmetricEncryptionType symmetricEncryptionType,
 			short symmetricKeySizeBits, ASymmetricKeyWrapperType keyWrapper, SymmetricAuthentifiedSignatureType signatureType) {
-		if (publicKeyForEncryption == null)
-			throw new NullPointerException("publicKey");
-		if (publicKeyForEncryption.getKeySizeBits() < minASymetricKeySizeBits)
-			throw new IllegalArgumentException("The public key size must be greater than " + minASymetricKeySizeBits);
-		if (signatureType==null)
-			throw new NullPointerException("signatureType");
-		this.publicKeyForEncryption = publicKeyForEncryption;
-		this.signatureType = signatureType;
-		keyIdentifier = identifier;
-		if (symmetricEncryptionType != null) {
-			this.symmetricEncryptionType = symmetricEncryptionType;
-			this.SymmetricKeySizeBits = symmetricKeySizeBits;
+		synchronized (this) {
+			if (publicKeyForEncryption == null)
+				throw new NullPointerException("publicKey");
+			if (publicKeyForEncryption.getKeySizeBits() < minASymetricKeySizeBits)
+				throw new IllegalArgumentException("The public key size must be greater than " + minASymetricKeySizeBits);
+			if (signatureType == null)
+				throw new NullPointerException("signatureType");
+			this.publicKeyForEncryption = publicKeyForEncryption;
+			this.signatureType = signatureType;
+			keyIdentifier = identifier;
+			this.maxAlgo=null;
+			this.maxSizeHead=null;
+			if (symmetricEncryptionType != null) {
+				this.symmetricEncryptionType = symmetricEncryptionType;
+				this.SymmetricKeySizeBits = symmetricKeySizeBits;
+			} else {
+				this.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
+				this.SymmetricKeySizeBits = this.symmetricEncryptionType.getDefaultKeySizeBits();
+			}
+			if (keyWrapper == null)
+				this.keyWrapper = ASymmetricKeyWrapperType.DEFAULT;
+			else
+				this.keyWrapper = keyWrapper;
 		}
-		else
-		{
-			this.symmetricEncryptionType=SymmetricEncryptionType.DEFAULT;
-			this.SymmetricKeySizeBits=this.symmetricEncryptionType.getDefaultKeySizeBits();
-		}
-		if (keyWrapper==null)
-			this.keyWrapper=ASymmetricKeyWrapperType.DEFAULT;
-		else
-			this.keyWrapper=keyWrapper;
 	}
 
 	/**
@@ -140,13 +142,15 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	 *            the server side properties
 	 */
 	public void setEncryptionProfile(ServerSecuredProtocolPropertiesWithKnownPublicKey serverProperties) {
-		enableEncryption = serverProperties.enableEncryption;
-		setEncryptionProfile(serverProperties.getLastEncryptionProfileIdentifier(),
-				serverProperties.getDefaultKeyPairForEncryption().getASymmetricPublicKey(),
-				serverProperties.getDefaultSymmetricEncryptionType(),
-				serverProperties.getDefaultSymmetricEncryptionKeySizeBits(),
-				serverProperties.getDefaultKeyWrapper(),
-				serverProperties.getDefaultSignatureType());
+		synchronized (this) {
+			enableEncryption = serverProperties.enableEncryption;
+			setEncryptionProfile(serverProperties.getLastEncryptionProfileIdentifier(),
+					serverProperties.getDefaultKeyPairForEncryption().getASymmetricPublicKey(),
+					serverProperties.getDefaultSymmetricEncryptionType(),
+					serverProperties.getDefaultSymmetricEncryptionKeySizeBits(),
+					serverProperties.getDefaultKeyWrapper(),
+					serverProperties.getDefaultSignatureType());
+		}
 	}
 
 	/**
@@ -155,7 +159,9 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	 * @return the publicKey attached to this connection protocol
 	 */
 	public ASymmetricPublicKey getPublicKeyForEncryption() {
-		return publicKeyForEncryption;
+		synchronized (this) {
+			return publicKeyForEncryption;
+		}
 	}
 
 	/**
@@ -164,6 +170,7 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	 * @return the signature attached to this connection protocol
 	 */
 	public SymmetricAuthentifiedSignatureType getSignatureType() {
+
 		return signatureType;
 	}
 
@@ -230,7 +237,7 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	 * Key wrapper
 	 */
 	public ASymmetricKeyWrapperType keyWrapper=null;
-	
+
 
 
 	private void checkPublicKey(ASymmetricPublicKey publicKey) throws ConnectionException

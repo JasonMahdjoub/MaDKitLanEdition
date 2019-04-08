@@ -123,6 +123,8 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties extend
 		secretKeysForEncryption.put(profileIdentifier, symmetricSecretKeyForEncryption);
 		secretKeysForSignature.put(profileIdentifier, symmetricSecretKeyForSignature);
 		validProfiles.put(profileIdentifier, true);
+		maxAlgo=null;
+		maxHeadSize=null;
 		return lastIdentifier=profileIdentifier;
 	}
 

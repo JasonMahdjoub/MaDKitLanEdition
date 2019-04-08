@@ -39,40 +39,28 @@
 package com.distrimind.madkit.kernel.network;
 
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.logging.Level;
-import java.util.regex.Pattern;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-
 import com.distrimind.madkit.exceptions.NIOException;
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.AgentLogger;
-import com.distrimind.madkit.kernel.KernelAddress;
-import com.distrimind.madkit.kernel.MadkitProperties;
-import com.distrimind.madkit.kernel.NetworkAgent;
+import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.network.LocalNetworkAgent.PossibleAddressForDirectConnnection;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
-import com.distrimind.madkit.kernel.network.connection.access.AccessData;
 import com.distrimind.madkit.kernel.network.connection.access.AbstractAccessProtocolProperties;
+import com.distrimind.madkit.kernel.network.connection.access.AccessData;
 import com.distrimind.madkit.util.ExternalizableAndSizable;
 import com.distrimind.madkit.util.MultiFormatPropertiesObjectParser;
 import com.distrimind.madkit.util.XMLUtilities;
 import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.util.properties.MultiFormatProperties;
 import com.distrimind.util.properties.PropertiesParseException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 /**
  * MaDKit network options which are valued with a long, an int, or a short
@@ -81,7 +69,7 @@ import com.distrimind.util.properties.PropertiesParseException;
  * 
  * @author Jason Mahdjoub
  * @since MaDKitLanEdition 1.0
- * @version 1.1
+ * @version 1.2
  * 
  */
 @SuppressWarnings("UnusedReturnValue")
@@ -543,28 +531,97 @@ public class NetworkProperties extends MultiFormatProperties {
 	 */
 	public int portsToBindForManualDirectConnections = -1;
 
-	private List<PossibleAddressForDirectConnnection> addressesForDirectConnectionToAttemptFromOtherPeersThisPeer = Collections
-			.synchronizedList(new ArrayList<PossibleAddressForDirectConnnection>());
+	private ArrayList<PossibleAddressForDirectConnnection> addressesForDirectConnectionToAttemptFromOtherPeersThisPeer = new ArrayList<>();
 
 	void addPossibleAddressForDirectConnection(PossibleAddressForDirectConnnection isa) {
 		if (isa == null)
 			throw new NullPointerException("isa");
-		addressesForDirectConnectionToAttemptFromOtherPeersThisPeer.add(isa);
+		synchronized (addressesForDirectConnectionToAttemptFromOtherPeersThisPeer) {
+			addressesForDirectConnectionToAttemptFromOtherPeersThisPeer.add(isa);
+		}
 	}
 
 	void removePossibleAddressForDirectConnection(PossibleAddressForDirectConnnection isa) {
-		addressesForDirectConnectionToAttemptFromOtherPeersThisPeer.remove(isa);
+		synchronized (addressesForDirectConnectionToAttemptFromOtherPeersThisPeer) {
+			addressesForDirectConnectionToAttemptFromOtherPeersThisPeer.remove(isa);
+		}
 	}
 
 	public List<PossibleAddressForDirectConnnection> getPossibleAddressesForDirectConnectionToAttemptFromOtherPeersToThisPeer() {
-		return addressesForDirectConnectionToAttemptFromOtherPeersThisPeer;
+		synchronized (addressesForDirectConnectionToAttemptFromOtherPeersThisPeer) {
+			return new ArrayList<>(addressesForDirectConnectionToAttemptFromOtherPeersThisPeer);
+		}
 	}
 
 	/**
 	 * The addresses for connections to attempt to other peers when LAN become available
 	 */
-	public List<AbstractIP> addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers = null;
-	
+	private ArrayList<AbstractIP> addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers = null;
+
+	public List<AbstractIP> getAddressesForDirectConnectionToAttemptFromThisPeerToOtherPeers() {
+		return new ArrayList<>(addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers);
+	}
+	public void setAddressesForDirectConnectionToAttemptFromThisPeerToOtherPeers(List<AbstractIP> addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers) {
+		synchronized (this) {
+			this.addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers = new ArrayList<>(addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers);
+		}
+	}
+
+
+	public void addAddressForDirectConnectionToAttemptFromThisPeerToOtherPeer(Collection<AbstractIP> ips)
+	{
+		synchronized (this)
+		{
+			if (addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers==null)
+				addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers=new ArrayList<>(ips);
+			else {
+				addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers.ensureCapacity(addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers.size()+ips.size());
+				for (AbstractIP ip : ips) {
+					if (!addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers.contains(ip))
+						addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers.add(ip);
+				}
+			}
+		}
+	}
+	public boolean addAddressForDirectConnectionToAttemptFromThisPeerToOtherPeer(AbstractIP ip)
+	{
+		synchronized (this)
+		{
+			if (addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers==null)
+				addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers=new ArrayList<>();
+			if (!addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers.contains(ip))
+				return addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers.add(ip);
+			else
+				return false;
+		}
+	}
+	public void removeAddressForDirectConnectionToAttemptFromThisPeerToOtherPeer(Collection<AbstractIP> ips)
+	{
+		synchronized (this)
+		{
+			if (addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers!=null)
+			{
+				for (AbstractIP ip : ips) {
+					addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers.remove(ip);
+				}
+				if (addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers.isEmpty())
+					addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers=null;
+			}
+		}
+	}
+	public boolean removeAddressForDirectConnectionToAttemptFromThisPeerToOtherPeer(AbstractIP ip)
+	{
+		synchronized (this)
+		{
+			if (addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers==null)
+				return false;
+			boolean res=addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers.remove(ip);
+			if (addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers.isEmpty())
+				addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers=null;
+			return res;
+		}
+	}
+
 	/**
 	 * Delay in milliseconds between each connection to attempt
 	 *
@@ -598,7 +655,23 @@ public class NetworkProperties extends MultiFormatProperties {
 
 	public final <CP extends ConnectionProtocol<CP>> void addConnectionProtocol(
 			ConnectionProtocolProperties<CP> _properties) {
-		connectionProtocolProperties.add(_properties);
+		synchronized (connectionProtocolProperties) {
+			connectionProtocolProperties.add(_properties);
+		}
+	}
+
+	public final <CP extends ConnectionProtocol<CP>> void replaceConnectionProtocol(
+			ConnectionProtocolProperties<CP> _old_properties, ConnectionProtocolProperties<CP> _new_properties) {
+		synchronized (connectionProtocolProperties) {
+			removeConnectionProtocol(_old_properties);
+			addConnectionProtocol(_new_properties);
+		}
+	}
+	public final <CP extends ConnectionProtocol<CP>> void removeConnectionProtocol(
+			ConnectionProtocolProperties<CP> _properties) {
+		synchronized (connectionProtocolProperties) {
+			connectionProtocolProperties.remove(_properties);
+		}
 	}
 
 	/**
@@ -606,7 +679,9 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * @return the connection protocols list.
 	 */
 	public ArrayList<ConnectionProtocolProperties<?>> getConnectionProtocolList() {
-		return connectionProtocolProperties;
+		synchronized (connectionProtocolProperties) {
+			return new ArrayList<>(connectionProtocolProperties);
+		}
 	}
 
 	/**
@@ -639,12 +714,13 @@ public class NetworkProperties extends MultiFormatProperties {
 			if (res!=null)
 				return res;
 		}
-
-		for (ConnectionProtocolProperties<?> cpp : getConnectionProtocolList()) {
-			if (cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
-					_distant_inet_address.getAddress(), isServer, needBiDirectionnalConnectionInitiationAbility)) {
-				return cpp.getConnectionProtocolInstance(_distant_inet_address, _local_interface_address,
-						sql_connection, mkProperties, isServer, needBiDirectionnalConnectionInitiationAbility);
+		synchronized (connectionProtocolProperties) {
+			for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties) {
+				if (cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
+						_distant_inet_address.getAddress(), isServer, needBiDirectionnalConnectionInitiationAbility)) {
+					return cpp.getConnectionProtocolInstance(_distant_inet_address, _local_interface_address,
+							sql_connection, mkProperties, isServer, needBiDirectionnalConnectionInitiationAbility);
+				}
 			}
 		}
 
@@ -700,16 +776,18 @@ public class NetworkProperties extends MultiFormatProperties {
 			if (res!=null)
 				return res;
 		}
-		for (ConnectionProtocolProperties<?> cpp : getConnectionProtocolList()) {
-			int l = subProtocolLevel;
-			while (l > 0 && cpp.subProtocolProperties != null) {
-				cpp = cpp.subProtocolProperties;
-				--l;
-			}
+		synchronized (connectionProtocolProperties) {
+			for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties) {
+				int l = subProtocolLevel;
+				while (l > 0 && cpp.subProtocolProperties != null) {
+					cpp = cpp.subProtocolProperties;
+					--l;
+				}
 
-			if (l == 0 && cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
-					_distant_inet_address.getAddress(), isServer, mustSupportBidirectionnalConnectionInitiative)) {
-				return cpp;
+				if (l == 0 && cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
+						_distant_inet_address.getAddress(), isServer, mustSupportBidirectionnalConnectionInitiative)) {
+					return cpp;
+				}
 			}
 		}
 		return null;
@@ -725,9 +803,11 @@ public class NetworkProperties extends MultiFormatProperties {
 	 *         connection protocol that needs a server socket.
 	 */
 	public boolean needsServerSocket(InetSocketAddress _local_interface_address) {
-		for (ConnectionProtocolProperties<?> cpp : getConnectionProtocolList()) {
-			if (cpp.needsServerSocket(_local_interface_address.getAddress(), _local_interface_address.getPort()))
-				return true;
+		synchronized (connectionProtocolProperties) {
+			for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties) {
+				if (cpp.needsServerSocket(_local_interface_address.getAddress(), _local_interface_address.getPort()))
+					return true;
+			}
 		}
 		return false;
 	}
@@ -738,7 +818,9 @@ public class NetworkProperties extends MultiFormatProperties {
 	 *         protocol is not counted.
 	 */
 	public final boolean hasOneOrMoreConnectionsProtocols() {
-		return connectionProtocolProperties.size() > 0;
+		synchronized (connectionProtocolProperties) {
+			return connectionProtocolProperties.size() > 0;
+		}
 	}
 
 	private final ArrayList<AccessData> accessDataList = new ArrayList<>();
@@ -751,7 +833,38 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * @see AccessData
 	 */
 	public void addAccessData(AccessData accessData) {
-		this.accessDataList.add(accessData);
+		synchronized (accessDataList) {
+			this.accessDataList.add(accessData);
+		}
+	}
+
+	/**
+	 * Replace an AccessData protocol
+	 *
+	 * @param oldAccessData
+	 *            the access data to remove
+	 * @param newAccessData
+	 *            the access data to add
+	 * @see AccessData
+	 */
+	public void replaceAccessData(AccessData oldAccessData, AccessData newAccessData) {
+		synchronized (accessDataList) {
+			removeAccessData(oldAccessData);
+			addAccessData(newAccessData);
+		}
+	}
+
+	/**
+	 * Remove an AccessData protocol
+	 *
+	 * @param accessData
+	 *            the access data
+	 * @see AccessData
+	 */
+	public void removeAccessData(AccessData accessData) {
+		synchronized (accessDataList) {
+			this.accessDataList.remove(accessData);
+		}
 	}
 
 	/**
@@ -759,8 +872,9 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * @return the access data list
 	 */
 	public ArrayList<AccessData> getAccessDataList() {
-
-		return accessDataList;
+		synchronized (accessDataList) {
+			return new ArrayList<>(accessDataList);
+		}
 	}
 
 	/**
@@ -775,9 +889,11 @@ public class NetworkProperties extends MultiFormatProperties {
 	 */
 	public AccessData getAccessData(InetSocketAddress _distant_inet_address,
 			InetSocketAddress _local_interface_address) {
-		for (AccessData ad : accessDataList) {
-			if (ad.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort()))
-				return ad;
+		synchronized (accessDataList) {
+			for (AccessData ad : accessDataList) {
+				if (ad.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort()))
+					return ad;
+			}
 		}
 		return null;
 	}
@@ -792,7 +908,37 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * @see AbstractAccessProtocolProperties
 	 */
 	public void addAccessProtocolProperties(AbstractAccessProtocolProperties _access_protocol_properties) {
-		accessProtocolProperties.add(_access_protocol_properties);
+		synchronized (accessProtocolProperties) {
+			accessProtocolProperties.add(_access_protocol_properties);
+		}
+	}
+
+	/**
+	 * Replace an AccessProtocolProperties
+	 *
+	 * @param _old_access_protocol_properties
+	 *            the old access protocol properties to remove
+	 * @param _new_access_protocol_properties
+	 *            the new access protocol properties to add
+	 * @see AbstractAccessProtocolProperties
+	 */
+	public void replaceAccessProtocolProperties(AbstractAccessProtocolProperties _old_access_protocol_properties, AbstractAccessProtocolProperties _new_access_protocol_properties) {
+		synchronized (accessProtocolProperties) {
+			removeAccessProtocolProperties(_old_access_protocol_properties);
+			addAccessProtocolProperties(_new_access_protocol_properties);
+		}
+	}
+	/**
+	 * Remove an AccessProtocolProperties
+	 *
+	 * @param _access_protocol_properties
+	 *            the access protocol properties
+	 * @see AbstractAccessProtocolProperties
+	 */
+	public void removeAccessProtocolProperties(AbstractAccessProtocolProperties _access_protocol_properties) {
+		synchronized (accessProtocolProperties) {
+			accessProtocolProperties.remove(_access_protocol_properties);
+		}
 	}
 
 	/**
@@ -800,7 +946,9 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * @return the access protocol properties list
 	 */
 	public ArrayList<AbstractAccessProtocolProperties> getAccessProtocolProperties() {
-		return accessProtocolProperties;
+		synchronized (accessProtocolProperties) {
+			return new ArrayList<>(accessProtocolProperties);
+		}
 	}
 
 	/**
@@ -817,9 +965,11 @@ public class NetworkProperties extends MultiFormatProperties {
 	 */
 	public AbstractAccessProtocolProperties getAccessProtocolProperties(InetSocketAddress _distant_inet_address,
 			InetSocketAddress _local_interface_address) {
-		for (AbstractAccessProtocolProperties ad : accessProtocolProperties) {
-			if (ad.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort()))
-				return ad;
+		synchronized (accessProtocolProperties) {
+			for (AbstractAccessProtocolProperties ad : accessProtocolProperties) {
+				if (ad.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort()))
+					return ad;
+			}
 		}
 		return null;
 	}
@@ -853,27 +1003,33 @@ public class NetworkProperties extends MultiFormatProperties {
 				return true;
 		}
 		boolean found = false;
-		for (AccessData ad : this.accessDataList) {
-			if (ad.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort())) {
-				found = true;
-				break;
+		synchronized (accessDataList) {
+			for (AccessData ad : this.accessDataList) {
+				if (ad.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort())) {
+					found = true;
+					break;
+				}
 			}
 		}
 		if (!found)
 			return false;
 		found = false;
-		for (AbstractAccessProtocolProperties app : accessProtocolProperties) {
-			if (app.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort())) {
-				found = true;
-				break;
+		synchronized (accessProtocolProperties) {
+			for (AbstractAccessProtocolProperties app : accessProtocolProperties) {
+				if (app.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort())) {
+					found = true;
+					break;
+				}
 			}
 		}
 		if (!found)
 			return false;
-        for (ConnectionProtocolProperties<?> cpp : getConnectionProtocolList()) {
-			if (cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
-					_distant_inet_address.getAddress(), isServer, mustSupportBidirectionnalConnectionInitiative)) {
-                return (!takeConnectionInitiative || cpp.canTakeConnectionInitiative());
+		synchronized (connectionProtocolProperties) {
+			for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties) {
+				if (cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
+						_distant_inet_address.getAddress(), isServer, mustSupportBidirectionnalConnectionInitiative)) {
+					return (!takeConnectionInitiative || cpp.canTakeConnectionInitiative());
+				}
 			}
 		}
 		return false;
