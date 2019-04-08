@@ -598,8 +598,13 @@ final class LoggedKernel extends MadkitKernel {
 			requester.logger.log(Level.FINEST, "manageDirectConnection (Agent " + requester + ", listAskForConnectionMessage "+lm +", addToNetworkProperties="+addToNetworkProperties+", actOnlyIfModifyNetworkProperties="+actOnlyIfModifyNetworkProperties+")");
 	}
 
-
 	@Override
+	public MadkitProperties getMadkitConfig() {
+		return kernel.getMadkitConfig();
+	}
+
+
+		@Override
 	void manageTransferConnection(AbstractAgent requester, AskForTransferMessage m) throws IllegalAccessException {
 		kernel.manageTransferConnection(requester, m);
 		if (requester.isFinestLogOn())

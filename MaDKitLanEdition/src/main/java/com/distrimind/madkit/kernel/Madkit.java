@@ -152,7 +152,7 @@ final public class Madkit {
 			d.addItem("Add possibility to change access protocols during MaDKit life, and not only during MaDKit loading.");
 			d.addItem("Add possibility to change access data during MaDKit life, and not only during MaDKit loading.");
 			d.addItem("Add possibility to trigger connection/disconnection only if these were not present into the list of connection to attempt at the MaDKit starting defined into NetworkProperties class. " +
-					"Concerned functions are AbstractAgent.manageDirectConnection, AbstractAgent.manageDirectConnections, AbstractAgent.manageDirectConnectionAndItToNetworkProperties and AbstractAgent.manageDirectConnectionsAndItToNetworkProperties.");
+					"Concerned functions are AbstractAgent.manageDirectConnection, AbstractAgent.manageDirectConnections, AbstractAgent.manageDirectConnectionAndAddItToNetworkProperties and AbstractAgent.manageDirectConnectionsAndAddThemToNetworkProperties.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();

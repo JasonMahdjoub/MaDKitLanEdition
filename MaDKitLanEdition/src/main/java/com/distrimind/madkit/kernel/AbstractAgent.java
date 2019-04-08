@@ -667,7 +667,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 			// So there a risk of memory leak here because logger can be set to null after
 			// creation and still exists in AgentLogger.loggers
 			// But that should not be a problem because such a practice is usually not used
-			logger.close();
+			if (logger!= AgentLogger.defaultAgentLogger)
+				logger.close();
 			logger = null;
 		}
 		if (hasGUI) {
@@ -1289,6 +1290,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 			if (logger != null && logger != AgentLogger.defaultAgentLogger) {
 				logger.setLevel(newLevel);
 				loggerModified(null);
+				//logger.close();
 			}
 			logger = null;
 			setKernel(getMadkitKernel());
@@ -1312,7 +1314,6 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	final public AgentLogger getLogger() {
 		if (logger == AgentLogger.defaultAgentLogger || logger == null) {
 			synchronized (this) {
-
 				logger = AgentLogger.getLogger(this);
 				loggerModified(logger);
 			}
@@ -4420,9 +4421,9 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *             if the network is not enabled (see
 	 *             {@link NetworkProperties#network}.
 	 * @see AskForConnectionMessage
-	 * @see NetworkProperties#addAddressForDirectConnectionToAttemptFromThisPeerToOtherPeer(Collection)
+	 * @see NetworkProperties#addAddressesForDirectConnectionToAttemptFromThisPeerToOtherPeer(Collection)
 	 */
-	public void manageDirectConnectionAndItToNetworkProperties(AskForConnectionMessage message, boolean applyConnectionAskingOnlyIfItModifyNetworkProperties) throws IllegalAccessException {
+	public void manageDirectConnectionAndAddItToNetworkProperties(AskForConnectionMessage message, boolean applyConnectionAskingOnlyIfItModifyNetworkProperties) throws IllegalAccessException {
 		getMadkitKernel().manageDirectConnection(this, message, true, applyConnectionAskingOnlyIfItModifyNetworkProperties);
 	}
 
@@ -4454,9 +4455,9 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *             if the network is not enabled (see
 	 *             {@link NetworkProperties#network}.
 	 * @see AskForConnectionMessage
-	 * @see NetworkProperties#addAddressForDirectConnectionToAttemptFromThisPeerToOtherPeer(Collection)
+	 * @see NetworkProperties#addAddressesForDirectConnectionToAttemptFromThisPeerToOtherPeer(Collection)
 	 */
-	public void manageDirectConnectionsAndItToNetworkProperties(List<AskForConnectionMessage> messages, boolean applyConnectionAskingOnlyIfItModifyNetworkProperties) throws IllegalAccessException {
+	public void manageDirectConnectionsAndAddThemToNetworkProperties(List<AskForConnectionMessage> messages, boolean applyConnectionAskingOnlyIfItModifyNetworkProperties) throws IllegalAccessException {
 		getMadkitKernel().manageDirectConnections(this, messages, true, applyConnectionAskingOnlyIfItModifyNetworkProperties);
 	}
 

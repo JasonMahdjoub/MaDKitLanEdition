@@ -23,9 +23,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
@@ -66,7 +64,7 @@ final public class AgentLogger extends Logger {
 	final static AgentLogger defaultAgentLogger = new AgentLogger();
 
 	final static Level talkLevel = Level.parse("1100");
-	final static private Map<AbstractAgent, AgentLogger> agentLoggers = new ConcurrentHashMap<>(); // TODO evaluate foot
+	final static private Map<AbstractAgent, AgentLogger> agentLoggers = new HashMap<>(); // TODO evaluate foot
 																									// print
 
 	private FileHandler fh;
@@ -76,13 +74,35 @@ final public class AgentLogger extends Logger {
 	private Level warningLogLevel = Madkit.getDefaultConfig().warningLogLevel;
 
 	static AgentLogger getLogger(final AbstractAgent agent) {
-		AgentLogger al = agentLoggers.get(agent);
-		if (al == null) {
-			al = new AgentLogger(agent);
-			agentLoggers.put(agent, al);
+		synchronized (agentLoggers) {
+			AgentLogger al = agentLoggers.get(agent);
+			if (al == null) {
+				al = new AgentLogger(agent);
+				agentLoggers.put(agent, al);
+			}
+			return al;
 		}
-		return al;
 	}
+
+	static boolean removeLogger(final AbstractAgent agent)
+	{
+		synchronized (agentLoggers) {
+			return agentLoggers.remove(agent) != null;
+		}
+	}
+
+	static void removeLoggers(final MadkitKernel kernel)
+	{
+		synchronized (agentLoggers) {
+			kernel.getMadkitKernel();
+			for (Iterator<Map.Entry<AbstractAgent, AgentLogger>> it = agentLoggers.entrySet().iterator(); it.hasNext(); ) {
+				Map.Entry<AbstractAgent, AgentLogger> e = it.next();
+				if (e.getKey().getMadkitKernel() == kernel)
+					it.remove();
+			}
+		}
+	}
+
 
 	// public static void renameLogger(AbstractAgent agent) {
 	// AgentLogger al = agentLoggers.get(agent);
@@ -195,7 +215,9 @@ final public class AgentLogger extends Logger {
 			removeHandler(h);
 			h.close();
 		}
-		agentLoggers.remove(myAgent);
+		synchronized (agentLoggers) {
+			agentLoggers.remove(myAgent);
+		}
 	}
 
 	@Override
@@ -205,8 +227,10 @@ final public class AgentLogger extends Logger {
 	}
 
 	static void resetLoggers() {
-		for (final AgentLogger l : agentLoggers.values()) {
-			l.close();
+		synchronized (agentLoggers) {
+			for (final AgentLogger l : agentLoggers.values()) {
+				l.close();
+			}
 		}
 	}
 
@@ -322,11 +346,13 @@ final public class AgentLogger extends Logger {
 	 *            the new level
 	 */
 	public static void setAllLogLevels(final Level level) {
-		for (AbstractAgent loggedAgent : agentLoggers.keySet()) {
-			if (loggedAgent != loggedAgent.getMadkitKernel()) {
-				loggedAgent.setLogLevel(level);
-			} else
-				loggedAgent.getMadkitConfig().agentLogLevel = level;
+		synchronized (agentLoggers) {
+			for (AbstractAgent loggedAgent : agentLoggers.keySet()) {
+				if (loggedAgent != loggedAgent.getMadkitKernel()) {
+					loggedAgent.setLogLevel(level);
+				} else
+					loggedAgent.getMadkitConfig().agentLogLevel = level;
+			}
 		}
 	}
 
@@ -336,19 +362,21 @@ final public class AgentLogger extends Logger {
 	 * @see AgentLogger#createLogFile()
 	 */
 	public static void createLogFiles() {
-		try {
+		synchronized (agentLoggers) {
+			try {
 
-			AbstractAgent a = new ArrayList<>(agentLoggers.keySet()).get(0);
-			a.getMadkitConfig().createLogFiles = true;
-			JOptionPane.showMessageDialog(null,
-					Words.DIRECTORY + " " + a.getMadkitConfig().logDirectory.getAbsolutePath() + " " + Words.CREATED,
-					"OK", JOptionPane.INFORMATION_MESSAGE);
-			for (AgentLogger logger : agentLoggers.values()) {
-				logger.createLogFile();
+				AbstractAgent a = new ArrayList<>(agentLoggers.keySet()).get(0);
+				a.getMadkitConfig().createLogFiles = true;
+				JOptionPane.showMessageDialog(null,
+						Words.DIRECTORY + " " + a.getMadkitConfig().logDirectory.getAbsolutePath() + " " + Words.CREATED,
+						"OK", JOptionPane.INFORMATION_MESSAGE);
+				for (AgentLogger logger : agentLoggers.values()) {
+					logger.createLogFile();
+				}
+			} catch (IndexOutOfBoundsException e) {
+				JOptionPane.showMessageDialog(null, "No active agents yet", Words.FAILED.toString(),
+						JOptionPane.WARNING_MESSAGE);
 			}
-		} catch (IndexOutOfBoundsException e) {
-			JOptionPane.showMessageDialog(null, "No active agents yet", Words.FAILED.toString(),
-					JOptionPane.WARNING_MESSAGE);
 		}
 	}
 }

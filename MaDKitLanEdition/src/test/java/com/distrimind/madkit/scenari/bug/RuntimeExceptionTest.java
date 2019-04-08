@@ -68,9 +68,9 @@ public class RuntimeExceptionTest extends JunitMadkit {
 
 			@Override
 			public void run() {
-				System.err.println(getKernel().getOrganizationSnapShot(false));
+				System.err.println(getKernel(a.getKernelAddress()).getOrganizationSnapShot(false));
 				assertAgentIsTerminated(a);
-				assertFalse(getKernel().isCommunity(C));
+				assertFalse(getKernel(a.getKernelAddress()).isCommunity(C));
 			}
 		});
 	}
@@ -82,11 +82,11 @@ public class RuntimeExceptionTest extends JunitMadkit {
 				AbstractAgent a = new FaultyAA(false, true);
 				assertEquals(SUCCESS, launchAgent(a));
 				assertTrue(a.isAlive());
-				assertTrue(getKernel().isCommunity(C));
+				assertTrue(getKernel(getKernelAddress()).isCommunity(C));
 				assertEquals(SUCCESS, killAgent(a));
 				assertEquals(ALREADY_KILLED, killAgent(a));
 				assertAgentIsTerminated(a);
-				assertFalse(getKernel().isCommunity(C));
+				assertFalse(getKernel(getKernelAddress()).isCommunity(C));
 			}
 		});
 	}

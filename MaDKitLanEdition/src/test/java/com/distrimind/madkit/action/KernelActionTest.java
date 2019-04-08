@@ -77,7 +77,8 @@ public class KernelActionTest extends JunitMadkit {
 	@Test
 	public void debugModeTest() {
 		mkArgs.clear();
-		// addMadkitArgs(LevelOption.agentLogLevel.toString(), Level.ALL.toString());
+
+		//addMadkitArgs("agentLogLevel", Level.ALL.toString());
 		launchTest(new AbstractAgent() {
 			@Override
 			protected void activate() {

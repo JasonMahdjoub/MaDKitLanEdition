@@ -45,11 +45,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 
 import org.junit.Rule;
@@ -106,7 +102,8 @@ public class JunitMadkit {
 	public static final String ROLE2 = "Trole2";
 
 	public static String testTitle;
-	protected Madkit madkit;
+	//protected Madkit madkit;
+	private final List<Madkit> madkits=Collections.synchronizedList(new ArrayList<Madkit>());
 	private static final ArrayList<Madkit> helperInstances = new ArrayList<>();
 
 	public void addHelperInstance(Madkit m) {
@@ -206,7 +203,7 @@ public class JunitMadkit {
 				args = mkArgs.toArray(new String[0]);
 			}
 
-			this.madkit = madkit = new Madkit(eventListener, args);
+			madkits.add(madkit = new Madkit(eventListener, args));
 			AbstractAgent kernelAgent = madkit.getKernel()
 					.getAgentWithRole(null, LocalCommunity.Groups.SYSTEM, Organization.GROUP_MANAGER_ROLE).getAgent();
 			// kernelAgent.receiveMessage(new
@@ -238,7 +235,9 @@ public class JunitMadkit {
 
 			cleanHelperMDKs(a);
 			closeMadkit(madkit);
+			madkits.remove(madkit);
 			madkit = null;
+
 		}
 		/*
 		 * if (madkit.getKernel().isAlive()) madkit.doAction(KernelAction.EXIT);
@@ -251,8 +250,15 @@ public class JunitMadkit {
 		System.err.println("---------------------------------");
 	}
 
-	public void assertKernelIsAlive() {
-		assertTrue(getKernel().isAlive());
+	public void assertKernelIsAlive(MadkitKernel m) {
+		assertTrue(m.isAlive());
+	}
+
+	public void assertKernelIsAlive(KernelAddress ka) {
+		for (Madkit m : madkits) {
+			if (m.getKernelAddress().equals(ka))
+				assertKernelIsAlive(m.getKernel());
+		}
 	}
 
 	public static void noExceptionFailure() {
@@ -320,12 +326,20 @@ public class JunitMadkit {
 		return launchTest(a, SUCCESS);
 	}
 
-	public AbstractAgent getKernel() {
+	/*public AbstractAgent getKernel() {
 		return madkit.getKernel();
-	}
+	}*/
 
 	public AbstractAgent getKernel(Madkit m) {
-		return madkit.getKernel();
+		return m.getKernel();
+	}
+
+	public AbstractAgent getKernel(KernelAddress ka)
+	{
+		for (Madkit m : madkits)
+			if (m.getKernelAddress().equals(ka))
+				return m.getKernel();
+		return null;
 	}
 
 	public void addMadkitArgs(String... string) {

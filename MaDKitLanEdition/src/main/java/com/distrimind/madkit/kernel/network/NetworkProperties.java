@@ -536,19 +536,19 @@ public class NetworkProperties extends MultiFormatProperties {
 	void addPossibleAddressForDirectConnection(PossibleAddressForDirectConnnection isa) {
 		if (isa == null)
 			throw new NullPointerException("isa");
-		synchronized (addressesForDirectConnectionToAttemptFromOtherPeersThisPeer) {
+		synchronized (this) {
 			addressesForDirectConnectionToAttemptFromOtherPeersThisPeer.add(isa);
 		}
 	}
 
 	void removePossibleAddressForDirectConnection(PossibleAddressForDirectConnnection isa) {
-		synchronized (addressesForDirectConnectionToAttemptFromOtherPeersThisPeer) {
+		synchronized (this) {
 			addressesForDirectConnectionToAttemptFromOtherPeersThisPeer.remove(isa);
 		}
 	}
 
 	public List<PossibleAddressForDirectConnnection> getPossibleAddressesForDirectConnectionToAttemptFromOtherPeersToThisPeer() {
-		synchronized (addressesForDirectConnectionToAttemptFromOtherPeersThisPeer) {
+		synchronized (this) {
 			return new ArrayList<>(addressesForDirectConnectionToAttemptFromOtherPeersThisPeer);
 		}
 	}
@@ -572,7 +572,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	}
 
 
-	public void addAddressForDirectConnectionToAttemptFromThisPeerToOtherPeer(Collection<AbstractIP> ips)
+	public void addAddressesForDirectConnectionToAttemptFromThisPeerToOtherPeer(Collection<AbstractIP> ips)
 	{
 		synchronized (this)
 		{
@@ -587,7 +587,7 @@ public class NetworkProperties extends MultiFormatProperties {
 			}
 		}
 	}
-	public boolean addAddressForDirectConnectionToAttemptFromThisPeerToOtherPeer(AbstractIP ip)
+	public boolean addAddressesForDirectConnectionToAttemptFromThisPeerToOtherPeer(AbstractIP ip)
 	{
 		synchronized (this)
 		{
@@ -599,7 +599,7 @@ public class NetworkProperties extends MultiFormatProperties {
 				return false;
 		}
 	}
-	public void removeAddressForDirectConnectionToAttemptFromThisPeerToOtherPeer(Collection<AbstractIP> ips)
+	public void removeAddressesForDirectConnectionToAttemptFromThisPeerToOtherPeer(Collection<AbstractIP> ips)
 	{
 		synchronized (this)
 		{
@@ -613,7 +613,7 @@ public class NetworkProperties extends MultiFormatProperties {
 			}
 		}
 	}
-	public boolean removeAddressForDirectConnectionToAttemptFromThisPeerToOtherPeer(AbstractIP ip)
+	public boolean removeAddressesForDirectConnectionToAttemptFromThisPeerToOtherPeer(AbstractIP ip)
 	{
 		synchronized (this)
 		{
@@ -640,6 +640,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	/**
 	 * Delay in millisecond between each connection retry, after a fail, and if the connection is marked to accept to retry failed connection
 	 */
+	@SuppressWarnings("PointlessArithmeticExpression")
 	public long delayInMsBetweenEachConnectionRetry=1L*60L*60L*1000L;
 
 	/**
@@ -657,23 +658,23 @@ public class NetworkProperties extends MultiFormatProperties {
 	 */
 	private final ArrayList<ConnectionProtocolProperties<?>> connectionProtocolProperties = new ArrayList<>();
 
-	public final <CP extends ConnectionProtocol<CP>> void addConnectionProtocol(
-			ConnectionProtocolProperties<CP> _properties) {
-		synchronized (connectionProtocolProperties) {
+	public final void addConnectionProtocol(
+			ConnectionProtocolProperties<?> _properties) {
+		synchronized (this) {
 			connectionProtocolProperties.add(_properties);
 		}
 	}
 
-	public final <CP extends ConnectionProtocol<CP>> void replaceConnectionProtocol(
-			ConnectionProtocolProperties<CP> _old_properties, ConnectionProtocolProperties<CP> _new_properties) {
-		synchronized (connectionProtocolProperties) {
+	public final void replaceConnectionProtocol(
+			ConnectionProtocolProperties<?> _old_properties, ConnectionProtocolProperties<?> _new_properties) {
+		synchronized (this) {
 			removeConnectionProtocol(_old_properties);
 			addConnectionProtocol(_new_properties);
 		}
 	}
-	public final <CP extends ConnectionProtocol<CP>> void removeConnectionProtocol(
-			ConnectionProtocolProperties<CP> _properties) {
-		synchronized (connectionProtocolProperties) {
+	public final void removeConnectionProtocol(
+			ConnectionProtocolProperties<?> _properties) {
+		synchronized (this) {
 			connectionProtocolProperties.remove(_properties);
 		}
 	}
@@ -683,7 +684,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * @return the connection protocols list.
 	 */
 	public ArrayList<ConnectionProtocolProperties<?>> getConnectionProtocolList() {
-		synchronized (connectionProtocolProperties) {
+		synchronized (this) {
 			return new ArrayList<>(connectionProtocolProperties);
 		}
 	}
@@ -711,14 +712,13 @@ public class NetworkProperties extends MultiFormatProperties {
 	public ConnectionProtocol<?> getConnectionProtocolInstance(InetSocketAddress _distant_inet_address,
 			InetSocketAddress _local_interface_address, DatabaseWrapper sql_connection, MadkitProperties mkProperties, boolean isServer,
 			boolean needBiDirectionnalConnectionInitiationAbility) throws NIOException {
+		synchronized (this) {
+			if (!needBiDirectionnalConnectionInitiationAbility) {
+				ConnectionProtocol<?> res = getConnectionProtocolInstance(_distant_inet_address, _local_interface_address, sql_connection, mkProperties, isServer, true);
+				if (res != null)
+					return res;
+			}
 
-		if (!needBiDirectionnalConnectionInitiationAbility)
-		{
-			ConnectionProtocol<?> res=getConnectionProtocolInstance(_distant_inet_address, _local_interface_address, sql_connection, mkProperties, isServer, true);
-			if (res!=null)
-				return res;
-		}
-		synchronized (connectionProtocolProperties) {
 			for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties) {
 				if (cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
 						_distant_inet_address.getAddress(), isServer, needBiDirectionnalConnectionInitiationAbility)) {
@@ -774,13 +774,13 @@ public class NetworkProperties extends MultiFormatProperties {
 	public ConnectionProtocolProperties<?> getConnectionProtocolProperties(InetSocketAddress _distant_inet_address,
 			InetSocketAddress _local_interface_address, int subProtocolLevel, boolean isServer,
 			boolean mustSupportBidirectionnalConnectionInitiative) {
-		if (!mustSupportBidirectionnalConnectionInitiative)
-		{
-			ConnectionProtocolProperties<?> res=getConnectionProtocolProperties(_distant_inet_address, _local_interface_address, subProtocolLevel, isServer, true);
-			if (res!=null)
-				return res;
-		}
-		synchronized (connectionProtocolProperties) {
+		synchronized (this) {
+			if (!mustSupportBidirectionnalConnectionInitiative) {
+				ConnectionProtocolProperties<?> res = getConnectionProtocolProperties(_distant_inet_address, _local_interface_address, subProtocolLevel, isServer, true);
+				if (res != null)
+					return res;
+			}
+
 			for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties) {
 				int l = subProtocolLevel;
 				while (l > 0 && cpp.subProtocolProperties != null) {
@@ -807,7 +807,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 *         connection protocol that needs a server socket.
 	 */
 	public boolean needsServerSocket(InetSocketAddress _local_interface_address) {
-		synchronized (connectionProtocolProperties) {
+		synchronized (this) {
 			for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties) {
 				if (cpp.needsServerSocket(_local_interface_address.getAddress(), _local_interface_address.getPort()))
 					return true;
@@ -822,7 +822,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 *         protocol is not counted.
 	 */
 	public final boolean hasOneOrMoreConnectionsProtocols() {
-		synchronized (connectionProtocolProperties) {
+		synchronized (this) {
 			return connectionProtocolProperties.size() > 0;
 		}
 	}
@@ -837,7 +837,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * @see AccessData
 	 */
 	public void addAccessData(AccessData accessData) {
-		synchronized (accessDataList) {
+		synchronized (this) {
 			this.accessDataList.add(accessData);
 		}
 	}
@@ -852,7 +852,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * @see AccessData
 	 */
 	public void replaceAccessData(AccessData oldAccessData, AccessData newAccessData) {
-		synchronized (accessDataList) {
+		synchronized (this) {
 			removeAccessData(oldAccessData);
 			addAccessData(newAccessData);
 		}
@@ -866,7 +866,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * @see AccessData
 	 */
 	public void removeAccessData(AccessData accessData) {
-		synchronized (accessDataList) {
+		synchronized (this) {
 			this.accessDataList.remove(accessData);
 		}
 	}
@@ -876,7 +876,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * @return the access data list
 	 */
 	public ArrayList<AccessData> getAccessDataList() {
-		synchronized (accessDataList) {
+		synchronized (this) {
 			return new ArrayList<>(accessDataList);
 		}
 	}
@@ -893,7 +893,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 */
 	public AccessData getAccessData(InetSocketAddress _distant_inet_address,
 			InetSocketAddress _local_interface_address) {
-		synchronized (accessDataList) {
+		synchronized (this) {
 			for (AccessData ad : accessDataList) {
 				if (ad.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort()))
 					return ad;
@@ -912,7 +912,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * @see AbstractAccessProtocolProperties
 	 */
 	public void addAccessProtocolProperties(AbstractAccessProtocolProperties _access_protocol_properties) {
-		synchronized (accessProtocolProperties) {
+		synchronized (this) {
 			accessProtocolProperties.add(_access_protocol_properties);
 		}
 	}
@@ -927,7 +927,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * @see AbstractAccessProtocolProperties
 	 */
 	public void replaceAccessProtocolProperties(AbstractAccessProtocolProperties _old_access_protocol_properties, AbstractAccessProtocolProperties _new_access_protocol_properties) {
-		synchronized (accessProtocolProperties) {
+		synchronized (this) {
 			removeAccessProtocolProperties(_old_access_protocol_properties);
 			addAccessProtocolProperties(_new_access_protocol_properties);
 		}
@@ -940,7 +940,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * @see AbstractAccessProtocolProperties
 	 */
 	public void removeAccessProtocolProperties(AbstractAccessProtocolProperties _access_protocol_properties) {
-		synchronized (accessProtocolProperties) {
+		synchronized (this) {
 			accessProtocolProperties.remove(_access_protocol_properties);
 		}
 	}
@@ -950,7 +950,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * @return the access protocol properties list
 	 */
 	public ArrayList<AbstractAccessProtocolProperties> getAccessProtocolProperties() {
-		synchronized (accessProtocolProperties) {
+		synchronized (this) {
 			return new ArrayList<>(accessProtocolProperties);
 		}
 	}
@@ -969,7 +969,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 */
 	public AbstractAccessProtocolProperties getAccessProtocolProperties(InetSocketAddress _distant_inet_address,
 			InetSocketAddress _local_interface_address) {
-		synchronized (accessProtocolProperties) {
+		synchronized (this) {
 			for (AbstractAccessProtocolProperties ad : accessProtocolProperties) {
 				if (ad.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort()))
 					return ad;
@@ -1001,34 +1001,34 @@ public class NetworkProperties extends MultiFormatProperties {
 	public boolean isConnectionPossible(InetSocketAddress _distant_inet_address,
 			InetSocketAddress _local_interface_address, boolean takeConnectionInitiative, boolean isServer,
 			boolean mustSupportBidirectionnalConnectionInitiative) {
-		if (!mustSupportBidirectionnalConnectionInitiative)
-		{
-			if (isConnectionPossible(_distant_inet_address, _local_interface_address, takeConnectionInitiative, isServer, true))
-				return true;
-		}
-		boolean found = false;
-		synchronized (accessDataList) {
+		synchronized (this) {
+			if (!mustSupportBidirectionnalConnectionInitiative) {
+				if (isConnectionPossible(_distant_inet_address, _local_interface_address, takeConnectionInitiative, isServer, true))
+					return true;
+			}
+			boolean found = false;
+
 			for (AccessData ad : this.accessDataList) {
 				if (ad.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort())) {
 					found = true;
 					break;
 				}
 			}
-		}
-		if (!found)
-			return false;
-		found = false;
-		synchronized (accessProtocolProperties) {
+
+			if (!found)
+				return false;
+			found = false;
+
 			for (AbstractAccessProtocolProperties app : accessProtocolProperties) {
 				if (app.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort())) {
 					found = true;
 					break;
 				}
 			}
-		}
-		if (!found)
-			return false;
-		synchronized (connectionProtocolProperties) {
+
+			if (!found)
+				return false;
+
 			for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties) {
 				if (cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
 						_distant_inet_address.getAddress(), isServer, mustSupportBidirectionnalConnectionInitiative)) {
@@ -1342,15 +1342,18 @@ public class NetworkProperties extends MultiFormatProperties {
 		return this.transferTriggers;
 	}
 
-	private List<InetAddress> whiteInetAddressesList;
+	private ArrayList<InetAddress> whiteInetAddressesList;
 
 	/**
 	 * Gets addresses that cannot be blacklisted.
 	 * 
 	 * @return addresses that cannot be blacklisted.
 	 */
-	public List<InetAddress> getWhiteInetAddressesList() {
-		return whiteInetAddressesList;
+	public ArrayList<InetAddress> getWhiteInetAddressesList() {
+
+		synchronized (this) {
+			return new ArrayList<>(whiteInetAddressesList);
+		}
 	}
 
 	/**
@@ -1362,7 +1365,9 @@ public class NetworkProperties extends MultiFormatProperties {
 	public void addWhiteInetAddress(InetAddress ia) {
 		if (ia == null)
 			throw new NullPointerException("ia");
-		whiteInetAddressesList.add(ia);
+		synchronized (this) {
+			whiteInetAddressesList.add(ia);
+		}
 	}
 
 	/**
@@ -1374,8 +1379,12 @@ public class NetworkProperties extends MultiFormatProperties {
 	public void addWhiteInetAddresses(Collection<InetAddress> ias) {
 		if (ias == null)
 			throw new NullPointerException("ias");
-		for (InetAddress ia : ias)
-			addWhiteInetAddress(ia);
+		synchronized (this) {
+
+
+			for (InetAddress ia : ias)
+				addWhiteInetAddress(ia);
+		}
 	}
 
 	/**
@@ -1385,7 +1394,9 @@ public class NetworkProperties extends MultiFormatProperties {
 	 *            the address
 	 */
 	public void removeWhiteInetAddress(InetAddress ia) {
-		whiteInetAddressesList.remove(ia);
+		synchronized (this) {
+			whiteInetAddressesList.remove(ia);
+		}
 	}
 
 	/**
@@ -1395,7 +1406,9 @@ public class NetworkProperties extends MultiFormatProperties {
 	 *            the addresses
 	 */
 	public void removeWhiteInetAddresses(Collection<InetAddress> ias) {
-		whiteInetAddressesList.removeAll(ias);
+		synchronized (this) {
+			whiteInetAddressesList.removeAll(ias);
+		}
 	}
 
 	/**
@@ -1403,7 +1416,9 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * 
 	 */
 	public void cleanWhiteInetAddresses() {
-		whiteInetAddressesList.clear();
+		synchronized (this) {
+			whiteInetAddressesList.clear();
+		}
 	}
 	
 	/**

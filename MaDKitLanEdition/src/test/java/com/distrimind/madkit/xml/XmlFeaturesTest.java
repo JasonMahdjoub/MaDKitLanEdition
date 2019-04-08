@@ -118,7 +118,7 @@ public class XmlFeaturesTest extends JunitMadkit {
 						|| getAgentsWithRole(GROUP, ROLE, false).size() != expected) && i++ < 20)
 					JunitMadkit.pause(this, 200);
 				assertEquals(expected, getAgentsWithRole(GROUP, ROLE).size());
-				assertKernelIsAlive();
+				assertKernelIsAlive(getKernelAddress());
 			}
 		});
 	}
@@ -164,7 +164,7 @@ public class XmlFeaturesTest extends JunitMadkit {
 					e.printStackTrace();
 					fail();
 				}
-				assertKernelIsAlive();
+				assertKernelIsAlive(getKernelAddress());
 			}
 		});
 	}
@@ -176,7 +176,7 @@ public class XmlFeaturesTest extends JunitMadkit {
 		launchTest(new AbstractAgent() {
 			@Override
 			protected void activate() {
-				assertKernelIsAlive();
+				assertKernelIsAlive(getKernelAddress());
 			}
 		});
 	}

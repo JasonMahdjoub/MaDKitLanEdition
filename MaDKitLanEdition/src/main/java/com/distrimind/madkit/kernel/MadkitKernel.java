@@ -615,9 +615,9 @@ class MadkitKernel extends Agent {
 			boolean act=true;
 			if (addToNetworkProperties) {
 				if (m.getType()== ConnectionStatusMessage.Type.CONNECT)
-					act=getMadkitConfig().networkProperties.addAddressForDirectConnectionToAttemptFromThisPeerToOtherPeer(m.getIP());
+					act=getMadkitConfig().networkProperties.addAddressesForDirectConnectionToAttemptFromThisPeerToOtherPeer(m.getIP());
 				else if (m.getType()== ConnectionStatusMessage.Type.DISCONNECT)
-					act=getMadkitConfig().networkProperties.removeAddressForDirectConnectionToAttemptFromThisPeerToOtherPeer(m.getIP());
+					act=getMadkitConfig().networkProperties.removeAddressesForDirectConnectionToAttemptFromThisPeerToOtherPeer(m.getIP());
 			}
 			act|=!actOnlyIfModifyNetworkProperties;
 			if (act)
@@ -639,9 +639,9 @@ class MadkitKernel extends Agent {
 				for (AskForConnectionMessage m : lm) {
 					boolean act=true;
 					if (m.getType() == ConnectionStatusMessage.Type.CONNECT)
-						act=getMadkitConfig().networkProperties.addAddressForDirectConnectionToAttemptFromThisPeerToOtherPeer(m.getIP());
+						act=getMadkitConfig().networkProperties.addAddressesForDirectConnectionToAttemptFromThisPeerToOtherPeer(m.getIP());
 					else if (m.getType() == ConnectionStatusMessage.Type.DISCONNECT)
-						act=getMadkitConfig().networkProperties.removeAddressForDirectConnectionToAttemptFromThisPeerToOtherPeer(m.getIP());
+						act=getMadkitConfig().networkProperties.removeAddressesForDirectConnectionToAttemptFromThisPeerToOtherPeer(m.getIP());
 					act|=!actOnlyIfModifyNetworkProperties;
 					if (act)
 						sendNetworkKernelMessageWithRole(new KernelMessage(KernelAction.MANAGE_DIRECT_DONNECTION, m));
@@ -1880,6 +1880,8 @@ class MadkitKernel extends Agent {
 					a.state.set(INITIALIZING);
 					a.setKernel(MadkitKernel.this);
 					a.getAlive().set(true);
+					if (a.logger!=null && a.logger!= AgentLogger.defaultAgentLogger)
+						a.logger.close();
 					a.logger = null;
 				}
 			};
@@ -1927,6 +1929,8 @@ class MadkitKernel extends Agent {
 					a.state.set(ACTIVATING);
 					a.setKernel(MadkitKernel.this);
 					a.getAlive().set(true);
+					if (a.logger!=null && a.logger!= AgentLogger.defaultAgentLogger)
+						a.logger.close();
 					a.logger = null;
 					try {
 						a.activate();
@@ -2933,6 +2937,7 @@ class MadkitKernel extends Agent {
 	void terminate() {
 		// AgentLogger.closeLoggersFrom(kernelAddress);
 		super.terminate();
+		AgentLogger.removeLoggers(this);
 		if (getMadkitConfig().savePropertiesAfterKernelKill)
 		{
 			try {
