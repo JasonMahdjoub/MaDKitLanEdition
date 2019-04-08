@@ -559,9 +559,11 @@ public class NetworkProperties extends MultiFormatProperties {
 	private ArrayList<AbstractIP> addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers = null;
 
 	public List<AbstractIP> getAddressesForDirectConnectionToAttemptFromThisPeerToOtherPeers() {
-		if (addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers==null)
-			return null;
-		return new ArrayList<>(addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers);
+		synchronized (this) {
+			if (addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers == null)
+				return null;
+			return new ArrayList<>(addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers);
+		}
 	}
 	public void setAddressesForDirectConnectionToAttemptFromThisPeerToOtherPeers(List<AbstractIP> addressesForDirectConnectionToAttemptFromThisPeerToOtherPeers) {
 		synchronized (this) {
