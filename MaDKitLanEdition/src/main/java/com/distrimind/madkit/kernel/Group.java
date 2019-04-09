@@ -1249,6 +1249,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 		_gcn.potentialChangementInGroups();
 	}
 
+
 	static void removeGroupChangementNotifier(GroupChangementNotifier _gcn) {
 		synchronized (m_objects_to_notify) {
 			m_objects_to_notify.remove(_gcn);
@@ -1375,6 +1376,11 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 				af.set(null);
 		}
 	}
+	static void removeRepresentedGroupsOfUniverse(KernelAddress ka) {
+		synchronized (represented_groups_universe) {
+			represented_groups_universe.remove(ka);
+		}
+	}
 
 	static protected final Map<String, GroupTree> m_groups_root = new HashMap<>();
 
@@ -1398,6 +1404,20 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 
 	public static KernelAddress getFirstUsedMadKitKernel() {
 		return m_first_kernel;
+	}
+
+	static void madkitKernelKilled(KernelAddress ka)
+	{
+		synchronized (m_groups_root) {
+			/*for (GroupTree gt : new ArrayList<>(Group.m_groups_root.values()))
+			{
+				gt.madkitKernelKilled(ka);
+			}
+			removeRepresentedGroupsOfUniverse(ka);*/
+			if (m_first_kernel != null && m_first_kernel.equals(ka))
+				m_first_kernel = null;
+
+		}
 	}
 
 	private final static class GroupTree {
@@ -1468,6 +1488,22 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 			m_identifier = null;
 			isReserved = false;
 			m_root = this;
+		}
+
+		void madkitKernelKilled(KernelAddress ka)
+		{
+			for (GroupTree gt : this.m_sub_groups)
+				gt.madkitKernelKilled(ka);
+
+			KernelReferences kr = m_kernel_references.remove(ka);
+
+			if (kr == null)
+				return;
+
+
+			if (!isAnyRoleRequested())
+				m_global_sub_groups_duplicated = null;
+
 		}
 
 		private GroupTree(String group, GroupTree root, GroupTree _parent, boolean _isDistributed,

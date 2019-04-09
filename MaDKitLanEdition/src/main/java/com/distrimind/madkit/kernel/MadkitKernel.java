@@ -1192,6 +1192,7 @@ class MadkitKernel extends Agent {
                     removeDistantKernelAddress(distantAccessibleGroupsGivenToDistantPeer, distantAccessibleKernelsPerGroupsGivenToDistantPeer, m.getDistantKernelAddress());
 					acceptedDistantLogins.remove(m.getDistantKernelAddress());
 					removeDistantKernelAddressFromCGR(m.getDistantKernelAddress());
+					//Group.madkitKernelKilled(m.getDistantKernelAddress());
 				}
 			} else if (hook_message.getClass() == NetworkGroupsAccessEvent.class) {
 				NetworkGroupsAccessEvent n = (NetworkGroupsAccessEvent) hook_message;
@@ -2935,6 +2936,38 @@ class MadkitKernel extends Agent {
 		getLogger().log(Level.FINE, "distant CGR " + m.getCode() + " update failed on " + agentAddress, e);
 	}
 
+	private void leaveAllGroupsOfAllAgents()
+	{
+		synchronized (auto_requested_groups) {
+			for (Map.Entry<AbstractAgent, AutoRequestedGroups> e : new HashMap<>(this.auto_requested_groups).entrySet()) {
+				AbstractAgent aa = e.getKey();
+				if (!(aa instanceof MadkitKernel) && aa.isAlive() && aa.getState().compareTo(State.WAIT_FOR_KILL) < 0)
+					killAgent(aa);
+			}
+		}
+		synchronized (organizations)
+		{
+			for (KernelAddress ka : new ArrayList<>(distantKernelAddresses))
+				removeDistantKernelAddressFromCGR(ka);
+			distantKernelAddresses.clear();
+			for (Organization o : new ArrayList<>(organizations.values()))
+			{
+				for (InternalGroup g : new ArrayList<>(o.values()))
+				{
+					for (InternalRole r : new ArrayList<>(g.values()))
+					{
+						for (AbstractAgent aa : r.getAgentsList())
+						{
+							if (!(aa instanceof MadkitKernel) && aa.isAlive() && aa.getState().compareTo(State.WAIT_FOR_KILL)<0)
+								killAgent(aa);
+						}
+					}
+				}
+			}
+		}
+
+	}
+
 	@Override
 	void terminate() {
 		// AgentLogger.closeLoggersFrom(kernelAddress);
@@ -2952,6 +2985,7 @@ class MadkitKernel extends Agent {
 			}
 
 		}
+		leaveAllGroupsOfAllAgents();
 		if (this.lifeExecutor!=null) {
 			this.lifeExecutor.shutdownNow();
 			this.serviceExecutor.shutdownNow();
@@ -2986,7 +3020,7 @@ class MadkitKernel extends Agent {
 			e.printStackTrace();
 		}
 
-
+		Group.madkitKernelKilled(kernelAddress);
 		if (getMadkitConfig().madkitLogLevel != Level.OFF) {
 			System.out.println("\n-----------------------------------------------------------------------------"
 					+ "\n\t Kernel " + getNetworkID() + "\n\t is shutting down, Bye !"
@@ -3070,6 +3104,8 @@ class MadkitKernel extends Agent {
 	// }
 
 	private void killAgents(boolean untilEmpty) throws InterruptedException {
+
+		leaveAllGroupsOfAllAgents();
 
 		//kill threaded agents
 		threadedAgents.remove(this);
