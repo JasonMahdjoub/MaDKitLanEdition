@@ -153,8 +153,9 @@ public class CreateLogFilesTest extends JunitMadkit {
 		launchTest(new LogTester() {
 
 			@Override
-			protected void activate() {
-				f = new File("logs", "[-" + getAgentID() + "]");
+			protected void activate() throws InterruptedException {
+				super.activate();
+				f = new File(this.getMadkitConfig().logDirectory, "[" + this.getName() + "]");
 				System.err.println(f);
 				assertTrue(f.exists());
 				f.delete();
@@ -238,7 +239,12 @@ public class CreateLogFilesTest extends JunitMadkit {
 class LogTester extends AbstractAgent {
 
 	public LogTester() {
-		getLogger().createLogFile();
+
 	}
 
+	@Override
+	protected void activate() throws InterruptedException {
+		super.activate();
+		getLogger().createLogFile();
+	}
 }

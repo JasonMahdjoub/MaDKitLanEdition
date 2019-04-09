@@ -35,6 +35,7 @@ package com.distrimind.madkit.gui;
 
 import java.awt.FlowLayout;
 import java.awt.Image;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -44,6 +45,7 @@ import javax.swing.JPanel;
 
 import com.distrimind.madkit.action.KernelAction;
 import com.distrimind.madkit.kernel.AbstractAgent;
+import com.distrimind.madkit.kernel.KernelAddress;
 
 /**
  * A panel that displays a flag if the MaDKit kernel is online.
@@ -96,6 +98,15 @@ public class AgentStatusPanel extends JPanel {
 
 	public static void remove(AbstractAgent abstractAgent) {
 		panels.remove(abstractAgent);
+	}
+
+	public static void remove(KernelAddress kernelAddress) {
+		for (Iterator<Map.Entry<AbstractAgent, AgentStatusPanel>> it=panels.entrySet().iterator();it.hasNext();) {
+			Map.Entry<AbstractAgent, AgentStatusPanel> e=it.next();
+			if (!e.getKey().isAlive() || e.getKey().getKernelAddress().equals(kernelAddress)) {
+				it.remove();
+			}
+		}
 	}
 
 }

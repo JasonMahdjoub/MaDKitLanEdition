@@ -88,4 +88,6 @@ public abstract class ClassPathSensitiveMenu extends JMenu {
 	 * {@link MadkitClassLoader#loadUrl(java.net.URL)} is used.
 	 */
 	public abstract void update();
+
+
 }

@@ -52,4 +52,6 @@ final class TerminatedKernel extends FakeKernel {
 		// }
 		return agent != null ? agent.getName() : "" + AbstractAgent.State.TERMINATED;
 	}
+
+
 }

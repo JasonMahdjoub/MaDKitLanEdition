@@ -84,6 +84,11 @@ final class LoggedKernel extends MadkitKernel {
 		loggedKernel = this;
 	}
 
+	@Override
+	public AgentLogger getLogger() {
+		return kernel.getLogger();
+	}
+
 
 	@Override
 	ReturnCode createGroup(AbstractAgent requester, Group group, Object passKey, boolean manually_created) {
@@ -398,7 +403,7 @@ final class LoggedKernel extends MadkitKernel {
 		return kernel;
 	}
 
-	// @Override //TODO think about this log
+// @Override //TODO think about this log
 	// ReturnCode reloadClass(AbstractAgent requester, String name) throws
 	// ClassNotFoundException {
 	// final ReturnCode r = kernel.reloadClass(requester, name);
@@ -602,6 +607,7 @@ final class LoggedKernel extends MadkitKernel {
 	public MadkitProperties getMadkitConfig() {
 		return kernel.getMadkitConfig();
 	}
+
 
 
 		@Override

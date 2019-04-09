@@ -213,6 +213,11 @@ class FakeKernel extends MadkitKernel {
 	}
 
 	@Override
+	public AgentLogger getLogger() {
+		throw buildKernelException(null);
+	}
+
+	@Override
 	final public MadkitProperties getMadkitConfig() {
 		return Madkit.getDefaultConfig();
 	}

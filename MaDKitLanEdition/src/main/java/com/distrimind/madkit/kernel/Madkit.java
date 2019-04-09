@@ -101,7 +101,7 @@ final public class Madkit {
 
 	private final static String MDK_LOGGER_NAME = "[* MADKIT *] ";
 	private volatile static MadkitProperties defaultConfig=null;
-	final static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss");
+	final SimpleDateFormat dateFormat;
 
 
 
@@ -705,6 +705,7 @@ final public class Madkit {
 	Madkit(MadkitProperties madkitProperties, KernelAddress kernelAddress, MadkitEventListener eventListener, String... options) {
 		if (eventListener == null)
 			throw new NullPointerException("eventListener");
+		this.dateFormat=new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss");
 		this.kernelAddress = kernelAddress;
 		final ArrayList<String> argsList = new ArrayList<>();
 

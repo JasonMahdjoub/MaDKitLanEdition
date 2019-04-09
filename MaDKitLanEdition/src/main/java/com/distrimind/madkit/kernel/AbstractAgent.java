@@ -667,7 +667,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 			// So there a risk of memory leak here because logger can be set to null after
 			// creation and still exists in AgentLogger.loggers
 			// But that should not be a problem because such a practice is usually not used
-			if (logger!= AgentLogger.defaultAgentLogger)
+			if (logger!= AgentLogger.defaultAgentLogger && (logger!=getMadkitKernel().logger || this instanceof MadkitKernel))
 				logger.close();
 			logger = null;
 		}
@@ -1287,10 +1287,15 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		if (newLevel == null)
 			throw new NullPointerException("newLevel");
 		if (Level.OFF == newLevel) {
-			if (logger != null && logger != AgentLogger.defaultAgentLogger) {
-				logger.setLevel(newLevel);
+			if (logger != null) {
+				if (logger != AgentLogger.defaultAgentLogger) {
+					/*if ((logger!=getMadkitKernel().logger || this instanceof MadkitKernel))
+						logger.close();
+					else
+						logger.setLevel(newLevel);*/
+					logger.close();
+				}
 				loggerModified(null);
-				//logger.close();
 			}
 			logger = null;
 			setKernel(getMadkitKernel());
@@ -1311,10 +1316,11 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @see AbstractAgent#logger
 	 * @since MaDKit 5.0.0.6
 	 */
-	final public AgentLogger getLogger() {
+	public AgentLogger getLogger() {
 		if (logger == AgentLogger.defaultAgentLogger || logger == null) {
 			synchronized (this) {
 				logger = AgentLogger.getLogger(this);
+				logger.setLevel(getMadkitConfig().agentLogLevel);
 				loggerModified(logger);
 			}
 		}

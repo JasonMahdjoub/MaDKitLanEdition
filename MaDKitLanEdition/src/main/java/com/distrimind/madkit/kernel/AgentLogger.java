@@ -18,25 +18,14 @@
  */
 package com.distrimind.madkit.kernel;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.FileHandler;
-import java.util.logging.Formatter;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
-
-import javax.swing.JOptionPane;
-
 import com.distrimind.madkit.gui.menu.AgentLogLevelMenu;
 import com.distrimind.madkit.i18n.Words;
+
+import javax.swing.*;
+import java.io.*;
+import java.util.*;
+import java.util.logging.Formatter;
+import java.util.logging.*;
 
 /**
  * This class defines a logger specialized for MaDKit agents.
@@ -73,32 +62,55 @@ final public class AgentLogger extends Logger {
 
 	private Level warningLogLevel = Madkit.getDefaultConfig().warningLogLevel;
 
-	static AgentLogger getLogger(final AbstractAgent agent) {
+	static AgentLogger getLogger(AbstractAgent agent) {
+		if (agent instanceof MadkitKernel)
+			agent=agent.getMadkitKernel();
 		synchronized (agentLoggers) {
 			AgentLogger al = agentLoggers.get(agent);
 			if (al == null) {
+
 				al = new AgentLogger(agent);
 				agentLoggers.put(agent, al);
+				al.setWarningLogLevel(agent.getMadkitConfig().warningLogLevel);
 			}
 			return al;
 		}
 	}
 
-	static boolean removeLogger(final AbstractAgent agent)
+	static boolean removeLogger(AbstractAgent agent)
 	{
+		if (agent instanceof MadkitKernel)
+			agent=agent.getMadkitKernel();
 		synchronized (agentLoggers) {
-			return agentLoggers.remove(agent) != null;
+			AgentLogger al=agentLoggers.remove(agent);
+			if (al==null)
+				return false;
+			else {
+				for (final Handler h : al.getHandlers()) {
+
+					al.removeHandler(h);
+					h.close();
+				}
+				return true;
+			}
 		}
 	}
 
-	static void removeLoggers(final MadkitKernel kernel)
+	static void removeLoggers(MadkitKernel kernel)
 	{
 		synchronized (agentLoggers) {
-			kernel.getMadkitKernel();
+			kernel=kernel.getMadkitKernel();
 			for (Iterator<Map.Entry<AbstractAgent, AgentLogger>> it = agentLoggers.entrySet().iterator(); it.hasNext(); ) {
 				Map.Entry<AbstractAgent, AgentLogger> e = it.next();
-				if (e.getKey().getMadkitKernel() == kernel)
+				if (e.getKey().getMadkitKernel() == kernel) {
+					for (final Handler h : e.getValue().getHandlers()) {
+
+						e.getValue().removeHandler(h);
+						h.close();
+					}
+
 					it.remove();
+				}
 			}
 		}
 	}
@@ -152,12 +164,13 @@ final public class AgentLogger extends Logger {
 
 	private AgentLogger(final AbstractAgent agent) {
 		super("[" + agent.getName() + "]", null);
+
 		myAgent = agent;
 		setUseParentHandlers(false);
 		final MadkitProperties madkitConfig = myAgent.getMadkitConfig();
 		final Level l = myAgent.logger == null ? Level.OFF : madkitConfig.agentLogLevel;
 		super.setLevel(l);
-		setWarningLogLevel(madkitConfig.warningLogLevel);
+
 		if (!madkitConfig.noAgentConsoleLog) {
 			ConsoleHandler ch = new ConsoleHandler();
 			addHandler(ch);
@@ -188,13 +201,13 @@ final public class AgentLogger extends Logger {
 			final String logEnd = " --\n" + lineSeparator + "\n";
 			final Date date = new Date();
 			try (FileWriter fw = new FileWriter(logFile, true)) {
-				fw.write(logSession + " started on " + Madkit.dateFormat.format(date) + logEnd);
+				fw.write(logSession + " started on " + myAgent.getMadkitKernel().platform.dateFormat.format(date) + logEnd);
 				fh = new FileHandler(logFile.toString(), true) {
 					public synchronized void close() throws SecurityException {
 						super.close();
 						try (FileWriter fw2 = new FileWriter(logFile, true)) {
 							date.setTime(System.currentTimeMillis());
-							fw2.write("\n\n" + logSession + " closed on  " + Madkit.dateFormat.format(date) + logEnd);
+							fw2.write("\n\n" + logSession + " closed on  " + myAgent.getMadkitKernel().platform.dateFormat.format(date) + logEnd);
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
@@ -229,8 +242,13 @@ final public class AgentLogger extends Logger {
 	static void resetLoggers() {
 		synchronized (agentLoggers) {
 			for (final AgentLogger l : agentLoggers.values()) {
-				l.close();
+				for (final Handler h : l.getHandlers()) {
+
+					l.removeHandler(h);
+					h.close();
+				}
 			}
+			agentLoggers.clear();
 		}
 	}
 
@@ -350,8 +368,8 @@ final public class AgentLogger extends Logger {
 			for (AbstractAgent loggedAgent : agentLoggers.keySet()) {
 				if (loggedAgent != loggedAgent.getMadkitKernel()) {
 					loggedAgent.setLogLevel(level);
-				} else
-					loggedAgent.getMadkitConfig().agentLogLevel = level;
+				}
+				loggedAgent.getMadkitConfig().agentLogLevel = level;
 			}
 		}
 	}

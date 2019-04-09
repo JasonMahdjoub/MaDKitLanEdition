@@ -38,6 +38,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -48,8 +49,10 @@ import javax.swing.JRadioButtonMenuItem;
 
 import com.distrimind.madkit.action.ActionInfo;
 import com.distrimind.madkit.action.GUIManagerAction;
+import com.distrimind.madkit.gui.AgentStatusPanel;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.AgentLogger;
+import com.distrimind.madkit.kernel.KernelAddress;
 
 /**
  * An out of the box menu for manipulating the log level of an agent.
@@ -168,7 +171,14 @@ public class AgentLogLevelMenu extends JMenu {
 	public static void remove(AbstractAgent abstractAgent) {
 		menus.remove(abstractAgent);
 	}
-
+	public static void remove(KernelAddress kernelAddress) {
+		for (Iterator<Map.Entry<AbstractAgent, AgentLogLevelMenu>> it = menus.entrySet().iterator(); it.hasNext();) {
+			Map.Entry<AbstractAgent, AgentLogLevelMenu> e=it.next();
+			if (!e.getKey().isAlive() || e.getKey().getKernelAddress().equals(kernelAddress)) {
+				it.remove();
+			}
+		}
+	}
 	// TODO remove agent on dispose
 
 }

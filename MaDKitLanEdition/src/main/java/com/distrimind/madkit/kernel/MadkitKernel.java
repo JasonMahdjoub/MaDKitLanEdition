@@ -87,6 +87,8 @@ import java.util.logging.Level;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import com.distrimind.madkit.gui.AgentStatusPanel;
+import com.distrimind.madkit.gui.menu.AgentLogLevelMenu;
 import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.util.Utils;
 import com.distrimind.util.properties.PropertiesParseException;
@@ -340,9 +342,9 @@ class MadkitKernel extends Agent {
 		}
 		kernelAddress = ka;
 
-		File logDir = new File(madkitConfig.logDirectory, Madkit.dateFormat.format(new Date()) + kernelAddress);
+		File logDir = new File(madkitConfig.logDirectory, platform.dateFormat.format(new Date()) + kernelAddress);
 		while (logDir.exists()) {
-			logDir = new File(madkitConfig.logDirectory, Madkit.dateFormat.format(new Date()) + kernelAddress);
+			logDir = new File(madkitConfig.logDirectory, platform.dateFormat.format(new Date()) + kernelAddress);
 		}
 
 		madkitConfig.logDirectory = logDir;
@@ -2938,6 +2940,8 @@ class MadkitKernel extends Agent {
 		// AgentLogger.closeLoggersFrom(kernelAddress);
 		super.terminate();
 		AgentLogger.removeLoggers(this);
+		AgentStatusPanel.remove(kernelAddress);
+		AgentLogLevelMenu.remove(kernelAddress);
 		if (getMadkitConfig().savePropertiesAfterKernelKill)
 		{
 			try {
@@ -3066,6 +3070,8 @@ class MadkitKernel extends Agent {
 	// }
 
 	private void killAgents(boolean untilEmpty) throws InterruptedException {
+
+		//kill threaded agents
 		threadedAgents.remove(this);
 		// Do not do what follows because it throws interruption on awt threads !
 		// //TODO why ?
