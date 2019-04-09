@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-1.10.2 Stable (Build: 270) (from 22/05/2015 to 05/04/2019)
+1.10.2 Stable (Build: 272) (from 22/05/2015 to 08/04/2019)
 
 # Creator(s):
 Jason MAHDJOUB
@@ -14,9 +14,10 @@ Jacques FERBER (Entred in the team at 01/02/1997)
 # Modifications:
 
 
-### 1.10.2 Stable (05/04/2019)
+### 1.10.2 Stable (08/04/2019)
 * Add hashCode function into class AbstractIP.
 * Better manage externalization.
+* Better manage identifiers of connection protocol negotiator.
 * Add possibility to change connection protocols during MaDKit life, and not only during MaDKit loading.
 * Add possibility to change access protocols during MaDKit life, and not only during MaDKit loading.
 * Add possibility to change access data during MaDKit life, and not only during MaDKit loading.
