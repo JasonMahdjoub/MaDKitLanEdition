@@ -45,7 +45,7 @@ import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.Connec
 /**
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MadkitLanEdition 1.0
  *
  */

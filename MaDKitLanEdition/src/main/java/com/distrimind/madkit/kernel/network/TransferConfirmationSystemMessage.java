@@ -51,7 +51,7 @@ import java.net.InetSocketAddress;
 /**
  * 
  * @author Jason Mahdjoub
- * @version 1.1
+ * @version 1.2
  * @since MadkitLanEdition 1.0
  */
 class TransferConfirmationSystemMessage extends BroadcastableSystemMessage {

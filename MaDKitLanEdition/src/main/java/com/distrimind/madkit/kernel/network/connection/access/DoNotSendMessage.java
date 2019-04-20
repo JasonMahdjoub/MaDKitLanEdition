@@ -48,7 +48,7 @@ import com.distrimind.madkit.util.SecuredObjectOutputStream;
 /**
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MadkitLanEdition 1.0
  */
 public class DoNotSendMessage extends AccessMessage {

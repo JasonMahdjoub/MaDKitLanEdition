@@ -46,7 +46,7 @@ import com.distrimind.madkit.action.SchedulingAction;
  * 
  * @author Fabien Michel
  * @since MaDKit 5.0.0.14
- * @version 0.9
+ * @version 1.1
  * 
  */
 public class SchedulingMessage extends EnumMessage<SchedulingAction> {

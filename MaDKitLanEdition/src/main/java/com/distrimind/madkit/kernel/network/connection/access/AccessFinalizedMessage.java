@@ -41,16 +41,13 @@ import com.distrimind.madkit.util.SecuredObjectInputStream;
 import com.distrimind.madkit.util.SecuredObjectOutputStream;
 
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 
 /**
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 class AccessFinalizedMessage extends AccessMessage {
 
 	AccessFinalizedMessage()

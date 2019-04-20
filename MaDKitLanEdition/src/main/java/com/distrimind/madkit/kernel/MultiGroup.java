@@ -78,7 +78,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * excepted "One subgroup".
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MadKitGroupExtension 1.0
  * @see AbstractGroup
  * @see Group

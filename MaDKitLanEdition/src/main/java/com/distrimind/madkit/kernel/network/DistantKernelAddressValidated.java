@@ -46,7 +46,7 @@ import java.io.IOException;
 /**
  * 
  * @author Jason Mahdjoub
- * @version 1.1
+ * @version 1.2
  * @since MadkitLanEdition 1.0
  */
 public class DistantKernelAddressValidated implements SystemMessage {

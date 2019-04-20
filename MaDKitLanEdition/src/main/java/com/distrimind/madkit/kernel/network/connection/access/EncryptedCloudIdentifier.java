@@ -54,7 +54,7 @@ import java.util.Arrays;
  * Represent a cloud identifier encrypted
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MadKitLanEdition 1.0
  * @see CloudIdentifier
  */

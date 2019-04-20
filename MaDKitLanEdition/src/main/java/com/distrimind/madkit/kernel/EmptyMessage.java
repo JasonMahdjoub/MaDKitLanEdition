@@ -39,6 +39,12 @@ package com.distrimind.madkit.kernel;
 
 import com.distrimind.madkit.util.SecureExternalizable;
 
+/**
+ *
+ * @author Jason Mahdjoub
+ * @version 1.1
+ * @since MadkitLanEdition 1.0
+ */
 public final class EmptyMessage extends Message implements SecureExternalizable {
 
 	@Override

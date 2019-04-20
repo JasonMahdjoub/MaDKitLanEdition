@@ -60,7 +60,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 
  * @author Fabien Michel
  * @author Jason Mahdjoub
- * @version 2.1
+ * @version 2.2
  * @since MadKitLanEdition 1.0
  */
 public class ConversationID implements SecureExternalizable, Cloneable {

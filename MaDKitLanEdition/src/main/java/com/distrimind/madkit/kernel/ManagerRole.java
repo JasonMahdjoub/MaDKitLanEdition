@@ -47,17 +47,12 @@ import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 /**
  * @author Fabien Michel
  * @author Jason Mahdjoub
- * @version 0.92
+ * @version 1.1
  * @since MaDKitLanEdition 1.0
  *
  */
-@SuppressWarnings({"ExternalizableWithoutPublicNoArgConstructor", "SynchronizeOnNonFinalField"})
+@SuppressWarnings({"SynchronizeOnNonFinalField"})
 final class ManagerRole extends InternalRole {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1919401829672949296L;
 	@SuppressWarnings("unused")
 	ManagerRole()
 	{

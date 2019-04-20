@@ -41,7 +41,7 @@ import com.distrimind.madkit.action.KernelAction;
  * 
  * @author Olivier Gutknecht
  * @author Fabien Michel
- * @version 5.2
+ * @version 5.3
  * @since MaDKit 1.0
  *
  */

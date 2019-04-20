@@ -47,7 +47,7 @@ import java.io.IOException;
 /**
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MadkitLanEdition 1.0
  */
 class NullAccessMessage extends DoNotSendMessage {

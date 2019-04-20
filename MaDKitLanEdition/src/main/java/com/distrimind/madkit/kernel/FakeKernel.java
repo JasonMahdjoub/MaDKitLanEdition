@@ -62,7 +62,7 @@ import com.distrimind.util.crypto.MessageDigestType;
  * @author Fabien Michel
  * @author Jason Mahdjoub
  * @since MaDKitLanEdition 1.0
- * @version 1.3
+ * @version 1.4
  * 
  */
 class FakeKernel extends MadkitKernel {

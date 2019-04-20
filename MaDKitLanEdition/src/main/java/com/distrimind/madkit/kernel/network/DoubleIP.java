@@ -52,7 +52,7 @@ import java.util.Collection;
 /**
  * 
  * @author Jason Mahdjoub
- * @version 1.1
+ * @version 1.2
  * @since MadkitLanEdition 1.0
  */
 

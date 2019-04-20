@@ -50,7 +50,7 @@ import java.util.Collection;
 /**
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MadkitLanEdition 1.0
  */
 class LoginConfirmationMessage extends AccessMessage {

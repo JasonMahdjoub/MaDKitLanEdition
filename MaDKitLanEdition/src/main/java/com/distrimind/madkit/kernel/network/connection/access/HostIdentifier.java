@@ -56,7 +56,7 @@ import java.io.IOException;
  * instance of the program.
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MadKitLanEdition 1.0
  * @see Identifier
  * @see CloudIdentifier

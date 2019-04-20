@@ -54,7 +54,7 @@ import java.util.Objects;
 /**
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MadkitLanEdition 1.0
  */
 public abstract class AbstractIP extends MultiFormatProperties implements SystemMessage, SecureExternalizable {

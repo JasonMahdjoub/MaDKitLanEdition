@@ -52,7 +52,7 @@ import java.util.ArrayList;
 /**
  * 
  * @author Jason Mahdjoub
- * @version 1.1
+ * @version 1.2
  * @since MadkitLanEdition 1.0
  */
 final class BroadcastLanMessage extends LanMessage {

@@ -37,25 +37,20 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
-import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
 import com.distrimind.madkit.kernel.network.connection.TransferedBlockChecker;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 import com.distrimind.madkit.util.SecuredObjectOutputStream;
-import com.distrimind.madkit.util.SerializationTools;
+
+import java.io.IOException;
 
 /**
  * 
  * @author Jason Mahdjoub
- * @version 1.1
+ * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 class TransferBlockCheckerSystemMessage extends BroadcastableSystemMessage {
 
 	private TransferedBlockChecker transferBlockChercker;

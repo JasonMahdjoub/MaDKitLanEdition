@@ -51,7 +51,7 @@ import java.io.IOException;
  * and with a machine or an instance of the same program.
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MadKitLanEdition 1.0
  * @see CloudIdentifier
  * @see HostIdentifier

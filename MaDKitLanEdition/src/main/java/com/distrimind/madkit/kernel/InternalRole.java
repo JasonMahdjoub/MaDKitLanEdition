@@ -64,7 +64,7 @@ import static com.distrimind.madkit.kernel.CGRSynchro.Code.REQUEST_ROLE;
  * @author Fabien Michel
  * @author Jason Mahdjoub
  * @since MaDKitLanEdition 1.0
- * @version 5.2
+ * @version 5.3
  * 
  */
 @SuppressWarnings({"SynchronizeOnNonFinalField", "SameParameterValue"})

@@ -55,7 +55,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * already handled by MadKit.
  * 
  * @author Jason Mahdjoub
- * @version 1.8
+ * @version 1.9
  * @since MadKitLanEdition 1.0
  * @see AbstractGroup
  * @see MultiGroup

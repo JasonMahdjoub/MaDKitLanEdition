@@ -48,7 +48,7 @@ import java.io.Serializable;
  * 
  * @author Jason Mahdjoub
  * @since MaDKitLanEdition 1.7.0
- * @version 1.0
+ * @version 1.1
  *
  */
 public class NetworkObjectMessage<T extends Serializable> extends ObjectMessage<T> implements NetworkMessage {

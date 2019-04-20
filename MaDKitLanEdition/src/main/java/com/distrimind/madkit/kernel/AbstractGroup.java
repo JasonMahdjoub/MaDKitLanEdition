@@ -55,7 +55,7 @@ import java.util.*;
  * The class AbstractGroup is the super class of these two classes.
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MadKitGroupExtension 1.0
  * @see Group
  * @see MultiGroup

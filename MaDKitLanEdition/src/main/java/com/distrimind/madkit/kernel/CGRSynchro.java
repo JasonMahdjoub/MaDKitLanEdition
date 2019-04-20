@@ -48,7 +48,7 @@ import java.io.IOException;
 /**
  * @author Fabien Michel
  * @author Jason Mahdjoub
- * @version 0.91
+ * @version 1.1
  * @since MaDKitLanEdition 1.0
  *
  */

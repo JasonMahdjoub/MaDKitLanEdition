@@ -42,7 +42,7 @@ import com.distrimind.madkit.kernel.network.SystemMessage;
 /**
  * 
  * @author Jason Mahdjoub
- * @version 1.1
+ * @version 1.2
  * @since MadkitLanEdition 1.0
  */
 public abstract class AccessMessage implements SystemMessage {

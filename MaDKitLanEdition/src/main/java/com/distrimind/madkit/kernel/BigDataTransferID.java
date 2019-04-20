@@ -48,7 +48,7 @@ import java.util.Map;
  * Represent an identifier for a big data transfer.
  * 
  * @author Jason Mahdjoub
- * @version 2.0
+ * @version 2.1
  * @since MadkitLanEdition 1.0
  * @see AbstractAgent#sendBigDataWithRole(AgentAddress, com.distrimind.madkit.io.RandomInputStream, long, long, com.distrimind.madkit.util.SecureExternalizable, com.distrimind.util.crypto.MessageDigestType, String, boolean)
  */

@@ -97,7 +97,7 @@ import static com.distrimind.madkit.kernel.CGRSynchro.Code.*;
  * 
  * @author Fabien Michel
  * @author Jason Mahdjoub
- * @version 2.3
+ * @version 2.4
  * @since MaDKit 5.0
  * @since MaDKitLanEdition 1.0
  * 

@@ -46,7 +46,7 @@ import com.distrimind.madkit.util.SecureExternalizableSystemMessage;
  * Represent a system message.
  * 
  * @author Jason Mahdjoub
- * @version 1.1
+ * @version 1.2
  * @since MadkitLanEdition 1.0
  */
 public interface SystemMessage extends SecureExternalizableSystemMessage {

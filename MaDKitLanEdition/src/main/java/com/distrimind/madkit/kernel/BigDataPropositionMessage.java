@@ -62,10 +62,10 @@ import java.util.concurrent.ExecutionException;
  * transfer will rejected.
  * 
  * @author Jason Mahdjoub
- * @version 1.2
+ * @version 1.3
  * @since MadkitLanEdition 1.0
  * 
- * @see AbstractAgent#sendBigDataWithRole(AgentAddress, RandomInputStream, long, long, ExternalizableAndSizable, MessageDigestType, String, boolean)
+ * @see AbstractAgent#sendBigDataWithRole(AgentAddress, RandomInputStream, long, long, SecureExternalizable, MessageDigestType, String, boolean)
  * @see BigDataResultMessage
  */
 @SuppressWarnings({"unused"})
@@ -254,7 +254,7 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 					public Void call() throws Exception {
 						long remaining = length;
 						try {
-							byte buffer[] = new byte[(int) Math.min(length, (long) maxBufferSize)];
+							byte[] buffer = new byte[(int) Math.min(length, (long) maxBufferSize)];
 							inputStream.seek(pos);
 							outputStream.setLength(length);
 							while (remaining > 0) {

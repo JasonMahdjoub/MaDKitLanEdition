@@ -43,7 +43,7 @@ import com.distrimind.madkit.util.SecuredObjectOutputStream;
 /**
  * 
  * @author Jason Mahdjoub
- * @version 1.1
+ * @version 1.2
  * @since MadkitLanEdition 1.0
  */
 final class PongMessage implements SystemMessage {

@@ -43,7 +43,7 @@ import com.distrimind.madkit.kernel.network.SystemMessage;
  * Represents a message destined for connections protocol.
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MadkitLanEdition 1.0
  */
 public abstract class ConnectionMessage implements SystemMessage {

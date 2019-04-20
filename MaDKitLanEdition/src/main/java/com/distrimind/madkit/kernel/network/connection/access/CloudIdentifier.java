@@ -48,7 +48,7 @@ import com.distrimind.util.crypto.ASymmetricPublicKey;
  * {@link HostIdentifier} of the same program linked through network.
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MadKitLanEdition 1.0
  * @see Identifier
  * @see HostIdentifier

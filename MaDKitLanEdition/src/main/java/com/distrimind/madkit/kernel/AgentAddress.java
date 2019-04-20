@@ -63,7 +63,7 @@ import java.io.IOException;
  * @author Jason Mahdjoub
  * 
  * @since MaDKitLanEdition 1.0
- * @version 5.2
+ * @version 5.3
  */
 
 public class AgentAddress implements SecureExternalizable, Cloneable {

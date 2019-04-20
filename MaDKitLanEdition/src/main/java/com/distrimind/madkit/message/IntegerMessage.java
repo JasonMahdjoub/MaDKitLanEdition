@@ -44,7 +44,7 @@ import java.io.IOException;
  * 
  * @author Fabien Michel
  * @since MaDKit 5.0.1
- * @version 0.9
+ * @version 1.1
  * 
  */
 public class IntegerMessage extends ObjectMessage<Integer> implements NetworkMessage{

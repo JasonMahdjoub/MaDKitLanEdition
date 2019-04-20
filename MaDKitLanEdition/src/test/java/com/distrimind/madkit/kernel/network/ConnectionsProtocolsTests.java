@@ -78,7 +78,7 @@ import java.util.Iterator;
 /**
  * 
  * @author Jason Mahdjoub
- * @version 1.2
+ * @version 1.3
  * @since MadkitLanEdition 1.0
  */
 @RunWith(Parameterized.class)

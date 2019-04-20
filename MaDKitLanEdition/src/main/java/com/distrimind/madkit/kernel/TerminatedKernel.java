@@ -40,7 +40,7 @@ package com.distrimind.madkit.kernel;
 /**
  * @author Fabien Michel
  * @since MaDKit 5.0.0.12
- * @version 1.0
+ * @version 1.1
  * 
  */
 final class TerminatedKernel extends FakeKernel {

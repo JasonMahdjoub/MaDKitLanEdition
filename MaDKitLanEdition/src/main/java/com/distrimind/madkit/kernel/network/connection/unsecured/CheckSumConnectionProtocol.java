@@ -63,7 +63,7 @@ import java.net.InetSocketAddress;
  * 
  * 
  * @author Jason Mahdjoub
- * @version 1.3
+ * @version 1.4
  * @since MadkitLanEdition 1.0
  */
 public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConnectionProtocol> {
@@ -266,7 +266,7 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 		@Override
 		public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 			super.writeExternal(oos);
-			oos.writeObject(messageDigest, false);
+			oos.writeObject(messageDigestType, false);
 
 		}
 		

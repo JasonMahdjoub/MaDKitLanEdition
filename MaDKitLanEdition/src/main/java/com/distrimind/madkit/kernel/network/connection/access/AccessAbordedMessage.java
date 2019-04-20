@@ -40,7 +40,7 @@ package com.distrimind.madkit.kernel.network.connection.access;
 /**
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MadkitLanEdition 1.0
  */
 public class AccessAbordedMessage extends AccessErrorMessage {

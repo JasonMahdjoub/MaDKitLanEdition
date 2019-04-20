@@ -40,9 +40,9 @@ package com.distrimind.madkit.kernel;
 import com.distrimind.madkit.message.EnumMessage;
 
 /**
- * @author Fabien Michel
- * @since MaDKit 5
- * @version 1.1
+ * @author Jason Mahdjoub
+ * @since MaDKitLanEdition 1.7
+ * @version 1.2
  * 
  */
 enum NetCode {

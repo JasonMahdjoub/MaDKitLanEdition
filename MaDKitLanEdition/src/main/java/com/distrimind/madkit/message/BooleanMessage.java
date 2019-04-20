@@ -43,7 +43,7 @@ import java.io.IOException;
  * @author Fabien Michel
  * @author Jason Mahdjoub
  * @since MadKit 5.0.0.20
- * @version 0.9
+ * @version 1.1
  * 
  */
 public class BooleanMessage extends ObjectMessage<Boolean> implements NetworkMessage{

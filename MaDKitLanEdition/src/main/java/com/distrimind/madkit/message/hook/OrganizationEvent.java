@@ -34,7 +34,7 @@ import java.io.IOException;
  * 
  * @author Fabien Michel
  * @since MadKit 5.0.0.19
- * @version 0.9
+ * @version 1.1
  * 
  */
 public class OrganizationEvent extends CGREvent implements NetworkMessage {

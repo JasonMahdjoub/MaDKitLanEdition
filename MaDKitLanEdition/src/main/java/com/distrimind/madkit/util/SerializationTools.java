@@ -77,7 +77,7 @@ import static com.distrimind.madkit.util.ReflectionTools.*;
  * 
  * @author Jason Mahdjoub
  * @since MaDKitLanEdition 1.7
- * @version 1.0
+ * @version 2.0
  * 
  */
 
@@ -213,7 +213,7 @@ public class SerializationTools {
 			oos.writeShort(size);
 		for (int i=off;i<size;i++) {
 			byte[] b=tab[i];
-			SerializationTools.writeBytes(oos, b, 0, b.length, sizeMax2, supportNull2);
+			SerializationTools.writeBytes(oos, b, 0, b==null?0:b.length, sizeMax2, supportNull2);
 		}
 	}
 	@SuppressWarnings("SameParameterValue")
@@ -1227,7 +1227,7 @@ public class SerializationTools {
 					PointToPointTransferedBlockChecker.class,
 					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.ValidateBigDataProposition"),
 					EnumMessage.class,
-					NetworkObjectMessage.class,
+					NetworkObjectMessage.class,TaskID.class,
 					ACLMessage.class, ActMessage.class,BigDataPropositionMessage.class,BigDataResultMessage.class,
 					KernelMessage.class, StringMessage.class, (Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.message.hook.OrganizationEvent"),
 					SchedulingMessage.class, KQMLMessage.class, IntegerMessage.class, BooleanMessage.class,
@@ -1346,25 +1346,25 @@ public class SerializationTools {
 	{
 		if (array==null)
 			return maxSizeInBytes>Short.MAX_VALUE?4:2;
-		return getInternalSize(array, maxSizeInBytes);
+		return getInternalSize((Object)array, maxSizeInBytes);
 	}
 	public static int getInternalSize(Object[] array, int maxSizeInBytes)
 	{
 		if (array==null)
 			return maxSizeInBytes>Short.MAX_VALUE?4:2;
-		return getInternalSize(array, maxSizeInBytes);
+		return getInternalSize((Object)array, maxSizeInBytes);
 	}
 	public static int getInternalSize(String text, int maxSizeInBytes)
 	{
 		if (text==null)
 			return maxSizeInBytes>Short.MAX_VALUE?4:2;
-		return getInternalSize(text, maxSizeInBytes);
+		return getInternalSize((Object)text, maxSizeInBytes);
 	}
 	public static int getInternalSize(Collection<Object> array, int maxSizeInBytes)
 	{
 		if (array==null)
 			return maxSizeInBytes>Short.MAX_VALUE?4:2;
-		return getInternalSize(array, maxSizeInBytes);
+		return getInternalSize((Object)array, maxSizeInBytes);
 	}
 	public static int getInternalSize(byte[][] array, int maxSizeInBytes1, int maxSizeInBytes2)
 	{

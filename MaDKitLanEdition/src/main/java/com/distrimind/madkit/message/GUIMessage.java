@@ -41,7 +41,7 @@ import com.distrimind.madkit.action.GUIManagerAction;
  * @author Fabien Michel
  * @since MaDKit 5.0.0.9
  * @see GUIManagerAction
- * @version 0.9
+ * @version 0.10
  * 
  */
 

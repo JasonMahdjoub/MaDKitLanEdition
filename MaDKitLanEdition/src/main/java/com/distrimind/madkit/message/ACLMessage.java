@@ -53,7 +53,7 @@ import java.util.List;
  * @author Ol. Gutknecht
  * @author J. Ferber
  * @author Jason Mhdjoub
- * @version 1.2
+ * @version 1.3
  * @since MaDKit 1.0
  */
 

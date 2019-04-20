@@ -58,7 +58,7 @@ import java.io.IOException;
  * Represent an encrypted password
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MadKitLanEdition 1.0
  * @see PasswordKey
  */

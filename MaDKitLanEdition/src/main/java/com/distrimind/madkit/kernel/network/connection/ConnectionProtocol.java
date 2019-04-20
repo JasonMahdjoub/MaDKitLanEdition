@@ -64,7 +64,7 @@ import java.util.NoSuchElementException;
  * 
  * 
  * @author Jason Mahdjoub
- * @version 1.3
+ * @version 1.4
  * @since MadkitLanEdition 1.0
  * @param <CP> the connection protocol type
  */

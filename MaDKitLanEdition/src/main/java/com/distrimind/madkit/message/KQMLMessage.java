@@ -41,7 +41,8 @@ import java.util.Enumeration;
  * are automatically mapped to the MaDKit AgentAddress.
  * 
  * @author Olivier Gutknecht
- * @version MaDKit 1.0
+ * @version 1.1
+ *
  */
 public class KQMLMessage extends ActMessage {
 

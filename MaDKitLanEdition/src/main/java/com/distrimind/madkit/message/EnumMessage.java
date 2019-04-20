@@ -47,7 +47,7 @@ import java.util.Arrays;
  * enumeration and conveying any java objects using an array of Object.
  * 
  * @author Fabien Michel
- * @version 5.0
+ * @version 5.1
  * @since MaDKit 5.0.0.14
  *
  */

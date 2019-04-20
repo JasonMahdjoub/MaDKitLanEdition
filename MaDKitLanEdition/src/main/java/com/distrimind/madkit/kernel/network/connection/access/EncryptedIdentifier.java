@@ -59,7 +59,7 @@ import com.distrimind.util.crypto.P2PASymmetricSecretMessageExchanger;
  * Represent an identifier encrypted
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MadKitLanEdition 1.0
  * @see Identifier
  */

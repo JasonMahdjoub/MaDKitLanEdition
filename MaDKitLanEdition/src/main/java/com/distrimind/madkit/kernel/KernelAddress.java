@@ -56,7 +56,7 @@ import java.io.IOException;
  * @author Oliver Gutknecht
  * @author Fabien Michel
  * @author Jason Mahdjoub
- * @version 5.6
+ * @version 6.1
  * @since MaDKit 1.0
  * @since MaDKitLanEdition 1.0
  *

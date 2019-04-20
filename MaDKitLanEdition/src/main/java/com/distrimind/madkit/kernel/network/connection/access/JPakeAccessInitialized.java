@@ -47,7 +47,7 @@ import java.io.IOException;
 /**
  * 
  * @author Jason Mahdjoub
- * @version 2.0
+ * @version 2.1
  * @since MadkitLanEdition 1.0
  */
 public class JPakeAccessInitialized extends AccessInitialized {

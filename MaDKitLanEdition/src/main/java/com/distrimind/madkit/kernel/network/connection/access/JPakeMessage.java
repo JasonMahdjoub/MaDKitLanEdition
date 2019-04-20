@@ -60,7 +60,7 @@ import java.util.*;
 /**
  * 
  * @author Jason Mahdjoub
- * @version 2.0
+ * @version 2.1
  * @since MadkitLanEdition 1.2
  */
 class JPakeMessage extends AccessMessage{
@@ -116,7 +116,7 @@ class JPakeMessage extends AccessMessage{
 	public void writeExternal(final SecuredObjectOutputStream oos) throws IOException
 	{
 		oos.writeBoolean(identifiersIsEncrypted);
-		oos.writeObject(identifiers, false);
+		oos.writeObject(identifiers, false, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE);
 		oos.write2DBytesArray(jpakeMessages, false, true, identifiers.length, MAX_JPAKE_MESSAGE_LENGTH);
 		oos.writeShort(step);
 	}

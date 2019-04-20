@@ -45,7 +45,7 @@ import java.io.IOException;
  * @author Fabien Michel
  * @author Jason Mahdjoub
  * @since MaDKit 5.0.0.14
- * @version 0.10
+ * @version 1.1
  * 
  */
 public class StringMessage extends ObjectMessage<String> implements NetworkMessage {

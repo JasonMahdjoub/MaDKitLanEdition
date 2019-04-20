@@ -50,7 +50,7 @@ import com.distrimind.madkit.util.SecuredObjectOutputStream;
  * 
  * @author Jason Mahdjoub
  * @since MadkitLanEdition 1.0
- * @version 1.1
+ * @version 1.2
  */
 @SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public class AskConnection extends ConnectionMessage {

@@ -52,7 +52,7 @@ import java.util.Map;
  * 
  * @author Ol. Gutknecht 10/03/98 original, revision 1.1 04/2002 J.Ferber
  * @author Jason Mahdjoub
- * @version 1.2
+ * @version 1.3
  * @since MaDKit 1.0
  */
 

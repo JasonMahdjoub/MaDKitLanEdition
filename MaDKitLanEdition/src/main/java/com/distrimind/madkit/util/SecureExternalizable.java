@@ -41,7 +41,7 @@ import java.io.ObjectOutput;
 
 /**
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MaDKitLanEdition 1.11.0
  */
 public interface SecureExternalizable extends SecureExternalizableSystemMessage{
