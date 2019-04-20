@@ -949,8 +949,8 @@ public class SerializationTools {
 			else
 				c= Class.forName(clazz, !doubleCheck, MadkitClassLoader.getSystemClassLoader());
 			if (doubleCheck) {
-				if (rootClass.isAssignableFrom(c))
-					throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				if (!rootClass.isAssignableFrom(c))
+					throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, "rootClass : "+rootClass+" ; class="+c);
 				if (!isOIS)
 					c = Class.forName(clazz, true, MadkitClassLoader.getSystemClassLoader());
 			}
