@@ -1115,13 +1115,13 @@ public class SerializationTools {
 		{
 			if (type<=classesEndIndex)
 			{
-				Class<?> c=classes.get(type+classesStartIndex);
+				Class<?> c=classes.get(type-classesStartIndex);
 				return readExternalizable(ois, c);
 			}
 			else if (type<=enumsEndIndex)
 			{
 				int ordinal=ois.readInt();
-				Class<? extends Enum<?>> c=enums.get(type+enumsStartIndex);
+				Class<? extends Enum<?>> c=enums.get(type-enumsStartIndex);
 				for (Enum<?> e : c.getEnumConstants())
 				{
 					if (e.ordinal()==ordinal)
@@ -1203,23 +1203,21 @@ public class SerializationTools {
 					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferImpossibleSystemMessageFromMiddlePeer"),
 					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferBlockCheckerSystemMessage"),
 					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferPropositionSystemMessage"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferAgent.DirectConnection"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferAgent.DirectConnectionFailed"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferAgent.DirectConnectionSuceeded"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferAgent.TryDirectConnection"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$IDTransfer"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$DirectConnection"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$DirectConnectionFailed"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$DirectConnectionSuceeded"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$TryDirectConnection"),
 					BigDataTransferID.class,
 					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.CGRSynchrosSystemMessage"),
 					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.CGRSynchroSystemMessage"),
 					CGRSynchro.class,
 					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.ConnectionInfoSystemMessage"),
 					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.DataToBroadcast"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.DirectC"),
 					DistantKernelAddressValidated.class,
 					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.connection.access.IdentifiersPropositionMessage"),
 					Identifier.class, EncryptedIdentifier.class,
 					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.connection.access.JPakeMessage"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.KernelAddressNegociationMessage"),
 					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.connection.secured.KeyAgreementDataMessage"),
 					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.connection.access.LoginConfirmationMessage"),
 					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.connection.access.NewLocalLoginAddedMessage"),
@@ -1237,7 +1235,7 @@ public class SerializationTools {
 					EncryptedPassword.class, GUIMessage.class, (Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.DatagramLocalNetworkPresenceMessage"),
 					EncryptedCloudIdentifier.class)));
 			for (Class<?> c : classes)
-				assert !Modifier.isAbstract(c.getModifiers());
+				assert !Modifier.isAbstract(c.getModifiers()):""+c;
 			assert currentID+classes.size()<255;
 			for (Class<? extends SecureExternalizableSystemMessage> c : classes)
 			{
@@ -1248,10 +1246,9 @@ public class SerializationTools {
 
 			//noinspection unchecked
 			enums.addAll(new HashSet<>(Arrays.asList(
-					(Class<? extends Enum<?>>)Class.forName("com.distrimind.madkit.kernel.network.ASymmetricAuthentifiedSignatureType"),
 					AbstractAgent.ReturnCode.class,
 					AbstractAgent.State.class,
-					(Class<? extends Enum<?>>)Class.forName("com.distrimind.madkit.kernel.CGRSynchro.Code"),
+					(Class<? extends Enum<?>>)Class.forName("com.distrimind.madkit.kernel.CGRSynchro$Code"),
 					ConnectionProtocol.ConnectionState.class,
 					MessageDigestType.class,
 					SecureRandomType.class,
@@ -1274,7 +1271,7 @@ public class SerializationTools {
 					SchedulingAction.class,
 					AbstractAgent.KillingType.class,
 					BigDataResultMessage.Type.class,
-					(Class<? extends Enum<?>>)Class.forName("com.distrimind.madkit.kernel.MultiGroup.CONTAINS"),
+					(Class<? extends Enum<?>>)Class.forName("com.distrimind.madkit.kernel.MultiGroup$CONTAINS"),
 					(Class<? extends Enum<?>>)Class.forName("com.distrimind.madkit.kernel.NetCode"),
 					NetworkAgent.NetworkCloseReason.class,
 					Scheduler.SimulationState.class,

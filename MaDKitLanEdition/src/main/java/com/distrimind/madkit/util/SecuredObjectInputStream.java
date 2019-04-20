@@ -172,7 +172,7 @@ public class SecuredObjectInputStream extends InputStream  {
 			return null;
 		}
 		if (!classType.isAssignableFrom(e.getClass()))
-			throw new MessageSerializationException(SystemMessage.Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageSerializationException(SystemMessage.Integrity.FAIL_AND_CANDIDATE_TO_BAN, "found : "+e.getClass());
 
 		return (TK)e;
 	}
