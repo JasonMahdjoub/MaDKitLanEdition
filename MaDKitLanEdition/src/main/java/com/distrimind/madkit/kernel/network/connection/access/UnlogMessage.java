@@ -37,14 +37,13 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.util.ArrayList;
-
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
+import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * 
@@ -52,13 +51,8 @@ import com.distrimind.madkit.util.SerializationTools;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 class UnlogMessage extends AccessMessage {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -8306056318587612516L;
 
 	public ArrayList<Identifier> identifier_to_unlog;
 
@@ -72,7 +66,7 @@ class UnlogMessage extends AccessMessage {
 		
 	}
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		int size=in.readInt();
 		int totalSize=4;
 		int globalSize=NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
@@ -81,10 +75,7 @@ class UnlogMessage extends AccessMessage {
 		identifier_to_unlog=new ArrayList<>(size);
 		for (int i=0;i<size;i++)
 		{
-			Object o=SerializationTools.readExternalizableAndSizable(in, false);
-			if (!(o instanceof Identifier))
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			Identifier id=(Identifier)o;
+			Identifier id=in.readObject(false, Identifier.class);
 			totalSize+=id.getInternalSerializedSize();
 			if (totalSize>globalSize)
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
@@ -94,10 +85,11 @@ class UnlogMessage extends AccessMessage {
 
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		oos.writeInt(identifier_to_unlog.size()); 
 		for (Identifier id : identifier_to_unlog)
-			SerializationTools.writeExternalizableAndSizable(oos, id, false);
+			oos.writeObject(id, false);
+
 		
 		
 	}

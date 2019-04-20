@@ -48,13 +48,12 @@ import com.distrimind.madkit.kernel.network.connection.TransferedBlockChecker;
 import com.distrimind.madkit.message.ObjectMessage;
 import com.distrimind.madkit.message.hook.TransferEventMessage;
 import com.distrimind.madkit.message.hook.TransferEventMessage.TransferEventType;
-import com.distrimind.madkit.util.ExternalizableAndSizable;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.madkit.util.SecureExternalizable;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.util.IDGeneratorInt;
 
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicLong;
@@ -484,12 +483,7 @@ class TransferAgent extends AgentFakeThread {
 		}
 	}
 
-	@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
-	final static class IDTransfer implements ExternalizableAndSizable {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 6820580619502727187L;
+	final static class IDTransfer implements SecureExternalizable {
 
 		private final transient IDGeneratorInt generator_id_transfert;
 		private int id;
@@ -583,12 +577,12 @@ class TransferAgent extends AgentFakeThread {
 		}
 
 		@Override
-		public void writeExternal(ObjectOutput out) throws IOException {
+		public void writeExternal(SecuredObjectOutputStream out) throws IOException {
 			out.writeInt(id);
 		}
 
 		@Override
-		public void readExternal(ObjectInput in) throws IOException {
+		public void readExternal(SecuredObjectInputStream in) throws IOException {
 			id=in.readInt();
 		}
 
@@ -694,13 +688,8 @@ class TransferAgent extends AgentFakeThread {
 
 	}
 
-	@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
-    static class TryDirectConnection extends DirectConnection {
+	static class TryDirectConnection extends DirectConnection {
 
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = -6680419937761208277L;
 
 		private InetSocketAddress inetSocketAddress;
 
@@ -733,9 +722,9 @@ class TransferAgent extends AgentFakeThread {
 		
 		
 		@Override
-		public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 			super.readExternal(in);
-			inetSocketAddress=SerializationTools.readInetSocketAddress(in, false);
+			inetSocketAddress=in.readObject(false, InetSocketAddress.class);
 			if (inetSocketAddress==null)
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 
@@ -744,19 +733,14 @@ class TransferAgent extends AgentFakeThread {
 		}
 
 		@Override
-		public void writeExternal(ObjectOutput oos) throws IOException {
+		public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 			super.writeExternal(oos);
-			SerializationTools.writeInetSocketAddress(oos, inetSocketAddress, false);
-			
+			oos.writeObject(inetSocketAddress, false);
+
 		}
 	}
 
-	@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
-    static class DirectConnection implements SystemMessage {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = -9091617361664811235L;
+	static class DirectConnection implements SystemMessage {
 		protected IDTransfer idTransfer;
 
 		DirectConnection(IDTransfer idTransfer) {
@@ -786,29 +770,20 @@ class TransferAgent extends AgentFakeThread {
 		}
 
 		@Override
-		public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-			Object o=SerializationTools.readExternalizableAndSizable(in, false);
-			if (!(o instanceof IDTransfer))
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			idTransfer=(IDTransfer)o;
-			
+		public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+			idTransfer=in.readObject(false, IDTransfer.class);
 		}
 
 		@Override
-		public void writeExternal(ObjectOutput oos) throws IOException {
-			SerializationTools.writeExternalizableAndSizable(oos, idTransfer, false);
+		public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
+			oos.writeObject(idTransfer, false);
 
 			
 		}
 	}
 
-	@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
-    static class DirectConnectionFailed extends DirectConnection {
+	static class DirectConnectionFailed extends DirectConnection {
 
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = -6123269171761664791L;
 
 		DirectConnectionFailed(IDTransfer _idTransfer) {
 			super(_idTransfer);
@@ -821,13 +796,7 @@ class TransferAgent extends AgentFakeThread {
 
 	}
 
-	@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
-    static class DirectConnectionSuceeded extends DirectConnection {
-
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 2423853120927358753L;
+	static class DirectConnectionSuceeded extends DirectConnection {
 
 		DirectConnectionSuceeded(IDTransfer _idTransfer) {
 			super(_idTransfer);

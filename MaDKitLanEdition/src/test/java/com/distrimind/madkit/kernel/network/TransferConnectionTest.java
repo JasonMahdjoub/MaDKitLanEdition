@@ -37,18 +37,20 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
-import java.util.logging.Level;
-
+import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolNegotiatorProperties;
+import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
 import com.distrimind.madkit.kernel.network.connection.secured.*;
+import com.distrimind.madkit.kernel.network.connection.unsecured.CheckSumConnectionProtocolProperties;
+import com.distrimind.madkit.kernel.network.connection.unsecured.UnsecuredConnectionProtocolProperties;
+import com.distrimind.madkit.message.hook.DistantKernelAgentEventMessage;
+import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
+import com.distrimind.madkit.message.hook.NetworkEventMessage;
+import com.distrimind.madkit.message.hook.TransferEventMessage;
+import com.distrimind.madkit.message.hook.TransferEventMessage.TransferEventType;
+import com.distrimind.madkit.util.SecureExternalizable;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.util.OS;
 import org.junit.Assert;
 import org.junit.Test;
@@ -56,21 +58,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
-import com.distrimind.madkit.kernel.KernelAddress;
-import com.distrimind.madkit.kernel.Madkit;
-import com.distrimind.madkit.kernel.Message;
-import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
-import com.distrimind.madkit.kernel.network.connection.unsecured.CheckSumConnectionProtocolProperties;
-import com.distrimind.madkit.kernel.network.connection.unsecured.UnsecuredConnectionProtocolProperties;
-import com.distrimind.madkit.kernel.AgentFakeThread;
-import com.distrimind.madkit.message.hook.DistantKernelAgentEventMessage;
-import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
-import com.distrimind.madkit.message.hook.TransferEventMessage.TransferEventType;
-import com.distrimind.madkit.util.ExternalizableAndSizable;
-import com.distrimind.madkit.message.hook.NetworkEventMessage;
-import com.distrimind.madkit.message.hook.TransferEventMessage;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import java.util.logging.Level;
 
 /**
  * @author Jason Mahdjoub
@@ -95,9 +89,9 @@ public class TransferConnectionTest extends JunitMadkit {
 			ArrayList<Object[]> l = new ArrayList<>();
 
 			for (int i = 0; i < res.size(); i++) {
-				Object a[] = res.get(i);
-				Object b[] = tmp.get(i);
-				Object c[] = new Object[a.length + 1];
+				Object[] a = res.get(i);
+				Object[] b = tmp.get(i);
+				Object[] c = new Object[a.length + 1];
 				System.arraycopy(a, 0, c, 0, a.length);
 				c[a.length] = b[0];
 				l.add(c);
@@ -248,20 +242,17 @@ public class TransferConnectionTest extends JunitMadkit {
 				s.getConnectionProtocolProperties().put(e.getKey(), cloneAndChangeConnectionProtocolProperty(e.getValue()));
 			res = s;
 		}
-		if (cpp.subProtocolProperties != null)
+		if (cpp.subProtocolProperties != null) {
+			assert res != null;
 			res.subProtocolProperties = cloneAndChangeConnectionProtocolProperty(cpp.subProtocolProperties);
+		}
 		return res;
 
 	}
 
 	private static final long timeOut = 180000;
-	final static ExternalizableAndSizable attachedData = new ExternalizableAndSizable() {
+	final static SecureExternalizable attachedData = new SecureExternalizable() {
 		
-		
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 8915309751368682145L;
 
 		@Override
 		public int getInternalSerializedSize() {
@@ -270,12 +261,12 @@ public class TransferConnectionTest extends JunitMadkit {
 		}
 
 		@Override
-		public void writeExternal(ObjectOutput out) {
+		public void writeExternal(SecuredObjectOutputStream out) {
 			
 		}
 
 		@Override
-		public void readExternal(ObjectInput in) {
+		public void readExternal(SecuredObjectInputStream in) {
 			
 		}
 	};
@@ -536,7 +527,7 @@ class AgentToLaunch extends AgentFakeThread {
 	volatile Connection connection2 = null;
 	volatile Connection connection3 = null;
 	private AskForTransferMessage.Type type;
-	private ExternalizableAndSizable attachedData;
+	private SecureExternalizable attachedData;
 	private volatile int transferConnectionFinished = 0;
 	private volatile int transferDeconnected = 0;
 	private volatile int directConnectionFinished = 0;
@@ -673,7 +664,7 @@ class AgentToLaunch extends AgentFakeThread {
 		}
 	}
 
-	public void askForTransferConnection(AskForTransferMessage.Type type, ExternalizableAndSizable attachedData) {
+	public void askForTransferConnection(AskForTransferMessage.Type type, SecureExternalizable attachedData) {
 		synchronized (this) {
 			this.type = type;
 			this.attachedData = attachedData;

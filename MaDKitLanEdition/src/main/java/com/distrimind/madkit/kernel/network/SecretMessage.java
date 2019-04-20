@@ -37,14 +37,13 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.security.SecureRandom;
-
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.AgentAddress;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
+import java.io.IOException;
+import java.security.SecureRandom;
 
 /**
  * 
@@ -52,12 +51,7 @@ import com.distrimind.madkit.util.SerializationTools;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 final class SecretMessage extends KernelAddressNegociationMessage {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -3098590433410027582L;
 
 	private static final int secretMessageSize = 100;
 
@@ -70,23 +64,18 @@ final class SecretMessage extends KernelAddressNegociationMessage {
 		
 	}
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-		secretMessage=SerializationTools.readBytes(in, secretMessageSize, false);
-		if (secretMessage==null)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+		secretMessage=in.readBytesArray(false, secretMessageSize);
 
 		if (secretMessage.length != secretMessageSize)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		Object o=SerializationTools.readExternalizableAndSizable(in, true);
-		if (o!=null && !(o instanceof AgentAddress))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		agent_socket_address=(AgentAddress)o;
+		agent_socket_address=in.readObject(true, AgentAddress.class);
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
-		SerializationTools.writeBytes(oos, secretMessage, secretMessageSize, false);
-		SerializationTools.writeExternalizableAndSizable(oos, agent_socket_address, true);
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
+		oos.writeBytesArray(secretMessage, false, secretMessageSize);
+		oos.writeObject(agent_socket_address, true);
 		
 	}
 	

@@ -37,15 +37,10 @@
  */
 package com.distrimind.madkit.kernel;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
-import com.distrimind.madkit.util.SerializationTools;
+import java.io.IOException;
 
 /**
  * The generic MaDKit message class. Create Subclasses to adapt it to your
@@ -100,28 +95,21 @@ public class Message implements Cloneable {// TODO message already sent warning 
 		this.conversationID = m.conversationID;
 		this.needReply = m.needReply;
 	}
-	public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException
+	public void readExternal(final SecuredObjectInputStream in) throws IOException, ClassNotFoundException
 	{
-		Object o=SerializationTools.readExternalizableAndSizable(in, true);
-		if (o!=null && !(o instanceof AgentAddress))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		receiver=(AgentAddress)o;
-		o=SerializationTools.readExternalizableAndSizable(in, false);
-		if (!(o instanceof AgentAddress))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		sender=(AgentAddress)o;
-		o=SerializationTools.readExternalizableAndSizable(in, false);
-		if (!(o instanceof ConversationID))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		conversationID=(ConversationID)o;
-		needReply=in.readBoolean();
+		readAndCheckObjectImpl(in);
+		/*receiver=in.readObject(true, AgentAddress.class);
+		sender=in.readObject(false, AgentAddress.class);
+		conversationID=in.readObject(false, ConversationID.class);
+		needReply=in.readBoolean();*/
 
 	}
-	public void writeExternal(final ObjectOutput oos) throws IOException{
-		SerializationTools.writeExternalizableAndSizable(oos, receiver, true);
-		SerializationTools.writeExternalizableAndSizable(oos, sender, false);
-		SerializationTools.writeExternalizableAndSizable(oos, conversationID, false);
-		oos.writeBoolean(needReply);
+	public void writeExternal(final SecuredObjectOutputStream oos) throws IOException{
+		writeAndCheckObjectImpl(oos);
+		/*oos.writeObject(receiver, true);
+		oos.writeObject(sender, false);
+		oos.writeObject(conversationID, false);
+		oos.writeBoolean(needReply);*/
 	}
 	@SuppressWarnings("SameParameterValue")
 	void setNeedReply(boolean value) {
@@ -236,27 +224,19 @@ public class Message implements Cloneable {// TODO message already sent warning 
 		return false;
 	}
 	
-	protected void readAndCheckObjectImpl(final ObjectInputStream in) throws IOException, ClassNotFoundException
+	protected void readAndCheckObjectImpl(final SecuredObjectInputStream in) throws IOException, ClassNotFoundException
 	{
-		Object o=SerializationTools.readExternalizableAndSizable(in, true);
-		if (o!=null && !(o instanceof AgentAddress))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		this.receiver=(AgentAddress)o;
-		o=SerializationTools.readExternalizableAndSizable(in, false);
-		if (!(o instanceof AgentAddress))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		this.sender=(AgentAddress)o;
-		o=SerializationTools.readExternalizableAndSizable(in, false);
-		if (!(o instanceof ConversationID))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		this.conversationID=(ConversationID)o;
+		receiver=in.readObject(true, AgentAddress.class);
+		sender=in.readObject(false, AgentAddress.class);
+		conversationID=in.readObject(false, ConversationID.class);
 		this.needReply=in.readBoolean();
 
 	}
-	protected void writeAndCheckObjectImpl(final ObjectOutputStream oos) throws IOException{
-		SerializationTools.writeExternalizableAndSizable(oos, this.receiver, true);
-		SerializationTools.writeExternalizableAndSizable(oos, this.sender, false);
-		SerializationTools.writeExternalizableAndSizable(oos, conversationID, false);
+	protected void writeAndCheckObjectImpl(final SecuredObjectOutputStream oos) throws IOException{
+		oos.writeObject(receiver, true);
+		oos.writeObject(sender, false);
+		oos.writeObject(conversationID, false);
+
 		oos.writeBoolean(this.needReply);
 	}
 	

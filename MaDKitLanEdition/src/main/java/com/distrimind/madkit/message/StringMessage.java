@@ -33,11 +33,11 @@
  */
 package com.distrimind.madkit.message;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
 import com.distrimind.madkit.util.NetworkMessage;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
+import java.io.IOException;
 
 /**
  * A message class that conveys a string.
@@ -48,13 +48,7 @@ import com.distrimind.madkit.util.NetworkMessage;
  * @version 0.10
  * 
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public class StringMessage extends ObjectMessage<String> implements NetworkMessage {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 3111467569749360801L;
 
 	public static int MAX_CONTENT_LENGTH=Short.MAX_VALUE*10;
 
@@ -80,14 +74,14 @@ public class StringMessage extends ObjectMessage<String> implements NetworkMessa
 	}
 	
 	@Override
-	public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException
+	public void readExternal(final SecuredObjectInputStream in) throws IOException, ClassNotFoundException
 	{
 		super.readExternal(in, MAX_CONTENT_LENGTH);
 		
 		
 	}
 	@Override
-	public void writeExternal(final ObjectOutput oos) throws IOException{
+	public void writeExternal(final SecuredObjectOutputStream oos) throws IOException{
 		super.writeExternal(oos, MAX_CONTENT_LENGTH);
 	}
 

@@ -40,7 +40,8 @@ package com.distrimind.madkit.kernel.network;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.Message;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.util.crypto.AbstractMessageDigest;
 import com.distrimind.util.crypto.MessageDigestType;
 import com.distrimind.util.sizeof.ObjectSizer;
@@ -180,15 +181,15 @@ class DatagramLocalNetworkPresenceMessage extends Message {
 	}
 
 	void writeTo(OutputStream os) throws IOException {
-		try (DataOutputStream dos = new DataOutputStream(os)) {
+		try (DataOutputStream d=new DataOutputStream(os);SecuredObjectOutputStream dos = new SecuredObjectOutputStream(d)) {
 			dos.writeLong(onlineTime);
 			dos.writeLong(programBuildNumber);
 			dos.writeLong(madkitBuildNumber);
             dos.writeLong(programMinimumBuildNumber);
             dos.writeLong(madkitMinimumBuildNumber);
-			SerializationTools.writeBytes(dos, inetAddress, 20, true);
-			SerializationTools.writeBytes(dos, kernelAddress, maxKernelAddressLengthLength, false);
-			SerializationTools.writeBytes(dos, programName, maxProgramNameLength, false);
+			dos.writeBytesArray(inetAddress, true, 20);
+			dos.writeBytesArray(kernelAddress, false, maxKernelAddressLengthLength);
+			dos.writeBytesArray(programName, false, maxProgramNameLength);
 		}
 	}
 
@@ -203,21 +204,21 @@ class DatagramLocalNetworkPresenceMessage extends Message {
 		return res;
 	}
 
-	static DatagramLocalNetworkPresenceMessage readFrom(byte data[], int offset, int length) throws IOException {
+	static DatagramLocalNetworkPresenceMessage readFrom(byte[] data, int offset, int length) throws IOException {
 		try (ByteArrayInputStream bais = new ByteArrayInputStream(data, offset, length)) {
 			return readFrom(bais);
 		}
 	}
 
 	static DatagramLocalNetworkPresenceMessage readFrom(InputStream is) throws IOException {
-		try (DataInputStream dis = new DataInputStream(is)) {
+		try (DataInputStream d=new DataInputStream(is);SecuredObjectInputStream dis = new SecuredObjectInputStream(d)) {
 			long onlineTime = dis.readLong();
 			long programBuildNumber = dis.readLong();
             long madkitBuildNumber = dis.readLong();
             long programMinimumBuildNumber = dis.readLong();
             long madkitMinimumBuildNumber = dis.readLong();
 
-			byte inetAddress[] = SerializationTools.readBytes(dis, 20, true);
+			byte[] inetAddress = dis.readBytesArray(true, 20);
 			
 			if (inetAddress != null) {
 				try {
@@ -227,9 +228,9 @@ class DatagramLocalNetworkPresenceMessage extends Message {
 					throw new IOException(e);
 				}
 			}
-			byte kernelAddress[] = SerializationTools.readBytes(dis, maxKernelAddressLengthLength, false);
-			
-			byte programName[] =SerializationTools.readBytes(dis, maxProgramNameLength, false);
+			byte[] kernelAddress = dis.readBytesArray(false, maxKernelAddressLengthLength);
+
+			byte[] programName =dis.readBytesArray(false, maxProgramNameLength);
 			
 			return new DatagramLocalNetworkPresenceMessage(onlineTime, programBuildNumber, madkitBuildNumber, programMinimumBuildNumber, madkitMinimumBuildNumber,
 					programName, inetAddress, kernelAddress);

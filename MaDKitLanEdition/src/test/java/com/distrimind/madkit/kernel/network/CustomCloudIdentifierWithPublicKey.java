@@ -39,21 +39,20 @@ package com.distrimind.madkit.kernel.network;
 
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.network.connection.access.CloudIdentifier;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.madkit.util.SerializationTools;
 import com.distrimind.util.crypto.ASymmetricKeyPair;
 import com.distrimind.util.crypto.ASymmetricPublicKey;
-import com.distrimind.util.crypto.Key;
 
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 
 /**
  * @author Jason Mahdjoub
  * @version 1.0
  * @since MaDKitLanEdition 1.9
  */
-@SuppressWarnings({"unused", "ExternalizableWithoutPublicNoArgConstructor"})
+@SuppressWarnings({"unused"})
 public class CustomCloudIdentifierWithPublicKey extends CloudIdentifier {
     private ASymmetricKeyPair keyPair;
     private ASymmetricPublicKey publicKey;
@@ -120,19 +119,16 @@ public class CustomCloudIdentifierWithPublicKey extends CloudIdentifier {
     }
 
     @Override
-    public void writeExternal(ObjectOutput out) throws IOException {
-        SerializationTools.writeBytes(out, salt, 64, false);
-        SerializationTools.writeKey(out, publicKey, false);
+    public void writeExternal(SecuredObjectOutputStream out) throws IOException {
+        out.writeBytesArray(salt, false, 64);
+        out.writeObject(publicKey, false);
 
     }
 
     @Override
-    public void readExternal(ObjectInput in) throws IOException {
-        salt=SerializationTools.readBytes(in, 64, false);
-        Key k=SerializationTools.readKey(in, false);
-        if (!(k instanceof ASymmetricPublicKey))
-            throw new MessageSerializationException(SystemMessage.Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-        publicKey=(ASymmetricPublicKey)k;
+    public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+        salt=in.readBytesArray(false, 64);
+        publicKey=in.readObject(false, ASymmetricPublicKey.class);
         if (publicKey.getAuthentifiedSignatureAlgorithmType()==null)
             throw new MessageSerializationException(SystemMessage.Integrity.FAIL_AND_CANDIDATE_TO_BAN);
         keyPair=null;

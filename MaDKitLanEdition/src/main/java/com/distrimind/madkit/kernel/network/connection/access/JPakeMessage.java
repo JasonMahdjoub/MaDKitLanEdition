@@ -39,7 +39,9 @@ package com.distrimind.madkit.kernel.network.connection.access;
 
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
-import com.distrimind.madkit.util.ExternalizableAndSizable;
+import com.distrimind.madkit.util.SecureExternalizable;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.madkit.util.SerializationTools;
 import com.distrimind.util.crypto.*;
 import gnu.vm.jgnu.security.DigestException;
@@ -49,8 +51,6 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchProviderException;
@@ -63,13 +63,12 @@ import java.util.*;
  * @version 2.0
  * @since MadkitLanEdition 1.2
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 class JPakeMessage extends AccessMessage{
 	/**
 	 * 
 	 */
 	public static final int MAX_JPAKE_MESSAGE_LENGTH=16392;
-	private static final long serialVersionUID = 7717334330741162319L;
+
 	private boolean identifiersIsEncrypted;
 	private Identifier[] identifiers;
 	private byte[][] jpakeMessages;
@@ -83,14 +82,12 @@ class JPakeMessage extends AccessMessage{
 	}
 	
 	@Override
-	public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException
+	public void readExternal(final SecuredObjectInputStream in) throws IOException, ClassNotFoundException
 	{
 		identifiersIsEncrypted=in.readBoolean();
 		int globalSize=NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
-		ExternalizableAndSizable[] tab = SerializationTools.readExternalizableAndSizables(in, globalSize, false);
+		SecureExternalizable[] tab = in.readObject(false, globalSize, SecureExternalizable[].class);
 		int totalSize=1;
-		if (tab==null)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 
 		identifiers=new Identifier[tab.length];
 		for (int i=0;i<tab.length;i++)
@@ -103,8 +100,7 @@ class JPakeMessage extends AccessMessage{
 		
 		if (totalSize>globalSize)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		
-		jpakeMessages=SerializationTools.readBytes2D(in, identifiers.length, MAX_JPAKE_MESSAGE_LENGTH, false, true);
+		jpakeMessages=in.read2DBytesArray(false, true, identifiers.length, MAX_JPAKE_MESSAGE_LENGTH);
 		step=in.readShort();
 		totalSize+=SerializationTools.getInternalSize(jpakeMessages, identifiers.length);
 		if (totalSize>globalSize)
@@ -117,11 +113,11 @@ class JPakeMessage extends AccessMessage{
 		
 	}
 	@Override
-	public void writeExternal(final ObjectOutput oos) throws IOException
+	public void writeExternal(final SecuredObjectOutputStream oos) throws IOException
 	{
 		oos.writeBoolean(identifiersIsEncrypted);
-		SerializationTools.writeExternalizableAndSizables(oos, identifiers, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE, false);
-		SerializationTools.writeBytes2D(oos, jpakeMessages, identifiers.length, MAX_JPAKE_MESSAGE_LENGTH, false, true);
+		oos.writeObject(identifiers, false);
+		oos.write2DBytesArray(jpakeMessages, false, true, identifiers.length, MAX_JPAKE_MESSAGE_LENGTH);
 		oos.writeShort(step);
 	}
 	
@@ -193,7 +189,7 @@ class JPakeMessage extends AccessMessage{
 				{
 					PasswordKey pw = loginData.getPassword(localId);
 					if (pw != null) {
-						P2PLoginAgreement agreement = agreementType.getAgreementAlgorithm(random, localId, pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature(), messageDigestType, passwordHashType, myPublicKey);
+						P2PLoginAgreement agreement = agreementType.getAgreementAlgorithm(random, localId.toBytes(), pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature(), messageDigestType, passwordHashType, myPublicKey);
 						agreements.put(localId, agreement);
 					}
 					else

@@ -39,16 +39,15 @@ package com.distrimind.madkit.kernel.network.connection.access;
 
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
-import com.distrimind.madkit.util.ExternalizableAndSizable;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.madkit.util.SecureExternalizable;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.util.crypto.*;
 import gnu.vm.jgnu.security.*;
 import gnu.vm.jgnu.security.spec.InvalidKeySpecException;
 import gnu.vm.jgnux.crypto.NoSuchPaddingException;
 
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -60,12 +59,7 @@ import java.util.Map;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 class IdentifiersPropositionMessage extends AccessMessage {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1409236452371137326L;
 
 	private Identifier[] identifiers;
 	private boolean isEncrypted;
@@ -78,11 +72,9 @@ class IdentifiersPropositionMessage extends AccessMessage {
 	}
 	
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		isEncrypted=in.readBoolean();
-		ExternalizableAndSizable[] s=SerializationTools.readExternalizableAndSizables(in, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE, false);
-		if (s==null)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+		SecureExternalizable[] s=in.readObject(false, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE, SecureExternalizable[].class);
 		identifiers=new Identifier[s.length];
 		for (int i=0;i<s.length;i++)
 		{
@@ -97,10 +89,10 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		
 	}
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		oos.writeBoolean(isEncrypted);
-		SerializationTools.writeExternalizableAndSizables(oos, identifiers, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE, false);
-		
+		oos.writeObject(identifiers, false, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE);
+
 		
 	}
 	
@@ -323,7 +315,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 				PasswordKey pw = loginData.getPassword(localId);
 				if (pw != null) {
 
-					P2PLoginAgreement agreement = agreementType.getAgreementAlgorithm(random, localId, pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature(), messageDigestType, passwordHashType, myPublicKey);
+					P2PLoginAgreement agreement = agreementType.getAgreementAlgorithm(random, localId.toBytes(), pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature(), messageDigestType, passwordHashType, myPublicKey);
 					agreements.put(localId, agreement);
 				} else
 					++nbAno;

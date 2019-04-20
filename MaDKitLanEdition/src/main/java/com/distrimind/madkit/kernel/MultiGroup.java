@@ -41,11 +41,10 @@ package com.distrimind.madkit.kernel;
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -85,13 +84,9 @@ import java.util.concurrent.atomic.AtomicReference;
  * @see Group
  * @see AbstractGroup#getUniverse()
  */
-@SuppressWarnings({"UnusedReturnValue", "ExternalizableWithoutPublicNoArgConstructor"})
+@SuppressWarnings({"UnusedReturnValue"})
 public class MultiGroup extends AbstractGroup {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -1107997740777891372L;
 
 	transient ArrayList<AssociatedGroup> m_groups;
 
@@ -105,10 +100,10 @@ public class MultiGroup extends AbstractGroup {
 	}
 
 	private transient ArrayList<RepresentedGroupsDuplicated> m_represented_groups_by_kernel_duplicated = new ArrayList<>();
-	private transient volatile Group m_global_represented_groups[] = null;
+	private transient volatile Group[] m_global_represented_groups = null;
 
 	@Override
-	public void readExternal(ObjectInput ois) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream ois) throws IOException, ClassNotFoundException {
 		m_groups = new ArrayList<>();
 		m_represented_groups_by_kernel_duplicated = new ArrayList<>();
 		m_global_represented_groups = null;
@@ -121,10 +116,8 @@ public class MultiGroup extends AbstractGroup {
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		for (int i = 0; i < notforbiden; i++)
 		{
-			Object o=SerializationTools.readExternalizableAndSizable(ois, false);
-			if (!(o instanceof AbstractGroup))
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			AbstractGroup ag=(AbstractGroup)o;
+			AbstractGroup ag=ois.readObject(false, AbstractGroup.class);
+
 			total+=ag.getInternalSerializedSize();
 			if (total>globalSize)
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
@@ -132,10 +125,7 @@ public class MultiGroup extends AbstractGroup {
 		}
 		for (int i = 0; i < forbiden; i++)
 		{
-			Object o=SerializationTools.readExternalizableAndSizable(ois, false);
-			if (!(o instanceof AbstractGroup))
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			AbstractGroup ag=(AbstractGroup)o;
+			AbstractGroup ag=ois.readObject( false, AbstractGroup.class);
 			total+=ag.getInternalSerializedSize();
 			if (total>globalSize)
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
@@ -158,7 +148,7 @@ public class MultiGroup extends AbstractGroup {
 
 	}
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 
 		int forbiden = 0;
 		int notforbiden = 0;
@@ -172,11 +162,11 @@ public class MultiGroup extends AbstractGroup {
 		oos.writeInt(forbiden);
 		for (AssociatedGroup ag : m_groups) {
 			if (!ag.m_forbiden)
-				SerializationTools.writeExternalizableAndSizable(oos, ag.m_group, false);
+				oos.writeObject(ag.m_group, false);
 		}
 		for (AssociatedGroup ag : m_groups) {
 			if (ag.m_forbiden)
-				SerializationTools.writeExternalizableAndSizable(oos, ag.m_group, false);
+				oos.writeObject( ag.m_group, false);
 		}
 	}
 	@SuppressWarnings("unused")
@@ -509,7 +499,7 @@ public class MultiGroup extends AbstractGroup {
 					}
 				} else
 					l2 = new ArrayList<>(0);
-				Group res[] = new Group[l2.size()];
+				Group[] res = new Group[l2.size()];
 				l2.toArray(res);
 				rdg.m_represented_groups_duplicated.set(res);
 			}

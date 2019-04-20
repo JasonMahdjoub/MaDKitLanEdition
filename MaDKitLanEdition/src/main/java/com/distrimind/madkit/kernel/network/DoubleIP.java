@@ -37,17 +37,17 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+import com.distrimind.madkit.util.SerializationTools;
+
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Collection;
-
-import com.distrimind.madkit.exceptions.MessageSerializationException;
-import com.distrimind.madkit.util.SerializationTools;
 
 /**
  * 
@@ -55,7 +55,7 @@ import com.distrimind.madkit.util.SerializationTools;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
+
 public class DoubleIP extends AbstractIP {
 	/**
 	 * 
@@ -67,33 +67,27 @@ public class DoubleIP extends AbstractIP {
 
 	@Override
 	public int getInternalSerializedSize() {
-		return super.getInternalSerializedSize()+SerializationTools.getInternalSize(inet4Address, 0)+SerializationTools.getInternalSize(inet6Address, 0);
+		return super.getInternalSerializedSize()+SerializationTools.getInternalSize(inet4Address)+SerializationTools.getInternalSize(inet6Address);
 	}
 	
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		super.readExternal(in);
-		InetAddress ia=SerializationTools.readInetAddress(in, true);
-		if (ia!=null && !(ia instanceof Inet4Address))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		inet4Address=(Inet4Address)ia;
-		ia=SerializationTools.readInetAddress(in, true);
-		if (ia!=null && !(ia instanceof Inet6Address))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		inet6Address=(Inet6Address)ia;
+		inet4Address=in.readObject(true, Inet4Address.class);
+		inet6Address=in.readObject(true, Inet6Address.class);
 		if (inet4Address==null && inet6Address==null)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		
 		if (inet4Address==null && inet6Address==null)
 			throw new IOException();
 		super.writeExternal(oos);
-		SerializationTools.writeInetAddress(oos, inet4Address, true);
-		SerializationTools.writeInetAddress(oos, inet6Address, true);
+		oos.writeObject(inet4Address, true);
+		oos.writeObject(inet6Address, true);
 	}
 	
 	protected DoubleIP() {

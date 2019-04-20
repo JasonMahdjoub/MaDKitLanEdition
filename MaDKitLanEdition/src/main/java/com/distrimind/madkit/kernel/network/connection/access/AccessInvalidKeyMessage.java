@@ -57,9 +57,4 @@ class AccessInvalidKeyMessage extends AccessErrorMessage {
 		super(_candidate_to_ban);
 	}
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 4191788064765752697L;
-
 }

@@ -37,11 +37,11 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.Message;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+
+import java.io.IOException;
 
 /**
  * 
@@ -49,13 +49,7 @@ import com.distrimind.madkit.kernel.Message;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 final class DirectLanMessage extends LanMessage {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -7184941708009374257L;
 
 	@SuppressWarnings("unused")
 	DirectLanMessage()
@@ -69,7 +63,7 @@ final class DirectLanMessage extends LanMessage {
 			throw new IllegalArgumentException("_message has no defined receiver !");
 	}
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		
 		super.readExternal(in);
 		if (message.getSender()==null)

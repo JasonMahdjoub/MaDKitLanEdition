@@ -37,11 +37,10 @@
  */
 package com.distrimind.madkit.kernel;
 
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 
 /**
  * Gives the result of a big data transfer
@@ -50,13 +49,8 @@ import java.io.ObjectOutput;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public final class BigDataResultMessage extends Message implements com.distrimind.madkit.util.NetworkMessage {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 5848565025339803364L;
 
 	private long transferedData;
 	private Type type;
@@ -69,22 +63,22 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 	}
 	
 	@Override
-	public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException
+	public void readExternal(final SecuredObjectInputStream in) throws IOException, ClassNotFoundException
 	{
 		super.readExternal(in);
 		
 			
 		transferedData=in.readLong();
-		type=Type.valueOf(SerializationTools.readString(in, 1000, false));
+		type=in.readObject(false, Type.class);
 		idPacket=in.readInt();
 		duration=in.readLong();
 		
 	}
 	@Override
-	public void writeExternal(final ObjectOutput oos) throws IOException{
+	public void writeExternal(final SecuredObjectOutputStream oos) throws IOException{
 		super.writeExternal(oos);
 		oos.writeLong(transferedData);
-		SerializationTools.writeString(oos, type.name(), 1000, false);
+		oos.writeObject(type, false);
 		oos.writeInt(idPacket);
 		oos.writeLong(duration);
 	}	

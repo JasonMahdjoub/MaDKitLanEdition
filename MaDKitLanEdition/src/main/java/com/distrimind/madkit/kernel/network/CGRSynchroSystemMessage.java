@@ -39,11 +39,10 @@ package com.distrimind.madkit.kernel.network;
 
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.CGRSynchro;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 
 /**
  * 
@@ -51,13 +50,8 @@ import java.io.ObjectOutput;
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 final class CGRSynchroSystemMessage implements SystemMessage {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -8079647044062480359L;
 
 	private CGRSynchro CGRSynchro;
 	@SuppressWarnings("unused")
@@ -90,11 +84,8 @@ final class CGRSynchroSystemMessage implements SystemMessage {
 
 
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-		Object o=SerializationTools.readExternalizableAndSizable(in, false);
-		if (!(o instanceof CGRSynchro))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		CGRSynchro=(CGRSynchro)o;
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+		CGRSynchro=in.readObject(false, CGRSynchro.class);
 		if (CGRSynchro.getInternalSerializedSize()>NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		if (CGRSynchro.getCode() == null)
@@ -105,9 +96,9 @@ final class CGRSynchroSystemMessage implements SystemMessage {
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
-		SerializationTools.writeExternalizableAndSizable(oos, CGRSynchro, false);
-		
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
+		oos.writeObject(CGRSynchro, false);
+
 	}
 
 }

@@ -41,17 +41,20 @@ import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.MadkitProperties;
-import com.distrimind.madkit.kernel.network.*;
+import com.distrimind.madkit.kernel.network.PacketCounter;
+import com.distrimind.madkit.kernel.network.SubBlock;
+import com.distrimind.madkit.kernel.network.SubBlockInfo;
+import com.distrimind.madkit.kernel.network.SubBlockParser;
 import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
 import com.distrimind.madkit.kernel.network.connection.*;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.madkit.util.SerializationTools;
 import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.util.crypto.AbstractMessageDigest;
 import com.distrimind.util.crypto.MessageDigestType;
 
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.net.InetSocketAddress;
 
 /**
@@ -230,13 +233,8 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 
 	}
 
-	@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 	static class BlockChecker extends TransferedBlockChecker {
 
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 5028832920052128043L;
 		private MessageDigestType messageDigestType;
 		private transient AbstractMessageDigest messageDigest = null;
 		@SuppressWarnings("unused")
@@ -246,16 +244,13 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 		}
 		@Override
 		public int getInternalSerializedSize() {
-			return SerializationTools.getInternalSize(messageDigestType, 0);
+			return SerializationTools.getInternalSize(messageDigestType);
 		}
 
 		@Override
-		public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 			super.readExternal(in);
-			Enum<?> e=SerializationTools.readEnum(in, false);
-			if (!(e instanceof MessageDigestType))
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			messageDigestType=(MessageDigestType)e;
+			messageDigestType=in.readObject(false, MessageDigestType.class);
 			try
 			{
 				messageDigest = messageDigestType.getMessageDigestInstance();
@@ -269,10 +264,10 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 		}
 
 		@Override
-		public void writeExternal(ObjectOutput oos) throws IOException {
+		public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 			super.writeExternal(oos);
-			SerializationTools.writeEnum(oos, messageDigestType, false);
-			
+			oos.writeObject(messageDigest, false);
+
 		}
 		
 		protected BlockChecker(TransferedBlockChecker _subChecker, MessageDigestType messageDigestType)

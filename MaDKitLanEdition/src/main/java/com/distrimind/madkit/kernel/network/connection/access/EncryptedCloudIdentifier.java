@@ -37,24 +37,18 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.util.Arrays;
-
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+import com.distrimind.madkit.util.SerializationTools;
 import com.distrimind.util.crypto.*;
-import gnu.vm.jgnu.security.DigestException;
-import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
-import gnu.vm.jgnu.security.InvalidKeyException;
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
+import gnu.vm.jgnu.security.*;
 import gnu.vm.jgnu.security.spec.InvalidKeySpecException;
 import gnu.vm.jgnux.crypto.BadPaddingException;
 import gnu.vm.jgnux.crypto.IllegalBlockSizeException;
 import gnu.vm.jgnux.crypto.NoSuchPaddingException;
-import gnu.vm.jgnux.crypto.ShortBufferException;
 
-import com.distrimind.madkit.util.SerializationTools;
+import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Represent a cloud identifier encrypted
@@ -64,12 +58,7 @@ import com.distrimind.madkit.util.SerializationTools;
  * @since MadKitLanEdition 1.0
  * @see CloudIdentifier
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public final class EncryptedCloudIdentifier extends CloudIdentifier {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -72758697578022420L;
 	public final static int MAX_ENCRYPTED_CLOUD_IDENTIFIER_LENGTH=CloudIdentifier.MAX_CLOUD_IDENTIFIER_LENGTH+512;
 	
 	private byte[] bytes;
@@ -83,7 +72,7 @@ public final class EncryptedCloudIdentifier extends CloudIdentifier {
 	EncryptedCloudIdentifier(CloudIdentifier cloudIdentifier, P2PASymmetricSecretMessageExchanger cipher)
 			throws InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException,
 			NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException,
-			InvalidAlgorithmParameterException, NoSuchProviderException, IllegalStateException, ShortBufferException {
+			InvalidAlgorithmParameterException, NoSuchProviderException, IllegalStateException {
 		if (cloudIdentifier == null)
 			throw new NullPointerException("cloudIdentifier");
 		if (cipher == null)
@@ -105,9 +94,9 @@ public final class EncryptedCloudIdentifier extends CloudIdentifier {
 	
 	private static byte[] getByteTabToEncode(CloudIdentifier cloudIdentifier)
 	{
-		byte idbytes[]=cloudIdentifier.getIdentifierBytes();
-		byte salt[]=cloudIdentifier.getSaltBytes();
-		byte res[]=new byte[idbytes.length+(salt==null?0:salt.length)];
+		byte[] idbytes = cloudIdentifier.getIdentifierBytes();
+		byte[] salt = cloudIdentifier.getSaltBytes();
+		byte[] res = new byte[idbytes.length + (salt == null ? 0 : salt.length)];
 		System.arraycopy(idbytes, 0, res, 0, idbytes.length);
 		if (salt!=null)
 			System.arraycopy(salt, 0, res, idbytes.length, salt.length);
@@ -215,13 +204,13 @@ public final class EncryptedCloudIdentifier extends CloudIdentifier {
 	}
 
 	@Override
-	public void readExternal(final ObjectInput in) throws IOException {
-		bytes=SerializationTools.readBytes(in, MAX_ENCRYPTED_CLOUD_IDENTIFIER_LENGTH, false);
+	public void readExternal(final SecuredObjectInputStream in) throws IOException {
+		bytes=in.readBytesArray(false, MAX_ENCRYPTED_CLOUD_IDENTIFIER_LENGTH);
 	}
 	@Override
-	public void writeExternal(final ObjectOutput oos) throws IOException
+	public void writeExternal(final SecuredObjectOutputStream oos) throws IOException
 	{
-		SerializationTools.writeBytes(oos, bytes, MAX_ENCRYPTED_CLOUD_IDENTIFIER_LENGTH, false);
+		oos.writeBytesArray(bytes, false, MAX_ENCRYPTED_CLOUD_IDENTIFIER_LENGTH);
 	}
 
 }

@@ -37,8 +37,8 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 
 /**
  * 
@@ -46,21 +46,15 @@ import java.io.ObjectOutput;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 final class PongMessage implements SystemMessage {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 6073814051145577489L;
-
 	@Override
-	public void readExternal(ObjectInput in) {
+	public void readExternal(SecuredObjectInputStream in) {
 		
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) {
+	public void writeExternal(SecuredObjectOutputStream oos) {
 		
 	}
 

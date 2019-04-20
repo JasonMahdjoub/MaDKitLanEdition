@@ -37,9 +37,10 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 
 
 
@@ -49,21 +50,15 @@ import java.io.ObjectOutput;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 class NullAccessMessage extends DoNotSendMessage {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 956985643732153966L;
-
 	@Override
-	public void writeExternal(ObjectOutput out) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream out) throws IOException {
 		super.writeExternal(out);
 	}
 
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		super.readExternal(in);
 	}
 

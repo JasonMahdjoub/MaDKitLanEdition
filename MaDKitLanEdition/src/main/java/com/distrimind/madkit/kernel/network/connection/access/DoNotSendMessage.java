@@ -42,6 +42,8 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 
 /**
  * 
@@ -50,11 +52,6 @@ import com.distrimind.madkit.exceptions.MessageSerializationException;
  * @since MadkitLanEdition 1.0
  */
 public class DoNotSendMessage extends AccessMessage {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -219459267206505419L;
 
 
 	@Override
@@ -65,13 +62,13 @@ public class DoNotSendMessage extends AccessMessage {
 	
 
 	@Override
-	public void writeExternal(ObjectOutput out) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream out) throws IOException {
 		throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		
 	}
 
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		throw new IOException();
 		
 	}

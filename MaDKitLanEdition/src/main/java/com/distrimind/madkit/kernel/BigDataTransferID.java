@@ -37,15 +37,11 @@
  */
 package com.distrimind.madkit.kernel;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.network.RealTimeTransfertStat;
-import com.distrimind.madkit.kernel.network.SystemMessage;
-import com.distrimind.madkit.util.ExternalizableAndSizable;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.util.Map;
 
 /**
@@ -54,14 +50,9 @@ import java.util.Map;
  * @author Jason Mahdjoub
  * @version 2.0
  * @since MadkitLanEdition 1.0
- * @see AbstractAgent#sendBigDataWithRole(AgentAddress, com.distrimind.madkit.io.RandomInputStream, long, long, ExternalizableAndSizable, com.distrimind.util.crypto.MessageDigestType, String, boolean)
+ * @see AbstractAgent#sendBigDataWithRole(AgentAddress, com.distrimind.madkit.io.RandomInputStream, long, long, com.distrimind.madkit.util.SecureExternalizable, com.distrimind.util.crypto.MessageDigestType, String, boolean)
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public class BigDataTransferID extends ConversationID {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 6390953335913117132L;
 
 	private transient RealTimeTransfertStat stat;
 
@@ -71,20 +62,17 @@ public class BigDataTransferID extends ConversationID {
 	private ConversationID cid;
 
 	@Override
-	public void writeExternal(ObjectOutput out) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream out) throws IOException {
 		super.writeExternal(out);
-		SerializationTools.writeExternalizableAndSizable(out, cid, false);
-		
+		out.writeObject(cid,false );
+
 	}
 
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		stat=null;
 		super.readExternal(in);
-		Object o=SerializationTools.readExternalizableAndSizable(in, false);
-		if (!(o instanceof ConversationID))
-			throw new MessageSerializationException(SystemMessage.Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		cid=(ConversationID)o;
+		cid=in.readObject(false, ConversationID.class);
 	}
 	
 	

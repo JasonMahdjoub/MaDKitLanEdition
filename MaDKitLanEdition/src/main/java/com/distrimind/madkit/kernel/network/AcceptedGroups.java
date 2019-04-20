@@ -37,17 +37,16 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.kernel.Group;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.MultiGroup;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.util.sizeof.ObjectSizer;
+
+import java.io.IOException;
 
 /**
  * 
@@ -55,13 +54,7 @@ import com.distrimind.util.sizeof.ObjectSizer;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 final class AcceptedGroups implements SystemMessage {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -6092464713298140517L;
 
 	public Group[] accepted_groups_and_requested;
 	public MultiGroup accepted_groups;
@@ -93,20 +86,20 @@ final class AcceptedGroups implements SystemMessage {
 	}
 	
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		oos.writeInt(accepted_groups_and_requested.length);
 		for (Group g : accepted_groups_and_requested)
 		{
-			SerializationTools.writeExternalizableAndSizable(oos, g, false);
+			oos.writeObject(g, false);
 		}
-		SerializationTools.writeExternalizableAndSizable(oos, accepted_groups, false);
-		SerializationTools.writeExternalizableAndSizable(oos, kernelAddress, false);
-		SerializationTools.writeExternalizableAndSizable(oos, distant_agent_socket_address, false);
+		oos.writeObject(accepted_groups, false);
+		oos.writeObject(kernelAddress, false);
+		oos.writeObject(distant_agent_socket_address, false);
 		
 	}
 	
 	@Override
-	public void readExternal(ObjectInput in)
+	public void readExternal(SecuredObjectInputStream in)
 			throws ClassNotFoundException, IOException {
 		int globalSize=NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
 		int totalSize=4;
@@ -119,34 +112,22 @@ final class AcceptedGroups implements SystemMessage {
 		accepted_groups_and_requested=new Group[size];
 		for (int i=0;i<size;i++)
 		{
-			Object o=SerializationTools.readExternalizableAndSizable(in, false);
-			if (!(o instanceof Group))
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			accepted_groups_and_requested[i]=(Group)o;
+			accepted_groups_and_requested[i]=in.readObject(false, Group.class);
 			totalSize+=accepted_groups_and_requested[i].getInternalSerializedSize();
 			if (totalSize>globalSize)
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		}
-		Object o=SerializationTools.readExternalizableAndSizable(in, false);
-		if (!(o instanceof MultiGroup))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		accepted_groups=(MultiGroup)o;
+		accepted_groups=in.readObject(false, MultiGroup.class);
 		totalSize+=accepted_groups.getInternalSerializedSize();
 		if (totalSize>globalSize)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		
-		o=SerializationTools.readExternalizableAndSizable(in, false);
-		if (!(o instanceof KernelAddress))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		kernelAddress=(KernelAddress)o;
+
+		kernelAddress=in.readObject(false, KernelAddress.class);
 		totalSize+=kernelAddress.getInternalSerializedSize();
 		if (totalSize>globalSize)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 
-		o=SerializationTools.readExternalizableAndSizable(in, false);
-		if (!(o instanceof AgentAddress))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		distant_agent_socket_address=(AgentAddress)o;
+		distant_agent_socket_address=in.readObject(false, AgentAddress.class);
 		totalSize+=distant_agent_socket_address.getInternalSerializedSize();
 		if (totalSize>globalSize)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);

@@ -37,14 +37,9 @@
  */
 package com.distrimind.madkit.kernel;
 
-import com.distrimind.madkit.util.ExternalizableAndSizable;
+import com.distrimind.madkit.util.SecureExternalizable;
 
-public final class EmptyMessage extends Message implements ExternalizableAndSizable {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -4730211067144743668L;
+public final class EmptyMessage extends Message implements SecureExternalizable {
 
 	@Override
 	public int getInternalSerializedSize() {

@@ -37,18 +37,15 @@
  */
 package com.distrimind.madkit.kernel;
 
+import com.distrimind.madkit.util.SecureExternalizable;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import com.distrimind.madkit.exceptions.MessageSerializationException;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
-import com.distrimind.madkit.util.ExternalizableAndSizable;
-import com.distrimind.madkit.util.SerializationTools;
 
 /**
  * 
@@ -66,13 +63,8 @@ import com.distrimind.madkit.util.SerializationTools;
  * @version 2.1
  * @since MadKitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
-public class ConversationID implements ExternalizableAndSizable, Cloneable {
+public class ConversationID implements SecureExternalizable, Cloneable {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 4280603137316237711L;
 	final static private AtomicInteger ID_COUNTER = new AtomicInteger(
 			(int) (Math.random() * (double) Integer.MAX_VALUE));// TODO if many many ??
 
@@ -424,20 +416,16 @@ public class ConversationID implements ExternalizableAndSizable, Cloneable {
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput out) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream out) throws IOException {
 		out.writeInt(this.id);
-		SerializationTools.writeExternalizableAndSizable(out, this.origin, true);
-		
+		out.writeObject(this.origin, true);
 	}
 
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		global_interfaced_ids=null;
 		myInterfacedIDs=null;
 		this.id=in.readInt();
-		Object o=SerializationTools.readExternalizableAndSizable(in, true);
-		if (o!=null && !(o instanceof KernelAddress))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		this.origin=(KernelAddress)o;
+		this.origin=in.readObject(true, KernelAddress.class);
 	}
 }

@@ -37,14 +37,12 @@
  */
 package com.distrimind.madkit.kernel.network.connection.secured;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
-import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.madkit.kernel.network.connection.ConnectionMessage;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
+import java.io.IOException;
 
 /**
 
@@ -53,13 +51,8 @@ import com.distrimind.madkit.util.SerializationTools;
  * @since MadkitLanEdition 1.0
  * @see ServerSecuredConnectionProtocolWithKnwonPublicKey
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public class KeyAgreementDataMessage extends ConnectionMessage {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 4560100871284266098L;
-	
+
 	private byte[] data;
 	private byte[] materialKey;
 	
@@ -70,21 +63,21 @@ public class KeyAgreementDataMessage extends ConnectionMessage {
 	}
 
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		int totalSize=NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
-		data=SerializationTools.readBytes(in, totalSize, false);
-		if (data==null)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		materialKey=SerializationTools.readBytes(in, totalSize-data.length, true);
+		data=in.readBytesArray(false, totalSize);
+
+		materialKey=in.readBytesArray(true, totalSize-data.length);
+
 	}
 
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		int totalSize=NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
-		SerializationTools.writeBytes(oos, data, totalSize, false);
-		SerializationTools.writeBytes(oos, materialKey, totalSize-data.length, true);
-		
+		oos.writeBytesArray(data , false, totalSize);
+		oos.writeBytesArray(materialKey , true, totalSize-data.length);
+
 	}
 	
 

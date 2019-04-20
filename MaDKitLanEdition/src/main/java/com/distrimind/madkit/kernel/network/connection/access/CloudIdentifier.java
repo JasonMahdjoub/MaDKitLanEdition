@@ -38,7 +38,7 @@
 package com.distrimind.madkit.kernel.network.connection.access;
 
 
-import com.distrimind.madkit.util.ExternalizableAndSizable;
+import com.distrimind.madkit.util.SecureExternalizable;
 import com.distrimind.util.crypto.ASymmetricKeyPair;
 import com.distrimind.util.crypto.ASymmetricPublicKey;
 
@@ -53,12 +53,7 @@ import com.distrimind.util.crypto.ASymmetricPublicKey;
  * @see Identifier
  * @see HostIdentifier
  */
-public abstract class CloudIdentifier implements ExternalizableAndSizable {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -5227781145002645024L;
+public abstract class CloudIdentifier implements SecureExternalizable {
 
 	public static int MAX_CLOUD_IDENTIFIER_LENGTH=4096;
 	

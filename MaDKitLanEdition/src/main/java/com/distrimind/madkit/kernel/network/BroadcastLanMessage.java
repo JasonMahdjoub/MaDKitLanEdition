@@ -37,17 +37,17 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.util.ArrayList;
-
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.AbstractGroup;
 import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.kernel.Group;
 import com.distrimind.madkit.kernel.Message;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.madkit.util.SerializationTools;
+
+import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * 
@@ -55,13 +55,7 @@ import com.distrimind.madkit.util.SerializationTools;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 final class BroadcastLanMessage extends LanMessage {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -1688077541837766083L;
 
 	public AbstractGroup abstract_group;
 	public String role;
@@ -74,17 +68,14 @@ final class BroadcastLanMessage extends LanMessage {
 	}
 	
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		
 		super.readExternal(in);
 		int globalSize=NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
 		int totalSize=0;
-		Object o=SerializationTools.readExternalizableAndSizable(in, false);
-		if (!(o instanceof AbstractGroup))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		abstract_group=(AbstractGroup)o;
+		abstract_group=in.readObject( false, AbstractGroup.class);
 		totalSize+=abstract_group.getInternalSerializedSize();
-		role=SerializationTools.readString(in, Group.MAX_ROLE_NAME_LENGTH, false);
+		role=in.readString( false, Group.MAX_ROLE_NAME_LENGTH);
 		totalSize+=SerializationTools.getInternalSize(role, Group.MAX_ROLE_NAME_LENGTH);
 		if (totalSize>globalSize)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
@@ -95,10 +86,7 @@ final class BroadcastLanMessage extends LanMessage {
 		agentAddressesSender=new ArrayList<>(size);
 		for (int i=0;i<size;i++)
 		{
-			o=SerializationTools.readExternalizableAndSizable(in, false);
-			if (!(o instanceof AgentAddress))
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			AgentAddress aa=(AgentAddress)o;
+			AgentAddress aa=in.readObject( false, AgentAddress.class);
 			totalSize+=aa.getInternalSerializedSize();
 			if (totalSize>globalSize)
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
@@ -109,18 +97,18 @@ final class BroadcastLanMessage extends LanMessage {
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		super.writeExternal(oos);
-		SerializationTools.writeExternalizableAndSizable(oos, abstract_group, false);
-		SerializationTools.writeString(oos, role, Group.MAX_ROLE_NAME_LENGTH, false);
+		oos.writeObject(abstract_group, false);
+		oos.writeString(role, false, Group.MAX_ROLE_NAME_LENGTH);
 		oos.writeInt(agentAddressesSender.size());
 		for (AgentAddress aa : agentAddressesSender)
-			SerializationTools.writeExternalizableAndSizable(oos, aa, false);
+			oos.writeObject(aa, false);
 	}
 
 	
 	BroadcastLanMessage(Message _message, AbstractGroup _abstract_group, String _role,
-			ArrayList<AgentAddress> _agentAddressesSender) {
+						ArrayList<AgentAddress> _agentAddressesSender) {
 		super(_message);
 		if (_abstract_group == null)
 			throw new NullPointerException("_abstract_group");

@@ -37,14 +37,13 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
+import java.io.IOException;
 
 /**
  * 
@@ -52,12 +51,7 @@ import com.distrimind.madkit.util.SerializationTools;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 class TransferClosedSystemMessage extends BroadcastableSystemMessage {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 7387851356039905328L;
 
 	private IDTransfer idTransfer;
 	private boolean lastPass;
@@ -87,22 +81,19 @@ class TransferClosedSystemMessage extends BroadcastableSystemMessage {
 
 
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		super.readExternal(in);
-		Object o=SerializationTools.readExternalizableAndSizable(in, false);
-		if (!(o instanceof IDTransfer))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		idTransfer=(IDTransfer)o;
+		idTransfer=in.readObject(false, IDTransfer.class);
 		lastPass=in.readBoolean();
 		if (idTransfer.equals(TransferAgent.NullIDTransfer))
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		super.writeExternal(oos);
-		SerializationTools.writeExternalizableAndSizable(oos, idTransfer, false);
-		
+		oos.writeObject(idTransfer, false);
+
 		oos.writeBoolean(lastPass);
 	}
 	boolean isLastPass() {

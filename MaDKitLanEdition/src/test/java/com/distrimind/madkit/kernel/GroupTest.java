@@ -37,16 +37,13 @@
  */
 package com.distrimind.madkit.kernel;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.distrimind.madkit.util.SerializationTools;
 
 /**
  * 
@@ -61,28 +58,28 @@ public class GroupTest {
 	{
 		for (Object[] o : provideCompleteGroupArgumentsList())
 		{
-			String s[]=new String[o.length-4];
+			String[] s = new String[o.length - 4];
 			for (int i=4;i<o.length;i++)
 				s[i-4]=(String)o[i];
 			testGroupConstructorDistributed((Boolean)o[0], (Gatekeeper)o[1], (Boolean)o[2], (String)o[3], s );
 		}
 		for (Object[] o : provideGroupList())
 		{
-			String s[]=new String[o.length-1];
+			String[] s = new String[o.length - 1];
 			for (int i=1;i<o.length;i++)
 				s[i-1]=(String)o[i];
 			testGroupConstructor((String)o[0], s );
 		}
 		for (Object[] o : provideCompleteGroupArgumentsList())
 		{
-			String s[]=new String[o.length-4];
+			String[] s = new String[o.length - 4];
 			for (int i=4;i<o.length;i++)
 				s[i-4]=(String)o[i];
 			testCloneGroup((Boolean)o[0], (Gatekeeper)o[1], (Boolean)o[2], (String)o[3], s );
 		}
 		for (Object[] o : provideCompleteGroupArgumentsList())
 		{
-			String s[]=new String[o.length-4];
+			String[] s = new String[o.length - 4];
 			for (int i=4;i<o.length;i++)
 				s[i-4]=(String)o[i];
 			testGroupSerialization((Boolean)o[0], (Gatekeeper)o[1], (Boolean)o[2], (String)o[3], s );
@@ -96,6 +93,7 @@ public class GroupTest {
 		Assert.assertEquals(g.getCommunity(), community);
 
 		for (int i = 0; i < groups.length; i++) {
+			assert g != null;
 			Assert.assertEquals(g.getName(), groups[groups.length - i - 1]);
 			g = g.getParent();
 		}
@@ -120,6 +118,7 @@ public class GroupTest {
 			Group g2 = g;
 			g = g.getParent();
 
+			assert g != null;
 			Assert.assertEquals(g.getSubGroup(g2.getName()), g2);
 		}
 		Assert.assertEquals(gpath, path.toString());
@@ -173,6 +172,7 @@ public class GroupTest {
 			groups = groups[0].split("/");
 		}
 		for (int i = groups.length - 1; i >= 0; i--) {
+			assert g2 != null;
 			Assert.assertEquals(g2.getName(), groups[i]);
 			g2 = g2.getParent();
 		}
@@ -185,16 +185,16 @@ public class GroupTest {
 		byte[] array;
 
 		try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-			try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-				SerializationTools.writeExternalizableAndSizable(oos, g, false);
+			try (DataOutputStream dos=new DataOutputStream(baos); SecuredObjectOutputStream oos = new SecuredObjectOutputStream(dos)) {
+				oos.writeObject(g, false);
 			}
 			array = baos.toByteArray();
 		}
 
 		Group g2;
 		try (ByteArrayInputStream bais = new ByteArrayInputStream(array)) {
-			try (ObjectInputStream ois = new ObjectInputStream(bais)) {
-				g2 = (Group) SerializationTools.readExternalizableAndSizable(ois, false);
+			try (DataInputStream dis=new DataInputStream(bais); SecuredObjectInputStream ois = new SecuredObjectInputStream(dis)) {
+				g2 = ois.readObject(false, Group.class);
 			}
 		}
 
@@ -203,6 +203,7 @@ public class GroupTest {
 			groups = groups[0].split("/");
 		}
 		for (int i = groups.length - 1; i >= 0; i--) {
+			assert g2 != null;
 			Assert.assertEquals(g2.getName(), groups[i]);
 			g2 = g2.getParent();
 		}
@@ -263,13 +264,11 @@ public class GroupTest {
 		int index = 0;
 		for (Object[] anArgs2 : args2) {
 			for (Object[] anArgs1 : args1) {
-				Object v[] = new Object[anArgs2.length + anArgs1.length];
+				Object[] v = new Object[anArgs2.length + anArgs1.length];
 				int iv = 0;
-				for (int k = 0; k < anArgs1.length; k++)
-					v[iv++] = anArgs1[k];
+				for (Object value : anArgs1) v[iv++] = value;
 
-				for (int k = 0; k < anArgs2.length; k++)
-					v[iv++] = anArgs2[k];
+				for (Object o : anArgs2) v[iv++] = o;
 
 				res[index++] = v;
 			}
@@ -292,7 +291,7 @@ public class GroupTest {
 	}
 
 	public static Object[][] transformAGroupSetToOneString(Object[][] arg) {
-		Object res[][] = new Object[arg.length][];
+		Object[][] res = new Object[arg.length][];
 		for (int i = 0; i < res.length; i++) {
 			res[i] = new Object[2];
 			res[i][0] = arg[i][0];
@@ -303,6 +302,7 @@ public class GroupTest {
 				else
 					g.append("/").append(arg[i][k]);
 			}
+			assert g != null;
 			res[i][1] = g.toString();
 		}
 		return res;

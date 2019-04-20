@@ -45,11 +45,6 @@ package com.distrimind.madkit.kernel.network;
  */
 abstract class KernelAddressNegociationMessage implements SystemMessage {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -4160381641340163092L;
-
 	@Override
 	public String toString() {
 		return getClass().getSimpleName();

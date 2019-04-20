@@ -37,19 +37,13 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.KernelAddress;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.util.AbstractDecentralizedID;
 
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
+import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * This class represents a secured unique identifier for a distant MaDKit
@@ -63,9 +57,7 @@ import gnu.vm.jgnu.security.NoSuchProviderException;
  * @since MadKitLanEdition 1.0
  *
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public class KernelAddressInterfaced extends KernelAddress {
-	private static final long serialVersionUID = -8597071860059314028L;
 
 	private KernelAddress original_external_kernel_address;
 	private AtomicBoolean interfaced;
@@ -80,11 +72,8 @@ public class KernelAddressInterfaced extends KernelAddress {
 	/**
 	 * @param _original_kernel_address
 	 *            the original kernel address to interface
-	 * @throws NoSuchAlgorithmException 
-	 *             if the used encryption algorithm does not exists
-	 * @throws NoSuchProviderException if message digest provider was not found
 	 */
-	public KernelAddressInterfaced(KernelAddress _original_kernel_address) throws NoSuchAlgorithmException, NoSuchProviderException {
+	public KernelAddressInterfaced(KernelAddress _original_kernel_address) {
 		this(_original_kernel_address, true);
 	}
 
@@ -93,13 +82,10 @@ public class KernelAddressInterfaced extends KernelAddress {
 	 *            the original kernel address to eventually interface
 	 * @param identical_from_original_kernel_interface
 	 *            true if the original kernel address do not need to be interfaced.
-	 * @throws NoSuchAlgorithmException
-	 *             if the used encryption algorithm does not exists
-	 * @throws NoSuchProviderException if message digest provider was not found
 	 * 				
 	 */
 	public KernelAddressInterfaced(KernelAddress _original_kernel_address,
-			boolean identical_from_original_kernel_interface) throws NoSuchAlgorithmException, NoSuchProviderException {
+			boolean identical_from_original_kernel_interface) {
 		super(false, false);
 		if (_original_kernel_address == null)
 			throw new NullPointerException("_original_kernel_address");
@@ -119,14 +105,10 @@ public class KernelAddressInterfaced extends KernelAddress {
 
 	
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		try {
 			super.readExternal(in, false);
-
-			Object o=SerializationTools.readExternalizableAndSizable(in, false);
-			if (!(o instanceof KernelAddress))
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			original_external_kernel_address=(KernelAddress)o;
+			original_external_kernel_address=in.readObject(false, KernelAddress.class);
 			internalSize+=original_external_kernel_address.getInternalSerializedSize();
 			interfaced=new AtomicBoolean(in.readBoolean());
 			
@@ -140,9 +122,9 @@ public class KernelAddressInterfaced extends KernelAddress {
 		}
 	}
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		super.writeExternal(oos);
-		SerializationTools.writeExternalizableAndSizable(oos, original_external_kernel_address, false);
+		oos.writeObject(original_external_kernel_address, false);
 		oos.writeBoolean(interfaced.get());
 	}
 	/**

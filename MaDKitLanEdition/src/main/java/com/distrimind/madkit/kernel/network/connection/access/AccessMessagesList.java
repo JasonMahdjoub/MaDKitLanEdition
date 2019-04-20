@@ -1,16 +1,12 @@
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
 import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
+import java.io.IOException;
 
 public class AccessMessagesList extends AccessMessage {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 7355804164639261970L;
 	private AccessMessage[] messages;
 	
 	AccessMessagesList(AccessMessage ...messages)
@@ -29,11 +25,11 @@ public class AccessMessagesList extends AccessMessage {
 	}
 
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 	}
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		throw new IOException();
 	}
 }

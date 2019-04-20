@@ -37,9 +37,10 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 
 /**
  * 
@@ -47,15 +48,8 @@ import java.io.ObjectOutput;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 class LocalLogingAccessMessage extends AccessMessage {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -6586802620520487224L;
-
-	
 
 	@Override
 	public boolean checkDifferedMessages() {
@@ -65,14 +59,14 @@ class LocalLogingAccessMessage extends AccessMessage {
 
 
 	@Override
-	public void writeExternal(ObjectOutput out) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream out) throws IOException {
 		
 	}
 
 
 
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		
 	}
 	

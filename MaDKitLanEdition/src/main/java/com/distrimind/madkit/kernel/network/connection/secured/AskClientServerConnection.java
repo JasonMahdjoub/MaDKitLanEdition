@@ -39,7 +39,8 @@ package com.distrimind.madkit.kernel.network.connection.secured;
 
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.network.connection.AskConnection;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.util.crypto.*;
 import gnu.vm.jgnu.security.*;
 import gnu.vm.jgnu.security.spec.InvalidKeySpecException;
@@ -48,8 +49,6 @@ import gnu.vm.jgnux.crypto.IllegalBlockSizeException;
 import gnu.vm.jgnux.crypto.NoSuchPaddingException;
 
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 
 /**
  * 
@@ -57,13 +56,7 @@ import java.io.ObjectOutput;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 class AskClientServerConnection extends AskConnection {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 6607916237726396986L;
 
 	//private final transient byte[] distantPublicKeyForEncryptionEncoded;
 	private byte[] secretKeyForEncryption, secretKeyForSignature, signatureOfSecretKeyForEncryption;
@@ -76,18 +69,18 @@ class AskClientServerConnection extends AskConnection {
 	}
 	
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		super.readExternal(in);
-		secretKeyForEncryption=SerializationTools.readBytes(in, MAX_SECRET_KEY_LENGTH, true);
-		secretKeyForSignature=SerializationTools.readBytes(in, MAX_SECRET_KEY_LENGTH, false);
-		signatureOfSecretKeyForEncryption=SerializationTools.readBytes(in, MAX_SIGNATURE_LENGTH, true);
+		secretKeyForEncryption=in.readBytesArray(true, MAX_SECRET_KEY_LENGTH);
+		secretKeyForSignature=in.readBytesArray(false, MAX_SECRET_KEY_LENGTH);
+		signatureOfSecretKeyForEncryption=in.readBytesArray(true, MAX_SIGNATURE_LENGTH);
 		if (secretKeyForEncryption!=null && secretKeyForEncryption.length == 0)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		if (secretKeyForSignature.length == 0)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		if (this.isYouAreAsking())
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		randomBytes=SerializationTools.readBytes(in, 256, true);
+		randomBytes=in.readBytesArray(true, 256);
 		if (secretKeyForEncryption==null && (signatureOfSecretKeyForEncryption!=null || randomBytes!=null))
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		if (secretKeyForEncryption!=null && (signatureOfSecretKeyForEncryption==null || randomBytes==null))
@@ -98,12 +91,12 @@ class AskClientServerConnection extends AskConnection {
 
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		super.writeExternal(oos);
-		SerializationTools.writeBytes(oos, secretKeyForEncryption, MAX_SECRET_KEY_LENGTH, true);
-		SerializationTools.writeBytes(oos, secretKeyForSignature, MAX_SECRET_KEY_LENGTH, false);
-		SerializationTools.writeBytes(oos, signatureOfSecretKeyForEncryption, MAX_SIGNATURE_LENGTH, true);
-		SerializationTools.writeBytes(oos,randomBytes, 256, true);
+		oos.writeBytesArray(secretKeyForEncryption, true, MAX_SECRET_KEY_LENGTH);
+		oos.writeBytesArray(secretKeyForSignature, false, MAX_SECRET_KEY_LENGTH);
+		oos.writeBytesArray(signatureOfSecretKeyForEncryption, true, MAX_SIGNATURE_LENGTH);
+		oos.writeBytesArray(randomBytes, true, 256);
 	}
 	
 	

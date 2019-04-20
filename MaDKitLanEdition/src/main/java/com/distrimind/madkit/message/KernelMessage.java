@@ -45,13 +45,7 @@ import com.distrimind.madkit.action.KernelAction;
  * @since MaDKit 1.0
  *
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public class KernelMessage extends EnumMessage<KernelAction> {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 4125669035665965672L;
 
 	public KernelMessage(KernelAction code, Object... commandOptions) {
 		super(code, commandOptions);

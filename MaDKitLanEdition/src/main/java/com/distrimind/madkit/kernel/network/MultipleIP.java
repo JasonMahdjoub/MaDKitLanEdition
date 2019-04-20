@@ -37,9 +37,12 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+import com.distrimind.madkit.util.SerializationTools;
+
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -47,16 +50,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Random;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
-import com.distrimind.madkit.util.SerializationTools;
-
 /**
  * 
  * @author Jason Mahdjoub
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public class MultipleIP extends AbstractIP {
 	/**
 	 * 
@@ -77,14 +76,14 @@ public class MultipleIP extends AbstractIP {
 	public int getInternalSerializedSize() {
 		int res=super.getInternalSerializedSize()+8;
 		for (InetAddress ia : inet4Adresses)
-			res+=SerializationTools.getInternalSize(ia, 0);
+			res+=SerializationTools.getInternalSize(ia);
 		for (InetAddress ia : inet6Adresses)
-			res+=SerializationTools.getInternalSize(ia, 0);
+			res+=SerializationTools.getInternalSize(ia);
 		return res;
 	}
 	
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		super.readExternal(in);
 		random = new Random(System.currentTimeMillis());
 		int globalSize=NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
@@ -95,11 +94,8 @@ public class MultipleIP extends AbstractIP {
 		this.inet4Adresses = new ArrayList<>(size);
 		for (int i=0;i<size;i++)
 		{
-			InetAddress o=SerializationTools.readInetAddress(in, false);
-			if (!(o instanceof Inet4Address))
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);	
-			Inet4Address ia=(Inet4Address)o;
-			totalSize+=SerializationTools.getInternalSize(ia,0);
+			Inet4Address ia=in.readObject(false, Inet4Address.class);
+			totalSize+=SerializationTools.getInternalSize(ia);
 			if (totalSize>globalSize)
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			inet4Adresses.add(ia);
@@ -111,11 +107,8 @@ public class MultipleIP extends AbstractIP {
 		this.inet6Adresses = new ArrayList<>(size);
 		for (int i=0;i<size;i++)
 		{
-			InetAddress o=SerializationTools.readInetAddress(in, false);
-			if (!(o instanceof Inet6Address))
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);	
-			Inet6Address ia=(Inet6Address)o;
-			totalSize+=SerializationTools.getInternalSize(ia,0);
+			Inet6Address ia=in.readObject(false, Inet6Address.class);
+			totalSize+=SerializationTools.getInternalSize(ia);
 			if (totalSize>globalSize)
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			inet6Adresses.add(ia);
@@ -125,18 +118,18 @@ public class MultipleIP extends AbstractIP {
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		
 		super.writeExternal(oos);
 		if (inet4Adresses.isEmpty() && inet6Adresses.isEmpty())
 			throw new IOException();
 		oos.writeInt(inet4Adresses.size());
 		for (InetAddress ia : inet4Adresses)
-			SerializationTools.writeInetAddress(oos, ia, false);
+			oos.writeObject(ia, false);
 		oos.writeInt(inet6Adresses.size());
 		for (InetAddress ia : inet6Adresses)
-			SerializationTools.writeInetAddress(oos, ia, false);
-		
+			oos.writeObject(ia, false);
+
 	}
 	
 

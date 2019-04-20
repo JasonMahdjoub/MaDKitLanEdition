@@ -51,11 +51,6 @@ public class IncomprehensiblePublicKey extends ErrorConnection {
 		super(true);
 	}
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -1180929297420147671L;
-
 	
 
 

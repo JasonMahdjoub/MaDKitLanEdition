@@ -37,30 +37,22 @@
  */
 package com.distrimind.madkit.testing.util.agent;
 
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.util.HashMap;
-
-import org.junit.Assert;
-
 import com.distrimind.madkit.exceptions.SelfKillException;
 import com.distrimind.madkit.io.RandomByteArrayInputStream;
 import com.distrimind.madkit.io.RandomByteArrayOutputStream;
 import com.distrimind.madkit.io.RandomInputStream;
-import com.distrimind.madkit.kernel.AgentAddress;
-import com.distrimind.madkit.kernel.AgentFakeThread;
-import com.distrimind.madkit.kernel.BigDataPropositionMessage;
-import com.distrimind.madkit.kernel.BigDataResultMessage;
-import com.distrimind.madkit.kernel.BigDataTransferID;
-import com.distrimind.madkit.kernel.ConversationID;
-import com.distrimind.madkit.kernel.JunitMadkit;
-import com.distrimind.madkit.kernel.Message;
+import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.madkit.kernel.network.RealTimeTransfertStat;
-import com.distrimind.madkit.message.hook.OrganizationEvent;
-import com.distrimind.madkit.util.ExternalizableAndSizable;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
+import com.distrimind.madkit.message.hook.OrganizationEvent;
+import com.distrimind.madkit.util.SecureExternalizable;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.util.crypto.MessageDigestType;
+import org.junit.Assert;
+
+import java.util.HashMap;
 
 /**
  * 
@@ -70,25 +62,20 @@ import com.distrimind.util.crypto.MessageDigestType;
  */
 public class AgentBigTransfer extends AgentFakeThread {
 	public static final String bigTransferRole = "Big Transfer Role";
-	public static final ExternalizableAndSizable attachedData = new ExternalizableAndSizable() {
+	public static final SecureExternalizable attachedData = new SecureExternalizable() {
 		
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 4592969255297924312L;
-
 		@Override
 		public int getInternalSerializedSize() {
 			return 0;
 		}
 
 		@Override
-		public void writeExternal(ObjectOutput out) {
+		public void writeExternal(SecuredObjectOutputStream out) {
 			
 		}
 
 		@Override
-		public void readExternal(ObjectInput in) {
+		public void readExternal(SecuredObjectInputStream in) {
 			
 		}
 		

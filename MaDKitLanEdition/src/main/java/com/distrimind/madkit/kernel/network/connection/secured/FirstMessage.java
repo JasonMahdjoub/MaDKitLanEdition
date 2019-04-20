@@ -37,11 +37,11 @@
  */
 package com.distrimind.madkit.kernel.network.connection.secured;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
 import com.distrimind.madkit.kernel.network.connection.ConnectionMessage;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
+import java.io.IOException;
 
 /**
  * 
@@ -49,13 +49,7 @@ import com.distrimind.madkit.kernel.network.connection.ConnectionMessage;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 class FirstMessage extends ConnectionMessage {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 4087005915722458526L;
 
 	
 	@Override
@@ -65,13 +59,13 @@ class FirstMessage extends ConnectionMessage {
 
 
 	@Override
-	public void writeExternal(ObjectOutput out) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream out) throws IOException {
 		
 	}
 
 
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		
 	}
 

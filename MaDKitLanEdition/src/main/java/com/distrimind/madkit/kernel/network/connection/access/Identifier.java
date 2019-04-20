@@ -37,14 +37,13 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
+import com.distrimind.madkit.util.SecureExternalizable;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
-import com.distrimind.madkit.util.ExternalizableAndSizable;
-import com.distrimind.madkit.util.SerializationTools;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 /**
  * This identifier associates a {@link HostIdentifier} and a
@@ -57,13 +56,7 @@ import com.distrimind.madkit.util.SerializationTools;
  * @see CloudIdentifier
  * @see HostIdentifier
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
-public class Identifier implements ExternalizableAndSizable {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -4973368971188622492L;
+public class Identifier implements SecureExternalizable {
 
 	private CloudIdentifier cloud_identifier;
 	private HostIdentifier host_identifier;
@@ -154,25 +147,26 @@ public class Identifier implements ExternalizableAndSizable {
 	}
 
 	@Override
-	public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException
+	public void readExternal(final SecuredObjectInputStream in) throws IOException, ClassNotFoundException
 	{
-		Object o=SerializationTools.readExternalizableAndSizable(in, false);
-		if (!(o instanceof CloudIdentifier))
-		{
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		}
-		cloud_identifier=(CloudIdentifier)o;
-		o=SerializationTools.readExternalizableAndSizable(in, false);
-		if (!(o instanceof HostIdentifier))
-		{
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		}
-		host_identifier=(HostIdentifier)o;
+		cloud_identifier=in.readObject(false, CloudIdentifier.class);
+		host_identifier=in.readObject(false, HostIdentifier.class);
 	}
 	@Override
-	public void writeExternal(final ObjectOutput oos) throws IOException
+	public void writeExternal(final SecuredObjectOutputStream oos) throws IOException
 	{
-		SerializationTools.writeExternalizableAndSizable(oos, cloud_identifier, false);
-		SerializationTools.writeExternalizableAndSizable(oos, host_identifier, false);
+		oos.writeObject(  cloud_identifier, false);
+		oos.writeObject(  host_identifier, false);
+	}
+
+	public byte[] toBytes() throws IOException {
+		try(ByteArrayOutputStream baos=new ByteArrayOutputStream();
+			DataOutputStream oos=new DataOutputStream(baos);
+			SecuredObjectOutputStream soos=new SecuredObjectOutputStream(oos))
+		{
+			soos.writeObject(this, false);
+			soos.flush();
+			return baos.toByteArray();
+		}
 	}
 }

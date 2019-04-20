@@ -37,27 +37,15 @@
  */
 package com.distrimind.madkit.api.abstractAgent;
 
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ACCESS_DENIED;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.AGENT_CRASH;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_COMMUNITY;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ROLE_ALREADY_HANDLED;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
+import com.distrimind.madkit.agr.Organization;
+import com.distrimind.madkit.kernel.*;
+import com.distrimind.madkit.util.SecureExternalizable;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import org.junit.Test;
 
-import com.distrimind.madkit.agr.Organization;
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.AgentNetworkID;
-import com.distrimind.madkit.kernel.Gatekeeper;
-import com.distrimind.madkit.kernel.Group;
-import com.distrimind.madkit.kernel.JunitMadkit;
-import com.distrimind.madkit.util.ExternalizableAndSizable;
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Fabien Michel
@@ -121,7 +109,7 @@ public class RequestRoleTest extends JunitMadkit {
 	};
 
 	final Gatekeeper buggyIdentifier = new Gatekeeper() {
-		@SuppressWarnings("null")
+		@SuppressWarnings({"null", "ConstantConditions", "ResultOfMethodCallIgnored"})
 		@Override
 		public boolean allowAgentToTakeRole(Group _group, String _roleName,
 				final Class<? extends AbstractAgent> requesterClass, AgentNetworkID _agentNetworkID,
@@ -131,7 +119,7 @@ public class RequestRoleTest extends JunitMadkit {
 			return true;
 		}
 
-		@SuppressWarnings("null")
+		@SuppressWarnings({"null", "ConstantConditions", "ResultOfMethodCallIgnored"})
 		@Override
 		public boolean allowAgentToCreateSubGroup(Group _parent_group, Group _sub_group,
 				final Class<? extends AbstractAgent> requesterClass, AgentNetworkID _agentNetworkID,
@@ -269,25 +257,20 @@ public class RequestRoleTest extends JunitMadkit {
 					e.printStackTrace();
 				}
 				try {
-					assertEquals(SUCCESS, requestRole(GROUP, null, new ExternalizableAndSizable() {
+					assertEquals(SUCCESS, requestRole(GROUP, null, new SecureExternalizable() {
 						
-						/**
-						 * 
-						 */
-						private static final long serialVersionUID = 6344115606412187437L;
-
 						@Override
 						public int getInternalSerializedSize() {
 							return 0;
 						}
 
 						@Override
-						public void writeExternal(ObjectOutput out) {
+						public void writeExternal(SecuredObjectOutputStream out) {
 							
 						}
 
 						@Override
-						public void readExternal(ObjectInput in) {
+						public void readExternal(SecuredObjectInputStream in) {
 							
 						}
 					}));

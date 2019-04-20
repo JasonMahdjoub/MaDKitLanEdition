@@ -37,11 +37,10 @@ import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -61,10 +60,6 @@ import java.util.List;
 public class ACLMessage extends ActMessage // NO_UCD
 {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -6750319187360080985L;
 	/** constant identifying the FIPA performative **/
 	public static final int ACCEPT_PROPOSAL = 0;
 	/** constant identifying the FIPA performative **/
@@ -195,7 +190,7 @@ public class ACLMessage extends ActMessage // NO_UCD
 	}
 	
 	@Override
-	public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException
+	public void readExternal(final SecuredObjectInputStream in) throws IOException, ClassNotFoundException
 	{
 		super.readExternal(in);
 		int totalSize=super.getInternalSerializedSize();
@@ -209,17 +204,11 @@ public class ACLMessage extends ActMessage // NO_UCD
 		dests.ensureCapacity(size);
 		for (int i=0;i<size;i++)
 		{
-			Object o=SerializationTools.readExternalizableAndSizable(in, false);
-			if (o instanceof AgentAddress)
-			{
-				AgentAddress aa=(AgentAddress)o;
-				totalSize+=aa.getInternalSerializedSize();
-				if (totalSize>globalSize)
-					throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-				dests.add(aa);
-			}
-			else
+			AgentAddress aa=in.readObject( false, AgentAddress.class);
+			totalSize+=aa.getInternalSerializedSize();
+			if (totalSize>globalSize)
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			dests.add(aa);
 		}
 		size=in.readInt();
 		totalSize+=4;
@@ -230,28 +219,24 @@ public class ACLMessage extends ActMessage // NO_UCD
 		reply_to.ensureCapacity(size);
 		for (int i=0;i<size;i++)
 		{
-			Object o=SerializationTools.readExternalizableAndSizable(in, false);
-			if (o instanceof AgentAddress)
-			{
-				AgentAddress aa=(AgentAddress)o;
-				totalSize+=aa.getInternalSerializedSize();
-				if (totalSize>globalSize)
-					throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-				reply_to.add(aa);
-			}
-			else
+			AgentAddress aa=in.readObject( false, AgentAddress.class);
+			totalSize+=aa.getInternalSerializedSize();
+			if (totalSize>globalSize)
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			reply_to.add(aa);
 		}
 	}
 	@Override
-	public void writeExternal(final ObjectOutput oos) throws IOException{
+	public void writeExternal(final SecuredObjectOutputStream oos) throws IOException{
 		super.writeExternal(oos);
 		oos.writeInt(dests.size());
 		for (AgentAddress aa : dests)
-			SerializationTools.writeExternalizableAndSizable(oos, aa, false);
+			oos.writeObject(aa, false);
+
 		oos.writeInt(reply_to.size());
 		for (AgentAddress aa : reply_to)
-			SerializationTools.writeExternalizableAndSizable(oos, aa, false);
+			oos.writeObject(aa, false);
+
 
 		
 			

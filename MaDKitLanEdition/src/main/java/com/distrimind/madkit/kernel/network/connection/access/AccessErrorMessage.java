@@ -37,9 +37,10 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 
 /**
  * 
@@ -47,13 +48,8 @@ import java.io.ObjectOutput;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public class AccessErrorMessage extends AccessMessage {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 9165807196373163196L;
 
 	public boolean candidate_to_ban;
 
@@ -77,13 +73,13 @@ public class AccessErrorMessage extends AccessMessage {
 
 
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		candidate_to_ban=in.readBoolean();
 	}
 
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		oos.writeBoolean(candidate_to_ban);
 		
 	}

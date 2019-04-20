@@ -37,9 +37,10 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 
 
 /**
@@ -48,12 +49,7 @@ import java.io.ObjectOutput;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 class ValidateBigDataProposition implements SystemMessage {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 9027528563984879917L;
 	private int packetID;
 
 	@SuppressWarnings("unused")
@@ -85,12 +81,12 @@ class ValidateBigDataProposition implements SystemMessage {
 
 	
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		packetID=in.readInt();
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		oos.writeInt(packetID);
 	}
 

@@ -34,13 +34,13 @@
  */
 package com.distrimind.madkit.message;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.io.Serializable;
-
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.madkit.util.NetworkMessage;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
+import java.io.IOException;
+import java.io.Serializable;
 
 /**
  * This parameterizable class could be used to convey any Java Object between
@@ -51,15 +51,9 @@ import com.distrimind.madkit.util.NetworkMessage;
  * @version 1.0
  *
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public class NetworkObjectMessage<T extends Serializable> extends ObjectMessage<T> implements NetworkMessage {
 
-	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -5376280521192149943L;
-	
+
 	
 	
 
@@ -69,12 +63,12 @@ public class NetworkObjectMessage<T extends Serializable> extends ObjectMessage<
 	}	
 	
 	@Override
-	public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException
+	public void readExternal(final SecuredObjectInputStream in) throws IOException, ClassNotFoundException
 	{
 		super.readExternal(in, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE);
 	}
 	@Override
-	public void writeExternal(final ObjectOutput oos) throws IOException{
+	public void writeExternal(final SecuredObjectOutputStream oos) throws IOException{
 		super.writeExternal(oos, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE);
 	}
 	

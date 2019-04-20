@@ -37,106 +37,60 @@
  */
 package com.distrimind.madkit.kernel;
 
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.AGENT_CRASH;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ALREADY_GROUP;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ALREADY_KILLED;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ALREADY_LAUNCHED;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.INVALID_AGENT_ADDRESS;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_COMMUNITY;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_GROUP;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_IN_GROUP;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_ROLE;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_YET_LAUNCHED;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NO_RECIPIENT_FOUND;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ROLE_NOT_HANDLED;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SEVERE;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.TIMEOUT;
-import static com.distrimind.madkit.kernel.AbstractAgent.State.ACTIVATING;
-import static com.distrimind.madkit.kernel.AbstractAgent.State.INITIALIZING;
-import static com.distrimind.madkit.kernel.AbstractAgent.State.LIVING;
-import static com.distrimind.madkit.kernel.AbstractAgent.State.NOT_LAUNCHED;
-import static com.distrimind.madkit.kernel.CGRSynchro.Code.CREATE_GROUP;
-import static com.distrimind.madkit.kernel.CGRSynchro.Code.LEAVE_GROUP;
-import static com.distrimind.madkit.kernel.CGRSynchro.Code.LEAVE_ROLE;
-import static com.distrimind.madkit.kernel.CGRSynchro.Code.REQUEST_ROLE;
-
-import java.io.*;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.net.InetAddress;
-import java.net.URL;
-import java.util.*;
-import java.util.concurrent.BlockingDeque;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
-
-import javax.xml.parsers.ParserConfigurationException;
-
-import com.distrimind.madkit.gui.AgentStatusPanel;
-import com.distrimind.madkit.gui.menu.AgentLogLevelMenu;
-import com.distrimind.madkit.kernel.network.*;
-import com.distrimind.util.Utils;
-import com.distrimind.util.properties.PropertiesParseException;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
-
+import com.distrimind.jdkrewrite.concurrent.ScheduledThreadPoolExecutor;
+import com.distrimind.jdkrewrite.concurrent.ThreadPoolExecutor;
+import com.distrimind.jdkrewrite.concurrent.*;
 import com.distrimind.madkit.action.GlobalAction;
 import com.distrimind.madkit.action.KernelAction;
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.agr.LocalCommunity.Groups;
 import com.distrimind.madkit.agr.LocalCommunity.Roles;
 import com.distrimind.madkit.database.IPBanned;
+import com.distrimind.madkit.gui.AgentStatusPanel;
 import com.distrimind.madkit.gui.ConsoleAgent;
+import com.distrimind.madkit.gui.menu.AgentLogLevelMenu;
 import com.distrimind.madkit.i18n.ErrorMessages;
 import com.distrimind.madkit.io.RandomInputStream;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
+import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.BooleanMessage;
 import com.distrimind.madkit.message.KernelMessage;
 import com.distrimind.madkit.message.ObjectMessage;
-import com.distrimind.madkit.message.hook.AgentLifeEvent;
-import com.distrimind.madkit.message.hook.DistantKernelAgentEventMessage;
-import com.distrimind.madkit.message.hook.HookMessage;
-import com.distrimind.madkit.message.hook.MessageEvent;
-import com.distrimind.madkit.message.hook.NetworkAnomalyEvent;
-import com.distrimind.madkit.message.hook.NetworkEventMessage;
-import com.distrimind.madkit.message.hook.OrganizationEvent;
-import com.distrimind.madkit.message.hook.TransferEventMessage;
+import com.distrimind.madkit.message.hook.*;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
-import com.distrimind.madkit.message.hook.IPBannedEvent;
-import com.distrimind.madkit.message.hook.NetworkGroupsAccessEvent;
-import com.distrimind.madkit.message.hook.NetworkLoginAccessEvent;
 import com.distrimind.madkit.message.task.TasksExecutionConfirmationMessage;
-import com.distrimind.madkit.util.ExternalizableAndSizable;
+import com.distrimind.madkit.util.SecureExternalizable;
 import com.distrimind.madkit.util.XMLUtilities;
-import com.distrimind.jdkrewrite.concurrent.FutureWithSpecializedWait;
-import com.distrimind.jdkrewrite.concurrent.LockerCondition;
-import com.distrimind.jdkrewrite.concurrent.ScheduledFutureWithSpecializedWait;
-import com.distrimind.jdkrewrite.concurrent.ScheduledThreadPoolExecutor;
-import com.distrimind.jdkrewrite.concurrent.ThreadPoolExecutor;
 import com.distrimind.ood.database.DatabaseConfiguration;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.IDGeneratorInt;
+import com.distrimind.util.Utils;
 import com.distrimind.util.crypto.MessageDigestType;
+import com.distrimind.util.properties.PropertiesParseException;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.net.InetAddress;
+import java.net.URL;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
+
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.*;
+import static com.distrimind.madkit.kernel.AbstractAgent.State.*;
+import static com.distrimind.madkit.kernel.CGRSynchro.Code.*;
 
 /**
  * The brand new MaDKit kernel and it is now a real Agent :)
@@ -330,16 +284,12 @@ class MadkitKernel extends Agent {
 		final MadkitProperties madkitConfig = getMadkitConfig();
 		// final String logBaseDir= + File.separator;
 
-		KernelAddress ka = null;
-		try {
-			if (m.kernelAddress != null)
-				ka = m.kernelAddress;
-			else
-				ka = new KernelAddress(madkitConfig.isKernelAddressSecured());
-		} catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-			e.printStackTrace();
-			System.exit(-1);
-		}
+		KernelAddress ka;
+		if (m.kernelAddress != null)
+			ka = m.kernelAddress;
+		else
+			ka = new KernelAddress(madkitConfig.isKernelAddressSecured());
+
 		kernelAddress = ka;
 
 		File logDir = new File(madkitConfig.logDirectory, platform.dateFormat.format(new Date()) + kernelAddress);
@@ -1312,7 +1262,7 @@ class MadkitKernel extends Agent {
         return maximumGlobalDownloadSpeedInBytesPerSecond;
     }
 
-    ReturnCode requestRole(AbstractAgent requester, Group group, String role, ExternalizableAndSizable memberCard,
+    ReturnCode requestRole(AbstractAgent requester, Group group, String role, SecureExternalizable memberCard,
                            boolean manually_requested) {
 		if (group.isUsedSubGroups())
 			return ReturnCode.MULTI_GROUP_NOT_ACCEPTED;
@@ -2355,7 +2305,7 @@ class MadkitKernel extends Agent {
 	}
 
 	@Override
-	protected void end() throws InterruptedException {
+	protected void end() {
 
 
 
@@ -3604,7 +3554,7 @@ class MadkitKernel extends Agent {
 
 	}
 
-	void autoRequesteRole(AbstractAgent requester, AbstractGroup _groups, String role, ExternalizableAndSizable passKey) {
+	void autoRequesteRole(AbstractAgent requester, AbstractGroup _groups, String role, SecureExternalizable passKey) {
 		AutoRequestedGroups args;
 		boolean addNotifier = false;
 		synchronized (auto_requested_groups) {
@@ -3621,7 +3571,7 @@ class MadkitKernel extends Agent {
 	}
 
 	BigDataTransferID sendBigData(AbstractAgent requester, AgentAddress agentAddress, RandomInputStream stream,
-			long pos, long length, ExternalizableAndSizable attachedData, String senderRole, MessageDigestType messageDigestType, boolean excludeFromEncryption)
+			long pos, long length, SecureExternalizable attachedData, String senderRole, MessageDigestType messageDigestType, boolean excludeFromEncryption)
 			throws IOException {
 		if (agentAddress == null)
 			throw new NullPointerException("agentAddress");
@@ -3758,11 +3708,11 @@ class MadkitKernel extends Agent {
 		private final AbstractAgent agent;
 		private AbstractGroup group;
 		private final String role;
-		private final ExternalizableAndSizable passKey;
+		private final SecureExternalizable passKey;
 		private final AtomicReference<Group[]> groups = new AtomicReference<>(null);
 		private final MadkitKernel kernel;
 
-		AutoRequestedGroup(AbstractAgent _agent, AbstractGroup _group, String _role, ExternalizableAndSizable _passKey) {
+		AutoRequestedGroup(AbstractAgent _agent, AbstractGroup _group, String _role, SecureExternalizable _passKey) {
 			agent = _agent;
 			group = _group.clone();
 			role = _role;

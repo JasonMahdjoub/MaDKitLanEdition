@@ -37,9 +37,10 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 
 
 /**
@@ -50,18 +51,13 @@ import java.io.ObjectOutput;
  */
 public class DistantKernelAddressValidated implements SystemMessage {
 
-	/**
-	 * 
-	 */
-
-	private static final long serialVersionUID = 2752671312631816393L;
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		
 	}
 	

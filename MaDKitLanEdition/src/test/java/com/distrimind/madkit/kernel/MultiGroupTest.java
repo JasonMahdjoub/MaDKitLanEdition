@@ -37,17 +37,14 @@
  */
 package com.distrimind.madkit.kernel;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import org.junit.Assert;
 
 import org.junit.Test;
 
-import com.distrimind.madkit.util.SerializationTools;
 
 /**
  * 
@@ -81,11 +78,11 @@ public class MultiGroupTest {
 		Assert.assertFalse(mg.intersect(new Group(true, "MGC1", "G1", "G3")).includes(new Group("MGC1", "G1", "G2")));
 		// Assert.assertTrue(mg.intersect(mg.getComplementary()).isEmpty());//TODO
 		new MultiGroup();
-		for( AbstractGroup ag[] : getGroups())
+		for(AbstractGroup[] ag : getGroups())
 		{
 			testCloneGroup(ag);
 		}
-		for( AbstractGroup ag[] : getGroups())
+		for(AbstractGroup[] ag : getGroups())
 		{
 			testGroupSerialization(ag);
 		}
@@ -103,16 +100,16 @@ public class MultiGroupTest {
 		byte[] array;
 
 		try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-			try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-				SerializationTools.writeExternalizableAndSizable(oos, g, false);
+			try (DataOutputStream dos=new DataOutputStream(baos); SecuredObjectOutputStream oos = new SecuredObjectOutputStream(dos)) {
+				oos.writeObject(g, false);
 			}
 			array = baos.toByteArray();
 		}
 
 		MultiGroup g2;
 		try (ByteArrayInputStream bais = new ByteArrayInputStream(array)) {
-			try (ObjectInputStream ois = new ObjectInputStream(bais)) {
-				g2 = (MultiGroup)SerializationTools.readExternalizableAndSizable(ois, false);
+			try (DataInputStream dis=new DataInputStream(bais); SecuredObjectInputStream ois = new SecuredObjectInputStream(dis)) {
+				g2 = ois.readObject(false, MultiGroup.class);
 			}
 		}
 

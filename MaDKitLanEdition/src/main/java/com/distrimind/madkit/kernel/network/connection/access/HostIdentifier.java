@@ -37,21 +37,19 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
-import com.distrimind.madkit.exceptions.MessageSerializationException;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
+import com.distrimind.madkit.util.SecureExternalizable;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.madkit.util.SerializationTools;
-import com.distrimind.madkit.util.ExternalizableAndSizable;
 import com.distrimind.util.AbstractDecentralizedID;
 import com.distrimind.util.RenforcedDecentralizedIDGenerator;
 import com.distrimind.util.SecuredDecentralizedID;
-import com.distrimind.util.crypto.*;
-
+import com.distrimind.util.crypto.AbstractSecureRandom;
+import com.distrimind.util.crypto.SecureRandomType;
 import gnu.vm.jgnu.security.NoSuchAlgorithmException;
 import gnu.vm.jgnu.security.NoSuchProviderException;
+
+import java.io.IOException;
 
 /**
  * This identifier is related to a machine, or more precisely to an specific
@@ -63,11 +61,7 @@ import gnu.vm.jgnu.security.NoSuchProviderException;
  * @see Identifier
  * @see CloudIdentifier
  */
-public abstract class HostIdentifier implements ExternalizableAndSizable {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -1532662660365201854L;
+public abstract class HostIdentifier implements SecureExternalizable {
 	protected static final AbstractSecureRandom random;
 
 	static {
@@ -130,12 +124,12 @@ public abstract class HostIdentifier implements ExternalizableAndSizable {
 		}
 
 		@Override
-		public void writeExternal(ObjectOutput out) throws IOException {
+		public void writeExternal(SecuredObjectOutputStream out) throws IOException {
 
 		}
 
 		@Override
-		public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 
 		}
 
@@ -150,7 +144,7 @@ public abstract class HostIdentifier implements ExternalizableAndSizable {
 	}
 
 	private static class DefaultHostIdentifier extends HostIdentifier {
-		private static final long serialVersionUID = -1122797789837718737L;
+
 		private SecuredDecentralizedID id;
 
 		public DefaultHostIdentifier() throws NoSuchAlgorithmException, NoSuchProviderException {
@@ -184,22 +178,18 @@ public abstract class HostIdentifier implements ExternalizableAndSizable {
 
 		@Override
 		public int getInternalSerializedSize() {
-			return SerializationTools.getInternalSize(id, 0);
+			return SerializationTools.getInternalSize(id);
 		}
 
 		@Override
-		public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException
+		public void readExternal(final SecuredObjectInputStream in) throws IOException, ClassNotFoundException
 		{
-			AbstractDecentralizedID a=SerializationTools.readDecentralizedID(in, false);
-			if (!(a instanceof SecuredDecentralizedID))
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			id=(SecuredDecentralizedID)a;
+			id=in.readObject(false, SecuredDecentralizedID.class);
 		}
 		@Override
-		public void writeExternal(final ObjectOutput oos) throws IOException
+		public void writeExternal(final SecuredObjectOutputStream oos) throws IOException
 		{
-			
-			SerializationTools.writeDecentralizedID(oos, id, false);
+			oos.writeObject(id, false);
 		}
 
 		@Override

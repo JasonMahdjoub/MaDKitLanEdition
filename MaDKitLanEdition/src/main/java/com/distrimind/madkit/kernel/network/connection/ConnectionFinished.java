@@ -37,15 +37,14 @@
  */
 package com.distrimind.madkit.kernel.network.connection;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.net.InetSocketAddress;
-
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionState;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
 
 /**
  * Message to tells that the connection protocol was terminated.
@@ -55,12 +54,7 @@ import com.distrimind.madkit.util.SerializationTools;
  * @since MadkitLanEdition 1.0
  *
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public class ConnectionFinished extends ConnectionMessage {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -7511529487957825982L;
 
 	private InetSocketAddress inet_address;
 
@@ -74,13 +68,13 @@ public class ConnectionFinished extends ConnectionMessage {
 		
 	}
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-		inet_address=SerializationTools.readInetSocketAddress(in, false);
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+		inet_address=in.readObject(false, InetSocketAddress.class);
 		try
 		{
-			state=(ConnectionProtocol.ConnectionState)SerializationTools.readEnum(in, false);
+			state=in.readObject( false, ConnectionProtocol.ConnectionState.class);
 			
-			initialCounter=SerializationTools.readBytes(in, MAX_INITIAL_COUNTER_LENGTH, true);
+			initialCounter=in.readBytesArray(true, MAX_INITIAL_COUNTER_LENGTH);
 		}
 		catch(Exception e)
 		{
@@ -89,10 +83,10 @@ public class ConnectionFinished extends ConnectionMessage {
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
-		SerializationTools.writeInetSocketAddress(oos, inet_address, false);
-		SerializationTools.writeEnum(oos, state, false);
-		SerializationTools.writeBytes(oos, initialCounter, MAX_INITIAL_COUNTER_LENGTH, true);
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
+		oos.writeObject(inet_address, false);
+		oos.writeObject(state, false);
+		oos.writeBytesArray(initialCounter, true, MAX_INITIAL_COUNTER_LENGTH);
 	}
 	
 	public ConnectionFinished(InetSocketAddress _inet_address, byte[] initialCounter) {

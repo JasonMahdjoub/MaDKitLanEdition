@@ -49,13 +49,10 @@ import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.Connec
  * @since MadkitLanEdition 1.0
  *
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
+
 class TooMuchConnectionWithTheSamePeers extends ConnectionFinished {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 2299918422764559485L;
+	@SuppressWarnings("unused")
 	TooMuchConnectionWithTheSamePeers()
 	{
 		

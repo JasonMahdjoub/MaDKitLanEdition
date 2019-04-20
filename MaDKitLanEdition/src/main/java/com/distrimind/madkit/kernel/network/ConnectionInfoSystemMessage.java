@@ -37,19 +37,18 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.kernel.network.LocalNetworkAgent.PossibleAddressForDirectConnnection;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.distrimind.madkit.exceptions.MessageSerializationException;
-import com.distrimind.madkit.kernel.network.LocalNetworkAgent.PossibleAddressForDirectConnnection;
-import com.distrimind.madkit.util.SerializationTools;
 
 /**
  * 
@@ -58,12 +57,7 @@ import com.distrimind.madkit.util.SerializationTools;
  * @since MadkitLanEdition 1.0
  *
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 class ConnectionInfoSystemMessage implements SystemMessage {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -215103842431063068L;
 
 	private ArrayList<AbstractIP> addresses;
 	private AbstractIP localAddresses;
@@ -78,7 +72,7 @@ class ConnectionInfoSystemMessage implements SystemMessage {
 	}
 	
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		int globalSize=NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
 		int size=in.readInt();
 		int totalSize=4;
@@ -87,29 +81,21 @@ class ConnectionInfoSystemMessage implements SystemMessage {
 		addresses=new ArrayList<>(size);
 		for (int i=0;i<size;i++)
 		{
-			Object o=SerializationTools.readExternalizableAndSizable(in, false);
-			if (!(o instanceof AbstractIP))
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			AbstractIP aip=(AbstractIP)o;
+			AbstractIP aip=in.readObject(false, AbstractIP.class);
 			totalSize+=aip.getInternalSerializedSize();
 			if (totalSize>globalSize)
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			addresses.add(aip);
 		}
-		Object o=SerializationTools.readExternalizableAndSizable(in, true);
-		if (o!=null)
+		localAddresses=in.readObject(true, AbstractIP.class);
+		if (localAddresses!=null)
 		{
 			
-			if (!(o instanceof AbstractIP))
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			localAddresses=(AbstractIP)o;
 			totalSize+=localAddresses.getInternalSerializedSize();
 			if (totalSize>globalSize)
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			
 		}
-		else 
-			localAddresses=null;
 		manualPortToConnect=in.readInt();
 		localPortToConnect=in.readInt();
 		canBeDirectServer=in.readBoolean();
@@ -119,11 +105,11 @@ class ConnectionInfoSystemMessage implements SystemMessage {
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		oos.writeInt(addresses.size());
 		for (AbstractIP aip:addresses)
-			SerializationTools.writeExternalizableAndSizable(oos, aip, false);
-		SerializationTools.writeExternalizableAndSizable(oos, localAddresses, true);
+			oos.writeObject(aip, false);
+		oos.writeObject(localAddresses, true);
 
 		oos.writeInt(manualPortToConnect);
 		oos.writeInt(localPortToConnect);

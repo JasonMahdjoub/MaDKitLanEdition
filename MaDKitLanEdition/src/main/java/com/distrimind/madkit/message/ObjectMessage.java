@@ -33,20 +33,15 @@
  */
 package com.distrimind.madkit.message;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.NoSuchElementException;
-
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.madkit.util.SerializationTools;
+
+import java.io.IOException;
+import java.util.*;
 
 /**
  * This parameterizable class could be used to convey any Java Object between
@@ -86,12 +81,12 @@ public class ObjectMessage<T> extends Message {
 	
 	@SuppressWarnings("unchecked")
 	
-	public void readExternal(final ObjectInput in, int maxContentLength) throws IOException, ClassNotFoundException
+	public void readExternal(final SecuredObjectInputStream in, int maxContentLength) throws IOException, ClassNotFoundException
 	{
 		super.readExternal(in);
 		try
 		{
-			content=(T)SerializationTools.readObject(in, maxContentLength, true);
+			content=(T)in.readObject(true, maxContentLength );
 		}
 		catch(Exception e)
 		{
@@ -103,9 +98,9 @@ public class ObjectMessage<T> extends Message {
 		
 	}
 	
-	public void writeExternal(final ObjectOutput oos, int maxContentLength) throws IOException{
+	public void writeExternal(final SecuredObjectOutputStream oos, int maxContentLength) throws IOException{
 		super.writeExternal(oos);
-		SerializationTools.writeObject(oos, content, maxContentLength, true);
+		oos.writeObject(content, true );
 		oos.writeBoolean(excludeFromEncryption);
 	}
 	

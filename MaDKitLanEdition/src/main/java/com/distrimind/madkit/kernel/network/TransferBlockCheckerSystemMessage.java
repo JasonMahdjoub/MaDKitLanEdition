@@ -45,6 +45,8 @@ import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
 import com.distrimind.madkit.kernel.network.connection.TransferedBlockChecker;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.madkit.util.SerializationTools;
 
 /**
@@ -55,10 +57,6 @@ import com.distrimind.madkit.util.SerializationTools;
  */
 @SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 class TransferBlockCheckerSystemMessage extends BroadcastableSystemMessage {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -7222037483254579571L;
 
 	private TransferedBlockChecker transferBlockChercker;
 	
@@ -88,18 +86,16 @@ class TransferBlockCheckerSystemMessage extends BroadcastableSystemMessage {
 
 
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		super.readExternal(in);
-		Object o=SerializationTools.readExternalizableAndSizable(in, false);
-		if (!(o instanceof TransferedBlockChecker))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		transferBlockChercker=(TransferedBlockChecker)o;
+		transferBlockChercker=in.readObject(false, TransferedBlockChecker.class);
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		super.writeExternal(oos);
-		SerializationTools.writeExternalizableAndSizable(oos, transferBlockChercker, false);
+		oos.writeObject(transferBlockChercker, false );
+
 		
 	}
 	

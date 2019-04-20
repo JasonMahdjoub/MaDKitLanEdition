@@ -37,9 +37,10 @@
  */
 package com.distrimind.madkit.kernel.network.connection;
 
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 
 
 /**
@@ -52,10 +53,6 @@ import java.io.ObjectOutput;
  */
 public abstract class ErrorConnection extends ConnectionMessage {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 127175774206832159L;
 
 	public boolean candidate_to_ban;
 
@@ -76,12 +73,12 @@ public abstract class ErrorConnection extends ConnectionMessage {
 	
 	
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		candidate_to_ban=in.readBoolean();
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		oos.writeBoolean(candidate_to_ban);
 	}
 	

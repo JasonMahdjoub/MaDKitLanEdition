@@ -37,14 +37,12 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
 import com.distrimind.madkit.kernel.network.connection.access.HostIdentifier;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.madkit.util.SerializationTools;
-import com.distrimind.util.crypto.ASymmetricKeyPair;
-import com.distrimind.util.crypto.ASymmetricPublicKey;
+
+import java.io.IOException;
 
 /**
  * 
@@ -53,13 +51,10 @@ import com.distrimind.util.crypto.ASymmetricPublicKey;
  * @since MadkitLanEdition 1.0
  */
 public class CustumHostIdentifier extends HostIdentifier {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -6217098004734389347L;
 
 	private String name;
 	
+	@SuppressWarnings("unused")
 	CustumHostIdentifier()
 	{
 		
@@ -70,12 +65,12 @@ public class CustumHostIdentifier extends HostIdentifier {
 		return SerializationTools.getInternalSize(name, 1000);
 	}
 	
-	public void readExternal(final ObjectInput in) throws IOException {
-		name=SerializationTools.readString(in, 1000, false);
+	public void readExternal(final SecuredObjectInputStream in) throws IOException {
+		name=in.readString( false, 1000);
 	}
-	public void writeExternal(final ObjectOutput oos) throws IOException
+	public void writeExternal(final SecuredObjectOutputStream oos) throws IOException
 	{
-		SerializationTools.writeString(oos, name, 1000, false);
+		oos.writeString(name, false, 1000);
 	}
 	
 	CustumHostIdentifier(String name) {

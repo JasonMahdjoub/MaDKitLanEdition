@@ -31,11 +31,11 @@
  */
 package com.distrimind.madkit.message;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
 import com.distrimind.madkit.util.NetworkMessage;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
+import java.io.IOException;
 
 /**
  * A message class that conveys a boolean value.
@@ -46,13 +46,7 @@ import com.distrimind.madkit.util.NetworkMessage;
  * @version 0.9
  * 
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public class BooleanMessage extends ObjectMessage<Boolean> implements NetworkMessage{
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 6520364212151479221L;
 
 	protected BooleanMessage()
 	{
@@ -74,14 +68,14 @@ public class BooleanMessage extends ObjectMessage<Boolean> implements NetworkMes
 	}
 	
 	@Override
-	public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException
+	public void readExternal(final SecuredObjectInputStream in) throws IOException, ClassNotFoundException
 	{
 		super.readExternal(in, 0);
 		
 		
 	}
 	@Override
-	public void writeExternal(final ObjectOutput oos) throws IOException{
+	public void writeExternal(final SecuredObjectOutputStream oos) throws IOException{
 		super.writeExternal(oos, 0);
 	}
 

@@ -37,9 +37,10 @@
  */
 package com.distrimind.madkit.kernel;
 
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledFuture;
 
@@ -55,12 +56,7 @@ import java.util.concurrent.ScheduledFuture;
  * @version 1.0
  * @since MadKitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public class TaskID extends ConversationID {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 6456046011183843669L;
 
 	private volatile ScheduledFuture<?> future;
 
@@ -110,13 +106,13 @@ public class TaskID extends ConversationID {
 	}
 	
 	@Override
-	public void writeExternal(ObjectOutput out) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream out) throws IOException {
 		throw new IOException();
 		
 	}
 
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		throw new IOException();
 	}
 }

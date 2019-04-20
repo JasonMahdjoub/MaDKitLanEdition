@@ -41,6 +41,8 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.madkit.util.SerializationTools;
 import com.distrimind.util.crypto.ASymmetricPublicKey;
 
@@ -50,13 +52,7 @@ import com.distrimind.util.crypto.ASymmetricPublicKey;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 class AccessPublicKeyMessage extends AccessMessage {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 7286093160114607968L;
 
 	private byte[] public_key_bytes;
 	private transient byte[] distant_public_key;
@@ -69,14 +65,14 @@ class AccessPublicKeyMessage extends AccessMessage {
 		
 	}
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-		public_key_bytes=SerializationTools.readBytes(in, MAX_DISTANT_PUBLIC_KEY_LENGTH, false);
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+		public_key_bytes=in.readBytesArray(false, MAX_DISTANT_PUBLIC_KEY_LENGTH);
 		otherCanTakeLoginInitiative=in.readBoolean();
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
-		SerializationTools.writeBytes(oos, public_key_bytes, MAX_DISTANT_PUBLIC_KEY_LENGTH, false);
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
+		oos.writeBytesArray(public_key_bytes, false, MAX_DISTANT_PUBLIC_KEY_LENGTH);
 		oos.writeBoolean(otherCanTakeLoginInitiative);
 	}
 	

@@ -37,15 +37,12 @@
  */
 package com.distrimind.madkit.kernel;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
 import com.distrimind.madkit.agr.Organization;
-import com.distrimind.madkit.exceptions.MessageSerializationException;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
-import com.distrimind.madkit.util.ExternalizableAndSizable;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.madkit.util.SecureExternalizable;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
+import java.io.IOException;
 
 /**
  * Identifies an agent within the artificial society.
@@ -68,10 +65,8 @@ import com.distrimind.madkit.util.SerializationTools;
  * @since MaDKitLanEdition 1.0
  * @version 5.2
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
-public class AgentAddress implements ExternalizableAndSizable, Cloneable {
 
-	private static final long serialVersionUID = -5109274890965282440L;
+public class AgentAddress implements SecureExternalizable, Cloneable {
 
 	// not transmitted
 	transient private AbstractAgent agent;
@@ -112,11 +107,12 @@ public class AgentAddress implements ExternalizableAndSizable, Cloneable {
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
-		SerializationTools.writeExternalizableAndSizable(oos, kernelAddress, false);
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
+		oos.writeObject(kernelAddress, false);
+
 		oos.writeLong(agentID);
-		SerializationTools.writeExternalizableAndSizable(oos, roleObject, true);
-		SerializationTools.writeString(oos, cgr, Group.MAX_CGR_LENGTH, true);
+		oos.writeObject(roleObject, true);
+		oos.writeString(cgr, true, Group.MAX_CGR_LENGTH);
 		oos.writeBoolean(manually_requested);
 	}
 	@Override
@@ -125,27 +121,13 @@ public class AgentAddress implements ExternalizableAndSizable, Cloneable {
 		return kernelAddress.getInternalSerializedSize()+13+(roleObject==null?0:roleObject.getInternalSerializedSize())+(cgr==null?0:cgr.length()*2);
 	}
 	@Override
-	public void readExternal(ObjectInput ois) throws IOException, ClassNotFoundException {
-		
-		Object o=SerializationTools.readExternalizableAndSizable(ois, false);
-		if (o instanceof KernelAddress)
-		{
-			kernelAddress=(KernelAddress)o;
-			agentID=ois.readLong();
-			o=SerializationTools.readExternalizableAndSizable(ois, true);
-			if (o!=null && !(o instanceof InternalRole))
-			{
-				throw new MessageSerializationException(Integrity.FAIL);
-			}
-			roleObject=(InternalRole)o;
-			cgr=SerializationTools.readString(ois, Group.MAX_CGR_LENGTH, true);
-			manually_requested=ois.readBoolean();
-		}
-		else
-		{
-			throw new MessageSerializationException(Integrity.FAIL);
-		}
-		
+	public void readExternal(SecuredObjectInputStream ois) throws IOException, ClassNotFoundException {
+		kernelAddress=ois.readObject(false, KernelAddress.class);
+		agentID=ois.readLong();
+		roleObject=ois.readObject(true, InternalRole.class);
+		cgr=ois.readString(true, Group.MAX_CGR_LENGTH);
+		manually_requested=ois.readBoolean();
+
 	}
 	
 	
@@ -331,7 +313,7 @@ public class AgentAddress implements ExternalizableAndSizable, Cloneable {
 	 * Tells if this agent address was automatically requested or manually requested
 	 * 
 	 * @return true if this agent address was manually requested
-	 * @see AbstractAgent#autoRequestRole(AbstractGroup, String, ExternalizableAndSizable)
+	 * @see AbstractAgent#autoRequestRole(AbstractGroup, String, SecureExternalizable)
 	 */
 	public boolean isManuallyRequested() {
 		return manually_requested;
@@ -348,10 +330,7 @@ public class AgentAddress implements ExternalizableAndSizable, Cloneable {
 	
 }
 
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 final class CandidateAgentAddress extends AgentAddress {
-
-	private static final long serialVersionUID = -4139216463718732678L;
 
 
 	CandidateAgentAddress(AbstractAgent agt, InternalRole role, KernelAddress ka, boolean manually_requested) {
@@ -376,13 +355,8 @@ final class CandidateAgentAddress extends AgentAddress {
 
 }
 
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 final class GroupManagerAddress extends AgentAddress {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -5757376397376189866L;
 	private boolean securedGroup;
 	@SuppressWarnings("unused")
 	GroupManagerAddress()
@@ -399,13 +373,13 @@ final class GroupManagerAddress extends AgentAddress {
 		return securedGroup;
 	}
 	@Override
-	public void readExternal(ObjectInput in) throws ClassNotFoundException, IOException
+	public void readExternal(SecuredObjectInputStream in) throws ClassNotFoundException, IOException
 	{
 		super.readExternal(in);
 		securedGroup=in.readBoolean();
 	}
 	@Override
-	public void writeExternal(ObjectOutput out) throws IOException
+	public void writeExternal(SecuredObjectOutputStream out) throws IOException
 	{
 		super.writeExternal(out);
 		out.writeBoolean(securedGroup);

@@ -2,10 +2,10 @@ package com.distrimind.madkit.kernel.network.connection.secured;
 
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.network.connection.AskConnection;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
+import java.io.*;
 
 /**
  * @author Jason Mahdjoub
@@ -15,6 +15,7 @@ import java.io.ObjectOutput;
 class AskConnectionWithProtocolID extends AskConnection {
 
 	private int protocolID;
+	@SuppressWarnings("unused")
 	public AskConnectionWithProtocolID() {
 	}
 
@@ -28,13 +29,13 @@ class AskConnectionWithProtocolID extends AskConnection {
 	}
 
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		super.readExternal(in);
 		this.protocolID=in.readInt();
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		super.writeExternal(oos);
 		oos.writeInt(protocolID);
 

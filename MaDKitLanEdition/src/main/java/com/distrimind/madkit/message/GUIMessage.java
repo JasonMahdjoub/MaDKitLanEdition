@@ -45,13 +45,7 @@ import com.distrimind.madkit.action.GUIManagerAction;
  * 
  */
 
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public class GUIMessage extends EnumMessage<GUIManagerAction> {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 670313757537790225L;
 
 	public GUIMessage(GUIManagerAction code, Object... object) {
 		super(code, object);

@@ -50,9 +50,10 @@ import com.distrimind.madkit.kernel.network.connection.*;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionState;
 import com.distrimind.madkit.kernel.network.connection.secured.*;
 import com.distrimind.madkit.kernel.network.connection.unsecured.CheckSumConnectionProtocolProperties;
-import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolNegotiatorProperties;
 import com.distrimind.madkit.kernel.network.connection.unsecured.UnsecuredConnectionProtocolProperties;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.madkit.util.SecureExternalizableSystemMessage;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.ood.database.DatabaseConfiguration;
 import com.distrimind.ood.database.EmbeddedH2DatabaseWrapper;
 import com.distrimind.util.crypto.*;
@@ -833,10 +834,6 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 
 	static class UnknowConnectionMessage extends ConnectionMessage {
 
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = -1881592582213193045L;
 
 		public UnknowConnectionMessage() {
 		}
@@ -850,14 +847,14 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 
 
 		@Override
-		public void writeExternal(ObjectOutput out) {
+		public void writeExternal(SecuredObjectOutputStream out) {
 			
 		}
 
 
 
 		@Override
-		public void readExternal(ObjectInput in) {
+		public void readExternal(SecuredObjectInputStream in) {
 			
 		}
 
@@ -1019,21 +1016,21 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		Assert.assertArrayEquals(message, receivedMessage);
 	}
 
-	public static byte[] serialize(Externalizable message) throws IOException {
+	public static byte[] serialize(SecureExternalizableSystemMessage message) throws IOException {
 		
 		try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-			try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-				SerializationTools.writeExternalizableAndSizable(oos, message, false);
+			try (DataOutputStream oos = new DataOutputStream (baos);SecuredObjectOutputStream soos=new SecuredObjectOutputStream(oos)) {
+				soos.writeObject(message, false);
 			}
 			return baos.toByteArray();
 		}
 	}
 
-	public static Serializable unserialize(byte[] message) throws IOException, ClassNotFoundException {
+	public static SecureExternalizableSystemMessage unserialize(byte[] message) throws IOException, ClassNotFoundException {
 		try (ByteArrayInputStream bais = new ByteArrayInputStream(message)) {
-			try (ObjectInputStream ois = new ObjectInputStream(bais)) {
-				return SerializationTools.readExternalizableAndSizable(ois, false);
-				
+			try (DataInputStream ois = new DataInputStream(bais);SecuredObjectInputStream sois=new SecuredObjectInputStream(ois)) {
+				return sois.readObject(false, SecureExternalizableSystemMessage.class);
+
 			}
 		}
 	}

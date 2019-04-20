@@ -37,16 +37,13 @@
  */
 package com.distrimind.madkit.kernel;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
-import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.network.MessageLocker;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
 import com.distrimind.madkit.message.ObjectMessage;
-import com.distrimind.madkit.util.SerializationTools;
-import com.distrimind.madkit.util.ExternalizableAndSizable;
+import com.distrimind.madkit.util.SecureExternalizable;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
+import java.io.IOException;
 
 /**
  * @author Fabien Michel
@@ -55,13 +52,7 @@ import com.distrimind.madkit.util.ExternalizableAndSizable;
  * @since MaDKitLanEdition 1.0
  *
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
-public class CGRSynchro extends ObjectMessage<AgentAddress> implements ExternalizableAndSizable {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1125125814563126121L;
+public class CGRSynchro extends ObjectMessage<AgentAddress> implements SecureExternalizable {
 
 	public enum Code {
 		CREATE_GROUP, REQUEST_ROLE, LEAVE_ROLE, LEAVE_GROUP
@@ -84,18 +75,18 @@ public class CGRSynchro extends ObjectMessage<AgentAddress> implements Externali
 	}	
 	
 	@Override
-	public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException
+	public void readExternal(final SecuredObjectInputStream in) throws IOException, ClassNotFoundException
 	{
 		messageLocker=null;
 		super.readExternal(in, 0);
-		code=Code.valueOf(SerializationTools.readString(in, 1000, false));
+		code=in.readObject(false, Code.class);
 		manual=in.readBoolean();
 		
 	}
 	@Override
-	public void writeExternal(final ObjectOutput oos) throws IOException{
+	public void writeExternal(final SecuredObjectOutputStream oos) throws IOException{
 		super.writeExternal(oos, 0);
-		SerializationTools.writeString(oos, code.name(), 1000, false);
+		oos.writeObject(code, false);
 		oos.writeBoolean(manual);
 	}
 	
@@ -155,13 +146,8 @@ public class CGRSynchro extends ObjectMessage<AgentAddress> implements Externali
 
 }
 
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
-class RequestRoleSecure extends ObjectMessage<ExternalizableAndSizable> implements ExternalizableAndSizable {
+class RequestRoleSecure extends ObjectMessage<SecureExternalizable> implements SecureExternalizable{
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1661974372588706717L;
 	private Class<? extends AbstractAgent> requesterClass;
 	private AgentAddress requester;
 	private String roleName;
@@ -171,40 +157,28 @@ class RequestRoleSecure extends ObjectMessage<ExternalizableAndSizable> implemen
 		return super.getInternalSerializedSizeImpl()+requesterClass.getName().length()*2+2+requester.getInternalSerializedSize()+roleName.length()*2+2;
 	}	
 	
-	@SuppressWarnings("unchecked")
 	@Override
-	public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException
+	public void readExternal(final SecuredObjectInputStream in) throws IOException, ClassNotFoundException
 	{
 		super.readExternal(in);
-		String clazz=SerializationTools.readString(in, Short.MAX_VALUE, false);
-		
-		Class<?> c=Class.forName(clazz, false, MadkitClassLoader.getSystemClassLoader());
-		if (c==null)
-			throw new MessageSerializationException(Integrity.FAIL);
-		if (!AbstractAgent.class.isAssignableFrom(c))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		c=Class.forName(clazz, true, MadkitClassLoader.getSystemClassLoader());
-		requesterClass=(Class<? extends AbstractAgent>)c;
-		
-		Object o=SerializationTools.readExternalizableAndSizable(in, false);
-		if (!(o instanceof AgentAddress))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		requester=(AgentAddress)o;
-		roleName=SerializationTools.readString(in, Group.MAX_ROLE_NAME_LENGTH, false);
+
+		requesterClass=in.readClass(false, AbstractAgent.class);
+
+		requester=in.readObject(false, AgentAddress.class);
+		roleName=in.readString(false, Group.MAX_ROLE_NAME_LENGTH);
 		
 	}
 	@Override
-	public void writeExternal(final ObjectOutput oos) throws IOException{
+	public void writeExternal(final SecuredObjectOutputStream oos) throws IOException{
 		super.writeExternal(oos);
-		SerializationTools.writeString(oos, requesterClass.getName(), Short.MAX_VALUE, false);
-		SerializationTools.writeExternalizableAndSizable(oos, requester, false);
-		
-		SerializationTools.writeString(oos, roleName, Group.MAX_ROLE_NAME_LENGTH, false);
+		oos.writeClass(requesterClass, false, AbstractAgent.class);
+		oos.writeObject(requester, false);
+		oos.writeString(roleName, false, Group.MAX_ROLE_NAME_LENGTH);
 	}
 	
 	
 	public RequestRoleSecure(Class<? extends AbstractAgent> requesterClass, AgentAddress requester, String roleName,
-			ExternalizableAndSizable key) {
+			SecureExternalizable key) {
 		super(key);
 		this.requesterClass = requesterClass;
 		this.requester = requester;

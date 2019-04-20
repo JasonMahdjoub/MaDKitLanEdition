@@ -565,7 +565,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		ArrayList<AbstractData> res = new ArrayList<>(data.size());
 		for (AbstractData ad : data) {
 			if ((ad.getIDTransfer()!=null && ad.getIDTransfer().equals(getTransfertType()))
-					|| (checkTransferIds && this.transfer_ids.getLocal(ad.getIDTransfer()) != null))
+					|| (checkTransferIds && this.transfer_ids.getLocal(Objects.requireNonNull(ad.getIDTransfer())) != null))
 				res.add(ad);
 		}
 		return res;

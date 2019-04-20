@@ -37,6 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
@@ -48,21 +49,20 @@ import java.io.OutputStream;
  * @version 1.0
  * @since MadkitLanEdition 1.7
  */
-public class FilteredObjectOutputStream extends ObjectOutputStream{
+public class FilteredObjectOutputStream extends DataOutputStream {
 	private final NetworkProperties np;
-	public FilteredObjectOutputStream(OutputStream os, NetworkProperties np) throws IOException
-	{
+	public FilteredObjectOutputStream(OutputStream os, NetworkProperties np) {
 		super(os);
 		this.np=np;
 	}
 	
-	@Override
+
 	protected Object replaceObject(Object obj) {
 		if (obj instanceof IOException)
 			return null;
 		return obj;
 	}
-	private Class<?> nextAuthorizedSubClass=null;
+	/*private Class<?> nextAuthorizedSubClass=null;
 	
 	@Override
 	protected void annotateClass(Class<?> cl) throws IOException {
@@ -102,6 +102,6 @@ public class FilteredObjectOutputStream extends ObjectOutputStream{
 				throw new IOException("The class "+c+" is not authorized to be serialized. See NetworkProperties class to add new classes to be authorized to be serialized.");
 			}
 		}
-    }
+    }*/
        
 }

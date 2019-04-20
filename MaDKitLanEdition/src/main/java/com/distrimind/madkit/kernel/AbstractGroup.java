@@ -39,7 +39,7 @@
 package com.distrimind.madkit.kernel;
 
 import com.distrimind.madkit.kernel.MultiGroup.AssociatedGroup;
-import com.distrimind.madkit.util.ExternalizableAndSizable;
+import com.distrimind.madkit.util.SecureExternalizable;
 
 import java.util.*;
 
@@ -61,12 +61,7 @@ import java.util.*;
  * @see MultiGroup
  * @see AbstractGroup#getUniverse()
  */
-public abstract class AbstractGroup implements ExternalizableAndSizable, Cloneable {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 2233207859620713364L;
+public abstract class AbstractGroup implements SecureExternalizable, Cloneable {
 
 	/**
 	 * This function returns the represented groups by the current instance. These
@@ -132,11 +127,11 @@ public abstract class AbstractGroup implements ExternalizableAndSizable, Cloneab
 			throw new NullPointerException("ka");
 		if (_group == null)
 			return new ArrayList<>();
-		Group gs1[] = this.getRepresentedGroups(ka);
-		Group gs2[] = _group.getRepresentedGroups(ka);
+		Group[] gs1 = this.getRepresentedGroups(ka);
+		Group[] gs2 = _group.getRepresentedGroups(ka);
 		ArrayList<Group> groups = new ArrayList<>(Math.min(gs1.length, gs2.length));
 		if (gs1.length < gs2.length) {
-			Group tmp[] = gs1;
+			Group[] tmp = gs1;
 			gs1 = gs2;
 			gs2 = tmp;
 		}
@@ -178,8 +173,8 @@ public abstract class AbstractGroup implements ExternalizableAndSizable, Cloneab
 			Collections.addAll(res, this.getRepresentedGroups(ka));
 			return res;
 		}
-		Group gs1[] = this.getRepresentedGroups(ka);
-		Group gs2[] = _group.getRepresentedGroups(ka);
+		Group[] gs1 = this.getRepresentedGroups(ka);
+		Group[] gs2 = _group.getRepresentedGroups(ka);
 		HashSet<Group> groups = new HashSet<>();
 
 		groups.addAll(Arrays.asList(gs1));
@@ -244,8 +239,8 @@ public abstract class AbstractGroup implements ExternalizableAndSizable, Cloneab
 			Collections.addAll(res, this.getRepresentedGroups(ka));
 			return res;
 		}
-		Group gs1[] = this.getRepresentedGroups(ka);
-		Group gs2[] = _group.getRepresentedGroups(ka);
+		Group[] gs1 = this.getRepresentedGroups(ka);
+		Group[] gs2 = _group.getRepresentedGroups(ka);
 		ArrayList<Group> groups = new ArrayList<>(gs1.length);
 		for (Group g1 : gs1) {
 			boolean found = false;
@@ -284,8 +279,8 @@ public abstract class AbstractGroup implements ExternalizableAndSizable, Cloneab
 			throw new NullPointerException("ka");
 		if (_group == null)
 			return true;
-		Group gs1[] = this.getRepresentedGroups(ka);
-		Group gs2[] = _group.getRepresentedGroups(ka);
+		Group[] gs1 = this.getRepresentedGroups(ka);
+		Group[] gs2 = _group.getRepresentedGroups(ka);
 		if (gs1.length < gs2.length)
 			return false;
 		for (Group g2 : gs2) {
@@ -799,7 +794,7 @@ public abstract class AbstractGroup implements ExternalizableAndSizable, Cloneab
 				boolean eliminated = false;
 				for (Group g2 : groups_eliminated) {
 					if (g2 == g || (g.getCommunity().equals(g2.getCommunity()) && ((g.getPath().equals(g2.getPath())
-							&& (g2.isUsedSubGroups() || g2.isUsedSubGroups() == g.isUsedSubGroups()))
+							&& (g2.isUsedSubGroups() || !g.isUsedSubGroups()))
 							|| (g.getPath().startsWith(g2.getPath()) && g2.isUsedSubGroups())))) {
 						eliminated = true;
 						break;
@@ -827,7 +822,7 @@ public abstract class AbstractGroup implements ExternalizableAndSizable, Cloneab
 				for (Group g2 : other_eliminated) {
 					if (g2.getCommunity().equals(g.getCommunity())) {
 						if (g2.getPath().equals(g.getPath())) {
-							if (g2.isUsedSubGroups() || g2.isUsedSubGroups() == g.isUsedSubGroups()) {
+							if (g2.isUsedSubGroups() || !g.isUsedSubGroups()) {
 								eliminated_on_other = true;
 								break;
 							}

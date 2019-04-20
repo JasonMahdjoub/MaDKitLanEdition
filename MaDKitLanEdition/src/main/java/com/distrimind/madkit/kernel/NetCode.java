@@ -52,11 +52,6 @@ enum NetCode {
 @SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 class NetworkMessage extends EnumMessage<NetCode> {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -4557829864923968452L;
-
 	public NetworkMessage(NetCode code, Object... commandOptions) {
 		super(code, commandOptions);
 	}

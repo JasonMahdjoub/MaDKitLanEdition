@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.Externalizable;
+import com.distrimind.madkit.util.SecureExternalizableSystemMessage;
 
 
 
@@ -49,7 +49,7 @@ import java.io.Externalizable;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-public interface SystemMessage extends Externalizable {
+public interface SystemMessage extends SecureExternalizableSystemMessage {
 
 	
 	enum Integrity {

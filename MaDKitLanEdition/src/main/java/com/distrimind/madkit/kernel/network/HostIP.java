@@ -37,22 +37,16 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+import com.distrimind.madkit.util.SerializationTools;
+
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Random;
-
-import com.distrimind.madkit.exceptions.MessageSerializationException;
-import com.distrimind.madkit.util.SerializationTools;
 
 /**
  * 
@@ -60,7 +54,6 @@ import com.distrimind.madkit.util.SerializationTools;
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public class HostIP extends AbstractIP {
 	/**
 	 * 
@@ -76,20 +69,20 @@ public class HostIP extends AbstractIP {
 	}
 	
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		super.readExternal(in);
-		host=SerializationTools.readString(in, SerializationTools.MAX_URL_LENGTH, false);
+		host=in.readString(false, SerializationTools.MAX_URL_LENGTH);
 		if (getInetAddress() == null)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		
 		super.writeExternal(oos);
-		SerializationTools.writeString(oos, host, SerializationTools.MAX_URL_LENGTH, false);
-		
+		oos.writeString(host, false, SerializationTools.MAX_URL_LENGTH);
+
 	}
 	
 	protected HostIP() {

@@ -37,22 +37,16 @@
  */
 package com.distrimind.madkit.kernel;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
-import org.apache.commons.codec.binary.Base64;
-
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
-import com.distrimind.madkit.util.ExternalizableAndSizable;
+import com.distrimind.madkit.util.SecureExternalizable;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.util.AbstractDecentralizedID;
 import com.distrimind.util.RenforcedDecentralizedIDGenerator;
-import com.distrimind.util.SecuredDecentralizedID;
-import com.distrimind.util.crypto.SecureRandomType;
+import org.apache.commons.codec.binary.Base64;
 
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
+import java.io.IOException;
 
 /**
  * This class represents a unique identifier for MaDKit kernel. Uniqueness is
@@ -67,13 +61,7 @@ import gnu.vm.jgnu.security.NoSuchProviderException;
  * @since MaDKitLanEdition 1.0
  *
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
-public class KernelAddress implements ExternalizableAndSizable, Cloneable {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -8558944358948665656L;
+public class KernelAddress implements SecureExternalizable, Cloneable {
 
 	protected AbstractDecentralizedID id;
 
@@ -85,11 +73,8 @@ public class KernelAddress implements ExternalizableAndSizable, Cloneable {
 	 * Avoid the default public visibility for denying usage.
 	 * 
 	 * @param isSecured if the kernel address must be secured
-	 * @throws NoSuchAlgorithmException
-	 *             if the used encryption algorithm does not exists
-	 * @throws NoSuchProviderException if the provider use to hash kernel address was not found
 	 */
-	protected KernelAddress(boolean isSecured) throws NoSuchAlgorithmException, NoSuchProviderException {
+	protected KernelAddress(boolean isSecured) {
 		this(isSecured, true);
 	}
 	protected KernelAddress()
@@ -98,7 +83,7 @@ public class KernelAddress implements ExternalizableAndSizable, Cloneable {
 	}
 	
 
-	protected KernelAddress(boolean isSecured, boolean initName) throws NoSuchAlgorithmException, NoSuchProviderException {
+	protected KernelAddress(boolean isSecured, boolean initName) {
 
 		//RenforcedDecentralizedIDGenerator generatedid = new RenforcedDecentralizedIDGenerator();
 		if (isSecured) {
@@ -127,9 +112,9 @@ public class KernelAddress implements ExternalizableAndSizable, Cloneable {
 			name = null;
 	}
 
-	protected static final byte tab[]=new byte[65];
+	protected static final byte[] tab = new byte[65];
 	
-	protected void readExternal(ObjectInput in, boolean initName) throws IOException
+	protected void readExternal(SecuredObjectInputStream in, boolean initName) throws IOException
 	{
 		try {
 			internalSize=in.readShort();
@@ -157,8 +142,6 @@ public class KernelAddress implements ExternalizableAndSizable, Cloneable {
 			++internalSize;
 			
 			try {
-				if (id == null)
-					throw new MessageSerializationException(Integrity.FAIL);
 				if (id.getBytes() == null)
 					throw new MessageSerializationException(Integrity.FAIL);
 				//noinspection EqualsWithItself
@@ -179,11 +162,11 @@ public class KernelAddress implements ExternalizableAndSizable, Cloneable {
 	}
 	
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		readExternal(in, true);
 	}
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		byte[] tab=id.getBytes();
 		oos.writeShort(tab.length);
 		oos.write(tab);

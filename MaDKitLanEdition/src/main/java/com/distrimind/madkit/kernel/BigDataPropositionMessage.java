@@ -37,23 +37,19 @@
  */
 package com.distrimind.madkit.kernel;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.io.Serializable;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.io.RandomInputStream;
 import com.distrimind.madkit.io.RandomOutputStream;
 import com.distrimind.madkit.kernel.network.Block;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
 import com.distrimind.madkit.kernel.network.RealTimeTransfertStat;
-import com.distrimind.madkit.util.SerializationTools;
-import com.distrimind.madkit.util.ExternalizableAndSizable;
+import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
 import com.distrimind.madkit.util.NetworkMessage;
+import com.distrimind.madkit.util.*;
 import com.distrimind.util.crypto.MessageDigestType;
+
+import java.io.IOException;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Message received when a big data transfer is requested.
@@ -72,7 +68,7 @@ import com.distrimind.util.crypto.MessageDigestType;
  * @see AbstractAgent#sendBigDataWithRole(AgentAddress, RandomInputStream, long, long, ExternalizableAndSizable, MessageDigestType, String, boolean)
  * @see BigDataResultMessage
  */
-@SuppressWarnings({"ExternalizableWithoutPublicNoArgConstructor", "unused"})
+@SuppressWarnings({"unused"})
 public final class BigDataPropositionMessage extends Message implements NetworkMessage {
 
 	/**
@@ -87,7 +83,7 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 	private transient RealTimeTransfertStat stat = null;
 	protected long pos;
 	protected long length;
-	private ExternalizableAndSizable attachedData;
+	private SecureExternalizable attachedData;
 	private byte[] data;
 	private boolean isLocal;
 	protected int idPacket;
@@ -105,21 +101,18 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 	}
 	
 	@Override
-	public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException
+	public void readExternal(final SecuredObjectInputStream in) throws IOException, ClassNotFoundException
 	{
 		super.readExternal(in);
 		pos=in.readLong();
 		length=in.readLong();
-		Object o=SerializationTools.readExternalizableAndSizable(in, true);
-		if (o!=null && !(o instanceof ExternalizableAndSizable))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		attachedData=((ExternalizableAndSizable)o);
+		attachedData=in.readObject(true, SecureExternalizable.class);
 
-		data=SerializationTools.readBytes(in, Block.BLOCK_SIZE_LIMIT, true);
+		data=in.readBytesArray(true, Block.BLOCK_SIZE_LIMIT);
 		isLocal=in.readBoolean();
 		idPacket=in.readInt();
 		timeUTC=in.readLong();
-		String s=SerializationTools.readString(in, 1000, true);
+		String s=in.readString(true, 1000);
 		if (s==null)
 			messageDigestType=null;
 		else 
@@ -132,25 +125,25 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		
 	}
 	@Override
-	public void writeExternal(final ObjectOutput oos) throws IOException{
+	public void writeExternal(final SecuredObjectOutputStream oos) throws IOException{
 		super.writeExternal(oos);
 		oos.writeLong(pos);
 		oos.writeLong(length);
 		
-		SerializationTools.writeExternalizableAndSizable(oos, attachedData, true);
+		oos.writeObject(attachedData, true);
 		
-		SerializationTools.writeBytes(oos, data, Block.BLOCK_SIZE_LIMIT, true);
+		oos.writeBytesArray(data, true, Block.BLOCK_SIZE_LIMIT);
 		oos.writeBoolean(isLocal);
 		oos.writeInt(idPacket);
 		oos.writeLong(timeUTC);
-		SerializationTools.writeString(oos, messageDigestType==null?null:messageDigestType.name(), 1000, true);
+		oos.writeString(messageDigestType==null?null:messageDigestType.name(), true, 1000);
 		
 		oos.writeBoolean(excludedFromEncryption);
 	}	
 	
 	
 	
-	BigDataPropositionMessage(RandomInputStream stream, long pos, long length, ExternalizableAndSizable attachedData, boolean local,
+	BigDataPropositionMessage(RandomInputStream stream, long pos, long length, SecureExternalizable attachedData, boolean local,
 			int maxBufferSize, RealTimeTransfertStat stat, MessageDigestType messageDigestType, boolean excludedFromEncryption) throws IOException {
 		if (stream == null)
 			throw new NullPointerException("stream");
@@ -191,7 +184,7 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 	 * @return the user customized data attached to this big data transfer
 	 *         proposition, or null
 	 */
-	public Serializable getAttachedData() {
+	public SecureExternalizable getAttachedData() {
 		return attachedData;
 	}
 

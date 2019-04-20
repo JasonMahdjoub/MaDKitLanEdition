@@ -47,11 +47,6 @@ import com.distrimind.madkit.kernel.network.SystemMessage;
  */
 public abstract class AccessMessage implements SystemMessage {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 2487756713207803095L;
-
 	public short getNbAnomalies() {
 		return 0;
 	}

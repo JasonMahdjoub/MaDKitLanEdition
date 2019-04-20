@@ -37,47 +37,15 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
-
+import com.distrimind.jdkrewrite.concurrent.LockerCondition;
 import com.distrimind.madkit.agr.LocalCommunity;
-import com.distrimind.madkit.exceptions.MadkitException;
-import com.distrimind.madkit.exceptions.MessageSerializationException;
-import com.distrimind.madkit.exceptions.NIOException;
-import com.distrimind.madkit.exceptions.PacketException;
-import com.distrimind.madkit.exceptions.SelfKillException;
+import com.distrimind.madkit.exceptions.*;
 import com.distrimind.madkit.io.RandomByteArrayInputStream;
 import com.distrimind.madkit.io.RandomByteArrayOutputStream;
 import com.distrimind.madkit.io.RandomInputStream;
 import com.distrimind.madkit.io.RandomOutputStream;
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.AbstractGroup;
-import com.distrimind.madkit.kernel.AgentAddress;
-import com.distrimind.madkit.kernel.AgentFakeThread;
-import com.distrimind.madkit.kernel.BigDataPropositionMessage;
-import com.distrimind.madkit.kernel.BigDataResultMessage;
-import com.distrimind.madkit.kernel.BigDataTransferID;
-import com.distrimind.madkit.kernel.CGRSynchro;
+import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.CGRSynchro.Code;
-import com.distrimind.madkit.kernel.ConversationID;
-import com.distrimind.madkit.kernel.Group;
-import com.distrimind.madkit.kernel.KernelAddress;
-import com.distrimind.jdkrewrite.concurrent.LockerCondition;
-import com.distrimind.madkit.kernel.Message;
-import com.distrimind.madkit.kernel.MultiGroup;
-import com.distrimind.madkit.kernel.Task;
-import com.distrimind.madkit.kernel.TaskID;
 import com.distrimind.madkit.kernel.network.AbstractAgentSocket.AgentSocketKilled;
 import com.distrimind.madkit.kernel.network.AbstractAgentSocket.Groups;
 import com.distrimind.madkit.kernel.network.AbstractAgentSocket.ReceivedBlockData;
@@ -86,17 +54,27 @@ import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.ObjectMessage;
-import com.distrimind.madkit.message.hook.NetworkGroupsAccessEvent;
-import com.distrimind.madkit.message.hook.NetworkLoginAccessEvent;
 import com.distrimind.madkit.message.hook.DistantKernelAgentEventMessage;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.madkit.message.hook.NetworkGroupsAccessEvent;
+import com.distrimind.madkit.message.hook.NetworkLoginAccessEvent;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.crypto.MessageDigestType;
 
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 
 /**
  * Represent a distant Madkit kernel
@@ -336,41 +314,34 @@ class DistantKernelAgent extends AgentFakeThread {
 
 						AgentSocketData asd = getBestAgentSocket(distant_kernel_address, m.getContent().getGroup(),
 								false);
-						try {
-							if (asd != null) {
-								if (logger != null && logger.isLoggable(Level.FINER))
-									logger.finer("CGRSynchro (distantInterfacedKernelAddress=" + distant_kernel_address
-											+ ") : " + _message);
 
-								boolean lock=this.lockSocketUntilCGRSynchroIsSent && m.getCode() != Code.LEAVE_GROUP && m.getCode() != Code.LEAVE_ROLE;
-								MessageLocker ml=null;
-								if (lock)
-								{
-									ml=new MessageLocker();
-									ml.lock();
-								}
+						if (asd != null) {
+							if (logger != null && logger.isLoggable(Level.FINER))
+								logger.finer("CGRSynchro (distantInterfacedKernelAddress=" + distant_kernel_address
+										+ ") : " + _message);
 
-								CGRSynchroSystemMessage message = new CGRSynchroSystemMessage(m);
-								sendData(asd.getAgentAddress(), message, m.getCode() != Code.LEAVE_GROUP && m.getCode() != Code.LEAVE_ROLE, ml, false);
-								if (ml!=null)
-									ml.waitUnlock(this, true);
-								potentialChangementsInGroups();
-								newCGRSynchroDetected(m);
-
-								//sendData(asd.getAgentAddress(), message, true, m.getMessageLocker(), false);
-							} else {
-								if (logger != null && logger.isLoggable(Level.FINER))
-									logger.finer("No agent socket found for CGRSynchro (distantInterfacedKernelAddress=" + distant_kernel_address
-											+ ") : " + _message);
-								/*if (m.getMessageLocker()!=null)
-									m.getMessageLocker().unlock();*/
+							boolean lock=this.lockSocketUntilCGRSynchroIsSent && m.getCode() != Code.LEAVE_GROUP && m.getCode() != Code.LEAVE_ROLE;
+							MessageLocker ml=null;
+							if (lock)
+							{
+								ml=new MessageLocker();
+								ml.lock();
 							}
-						}
-						catch(MadkitException e)
-						{
+
+							CGRSynchroSystemMessage message = new CGRSynchroSystemMessage(m);
+							sendData(asd.getAgentAddress(), message, m.getCode() != Code.LEAVE_GROUP && m.getCode() != Code.LEAVE_ROLE, ml, false);
+							if (ml!=null)
+								ml.waitUnlock(this, true);
+							potentialChangementsInGroups();
+							newCGRSynchroDetected(m);
+
+							//sendData(asd.getAgentAddress(), message, true, m.getMessageLocker(), false);
+						} else {
+							if (logger != null && logger.isLoggable(Level.FINER))
+								logger.finer("No agent socket found for CGRSynchro (distantInterfacedKernelAddress=" + distant_kernel_address
+										+ ") : " + _message);
 							/*if (m.getMessageLocker()!=null)
 								m.getMessageLocker().unlock();*/
-							throw e;
 						}
 
 					}
@@ -1162,61 +1133,58 @@ class DistantKernelAgent extends AgentFakeThread {
 	 * An agent socket sent its concerned distant kernel address.
 	 */
 	private void setDistantKernelAddress(AgentAddress sender, KernelAddress distant_ka) throws MadkitException {
-		try {
-			if (this.distant_kernel_address == null) {
+
+		if (this.distant_kernel_address == null) {
+			if (logger != null && logger.isLoggable(Level.FINER))
+				logger.finer("Setting distant kernel address (distantKernelAddress=" + distant_ka + ")");
+
+			try {
+
+				networkBlacboard.lockForSimultaneousConnections(this, distant_ka);
+
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				this.killAgent(this);
+			}
+
+			// save the distant kernel address
+			this.distant_kernel_address = new KernelAddressInterfaced(distant_ka, true);
+
+			// test if the distant kernel address has already been binded
+			boolean duplicate_group = this.getAgentsWithRole(
+					LocalCommunity.Groups.getOriginalDistantKernelAgentGroup(this.distant_kernel_address),
+					LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE, false).size() > 0;
+			// the current agent join the original distant kernel address
+			this.requestRole(LocalCommunity.Groups.getOriginalDistantKernelAgentGroup(this.distant_kernel_address),
+					LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
+			if (duplicate_group) {
 				if (logger != null && logger.isLoggable(Level.FINER))
-					logger.finer("Setting distant kernel address (distantKernelAddress=" + distant_ka + ")");
-				
-				try {
-
-					networkBlacboard.lockForSimultaneousConnections(this, distant_ka);
-
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-					this.killAgent(this);
-				}
-
-				// save the distant kernel address
-				this.distant_kernel_address = new KernelAddressInterfaced(distant_ka, true);
-
-				// test if the distant kernel address has already been binded
-				boolean duplicate_group = this.getAgentsWithRole(
-						LocalCommunity.Groups.getOriginalDistantKernelAgentGroup(this.distant_kernel_address),
-						LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE, false).size() > 0;
-				// the current agent join the original distant kernel address
-				this.requestRole(LocalCommunity.Groups.getOriginalDistantKernelAgentGroup(this.distant_kernel_address),
+					logger.finer("duplicate kernel address (distantKernelAddress=" + distant_ka + ")");
+				// interface the received distant kernel address
+				this.distant_kernel_address = new KernelAddressInterfaced(distant_ka, false);
+				// the current agent join the interfaced distant kernel address
+				// this.requestRole(LocalCommunity.Groups.getDistantKernelAgentGroup(this.distant_kernel_address),
+				// LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
+				this.requestRole(LocalCommunity.Groups.getDistantKernelAgentGroup(getNetworkID()),
 						LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
-				if (duplicate_group) {
-					if (logger != null && logger.isLoggable(Level.FINER))
-						logger.finer("duplicate kernel address (distantKernelAddress=" + distant_ka + ")");
-					// interface the received distant kernel address
-					this.distant_kernel_address = new KernelAddressInterfaced(distant_ka, false);
-					// the current agent join the interfaced distant kernel address
-					// this.requestRole(LocalCommunity.Groups.getDistantKernelAgentGroup(this.distant_kernel_address),
-					// LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
-					this.requestRole(LocalCommunity.Groups.getDistantKernelAgentGroup(getNetworkID()),
-							LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
-				} else {
-					// the current agent join the interfaced distant kernel address
-					// this.requestRole(LocalCommunity.Groups.getDistantKernelAgentGroup(this.distant_kernel_address),
-					// LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
-					this.requestRole(LocalCommunity.Groups.getDistantKernelAgentGroup(getNetworkID()),
-							LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
-					// activate the current distant kernel agent
-					activateDistantKernelAgent(sender, true);
-					//networkBlacboard.unlockSimultaneousConnections(distant_ka);
-				}
-				// send to the concerned agent socket the result of the current agent activation
-				sendMessageWithRole(sender, new KernelAddressValidation(duplicate_group),
+			} else {
+				// the current agent join the interfaced distant kernel address
+				// this.requestRole(LocalCommunity.Groups.getDistantKernelAgentGroup(this.distant_kernel_address),
+				// LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
+				this.requestRole(LocalCommunity.Groups.getDistantKernelAgentGroup(getNetworkID()),
 						LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
+				// activate the current distant kernel agent
+				activateDistantKernelAgent(sender, true);
+				//networkBlacboard.unlockSimultaneousConnections(distant_ka);
+			}
+			// send to the concerned agent socket the result of the current agent activation
+			sendMessageWithRole(sender, new KernelAddressValidation(duplicate_group),
+					LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 
-			} else if (logger != null)
-				logger.warning("Setting distant kernel address already done (currentDistantKernelAddress="
-						+ distant_kernel_address + ", receivedKernelAddress=" + distant_ka + ")");
+		} else if (logger != null)
+			logger.warning("Setting distant kernel address already done (currentDistantKernelAddress="
+					+ distant_kernel_address + ", receivedKernelAddress=" + distant_ka + ")");
 
-		} catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-			throw new MadkitException(e);
-		}
 	}
 
 	private void updateDistantAcceptedGroups(ArrayList<AgentSocketData> agents_socket, MultiGroup general,
@@ -1791,8 +1759,8 @@ class DistantKernelAgent extends AgentFakeThread {
 	protected void sendData(AgentAddress receiver, SystemMessage _data, boolean prioritary,
 			MessageLocker _messageLocker, boolean last_message) throws NIOException {
 		try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-			try (ObjectOutputStream oos = new OOS(baos)) {
-				SerializationTools.writeExternalizableAndSizable(oos, _data, false);
+			try (OOS oos = new OOS(baos); SecuredObjectOutputStream soos=new SecuredObjectOutputStream(oos)) {
+				soos.writeObject(_data, false);
 			}
 			baos.flush();
 
@@ -1817,9 +1785,9 @@ class DistantKernelAgent extends AgentFakeThread {
 
 	private class OOS extends FilteredObjectOutputStream {
 		
-		OOS(java.io.OutputStream _out) throws IOException {
+		OOS(java.io.OutputStream _out) {
 			super(_out, getMadkitConfig().networkProperties);
-			enableReplaceObject(true);
+			//enableReplaceObject(true);
 		}
 		
 	
@@ -1856,15 +1824,17 @@ class DistantKernelAgent extends AgentFakeThread {
 	private class OIS extends FilteredObjectInputStream {
 
 		
-		public OIS(InputStream _in) throws IOException {
+		public OIS(InputStream _in) {
 			super(_in, getMadkitConfig().networkProperties);
-			enableResolveObject(true);
+			//enableResolveObject(true);
 
 		}
 		
 
-		@Override
+		@SuppressWarnings("unused")
 		protected Object resolveObject(Object obj) {
+			if (obj==null)
+				return null;
 			if (obj.getClass() == KernelAddress.class) {
 				KernelAddressInterfaced kai = networkBlacboard.getKernelAddressInterfaced((KernelAddress) obj);
 				if (kai != null)
@@ -2263,8 +2233,6 @@ class DistantKernelAgent extends AgentFakeThread {
 
 		private final MessageLocker messageLocker;
 
-		private final boolean isSystemMessage;
-
 		protected PacketData(AgentAddress first_receiver, SystemMessage lan_message, WritePacket _packet,
 				MessageLocker _messageLocker, boolean _last_message, boolean pioririty, boolean excludedFromEncryption) {
 			super(pioririty, first_receiver, _packet,
@@ -2274,7 +2242,7 @@ class DistantKernelAgent extends AgentFakeThread {
 
 			last_message = _last_message;
 
-			isSystemMessage = !(lan_message instanceof LanMessage);
+			boolean isSystemMessage = !(lan_message instanceof LanMessage);
 
 			this.original_lan_message = isSystemMessage ? null : (LanMessage) lan_message;
 
@@ -2684,9 +2652,8 @@ class DistantKernelAgent extends AgentFakeThread {
 							byte[] bytes = sr.getBytes();
 							try (java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(bytes)) {
 
-								try (ObjectInputStream ois = new OIS(bais)) {
-									
-									Object obj = SerializationTools.readExternalizableAndSizable(ois, false);
+								try (OIS ois = new OIS(bais); SecuredObjectInputStream sois=new SecuredObjectInputStream(ois)) {
+									Object obj = sois.readObject(false);
 
 									receiveData(agent_socket_sender, obj, sr.getDataSize());
 

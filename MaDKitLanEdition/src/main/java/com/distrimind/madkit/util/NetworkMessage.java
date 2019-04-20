@@ -1,5 +1,5 @@
 package com.distrimind.madkit.util;
 
-public interface NetworkMessage extends ExternalizableAndSizable{
+public interface NetworkMessage extends SecureExternalizable{
 
 }

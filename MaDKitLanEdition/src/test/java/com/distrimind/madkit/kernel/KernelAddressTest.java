@@ -37,27 +37,20 @@
  */
 package com.distrimind.madkit.kernel;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
+import com.distrimind.madkit.kernel.network.KernelAddressInterfaced;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.distrimind.madkit.kernel.KernelAddress;
-import com.distrimind.madkit.kernel.network.KernelAddressInterfaced;
-import com.distrimind.madkit.util.SerializationTools;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.fail;
 
 /**
  * @author Fabien Michel
@@ -72,12 +65,12 @@ public class KernelAddressTest {
 	protected static List<KernelAddress> kas;
 	private static List<KernelAddress> simultaneous;
 
-	public static KernelAddress getKernelAddressInstance() throws NoSuchAlgorithmException, NoSuchProviderException {
+	public static KernelAddress getKernelAddressInstance()  {
 		return new KernelAddress(false);
 	}
 
 	@BeforeClass
-	public static void createNewAddresses() throws NoSuchAlgorithmException, NoSuchProviderException {
+	public static void createNewAddresses()  {
 		kas = new ArrayList<>();
 		simultaneous = new ArrayList<>();
 		for (int i = 0; i < 2000; i++) {
@@ -108,14 +101,10 @@ public class KernelAddressTest {
 			Thread t = new Thread(new Runnable() {
 				@Override
 				public void run() {
-					try {
-						for (int j = 0; j < 1000; j++) {
-							synchronized (kas) {
-								kas.add(new KernelAddress(true));
-							}
+					for (int j = 0; j < 1000; j++) {
+						synchronized (kas) {
+							kas.add(new KernelAddress(true));
 						}
-					} catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-						e.printStackTrace();
 					}
 
 				}
@@ -129,7 +118,7 @@ public class KernelAddressTest {
 	}
 
 	@Test
-	public void testUniqueness() throws InterruptedException, NoSuchAlgorithmException, NoSuchProviderException {
+	public void testUniqueness() throws InterruptedException {
 		for (int i = 0; i < 1000; i++) {
             assertNotEquals(new KernelAddress(true), new KernelAddress(true));
 		}
@@ -165,7 +154,7 @@ public class KernelAddressTest {
 	// }
 
 	@Test
-	public void testEqualsObject() throws NoSuchAlgorithmException, IOException, ClassNotFoundException, NoSuchProviderException {
+	public void testEqualsObject() throws IOException, ClassNotFoundException {
 		for (KernelAddress ka : kas) {
 			for (KernelAddress other : kas) {
 				if (ka != other && other.equals(ka)) {
@@ -176,12 +165,12 @@ public class KernelAddressTest {
 		for (KernelAddress ka : kas) {
 			KernelAddress kas;
 			try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-				try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-					SerializationTools.writeExternalizableAndSizable(oos, ka, false);
+				try (DataOutputStream dos=new DataOutputStream(baos); SecuredObjectOutputStream oos = new SecuredObjectOutputStream(dos)) {
+					oos.writeObject(ka, false);
 				}
 				try (ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray())) {
-					try (ObjectInputStream ois = new ObjectInputStream(bais)) {
-						kas = (KernelAddress) SerializationTools.readExternalizableAndSizable(ois, false);
+					try (DataInputStream dis=new DataInputStream(bais); SecuredObjectInputStream ois = new SecuredObjectInputStream(dis)) {
+						kas=ois.readObject(false, KernelAddress.class);
 					}
 
 				}
@@ -191,12 +180,13 @@ public class KernelAddressTest {
 			KernelAddressInterfaced kai = new KernelAddressInterfaced(ka, true);
 			KernelAddressInterfaced kais;
 			try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-				try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-					SerializationTools.writeExternalizableAndSizable(oos, kai, false);
+				try (DataOutputStream dos=new DataOutputStream(baos); SecuredObjectOutputStream oos = new SecuredObjectOutputStream(dos)) {
+					oos.writeObject(kai, false);
 				}
 				try (ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray())) {
-					try (ObjectInputStream ois = new ObjectInputStream(bais)) {
-						kais = (KernelAddressInterfaced) SerializationTools.readExternalizableAndSizable(ois, false);
+					try (DataInputStream dis=new DataInputStream(bais); SecuredObjectInputStream ois = new SecuredObjectInputStream(dis)) {
+						kais=ois.readObject(false, KernelAddressInterfaced.class);
+
 					}
 
 				}
@@ -217,12 +207,12 @@ public class KernelAddressTest {
 			Assert.assertEquals(ka, kais);
 			kai = new KernelAddressInterfaced(ka, false);
 			try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-				try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
-					SerializationTools.writeExternalizableAndSizable(oos, kai, false);
+				try (DataOutputStream dos=new DataOutputStream(baos); SecuredObjectOutputStream oos = new SecuredObjectOutputStream(dos)) {
+					oos.writeObject(kai, false);
 				}
 				try (ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray())) {
-					try (ObjectInputStream ois = new ObjectInputStream(bais)) {
-						kais = (KernelAddressInterfaced) SerializationTools.readExternalizableAndSizable(ois, false);
+					try (DataInputStream dis=new DataInputStream(bais); SecuredObjectInputStream ois = new SecuredObjectInputStream(dis)) {
+						kais=ois.readObject(false, KernelAddressInterfaced.class);
 					}
 
 				}

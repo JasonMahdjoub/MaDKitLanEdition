@@ -38,18 +38,15 @@
 package com.distrimind.madkit.kernel.network.connection;
 
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
 import com.distrimind.madkit.exceptions.BlockParserException;
-import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.network.SubBlock;
 import com.distrimind.madkit.kernel.network.SubBlockInfo;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.NullBlockChecker;
-import com.distrimind.madkit.util.ExternalizableAndSizable;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.madkit.util.SecureExternalizable;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
+import java.io.IOException;
 
 /**
  * 
@@ -57,12 +54,7 @@ import com.distrimind.madkit.util.SerializationTools;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-public abstract class TransferedBlockChecker implements ExternalizableAndSizable {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 2143778142838474232L;
-
+public abstract class TransferedBlockChecker implements SecureExternalizable {
 	private TransferedBlockChecker subChecker;
 	protected TransferedBlockChecker()
 	{
@@ -102,18 +94,15 @@ public abstract class TransferedBlockChecker implements ExternalizableAndSizable
 	}
 
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException
 	{
-		Object o=SerializationTools.readExternalizableAndSizable(in, true);
-		if (o!=null && !(o instanceof TransferedBlockChecker))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		subChecker=(TransferedBlockChecker)o;
+		subChecker=in.readObject(true, TransferedBlockChecker.class);
 	}
 	
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException
 	{
-		SerializationTools.writeExternalizableAndSizable(oos, subChecker, true);
+		oos.writeObject(subChecker, true);
 	}
 	
 

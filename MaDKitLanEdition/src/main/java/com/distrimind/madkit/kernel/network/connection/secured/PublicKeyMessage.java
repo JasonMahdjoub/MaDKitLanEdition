@@ -38,20 +38,16 @@
 package com.distrimind.madkit.kernel.network.connection.secured;
 
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
 import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.network.connection.AskConnection;
 import com.distrimind.madkit.kernel.network.connection.ConnectionMessage;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.madkit.util.SerializationTools;
-import com.distrimind.util.crypto.ASymmetricAuthentifiedSignatureCheckerAlgorithm;
-import com.distrimind.util.crypto.ASymmetricAuthentifiedSignerAlgorithm;
-import com.distrimind.util.crypto.ASymmetricPrivateKey;
-import com.distrimind.util.crypto.ASymmetricPublicKey;
-import com.distrimind.util.crypto.Key;
+import com.distrimind.util.crypto.*;
+
+import java.io.IOException;
 
 
 /**
@@ -60,12 +56,7 @@ import com.distrimind.util.crypto.Key;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 class PublicKeyMessage extends ConnectionMessage {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 3516261115139207424L;
 
 	private transient ASymmetricPublicKey public_key_for_encryption = null;
 	private byte[] public_key_for_encryption_bytes;
@@ -82,10 +73,10 @@ class PublicKeyMessage extends ConnectionMessage {
 	}
 	
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-		public_key_for_encryption_bytes=SerializationTools.readBytes(in, SerializationTools.MAX_KEY_SIZE, false);
-		signedPublicKey=SerializationTools.readBytes(in, AskConnection.MAX_SIGNATURE_LENGTH, false);
-		public_key_for_signature_bytes=SerializationTools.readBytes(in, AskConnection.MAX_SIGNATURE_LENGTH, false);
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+		public_key_for_encryption_bytes=in.readBytesArray(false, SerializationTools.MAX_KEY_SIZE);
+		signedPublicKey=in.readBytesArray( false, AskConnection.MAX_SIGNATURE_LENGTH);
+		public_key_for_signature_bytes=in.readBytesArray(false, AskConnection.MAX_SIGNATURE_LENGTH);
 		try
 		{
 			Key k=Key.decode(public_key_for_encryption_bytes);
@@ -113,10 +104,10 @@ class PublicKeyMessage extends ConnectionMessage {
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
-		SerializationTools.writeBytes(oos, public_key_for_encryption_bytes, SerializationTools.MAX_KEY_SIZE, false);
-		SerializationTools.writeBytes(oos, signedPublicKey, AskConnection.MAX_SIGNATURE_LENGTH, false);
-		SerializationTools.writeBytes(oos, public_key_for_signature_bytes, AskConnection.MAX_SIGNATURE_LENGTH, false);
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
+		oos.writeBytesArray(public_key_for_encryption_bytes, false, SerializationTools.MAX_KEY_SIZE);
+		oos.writeBytesArray(signedPublicKey, false, AskConnection.MAX_SIGNATURE_LENGTH);
+		oos.writeBytesArray(public_key_for_signature_bytes, false, AskConnection.MAX_SIGNATURE_LENGTH);
 		
 	}
 	

@@ -37,13 +37,12 @@
  */
 package com.distrimind.madkit.kernel.network.connection.secured;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
 import com.distrimind.madkit.kernel.network.connection.AskConnection;
 import com.distrimind.madkit.kernel.network.connection.ConnectionMessage;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
+import java.io.IOException;
 
 /**
  * 
@@ -51,12 +50,7 @@ import com.distrimind.madkit.util.SerializationTools;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 class SecretKeyMessage extends ConnectionMessage {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -4455941962314905794L;
 
 	public byte[] secret_key;
 
@@ -78,14 +72,14 @@ class SecretKeyMessage extends ConnectionMessage {
 	}
 
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-		secret_key=SerializationTools.readBytes(in, AskConnection.MAX_SECRET_KEY_LENGTH, false);
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+		secret_key=in.readBytesArray(false, AskConnection.MAX_SECRET_KEY_LENGTH);
 		
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
-		SerializationTools.writeBytes(oos, secret_key, AskConnection.MAX_SECRET_KEY_LENGTH, false);
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
+		oos.writeBytesArray(secret_key, false, AskConnection.MAX_SECRET_KEY_LENGTH);
 		
 	}
 	

@@ -49,13 +49,7 @@ import com.distrimind.madkit.action.SchedulingAction;
  * @version 0.9
  * 
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public class SchedulingMessage extends EnumMessage<SchedulingAction> {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -1433336977900865385L;
 
 	public SchedulingMessage(SchedulingAction schedulerAction, Object... info) {
 		super(schedulerAction, info);

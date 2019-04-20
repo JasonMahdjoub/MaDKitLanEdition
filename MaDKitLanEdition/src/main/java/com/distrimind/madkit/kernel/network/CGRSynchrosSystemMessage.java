@@ -37,16 +37,16 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.util.*;
-
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.kernel.Group;
 import com.distrimind.madkit.kernel.KernelAddress;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.madkit.util.SerializationTools;
+
+import java.io.IOException;
+import java.util.*;
 
 /**
  * 
@@ -54,12 +54,7 @@ import com.distrimind.madkit.util.SerializationTools;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 final class CGRSynchrosSystemMessage implements SystemMessage {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -3042115120223245895L;
 
 	private Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> organization_snap_shot;
 	private ArrayList<Group> removedGroups;
@@ -79,7 +74,7 @@ final class CGRSynchrosSystemMessage implements SystemMessage {
 	}
 	
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 
 		
 		
@@ -92,7 +87,7 @@ final class CGRSynchrosSystemMessage implements SystemMessage {
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		for (int i=0;i<size;i++)
 		{
-			String comunity=SerializationTools.readString(in, Group.MAX_COMMUNITY_LENGTH, false);
+			String comunity=in.readString(false, Group.MAX_COMMUNITY_LENGTH);
 			int size2=in.readInt();
 			if (size2<0)
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
@@ -102,10 +97,7 @@ final class CGRSynchrosSystemMessage implements SystemMessage {
 			Map<Group, Map<String, Collection<AgentAddress>>> groups= new HashMap<>();
 			for (int j=0;j<size2;j++)
 			{
-				Object o=SerializationTools.readExternalizableAndSizable(in, false);
-				if (!(o instanceof Group))
-					throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);					
-				Group group=(Group)o;
+				Group group=in.readObject(false, Group.class);
 				totalSize+=group.getInternalSerializedSize()+4;
 				if (totalSize>globalSize)
 					throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
@@ -115,7 +107,7 @@ final class CGRSynchrosSystemMessage implements SystemMessage {
 				Map<String, Collection<AgentAddress>> roles= new HashMap<>();
 				for (int k=0;k<size3;k++)
 				{
-					String role=SerializationTools.readString(in, Group.MAX_ROLE_NAME_LENGTH, false);
+					String role=in.readString(false, Group.MAX_ROLE_NAME_LENGTH);
 					totalSize+=4+SerializationTools.getInternalSize(comunity, Group.MAX_ROLE_NAME_LENGTH);
 					int size4=in.readInt();
 					if (totalSize>globalSize)
@@ -125,10 +117,7 @@ final class CGRSynchrosSystemMessage implements SystemMessage {
 					HashSet<AgentAddress> agentAddresses=new HashSet<>();
 					for (int l=0;l<size4;l++)
 					{
-						o=SerializationTools.readExternalizableAndSizable(in, false);
-						if (!(o instanceof AgentAddress))
-							throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-						AgentAddress aa=(AgentAddress)o;
+						AgentAddress aa=in.readObject( false, AgentAddress.class);
 						totalSize+=aa.getInternalSerializedSize();
 						if (totalSize>globalSize)
 							throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
@@ -148,10 +137,7 @@ final class CGRSynchrosSystemMessage implements SystemMessage {
 		removedGroups=new ArrayList<>(size);
 		for (int i=0;i<size;i++)
 		{
-			Object o=SerializationTools.readExternalizableAndSizable(in, false);
-			if (!(o instanceof Group))
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			Group g=(Group)o;
+			Group g=in.readObject( false, Group.class);
 			totalSize+=g.getInternalSerializedSize();
 			if (totalSize>globalSize)
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
@@ -172,29 +158,29 @@ final class CGRSynchrosSystemMessage implements SystemMessage {
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		
 		oos.writeInt(organization_snap_shot.size());
 		for (Map.Entry<String, Map<Group, Map<String, Collection<AgentAddress>>>> e : organization_snap_shot.entrySet())
 		{
-			SerializationTools.writeString(oos, e.getKey(), Group.MAX_COMMUNITY_LENGTH, false);
+			oos.writeString(e.getKey(), false, Group.MAX_COMMUNITY_LENGTH);
 			oos.writeInt(e.getValue().size());
 			for (Map.Entry<Group, Map<String, Collection<AgentAddress>>> e2 : e.getValue().entrySet())
 			{
-				SerializationTools.writeExternalizableAndSizable(oos, e2.getKey(), false);
+				oos.writeObject(e2.getKey(), false);
 				oos.writeInt(e2.getValue().size());
 				for (Map.Entry<String, Collection<AgentAddress>> e3 : e2.getValue().entrySet())
 				{
-					SerializationTools.writeString(oos, e3.getKey(), Group.MAX_ROLE_NAME_LENGTH, false);
+					oos.writeString(e3.getKey(), false, Group.MAX_ROLE_NAME_LENGTH);
 					oos.writeInt(e3.getValue().size());
 					for (AgentAddress aa : e3.getValue())
-						SerializationTools.writeExternalizableAndSizable(oos, aa, false);
+						oos.writeObject(aa, false);
 				}
 			}
 		}
 		oos.writeInt(removedGroups.size());
 		for (Group g : removedGroups)
-			SerializationTools.writeExternalizableAndSizable(oos, g, false);
+			oos.writeObject(g, false);
 		
 	}
 

@@ -37,16 +37,20 @@
  */
 package com.distrimind.madkit.kernel.network.connection.secured;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.net.InetSocketAddress;
-import java.util.Arrays;
-
+import com.distrimind.madkit.database.KeysPairs;
+import com.distrimind.madkit.exceptions.BlockParserException;
+import com.distrimind.madkit.exceptions.ConnectionException;
+import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.kernel.MadkitProperties;
+import com.distrimind.madkit.kernel.network.*;
+import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
 import com.distrimind.madkit.kernel.network.connection.*;
-import org.bouncycastle.crypto.InvalidWrappingException;
-
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.ood.database.DatabaseWrapper;
+import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.util.crypto.*;
 import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
 import gnu.vm.jgnu.security.InvalidKeyException;
 import gnu.vm.jgnu.security.NoSuchAlgorithmException;
@@ -54,34 +58,12 @@ import gnu.vm.jgnu.security.NoSuchProviderException;
 import gnu.vm.jgnu.security.spec.InvalidKeySpecException;
 import gnu.vm.jgnux.crypto.IllegalBlockSizeException;
 import gnu.vm.jgnux.crypto.NoSuchPaddingException;
+import org.bouncycastle.crypto.InvalidWrappingException;
 
-import com.distrimind.madkit.database.KeysPairs;
-import com.distrimind.madkit.exceptions.BlockParserException;
-import com.distrimind.madkit.exceptions.ConnectionException;
-import com.distrimind.madkit.exceptions.MessageSerializationException;
-import com.distrimind.madkit.kernel.MadkitProperties;
-import com.distrimind.madkit.kernel.network.Block;
-import com.distrimind.madkit.kernel.network.NetworkProperties;
-import com.distrimind.madkit.kernel.network.PacketCounter;
-import com.distrimind.madkit.kernel.network.PacketPartHead;
-import com.distrimind.madkit.kernel.network.SubBlock;
-import com.distrimind.madkit.kernel.network.SubBlockInfo;
-import com.distrimind.madkit.kernel.network.SubBlockParser;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
-import com.distrimind.madkit.util.SerializationTools;
-import com.distrimind.ood.database.DatabaseWrapper;
-
-import com.distrimind.ood.database.exceptions.DatabaseException;
-import com.distrimind.util.crypto.ASymmetricAuthentifiedSignatureCheckerAlgorithm;
-import com.distrimind.util.crypto.ASymmetricAuthentifiedSignatureType;
-import com.distrimind.util.crypto.ASymmetricAuthentifiedSignerAlgorithm;
-import com.distrimind.util.crypto.ASymmetricKeyPair;
-import com.distrimind.util.crypto.ASymmetricKeyWrapperType;
-import com.distrimind.util.crypto.ASymmetricPublicKey;
-import com.distrimind.util.crypto.AbstractSecureRandom;
-import com.distrimind.util.crypto.Key;
-import com.distrimind.util.crypto.SymmetricEncryptionAlgorithm;
-import com.distrimind.util.crypto.SymmetricSecretKey;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.Arrays;
 
 /**
  * Does not support forward secrecy
@@ -995,13 +977,8 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 		}
 	}
 
-	@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 	static class BlockChecker extends TransferedBlockChecker {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 4833363274931312673L;
-		
+
 		private ASymmetricAuthentifiedSignatureType signatureType;
 		private int signatureSize;
 		private transient ASymmetricAuthentifiedSignatureCheckerAlgorithm signatureChecker;
@@ -1012,17 +989,11 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 			
 		}
 		@Override
-		public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 			super.readExternal(in);
-			Enum<?> e=SerializationTools.readEnum(in, false);
-			if (!(e instanceof ASymmetricAuthentifiedSignatureType))
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			signatureType=(ASymmetricAuthentifiedSignatureType)e;
+			signatureType=in.readObject(false, ASymmetricAuthentifiedSignatureType.class);
 			signatureSize=in.readInt();
-			Key k=SerializationTools.readKey(in, false);
-			if (!(k instanceof ASymmetricPublicKey))
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			publicKey=(ASymmetricPublicKey)k;
+			publicKey=in.readObject(false, ASymmetricPublicKey.class);
 			try
 			{
 				initSignature();
@@ -1034,16 +1005,16 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 		}
 
 		@Override
-		public void writeExternal(ObjectOutput oos) throws IOException {
+		public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 			super.writeExternal(oos);
-			SerializationTools.writeEnum(oos, signatureType, false);
+			oos.writeObject(signatureType, false);
 			oos.writeInt(signatureSize);
-			SerializationTools.writeKey(oos, publicKey, false);
+			oos.writeObject(publicKey, false);
 		}
 		
 		@Override
 		public int getInternalSerializedSize() {
-			return SerializationTools.getInternalSize(signatureType, 0)+4+SerializationTools.getInternalSize(publicKey, 0);
+			return SerializationTools.getInternalSize(signatureType)+4+SerializationTools.getInternalSize(publicKey);
 		}
 		
 		protected BlockChecker(TransferedBlockChecker _subChecker, ASymmetricAuthentifiedSignatureType signatureType,

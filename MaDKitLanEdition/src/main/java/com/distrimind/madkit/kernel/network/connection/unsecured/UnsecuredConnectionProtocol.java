@@ -37,11 +37,6 @@
  */
 package com.distrimind.madkit.kernel.network.connection.unsecured;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.net.InetSocketAddress;
-
 import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.kernel.MadkitProperties;
@@ -50,7 +45,12 @@ import com.distrimind.madkit.kernel.network.SubBlock;
 import com.distrimind.madkit.kernel.network.SubBlockInfo;
 import com.distrimind.madkit.kernel.network.SubBlockParser;
 import com.distrimind.madkit.kernel.network.connection.*;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.ood.database.DatabaseWrapper;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
 
 /**
  * Represents a connection protocol that do not have any security management and
@@ -182,17 +182,12 @@ public class UnsecuredConnectionProtocol extends ConnectionProtocol<UnsecuredCon
 
 	}
 
-	@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 	static class BlockChecker extends TransferedBlockChecker {
 
 		protected BlockChecker(TransferedBlockChecker _subChecker) {
 			super(_subChecker, true);
 		}
 
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = -6848501726603093585L;
 		@SuppressWarnings("unused")
 		BlockChecker()
 		{
@@ -210,12 +205,12 @@ public class UnsecuredConnectionProtocol extends ConnectionProtocol<UnsecuredCon
 		}
 
 		@Override
-		public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 			super.readExternal(in);
 		}
 
 		@Override
-		public void writeExternal(ObjectOutput oos) throws IOException {
+		public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 			super.writeExternal(oos);
 		}
 

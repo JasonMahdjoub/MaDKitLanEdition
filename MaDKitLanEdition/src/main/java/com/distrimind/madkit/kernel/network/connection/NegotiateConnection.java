@@ -1,14 +1,13 @@
 package com.distrimind.madkit.kernel.network.connection;
 
 import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.util.HashMap;
 import java.util.Map;
 
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public class NegotiateConnection extends AskConnection {
     private Map<Integer, Integer> priorities;
 
@@ -25,7 +24,7 @@ public class NegotiateConnection extends AskConnection {
     }
 
     @Override
-    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+    public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
         super.readExternal(in);
         short s=in.readShort();
         if (s<0 || s>ConnectionProtocolNegotiatorProperties.MAXIMUM_NUMBER_OF_CONNECTION_PROTOCOLS)
@@ -40,7 +39,7 @@ public class NegotiateConnection extends AskConnection {
     }
 
     @Override
-    public void writeExternal(ObjectOutput oos) throws IOException {
+    public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
         super.writeExternal(oos);
         if (priorities.size()>ConnectionProtocolNegotiatorProperties.MAXIMUM_NUMBER_OF_CONNECTION_PROTOCOLS)
             throw new IOException();

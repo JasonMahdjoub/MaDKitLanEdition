@@ -37,31 +37,40 @@
  */
 package com.distrimind.madkit.util;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.Externalizable;
+import com.distrimind.madkit.action.AgentAction;
+import com.distrimind.madkit.action.GUIManagerAction;
+import com.distrimind.madkit.action.SchedulingAction;
+import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.kernel.*;
+import com.distrimind.madkit.kernel.network.*;
+import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
+import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol;
+import com.distrimind.madkit.kernel.network.connection.PointToPointTransferedBlockChecker;
+import com.distrimind.madkit.kernel.network.connection.access.EncryptedCloudIdentifier;
+import com.distrimind.madkit.kernel.network.connection.access.EncryptedIdentifier;
+import com.distrimind.madkit.kernel.network.connection.access.EncryptedPassword;
+import com.distrimind.madkit.kernel.network.connection.access.Identifier;
+import com.distrimind.madkit.message.*;
+import com.distrimind.ood.database.DatabaseEventType;
+import com.distrimind.ood.database.TransactionIsolation;
+import com.distrimind.util.AbstractDecentralizedID;
+import com.distrimind.util.OS;
+import com.distrimind.util.OSVersion;
+import com.distrimind.util.crypto.*;
+import com.distrimind.util.sizeof.ObjectSizer;
+import com.distrimind.util.version.Version;
+
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.util.HashMap;
-import java.util.Objects;
+import java.util.*;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
-import com.distrimind.madkit.kernel.MadkitClassLoader;
-import com.distrimind.madkit.kernel.network.FilteredObjectInputStream;
-import com.distrimind.madkit.kernel.network.SystemMessage;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
-import com.distrimind.util.AbstractDecentralizedID;
-import com.distrimind.util.crypto.ASymmetricKeyPair;
-import com.distrimind.util.crypto.Key;
-import com.distrimind.util.sizeof.ObjectSizer;
 import static com.distrimind.madkit.util.ReflectionTools.*;
 
 /**
@@ -75,8 +84,11 @@ import static com.distrimind.madkit.util.ReflectionTools.*;
 public class SerializationTools {
 	private static final int MAX_CHAR_BUFFER_SIZE=Short.MAX_VALUE*5;
 	
-	public static void writeString(final DataOutput oos, String s, int sizeMax, boolean supportNull) throws IOException
+	static void writeString(final SecuredObjectOutputStream oos, String s, int sizeMax, boolean supportNull) throws IOException
 	{
+		if (sizeMax<0)
+			throw new IllegalArgumentException();
+
 		if (s==null)
 		{
 			if (!supportNull)
@@ -101,8 +113,10 @@ public class SerializationTools {
 	
 	private static char[] chars=null;
 	
-	public static String readString(final DataInput ois, int sizeMax, boolean supportNull) throws IOException
+	static String readString(final SecuredObjectInputStream ois, int sizeMax, boolean supportNull) throws IOException
 	{
+		if (sizeMax<0)
+			throw new IllegalArgumentException();
 		int size;
 		if (sizeMax>Short.MAX_VALUE)
 			size=ois.readInt();
@@ -137,12 +151,17 @@ public class SerializationTools {
 		}
 	}
 	
-	public static void writeBytes(final DataOutput oos, byte[] tab, int sizeMax, boolean supportNull) throws IOException
+	@SuppressWarnings("SameParameterValue")
+	static void writeBytes(final SecuredObjectOutputStream oos, byte[] tab, int sizeMax, boolean supportNull) throws IOException
 	{
 		writeBytes(oos, tab, 0, tab==null?0:tab.length, sizeMax, supportNull);
 	}
-	public static void writeBytes(final DataOutput oos, byte[] tab, int off, int size, int sizeMax, boolean supportNull) throws IOException
+	@SuppressWarnings("SameParameterValue")
+	static void writeBytes(final SecuredObjectOutputStream oos, byte[] tab, int off, int size, int sizeMax, boolean supportNull) throws IOException
 	{
+		if (sizeMax<0)
+			throw new IllegalArgumentException();
+
 		if (tab==null)
 		{
 			if (!supportNull)
@@ -154,20 +173,27 @@ public class SerializationTools {
 			return;
 			
 		}
-		if (tab.length>sizeMax)
+		if (size>sizeMax)
 			throw new IOException();
 		if (sizeMax>Short.MAX_VALUE)
-			oos.writeInt(tab.length);
+			oos.writeInt(size);
 		else
-			oos.writeShort(tab.length);
+			oos.writeShort(size);
 		oos.write(tab, off, size);
 	}
-	public static void writeBytes2D(final DataOutput oos, byte[][] tab, int sizeMax1, int sizeMax2, boolean supportNull1, boolean supportNull2) throws IOException
+	@SuppressWarnings("SameParameterValue")
+	static void writeBytes2D(final SecuredObjectOutputStream oos, byte[][] tab, int sizeMax1, int sizeMax2, boolean supportNull1, boolean supportNull2) throws IOException
 	{
 		writeBytes2D(oos, tab, 0, tab==null?0:tab.length, sizeMax1, sizeMax2, supportNull1, supportNull2);
 	}
-	public static void writeBytes2D(final DataOutput oos, byte[][] tab, int off, int size, int sizeMax1, int sizeMax2, boolean supportNull1, boolean supportNull2) throws IOException
+	@SuppressWarnings("SameParameterValue")
+	static void writeBytes2D(final SecuredObjectOutputStream oos, byte[][] tab, int off, int size, int sizeMax1, int sizeMax2, boolean supportNull1, boolean supportNull2) throws IOException
 	{
+		if (sizeMax1<0)
+			throw new IllegalArgumentException();
+		if (sizeMax2<0)
+			throw new IllegalArgumentException();
+
 		if (tab==null)
 		{
 			if (!supportNull1)
@@ -179,17 +205,26 @@ public class SerializationTools {
 			return;
 			
 		}
-		if (tab.length>sizeMax1)
+		if (size>sizeMax1)
 			throw new IOException();
 		if (sizeMax1>Short.MAX_VALUE)
-			oos.writeInt(tab.length);
+			oos.writeInt(size);
 		else
-			oos.writeShort(tab.length);
-		for (byte[] b : tab)
-			SerializationTools.writeBytes(oos, b, sizeMax2, supportNull2);
+			oos.writeShort(size);
+		for (int i=off;i<size;i++) {
+			byte[] b=tab[i];
+			SerializationTools.writeBytes(oos, b, 0, b.length, sizeMax2, supportNull2);
+		}
 	}
-	public static byte[][] readBytes2D(final DataInput ois, int sizeMax1, int sizeMax2,  boolean supportNull1, boolean supportNull2) throws IOException
+	@SuppressWarnings("SameParameterValue")
+	static byte[][] readBytes2D(final SecuredObjectInputStream ois, int sizeMax1, int sizeMax2, boolean supportNull1, boolean supportNull2) throws IOException
 	{
+		if (sizeMax1<0)
+			throw new IllegalArgumentException();
+		if (sizeMax2<0)
+			throw new IllegalArgumentException();
+
+
 		int size;
 		if (sizeMax1>Short.MAX_VALUE)
 			size=ois.readInt();
@@ -206,14 +241,18 @@ public class SerializationTools {
 		
 		byte [][]tab=new byte[size][];
 		for (int i=0;i<size;i++)
-			tab[i]=readBytes(ois, sizeMax2, supportNull2);
+			tab[i]=readBytes(ois, supportNull2, null, 0, sizeMax2);
 		
 		
 		return tab;
 		
 	}
-	public static byte[] readBytes(final DataInput ois, int sizeMax, boolean supportNull) throws IOException
+	@SuppressWarnings("SameParameterValue")
+	static byte[] readBytes(final SecuredObjectInputStream ois, boolean supportNull, byte[] tab, int off, int sizeMax) throws IOException
 	{
+		if (sizeMax<0)
+			throw new IllegalArgumentException();
+
 		int size;
 		if (sizeMax>Short.MAX_VALUE)
 			size=ois.readInt();
@@ -227,35 +266,42 @@ public class SerializationTools {
 		}
 		if (size<0 || size>sizeMax)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		
-		byte []tab=new byte[size];
-		ois.readFully(tab);
+		if (tab==null) {
+			tab = new byte[size];
+			off = 0;
+		}
+
+
+		ois.readFully(tab, off, size);
 		
 		return tab;
 		
 	}
 	
 	public static final int MAX_KEY_SIZE=Short.MAX_VALUE;
-	public static void writeKey(final DataOutput oos, Key key, boolean supportNull) throws IOException
+	static void writeKey(final SecuredObjectOutputStream oos, Key key, boolean supportNull) throws IOException
 	{
-		
+		if (supportNull)
+			oos.writeBoolean(key!=null);
+
 		if (key==null)
 		{
 			if (!supportNull)
 				throw new IOException();
-			oos.writeBoolean(false);
+
 			return;
 			
 		}
-		oos.writeBoolean(true);
+
 		writeBytes(oos, key.encode(), MAX_KEY_SIZE, false);
 	}
 
-	public static Key readKey(final DataInput in, boolean supportNull) throws IOException
+	@SuppressWarnings("SameParameterValue")
+	static Key readKey(final SecuredObjectInputStream in, boolean supportNull) throws IOException
 	{
-		if (in.readBoolean())
+		if (!supportNull || in.readBoolean())
 		{
-			byte[] k=readBytes(in, MAX_KEY_SIZE, false);
+			byte[] k=readBytes(in, false, null, 0, MAX_KEY_SIZE);
 			try
 			{
 				if (k == null)
@@ -269,34 +315,35 @@ public class SerializationTools {
 		}
 		else
 		{
-			if (!supportNull)
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			return null;
 		}
 	}
 	
 	
-	public static void writeKeyPair(final DataOutput oos, ASymmetricKeyPair keyPair, boolean supportNull) throws IOException
+	static void writeKeyPair(final SecuredObjectOutputStream oos, ASymmetricKeyPair keyPair, boolean supportNull) throws IOException
 	{
-		
+		if (supportNull)
+			oos.writeBoolean(keyPair!=null);
+
 		if (keyPair==null)
 		{
 			if (!supportNull)
 				throw new IOException();
-			oos.writeBoolean(false);
+
 			return;
 			
 		}
-		oos.writeBoolean(true);
+
 		
 		writeBytes(oos, keyPair.encode(), MAX_KEY_SIZE*2, false);
 	}
 
-	public static ASymmetricKeyPair readKeyPair(final DataInput in, boolean supportNull) throws IOException
+	@SuppressWarnings("SameParameterValue")
+	static ASymmetricKeyPair readKeyPair(final SecuredObjectInputStream in, boolean supportNull) throws IOException
 	{
-		if (in.readBoolean())
+		if (!supportNull || in.readBoolean())
 		{
-			byte[] k=readBytes(in, MAX_KEY_SIZE*2, false);
+			byte[] k=readBytes(in, false, null, 0, MAX_KEY_SIZE*2);
 			try
 			{
 				if (k==null)
@@ -310,13 +357,15 @@ public class SerializationTools {
 		}
 		else
 		{
-			if (!supportNull)
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			return null;
 		}
 	}
-	public static void writeObjects(final ObjectOutput oos, Object[] tab, int sizeMax, boolean supportNull) throws IOException
+	@SuppressWarnings("SameParameterValue")
+	static void writeObjects(final SecuredObjectOutputStream oos, Object[] tab, int sizeMax, boolean supportNull) throws IOException
 	{
+		if (sizeMax<0)
+			throw new IllegalArgumentException();
+
 		if (tab==null)
 		{
 			if (!supportNull)
@@ -326,7 +375,7 @@ public class SerializationTools {
 			else
 				oos.writeShort(-1);
 			return;
-			
+
 		}
 		if (tab.length>sizeMax)
 			throw new IOException();
@@ -340,9 +389,13 @@ public class SerializationTools {
 			writeObject(oos, o, sizeMax, true);
 		}
 	}
-	
-	public static Object[] readObjects(final ObjectInput ois, int sizeMax, boolean supportNull) throws IOException, ClassNotFoundException
+
+	@SuppressWarnings("SameParameterValue")
+	static Object[] readObjects(final SecuredObjectInputStream ois, int sizeMax, boolean supportNull) throws IOException, ClassNotFoundException
 	{
+		if (sizeMax<0)
+			throw new IllegalArgumentException();
+
 		int size;
 		if (sizeMax>Short.MAX_VALUE)
 			size=ois.readInt();
@@ -356,18 +409,48 @@ public class SerializationTools {
 		}
 		if (size<0 || size>sizeMax)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		
+
 		Object []tab=new Object[size];
 		sizeMax-=tab.length;
 		for (int i=0;i<size;i++)
 		{
 			tab[i]=readObject(ois, sizeMax, true);
 		}
-		
+
 		return tab;
-		
+
 	}
-	public static void writeExternalizableAndSizables(final ObjectOutput oos, ExternalizableAndSizable[] tab, int sizeMaxBytes, boolean supportNull) throws IOException
+	@SuppressWarnings("SameParameterValue")
+	static ArrayList<Object> readListObjects(final SecuredObjectInputStream ois, int sizeMax, boolean supportNull) throws IOException, ClassNotFoundException
+	{
+		if (sizeMax<0)
+			throw new IllegalArgumentException();
+
+		int size;
+		if (sizeMax>Short.MAX_VALUE)
+			size=ois.readInt();
+		else
+			size=ois.readShort();
+		if (size==-1)
+		{
+			if (!supportNull)
+				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			return null;
+		}
+		if (size<0 || size>sizeMax)
+			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+
+		ArrayList<Object> tab=new ArrayList<>(size);
+		sizeMax-=size;
+		for (int i=0;i<size;i++)
+		{
+			tab.add(readObject(ois, sizeMax, true));
+		}
+
+		return tab;
+
+	}
+	/*public static void writeExternalizableAndSizables(final SecuredObjectOutputStream oos, ExternalizableAndSizable[] tab, int sizeMaxBytes, boolean supportNull) throws IOException
 	{
 		if (tab==null)
 		{
@@ -375,24 +458,54 @@ public class SerializationTools {
 				throw new IOException();
 			oos.writeInt(-1);
 			return;
-			
+
 		}
 		if (tab.length*4>sizeMaxBytes)
 			throw new IOException();
 		oos.writeInt(tab.length);
 		int total=4;
-		
+
 		for (ExternalizableAndSizable o : tab)
 		{
 			writeExternalizableAndSizable(oos, o, true);
 			total+=o.getInternalSerializedSize();
-			
+
+			if (total>=sizeMaxBytes)
+				throw new IOException();
+		}
+	}*/
+
+	static void writeExternalizables(final SecuredObjectOutputStream objectOutput, SecureExternalizable[] tab, int sizeMaxBytes, boolean supportNull) throws IOException
+	{
+		if (sizeMaxBytes<0)
+			throw new IllegalArgumentException();
+
+		if (tab==null)
+		{
+			if (!supportNull)
+				throw new IOException();
+			objectOutput.writeInt(-1);
+			return;
+
+		}
+		if (tab.length*4>sizeMaxBytes)
+			throw new IOException();
+		objectOutput.writeInt(tab.length);
+		int total=4;
+
+		for (SecureExternalizable o : tab)
+		{
+			writeExternalizable(objectOutput, o, true);
+			total+=o==null?0:getInternalSize(o.getClass().getName(), MAX_CLASS_LENGTH);
+			total+=o==null?1:o.getInternalSerializedSize();
+
 			if (total>=sizeMaxBytes)
 				throw new IOException();
 		}
 	}
-	
-	public static ExternalizableAndSizable[] readExternalizableAndSizables(final ObjectInput ois, int sizeMaxBytes, boolean supportNull) throws IOException, ClassNotFoundException
+
+
+	/*public static ExternalizableAndSizable[] readExternalizableAndSizables(final SecuredObjectInputStream ois, int sizeMaxBytes, boolean supportNull) throws IOException, ClassNotFoundException
 	{
 		int size=ois.readInt();
 		if (size==-1)
@@ -403,7 +516,7 @@ public class SerializationTools {
 		}
 		if (size<0 || size*4>sizeMaxBytes)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		
+
 		ExternalizableAndSizable []tab=new ExternalizableAndSizable[size];
 		sizeMaxBytes-=4;
 		for (int i=0;i<size;i++)
@@ -417,60 +530,117 @@ public class SerializationTools {
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			tab[i]=s;
 		}
-		
+
 		return tab;
-		
+
+	}*/
+
+	@SuppressWarnings("SameParameterValue")
+	static SecureExternalizable[] readExternalizables(final SecuredObjectInputStream ois, int sizeMaxBytes, boolean supportNull) throws IOException, ClassNotFoundException
+	{
+		if (sizeMaxBytes<0)
+			throw new IllegalArgumentException();
+
+		int size=ois.readInt();
+		if (size==-1)
+		{
+			if (!supportNull)
+				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			return null;
+		}
+		if (size<0 || size*4>sizeMaxBytes)
+			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+
+		SecureExternalizable []tab=new SecureExternalizable[size];
+		sizeMaxBytes-=4;
+		for (int i=0;i<size;i++)
+		{
+			SecureExternalizableSystemMessage s=readExternalizable(ois, true);
+			if (s!=null) {
+				if (!(s instanceof SecureExternalizable))
+					throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				sizeMaxBytes -= ((SecureExternalizable)s).getInternalSerializedSize();
+				if (sizeMaxBytes < 0)
+					throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			}
+			tab[i]=(SecureExternalizable)s;
+		}
+
+		return tab;
+
 	}
 	public static int MAX_URL_LENGTH=8000;
-	public static void writeInetAddress(final DataOutput oos, InetAddress inetAddress, boolean supportNull) throws IOException
+	static void writeInetAddress(final SecuredObjectOutputStream oos, InetAddress inetAddress, boolean supportNull) throws IOException
 	{
+		if (supportNull)
+			oos.writeBoolean(inetAddress!=null);
+
 		if (inetAddress==null)
 		{
 			if (!supportNull)
 				throw new IOException();
-			oos.writeBoolean(false);
+
 			return;
-			
+
 		}
-		oos.writeBoolean(true);
+
 		writeBytes(oos, inetAddress.getAddress(), 20, false);
 	}
-	
-	public static void writeDecentralizedID(final DataOutput oos, AbstractDecentralizedID id, boolean supportNull) throws IOException
+	static void writeDate(final SecuredObjectOutputStream oos, Date date, boolean supportNull) throws IOException
 	{
+		if (supportNull)
+			oos.writeBoolean(date!=null);
+
+		if (date==null)
+		{
+			if (!supportNull)
+				throw new IOException();
+
+			return;
+
+		}
+		oos.writeLong(date.getTime());
+	}
+
+	static void writeDecentralizedID(final SecuredObjectOutputStream oos, AbstractDecentralizedID id, boolean supportNull) throws IOException
+	{
+		if (supportNull)
+			oos.writeBoolean(id!=null);
+
 		if (id==null)
 		{
 			if (!supportNull)
 				throw new IOException();
-			oos.writeBoolean(false);
+
 			return;
-			
+
 		}
-		oos.writeBoolean(true);
+
 		writeBytes(oos, id.getBytes(), 513, false);
 	}
-	public static AbstractDecentralizedID readDecentralizedID(final DataInput in, boolean supportNull) throws IOException
+	@SuppressWarnings("SameParameterValue")
+	static AbstractDecentralizedID readDecentralizedID(final SecuredObjectInputStream in, boolean supportNull) throws IOException
 	{
-		if (in.readBoolean())
+		if (!supportNull || in.readBoolean())
 		{
 			try
 			{
-				return AbstractDecentralizedID.instanceOf(Objects.requireNonNull(readBytes(in, 513, false)));
+				return AbstractDecentralizedID.instanceOf(Objects.requireNonNull(readBytes(in, false, null, 0, 513)));
 			}
 			catch(Exception e)
 			{
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			}
 		}
-		if (!supportNull)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		return null;
+		else
+			return null;
 	}
-	
-	public static InetAddress readInetAddress(final DataInput ois, boolean supportNull) throws IOException {
-		if (ois.readBoolean())
+
+	@SuppressWarnings("SameParameterValue")
+	static InetAddress readInetAddress(final SecuredObjectInputStream ois, boolean supportNull) throws IOException {
+		if (!supportNull || ois.readBoolean())
 		{
-			byte[] address=readBytes(ois, 20, false);
+			byte[] address=readBytes(ois, false, null, 0, 20);
 			try
 			{
 				if (address==null)
@@ -483,35 +653,47 @@ public class SerializationTools {
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, e);
 			}
 		}
-		else if (!supportNull)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		else
 			return null;
-		
+
 	}
-	
-	public static void writeInetSocketAddress(final DataOutput oos, InetSocketAddress inetSocketAddress, boolean supportNull) throws IOException
+	@SuppressWarnings("SameParameterValue")
+	static Date readDate(final SecuredObjectInputStream ois, boolean supportNull) throws IOException {
+		if (!supportNull || ois.readBoolean())
+		{
+			return new Date(ois.readLong());
+		}
+		else
+			return null;
+
+	}
+
+	static void writeInetSocketAddress(final SecuredObjectOutputStream oos, InetSocketAddress inetSocketAddress, boolean supportNull) throws IOException
 	{
+		if (supportNull)
+			oos.writeBoolean(inetSocketAddress!=null);
+
 		if (inetSocketAddress==null)
 		{
 			if (!supportNull)
 				throw new IOException();
-			oos.writeBoolean(false);
+
 			return;
-			
+
 		}
-		oos.writeBoolean(true);
+
 		oos.writeInt(inetSocketAddress.getPort());
 		writeInetAddress(oos, inetSocketAddress.getAddress(), false);
 	}
-	
-	
-	public static InetSocketAddress readInetSocketAddress(final DataInput ois, boolean supportNull) throws IOException {
-		if (ois.readBoolean())
+
+
+	@SuppressWarnings("SameParameterValue")
+	static InetSocketAddress readInetSocketAddress(final SecuredObjectInputStream ois, boolean supportNull) throws IOException {
+		if (!supportNull || ois.readBoolean())
 		{
 			int port=ois.readInt();
 			InetAddress ia=readInetAddress(ois, false);
-			
+
 			try
 			{
 				return new InetSocketAddress(ia, port);
@@ -521,30 +703,31 @@ public class SerializationTools {
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, e);
 			}
 		}
-		else if (!supportNull)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		else
 			return null;
-		
+
 	}
-	public static void writeEnum(final DataOutput oos, Enum<?> e, boolean supportNull) throws IOException
+	static void writeEnum(final SecuredObjectOutputStream oos, Enum<?> e, boolean supportNull) throws IOException
 	{
+		if (supportNull)
+			oos.writeBoolean(e!=null);
 		if (e==null)
 		{
 			if (!supportNull)
 				throw new IOException();
-			oos.writeBoolean(false);
+
 			return;
-			
+
 		}
-		oos.writeBoolean(true);
+
 		SerializationTools.writeString(oos, e.getClass().getName(), MAX_CLASS_LENGTH, false);
 		SerializationTools.writeString(oos, e.name(), 1000, false);
 	}
 	public final static int MAX_CLASS_LENGTH=2048;
-	public static Enum<?> readEnum(final DataInput ois, boolean supportNull) throws IOException, ClassNotFoundException
+	@SuppressWarnings("SameParameterValue")
+	static Enum<?> readEnum(final SecuredObjectInputStream ois, boolean supportNull) throws IOException, ClassNotFoundException
 	{
-		if (ois.readBoolean())
+		if (!supportNull || ois.readBoolean())
 		{
 			String clazz=SerializationTools.readString(ois, MAX_CLASS_LENGTH, false);
 			String value=SerializationTools.readString(ois, 1000, false);
@@ -562,15 +745,13 @@ public class SerializationTools {
 			{
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			}
-			
+
 		}
-		else if (!supportNull)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		else
 			return null;
-		
+
 	}
-	public static void writeExternalizableAndSizable(final ObjectOutput oos, Externalizable e, boolean supportNull) throws IOException
+	/*public static void writeExternalizableAndSizable(final SecuredObjectOutputStream oos, Externalizable e, boolean supportNull) throws IOException
 	{
 		if (e==null)
 		{
@@ -578,12 +759,12 @@ public class SerializationTools {
 				throw new IOException();
 			oos.writeBoolean(false);
 			return;
-			
+
 		}
 		Class<?> clazz=e.getClass();
 		if (!ExternalizableAndSizable.class.isAssignableFrom(clazz) && !SystemMessage.class.isAssignableFrom(clazz))
 			throw new IOException();
-		
+
 		if (oos.getClass()==oosClazz)
 		{
 			try
@@ -602,10 +783,67 @@ public class SerializationTools {
 		if (e==null)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		e.writeExternal(oos);
-		
+
+	}*/
+
+	@SuppressWarnings("SameParameterValue")
+	static void writeClass(final SecuredObjectOutputStream objectOutput, Class<?> clazz, boolean supportNull, Class<?> rootClass) throws IOException {
+		if (rootClass==null)
+			rootClass=Object.class;
+		if (supportNull)
+			objectOutput.writeBoolean(clazz!=null);
+		if (clazz!=null) {
+			if (!rootClass.isAssignableFrom(clazz))
+				throw new IOException();
+			SerializationTools.writeString(objectOutput, clazz.getName(), MAX_CLASS_LENGTH, supportNull);
+		}
+
+
+	}
+	private static void writeExternalizable(final SecuredObjectOutputStream objectOutput, SecureExternalizableSystemMessage e) throws IOException
+	{
+		if (e==null)
+			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+
+
+		e.writeExternal(objectOutput);
+	}
+	static void writeExternalizable(final SecuredObjectOutputStream objectOutput, SecureExternalizableSystemMessage e, boolean supportNull) throws IOException
+	{
+		if (supportNull)
+			objectOutput.writeBoolean(e!=null);
+		if (e==null)
+		{
+			if (!supportNull)
+				throw new IOException();
+
+			return;
+
+		}
+		Class<?> clazz=e.getClass();
+		if (objectOutput.objectOutput.getClass()==oosClazz)
+		{
+			try
+			{
+				Object o=invoke(replaceObject, objectOutput.objectOutput, e);
+				if (o!=null && !(SecureExternalizableSystemMessage.class.isAssignableFrom(o.getClass())))
+					throw new IOException();
+				e=(SecureExternalizableSystemMessage)o;
+				if (e!=null)
+					clazz=e.getClass();
+			}
+			catch(Exception e2)
+			{
+				throw new IOException(e2);
+			}
+		}
+
+		writeClass(objectOutput, clazz, false, SecureExternalizableSystemMessage.class);
+		writeExternalizable(objectOutput, e);
+
 	}
 	private static final HashMap<Class<?>, Constructor<?>> constructors=new HashMap<>();
-	
+
 	private static Constructor<?> getDefaultConstructor(final Class<?> clazz) throws NoSuchMethodException, SecurityException
 	{
 		synchronized(constructors)
@@ -618,7 +856,7 @@ public class SerializationTools {
 
 					@Override
 					public Constructor<?> run() {
-						
+
 						cons.setAccessible(true);
 						return cons;
 					}
@@ -632,33 +870,33 @@ public class SerializationTools {
 	private final static Class<?> oisClazz;
 	private final static Method replaceObject;
 	private final static Method resolveObject;
-	
-	
-	
-	
+
+
+
+
 	static
 	{
-	
+
 		oosClazz=loadClass("com.distrimind.madkit.kernel.network.DistantKernelAgent$OOS");
 		oisClazz=loadClass("com.distrimind.madkit.kernel.network.DistantKernelAgent$OIS");
 		resolveObject=getMethod(oisClazz, "resolveObject", Object.class);
 		replaceObject=getMethod(oosClazz, "replaceObject", Object.class);
-		
+
 	}
-	
-	
-	
-	
-	
-	public static Externalizable readExternalizableAndSizable(final ObjectInput ois, boolean supportNull) throws IOException, ClassNotFoundException
+
+
+
+
+
+	/*public static Externalizable readExternalizableAndSizable(final SecuredObjectInputStream ois, boolean supportNull) throws IOException, ClassNotFoundException
 	{
 		if (ois.readBoolean())
 		{
 			String clazz=SerializationTools.readString(ois, MAX_CLASS_LENGTH, false);
-			
-			
-			
-			
+
+
+
+
 			try
 			{
 				Class<?> c;
@@ -673,7 +911,7 @@ public class SerializationTools {
 					c= Class.forName(clazz, true, MadkitClassLoader.getSystemClassLoader());
 				Constructor<?> cons=getDefaultConstructor(c);
 				Externalizable res=(Externalizable)cons.newInstance();
-				
+
 				res.readExternal(ois);
 				if (isOIS)
 				{
@@ -685,16 +923,84 @@ public class SerializationTools {
 			{
 				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, e);
 			}
-			
+
 		}
 		else if (!supportNull)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		else
 			return null;
-		
+
+	}*/
+
+	@SuppressWarnings("unchecked")
+	static <RT> Class<? extends RT> readClass(final SecuredObjectInputStream objectInput, boolean supportNull, Class<RT> rootClass) throws IOException, ClassNotFoundException {
+		if (rootClass==null)
+			throw new NullPointerException();
+
+		if (!supportNull || objectInput.readBoolean())
+		{
+			String clazz=SerializationTools.readString(objectInput, MAX_CLASS_LENGTH, false);
+
+			Class<?> c;
+			boolean doubleCheck=rootClass!=Object.class;
+			boolean isOIS=objectInput.objectInput.getClass()==oisClazz;
+			if (isOIS)
+				c= ((FilteredObjectInputStream)objectInput.objectInput).resolveClass(clazz);
+			else
+				c= Class.forName(clazz, !doubleCheck, MadkitClassLoader.getSystemClassLoader());
+			if (doubleCheck) {
+				if (rootClass.isAssignableFrom(c))
+					throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				if (!isOIS)
+					c = Class.forName(clazz, true, MadkitClassLoader.getSystemClassLoader());
+			}
+			return (Class<? extends RT>)c;
+		}
+		else
+			return null;
+
 	}
-	public static void writeObject(final ObjectOutput oos, Object o, int sizeMax, boolean supportNull) throws IOException
+	private static SecureExternalizableSystemMessage readExternalizable(final SecuredObjectInputStream objectInput, Class<?> c) throws IOException, ClassNotFoundException
 	{
+		try
+		{
+			boolean isOIS=objectInput.objectInput.getClass()==oisClazz;
+			Constructor<?> cons=getDefaultConstructor(c);
+			SecureExternalizableSystemMessage res=(SecureExternalizableSystemMessage)cons.newInstance();
+			res.readExternal(objectInput);
+
+			if (isOIS)
+			{
+				Object o=invoke(resolveObject, objectInput.objectInput, res);
+				if (o!=null && !SecureExternalizableSystemMessage.class.isAssignableFrom(o.getClass()))
+					throw new MessageSerializationException(Integrity.FAIL);
+
+				res=(SecureExternalizableSystemMessage)o;
+			}
+			return res;
+		}
+		catch(InvocationTargetException | NoSuchMethodException | IllegalAccessException | InstantiationException e)
+		{
+			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, e);
+		}
+
+	}
+	static SecureExternalizableSystemMessage readExternalizable(final SecuredObjectInputStream objectInput, boolean supportNull) throws IOException, ClassNotFoundException
+	{
+		if (!supportNull || objectInput.readBoolean())
+		{
+
+			Class<?> c=readClass(objectInput, false, SecureExternalizableSystemMessage.class);
+			return readExternalizable(objectInput, c);
+		}
+		else
+			return null;
+
+	}
+	static void writeObject(final SecuredObjectOutputStream oos, Object o, int sizeMax, boolean supportNull) throws IOException
+	{
+		Byte id;
+
 		if (o==null)
 		{
 			if (!supportNull)
@@ -702,10 +1008,22 @@ public class SerializationTools {
 			
 			oos.write(0);
 		}
-		else if (o instanceof ExternalizableAndSizable || o instanceof SystemMessage)
+		else //noinspection SuspiciousMethodCalls
+			if (o instanceof SecureExternalizableSystemMessage && (id=identifiersPerClasses.get(o.getClass()))!=null)
+		{
+			oos.write(id);
+			writeExternalizable(oos, (SecureExternalizableSystemMessage)o);
+		}
+		else //noinspection SuspiciousMethodCalls
+			if (o instanceof Enum && (id=identifiersPerEnums.get(o.getClass()))!=null)
+		{
+			oos.write(id);
+			oos.writeInt(((Enum<?>)o).ordinal());
+		}
+		else if (o instanceof SecureExternalizableSystemMessage)
 		{
 			oos.write(1);
-			writeExternalizableAndSizable(oos, (Externalizable)o, supportNull);
+			writeExternalizable(oos, (SecureExternalizableSystemMessage) o, supportNull);
 		}
 		else if (o instanceof String)
 		{
@@ -722,10 +1040,10 @@ public class SerializationTools {
 			oos.write(4);
 			writeBytes2D(oos, (byte[][])o, sizeMax, sizeMax, false, false);
 		}
-		else if (o instanceof ExternalizableAndSizable[])
+		else if (o instanceof SecureExternalizable[])
 		{
 			oos.write(5);
-			writeExternalizableAndSizables(oos, (ExternalizableAndSizable[])o, sizeMax, supportNull);
+			writeExternalizables(oos, (SecureExternalizable[])o, sizeMax, supportNull);
 		}
 		else if (o instanceof Object[])
 		{
@@ -762,7 +1080,27 @@ public class SerializationTools {
 			oos.write(12);
 			writeEnum(oos, (Enum<?>)o, supportNull);
 		}
-		else 
+		else if (o instanceof Collection)
+		{
+			oos.write(13);
+			Collection<?> c=(Collection<?>)o;
+			Object[] tab=new Object[c.size()];
+			int i=0;
+			for (Object r : c)
+				tab[i++]=r;
+			writeObjects(oos, tab, sizeMax, false);
+		}
+		else if (o instanceof Class)
+		{
+			oos.write(14);
+			writeClass(oos, (Class<?>)o, supportNull, Object.class);
+		}
+		else if (o instanceof Date)
+		{
+			oos.write(15);
+			writeDate(oos, (Date)o, supportNull);
+		}
+		else
 		{
 			throw new IOException();
 			/*oos.write(Byte.MAX_VALUE);
@@ -770,111 +1108,354 @@ public class SerializationTools {
 		}
 	}
 	
-	public static Object readObject(final ObjectInput ois, int sizeMax, boolean supportNull) throws IOException, ClassNotFoundException
+	static Object readObject(final SecuredObjectInputStream ois, int sizeMax, boolean supportNull) throws IOException, ClassNotFoundException
 	{
 		byte type=ois.readByte();
-		switch(type)
+		if (type>=classesStartIndex)
 		{
-		case 0:
-			if (!supportNull)
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			return null;
-		case 1:
-			return readExternalizableAndSizable(ois, supportNull);
-		case 2:
-			return readString(ois, sizeMax, false);
-		case 3:
-			return readBytes(ois, sizeMax, false);
-		case 4:
-			return readBytes2D(ois, sizeMax, sizeMax, false, false);
-		case 5:
-			return readExternalizableAndSizables(ois, sizeMax, false);
-		case 6:
-			return readObjects(ois, sizeMax, false);
-		case 7:
-			return readInetSocketAddress(ois, false);
-		case 8:
-			return readInetAddress(ois, false);
-		case 9:
-			return readDecentralizedID(ois, false);
-		case 10:
-			return readKey(ois, false);
-		case 11:
-			return readKeyPair(ois, false);
-		case 12:
-			return readEnum(ois, false);
+			if (type<=classesEndIndex)
+			{
+				Class<?> c=classes.get(type+classesStartIndex);
+				return readExternalizable(ois, c);
+			}
+			else if (type<=enumsEndIndex)
+			{
+				int ordinal=ois.readInt();
+				Class<? extends Enum<?>> c=enums.get(type+enumsStartIndex);
+				for (Enum<?> e : c.getEnumConstants())
+				{
+					if (e.ordinal()==ordinal)
+						return e;
+				}
+				throw new MessageSerializationException(Integrity.FAIL);
+			}
+			else
+				throw new MessageSerializationException(Integrity.FAIL);
+		}
+		else {
+			switch (type) {
+				case 0:
+					if (!supportNull)
+						throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+					return null;
+				case 1:
+					return readExternalizable(ois, supportNull);
+				case 2:
+					return readString(ois, sizeMax, false);
+				case 3:
+					return readBytes(ois, false, null, 0, sizeMax);
+				case 4:
+					return readBytes2D(ois, sizeMax, sizeMax, false, false);
+				case 5:
+					return readExternalizables(ois, sizeMax, false);
+				case 6:
+					return readObjects(ois, sizeMax, false);
+				case 7:
+					return readInetSocketAddress(ois, false);
+				case 8:
+					return readInetAddress(ois, false);
+				case 9:
+					return readDecentralizedID(ois, false);
+				case 10:
+					return readKey(ois, false);
+				case 11:
+					return readKeyPair(ois, false);
+				case 12:
+					return readEnum(ois, false);
+				case 13:
+					return readListObjects(ois, sizeMax, false);
+				case 14:
+					return readClass(ois, false, Object.class);
+				case 15:
+					return readDate(ois, false);
 		/*case Byte.MAX_VALUE:
 			return ois.readObject();*/
-		default:
-			throw new MessageSerializationException(Integrity.FAIL);
+				default:
+					throw new MessageSerializationException(Integrity.FAIL);
+			}
 		}
 		
 	}
-	
+
+	private static final byte lastObjectCode=15;
+	private static final byte classesStartIndex=lastObjectCode+1;
+	private static byte classesEndIndex=0;
+	private static byte enumsStartIndex=0;
+	private static byte enumsEndIndex=0;
+	private static final ArrayList<Class<? extends SecureExternalizableSystemMessage>> classes=new ArrayList<>();
+	private static final Map<Class<? extends SecureExternalizableSystemMessage>, Byte> identifiersPerClasses=new HashMap<>();
+	private static final ArrayList<Class<? extends Enum<?>>> enums=new ArrayList<>();
+	private static final Map<Class<? extends Enum<?>>, Byte> identifiersPerEnums=new HashMap<>();
+	static
+	{
+
+		try {
+			int currentID=lastObjectCode;
+			//noinspection unchecked
+			classes.addAll(new HashSet<>(Arrays.asList(
+					KernelAddress.class, KernelAddressInterfaced.class, AgentAddress.class, ConversationID.class, MultiGroup.class, Group.class, DoubleIP.class, MultipleIP.class,
+					HostIP.class, (Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.AcceptedGroups"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.BroadcastLanMessage"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.LocalLanMessage"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferClosedSystemMessage"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferConfirmationSystemMessage"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferImpossibleSystemMessage"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferImpossibleSystemMessageFromMiddlePeer"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferBlockCheckerSystemMessage"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferPropositionSystemMessage"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferAgent.DirectConnection"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferAgent.DirectConnectionFailed"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferAgent.DirectConnectionSuceeded"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferAgent.TryDirectConnection"),
+					BigDataTransferID.class,
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.CGRSynchrosSystemMessage"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.CGRSynchroSystemMessage"),
+					CGRSynchro.class,
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.ConnectionInfoSystemMessage"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.DataToBroadcast"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.DirectC"),
+					DistantKernelAddressValidated.class,
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.connection.access.IdentifiersPropositionMessage"),
+					Identifier.class, EncryptedIdentifier.class,
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.connection.access.JPakeMessage"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.KernelAddressNegociationMessage"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.connection.secured.KeyAgreementDataMessage"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.connection.access.LoginConfirmationMessage"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.connection.access.NewLocalLoginAddedMessage"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.connection.access.NewLocalLoginRemovedMessage"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.PingMessage"),
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.PongMessage"),
+					PointToPointTransferedBlockChecker.class,
+					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.ValidateBigDataProposition"),
+					EnumMessage.class,
+					NetworkObjectMessage.class,
+					ACLMessage.class, ActMessage.class,BigDataPropositionMessage.class,BigDataResultMessage.class,
+					KernelMessage.class, StringMessage.class, (Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.message.hook.OrganizationEvent"),
+					SchedulingMessage.class, KQMLMessage.class, IntegerMessage.class, BooleanMessage.class,
+					GUIMessage.class, (Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.InternalRole"),
+					EncryptedPassword.class, GUIMessage.class, (Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.DatagramLocalNetworkPresenceMessage"),
+					EncryptedCloudIdentifier.class)));
+			for (Class<?> c : classes)
+				assert !Modifier.isAbstract(c.getModifiers());
+			assert currentID+classes.size()<255;
+			for (Class<? extends SecureExternalizableSystemMessage> c : classes)
+			{
+				byte id=(byte)(++currentID);
+				identifiersPerClasses.put(c, id);
+			}
+			classesEndIndex=(byte)currentID;
+
+			//noinspection unchecked
+			enums.addAll(new HashSet<>(Arrays.asList(
+					(Class<? extends Enum<?>>)Class.forName("com.distrimind.madkit.kernel.network.ASymmetricAuthentifiedSignatureType"),
+					AbstractAgent.ReturnCode.class,
+					AbstractAgent.State.class,
+					(Class<? extends Enum<?>>)Class.forName("com.distrimind.madkit.kernel.CGRSynchro.Code"),
+					ConnectionProtocol.ConnectionState.class,
+					MessageDigestType.class,
+					SecureRandomType.class,
+					SymmetricEncryptionType.class,
+					SymmetricAuthentifiedSignatureType.class,
+					ASymmetricEncryptionType.class,
+					ASymmetricAuthentifiedSignatureType.class,
+					KeyAgreementType.class,
+					PasswordHashType.class,
+					SymmetricKeyWrapperType.class,
+					ASymmetricKeyWrapperType.class,
+					ASymmetricLoginAgreementType.class,
+					CodeProvider.class,
+					EllipticCurveDiffieHellmanType.class,
+					P2PLoginAgreementType.class,
+					PasswordBasedKeyGenerationType.class,
+					Version.Type.class,
+					AgentAction.class,
+					GUIManagerAction.class,
+					SchedulingAction.class,
+					AbstractAgent.KillingType.class,
+					BigDataResultMessage.Type.class,
+					(Class<? extends Enum<?>>)Class.forName("com.distrimind.madkit.kernel.MultiGroup.CONTAINS"),
+					(Class<? extends Enum<?>>)Class.forName("com.distrimind.madkit.kernel.NetCode"),
+					NetworkAgent.NetworkCloseReason.class,
+					Scheduler.SimulationState.class,
+					AskForTransferMessage.Type.class,
+					ConnectionStatusMessage.Type.class,
+					ConnectionProtocol.ConnectionClosedReason.class,
+					OS.class,
+					OSVersion.class,
+					DatabaseEventType.class,
+					TransactionIsolation.class
+					)));
+			assert currentID+enums.size()<255;
+			enumsStartIndex=(byte)(currentID+1);
+			for (Class<? extends Enum<?>> c : enums)
+			{
+				byte id=(byte)(++currentID);
+				identifiersPerEnums.put(c, id);
+			}
+			enumsEndIndex=(byte)currentID;
+
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			System.exit(-1);
+		}
+	}
+
+
+	public static int getInternalSize(Key key)
+	{
+		if (key==null)
+			return 1;
+		return getInternalSize(key, 0);
+	}
+	public static int getInternalSize(ASymmetricKeyPair keyPair)
+	{
+		if (keyPair==null)
+			return 1;
+		return getInternalSize(keyPair, 0);
+	}
+	public static int getInternalSize(InetAddress inetAddress)
+	{
+		if (inetAddress==null)
+			return 1;
+		return getInternalSize(inetAddress, 0);
+	}
+	public static int getInternalSize(InetSocketAddress inetSocketAddress)
+	{
+		if (inetSocketAddress==null)
+			return 1;
+		return getInternalSize(inetSocketAddress, 0);
+	}
+	public static int getInternalSize(AbstractDecentralizedID abstractDecentralizedID)
+	{
+		if (abstractDecentralizedID==null)
+			return 1;
+		return getInternalSize(abstractDecentralizedID, 0);
+	}
+	public static int getInternalSize(SecureExternalizable secureExternalizable)
+	{
+		if (secureExternalizable==null)
+			return 1;
+
+		return getInternalSize(secureExternalizable, 0);
+	}
+	public static int getInternalSize(Enum<?> e)
+	{
+		if (e==null)
+			return 1;
+		return getInternalSize(e, 0);
+	}
+	public static int getInternalSize(byte[] array, int maxSizeInBytes)
+	{
+		if (array==null)
+			return maxSizeInBytes>Short.MAX_VALUE?4:2;
+		return getInternalSize(array, maxSizeInBytes);
+	}
+	public static int getInternalSize(Object[] array, int maxSizeInBytes)
+	{
+		if (array==null)
+			return maxSizeInBytes>Short.MAX_VALUE?4:2;
+		return getInternalSize(array, maxSizeInBytes);
+	}
+	public static int getInternalSize(String text, int maxSizeInBytes)
+	{
+		if (text==null)
+			return maxSizeInBytes>Short.MAX_VALUE?4:2;
+		return getInternalSize(text, maxSizeInBytes);
+	}
+	public static int getInternalSize(Collection<Object> array, int maxSizeInBytes)
+	{
+		if (array==null)
+			return maxSizeInBytes>Short.MAX_VALUE?4:2;
+		return getInternalSize(array, maxSizeInBytes);
+	}
+	public static int getInternalSize(byte[][] array, int maxSizeInBytes1, int maxSizeInBytes2)
+	{
+		int res=maxSizeInBytes1>Short.MAX_VALUE?4:2;
+		for (byte[] b : array)
+			res+=(maxSizeInBytes2>Short.MAX_VALUE?4:2)+(b==null?0:b.length);
+		return res;
+	}
+
+
 	public static int getInternalSize(Object o, int sizeMax)
 	{
 		if (o ==null)
 			return 0;
 		if (o instanceof String)
 		{
-			return ((String)o).length()*2+sizeMax>Short.MAX_VALUE?4:2;
+			return ((String)o).length()*2+sizeMax>Short.MAX_VALUE?5:3;
 		}
 		else if (o instanceof byte[])
 		{
-			return ((byte[])o).length+sizeMax>Short.MAX_VALUE?4:2;
+			return ((byte[])o).length+sizeMax>Short.MAX_VALUE?5:3;
 		}
 		else if (o instanceof Key)
 		{
-			return 3+((Key)o).encode().length;
+			return 4+((Key)o).encode().length;
 		}
 		else if (o instanceof ASymmetricKeyPair)
 		{
-			return 3+((ASymmetricKeyPair)o).encode().length;
+			return 4+((ASymmetricKeyPair)o).encode().length;
 		}
 		else if (o instanceof byte[][])
 		{
 			byte[][] tab = ((byte[][]) o);
-			int res=sizeMax>Short.MAX_VALUE?4:2;
-			for (byte[] b : tab)
-				res+=2+(b==null?0:b.length);
+			int res=sizeMax>Short.MAX_VALUE?5:3;
+			for (byte[] b : tab) {
+				res += sizeMax>Short.MAX_VALUE?5:3 + (b == null ? 0 : b.length);
+			}
 			return res;
 		}
-		else if (o instanceof ExternalizableAndSizable)
+		else if (o instanceof SecureExternalizable)
 		{
-			return ((ExternalizableAndSizable)o).getInternalSerializedSize();
+			return ((SecureExternalizable)o).getInternalSerializedSize()+getInternalSize(o.getClass().getName(), MAX_CLASS_LENGTH);
 		}
-		else if (o instanceof ExternalizableAndSizable[])
+		else if (o instanceof SecureExternalizable[])
 		{
-			int size=4;
-			for (ExternalizableAndSizable s : (ExternalizableAndSizable[])o)
-				size+=s.getInternalSerializedSize();
+			int size=sizeMax>Short.MAX_VALUE?4:2;
+			for (SecureExternalizable s : (SecureExternalizable[])o) {
+				size+=s==null?0:getInternalSize(s.getClass().getName(), MAX_CLASS_LENGTH);
+				size += s==null?1:s.getInternalSerializedSize();
+			}
 			return size;
 		}
 		else if (o instanceof Object[])
 		{
 			Object[] tab = (Object[]) o;
-			int size=sizeMax>Short.MAX_VALUE?4:2;
+			int size=sizeMax>Short.MAX_VALUE?5:3;
 			for (Object so : tab)
 			{
-				size+=getInternalSize(so, sizeMax-tab.length);
+				size+=getInternalSize(so, sizeMax-size);
+			}
+			return size;
+		}
+		else if (o instanceof Collection)
+		{
+			Collection<?> c=(Collection<?>)o;
+			int size=sizeMax>Short.MAX_VALUE?5:3;
+
+			for (Object so : c)
+			{
+				size+=getInternalSize(so, sizeMax-size);
 			}
 			return size;
 		}
 		else if (o instanceof InetAddress)
 		{
-			return ((InetAddress)o).getAddress().length+3;
+			return ((InetAddress)o).getAddress().length+4;
 		}
 		else if (o instanceof InetSocketAddress)
 		{
-			return ((InetSocketAddress)o).getAddress().getAddress().length+7;
+			return ((InetSocketAddress)o).getAddress().getAddress().length+8;
 		}
 		else if (o instanceof AbstractDecentralizedID)
 		{
-			return ((AbstractDecentralizedID) o).getBytes().length+2;
+			return ((AbstractDecentralizedID) o).getBytes().length+3;
 		}
 		else if (o instanceof Enum<?>)
 		{
-			return 5+((Enum<?>)o).name().length()*2+o.getClass().getName().length()*2;
+			return 6+((Enum<?>)o).name().length()*2+getInternalSize(o.getClass().getName(), MAX_CLASS_LENGTH);
 		}
 		else
 			return ObjectSizer.sizeOf(o);

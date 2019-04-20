@@ -37,17 +37,22 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.util.*;
-
+import com.distrimind.madkit.database.KeysPairs;
+import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.KernelAddress;
+import com.distrimind.madkit.kernel.KernelAddressTest;
+import com.distrimind.madkit.kernel.MadkitProperties;
+import com.distrimind.madkit.kernel.network.AccessDataMKEventListener;
+import com.distrimind.madkit.kernel.network.ConnectionsProtocolsTests;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+import com.distrimind.ood.database.DatabaseConfiguration;
 import com.distrimind.ood.database.EmbeddedH2DatabaseFactory;
 import com.distrimind.ood.database.EmbeddedH2DatabaseWrapper;
+import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.crypto.P2PLoginAgreementType;
+import gnu.vm.jgnu.security.NoSuchAlgorithmException;
+import gnu.vm.jgnu.security.NoSuchProviderException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -56,18 +61,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.distrimind.madkit.database.KeysPairs;
-import com.distrimind.madkit.kernel.JunitMadkit;
-import com.distrimind.madkit.kernel.KernelAddress;
-import com.distrimind.madkit.kernel.KernelAddressTest;
-import com.distrimind.madkit.kernel.MadkitProperties;
-import com.distrimind.madkit.kernel.network.AccessDataMKEventListener;
-import com.distrimind.madkit.kernel.network.ConnectionsProtocolsTests;
-import com.distrimind.ood.database.DatabaseConfiguration;
-import com.distrimind.ood.database.exceptions.DatabaseException;
-
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.util.*;
 
 /**
  * 
@@ -432,10 +430,6 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 	
 
 	static class UnknownAccessMessage extends AccessMessage {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 3702277006786527287L;
 
 		public UnknownAccessMessage() {
 		}
@@ -446,12 +440,12 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		}
 
 		@Override
-		public void writeExternal(ObjectOutput out) {
+		public void writeExternal(SecuredObjectOutputStream out) {
 			
 		}
 
 		@Override
-		public void readExternal(ObjectInput in) {
+		public void readExternal(SecuredObjectInputStream in) {
 			
 		}
 

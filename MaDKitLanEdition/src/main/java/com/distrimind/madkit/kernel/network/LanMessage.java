@@ -44,6 +44,8 @@ import java.io.ObjectOutput;
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.util.NetworkMessage;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.madkit.util.SerializationTools;
 
 /**
@@ -53,11 +55,6 @@ import com.distrimind.madkit.util.SerializationTools;
  * @since MadkitLanEdition 1.0
  */
 abstract class LanMessage implements SystemMessage {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1587533730897839993L;
 
 	public Message message;
 	LanMessage()
@@ -73,19 +70,18 @@ abstract class LanMessage implements SystemMessage {
 	}
 	
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		
-		Object o=SerializationTools.readExternalizableAndSizable(in, false);
-		if (!(o instanceof Message) || !(o instanceof NetworkMessage))
+		message=in.readObject(false, Message.class);
+		if (!(message instanceof NetworkMessage))
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		message=(Message)o;
-		if (((NetworkMessage)o).getInternalSerializedSize()>NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE)
+		if (((NetworkMessage)message).getInternalSerializedSize()>NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
-		SerializationTools.writeExternalizableAndSizable(oos, (NetworkMessage)message, false);
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
+		oos.writeObject(message, false);
 		
 	}
 

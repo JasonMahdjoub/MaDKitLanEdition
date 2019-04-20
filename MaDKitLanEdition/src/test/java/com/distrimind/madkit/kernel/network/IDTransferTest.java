@@ -37,20 +37,16 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.distrimind.madkit.exceptions.OverflowException;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.io.*;
 
 /**
  * @author Jason Mahdjoub
@@ -68,7 +64,7 @@ public class IDTransferTest extends JunitMadkit {
 			protected void activate() throws InterruptedException {
 				try {
 					int idNumber = 100;
-					IDTransfer ids[] = new IDTransfer[idNumber];
+					IDTransfer[] ids = new IDTransfer[idNumber];
 
 					for (int i = 0; i < idNumber; i++) {
 						ids[i] = IDTransfer.generateIDTransfer(MadkitKernelAccess.getIDTransferGenerator(this));
@@ -82,13 +78,13 @@ public class IDTransferTest extends JunitMadkit {
 								Assert.assertNotEquals(ids[i], ids[j]);
 						}
 						try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-							try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+							try (DataOutputStream dos=new DataOutputStream(baos);SecuredObjectOutputStream soos=new SecuredObjectOutputStream(dos)) {
 								Assert.assertTrue(ids[i].isGenerated());
-								SerializationTools.writeExternalizableAndSizable(oos, ids[i], false);
+								soos.writeObject(ids[i], false);
 							}
 							try (ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray())) {
-								try (ObjectInputStream ois = new ObjectInputStream(bais)) {
-									IDTransfer id = (IDTransfer) SerializationTools.readExternalizableAndSizable(ois, false);
+								try (DataInputStream dis=new DataInputStream(bais);SecuredObjectInputStream ois = new SecuredObjectInputStream(dis)) {
+									IDTransfer id = ois.readObject(false, IDTransfer.class);
 									Assert.assertFalse(id.isGenerated());
 									Assert.assertEquals(id, ids[i]);
 								}
@@ -101,6 +97,7 @@ public class IDTransferTest extends JunitMadkit {
 					Thread.sleep(500);
 					Assert.assertEquals(0, MadkitKernelAccess.numberOfValidGeneratedID(this));
 					IDTransfer id = IDTransfer.generateIDTransfer(MadkitKernelAccess.getIDTransferGenerator(this));
+					//noinspection ResultOfMethodCallIgnored
 					id.getID();
 					// Assert.assertEquals(0, id.getID());
 					Assert.assertEquals(1, MadkitKernelAccess.numberOfValidGeneratedID(this));

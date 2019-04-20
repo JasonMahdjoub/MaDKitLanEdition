@@ -49,9 +49,5 @@ public class AccessAbordedMessage extends AccessErrorMessage {
 		super(false);
 	}
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -8642928936564108814L;
 
 }

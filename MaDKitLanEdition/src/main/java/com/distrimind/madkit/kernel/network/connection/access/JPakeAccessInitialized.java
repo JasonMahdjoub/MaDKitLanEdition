@@ -37,13 +37,12 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
 import com.distrimind.madkit.exceptions.MessageSerializationException;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.util.crypto.AbstractSecureRandom;
+
+import java.io.IOException;
 
 /**
  * 
@@ -51,13 +50,8 @@ import com.distrimind.util.crypto.AbstractSecureRandom;
  * @version 2.0
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public class JPakeAccessInitialized extends AccessInitialized {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -7094989210668214156L;
-	
+
 	public byte[] generatedSalt;
 	public static final int generatedSaltSize=32;
 	private
@@ -74,18 +68,18 @@ public class JPakeAccessInitialized extends AccessInitialized {
 		random.nextBytes(generatedSalt);
 	}
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		super.readExternal(in);
-		generatedSalt=SerializationTools.readBytes(in, generatedSaltSize, false);
+		generatedSalt=in.readBytesArray(false, generatedSaltSize);
 		assert generatedSalt != null;
 		if (generatedSalt.length!=generatedSaltSize)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		super.writeExternal(oos);
-		SerializationTools.writeBytes(oos, generatedSalt, generatedSaltSize, false);
+		oos.writeBytesArray(generatedSalt, false, generatedSaltSize );
 	}
 	
 

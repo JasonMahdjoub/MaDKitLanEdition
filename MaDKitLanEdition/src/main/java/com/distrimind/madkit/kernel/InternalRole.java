@@ -37,15 +37,14 @@
  */
 package com.distrimind.madkit.kernel;
 
-import static com.distrimind.madkit.i18n.I18nUtilities.getCGRString;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ROLE_NOT_HANDLED;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
-import static com.distrimind.madkit.kernel.CGRSynchro.Code.LEAVE_ROLE;
-import static com.distrimind.madkit.kernel.CGRSynchro.Code.REQUEST_ROLE;
+import com.distrimind.madkit.agr.Organization;
+import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
+import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
+import com.distrimind.madkit.util.SecureExternalizable;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -53,11 +52,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.distrimind.madkit.agr.Organization;
-import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
-import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
-import com.distrimind.madkit.util.ExternalizableAndSizable;
-import com.distrimind.madkit.util.SerializationTools;
+import static com.distrimind.madkit.i18n.I18nUtilities.getCGRString;
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ROLE_NOT_HANDLED;
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
+import static com.distrimind.madkit.kernel.CGRSynchro.Code.LEAVE_ROLE;
+import static com.distrimind.madkit.kernel.CGRSynchro.Code.REQUEST_ROLE;
 
 /**
  * /** Reifying the notion of Role in AGR
@@ -68,10 +67,8 @@ import com.distrimind.madkit.util.SerializationTools;
  * @version 5.2
  * 
  */
-@SuppressWarnings({"SynchronizeOnNonFinalField", "ExternalizableWithoutPublicNoArgConstructor", "SameParameterValue"})
-class InternalRole implements ExternalizableAndSizable {// TODO test with arraylist
-
-	private static final long serialVersionUID = 4447153943733812916L;
+@SuppressWarnings({"SynchronizeOnNonFinalField", "SameParameterValue"})
+class InternalRole implements SecureExternalizable {// TODO test with arraylist
 
 	static class ParametrizedAgent
 	{
@@ -112,20 +109,14 @@ class InternalRole implements ExternalizableAndSizable {// TODO test with arrayl
 	}
 	
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
-		SerializationTools.writeExternalizableAndSizable(oos, group, false);
-		SerializationTools.writeString(oos, roleName, Group.MAX_ROLE_NAME_LENGTH, true);
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
+		oos.writeObject(group, false);
+		oos.writeString(roleName, true, Group.MAX_ROLE_NAME_LENGTH);
 	}
 	@Override
-	public void readExternal(ObjectInput ois) throws IOException, ClassNotFoundException {
-		Object o=SerializationTools.readExternalizableAndSizable(ois, false);
-		if (o instanceof Group)
-		{
-			group=(Group)o;
-			roleName=SerializationTools.readString(ois, Group.MAX_ROLE_NAME_LENGTH, true);
-		}
-		else
-			throw new IOException();
+	public void readExternal(SecuredObjectInputStream ois) throws IOException, ClassNotFoundException {
+		group=ois.readObject(false, Group.class);
+		roleName=ois.readString(true, Group.MAX_ROLE_NAME_LENGTH);
 	}
 	
 	@Override

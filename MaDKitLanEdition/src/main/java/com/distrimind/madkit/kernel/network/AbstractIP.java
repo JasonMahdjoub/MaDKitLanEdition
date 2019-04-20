@@ -38,13 +38,13 @@
 package com.distrimind.madkit.kernel.network;
 
 import com.distrimind.madkit.exceptions.MessageSerializationException;
-import com.distrimind.madkit.util.ExternalizableAndSizable;
 import com.distrimind.madkit.util.MultiFormatPropertiesObjectParser;
+import com.distrimind.madkit.util.SecureExternalizable;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.util.properties.MultiFormatProperties;
 
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -57,7 +57,7 @@ import java.util.Objects;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-public abstract class AbstractIP extends MultiFormatProperties implements SystemMessage, ExternalizableAndSizable{
+public abstract class AbstractIP extends MultiFormatProperties implements SystemMessage, SecureExternalizable {
 	/**
 	 * 
 	 */
@@ -83,7 +83,7 @@ public abstract class AbstractIP extends MultiFormatProperties implements System
 	public abstract InetAddress[] getInetAddresses();
 
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		hashCode=-1;
 		port=in.readInt();
 		if (port<0)
@@ -91,7 +91,7 @@ public abstract class AbstractIP extends MultiFormatProperties implements System
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		oos.writeInt(port);
 	}
 	@Override

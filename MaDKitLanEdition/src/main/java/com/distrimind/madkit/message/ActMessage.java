@@ -33,18 +33,18 @@
  */
 package com.distrimind.madkit.message;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Map;
-
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
-import com.distrimind.madkit.util.SerializationTools;
 import com.distrimind.madkit.util.NetworkMessage;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+import com.distrimind.madkit.util.SerializationTools;
+
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Map;
 
 
 /**
@@ -56,10 +56,7 @@ import com.distrimind.madkit.util.NetworkMessage;
  * @since MaDKit 1.0
  */
 
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public class ActMessage extends com.distrimind.madkit.kernel.Message implements NetworkMessage {
-
-	private static final long serialVersionUID = -2556927686645807800L;
 	static final int MAX_ACTION_LENGTH=Short.MAX_VALUE;
 	static final int MAX_FIELD_LENGTH=8192;
 	static final int MAX_STRING_VALUE_LENGTH=Short.MAX_VALUE;
@@ -86,14 +83,15 @@ public class ActMessage extends com.distrimind.madkit.kernel.Message implements 
 	}
 	
 	@Override
-	public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException
+	public void readExternal(final SecuredObjectInputStream in) throws IOException, ClassNotFoundException
 	{
 		super.readExternal(in);
 		int globalSize=NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
 		int totalSize=super.getInternalSerializedSizeImpl();
 		if (totalSize>globalSize)
 			throw new MessageSerializationException(Integrity.FAIL);
-		action=SerializationTools.readString(in, MAX_ACTION_LENGTH, true);
+		action=in.readString(true, MAX_ACTION_LENGTH);
+
 		totalSize+=SerializationTools.getInternalSize(action, MAX_ACTION_LENGTH);
 		if (totalSize>globalSize)
 			throw new MessageSerializationException(Integrity.FAIL);
@@ -103,11 +101,12 @@ public class ActMessage extends com.distrimind.madkit.kernel.Message implements 
 			throw new MessageSerializationException(Integrity.FAIL);
 		if (size<0)
 			throw new MessageSerializationException(Integrity.FAIL);
+
 		fields=new Hashtable<>();
 		for (int i=0;i<size;i++)
 		{
-			String k=SerializationTools.readString(in, MAX_FIELD_LENGTH, true);
-			Object v=SerializationTools.readObject(in, MAX_STRING_VALUE_LENGTH, true);
+			String k=in.readString(true, MAX_FIELD_LENGTH);
+			String v=in.readObject(true, MAX_STRING_VALUE_LENGTH, String.class);
 			totalSize+=SerializationTools.getInternalSize(k, MAX_FIELD_LENGTH)+SerializationTools.getInternalSize(v, MAX_STRING_VALUE_LENGTH);
 			fields.put(k, v);
 			if (totalSize>globalSize)
@@ -115,23 +114,23 @@ public class ActMessage extends com.distrimind.madkit.kernel.Message implements 
 		}
 		excludeFromEncryption=in.readBoolean();
 		totalSize+=1;
-		content=SerializationTools.readString(in, MAX_STRING_CONTENT_LENGTH, true);
+		content=in.readString(true, MAX_STRING_CONTENT_LENGTH);
 		totalSize+=SerializationTools.getInternalSize(content, MAX_STRING_CONTENT_LENGTH);
 		if (totalSize>globalSize)
 			throw new MessageSerializationException(Integrity.FAIL);
 	}
 	@Override
-	public void writeExternal(final ObjectOutput oos) throws IOException{
+	public void writeExternal(final SecuredObjectOutputStream oos) throws IOException{
 		super.writeExternal(oos);
-		SerializationTools.writeString(oos, action, MAX_ACTION_LENGTH, true);
+		oos.writeString(action, true, MAX_ACTION_LENGTH);
 		oos.writeInt(fields.size());
 		for (Map.Entry<String, Object> e : fields.entrySet())
 		{
-			SerializationTools.writeString(oos, e.getKey(), MAX_FIELD_LENGTH, true);
-			SerializationTools.writeObject(oos, e.getValue(), MAX_STRING_VALUE_LENGTH, true);
+			oos.writeString(e.getKey(), true, MAX_FIELD_LENGTH);
+			oos.writeObject(e.getValue(), true, MAX_STRING_VALUE_LENGTH);
 		}
 		oos.writeBoolean(excludeFromEncryption);
-		SerializationTools.writeString(oos, content, MAX_STRING_CONTENT_LENGTH, true);
+		oos.writeString(content, true, MAX_STRING_CONTENT_LENGTH);
 	}
 	
 	

@@ -37,9 +37,10 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 
 /**
  * 
@@ -47,13 +48,8 @@ import java.io.ObjectOutput;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 class AccessInitialized extends AccessMessage {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -2227104960414577743L;
 
 	public boolean can_takes_login_initiative;
 	
@@ -75,13 +71,13 @@ class AccessInitialized extends AccessMessage {
 
 
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		can_takes_login_initiative=in.readBoolean();
 	}
 
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		oos.writeBoolean(can_takes_login_initiative);
 		
 	}

@@ -37,15 +37,13 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
-import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
-import com.distrimind.madkit.util.ExternalizableAndSizable;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.madkit.util.SecureExternalizable;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
+import java.io.IOException;
 
 /**
  * 
@@ -54,12 +52,7 @@ import com.distrimind.madkit.util.SerializationTools;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-abstract class BroadcastableSystemMessage implements SystemMessage, ExternalizableAndSizable {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 8709095936553679509L;
+abstract class BroadcastableSystemMessage implements SystemMessage, SecureExternalizable {
 
 	private IDTransfer idTransferDestination;
 	private KernelAddress kernelAddressDestination;
@@ -75,22 +68,15 @@ abstract class BroadcastableSystemMessage implements SystemMessage, Externalizab
 		return (idTransferDestination==null?1:1+idTransferDestination.getInternalSerializedSize())+kernelAddressDestination.getInternalSerializedSize();
 	}
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-		Object o=SerializationTools.readExternalizableAndSizable(in, true);
-		if (o!=null && !(o instanceof IDTransfer))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		idTransferDestination=(IDTransfer)o;
-		
-		o=SerializationTools.readExternalizableAndSizable(in, false);
-		if (!(o instanceof KernelAddress))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		kernelAddressDestination=(KernelAddress)o;
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+		idTransferDestination=in.readObject(true, IDTransfer.class);
+		kernelAddressDestination=in.readObject(false, KernelAddress.class);
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
-		SerializationTools.writeExternalizableAndSizable(oos, idTransferDestination, true);
-		SerializationTools.writeExternalizableAndSizable(oos, kernelAddressDestination, false);
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
+		oos.writeObject(idTransferDestination, true);
+		oos.writeObject(kernelAddressDestination, false);
 	}
 	
 	

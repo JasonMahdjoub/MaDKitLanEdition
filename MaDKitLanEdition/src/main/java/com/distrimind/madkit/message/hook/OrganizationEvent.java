@@ -18,15 +18,12 @@
  */
 package com.distrimind.madkit.message.hook;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
-import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.AgentAddress;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
 import com.distrimind.madkit.util.NetworkMessage;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
+import java.io.IOException;
 
 /**
  * A message which is sent to agents that have requested a hook on
@@ -40,7 +37,6 @@ import com.distrimind.madkit.util.SerializationTools;
  * @version 0.9
  * 
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public class OrganizationEvent extends CGREvent implements NetworkMessage {
 
 
@@ -67,18 +63,15 @@ public class OrganizationEvent extends CGREvent implements NetworkMessage {
 		return super.getInternalSerializedSizeImpl()+source.getInternalSerializedSize();
 	}
 	@Override
-	public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException
+	public void readExternal(final SecuredObjectInputStream in) throws IOException, ClassNotFoundException
 	{
 		super.readExternal(in, 1000);
-		Object o=SerializationTools.readExternalizableAndSizable(in, false);
-		if (!(o instanceof AgentAddress))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		source=(AgentAddress)o;
-		
+		source=in.readObject(false, AgentAddress.class);
+
 	}
 	@Override
-	public void writeExternal(final ObjectOutput oos) throws IOException{
+	public void writeExternal(final SecuredObjectOutputStream oos) throws IOException{
 		super.writeExternal(oos, 1000);
-		SerializationTools.writeExternalizableAndSizable(oos, source, false);
+		oos.writeObject(source, false);
 	}
 }

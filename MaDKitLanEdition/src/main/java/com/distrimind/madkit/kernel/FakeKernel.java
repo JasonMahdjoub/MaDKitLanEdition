@@ -54,7 +54,7 @@ import com.distrimind.madkit.kernel.network.ConnectionIdentifier;
 import com.distrimind.madkit.kernel.network.LocalLanMessage;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
-import com.distrimind.madkit.util.ExternalizableAndSizable;
+import com.distrimind.madkit.util.SecureExternalizable;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.crypto.MessageDigestType;
 
@@ -91,7 +91,7 @@ class FakeKernel extends MadkitKernel {
 	}
 
 	@Override
-	final ReturnCode requestRole(AbstractAgent agent, Group group, String role, ExternalizableAndSizable memberCard,
+	final ReturnCode requestRole(AbstractAgent agent, Group group, String role, SecureExternalizable memberCard,
 			boolean manual_request) {
 		throw buildKernelException(agent);
 	}
@@ -332,7 +332,7 @@ class FakeKernel extends MadkitKernel {
 	}
 
 	@Override
-	void autoRequesteRole(AbstractAgent requester, AbstractGroup group, String role, ExternalizableAndSizable passKey) {
+	void autoRequesteRole(AbstractAgent requester, AbstractGroup group, String role, SecureExternalizable passKey) {
 		throw buildKernelException(requester);
 	}
 
@@ -352,7 +352,7 @@ class FakeKernel extends MadkitKernel {
 
 	@Override
 	BigDataTransferID sendBigData(AbstractAgent requester, AgentAddress agentAddress, RandomInputStream stream,
-			long pos, long length, ExternalizableAndSizable attachedData, String senderRole, MessageDigestType messageDigestType, boolean excludeFromEncryption) {
+			long pos, long length, SecureExternalizable attachedData, String senderRole, MessageDigestType messageDigestType, boolean excludeFromEncryption) {
 		throw buildKernelException(requester);
 	}
 

@@ -44,7 +44,6 @@ package com.distrimind.madkit.kernel.network.connection.access;
  * @since MadkitLanEdition 1.0
  */
 
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 class AccessIdenticalPublicKeys extends AccessErrorMessage {
 
 	@SuppressWarnings("unused")
@@ -57,9 +56,5 @@ class AccessIdenticalPublicKeys extends AccessErrorMessage {
 		super(_candidate_to_ban);
 	}
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 5424856287731458295L;
 
 }

@@ -37,9 +37,8 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.Serializable;
-
 import com.distrimind.madkit.kernel.KernelAddress;
+import com.distrimind.madkit.util.SecureExternalizable;
 
 /**
  * Used when an indirect connection is attempted. The final user must inherit
@@ -49,8 +48,8 @@ import com.distrimind.madkit.kernel.KernelAddress;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  * @see NetworkProperties#setTransferTriggers(TransferFilter)
- * @see #newTransferConnectionPropositionToFinalPeers(NetworkProperties, KernelAddress, int, Serializable)
- * @see #newTransferConnectionPropositionToIntermediatePeers(NetworkProperties, KernelAddress, KernelAddress, int, Serializable)
+ * @see #newTransferConnectionPropositionToFinalPeers(NetworkProperties, KernelAddress, int, SecureExternalizable)
+ * @see #newTransferConnectionPropositionToIntermediatePeers(NetworkProperties, KernelAddress, KernelAddress, int, SecureExternalizable)
  * 
  */
 public interface TransferFilter {
@@ -69,7 +68,7 @@ public interface TransferFilter {
 	 * @return true is the transferConnection can be accepted
 	 */
 	boolean newTransferConnectionPropositionToFinalPeers(NetworkProperties properties,
-														 KernelAddress distantKernelAddress, int numberOfIntermediatePeers, Serializable attachedData);
+														 KernelAddress distantKernelAddress, int numberOfIntermediatePeers, SecureExternalizable attachedData);
 
 	/**
 	 * Ask to intermediate peers if the given indirect connection can be accepted
@@ -89,5 +88,5 @@ public interface TransferFilter {
 	 */
 	boolean newTransferConnectionPropositionToIntermediatePeers(NetworkProperties properties,
 																KernelAddress distantKernelAddress1, KernelAddress distantKernelAddress2, int numberOfIntermediatePeers,
-																Serializable attachedData);
+																SecureExternalizable attachedData);
 }

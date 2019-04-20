@@ -63,13 +63,8 @@ import com.distrimind.util.crypto.P2PASymmetricSecretMessageExchanger;
  * @since MadKitLanEdition 1.0
  * @see Identifier
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public class EncryptedIdentifier extends Identifier {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -1396620582869308278L;
 
 	@SuppressWarnings("unused")
 	EncryptedIdentifier()

@@ -37,10 +37,12 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
+import com.distrimind.madkit.util.SecureExternalizable;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.util.crypto.P2PASymmetricSecretMessageExchanger;
+import com.distrimind.util.crypto.SymmetricSecretKey;
 import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
 import gnu.vm.jgnu.security.InvalidKeyException;
 import gnu.vm.jgnu.security.NoSuchAlgorithmException;
@@ -49,12 +51,8 @@ import gnu.vm.jgnu.security.spec.InvalidKeySpecException;
 import gnu.vm.jgnux.crypto.BadPaddingException;
 import gnu.vm.jgnux.crypto.IllegalBlockSizeException;
 import gnu.vm.jgnux.crypto.NoSuchPaddingException;
-import gnu.vm.jgnux.crypto.ShortBufferException;
 
-import com.distrimind.madkit.util.SerializationTools;
-import com.distrimind.madkit.util.ExternalizableAndSizable;
-import com.distrimind.util.crypto.P2PASymmetricSecretMessageExchanger;
-import com.distrimind.util.crypto.SymmetricSecretKey;
+import java.io.IOException;
 
 /**
  * Represent an encrypted password
@@ -64,13 +62,7 @@ import com.distrimind.util.crypto.SymmetricSecretKey;
  * @since MadKitLanEdition 1.0
  * @see PasswordKey
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
-public class EncryptedPassword extends PasswordKey implements ExternalizableAndSizable {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 6317231184237274381L;
+public class EncryptedPassword extends PasswordKey implements SecureExternalizable {
 
 	public static final int MAX_ENCRYPTED_PASSWORD_LENGTH=MAX_PASSWORD_LENGTH+512;
 	
@@ -82,20 +74,20 @@ public class EncryptedPassword extends PasswordKey implements ExternalizableAndS
 		
 	}
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-		bytes=SerializationTools.readBytes(in, MAX_ENCRYPTED_PASSWORD_LENGTH, false);
-		
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+		bytes=in.readBytesArray(false , MAX_ENCRYPTED_PASSWORD_LENGTH);
+
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
-		SerializationTools.writeBytes(oos, bytes, MAX_ENCRYPTED_PASSWORD_LENGTH, false);
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
+		oos.writeBytesArray(bytes,false, MAX_ENCRYPTED_PASSWORD_LENGTH);
 	}
 	
 	public EncryptedPassword(PasswordKey password, P2PASymmetricSecretMessageExchanger cipher)
 			throws InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException,
 			NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException,
-			InvalidAlgorithmParameterException, NoSuchProviderException, IllegalStateException, ShortBufferException {
+			InvalidAlgorithmParameterException, NoSuchProviderException, IllegalStateException {
 		if (password == null)
 			throw new NullPointerException("password");
 		if (cipher == null)

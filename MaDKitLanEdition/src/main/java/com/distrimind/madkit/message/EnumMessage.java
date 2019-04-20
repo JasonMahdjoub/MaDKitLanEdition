@@ -33,15 +33,14 @@
  */
 package com.distrimind.madkit.message;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.util.Arrays;
-
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
-import com.distrimind.madkit.util.SerializationTools;
 import com.distrimind.madkit.util.NetworkMessage;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
+import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * This parameterizable class could be used to build a message tagged with an
@@ -52,13 +51,8 @@ import com.distrimind.madkit.util.NetworkMessage;
  * @since MaDKit 5.0.0.14
  *
  */
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public class EnumMessage<E extends Enum<E>> extends ObjectMessage<Object[]> implements NetworkMessage{
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 2129358510239154730L;
 	private static final int MAX_PARAMETERS_LENGTH=1000;
 	private E code;
 
@@ -73,12 +67,12 @@ public class EnumMessage<E extends Enum<E>> extends ObjectMessage<Object[]> impl
 	
 	@SuppressWarnings("unchecked")
 	@Override
-	public void readExternal(final ObjectInput in) throws IOException, ClassNotFoundException
+	public void readExternal(final SecuredObjectInputStream in) throws IOException, ClassNotFoundException
 	{
 		super.readExternal(in, MAX_PARAMETERS_LENGTH);
 		try
 		{
-			code=(E)SerializationTools.readEnum(in, true);
+			code=(E)in.readObject(true);
 		}
 		catch(Exception e)
 		{
@@ -88,10 +82,10 @@ public class EnumMessage<E extends Enum<E>> extends ObjectMessage<Object[]> impl
 		
 	}
 	@Override
-	public void writeExternal(final ObjectOutput oos) throws IOException{
+	public void writeExternal(final SecuredObjectOutputStream oos) throws IOException{
 		super.writeExternal(oos, MAX_PARAMETERS_LENGTH);
-		SerializationTools.writeEnum(oos, code, true);
-		
+		oos.writeObject(oos, true);
+
 	}
 	
 	

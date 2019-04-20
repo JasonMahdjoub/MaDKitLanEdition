@@ -37,10 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectStreamClass;
+import java.io.*;
 
 import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.MadkitClassLoader;
@@ -53,16 +50,15 @@ import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
  * @version 1.0
  * @since MadkitLanEdition 1.7
  */
-public class FilteredObjectInputStream extends ObjectInputStream {
+public class FilteredObjectInputStream extends DataInputStream {
 	private final NetworkProperties np;
-	public FilteredObjectInputStream(InputStream _in, NetworkProperties np) throws IOException
-	{
+	public FilteredObjectInputStream(InputStream _in, NetworkProperties np) {
 		super(_in);
 		this.np=np;
 	}
-	private Class<?> nextAutorizedSubClass=null;
+	/*private Class<?> nextAutorizedSubClass=null;
 	@Override
-	protected Class<?> resolveClass(ObjectStreamClass desc) throws ClassNotFoundException, IOException
+	protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException
 	{
 		if (nextAutorizedSubClass!=null)
 		{
@@ -91,7 +87,7 @@ public class FilteredObjectInputStream extends ObjectInputStream {
 			}
 		}
 		throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, new ClassNotFoundException(desc.getName()));
-	}
+	}*/
 	
 	public Class<?> resolveClass(String clazz) throws MessageSerializationException
 	{
@@ -116,7 +112,7 @@ public class FilteredObjectInputStream extends ObjectInputStream {
 
 	}
 	
-	@Override
+	/*@Override
     protected Class<?> resolveProxyClass(String[] interfaces)
             throws IOException, ClassNotFoundException{
 		for (String s : interfaces)
@@ -130,5 +126,5 @@ public class FilteredObjectInputStream extends ObjectInputStream {
 		if (np.isDeniedClassForSerializationUsingBlackClassList(c))
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, new ClassNotFoundException(c.getName()));
 		return c;
-	}
+	}*/
 }

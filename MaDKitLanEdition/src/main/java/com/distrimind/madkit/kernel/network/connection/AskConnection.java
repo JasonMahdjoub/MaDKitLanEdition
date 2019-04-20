@@ -42,6 +42,8 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
 import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 
 /**
  * This message represents a connection to open.
@@ -52,10 +54,6 @@ import com.distrimind.madkit.exceptions.MessageSerializationException;
  */
 @SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public class AskConnection extends ConnectionMessage {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 4638974797225665L;
 
 	public static final int MAX_SECRET_KEY_LENGTH=1024;
 	public static final int MAX_SIGNATURE_LENGTH=512000;
@@ -68,14 +66,14 @@ public class AskConnection extends ConnectionMessage {
 	}
 	
 	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		you_are_asking=in.readBoolean();
 		if (you_are_asking)
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 	}
 
 	@Override
-	public void writeExternal(ObjectOutput oos) throws IOException {
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		oos.writeBoolean(you_are_asking);
 		
 	}

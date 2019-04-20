@@ -37,35 +37,23 @@
  */
 package com.distrimind.madkit.kernel.network.connection;
 
+import com.distrimind.madkit.exceptions.*;
+import com.distrimind.madkit.i18n.ErrorMessages;
+import com.distrimind.madkit.kernel.MadkitProperties;
+import com.distrimind.madkit.kernel.network.*;
+import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
+import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
+import com.distrimind.ood.database.DatabaseWrapper;
+import com.distrimind.util.crypto.AbstractSecureRandom;
+
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-
-import com.distrimind.madkit.exceptions.BlockParserException;
-import com.distrimind.madkit.exceptions.ConnectionException;
-import com.distrimind.madkit.exceptions.MessageSerializationException;
-import com.distrimind.madkit.exceptions.NIOException;
-import com.distrimind.madkit.exceptions.PacketException;
-import com.distrimind.madkit.i18n.ErrorMessages;
-import com.distrimind.madkit.kernel.MadkitProperties;
-import com.distrimind.madkit.kernel.network.Block;
-import com.distrimind.madkit.kernel.network.NetworkProperties;
-import com.distrimind.madkit.kernel.network.PacketCounter;
-import com.distrimind.madkit.kernel.network.PacketPart;
-import com.distrimind.madkit.kernel.network.SubBlock;
-import com.distrimind.madkit.kernel.network.SubBlockInfo;
-import com.distrimind.madkit.kernel.network.SubBlockParser;
-import com.distrimind.madkit.kernel.network.SubBlocksStructure;
-import com.distrimind.madkit.kernel.network.WritePacket;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
-import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
-import com.distrimind.ood.database.DatabaseWrapper;
-import com.distrimind.util.crypto.AbstractSecureRandom;
 
 /**
  * Represents a connection protocol that encapsulate lan packets.
@@ -84,7 +72,7 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 
 	public static class ByteArrayOutputStream extends OutputStream
 	{
-		private final byte tab[];
+		private final byte[] tab;
 		private final int indexStart;
 		private int index;
 		
@@ -104,7 +92,7 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 			tab[index++]=(byte)b;
 		}
 		@Override
-		public void write(byte b[], int off, int len) {
+		public void write(byte[] b, int off, int len) {
 			System.arraycopy(b, off, tab, index, len);
 			index+=len;
 		}
@@ -732,13 +720,7 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 
 	}
 
-	@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 	public static class NullBlockChecker extends TransferedBlockChecker {
-
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 2817204112884547039L;
 
 		private short headSize;
 		@SuppressWarnings("unused")
@@ -771,7 +753,7 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 		}
 		
 		@Override
-		public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 			super.readExternal(in);
 			headSize=in.readShort();
 			if (headSize < 0)
@@ -779,7 +761,7 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 		}
 
 		@Override
-		public void writeExternal(ObjectOutput oos) throws IOException {
+		public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 			super.writeExternal(oos);
 			oos.writeShort(headSize);
 		}
