@@ -85,7 +85,7 @@ public class Message implements Cloneable {// TODO message already sent warning 
 	public Message() {
 		receiver = null;
 		sender = null;
-		conversationID = new ConversationID();
+		conversationID = ConversationID.getConversationIDInstance();
 		needReply = false;
 	}
 

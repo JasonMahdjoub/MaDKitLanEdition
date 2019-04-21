@@ -72,8 +72,13 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 	private KernelAddress origin;
 
 	ConversationID() {
-		id = ID_COUNTER.getAndIncrement();
+		id=-1;
+		//id = ID_COUNTER.getAndIncrement();
 		origin = null;
+	}
+	static ConversationID getConversationIDInstance()
+	{
+		return new ConversationID(ID_COUNTER.getAndIncrement(), null);
 	}
 
 	protected int getID() {
@@ -354,7 +359,7 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 	ConversationID getInterfacedConversationIDFromDistantPeer(Map<KernelAddress, InterfacedIDs> global_interfaced_ids,
 															  KernelAddress currentKernelAddress, KernelAddress distantKernelAddress) {
 		if (origin == null) {
-			return new ConversationID();
+			return getConversationIDInstance();
 		} else if (origin.equals(distantKernelAddress)) {
 			return this;
 		} else if (origin.equals(currentKernelAddress)) {
@@ -405,7 +410,7 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 				return cid;
 			}
 		} else {
-			return new ConversationID();
+			return getConversationIDInstance();
 		}
 	}
 

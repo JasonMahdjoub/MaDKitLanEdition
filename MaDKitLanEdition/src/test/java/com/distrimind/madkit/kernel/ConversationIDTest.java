@@ -86,7 +86,7 @@ public class ConversationIDTest extends JunitMadkit {
 					int nb = rand.nextInt(100);
 					ArrayList<ConversationID> ids = new ArrayList<>();
 					for (int i = 0; i < nb; i++) {
-						ConversationID id = new ConversationID();
+						ConversationID id = ConversationID.getConversationIDInstance();
 
 						Assert.assertEquals(id, id);
 						for (ConversationID other : ids)
@@ -109,7 +109,7 @@ public class ConversationIDTest extends JunitMadkit {
 					boolean minka1=false;
 					boolean minka2=false;
 					for (int i = 0; i < nb; i++) {
-						ConversationID id = new ConversationID();
+						ConversationID id = ConversationID.getConversationIDInstance();
 						// id.setOrigin(ka1);
 						if (!minka1)
 						{
@@ -170,7 +170,7 @@ public class ConversationIDTest extends JunitMadkit {
 						}
 						try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
 							try (DataOutputStream dos=new DataOutputStream(baos); SecuredObjectOutputStream oos = new SecuredObjectOutputStream(dos)) {
-								oos.writeObject(id,false);
+								oos.writeObject(interfacedToOther,false);
 							}
 							try (ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray())) {
 								try (DataInputStream dis=new DataInputStream(bais); SecuredObjectInputStream ois = new SecuredObjectInputStream(dis)) {
@@ -197,7 +197,7 @@ public class ConversationIDTest extends JunitMadkit {
 						}
 						try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
 							try (DataOutputStream dos=new DataOutputStream(baos); SecuredObjectOutputStream oos = new SecuredObjectOutputStream(dos)) {
-								oos.writeObject(id,false);
+								oos.writeObject(interfacedByOther,false);
 							}
 							try (ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray())) {
 								try (DataInputStream dis=new DataInputStream(bais); SecuredObjectInputStream ois = new SecuredObjectInputStream(dis)) {
@@ -223,7 +223,7 @@ public class ConversationIDTest extends JunitMadkit {
 						}
 						try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
 							try (DataOutputStream dos=new DataOutputStream(baos); SecuredObjectOutputStream oos = new SecuredObjectOutputStream(dos)) {
-								oos.writeObject(id,false);
+								oos.writeObject(interfacedFromOther,false);
 							}
 							try (ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray())) {
 								try (DataInputStream dis=new DataInputStream(bais); SecuredObjectInputStream ois = new SecuredObjectInputStream(dis)) {
@@ -250,7 +250,7 @@ public class ConversationIDTest extends JunitMadkit {
 						}
 						try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
 							try (DataOutputStream dos=new DataOutputStream(baos); SecuredObjectOutputStream oos = new SecuredObjectOutputStream(dos)) {
-								oos.writeObject(id,false);
+								oos.writeObject(interfacedByCurrent,false);
 							}
 							try (ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray())) {
 								try (DataInputStream dis=new DataInputStream(bais); SecuredObjectInputStream ois = new SecuredObjectInputStream(dis)) {

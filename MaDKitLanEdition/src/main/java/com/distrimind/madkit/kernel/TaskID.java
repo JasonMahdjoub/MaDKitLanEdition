@@ -61,7 +61,7 @@ public class TaskID extends ConversationID {
 	private volatile ScheduledFuture<?> future;
 
 	TaskID() {
-		super();
+		super(ConversationID.getConversationIDInstance().getID(), null);
 	}
 
 	@SuppressWarnings("unused")
