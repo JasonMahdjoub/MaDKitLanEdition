@@ -88,6 +88,10 @@ public class ObjectMessage<T> extends Message {
 		{
 			content=(T)in.readObject(true, maxContentLength );
 		}
+		catch(IOException e)
+		{
+			throw e;
+		}
 		catch(Exception e)
 		{
 			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, e);
@@ -100,7 +104,7 @@ public class ObjectMessage<T> extends Message {
 	
 	public void writeExternal(final SecuredObjectOutputStream oos, int maxContentLength) throws IOException{
 		super.writeExternal(oos);
-		oos.writeObject(content, true );
+		oos.writeObject(content, true , maxContentLength);
 		oos.writeBoolean(excludeFromEncryption);
 	}
 	

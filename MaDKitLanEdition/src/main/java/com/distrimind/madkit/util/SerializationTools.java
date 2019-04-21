@@ -51,6 +51,7 @@ import com.distrimind.madkit.kernel.network.connection.access.EncryptedIdentifie
 import com.distrimind.madkit.kernel.network.connection.access.EncryptedPassword;
 import com.distrimind.madkit.kernel.network.connection.access.Identifier;
 import com.distrimind.madkit.message.*;
+import com.distrimind.madkit.message.hook.HookMessage;
 import com.distrimind.ood.database.DatabaseEventType;
 import com.distrimind.ood.database.TransactionIsolation;
 import com.distrimind.util.AbstractDecentralizedID;
@@ -67,6 +68,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.nio.charset.Charset;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.*;
@@ -112,7 +114,7 @@ public class SerializationTools {
 	private static final Object stringLocker=new Object();
 	
 	private static char[] chars=null;
-	
+
 	static String readString(final SecuredObjectInputStream ois, int sizeMax, boolean supportNull) throws IOException
 	{
 		if (sizeMax<0)
@@ -1023,7 +1025,7 @@ public class SerializationTools {
 		else if (o instanceof SecureExternalizableSystemMessage)
 		{
 			oos.write(1);
-			writeExternalizable(oos, (SecureExternalizableSystemMessage) o, supportNull);
+			writeExternalizable(oos, (SecureExternalizableSystemMessage) o, false);
 		}
 		else if (o instanceof String)
 		{
@@ -1043,7 +1045,7 @@ public class SerializationTools {
 		else if (o instanceof SecureExternalizable[])
 		{
 			oos.write(5);
-			writeExternalizables(oos, (SecureExternalizable[])o, sizeMax, supportNull);
+			writeExternalizables(oos, (SecureExternalizable[])o, sizeMax, false);
 		}
 		else if (o instanceof Object[])
 		{
@@ -1053,32 +1055,32 @@ public class SerializationTools {
 		else if (o instanceof InetSocketAddress)
 		{
 			oos.write(7);
-			writeInetSocketAddress(oos, (InetSocketAddress)o, supportNull);
+			writeInetSocketAddress(oos, (InetSocketAddress)o, false);
 		}
 		else if (o instanceof InetAddress)
 		{
 			oos.write(8);
-			writeInetAddress(oos, (InetAddress)o, supportNull);
+			writeInetAddress(oos, (InetAddress)o, false);
 		}
 		else if (o instanceof AbstractDecentralizedID)
 		{
 			oos.write(9);
-			writeDecentralizedID(oos, (AbstractDecentralizedID)o, supportNull);
+			writeDecentralizedID(oos, (AbstractDecentralizedID)o, false);
 		}
 		else if (o instanceof Key)
 		{
 			oos.write(10);
-			writeKey(oos, (Key)o, supportNull);
+			writeKey(oos, (Key)o, false);
 		}
 		else if (o instanceof ASymmetricKeyPair)
 		{
 			oos.write(11);
-			writeKeyPair(oos, (ASymmetricKeyPair)o, supportNull);
+			writeKeyPair(oos, (ASymmetricKeyPair)o, false);
 		}
 		else if (o instanceof Enum<?>)
 		{
 			oos.write(12);
-			writeEnum(oos, (Enum<?>)o, supportNull);
+			writeEnum(oos, (Enum<?>)o, false);
 		}
 		else if (o instanceof Collection)
 		{
@@ -1093,12 +1095,12 @@ public class SerializationTools {
 		else if (o instanceof Class)
 		{
 			oos.write(14);
-			writeClass(oos, (Class<?>)o, supportNull, Object.class);
+			writeClass(oos, (Class<?>)o, false, Object.class);
 		}
 		else if (o instanceof Date)
 		{
 			oos.write(15);
-			writeDate(oos, (Date)o, supportNull);
+			writeDate(oos, (Date)o, false);
 		}
 		else
 		{
@@ -1139,7 +1141,7 @@ public class SerializationTools {
 						throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 					return null;
 				case 1:
-					return readExternalizable(ois, supportNull);
+					return readExternalizable(ois, false);
 				case 2:
 					return readString(ois, sizeMax, false);
 				case 3:
@@ -1281,7 +1283,8 @@ public class SerializationTools {
 					OS.class,
 					OSVersion.class,
 					DatabaseEventType.class,
-					TransactionIsolation.class
+					TransactionIsolation.class,
+					HookMessage.AgentActionEvent.class
 					)));
 			assert currentID+enums.size()<255;
 			enumsStartIndex=(byte)(currentID+1);

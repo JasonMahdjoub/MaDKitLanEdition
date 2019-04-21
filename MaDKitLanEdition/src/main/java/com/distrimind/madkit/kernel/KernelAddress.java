@@ -64,6 +64,7 @@ import java.io.IOException;
 public class KernelAddress implements SecureExternalizable, Cloneable {
 
 	protected AbstractDecentralizedID id;
+	protected transient volatile byte[] kernelAddressBytes=null;
 
 	private transient String name;
 	protected transient short internalSize;
@@ -112,32 +113,21 @@ public class KernelAddress implements SecureExternalizable, Cloneable {
 			name = null;
 	}
 
-	protected static final byte[] tab = new byte[65];
-	
 	protected void readExternal(SecuredObjectInputStream in, boolean initName) throws IOException
 	{
 		try {
 			internalSize=in.readShort();
-			if (internalSize<16 || internalSize>tab.length)
+			if (internalSize<16 || internalSize>65)
 				throw new MessageSerializationException(Integrity.FAIL, "internalSize="+internalSize);
-			synchronized(tab)
+			kernelAddressBytes=new byte[internalSize];
+			in.readFully(kernelAddressBytes);
+			try
 			{
-				int pos=0;
-				do
-				{
-					int v=in.read(tab, pos, internalSize-pos);
-					if (v<0)
-						throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-					pos+=v;
-				} while(pos<internalSize);
-				try
-				{
-					id=AbstractDecentralizedID.instanceOf(tab, 0, internalSize);
-				}
-				catch(Throwable t)
-				{
-					throw new IOException(t);
-				}
+				id=AbstractDecentralizedID.instanceOf(kernelAddressBytes, 0, internalSize);
+			}
+			catch(Throwable t)
+			{
+				throw new IOException(t);
 			}
 			++internalSize;
 			
@@ -167,9 +157,10 @@ public class KernelAddress implements SecureExternalizable, Cloneable {
 	}
 	@Override
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
-		byte[] tab=id.getBytes();
-		oos.writeShort(tab.length);
-		oos.write(tab);
+		if (kernelAddressBytes==null)
+			kernelAddressBytes=id.getBytes();
+		oos.writeShort(kernelAddressBytes.length);
+		oos.write(kernelAddressBytes);
 	}
 	private String getKernelName() {
 		return "@" + Madkit.getVersion().getShortProgramName() + "-" + getNetworkID();
