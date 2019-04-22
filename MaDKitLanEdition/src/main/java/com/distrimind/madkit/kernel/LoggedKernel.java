@@ -38,11 +38,7 @@
 package com.distrimind.madkit.kernel;
 
 import static com.distrimind.madkit.i18n.I18nUtilities.getCGRString;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_IN_GROUP;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NO_RECIPIENT_FOUND;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ROLE_NOT_HANDLED;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.TIMEOUT;
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.*;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -55,6 +51,7 @@ import java.util.concurrent.BlockingDeque;
 import java.util.logging.Level;
 
 import com.distrimind.jdkrewrite.concurrent.LockerCondition;
+import com.distrimind.madkit.exceptions.MadkitException;
 import com.distrimind.madkit.i18n.Words;
 import com.distrimind.madkit.io.RandomInputStream;
 import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
@@ -271,6 +268,58 @@ final class LoggedKernel extends MadkitKernel {
 			}
 		}
 		return r;
+	}
+
+	@Override
+	ReturnCode sendMessageAndDifferItIfNecessary(final AbstractAgent requester, Group group, final String role, final Message message,
+												 final String senderRole) {
+		ReturnCode r = kernel.sendMessageAndDifferItIfNecessary(requester, group, role, message, senderRole);
+		if (r == SUCCESS || r == ReturnCode.TRANSFER_IN_PROGRESS || r == MESSAGE_DIFFERED) {
+			if (requester.isFinestLogOn()) {
+				requester.logger.log(Level.FINEST,
+						(message.getReceiver().isFrom(requester.getKernelAddress())
+								? Influence.SEND_MESSAGE_AND_DIFFER_IT_IF_NECESSARY.successString()
+								: Influence.SEND_MESSAGE_AND_DIFFER_IT_IF_NECESSARY.toString()) + "->" + getCGRString(group, role) + " "
+								+ message);
+			}
+			return SUCCESS;
+		}
+		if (requester.isWarningOn()) {
+			if (r == NO_RECIPIENT_FOUND) {
+				requester.handleException(Influence.SEND_MESSAGE_AND_DIFFER_IT_IF_NECESSARY, new MadkitWarning(r));
+			} else if (r == ROLE_NOT_HANDLED) {
+				requester.handleException(Influence.SEND_MESSAGE_AND_DIFFER_IT_IF_NECESSARY, new OrganizationWarning(r, group, senderRole));
+			} else {
+				requester.handleException(Influence.SEND_MESSAGE_AND_DIFFER_IT_IF_NECESSARY, new OrganizationWarning(r, group, role));
+			}
+		}
+		return r;
+
+	}
+	@Override
+	long cancelDifferedMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
+		long res= kernel.cancelDifferedMessagesBySenderRole(requester, group, senderRole);
+		if (requester.isFinestLogOn())
+			requester.logger.log(Level.FINEST,
+					Influence.CANCEL_DIFFERED_MESSAGES_BY_SENDER_ROLE + " (group=" + group+" , senderRole="+senderRole + ", removedNumber="+res+")" + requester.getName());
+		return res;
+	}
+	@Override
+	long cancelDifferedMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
+		long res= kernel.cancelDifferedMessagesByReceiverRole(requester, group, receiverRole);
+		if (requester.isFinestLogOn())
+			requester.logger.log(Level.FINEST,
+					Influence.CANCEL_DIFFERED_MESSAGES_BY_RECEIVER_ROLE + " (group=" + group+" , receiverRole="+receiverRole + ", removedNumber="+res+")" + requester.getName());
+		return res;
+	}
+	@Override
+	long cancelDifferedMessagesByGroup(AbstractAgent requester, Group group)  {
+		long res= kernel.cancelDifferedMessagesByGroup(requester, group);
+		if (requester.isFinestLogOn())
+			requester.logger.log(Level.FINEST,
+					Influence.CANCEL_DIFFERED_MESSAGES_BY_GROUP + " (group=" + group+", removedNumber="+res+")" + requester.getName());
+		return res;
+
 	}
 
 	@Override

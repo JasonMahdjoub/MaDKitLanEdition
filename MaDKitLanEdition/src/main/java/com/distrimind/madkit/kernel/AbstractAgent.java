@@ -173,7 +173,7 @@ import com.distrimind.util.crypto.MessageDigestType;
  * @author Fabien Michel
  * @author Olivier Gutknecht
  * @author Jason Mahdjoub
- * @version 7.0
+ * @version 8.0
  * @since MadKitLanEdition 1.0
  */
 @SuppressWarnings({"StaticInitializerReferencesSubClass", "SameParameterValue", "UnusedReturnValue"})
@@ -2154,6 +2154,81 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	}
 
 	/**
+	 * Sends a message to an agent having this position in the organization. If
+	 * several agents match, the target is chosen randomly. The sender is excluded
+	 * from this search. If no recipient was found, the message is stored into the
+	 * database until a recipient becomes available.
+	 *
+	 * Messages that are not into the group path defined path
+	 * {@link MadkitProperties#rootOfPathGroupUsedToFilterDifferedMessages} are not sent
+	 *
+	 * @param group
+	 *            the group(s) and the community(ies) name
+	 * @param role
+	 *            the role name
+	 * @param messageToSend
+	 *            the message to send
+	 * @param senderRole
+	 *            the agent's role with which the message has to be sent
+	 * @return
+	 *         <ul>
+	 *         <li><code>{@link ReturnCode#SUCCESS}</code>: If the send has
+	 *         succeeded.</li>
+	 *         <li><code>{@link ReturnCode#MESSAGE_DIFFERED}</code>: If no recipient was found
+	 *         and if the message sending was differed.</li>
+	 *         <li><code>{@link ReturnCode#NOT_COMMUNITY}</code>: If the community
+	 *         does not exist.</li>
+	 *         <li><code>{@link ReturnCode#NOT_GROUP}</code>: If the group does not
+	 *         exist.</li>
+	 *         <li><code>{@link ReturnCode#NOT_ROLE}</code>: If the role does not
+	 *         exist.</li>
+	 *         <li><code>{@link ReturnCode#ROLE_NOT_HANDLED}</code>: If
+	 *         <code>senderRole</code> is not handled by this agent.</li>
+	 *         <li><code>{@link ReturnCode#NOT_IN_GROUP}</code>: If this agent is
+	 *         not a member of the targeted group.</li>
+	 *         <li><code>{@link ReturnCode#IGNORED}</code>: If the MaDKitLanEdition
+	 *         database was not loaded.</li>
+	 *         </ul>
+	 * @see ReturnCode
+	 * @see AbstractGroup
+	 * @see Group
+	 * @see MultiGroup
+	 * @see MadkitProperties#rootOfPathGroupUsedToFilterDifferedMessages
+	 * @since MadKitLanEdition 1.11
+	 */
+	public ReturnCode sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(Group group, final String role, final Message messageToSend,
+												 final String senderRole)  {
+		return getKernel().sendMessageAndDifferItIfNecessary(this, group, role, messageToSend, senderRole);
+	}
+
+	/**
+	 * Cancel differed messages according the message group and the sender role
+	 * @param group the targeted group
+	 * @param senderRole the sender role
+	 * @return the number of deleted not sent messages
+	 */
+	public long cancelDifferedMessagesBySenderRole(Group group, String senderRole)  {
+		return getMadkitKernel().cancelDifferedMessagesBySenderRole(this, group, senderRole);
+	}
+	/**
+	 * Cancel differed messages according the message group and the receiver role
+	 * @param group the targeted group
+	 * @param receiverRole the receiver role
+	 * @return the number of deleted not sent messages
+	 */
+	public long cancelDifferedMessagesByReceiverRole(Group group, String receiverRole)  {
+		return getMadkitKernel().cancelDifferedMessagesByReceiverRole(this, group, receiverRole);
+	}
+	/**
+	 * Cancel differed messages according the message group
+	 * @param group the targeted group
+	 * @return the number of deleted not sent messages
+	 */
+	public long cancelDifferedMessagesByGroup(Group group)  {
+		return getMadkitKernel().cancelDifferedMessagesByGroup(this, group);
+	}
+
+	/**
 	 * Tells if the current agent is concerned by the given agent address
 	 * 
 	 * @param agentAddress
@@ -3605,7 +3680,12 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		/**
 		 * The transfer is in progress
 		 */
-		TRANSFER_IN_PROGRESS;
+		TRANSFER_IN_PROGRESS,
+
+		/**
+		 * The message was saved and the sending was differed to the moment when one receiver become launched.
+		 */
+		MESSAGE_DIFFERED;
 
 		private TransfersReturnsCodes returns_code = null;
 		private int numberOfConcernedAgents = -1;
@@ -3654,7 +3734,24 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	}
 
 	enum Influence {
-		CREATE_GROUP, REQUEST_ROLE, LEAVE_ROLE, LEAVE_GROUP, GET_AGENTS_WITH_ROLE, GET_AGENT_WITH_ROLE, SEND_MESSAGE, BROADCAST_MESSAGE, BROADCAST_MESSAGE_AND_WAIT, LAUNCH_AGENT, KILL_AGENT, GET_AGENT_ADDRESS_IN, RELOAD_CLASS, EXECUTE_TASK;
+		CREATE_GROUP,
+		REQUEST_ROLE,
+		LEAVE_ROLE,
+		LEAVE_GROUP,
+		GET_AGENTS_WITH_ROLE,
+		GET_AGENT_WITH_ROLE,
+		SEND_MESSAGE,
+		SEND_MESSAGE_AND_DIFFER_IT_IF_NECESSARY,
+		CANCEL_DIFFERED_MESSAGES_BY_SENDER_ROLE,
+		CANCEL_DIFFERED_MESSAGES_BY_RECEIVER_ROLE,
+		CANCEL_DIFFERED_MESSAGES_BY_GROUP,
+		BROADCAST_MESSAGE,
+		BROADCAST_MESSAGE_AND_WAIT,
+		LAUNCH_AGENT,
+		KILL_AGENT,
+		GET_AGENT_ADDRESS_IN,
+		RELOAD_CLASS,
+		EXECUTE_TASK;
 
 		public String failedString() {
 			return toString() + Words.FAILED + " : ";

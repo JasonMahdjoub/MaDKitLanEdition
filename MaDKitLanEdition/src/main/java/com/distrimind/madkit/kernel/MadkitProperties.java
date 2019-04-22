@@ -341,6 +341,17 @@ public class MadkitProperties extends MultiFormatProperties {
 	 */
 	public Version minimumProjectVersion = null;
 
+
+	/**
+	 * Root group path that enable to filter asynchronous messages.
+	 * If the messages sending to differ has no group that is part of this path,
+	 * these messages are not sent.
+	 * If null is defined, all messages to differ are accepted.
+	 * However, we recommend to define this variable in order to optimize MaDKit.
+	 * The more this path is restrictive, the more MaDKit is reactive.
+	 */
+	public String rootOfPathGroupUsedToFilterDifferedMessages=null;
+
 	public MadkitProperties() {
 		super(new MultiFormatPropertiesObjectParser());
 		this.minimumMadkitVersion=new Version(madkitVersion.getProgramName(), madkitVersion.getShortProgramName(), (short)1, (short)11, (short)0, Version.Type.Stable, (short)0, madkitVersion.getProjectStartDate(), madkitVersion.getProjectEndDate());

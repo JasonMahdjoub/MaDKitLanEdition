@@ -45,7 +45,9 @@ import com.distrimind.madkit.action.KernelAction;
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.agr.LocalCommunity.Groups;
 import com.distrimind.madkit.agr.LocalCommunity.Roles;
+import com.distrimind.madkit.database.DifferedMessageTable;
 import com.distrimind.madkit.database.IPBanned;
+import com.distrimind.madkit.exceptions.MadkitException;
 import com.distrimind.madkit.gui.AgentStatusPanel;
 import com.distrimind.madkit.gui.ConsoleAgent;
 import com.distrimind.madkit.gui.menu.AgentLogLevelMenu;
@@ -266,6 +268,8 @@ class MadkitKernel extends Agent {
 	private final Map<KernelAddress, InterfacedIDs> global_interfaced_ids;
 	private final boolean lockSocketUntilCGRSynchroIsSent;
 
+	private volatile DifferedMessageTable differedMessageTable;
+
 	/**
 	 * Constructing the real one.
 	 * 
@@ -341,11 +345,12 @@ class MadkitKernel extends Agent {
 
 		madkitConfig.getApprovedRandomType();
 		madkitConfig.getApprovedRandomTypeForKeys();
-		
+		differedMessageTable=null;
 		if (madkitConfig.isDatabaseEnabled()) {
 			try {
 				madkitConfig.getDatabaseWrapper().loadDatabase(new DatabaseConfiguration(IPBanned.class.getPackage()),
 						true);
+				differedMessageTable=(DifferedMessageTable)madkitConfig.getDatabaseWrapper().getTableInstance(DifferedMessageTable.class);
 			} catch (DatabaseException e) {
 				bugReport(e);
 				try {
@@ -358,6 +363,7 @@ class MadkitKernel extends Agent {
 		this.lockSocketUntilCGRSynchroIsSent= madkitConfig.networkProperties != null && madkitConfig.networkProperties.lockSocketUntilCGRSynchroIsSent;
 
 	}
+
 
 	MadkitKernel() {
 		// for fake kernels
@@ -1117,7 +1123,22 @@ class MadkitKernel extends Agent {
 
 	void informHooks(HookMessage hook_message) {
 		if (hook_message != null) {
-			if (hook_message.getClass() == NetworkEventMessage.class) {
+			if (differedMessageTable != null && hook_message.getClass() == OrganizationEvent.class)
+			{
+				OrganizationEvent oe=(OrganizationEvent)hook_message;
+
+				if (oe.getContent()==AgentActionEvent.REQUEST_ROLE) {
+					try {
+						differedMessageTable.newAgentConnected(platform.getConfigOption().rootOfPathGroupUsedToFilterDifferedMessages, oe.getSourceAgent().getAgent(), oe.getSourceAgent());
+					} catch (DatabaseException e) {
+						logLifeException(e);
+					}
+				}
+				else if (oe.getContent()==AgentActionEvent.LEAVE_ROLE) {
+					differedMessageTable.newAgentDisconnected(platform.getConfigOption().rootOfPathGroupUsedToFilterDifferedMessages, oe.getSourceAgent());
+				}
+
+			} else if (hook_message.getClass() == NetworkEventMessage.class) {
 				if (hook_message.getContent() == AgentActionEvent.CONNEXION_ESTABLISHED) {
 					Connection c = ((NetworkEventMessage) hook_message).getConnection();
 					availableConnections.add(c);
@@ -1166,6 +1187,7 @@ class MadkitKernel extends Agent {
 				NetworkLoginAccessEvent n = (NetworkLoginAccessEvent) hook_message;
 				acceptedDistantLogins.put(n.getConcernedKernelAddress(), new HashSet<>(n.getCurrentIdentifiers()));
 			}
+
 			if (hooks.size() > 0) {
 				final Set<AbstractAgent> l = hooks.get(hook_message.getContent());
 				if (l != null) {
@@ -1460,6 +1482,88 @@ class MadkitKernel extends Agent {
 
 	}
 
+
+	ReturnCode sendMessageAndDifferItIfNecessary(final AbstractAgent requester, Group group, final String role, final Message message,
+						   final String senderRole)  {
+		if (requester==null)
+			throw new NullPointerException();
+		if (message==null)
+			throw new NullPointerException();
+		if (group==null)
+			throw new NullPointerException();
+		if (role==null)
+			throw new NullPointerException();
+		if (senderRole==null)
+			throw new NullPointerException();
+		if (!(message instanceof NetworkMessage))
+			throw new IllegalArgumentException(message+" must implement NetworkMessage interface");
+
+		if (differedMessageTable==null) {
+			bugReport(new MadkitException("Cannot differ message when no database was loaded !"));
+			return IGNORED;
+		}
+		try {
+			return differedMessageTable.differMessage(platform.getConfigOption().rootOfPathGroupUsedToFilterDifferedMessages, requester,group, senderRole, role, message);
+		} catch (DatabaseException e) {
+			bugReport(e);
+			return IGNORED;
+		}
+
+	}
+
+	long cancelDifferedMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
+		if (group==null)
+			throw new NullPointerException();
+		if (senderRole==null)
+			throw new NullPointerException();
+
+		if (differedMessageTable==null)
+		{
+			bugReport(new MadkitException("Cannot differ cancel differed messages when no database was loaded !"));
+			return -1;
+		}
+		try {
+			return differedMessageTable.cancelDifferedMessagesBySenderRole(group, senderRole);
+		} catch (DatabaseException e) {
+			bugReport(e);
+			return -1;
+		}
+	}
+	long cancelDifferedMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
+		if (group==null)
+			throw new NullPointerException();
+		if (receiverRole==null)
+			throw new NullPointerException();
+
+		if (differedMessageTable==null) {
+			bugReport(new MadkitException("Cannot differ cancel differed messages when no database was loaded !"));
+			return -1;
+		}
+		try {
+			return differedMessageTable.cancelDifferedMessagesByReceiverRole(group, receiverRole);
+		} catch (DatabaseException e) {
+			bugReport(e);
+			return -1;
+		}
+	}
+	long cancelDifferedMessagesByGroup(AbstractAgent requester, Group group)  {
+		if (group==null)
+			throw new NullPointerException();
+
+		if (differedMessageTable==null) {
+			bugReport(new MadkitException("Cannot differ cancel differed messages when no database was loaded !"));
+			return -1;
+		}
+		try {
+			return differedMessageTable.cancelDifferedMessagesByGroup(group);
+		} catch (DatabaseException e) {
+			bugReport(e);
+			return -1;
+		}
+
+	}
+
+
 	ReturnCode sendMessage(final AbstractAgent requester, AbstractGroup group, final String role, final Message message,
 			final String senderRole) {
 		try {
@@ -1724,6 +1828,7 @@ class MadkitKernel extends Agent {
 		 */
 	}
 
+	@SuppressWarnings("unused")
 	final ReturnCode sendNetworkCGRSynchroMessageWithRole(AbstractAgent requester, CGRSynchro m) {
 		updateNetworkAgent();
 		if (netAgent != null) {
@@ -2978,6 +3083,7 @@ class MadkitKernel extends Agent {
 		kernel = this;
 		loggedKernel = null;
 		platform = null;
+		differedMessageTable=null;
 		/*synchronized (organizations) {
 			organizations.clear();
 		}*/

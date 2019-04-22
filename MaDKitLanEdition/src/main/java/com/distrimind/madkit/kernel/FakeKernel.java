@@ -37,26 +37,22 @@
  */
 package com.distrimind.madkit.kernel;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.BlockingDeque;
-
 import com.distrimind.jdkrewrite.concurrent.LockerCondition;
 import com.distrimind.madkit.i18n.ErrorMessages;
 import com.distrimind.madkit.io.RandomInputStream;
 import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
-import com.distrimind.madkit.kernel.network.AskForConnectionMessage;
-import com.distrimind.madkit.kernel.network.AskForTransferMessage;
-import com.distrimind.madkit.kernel.network.Connection;
-import com.distrimind.madkit.kernel.network.ConnectionIdentifier;
-import com.distrimind.madkit.kernel.network.LocalLanMessage;
+import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.util.SecureExternalizable;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.crypto.MessageDigestType;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.BlockingDeque;
 
 /**
  * @author Fabien Michel
@@ -150,6 +146,26 @@ class FakeKernel extends MadkitKernel {
 	//////////////////////////////////////////////////////////////
 	////////////////////////// Messaging interface
 	//////////////////////////////////////////////////////////////
+
+	@Override
+	ReturnCode sendMessageAndDifferItIfNecessary(final AbstractAgent requester, Group group, final String role, final Message message,
+												 final String senderRole) {
+		throw buildKernelException(requester);
+
+	}
+	@Override
+	long cancelDifferedMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole) {
+		throw buildKernelException(requester);
+	}
+	@Override
+	long cancelDifferedMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole) {
+		throw buildKernelException(requester);
+	}
+	@Override
+	long cancelDifferedMessagesByGroup(AbstractAgent requester, Group group) {
+		throw buildKernelException(requester);
+
+	}
 	@Override
 	final ReturnCode sendMessage(final AbstractAgent agent, AbstractGroup group, final String role,
 			final Message messageToSend, final String senderRole) {

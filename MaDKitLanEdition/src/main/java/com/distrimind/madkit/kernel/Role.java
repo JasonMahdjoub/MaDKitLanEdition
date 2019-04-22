@@ -114,4 +114,9 @@ public class Role {
 	public boolean equals(Object _r) {
 		return _r != null && ((_r instanceof Role) && m_group_role.equals(((Role) _r).m_group_role));
 	}
+
+	@Override
+	public int hashCode() {
+		return m_group_role.hashCode();
+	}
 }
