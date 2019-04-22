@@ -85,6 +85,10 @@ public class BigDataTransferID extends ConversationID {
 		this.stat = stat;
 		//this.cid = cid;
 	}
+	BigDataTransferID(int id, KernelAddress kernelAddress, RealTimeTransfertStat stat) {
+		super(id, kernelAddress);
+		this.stat = stat;
+	}
 
 	/*@Override
 	protected int getID() {

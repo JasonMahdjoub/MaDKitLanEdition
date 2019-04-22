@@ -2367,7 +2367,6 @@ class MadkitKernel extends Agent {
 	}
 
 	final InternalGroup getGroup(Group group) throws CGRNotAvailable {
-		// System.err.println("HHHHHHHHHHHHHHHHHHHH "+community);
 		InternalGroup g = getCommunity(group.getCommunity()).get(group);
 		if (g == null)
 			throw new CGRNotAvailable(NOT_GROUP);
@@ -3585,6 +3584,7 @@ class MadkitKernel extends Agent {
 			BigDataPropositionMessage message = new BigDataPropositionMessage(stream, pos, length, attachedData,
 					target.isFrom(getKernelAddress()), requester.getMadkitConfig().networkProperties.maxBufferSize,
 					stat, messageDigestType, excludeFromEncryption);
+
 			try {
 				ReturnCode rc = buildAndSendMessage(getSenderAgentAddress(requester, target, senderRole), target,
 						message);

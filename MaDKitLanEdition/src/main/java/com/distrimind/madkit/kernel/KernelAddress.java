@@ -113,22 +113,28 @@ public class KernelAddress implements SecureExternalizable, Cloneable {
 			name = null;
 	}
 
+	//protected static final byte[] tab = new byte[65];
+
 	protected void readExternal(SecuredObjectInputStream in, boolean initName) throws IOException
 	{
 		try {
 			internalSize=in.readShort();
 			if (internalSize<16 || internalSize>65)
 				throw new MessageSerializationException(Integrity.FAIL, "internalSize="+internalSize);
-			kernelAddressBytes=new byte[internalSize];
-			in.readFully(kernelAddressBytes);
-			try
-			{
-				id=AbstractDecentralizedID.instanceOf(kernelAddressBytes, 0, internalSize);
-			}
-			catch(Throwable t)
-			{
-				throw new IOException(t);
-			}
+			/*synchronized(tab)
+			{*/
+				this.kernelAddressBytes=new byte[internalSize];
+				in.readFully(this.kernelAddressBytes);
+				//in.readFully(tab, 0, internalSize);
+				try
+				{
+					id=AbstractDecentralizedID.instanceOf(kernelAddressBytes, 0, internalSize);
+				}
+				catch(Throwable t)
+				{
+					throw new IOException(t);
+				}
+			//}
 			++internalSize;
 			
 			try {
@@ -161,6 +167,7 @@ public class KernelAddress implements SecureExternalizable, Cloneable {
 			kernelAddressBytes=id.getBytes();
 		oos.writeShort(kernelAddressBytes.length);
 		oos.write(kernelAddressBytes);
+
 	}
 	private String getKernelName() {
 		return "@" + Madkit.getVersion().getShortProgramName() + "-" + getNetworkID();

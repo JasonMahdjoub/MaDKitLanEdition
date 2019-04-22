@@ -204,6 +204,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 				BigDataTransferID myTransferID;
 
 				RandomByteArrayInputStream inputStream = new RandomByteArrayInputStream(new byte[inputStreamLengh]);
+
 				myTransferID = sendBigDataWithRole(destination, inputStream, 0, inputStream.length(), attachedData,
 						useMessageDigest ? MessageDigestType.BC_FIPS_SHA3_512 : null, thisRole, false);
 				Assert.assertTrue(ok);
@@ -306,7 +307,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 				ConversationID myTransferID = inputStream == null ? null : m.getConversationID();
 				ConversationID otherConversationID = otherStat == null ? null : m.getConversationID();
 				ok &= myTransferID != otherConversationID;
-				Assert.assertNotSame(m.toString(), myTransferID, otherConversationID);
+				Assert.assertNotSame(m.toString()+" ; myTransferID="+myTransferID+" ; otherConversationID="+otherConversationID+" ; isLocal="+isLocal+" ; shortData="+sendShortData, myTransferID, otherConversationID);
 				if (accept) {
 
 					ok &= (inputStream == null || m.getTransferedDataLength() == inputStream.length())

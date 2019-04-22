@@ -68,7 +68,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.nio.charset.Charset;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.*;
@@ -828,11 +827,12 @@ public class SerializationTools {
 			try
 			{
 				Object o=invoke(replaceObject, objectOutput.objectOutput, e);
-				if (o!=null && !(SecureExternalizableSystemMessage.class.isAssignableFrom(o.getClass())))
+				if (o==null)
+					throw new IOException();
+				if (!SecureExternalizableSystemMessage.class.isAssignableFrom(o.getClass()))
 					throw new IOException();
 				e=(SecureExternalizableSystemMessage)o;
-				if (e!=null)
-					clazz=e.getClass();
+				clazz=e.getClass();
 			}
 			catch(Exception e2)
 			{
@@ -1001,6 +1001,10 @@ public class SerializationTools {
 	}
 	static void writeObject(final SecuredObjectOutputStream oos, Object o, int sizeMax, boolean supportNull) throws IOException
 	{
+		writeObject(oos, o, sizeMax, supportNull, true);
+	}
+	private static void writeObject(final SecuredObjectOutputStream oos, Object o, int sizeMax, boolean supportNull, boolean OOSreplaceObject) throws IOException
+	{
 		Byte id;
 
 		if (o==null)
@@ -1013,6 +1017,24 @@ public class SerializationTools {
 		else //noinspection SuspiciousMethodCalls
 			if (o instanceof SecureExternalizableSystemMessage && (id=identifiersPerClasses.get(o.getClass()))!=null)
 		{
+			if (OOSreplaceObject && oos.objectOutput.getClass()==oosClazz)
+			{
+				try
+				{
+					o=invoke(replaceObject, oos.objectOutput, o);
+					if (o==null)
+						throw new IOException();
+					if (!SecureExternalizableSystemMessage.class.isAssignableFrom(o.getClass()))
+						throw new IOException();
+					writeObject(oos,o,sizeMax, false, false);
+					return;
+				}
+				catch(Exception e2)
+				{
+					throw new IOException(e2);
+				}
+			}
+
 			oos.write(id);
 			writeExternalizable(oos, (SecureExternalizableSystemMessage)o);
 		}
@@ -1118,6 +1140,7 @@ public class SerializationTools {
 			if (type<=classesEndIndex)
 			{
 				Class<?> c=classes.get(type-classesStartIndex);
+
 				return readExternalizable(ois, c);
 			}
 			else if (type<=enumsEndIndex)

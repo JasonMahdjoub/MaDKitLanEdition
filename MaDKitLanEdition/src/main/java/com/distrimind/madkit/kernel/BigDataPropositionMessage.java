@@ -153,7 +153,6 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 			throw new IllegalArgumentException("length cannot be greater than stream.length()-pos");
 		if (maxBufferSize>Block.BLOCK_SIZE_LIMIT)
 			throw new IllegalArgumentException();
-		
 		this.pos = pos;
 		this.length = length;
 		this.attachedData = attachedData;
@@ -171,7 +170,9 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		timeUTC = System.currentTimeMillis();
 		this.messageDigestType = messageDigestType;
 		this.excludedFromEncryption=excludedFromEncryption;
+
 	}
+
 
 	public boolean bigDataExcludedFromEncryption()
 	{
