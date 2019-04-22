@@ -55,7 +55,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @version 1.0
  * @since MaDKitLanEdition 1.11.0
  */
-public class DifferedMessageTable extends Table<DifferedMessageTable.Record> {
+public final class DifferedMessageTable extends Table<DifferedMessageTable.Record> {
 
 	public static final int MAX_DIFFERED_MESSAGE_LENGTH=128*1024;
 
