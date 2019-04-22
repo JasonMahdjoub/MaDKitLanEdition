@@ -280,6 +280,7 @@ public class SerializationTools {
 	}
 	
 	public static final int MAX_KEY_SIZE=Short.MAX_VALUE;
+	@SuppressWarnings("SameParameterValue")
 	static void writeKey(final SecuredObjectOutputStream oos, Key key, boolean supportNull) throws IOException
 	{
 		if (supportNull)
@@ -321,6 +322,7 @@ public class SerializationTools {
 	}
 	
 	
+	@SuppressWarnings("SameParameterValue")
 	static void writeKeyPair(final SecuredObjectOutputStream oos, ASymmetricKeyPair keyPair, boolean supportNull) throws IOException
 	{
 		if (supportNull)
@@ -476,6 +478,7 @@ public class SerializationTools {
 		}
 	}*/
 
+	@SuppressWarnings("SameParameterValue")
 	static void writeExternalizables(final SecuredObjectOutputStream objectOutput, SecureExternalizable[] tab, int sizeMaxBytes, boolean supportNull) throws IOException
 	{
 		if (sizeMaxBytes<0)
@@ -571,6 +574,7 @@ public class SerializationTools {
 
 	}
 	public static int MAX_URL_LENGTH=8000;
+	@SuppressWarnings("SameParameterValue")
 	static void writeInetAddress(final SecuredObjectOutputStream oos, InetAddress inetAddress, boolean supportNull) throws IOException
 	{
 		if (supportNull)
@@ -587,6 +591,7 @@ public class SerializationTools {
 
 		writeBytes(oos, inetAddress.getAddress(), 20, false);
 	}
+	@SuppressWarnings("SameParameterValue")
 	static void writeDate(final SecuredObjectOutputStream oos, Date date, boolean supportNull) throws IOException
 	{
 		if (supportNull)
@@ -603,6 +608,7 @@ public class SerializationTools {
 		oos.writeLong(date.getTime());
 	}
 
+	@SuppressWarnings("SameParameterValue")
 	static void writeDecentralizedID(final SecuredObjectOutputStream oos, AbstractDecentralizedID id, boolean supportNull) throws IOException
 	{
 		if (supportNull)
@@ -669,6 +675,7 @@ public class SerializationTools {
 
 	}
 
+	@SuppressWarnings("SameParameterValue")
 	static void writeInetSocketAddress(final SecuredObjectOutputStream oos, InetSocketAddress inetSocketAddress, boolean supportNull) throws IOException
 	{
 		if (supportNull)
@@ -708,6 +715,7 @@ public class SerializationTools {
 			return null;
 
 	}
+	@SuppressWarnings("SameParameterValue")
 	static void writeEnum(final SecuredObjectOutputStream oos, Enum<?> e, boolean supportNull) throws IOException
 	{
 		if (supportNull)

@@ -66,7 +66,7 @@ public class TaskID extends ConversationID {
 
 	@SuppressWarnings("unused")
 	TaskID(ConversationID id) {
-		super(id.getID(), id.getOrigin());
+		super(id);
 	}
 
 	void setFuture(ScheduledFuture<?> future) {
