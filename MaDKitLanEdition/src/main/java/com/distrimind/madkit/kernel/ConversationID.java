@@ -341,9 +341,9 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 			/*
 			 * else { myInterfacedIDs.put(distantKernelAddress, distantid); }
 			 */
-			if (this instanceof BigDataTransferID)
+			/*if (this instanceof BigDataTransferID)
 				return new BigDataTransferID(distantid.getOriginalID(), origin, ((BigDataTransferID) this).getBytePerSecondsStat());
-			else
+			else*/
 				return new ConversationID(distantid.getOriginalID(), origin);
 			/*
 			 * ConversationID cid=new ConversationID(distantid.getOriginalID(), origin);
@@ -352,9 +352,9 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 			 * distantid.incrementPointerToThisOriginalID(); return cid;
 			 */
 		} else {
-			if (this instanceof BigDataTransferID)
+			/*if (this instanceof BigDataTransferID)
 				return new BigDataTransferID(0, null, null);
-			else
+			else*/
 				return new ConversationID(0, null);
 
 		}
@@ -364,9 +364,9 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 	ConversationID getInterfacedConversationIDFromDistantPeer(Map<KernelAddress, InterfacedIDs> global_interfaced_ids,
 															  KernelAddress currentKernelAddress, KernelAddress distantKernelAddress) {
 		if (origin == null) {
-			if (this instanceof BigDataTransferID)
+			/*if (this instanceof BigDataTransferID)
 				return BigDataTransferID.getConversationIDInstance();
-			else
+			else*/
 				return ConversationID.getConversationIDInstance();
 		} else if (origin.equals(distantKernelAddress)) {
 			return this;
@@ -405,9 +405,9 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 
 				// return new ConversationID(o.originalID, origin);
 				ConversationID cid;
-				if (this instanceof BigDataTransferID)
+				/*if (this instanceof BigDataTransferID)
 					cid=new BigDataTransferID(o.getOriginalID(), origin, ((BigDataTransferID) this).getBytePerSecondsStat());
-				else
+				else*/
 					cid = new ConversationID(o.getOriginalID(), origin);
 
 				cid.global_interfaced_ids = global_interfaced_ids;
@@ -421,8 +421,8 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 				 */
 				return cid;
 			}
-		} else 	if (this instanceof BigDataTransferID)
-			return BigDataTransferID.getConversationIDInstance();
+		} /*else 	if (this instanceof BigDataTransferID)
+			return BigDataTransferID.getConversationIDInstance();*/
 		else {
 			return ConversationID.getConversationIDInstance();
 		}

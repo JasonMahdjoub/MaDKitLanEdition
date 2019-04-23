@@ -1802,13 +1802,13 @@ class DistantKernelAgent extends AgentFakeThread {
 			if (obj instanceof KernelAddressInterfaced) {
 				return ((KernelAddressInterfaced) obj).getOriginalKernelAddress();
 			} else if (obj instanceof ConversationID) {
-				/*if (obj.getClass() == BigDataTransferID.class) {
+				if (obj.getClass() == BigDataTransferID.class) {
 					return MadkitKernelAccess.getBigDataTransferIDInstance(
 							MadkitKernelAccess.getInterfacedConversationIDToDistantPeer((ConversationID) obj,
 									DistantKernelAgent.this, getKernelAddress(),
 									DistantKernelAgent.this.distant_kernel_address),
 							((BigDataTransferID) obj).getBytePerSecondsStat());
-				} else */if (obj.getClass() == TaskID.class) {
+				} else if (obj.getClass() == TaskID.class) {
 					return MadkitKernelAccess.getTaskIDInstance(MadkitKernelAccess
 							.getInterfacedConversationIDToDistantPeer((ConversationID) obj, DistantKernelAgent.this,
 									getKernelAddress(), DistantKernelAgent.this.distant_kernel_address));
@@ -1843,13 +1843,13 @@ class DistantKernelAgent extends AgentFakeThread {
 					return obj;
 				}
 			} else if (obj instanceof ConversationID) {
-				/*if (obj.getClass() == BigDataTransferID.class) {
+				if (obj.getClass() == BigDataTransferID.class) {
 					return MadkitKernelAccess.getBigDataTransferIDInstance(
 							MadkitKernelAccess.getInterfacedConversationIDFromDistantPeer((ConversationID) obj,
 									DistantKernelAgent.this, getKernelAddress(),
 									DistantKernelAgent.this.distant_kernel_address),
 							((BigDataTransferID) obj).getBytePerSecondsStat());
-				} else */if (obj.getClass() == TaskID.class) {
+				} else if (obj.getClass() == TaskID.class) {
 					return MadkitKernelAccess.getTaskIDInstance(MadkitKernelAccess
 							.getInterfacedConversationIDFromDistantPeer((ConversationID) obj, DistantKernelAgent.this,
 									getKernelAddress(), DistantKernelAgent.this.distant_kernel_address));

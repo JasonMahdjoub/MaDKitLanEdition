@@ -292,8 +292,6 @@ public class ConversationIDTest extends JunitMadkit {
                     System.gc();
 					System.gc();
 
-					if (globaInterfacedIDs1.size()==0)
-						System.gc();
 					Assert.assertFalse("size=" + globaInterfacedIDs1.size(), globaInterfacedIDs1.isEmpty());
 					Assert.assertTrue("size=" + globaInterfacedIDs2.size(), globaInterfacedIDs2.isEmpty());
 					i=0;
@@ -312,6 +310,8 @@ public class ConversationIDTest extends JunitMadkit {
 						}
 						Assert.assertEquals(1, nbFound);
 					}
+					Assert.assertFalse(interfacedByCurrentIds.isEmpty());
+					Assert.assertFalse(bigDataTransferID.isEmpty());
 
 					ids = null;
 					interfacedByCurrentIds = null;
