@@ -119,6 +119,7 @@ public class AgentFrame extends JFrame {
 	@Override
 	public void dispose() {
 		if (internalFrame != null) {
+			internalFrame.setVisible(false);
 			internalFrame.dispose();
 		}
 		super.dispose();

@@ -139,6 +139,7 @@ final class AboutFrame extends JDialog {
 		close.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent event) {
+				setVisible(false);
 				dispose();
 			}
 		});

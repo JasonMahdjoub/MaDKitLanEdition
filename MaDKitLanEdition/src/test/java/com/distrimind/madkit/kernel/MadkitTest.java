@@ -37,17 +37,13 @@
  */
 package com.distrimind.madkit.kernel;
 
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Assert;
+import com.distrimind.madkit.action.KernelAction;
 import org.junit.Test;
 
-import com.distrimind.madkit.action.KernelAction;
-import com.distrimind.madkit.kernel.Agent;
-import com.distrimind.madkit.kernel.Madkit;
-
 import java.util.Arrays;
+
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Fabien Michel
@@ -72,13 +68,15 @@ public class MadkitTest {
 	private void testMKlogLevelBoot(String MKLogLevel) {
 		System.err.println("\n\n\n\n\n--------------------MK log level = " + MKLogLevel + "-------------------");
 		String[] args = { "--madkitLogLevel", MKLogLevel };
-		new Madkit(args);
+		Madkit m = new Madkit(args);
 		System.err.println("\n\n--------------------MK log level = " + MKLogLevel + "-------------------\n\n\n\n\n");
+		closeMadkit(m);
 	}
 
 	@Test
 	public void nullArgs() {
-		Madkit.main(null);
+		Madkit m = new Madkit();
+		closeMadkit(m);
 	}
 
 	@Test
@@ -128,10 +126,12 @@ public class MadkitTest {
 		Thread.sleep(100);
 		assertNull(m.getKernel().logger);
 		String[] args = { "--desktop", "false", "--forceDesktop", "true" };
+		closeMadkit(m);
 		m = new Madkit(args);
 		Thread.sleep(100);
 		assertNull(m.getKernel().logger);
 		String[] argss = { "--launchAgents", "{com.distrimind.madkit.kernel.Agent}" };
+		closeMadkit(m);
 		m = new Madkit(argss);
 		Thread.sleep(100);
 		assertNull(m.getKernel().logger);
@@ -172,6 +172,11 @@ public class MadkitTest {
 
 		if (m.getKernel().isAlive())
 			m.doAction(KernelAction.EXIT);
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Test

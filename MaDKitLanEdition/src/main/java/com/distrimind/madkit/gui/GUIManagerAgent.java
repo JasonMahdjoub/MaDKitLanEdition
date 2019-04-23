@@ -192,9 +192,10 @@ class GUIManagerAgent extends Agent {
 		// public void run() {
 		killAgents(); // no need because it closes internal frames too
 		if (myFrame != null) {// TODO swing thread or cleaner shutdown
-			
+
+			myFrame.setVisible(false);
 			myFrame.dispose();
-			
+
 			myFrame=null;
 			desktopPane=null;
 		}
@@ -300,6 +301,7 @@ class GUIManagerAgent extends Agent {
 	private void disposeAgentGui(AbstractAgent agent) {// TODO event dispatch thread ?
 		final JFrame f = guis.remove(agent);
 		if (f != null) {
+			f.setVisible(false);
 			f.dispose();
 		}
 	}
@@ -348,6 +350,7 @@ class GUIManagerAgent extends Agent {
 	 */
 	private void killAgents() {
 		for (final JFrame f : guis.values()) {
+			f.setVisible(false);
 			f.dispose();
 		}
 		guis.clear();
