@@ -121,7 +121,7 @@ final public class Madkit {
 		Calendar c = Calendar.getInstance();
 		c.set(2015, Calendar.MAY, 22);
 		Calendar c2 = Calendar.getInstance();
-		c2.set(2019, Calendar.APRIL, 22);
+		c2.set(2019, Calendar.APRIL, 23);
 		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)1, (short)11, (short)0, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
 		try {
 
@@ -144,7 +144,7 @@ final public class Madkit {
 			VERSION.addDeveloper(new PersonDeveloper("Ferber", "Jacques", c.getTime()));
 
 			c = Calendar.getInstance();
-			c.set(2019, Calendar.APRIL, 22);
+			c.set(2019, Calendar.APRIL, 23);
 			Description d = new Description((short)1, (short)11, (short)0, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Add SecuredObjectOutputStream and SecuredObjectInputStream classes. Do not use native ObjectInputStream.");
 			d.addItem("Add possibility to send asynchronous messages (AbstractAgent.sendMessageWithRoleOrDifferSendingUntilRecipientWasFound).");
