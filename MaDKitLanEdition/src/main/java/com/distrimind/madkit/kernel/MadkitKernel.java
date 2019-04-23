@@ -266,7 +266,7 @@ class MadkitKernel extends Agent {
 
 	private final IDGeneratorInt generator_id_transfert;
 	private final Map<KernelAddress, InterfacedIDs> global_interfaced_ids;
-	private final boolean lockSocketUntilCGRSynchroIsSent;
+	//private final boolean lockSocketUntilCGRSynchroIsSent;
 
 	private volatile DifferedMessageTable differedMessageTable;
 
@@ -360,7 +360,7 @@ class MadkitKernel extends Agent {
 				}
 			}
 		}
-		this.lockSocketUntilCGRSynchroIsSent= madkitConfig.networkProperties != null && madkitConfig.networkProperties.lockSocketUntilCGRSynchroIsSent;
+		//this.lockSocketUntilCGRSynchroIsSent= madkitConfig.networkProperties != null && madkitConfig.networkProperties.lockSocketUntilCGRSynchroIsSent;
 
 	}
 
@@ -381,7 +381,7 @@ class MadkitKernel extends Agent {
 		this.serviceExecutor = null;
 		generator_id_transfert = null;
 		global_interfaced_ids = null;
-		lockSocketUntilCGRSynchroIsSent=false;
+		//lockSocketUntilCGRSynchroIsSent=false;
 		// lifeExecutorWithBlockQueue=null;
 	}
 
@@ -403,7 +403,7 @@ class MadkitKernel extends Agent {
 		global_interfaced_ids = null;
 		// lifeExecutorWithBlockQueue=null;
 		kernel = k;
-		this.lockSocketUntilCGRSynchroIsSent= false;
+		//this.lockSocketUntilCGRSynchroIsSent= false;
 	}
 
 	Map<KernelAddress, InterfacedIDs> getGlobalInterfacedIDs() {
@@ -1063,6 +1063,38 @@ class MadkitKernel extends Agent {
 			}
 			informHooks(hm);
 		}
+		else {
+
+			HookMessage hm = null;
+			switch (action) {
+				case REQUEST_ROLE:
+				case LEAVE_ROLE:
+					hm = new OrganizationEvent(action, (AgentAddress) parameters[0]);
+					break;
+				case CONNEXION_CLOSED_BECAUSE_OF_NETWORK_ANOMALY:
+				case CONNEXION_LOST:
+				case CONNEXION_ESTABLISHED:
+				case CONNEXION_PROPERLY_CLOSED:
+					hm = new NetworkEventMessage(action, (Connection) parameters[0]);
+					break;
+				case ACCESSIBLE_LAN_GROUPS_GIVEN_BY_DISTANT_PEER:
+				case ACCESSIBLE_LAN_GROUPS_GIVEN_TO_DISTANT_PEER:
+					hm = new NetworkGroupsAccessEvent(action, (AbstractGroup) parameters[0], (Group[]) parameters[1],
+							(KernelAddressInterfaced) parameters[2], (Boolean) parameters[3]);
+					break;
+				case LOGGED_IDENTIFIERS_UPDATE:
+					hm = new NetworkLoginAccessEvent((KernelAddress) parameters[0],
+							(ArrayList<PairOfIdentifiers>) parameters[1], (ArrayList<PairOfIdentifiers>) parameters[2],
+							(ArrayList<PairOfIdentifiers>) parameters[3], (ArrayList<PairOfIdentifiers>) parameters[4]);
+					break;
+				case DISTANT_KERNEL_CONNECTED:
+				case DISTANT_KERNEL_DISCONNECTED:
+					hm = new DistantKernelAgentEventMessage(action, (KernelAddress) parameters[0]);
+					break;
+			}
+			if (hm != null)
+				informHooks(hm);
+		}
 	}
 
 	private void updateKernelMapPerGroups(Map<KernelAddress, Set<Group>> groupsPerKernelAddress, Map<Group, Set<KernelAddress>> kernelAddressesPerGroups, KernelAddress ka, List<Group> l)
@@ -1123,6 +1155,7 @@ class MadkitKernel extends Agent {
 
 	void informHooks(HookMessage hook_message) {
 		if (hook_message != null) {
+
 			if (differedMessageTable != null && hook_message.getClass() == OrganizationEvent.class)
 			{
 				OrganizationEvent oe=(OrganizationEvent)hook_message;
@@ -1495,7 +1528,7 @@ class MadkitKernel extends Agent {
 			throw new NullPointerException();
 		if (senderRole==null)
 			throw new NullPointerException();
-		if (!(message instanceof NetworkMessage))
+		if (!(message instanceof com.distrimind.madkit.util.NetworkMessage))
 			throw new IllegalArgumentException(message+" must implement NetworkMessage interface");
 
 		if (differedMessageTable==null) {
@@ -1503,6 +1536,7 @@ class MadkitKernel extends Agent {
 			return IGNORED;
 		}
 		try {
+			message.setSender(new AgentAddress());
 			return differedMessageTable.differMessage(platform.getConfigOption().rootOfPathGroupUsedToFilterDifferedMessages, requester,group, senderRole, role, message);
 		} catch (DatabaseException e) {
 			bugReport(e);

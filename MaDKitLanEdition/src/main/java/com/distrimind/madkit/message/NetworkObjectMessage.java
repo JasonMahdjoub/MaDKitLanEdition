@@ -51,7 +51,7 @@ import java.io.Serializable;
  * @version 1.1
  *
  */
-public class NetworkObjectMessage<T extends Serializable> extends ObjectMessage<T> implements NetworkMessage {
+public class NetworkObjectMessage<T> extends ObjectMessage<T> implements NetworkMessage {
 
 
 	

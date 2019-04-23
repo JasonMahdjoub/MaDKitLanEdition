@@ -278,12 +278,12 @@ final class LoggedKernel extends MadkitKernel {
 		if (r == SUCCESS || r == ReturnCode.TRANSFER_IN_PROGRESS || r == MESSAGE_DIFFERED) {
 			if (requester.isFinestLogOn()) {
 				requester.logger.log(Level.FINEST,
-						(message.getReceiver().isFrom(requester.getKernelAddress())
+						((message.getReceiver()!=null && message.getReceiver().isFrom(requester.getKernelAddress()))
 								? Influence.SEND_MESSAGE_AND_DIFFER_IT_IF_NECESSARY.successString()
 								: Influence.SEND_MESSAGE_AND_DIFFER_IT_IF_NECESSARY.toString()) + "->" + getCGRString(group, role) + " "
 								+ message);
 			}
-			return SUCCESS;
+			return r;
 		}
 		if (requester.isWarningOn()) {
 			if (r == NO_RECIPIENT_FOUND) {

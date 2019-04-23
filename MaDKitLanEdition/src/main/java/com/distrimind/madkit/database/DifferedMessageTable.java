@@ -47,8 +47,13 @@ import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.HumanReadableBytesCount;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.distrimind.madkit.util.ReflectionTools.getMethod;
+import static com.distrimind.madkit.util.ReflectionTools.invoke;
 
 /**
  * @author Jason Mahdjoub
@@ -305,11 +310,11 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 
 		if (!requester.hasGroup(group))
 			return AbstractAgent.ReturnCode.NOT_IN_GROUP;
-		if (!requester.hasRole(group, roleSender))
+		AgentAddress senderAA=requester.getAgentAddressIn(group, roleSender);
+		if (senderAA==null)
 			return AbstractAgent.ReturnCode.ROLE_NOT_HANDLED;
 
-
-
+		setSender(message, senderAA);
 
 		AgentAddress receiverAA=requester.getAgentWithRole(group, roleReceiver);
 
@@ -353,7 +358,7 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 		return removeRecords("groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.getPath(), "roleSender", senderRole);
 	}
 	public long cancelDifferedMessagesByReceiverRole(Group group, String receiverRole) throws DatabaseException {
-		return removeRecords("groupPath=%groupPath AND receiverSender=%receiverSender", "groupPath", group.getPath(), "receiverSender", receiverRole);
+		return removeRecords("groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.getPath(), "roleReceiver", receiverRole);
 	}
 	public long cancelDifferedMessagesByGroup(Group group) throws DatabaseException {
 		return removeRecords("groupPath=%groupPath", "groupPath", group.getPath());
@@ -363,7 +368,7 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 		return getRecords("groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.getPath(), "roleSender", senderRole);
 	}
 	public List<Record> getDifferedMessagesByReceiverRole(Group group, String receiverRole) throws DatabaseException {
-		return getRecords("groupPath=%groupPath AND receiverSender=%receiverSender", "groupPath", group.getPath(), "receiverSender", receiverRole);
+		return getRecords("groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.getPath(), "roleReceiver", receiverRole);
 	}
 	public List<Record> getDifferedMessagesByGroup(Group group) throws DatabaseException {
 		return getRecords("groupPath=%groupPath", "groupPath", group.getPath());
@@ -372,9 +377,27 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 		return getRecordsNumber("groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.getPath(), "roleSender", senderRole);
 	}
 	public long getDifferedMessagesNumberByReceiverRole(Group group, String receiverRole) throws DatabaseException {
-		return getRecordsNumber("groupPath=%groupPath AND receiverSender=%receiverSender", "groupPath", group.getPath(), "receiverSender", receiverRole);
+		return getRecordsNumber("groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.getPath(), "roleReceiver", receiverRole);
 	}
 	public long getDifferedMessagesNumberByGroup(Group group) throws DatabaseException {
 		return getRecordsNumber("groupPath=%groupPath", "groupPath", group.getPath());
 	}
+
+	private static final Method m_set_message_sender;
+	static
+	{
+		m_set_message_sender = getMethod(Message.class, "setSender", AgentAddress.class);
+	}
+
+	static void setSender(Message m, AgentAddress aa) {
+		try {
+			invoke(m_set_message_sender, m, aa);
+		} catch (InvocationTargetException e) {
+			System.err.println("Unexpected error :");
+			e.printStackTrace();
+			System.exit(-1);
+		}
+	}
+
+
 }
