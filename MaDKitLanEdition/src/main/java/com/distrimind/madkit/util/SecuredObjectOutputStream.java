@@ -41,16 +41,19 @@ import java.io.OutputStream;
 
 /**
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MaDKitLanEdition 1.11.0
  */
 public class SecuredObjectOutputStream extends OutputStream {
 	DataOutputStream objectOutput;
 
-	public SecuredObjectOutputStream(DataOutputStream objectOutput) {
+	public SecuredObjectOutputStream(OutputStream objectOutput) {
 		if (objectOutput==null)
 			throw new NullPointerException();
-		this.objectOutput = objectOutput;
+		if (objectOutput instanceof DataOutputStream)
+			this.objectOutput = (DataOutputStream)objectOutput;
+		else
+			this.objectOutput = new DataOutputStream(objectOutput);
 	}
 	@Override
 	public void write(int b) throws IOException {

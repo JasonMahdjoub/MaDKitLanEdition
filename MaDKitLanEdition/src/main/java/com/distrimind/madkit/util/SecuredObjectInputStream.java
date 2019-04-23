@@ -44,15 +44,20 @@ import java.io.InputStream;
 
 /**
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MaDKitLanEdition 1.11.0
  */
 public class SecuredObjectInputStream extends InputStream  {
 
 	DataInputStream objectInput;
 
-	public SecuredObjectInputStream(DataInputStream objectInput) {
-		this.objectInput = objectInput;
+	public SecuredObjectInputStream(InputStream objectInput) {
+		if (objectInput==null)
+			throw new NullPointerException();
+		if(objectInput instanceof DataInputStream)
+			this.objectInput = (DataInputStream)objectInput;
+		else
+			this.objectInput = new DataInputStream(objectInput);
 	}
 
 	@Override
