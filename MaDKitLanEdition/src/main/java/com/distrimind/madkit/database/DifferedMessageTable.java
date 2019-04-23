@@ -358,4 +358,23 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 	public long cancelDifferedMessagesByGroup(Group group) throws DatabaseException {
 		return removeRecords("groupPath=%groupPath", "groupPath", group.getPath());
 	}
+
+	public List<Record> getDifferedMessagesBySenderRole(Group group, String senderRole) throws DatabaseException {
+		return getRecords("groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.getPath(), "roleSender", senderRole);
+	}
+	public List<Record> getDifferedMessagesByReceiverRole(Group group, String receiverRole) throws DatabaseException {
+		return getRecords("groupPath=%groupPath AND receiverSender=%receiverSender", "groupPath", group.getPath(), "receiverSender", receiverRole);
+	}
+	public List<Record> getDifferedMessagesByGroup(Group group) throws DatabaseException {
+		return getRecords("groupPath=%groupPath", "groupPath", group.getPath());
+	}
+	public long getDifferedMessagesNumberBySenderRole(Group group, String senderRole) throws DatabaseException {
+		return getRecordsNumber("groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.getPath(), "roleSender", senderRole);
+	}
+	public long getDifferedMessagesNumberByReceiverRole(Group group, String receiverRole) throws DatabaseException {
+		return getRecordsNumber("groupPath=%groupPath AND receiverSender=%receiverSender", "groupPath", group.getPath(), "receiverSender", receiverRole);
+	}
+	public long getDifferedMessagesNumberByGroup(Group group) throws DatabaseException {
+		return getRecordsNumber("groupPath=%groupPath", "groupPath", group.getPath());
+	}
 }

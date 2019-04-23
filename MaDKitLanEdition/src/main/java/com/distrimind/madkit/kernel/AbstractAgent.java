@@ -72,6 +72,7 @@ import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.xml.parsers.ParserConfigurationException;
 
+import com.distrimind.madkit.database.DifferedMessageTable;
 import com.distrimind.madkit.util.SecureExternalizable;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -2229,6 +2230,60 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	}
 
 	/**
+	 * Get the saved differed messages to send and according the message group and the sender role
+	 * @param group the targeted group
+	 * @param senderRole the sender role
+	 * @return the differed asynchronous messages
+	 */
+	public List<DifferedMessageTable.Record> getDifferedMessagesBySenderRole(Group group, String senderRole)  {
+		return getMadkitKernel().getDifferedMessagesBySenderRole(this, group, senderRole);
+	}
+	/**
+	 * Get the saved differed messages to send and according the message group and the receiver role
+	 * @param group the targeted group
+	 * @param receiverRole the receiver role
+	 * @return the differed asynchronous messages
+	 */
+	public List<DifferedMessageTable.Record> getDifferedMessagesByReceiverRole(Group group, String receiverRole)  {
+		return getMadkitKernel().getDifferedMessagesByReceiverRole(this, group, receiverRole);
+	}
+	/**
+	 * Get the saved differed messages to send and according the message group
+	 * @param group the targeted group
+	 * @return the differed asynchronous messages
+	 */
+	public List<DifferedMessageTable.Record> getDifferedMessagesByGroup(Group group)  {
+		return getMadkitKernel().getDifferedMessagesByGroup(this, group);
+	}
+	/**
+	 * Get the number of saved differed messages to send and according the message group and the sender role
+	 * @param group the targeted group
+	 * @param senderRole the sender role
+	 * @return the differed asynchronous messages
+	 */
+	public long getDifferedMessagesNumberBySenderRole(Group group, String senderRole)  {
+		return getMadkitKernel().getDifferedMessagesNumberBySenderRole(this, group, senderRole);
+	}
+	/**
+	 * Get the number of saved differed messages to send and according the message group and the receiver role
+	 * @param group the targeted group
+	 * @param receiverRole the receiver role
+	 * @return the differed asynchronous messages
+	 */
+	public long getDifferedMessagesNumberByReceiverRole(Group group, String receiverRole)  {
+		return getMadkitKernel().getDifferedMessagesNumberByReceiverRole(this, group, receiverRole);
+	}
+	/**
+	 * Get the number of saved differed messages to send and according the message group
+	 * @param group the targeted group
+	 * @return the differed asynchronous messages
+	 */
+
+	public long getDifferedMessagesNumberByGroup(Group group)  {
+		return getMadkitKernel().getDifferedMessagesNumberByGroup(this, group);
+	}
+
+	/**
 	 * Tells if the current agent is concerned by the given agent address
 	 * 
 	 * @param agentAddress
@@ -3745,6 +3800,12 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		CANCEL_DIFFERED_MESSAGES_BY_SENDER_ROLE,
 		CANCEL_DIFFERED_MESSAGES_BY_RECEIVER_ROLE,
 		CANCEL_DIFFERED_MESSAGES_BY_GROUP,
+		GET_DIFFERED_MESSAGES_BY_SENDER_ROLE,
+		GET_DIFFERED_MESSAGES_BY_RECEIVER_ROLE,
+		GET_DIFFERED_MESSAGES_BY_GROUP,
+		GET_DIFFERED_MESSAGES_NUMBER_BY_SENDER_ROLE,
+		GET_DIFFERED_MESSAGES_NUMBER_BY_RECEIVER_ROLE,
+		GET_DIFFERED_MESSAGES_NUMBER_BY_GROUP,
 		BROADCAST_MESSAGE,
 		BROADCAST_MESSAGE_AND_WAIT,
 		LAUNCH_AGENT,

@@ -51,6 +51,7 @@ import java.util.concurrent.BlockingDeque;
 import java.util.logging.Level;
 
 import com.distrimind.jdkrewrite.concurrent.LockerCondition;
+import com.distrimind.madkit.database.DifferedMessageTable;
 import com.distrimind.madkit.exceptions.MadkitException;
 import com.distrimind.madkit.i18n.Words;
 import com.distrimind.madkit.io.RandomInputStream;
@@ -321,7 +322,59 @@ final class LoggedKernel extends MadkitKernel {
 		return res;
 
 	}
+	@Override
+	List<DifferedMessageTable.Record> getDifferedMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
+		List<DifferedMessageTable.Record> res= kernel.getDifferedMessagesBySenderRole(requester, group, senderRole);
+		if (requester.isFinestLogOn())
+			requester.logger.log(Level.FINEST,
+					Influence.GET_DIFFERED_MESSAGES_BY_SENDER_ROLE + " (group=" + group+" , senderRole="+senderRole + ", removedNumber="+res+")" + requester.getName());
+		return res;
 
+	}
+	@Override
+	List<DifferedMessageTable.Record> getDifferedMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
+		List<DifferedMessageTable.Record> res= kernel.getDifferedMessagesByReceiverRole(requester, group, receiverRole);
+		if (requester.isFinestLogOn())
+			requester.logger.log(Level.FINEST,
+					Influence.GET_DIFFERED_MESSAGES_BY_RECEIVER_ROLE + " (group=" + group+" , receiverRole="+receiverRole + ", removedNumber="+res+")" + requester.getName());
+		return res;
+
+	}
+	@Override
+	List<DifferedMessageTable.Record> getDifferedMessagesByGroup(AbstractAgent requester, Group group)  {
+		List<DifferedMessageTable.Record> res= kernel.getDifferedMessagesByGroup(requester, group);
+		if (requester.isFinestLogOn())
+			requester.logger.log(Level.FINEST,
+					Influence.GET_DIFFERED_MESSAGES_BY_GROUP + " (group=" + group+", removedNumber="+res+")" + requester.getName());
+		return res;
+
+
+	}
+	@Override
+	long getDifferedMessagesNumberBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
+		long res= kernel.getDifferedMessagesNumberBySenderRole(requester, group, senderRole);
+		if (requester.isFinestLogOn())
+			requester.logger.log(Level.FINEST,
+					Influence.GET_DIFFERED_MESSAGES_NUMBER_BY_SENDER_ROLE + " (group=" + group+" , senderRole="+senderRole + ", removedNumber="+res+")" + requester.getName());
+		return res;
+	}
+	@Override
+	long getDifferedMessagesNumberByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
+		long res= kernel.getDifferedMessagesNumberByReceiverRole(requester, group, receiverRole);
+		if (requester.isFinestLogOn())
+			requester.logger.log(Level.FINEST,
+					Influence.GET_DIFFERED_MESSAGES_NUMBER_BY_RECEIVER_ROLE + " (group=" + group+" , receiverRole="+receiverRole + ", removedNumber="+res+")" + requester.getName());
+		return res;
+	}
+	@Override
+	long getDifferedMessagesNumberByGroup(AbstractAgent requester, Group group)  {
+		long res= kernel.getDifferedMessagesNumberByGroup(requester, group);
+		if (requester.isFinestLogOn())
+			requester.logger.log(Level.FINEST,
+					Influence.GET_DIFFERED_MESSAGES_NUMBER_BY_GROUP + " (group=" + group+", removedNumber="+res+")" + requester.getName());
+		return res;
+
+	}
 	@Override
 	// the log is done in the kernel to not deal with the catch or specify
 	// requirement in the not logged method

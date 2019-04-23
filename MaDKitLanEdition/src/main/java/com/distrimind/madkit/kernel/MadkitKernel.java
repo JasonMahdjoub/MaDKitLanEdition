@@ -1520,13 +1520,13 @@ class MadkitKernel extends Agent {
 		if (differedMessageTable==null)
 		{
 			bugReport(new MadkitException("Cannot differ cancel differed messages when no database was loaded !"));
-			return -1;
+			return 0;
 		}
 		try {
 			return differedMessageTable.cancelDifferedMessagesBySenderRole(group, senderRole);
 		} catch (DatabaseException e) {
 			bugReport(e);
-			return -1;
+			return 0;
 		}
 	}
 	long cancelDifferedMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
@@ -1537,13 +1537,13 @@ class MadkitKernel extends Agent {
 
 		if (differedMessageTable==null) {
 			bugReport(new MadkitException("Cannot differ cancel differed messages when no database was loaded !"));
-			return -1;
+			return 0;
 		}
 		try {
 			return differedMessageTable.cancelDifferedMessagesByReceiverRole(group, receiverRole);
 		} catch (DatabaseException e) {
 			bugReport(e);
-			return -1;
+			return 0;
 		}
 	}
 	long cancelDifferedMessagesByGroup(AbstractAgent requester, Group group)  {
@@ -1552,18 +1552,119 @@ class MadkitKernel extends Agent {
 
 		if (differedMessageTable==null) {
 			bugReport(new MadkitException("Cannot differ cancel differed messages when no database was loaded !"));
-			return -1;
+			return 0;
 		}
 		try {
 			return differedMessageTable.cancelDifferedMessagesByGroup(group);
 		} catch (DatabaseException e) {
 			bugReport(e);
-			return -1;
+			return 0;
 		}
 
 	}
 
+	List<DifferedMessageTable.Record> getDifferedMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
+		if (group==null)
+			throw new NullPointerException();
+		if (senderRole==null)
+			throw new NullPointerException();
 
+		if (differedMessageTable==null)
+		{
+			bugReport(new MadkitException("Cannot get differed messages when no database was loaded !"));
+			return new ArrayList<>(0);
+		}
+		try {
+			return differedMessageTable.getDifferedMessagesBySenderRole(group, senderRole);
+		} catch (DatabaseException e) {
+			bugReport(e);
+			return new ArrayList<>(0);
+		}
+	}
+	List<DifferedMessageTable.Record> getDifferedMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
+		if (group==null)
+			throw new NullPointerException();
+		if (receiverRole==null)
+			throw new NullPointerException();
+
+		if (differedMessageTable==null) {
+			bugReport(new MadkitException("Cannot get differed messages when no database was loaded !"));
+			return new ArrayList<>(0);
+		}
+		try {
+			return differedMessageTable.getDifferedMessagesByReceiverRole(group, receiverRole);
+		} catch (DatabaseException e) {
+			bugReport(e);
+			return new ArrayList<>(0);
+		}
+	}
+	List<DifferedMessageTable.Record> getDifferedMessagesByGroup(AbstractAgent requester, Group group)  {
+		if (group==null)
+			throw new NullPointerException();
+
+		if (differedMessageTable==null) {
+			bugReport(new MadkitException("Cannot get differed messages when no database was loaded !"));
+			return new ArrayList<>(0);
+		}
+		try {
+			return differedMessageTable.getDifferedMessagesByGroup(group);
+		} catch (DatabaseException e) {
+			bugReport(e);
+			return new ArrayList<>(0);
+		}
+
+	}
+	long getDifferedMessagesNumberBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
+		if (group==null)
+			throw new NullPointerException();
+		if (senderRole==null)
+			throw new NullPointerException();
+
+		if (differedMessageTable==null)
+		{
+			bugReport(new MadkitException("Cannot get differed messages when no database was loaded !"));
+			return 0;
+		}
+		try {
+			return differedMessageTable.getDifferedMessagesNumberBySenderRole(group, senderRole);
+		} catch (DatabaseException e) {
+			bugReport(e);
+			return 0;
+		}
+	}
+	long getDifferedMessagesNumberByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
+		if (group==null)
+			throw new NullPointerException();
+		if (receiverRole==null)
+			throw new NullPointerException();
+
+		if (differedMessageTable==null) {
+			bugReport(new MadkitException("Cannot get differed messages when no database was loaded !"));
+			return 0;
+		}
+		try {
+			return differedMessageTable.getDifferedMessagesNumberByReceiverRole(group, receiverRole);
+		} catch (DatabaseException e) {
+			bugReport(e);
+			return 0;
+		}
+	}
+	long getDifferedMessagesNumberByGroup(AbstractAgent requester, Group group)  {
+		if (group==null)
+			throw new NullPointerException();
+
+		if (differedMessageTable==null) {
+			bugReport(new MadkitException("Cannot get differed messages when no database was loaded !"));
+			return 0;
+		}
+		try {
+			return differedMessageTable.getDifferedMessagesNumberByGroup(group);
+		} catch (DatabaseException e) {
+			bugReport(e);
+			return 0;
+		}
+
+	}
 	ReturnCode sendMessage(final AbstractAgent requester, AbstractGroup group, final String role, final Message message,
 			final String senderRole) {
 		try {

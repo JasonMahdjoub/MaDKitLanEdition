@@ -38,6 +38,7 @@
 package com.distrimind.madkit.kernel;
 
 import com.distrimind.jdkrewrite.concurrent.LockerCondition;
+import com.distrimind.madkit.database.DifferedMessageTable;
 import com.distrimind.madkit.i18n.ErrorMessages;
 import com.distrimind.madkit.io.RandomInputStream;
 import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
@@ -166,6 +167,37 @@ class FakeKernel extends MadkitKernel {
 		throw buildKernelException(requester);
 
 	}
+
+	@Override
+	List<DifferedMessageTable.Record> getDifferedMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
+		throw buildKernelException(requester);
+
+	}
+	@Override
+	List<DifferedMessageTable.Record> getDifferedMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
+		throw buildKernelException(requester);
+
+	}
+	@Override
+	List<DifferedMessageTable.Record> getDifferedMessagesByGroup(AbstractAgent requester, Group group)  {
+		throw buildKernelException(requester);
+
+
+	}
+	@Override
+	long getDifferedMessagesNumberBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
+		throw buildKernelException(requester);
+	}
+	@Override
+	long getDifferedMessagesNumberByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
+		throw buildKernelException(requester);
+	}
+	@Override
+	long getDifferedMessagesNumberByGroup(AbstractAgent requester, Group group)  {
+		throw buildKernelException(requester);
+
+	}
+
 	@Override
 	final ReturnCode sendMessage(final AbstractAgent agent, AbstractGroup group, final String role,
 			final Message messageToSend, final String senderRole) {
