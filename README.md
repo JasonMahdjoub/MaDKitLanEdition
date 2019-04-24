@@ -56,6 +56,7 @@ You can also find inspiration into Junit tests.
     * If no opened port is available or if no UPNP IGD rooter is available for two concerned distant peers, the system can choose to make an indirect connection between the two peers, through a dedicated server. This server is not able to decode messages between the two peers if the connection is secured.
 * Enable to send simple messages between agents, or big data transfers (like files) between agents. Each connexion work in parallel. For one connexion, simple agent messages are sent according a FIFO policy (First In, First Out). However, there are some messages that are part of the MKLE protocol that are considered as a priority (i.e. Ping/Pong messages). For one connexion, big data transfers are sent in parallel with other big data transfers and with simple agent messages.
 * individual agent messages can be encrypted or not. By default, all agent messages are encrypted.
+* Possibility to send asynchronous messages. If no receiver is available, the message to send is stored into the MaDKit database. When an agent with the targeted group/role becomes available, the message is sent to it before being removed from the database.
 * multiple connections are possible between two same peers (through multiple interfaces). The system will use each connection in parallel by choosing for each packet to send the connection which offer more bandwidth or which is less busy
 * IPV4 and IPV6 compatible at the same time
 * The system detects hot plug of network interfaces
@@ -116,7 +117,7 @@ Adapt into your build.gradle file, the next code :
 	...
 	dependencies {
 		...
-		compile(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '1.11.0-Stable')
+		compile(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '1.11.1-Stable')
 		...
 	}
 	...
@@ -132,7 +133,7 @@ Adapt into your pom.xml file, the next code :
 			<dependency>
 				<groupId>com.distrimind.madkit</groupId>
 				<artifactId>MaDKitLanEdition</artifactId>
-				<version>1.11.0-Stable</version>
+				<version>1.11.1-Stable</version>
 			</dependency>
 			...
 		</dependencies>

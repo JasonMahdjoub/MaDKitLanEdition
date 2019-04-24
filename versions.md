@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-1.11.0 Stable (Build: 278) (from 22/05/2015 to 22/04/2019)
+1.11.1 Stable (Build: 282) (from 22/05/2015 to 24/04/2019)
 
 # Creator(s):
 Jason MAHDJOUB
@@ -14,7 +14,12 @@ Jacques FERBER (Entred in the team at 01/02/1997)
 # Modifications:
 
 
-### 1.11.0 Stable (22/04/2019)
+### 1.11.1 Stable (24/04/2019)
+* Minimal modification into SecuredObjectOutputStream and SecuredObjectInputStream classes. 
+* Fix bad use of garbage collector with ConversationID. 
+
+
+### 1.11.0 Stable (23/04/2019)
 * Add SecuredObjectOutputStream and SecuredObjectInputStream classes. Do not use native ObjectInputStream.
 * Add possibility to send asynchronous messages (AbstractAgent.sendMessageWithRoleOrDifferSendingUntilRecipientWasFound).
 
