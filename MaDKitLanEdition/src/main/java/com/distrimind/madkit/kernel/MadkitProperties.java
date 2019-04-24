@@ -42,6 +42,7 @@ import java.net.MalformedURLException;
 import java.net.NetworkInterface;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -343,14 +344,14 @@ public class MadkitProperties extends MultiFormatProperties {
 
 
 	/**
-	 * Root group path that enable to filter asynchronous messages.
+	 * Root groups path that enable to filter asynchronous messages.
 	 * If the messages sending to differ has no group that is part of this path,
 	 * these messages are not sent.
 	 * If null is defined, all messages to differ are accepted.
 	 * However, we recommend to define this variable in order to optimize MaDKit.
 	 * The more this path is restrictive, the more MaDKit is reactive.
 	 */
-	public String rootOfPathGroupUsedToFilterDifferedMessages=null;
+	public Collection<String> rootOfPathGroupUsedToFilterDifferedMessages=null;
 
 	public MadkitProperties() {
 		super(new MultiFormatPropertiesObjectParser());

@@ -45,6 +45,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.Collections;
 
 /**
  * @author Jason Mahdjoub
@@ -332,7 +333,7 @@ public class AsynchronousMessageTests extends JunitMadkit{
 					Assert.assertEquals(0, getDifferedMessagesNumberByGroup(JunitMadkit.GROUP2));
 					Assert.assertEquals(0, getDifferedMessagesNumberByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE2));
 					Assert.assertEquals(0, getDifferedMessagesNumberBySenderRole(JunitMadkit.GROUP2, JunitMadkit.ROLE));
-					getMadkitConfig().rootOfPathGroupUsedToFilterDifferedMessages = JunitMadkit.GROUP2.getPath();
+					getMadkitConfig().rootOfPathGroupUsedToFilterDifferedMessages = Collections.singletonList(JunitMadkit.GROUP2.getPath());
 					rc = sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(JunitMadkit.GROUP2, JunitMadkit.ROLE, new StringMessage("ok2"), JunitMadkit.ROLE);
 					m = receiver.nextMessage();
 					Assert.assertNull(m);
@@ -354,7 +355,7 @@ public class AsynchronousMessageTests extends JunitMadkit{
 					Assert.assertEquals(0, getDifferedMessagesNumberByGroup(JunitMadkit.GROUP2));
 					Assert.assertEquals(0, getDifferedMessagesNumberByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE));
 					Assert.assertEquals(0, getDifferedMessagesNumberBySenderRole(JunitMadkit.GROUP2, JunitMadkit.ROLE));
-					getMadkitConfig().rootOfPathGroupUsedToFilterDifferedMessages = JunitMadkit.GROUP2.getSubGroup("awesome sub group").getPath();
+					getMadkitConfig().rootOfPathGroupUsedToFilterDifferedMessages = Collections.singletonList(JunitMadkit.GROUP2.getSubGroup("awesome sub group").getPath());
 					rc = sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(JunitMadkit.GROUP2, JunitMadkit.ROLE, new StringMessage("ok2"), JunitMadkit.ROLE);
 					m = receiver.nextMessage();
 					Assert.assertNull(m);

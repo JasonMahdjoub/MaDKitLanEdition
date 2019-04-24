@@ -197,30 +197,34 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 	}
 
 	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
-	private boolean isConcerned(String baseGroupPath, String groupPath)
+	private boolean isConcerned(Collection<String> baseGroupPathList, String groupPath)
 	{
-		if (baseGroupPath==null)
+		if (baseGroupPathList==null)
 			return true;
-		if (baseGroupPath.length()>groupPath.length())
-			return false;
-		int i=0;
-		int j=baseGroupPath.length();
-		int limit=baseGroupPath.length()/2;
+		for (String baseGroupPath : baseGroupPathList) {
+			if (baseGroupPath==null)
+				continue;
+			if (baseGroupPath.length() > groupPath.length())
+				continue;
+			int i = 0;
+			int j = baseGroupPath.length();
+			int limit = baseGroupPath.length() / 2;
 
-		while(i<=limit && j>limit)
-		{
-			--j;
-			if (baseGroupPath.charAt(i)!=groupPath.charAt(i))
-				return false;
-			if (i!=j && baseGroupPath.charAt(j)!=groupPath.charAt(j))
-				return false;
+			while (i <= limit && j > limit) {
+				--j;
+				if (baseGroupPath.charAt(i) != groupPath.charAt(i))
+					continue;
+				if (i != j && baseGroupPath.charAt(j) != groupPath.charAt(j))
+					continue;
 
-			++i;
+				++i;
+			}
+			return true;
 		}
-		return true;
+		return false;
 	}
 
-	public void newAgentConnected(String baseGroupPath, final AbstractAgent agent, final AgentAddress agentAddress) throws DatabaseException {
+	public void newAgentConnected(Collection<String> baseGroupPath, final AbstractAgent agent, final AgentAddress agentAddress) throws DatabaseException {
 		final String groupPath=agentAddress.getGroup().getPath();
 		if (!isConcerned(baseGroupPath, groupPath))
 			return ;
@@ -291,7 +295,7 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 		});
 	}
 
-	public void newAgentDisconnected(String baseGroupPath, AgentAddress agentAddress)
+	public void newAgentDisconnected(Collection<String> baseGroupPath, AgentAddress agentAddress)
 	{
 		final String groupPath=agentAddress.getGroup().getPath();
 		if (!isConcerned(baseGroupPath, groupPath))
@@ -302,7 +306,7 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 
 	}
 
-	public AbstractAgent.ReturnCode differMessage(String baseGroupPath, final AbstractAgent requester, final Group group, final String roleSender, final String roleReceiver, final Message message) throws DatabaseException {
+	public AbstractAgent.ReturnCode differMessage(Collection<String> baseGroupPath, final AbstractAgent requester, final Group group, final String roleSender, final String roleReceiver, final Message message) throws DatabaseException {
 
 		final String groupPath=group.getPath();
 		if (!isConcerned(baseGroupPath, groupPath))
