@@ -279,9 +279,9 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 	private transient volatile Map<KernelAddress, InterfacedIDs> global_interfaced_ids = null;
 	protected transient Map<KernelAddress, OriginalID> myInterfacedIDs = null;
 
-	/*Map<KernelAddress, InterfacedIDs> getGlobalInterfacedIDs() {
+	Map<KernelAddress, InterfacedIDs> getGlobalInterfacedIDs() {
 		return this.global_interfaced_ids;
-	}*/
+	}
 
 	@SuppressWarnings({"SynchronizeOnNonFinalField", "deprecation"})
 	@Override

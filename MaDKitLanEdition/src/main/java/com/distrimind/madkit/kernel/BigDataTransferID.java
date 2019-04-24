@@ -60,37 +60,37 @@ public class BigDataTransferID extends ConversationID {
 	BigDataTransferID() {
 	}
 
-	//private ConversationID cid;
+	private ConversationID cid;
 
-	/*@Override
+	@Override
 	public void writeExternal(SecuredObjectOutputStream out) throws IOException {
 		super.writeExternal(out);
 		out.writeObject(cid,false );
 
-	}*/
+	}
 
 	@Override
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		stat=null;
 		super.readExternal(in);
-		//cid=in.readObject(false, ConversationID.class);
+		cid=in.readObject(false, ConversationID.class);
 	}
 	
 	
 	BigDataTransferID(ConversationID cid, RealTimeTransfertStat stat) {
-		//super(-1, null);
-		super(cid);
-		/*if (cid == null)
-			throw new NullPointerException("cid");*/
+		super(-1, null);
+		//super(cid);
+		if (cid == null)
+			throw new NullPointerException("cid");
 		this.stat = stat;
-		//this.cid = cid;
+		this.cid = cid;
 	}
 	BigDataTransferID(int id, KernelAddress kernelAddress, RealTimeTransfertStat stat) {
 		super(id, kernelAddress);
 		this.stat = stat;
 	}
 
-	/*@Override
+	@Override
 	protected int getID() {
 		return cid.getID();
 	}
@@ -138,7 +138,7 @@ public class BigDataTransferID extends ConversationID {
 	@Override
 	Map<KernelAddress, InterfacedIDs> getGlobalInterfacedIDs() {
 		return cid.getGlobalInterfacedIDs();
-	}*/
+	}
 
 	/**
 	 * Gets statistics in bytes per seconds related to the concerned big data
