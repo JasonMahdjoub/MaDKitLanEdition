@@ -91,6 +91,8 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 	}
 
 	ConversationID(ConversationID conversationID) {
+		if (conversationID==null)
+			throw new NullPointerException();
 		this.id = conversationID.id;
 		this.origin = conversationID.origin;
 		if (conversationID.global_interfaced_ids!=null)
@@ -277,9 +279,9 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 	private transient volatile Map<KernelAddress, InterfacedIDs> global_interfaced_ids = null;
 	protected transient Map<KernelAddress, OriginalID> myInterfacedIDs = null;
 
-	Map<KernelAddress, InterfacedIDs> getGlobalInterfacedIDs() {
+	/*Map<KernelAddress, InterfacedIDs> getGlobalInterfacedIDs() {
 		return this.global_interfaced_ids;
-	}
+	}*/
 
 	@SuppressWarnings({"SynchronizeOnNonFinalField", "deprecation"})
 	@Override
@@ -331,19 +333,22 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 						}
 						distantid = i.getNewID(this.id);
 					}
+					else
+						distantid.incrementPointerToThisOriginalID();
 				}
+
 				myInterfacedIDs.put(distantKernelAddress, distantid);
 			}
-			/*else
+			else
 			{
 				distantid.incrementPointerToThisOriginalID();
-			}*/
+			}
 			/*
 			 * else { myInterfacedIDs.put(distantKernelAddress, distantid); }
 			 */
-			/*if (this instanceof BigDataTransferID)
+			if (this instanceof BigDataTransferID)
 				return new BigDataTransferID(distantid.getOriginalID(), origin, ((BigDataTransferID) this).getBytePerSecondsStat());
-			else*/
+			else
 				return new ConversationID(distantid.getOriginalID(), origin);
 			/*
 			 * ConversationID cid=new ConversationID(distantid.getOriginalID(), origin);
@@ -352,9 +357,9 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 			 * distantid.incrementPointerToThisOriginalID(); return cid;
 			 */
 		} else {
-			/*if (this instanceof BigDataTransferID)
+			if (this instanceof BigDataTransferID)
 				return new BigDataTransferID(0, null, null);
-			else*/
+			else
 				return new ConversationID(0, null);
 
 		}
@@ -364,9 +369,9 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 	ConversationID getInterfacedConversationIDFromDistantPeer(Map<KernelAddress, InterfacedIDs> global_interfaced_ids,
 															  KernelAddress currentKernelAddress, KernelAddress distantKernelAddress) {
 		if (origin == null) {
-			/*if (this instanceof BigDataTransferID)
+			if (this instanceof BigDataTransferID)
 				return BigDataTransferID.getConversationIDInstance();
-			else*/
+			else
 				return ConversationID.getConversationIDInstance();
 		} else if (origin.equals(distantKernelAddress)) {
 			return this;
@@ -405,9 +410,9 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 
 				// return new ConversationID(o.originalID, origin);
 				ConversationID cid;
-				/*if (this instanceof BigDataTransferID)
+				if (this instanceof BigDataTransferID)
 					cid=new BigDataTransferID(o.getOriginalID(), origin, ((BigDataTransferID) this).getBytePerSecondsStat());
-				else*/
+				else
 					cid = new ConversationID(o.getOriginalID(), origin);
 
 				cid.global_interfaced_ids = global_interfaced_ids;
@@ -421,8 +426,8 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 				 */
 				return cid;
 			}
-		} /*else 	if (this instanceof BigDataTransferID)
-			return BigDataTransferID.getConversationIDInstance();*/
+		} else 	if (this instanceof BigDataTransferID)
+			return BigDataTransferID.getConversationIDInstance();
 		else {
 			return ConversationID.getConversationIDInstance();
 		}
