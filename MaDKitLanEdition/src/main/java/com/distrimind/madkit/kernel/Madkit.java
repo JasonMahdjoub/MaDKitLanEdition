@@ -121,8 +121,8 @@ final public class Madkit {
 		Calendar c = Calendar.getInstance();
 		c.set(2015, Calendar.MAY, 22);
 		Calendar c2 = Calendar.getInstance();
-		c2.set(2019, Calendar.APRIL, 24);
-		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)1, (short)11, (short)1, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
+		c2.set(2019, Calendar.MAY, 6);
+		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)2, (short)0, (short)0, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
 		try {
 
 			InputStream is = Madkit.class.getResourceAsStream("build.txt");
@@ -144,8 +144,14 @@ final public class Madkit {
 			VERSION.addDeveloper(new PersonDeveloper("Ferber", "Jacques", c.getTime()));
 
 			c = Calendar.getInstance();
+			c.set(2019, Calendar.MAY, 6);
+			Description d = new Description((short)2, (short)0, (short)0, Version.Type.Stable, (short)1, c.getTime());
+			d.addItem("");
+			VERSION.addDescription(d);
+
+			c = Calendar.getInstance();
 			c.set(2019, Calendar.APRIL, 24);
-			Description d = new Description((short)1, (short)11, (short)1, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)1, (short)11, (short)1, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Minimal modification into SecuredObjectOutputStream and SecuredObjectInputStream classes. ");
 			d.addItem("Fix bad use of garbage collector with ConversationID. ");
 			VERSION.addDescription(d);

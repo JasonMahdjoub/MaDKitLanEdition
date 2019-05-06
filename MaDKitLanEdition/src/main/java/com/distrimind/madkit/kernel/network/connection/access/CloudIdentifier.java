@@ -48,7 +48,7 @@ import com.distrimind.util.crypto.ASymmetricPublicKey;
  * {@link HostIdentifier} of the same program linked through network.
  * 
  * @author Jason Mahdjoub
- * @version 1.1
+ * @version 2.2
  * @since MadKitLanEdition 1.0
  * @see Identifier
  * @see HostIdentifier
@@ -76,10 +76,31 @@ public abstract class CloudIdentifier implements SecureExternalizable {
 	 */
 	public abstract byte[] getSaltBytes();
 
+	/**
+	 * Tells if the authentication by public key is sufficient and do not need a password/key authentication.
+	 * If true is returned, than the functions {@link #getCloudPublicKey()} and {@link #getCloudKeyPair()} cannot return null.
+	 * @return true if the authentication by public key is sufficient and do not need a password/key authentication
+	 * @see #getCloudPublicKey()
+	 * @see #getCloudKeyPair()
+	 */
 	public abstract boolean isAutoIdentifiedCloudWithPublicKey();
 
+	/**
+	 * Returns the cloud public key used to authenticate the peer.
+	 * If it not returns null, than the function {@link #getCloudKeyPair()} must no return null.
+	 *
+	 *
+	 * @return the cloud public key or null if no authentication through the identifier is necessary
+	 * @see #getCloudKeyPair()
+	 */
 	public abstract ASymmetricPublicKey getCloudPublicKey();
 
+	/**
+	 * Return the cloud key pair used to authenticate the peer.
+	 * This function cannot returns null if the {@link #getCloudPublicKey()} doest not returns null.
+	 * @return the cloud key pair, or null if the {@link #getCloudPublicKey()} does not returns null.
+	 * @see #getCloudPublicKey()
+	 */
 	public abstract ASymmetricKeyPair getCloudKeyPair();
 
 
