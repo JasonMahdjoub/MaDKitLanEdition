@@ -89,12 +89,22 @@ public class SecuredObjectInputStream extends InputStream  {
 		return objectInput.readUnsignedByte();
 	}
 
+
 	public short readShort() throws IOException {
 		return objectInput.readShort();
 	}
 
 	public int readUnsignedShort() throws IOException {
 		return objectInput.readUnsignedShort();
+	}
+
+	public int readUnsignedShortInt() throws IOException {
+		int ch1 = read();
+		int ch2 = read();
+		int ch3 = read();
+		if ((ch1 | ch2 | ch3) < 0)
+			throw new IOException();
+		return (ch1 << 16) + (ch2 << 8) + (ch3);
 	}
 
 	public char readChar() throws IOException {

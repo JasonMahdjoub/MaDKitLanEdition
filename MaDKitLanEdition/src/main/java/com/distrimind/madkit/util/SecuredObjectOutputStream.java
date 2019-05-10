@@ -92,6 +92,16 @@ public class SecuredObjectOutputStream extends OutputStream {
 		objectOutput.writeShort(v);
 	}
 
+	public void writeUnsignedShort(int v) throws IOException {
+		objectOutput.writeShort(v);
+	}
+
+	public void writeUnsignedShortInt(int v) throws IOException {
+		write((v >>> 16) & 0xFF);
+		write((v >>> 8) & 0xFF);
+		write((v) & 0xFF);
+	}
+
 	public void writeChar(int v) throws IOException {
 		objectOutput.writeChar(v);
 	}
