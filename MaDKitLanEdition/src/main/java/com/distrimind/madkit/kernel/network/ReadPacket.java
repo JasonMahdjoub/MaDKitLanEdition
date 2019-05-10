@@ -186,7 +186,7 @@ final class ReadPacket {
 
 				offset+=subBlock.getOffset();
 				if (currentPacketDataSize > 0) {
-					output_stream.write(bytes, offset, currentPacketDataSize);
+					output_stream.writeFully(bytes, offset, currentPacketDataSize);
 					if (messageDigest != null)
 						messageDigest.update(bytes, offset, currentPacketDataSize);
 					current_pos += currentPacketDataSize;

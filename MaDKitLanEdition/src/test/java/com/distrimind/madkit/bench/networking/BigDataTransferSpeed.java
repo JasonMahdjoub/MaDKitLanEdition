@@ -37,39 +37,11 @@
  */
 package com.distrimind.madkit.bench.networking;
 
-import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Collections;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
 
-import com.distrimind.util.crypto.SymmetricAuthentifiedSignatureType;
-import com.distrimind.util.crypto.SymmetricEncryptionType;
 import org.junit.Test;
-import org.junit.Assert;
 
 import com.distrimind.madkit.io.RandomByteArrayInputStream;
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.AgentAddress;
-import com.distrimind.madkit.kernel.BigDataResultMessage;
-import com.distrimind.madkit.kernel.JunitMadkit;
-import com.distrimind.madkit.kernel.MadkitEventListener;
-import com.distrimind.madkit.kernel.MadkitProperties;
-import com.distrimind.madkit.kernel.Message;
-import com.distrimind.madkit.kernel.network.AbstractIP;
-import com.distrimind.madkit.kernel.network.AccessDataMKEventListener;
-import com.distrimind.madkit.kernel.network.AccessProtocolPropertiesMKEventListener;
-import com.distrimind.madkit.kernel.network.ConnectionsProtocolsMKEventListener;
-import com.distrimind.madkit.kernel.network.DoubleIP;
-import com.distrimind.madkit.kernel.network.NetworkEventListener;
-import com.distrimind.madkit.kernel.network.connection.access.AbstractAccessProtocolProperties;
-import com.distrimind.madkit.kernel.network.connection.access.AccessProtocolWithP2PAgreementProperties;
-import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolWithKeyAgreementProperties;
-import com.distrimind.madkit.testing.util.agent.BigDataTransferReceiverAgent;
-import com.distrimind.madkit.testing.util.agent.NormalAgent;
 
 
 /**

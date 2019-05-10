@@ -52,7 +52,6 @@ import java.util.logging.Level;
 
 import com.distrimind.jdkrewrite.concurrent.LockerCondition;
 import com.distrimind.madkit.database.DifferedMessageTable;
-import com.distrimind.madkit.exceptions.MadkitException;
 import com.distrimind.madkit.i18n.Words;
 import com.distrimind.madkit.io.RandomInputStream;
 import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;

@@ -263,7 +263,7 @@ public final class WritePacket {
 				if (readed_data != currentPacketDataSize)
 					throw new IllegalAccessError("Illegal writed data quantity : writed=" + readed_data + ", expected="
 							+ currentPacketDataSize);
-				// int readed_data=input_stream.read(res, offset, size);
+				// int readed_data=input_stream.readFully(res, offset, size);
 
 				current_pos.addAndGet(readed_data);
 
@@ -458,7 +458,7 @@ public final class WritePacket {
 
 		@Override
 		int writeData(RandomInputStream _is, int _size) throws IOException {
-			int rl = _is.read(tab, cursor, _size);
+			int rl = _is.readFully(tab, cursor, _size);
 			if (messageDigest != null)
 				messageDigest.update(tab, cursor, _size);
 			cursor += rl;
@@ -582,7 +582,7 @@ public final class WritePacket {
 				int length = Math.min(nextRandValuePos - cursor, size);
 
 				if (length > 0) {
-					int readLength = is.read(tab, cursor, length);
+					int readLength = is.readFully(tab, cursor, length);
 					if (messageDigest != null)
 						messageDigest.update(tab, cursor, length);
 
