@@ -37,9 +37,9 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
-import com.distrimind.madkit.util.SecureExternalizable;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 import com.distrimind.madkit.util.SecuredObjectOutputStream;
 
@@ -47,76 +47,75 @@ import java.io.IOException;
 
 /**
  * 
- * 
  * @author Jason Mahdjoub
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-abstract class BroadcastableSystemMessage implements SystemMessage, SecureExternalizable {
+class TransferClosedWithoutInnerSizeControl extends BroadcastableWithoutInnerSizeControl {
 
-	private IDTransfer idTransferDestination;
-	private KernelAddress kernelAddressDestination;
-	private transient MessageLocker messageLocker = null;
+	private IDTransfer idTransfer;
+	private boolean lastPass;
 	
-	BroadcastableSystemMessage()
+	@SuppressWarnings("unused")
+	TransferClosedWithoutInnerSizeControl()
 	{
+		
+	}
+
+	TransferClosedWithoutInnerSizeControl(IDTransfer _idTransferDestination, KernelAddress _kernelAddressDestination,
+										  IDTransfer idTransfer, boolean lastPass) {
+		super(_idTransferDestination, _kernelAddressDestination);
+		if (idTransfer == null)
+			throw new NullPointerException("idTransfer");
+		if (idTransfer.equals(TransferAgent.NullIDTransfer))
+			throw new IllegalArgumentException("idTransfer cannot be equals to TransferAgent.NullIDTransfer");
+		this.idTransfer = idTransfer;
+		this.lastPass = lastPass;
 		
 	}
 	@Override
 	public int getInternalSerializedSize() {
 		
-		return (idTransferDestination==null?1:1+idTransferDestination.getInternalSerializedSize())+kernelAddressDestination.getInternalSerializedSize();
+		return super.getInternalSerializedSize()+idTransfer.getInternalSerializedSize()+1;
 	}
+
+
 	@Override
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
-		idTransferDestination=in.readObject(true, IDTransfer.class);
-		kernelAddressDestination=in.readObject(false, KernelAddress.class);
+		super.readExternal(in);
+		idTransfer=in.readObject(false, IDTransfer.class);
+		lastPass=in.readBoolean();
+		if (idTransfer.equals(TransferAgent.NullIDTransfer))
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 	}
 
 	@Override
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
-		oos.writeObject(idTransferDestination, true);
-		oos.writeObject(kernelAddressDestination, false);
+		super.writeExternal(oos);
+		oos.writeObject(idTransfer, false);
+
+		oos.writeBoolean(lastPass);
 	}
-	
-	
-	BroadcastableSystemMessage(IDTransfer idTransferDestination, KernelAddress kernelAddressDestination) {
-		if (kernelAddressDestination == null)
-			throw new NullPointerException("kernelAddressDestination");
-		this.idTransferDestination = idTransferDestination;
-		this.kernelAddressDestination = kernelAddressDestination;
+	boolean isLastPass() {
+		return lastPass;
 	}
 
-	void setMessageLocker(MessageLocker locker) {
-		messageLocker = locker;
-	}
-
-	MessageLocker getMessageLocker() {
-		return messageLocker;
+	IDTransfer getIdTransfer() {
+		return idTransfer;
 	}
 
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + "[idTransferDestination=" + idTransferDestination
-				+ ", kernelAddressDestination=" + kernelAddressDestination + "]";
-	}
-
-	final void setIdTransferDestination(IDTransfer id) {
-		if (id == null)
-			throw new NullPointerException("null");
-		idTransferDestination = id;
-	}
-
-	final IDTransfer getIdTransferDestination() {
-		return idTransferDestination;
-	}
-
-	KernelAddress getKernelAddressDestination() {
-		return kernelAddressDestination;
+		return getClass().getSimpleName() + "[idTransferDestination=" + getIdTransferDestination()
+				+ ", kernelAddressDestination=" + getKernelAddressDestination() + ", idTransfer=" + idTransfer + "]";
 	}
 
 	
-	
-	
 
+	@Override
+	public boolean excludedFromEncryption() {
+		return false;
+	}
+	
+	
 }

@@ -38,7 +38,7 @@
 package com.distrimind.madkit.kernel.network;
 
 import com.distrimind.jdkrewrite.concurrent.LockerCondition;
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.io.RandomInputStream;
 import com.distrimind.madkit.io.RandomOutputStream;
 import com.distrimind.madkit.kernel.*;
@@ -266,7 +266,7 @@ class MadkitKernelAccess {
 		}
 	}*/
 
-	static void dataCorrupted(BigDataPropositionMessage m, long dataTransfered, MessageSerializationException e) {
+	static void dataCorrupted(BigDataPropositionMessage m, long dataTransfered, MessageExternalizationException e) {
 		try {
 			invoke(m_big_data_data_corrupted, m, dataTransfered, e);
 		} catch (InvocationTargetException e2) {
@@ -424,7 +424,7 @@ class MadkitKernelAccess {
 		m_set_big_data_id_packet = getMethod(BigDataPropositionMessage.class, "setIDPacket", int.class);
 		m_get_big_data_result_id_packet = getMethod(BigDataResultMessage.class, "getIDPacket");
 		//m_big_data_connection_lost = getMethod(BigDataPropositionMessage.class, "connectionLost", long.class);
-		m_big_data_data_corrupted = getMethod(BigDataPropositionMessage.class, "dataCorrupted", long.class, MessageSerializationException.class);
+		m_big_data_data_corrupted = getMethod(BigDataPropositionMessage.class, "dataCorrupted", long.class, MessageExternalizationException.class);
 		m_big_data_complete = getMethod(BigDataPropositionMessage.class, "transferCompleted", long.class);
 		m_connectionLostForBigDataTransfer = getMethod(c_madkit_kernel, "connectionLostForBigDataTransfer",
 				AbstractAgent.class, ConversationID.class, int.class, AgentAddress.class, AgentAddress.class,

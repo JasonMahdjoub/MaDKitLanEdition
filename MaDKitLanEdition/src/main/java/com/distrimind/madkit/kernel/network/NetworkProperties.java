@@ -47,8 +47,7 @@ import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolPropert
 import com.distrimind.madkit.kernel.network.connection.access.AbstractAccessProtocolProperties;
 import com.distrimind.madkit.kernel.network.connection.access.AccessData;
 import com.distrimind.madkit.util.MultiFormatPropertiesObjectParser;
-import com.distrimind.madkit.util.SecureExternalizable;
-import com.distrimind.madkit.util.SecureExternalizableSystemMessage;
+import com.distrimind.madkit.util.SecureExternalizableWithoutInnerSizeControl;
 import com.distrimind.madkit.util.XMLUtilities;
 import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.util.properties.MultiFormatProperties;
@@ -114,7 +113,7 @@ public class NetworkProperties extends MultiFormatProperties {
 		addAcceptedSerializedClassWithRegex("^java.*");
 		addAcceptedSerializedClassWithRegex("^com\\.distrimind.*");
 		addAcceptedSerializedClass(Number.class);
-		addAcceptedSerializedClass(SecureExternalizableSystemMessage.class);
+		addAcceptedSerializedClass(SecureExternalizableWithoutInnerSizeControl.class);
 		addAcceptedSerializedClass(Date.class);
 		addDeniedSerializedClassWithRegex("^org\\.apache\\.commons\\.collections\\.functors\\.InvokerTransformer$");
 		addDeniedSerializedClassWithRegex("^org\\.apache\\.commons\\.collections\\.functors\\.InstantiateTransformer$");

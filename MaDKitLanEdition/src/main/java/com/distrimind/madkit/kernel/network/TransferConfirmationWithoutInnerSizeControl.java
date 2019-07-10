@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
 import com.distrimind.madkit.kernel.network.connection.PointToPointTransferedBlockChecker;
@@ -54,7 +54,7 @@ import java.net.InetSocketAddress;
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-class TransferConfirmationSystemMessage extends BroadcastableSystemMessage {
+class TransferConfirmationWithoutInnerSizeControl extends BroadcastableWithoutInnerSizeControl {
 
 	private IDTransfer yourIDTransfer;
 	private IDTransfer myIDTransfer;
@@ -66,7 +66,7 @@ class TransferConfirmationSystemMessage extends BroadcastableSystemMessage {
 	private PointToPointTransferedBlockChecker pointToPointBlockChecker;
 	
 	@SuppressWarnings("unused")
-	TransferConfirmationSystemMessage()
+	TransferConfirmationWithoutInnerSizeControl()
 	{
 		
 	}
@@ -90,7 +90,7 @@ class TransferConfirmationSystemMessage extends BroadcastableSystemMessage {
 		pointToPointBlockChecker=in.readObject(true, PointToPointTransferedBlockChecker.class);
 
 		if (numberOfSubBlocks < 0)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		
 	}
 
@@ -108,10 +108,10 @@ class TransferConfirmationSystemMessage extends BroadcastableSystemMessage {
 	}
 	
 	
-	TransferConfirmationSystemMessage(IDTransfer idTransferDestinationUsedForBroadcast,
-			KernelAddress kernelAddressDestination, KernelAddress kernelAddressToConnect, IDTransfer yourIDTransfer,
-			IDTransfer myIDTransfer, int numberOfSubBlocks, boolean middleReached,
-			InetSocketAddress distantInetSocketAddress, PointToPointTransferedBlockChecker pointToPointBlockChecker) {
+	TransferConfirmationWithoutInnerSizeControl(IDTransfer idTransferDestinationUsedForBroadcast,
+												KernelAddress kernelAddressDestination, KernelAddress kernelAddressToConnect, IDTransfer yourIDTransfer,
+												IDTransfer myIDTransfer, int numberOfSubBlocks, boolean middleReached,
+												InetSocketAddress distantInetSocketAddress, PointToPointTransferedBlockChecker pointToPointBlockChecker) {
 		super(idTransferDestinationUsedForBroadcast, kernelAddressDestination);
 		if (yourIDTransfer == null)
 			throw new NullPointerException("null");

@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.kernel.Group;
 import com.distrimind.madkit.kernel.KernelAddress;
@@ -54,7 +54,7 @@ import java.io.IOException;
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-final class AcceptedGroups implements SystemMessage {
+final class AcceptedGroups implements WithoutInnerSizeControl {
 
 	public Group[] accepted_groups_and_requested;
 	public MultiGroup accepted_groups;
@@ -105,41 +105,41 @@ final class AcceptedGroups implements SystemMessage {
 		int totalSize=4;
 		int size=in.readInt();
 		if (size<0)
-			throw new MessageSerializationException(Integrity.FAIL);
+			throw new MessageExternalizationException(Integrity.FAIL);
 		
 		if (totalSize+size*ObjectSizer.OBJREF_SIZE+ObjectSizer.OBJREF_SIZE>globalSize)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		accepted_groups_and_requested=new Group[size];
 		for (int i=0;i<size;i++)
 		{
 			accepted_groups_and_requested[i]=in.readObject(false, Group.class);
 			totalSize+=accepted_groups_and_requested[i].getInternalSerializedSize();
 			if (totalSize>globalSize)
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		}
 		accepted_groups=in.readObject(false, MultiGroup.class);
 		totalSize+=accepted_groups.getInternalSerializedSize();
 		if (totalSize>globalSize)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 
 		kernelAddress=in.readObject(false, KernelAddress.class);
 		totalSize+=kernelAddress.getInternalSerializedSize();
 		if (totalSize>globalSize)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 
 		distant_agent_socket_address=in.readObject(false, AgentAddress.class);
 		totalSize+=distant_agent_socket_address.getInternalSerializedSize();
 		if (totalSize>globalSize)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 
 		
 		if (accepted_groups.isEmpty())
-			throw new MessageSerializationException(Integrity.FAIL);
+			throw new MessageExternalizationException(Integrity.FAIL);
 		for (Group g : accepted_groups_and_requested) {
 			if (g == null)
-				throw new MessageSerializationException(Integrity.FAIL);
+				throw new MessageExternalizationException(Integrity.FAIL);
 			if (g.isUsedSubGroups())
-				throw new MessageSerializationException(Integrity.FAIL);
+				throw new MessageExternalizationException(Integrity.FAIL);
 		}
 		
 	}

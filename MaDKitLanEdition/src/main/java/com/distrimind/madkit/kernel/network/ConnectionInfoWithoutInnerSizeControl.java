@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.network.LocalNetworkAgent.PossibleAddressForDirectConnnection;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 import com.distrimind.madkit.util.SecuredObjectOutputStream;
@@ -57,7 +57,7 @@ import java.util.List;
  * @since MadkitLanEdition 1.0
  *
  */
-class ConnectionInfoSystemMessage implements SystemMessage {
+class ConnectionInfoWithoutInnerSizeControl implements WithoutInnerSizeControl {
 
 	private ArrayList<AbstractIP> addresses;
 	private AbstractIP localAddresses;
@@ -66,7 +66,7 @@ class ConnectionInfoSystemMessage implements SystemMessage {
 	private boolean canBeDirectServer;
 
 	@SuppressWarnings("unused")
-	ConnectionInfoSystemMessage()
+	ConnectionInfoWithoutInnerSizeControl()
 	{
 		
 	}
@@ -77,14 +77,14 @@ class ConnectionInfoSystemMessage implements SystemMessage {
 		int size=in.readInt();
 		int totalSize=4;
 		if (size<0 || totalSize+size*4>globalSize)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		addresses=new ArrayList<>(size);
 		for (int i=0;i<size;i++)
 		{
 			AbstractIP aip=in.readObject(false, AbstractIP.class);
 			totalSize+=aip.getInternalSerializedSize();
 			if (totalSize>globalSize)
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			addresses.add(aip);
 		}
 		localAddresses=in.readObject(true, AbstractIP.class);
@@ -93,14 +93,14 @@ class ConnectionInfoSystemMessage implements SystemMessage {
 			
 			totalSize+=localAddresses.getInternalSerializedSize();
 			if (totalSize>globalSize)
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			
 		}
 		manualPortToConnect=in.readInt();
 		localPortToConnect=in.readInt();
 		canBeDirectServer=in.readBoolean();
 		if (localPortToConnect < 0)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 
 	}
 
@@ -119,9 +119,9 @@ class ConnectionInfoSystemMessage implements SystemMessage {
 	}
 	
 	
-	ConnectionInfoSystemMessage(List<PossibleAddressForDirectConnnection> inet_socket_addresses,
-			InetAddress local_interface_address, int manualPortToConnect, int localPortToConnect,
-			boolean canBeDirectServer, AbstractIP localAddresses) {
+	ConnectionInfoWithoutInnerSizeControl(List<PossibleAddressForDirectConnnection> inet_socket_addresses,
+										  InetAddress local_interface_address, int manualPortToConnect, int localPortToConnect,
+										  boolean canBeDirectServer, AbstractIP localAddresses) {
 		this.addresses = new ArrayList<>(inet_socket_addresses.size());
 		for (PossibleAddressForDirectConnnection r : inet_socket_addresses) {
 			if (r.isConcernedBy(local_interface_address)) {

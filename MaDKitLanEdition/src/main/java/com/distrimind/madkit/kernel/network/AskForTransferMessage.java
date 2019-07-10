@@ -301,10 +301,10 @@ public class AskForTransferMessage extends Message {
 		protected final KernelAddress kernelAddress;
 		protected final InetSocketAddress inetAddress;
 		protected final int numberOfIntermediatePeers;
-		protected final ConnectionInfoSystemMessage connectionInfo;
+		protected final ConnectionInfoWithoutInnerSizeControl connectionInfo;
 
 		CandidateForTransfer(AgentAddress agentSocket, KernelAddress kernelAddress, InetSocketAddress inetAddress,
-				int numberOfIntermediatePeers, ConnectionInfoSystemMessage connectionInfo) {
+				int numberOfIntermediatePeers, ConnectionInfoWithoutInnerSizeControl connectionInfo) {
 			if (agentSocket == null)
 				throw new NullPointerException("agentSocket");
 			if (kernelAddress == null)
@@ -357,7 +357,7 @@ public class AskForTransferMessage extends Message {
 	}
 
 	CandidateForTransfer getCandidate(AgentAddress agentSocket, KernelAddress kernelAddress,
-			InetSocketAddress inetAddress, int numberOfIntermediatePeers, ConnectionInfoSystemMessage connectionInfo) {
+			InetSocketAddress inetAddress, int numberOfIntermediatePeers, ConnectionInfoWithoutInnerSizeControl connectionInfo) {
 		return new CandidateForTransfer(agentSocket, kernelAddress, inetAddress, numberOfIntermediatePeers,
 				connectionInfo);
 	}

@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.AbstractGroup;
 import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.kernel.Group;
@@ -78,18 +78,18 @@ final class BroadcastLanMessage extends LanMessage {
 		role=in.readString( false, Group.MAX_ROLE_NAME_LENGTH);
 		totalSize+=SerializationTools.getInternalSize(role, Group.MAX_ROLE_NAME_LENGTH);
 		if (totalSize>globalSize)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		int size=in.readInt();
 		totalSize+=4;
 		if (size<=0 || totalSize+size*4>globalSize)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		agentAddressesSender=new ArrayList<>(size);
 		for (int i=0;i<size;i++)
 		{
 			AgentAddress aa=in.readObject( false, AgentAddress.class);
 			totalSize+=aa.getInternalSerializedSize();
 			if (totalSize>globalSize)
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 
 			agentAddressesSender.add(aa);
 			

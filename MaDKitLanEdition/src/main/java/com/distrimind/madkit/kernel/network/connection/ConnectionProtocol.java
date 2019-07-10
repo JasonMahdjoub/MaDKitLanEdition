@@ -41,7 +41,7 @@ import com.distrimind.madkit.exceptions.*;
 import com.distrimind.madkit.i18n.ErrorMessages;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.*;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
+import com.distrimind.madkit.kernel.network.WithoutInnerSizeControl.Integrity;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 import com.distrimind.madkit.util.SecuredObjectOutputStream;
@@ -757,7 +757,7 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 			super.readExternal(in);
 			headSize=in.readShort();
 			if (headSize < 0)
-				throw new MessageSerializationException(Integrity.FAIL);
+				throw new MessageExternalizationException(Integrity.FAIL);
 		}
 
 		@Override

@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 import com.distrimind.madkit.util.SecuredObjectOutputStream;
 
@@ -69,7 +69,7 @@ public class AccessMessagesList extends AccessMessage {
 
 	@Override
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
-		throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+		throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 	}
 	@Override
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {

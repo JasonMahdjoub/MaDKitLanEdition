@@ -38,7 +38,7 @@
 
 package com.distrimind.madkit.kernel.network.connection;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 import com.distrimind.madkit.util.SecuredObjectOutputStream;
 
@@ -72,7 +72,7 @@ public class NegotiateConnection extends AskConnection {
         super.readExternal(in);
         short s=in.readShort();
         if (s<0 || s>ConnectionProtocolNegotiatorProperties.MAXIMUM_NUMBER_OF_CONNECTION_PROTOCOLS)
-            throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+            throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
         priorities=new HashMap<>();
         for (int i=0;i<s;i++)
         {

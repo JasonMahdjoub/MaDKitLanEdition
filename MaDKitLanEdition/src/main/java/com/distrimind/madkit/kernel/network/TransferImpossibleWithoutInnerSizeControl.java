@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
@@ -51,17 +51,17 @@ import java.io.IOException;
  * @version 1.3
  * @since MadkitLanEdition 1.0
  */
-class TransferImpossibleSystemMessage extends BroadcastableSystemMessage {
+class TransferImpossibleWithoutInnerSizeControl extends BroadcastableWithoutInnerSizeControl {
 
 	private IDTransfer yourIDTransfer;
 
-	TransferImpossibleSystemMessage()
+	TransferImpossibleWithoutInnerSizeControl()
 	{
 		
 	}
 	
-	TransferImpossibleSystemMessage(IDTransfer _idTransferDestination, KernelAddress _kernelAddressDestination,
-			IDTransfer yourIDTransfer) {
+	TransferImpossibleWithoutInnerSizeControl(IDTransfer _idTransferDestination, KernelAddress _kernelAddressDestination,
+											  IDTransfer yourIDTransfer) {
 		super(_idTransferDestination, _kernelAddressDestination);
 		if (yourIDTransfer == null)
 			throw new NullPointerException("yourIDTransfer");
@@ -81,7 +81,7 @@ class TransferImpossibleSystemMessage extends BroadcastableSystemMessage {
 		super.readExternal(in);
 		yourIDTransfer=in.readObject(false, IDTransfer.class);
 		if (yourIDTransfer.equals(TransferAgent.NullIDTransfer))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 	}
 
 	@Override

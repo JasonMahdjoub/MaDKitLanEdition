@@ -33,9 +33,9 @@
  */
 package com.distrimind.madkit.message;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.Message;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
+import com.distrimind.madkit.kernel.network.WithoutInnerSizeControl.Integrity;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.madkit.util.SerializationTools;
@@ -94,7 +94,7 @@ public class ObjectMessage<T> extends Message {
 		}
 		catch(Exception e)
 		{
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, e);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, e);
 			
 		}
 		excludeFromEncryption=in.readBoolean();

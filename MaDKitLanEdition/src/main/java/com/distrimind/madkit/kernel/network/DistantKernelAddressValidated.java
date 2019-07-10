@@ -49,7 +49,7 @@ import java.io.IOException;
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-public class DistantKernelAddressValidated implements SystemMessage {
+public class DistantKernelAddressValidated implements WithoutInnerSizeControl {
 
 	@Override
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {

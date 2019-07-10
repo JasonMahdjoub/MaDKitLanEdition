@@ -38,7 +38,7 @@
 package com.distrimind.madkit.kernel.network;
 
 import com.distrimind.madkit.agr.LocalCommunity;
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.exceptions.OverflowException;
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.NetworkAgent.StopNetworkMessage;
@@ -71,7 +71,7 @@ class TransferAgent extends AgentFakeThread {
 	protected final AskForTransferMessage originalAskMessage;
 	private CandidateForTransfer candidate1 = null, candidate2 = null;
 	private boolean directConnection2Tried = false;
-	private TransferConfirmationSystemMessage confirmation1 = null, confirmation2 = null;
+	private TransferConfirmationWithoutInnerSizeControl confirmation1 = null, confirmation2 = null;
 	private int numberOfIntermediatePeers = 0;
 	private State state = State.TRANSFER_NOT_ACTIVE;
 	protected IDTransfer idTransfer = null;
@@ -213,9 +213,9 @@ class TransferAgent extends AgentFakeThread {
 			ObjectMessage<?> om = (ObjectMessage<?>) _message;
 			if (om.getContent() == null)
 				return;
-			if (om.getContent().getClass() == TransferConfirmationSystemMessage.class) {
+			if (om.getContent().getClass() == TransferConfirmationWithoutInnerSizeControl.class) {
 
-				TransferConfirmationSystemMessage t = (TransferConfirmationSystemMessage) om.getContent();
+				TransferConfirmationWithoutInnerSizeControl t = (TransferConfirmationWithoutInnerSizeControl) om.getContent();
 				boolean ok = true;
 				if (_message.getSender().equals(candidate1.getAgentAddress())) {
 					confirmation1 = t;
@@ -230,13 +230,13 @@ class TransferAgent extends AgentFakeThread {
 						getMadkitConfig().networkProperties.addIfNecessaryAndGetStatsBandwidth(this.idTransfer.getID());
 
 						sendMessageWithRole(candidate1.getAgentAddress(),
-								new ObjectMessage<>(new TransferConfirmationSystemMessage(null,
+								new ObjectMessage<>(new TransferConfirmationWithoutInnerSizeControl(null,
 										candidate1.getKernelAddress(), candidate2.getKernelAddress(),
 										confirmation1.getMyIDTransfer(), idTransfer,
 										confirmation1.getNumberOfSubBlocks(), true, candidate2.getInetAddress(), null)),
 								LocalCommunity.Roles.TRANSFER_AGENT_ROLE);
 						sendMessageWithRole(candidate2.getAgentAddress(),
-								new ObjectMessage<>(new TransferConfirmationSystemMessage(null,
+								new ObjectMessage<>(new TransferConfirmationWithoutInnerSizeControl(null,
 										candidate2.getKernelAddress(), candidate1.getKernelAddress(),
 										confirmation2.getMyIDTransfer(), idTransfer,
 										confirmation2.getNumberOfSubBlocks(), true, candidate1.getInetAddress(), null)),
@@ -250,18 +250,18 @@ class TransferAgent extends AgentFakeThread {
 
 					}
 				}
-			} else if (om.getContent().getClass() == TransferImpossibleSystemMessage.class) {
-				TransferImpossibleSystemMessage t = (TransferImpossibleSystemMessage) om.getContent();
+			} else if (om.getContent().getClass() == TransferImpossibleWithoutInnerSizeControl.class) {
+				TransferImpossibleWithoutInnerSizeControl t = (TransferImpossibleWithoutInnerSizeControl) om.getContent();
 				if (t.getYourIDTransfer().equals(idTransfer)) {
 					boolean ok = true;
 					if (_message.getSender().equals(candidate1.getAgentAddress())) {
 						sendMessageWithRole(candidate2.getAgentAddress(),
-								new ObjectMessage<>(new TransferImpossibleSystemMessageFromMiddlePeer(null,
+								new ObjectMessage<>(new TransferImpossibleWithoutInnerSizeControlFromMiddlePeer(null,
 										candidate2.getKernelAddress(), null, idTransfer)),
 								LocalCommunity.Roles.TRANSFER_AGENT_ROLE);
 					} else if (_message.getSender().equals(candidate2.getAgentAddress())) {
 						sendMessageWithRole(candidate1.getAgentAddress(),
-								new ObjectMessage<>(new TransferImpossibleSystemMessageFromMiddlePeer(null,
+								new ObjectMessage<>(new TransferImpossibleWithoutInnerSizeControlFromMiddlePeer(null,
 										candidate1.getKernelAddress(), null, idTransfer)),
 								LocalCommunity.Roles.TRANSFER_AGENT_ROLE);
 					} else {
@@ -278,19 +278,19 @@ class TransferAgent extends AgentFakeThread {
 						this.killAgent(this);
 					}
 				}
-			} else if (om.getContent().getClass() == TransferClosedSystemMessage.class) {
-				TransferClosedSystemMessage t = (TransferClosedSystemMessage) om.getContent();
+			} else if (om.getContent().getClass() == TransferClosedWithoutInnerSizeControl.class) {
+				TransferClosedWithoutInnerSizeControl t = (TransferClosedWithoutInnerSizeControl) om.getContent();
 				if (t.getIdTransfer().equals(idTransfer)) {
 					boolean ok = false;
 					if (_message.getSender().equals(candidate1.getAgentAddress())) {
 						// sendMessageWithRole(candidate2.getAgentAddress(), new ObjectMessage<>(new
-						// TransferClosedSystemMessage(t.getIdTransferDestination(),
+						// TransferClosedWithoutInnerSizeControl(t.getIdTransferDestination(),
 						// candidate2.getKernelAddress(), idTransfer, t.isLastPass())),
 						// LocalCommunity.Roles.TRANSFER_AGENT_ROLE);
 						ok = true;
 					} else if (_message.getSender().equals(candidate2.getAgentAddress())) {
 						// sendMessageWithRole(candidate1.getAgentAddress(), new ObjectMessage<>(new
-						// TransferClosedSystemMessage(t.getIdTransferDestination(),
+						// TransferClosedWithoutInnerSizeControl(t.getIdTransferDestination(),
 						// candidate1.getKernelAddress(), idTransfer, t.isLastPass())),
 						// LocalCommunity.Roles.TRANSFER_AGENT_ROLE);
 						ok = true;
@@ -448,13 +448,13 @@ class TransferAgent extends AgentFakeThread {
 			if (!lastPass || state == State.TRANSFER_ACTIVE) {
 				if (!candidate1.getAgentAddress().equals(askedFrom)) {
 					sendMessageWithRole(
-							candidate1.getAgentAddress(), new ObjectMessage<>(new TransferClosedSystemMessage(null,
+							candidate1.getAgentAddress(), new ObjectMessage<>(new TransferClosedWithoutInnerSizeControl(null,
 									candidate1.getKernelAddress(), idTransfer, lastPass)),
 							LocalCommunity.Roles.TRANSFER_AGENT_ROLE);
 				}
 				if (!candidate2.getAgentAddress().equals(askedFrom)) {
 					sendMessageWithRole(
-							candidate2.getAgentAddress(), new ObjectMessage<>(new TransferClosedSystemMessage(null,
+							candidate2.getAgentAddress(), new ObjectMessage<>(new TransferClosedWithoutInnerSizeControl(null,
 									candidate2.getKernelAddress(), idTransfer, lastPass)),
 							LocalCommunity.Roles.TRANSFER_AGENT_ROLE);
 				}
@@ -726,10 +726,10 @@ class TransferAgent extends AgentFakeThread {
 			super.readExternal(in);
 			inetSocketAddress=in.readObject(false, InetSocketAddress.class);
 			if (inetSocketAddress==null)
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 
             if (inetSocketAddress.getPort() < 0)
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		}
 
 		@Override
@@ -740,7 +740,7 @@ class TransferAgent extends AgentFakeThread {
 		}
 	}
 
-	static class DirectConnection implements SystemMessage {
+	static class DirectConnection implements WithoutInnerSizeControl {
 		protected IDTransfer idTransfer;
 
 		DirectConnection(IDTransfer idTransfer) {

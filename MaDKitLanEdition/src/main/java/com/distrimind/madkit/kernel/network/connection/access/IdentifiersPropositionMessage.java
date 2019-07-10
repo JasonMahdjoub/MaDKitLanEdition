@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.madkit.util.SecureExternalizable;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
@@ -79,12 +79,12 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		for (int i=0;i<s.length;i++)
 		{
 			if (!(s[i] instanceof Identifier))
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			identifiers[i]=(Identifier)s[i];
 			if (isEncrypted && !identifiers[i].getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey() && !(identifiers[i] instanceof EncryptedIdentifier))
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			if (isEncrypted && identifiers[i].getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey() && (identifiers[i] instanceof EncryptedIdentifier))
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		}
 		
 	}

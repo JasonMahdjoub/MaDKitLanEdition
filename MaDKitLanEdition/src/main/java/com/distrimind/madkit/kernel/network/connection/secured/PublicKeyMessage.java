@@ -39,7 +39,7 @@ package com.distrimind.madkit.kernel.network.connection.secured;
 
 
 import com.distrimind.madkit.exceptions.ConnectionException;
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.network.connection.AskConnection;
 import com.distrimind.madkit.kernel.network.connection.ConnectionMessage;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
@@ -81,25 +81,25 @@ class PublicKeyMessage extends ConnectionMessage {
 		{
 			Key k=Key.decode(public_key_for_encryption_bytes);
 			if (!(k instanceof ASymmetricPublicKey))
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			public_key_for_encryption = (ASymmetricPublicKey) k;
 
 			if (public_key_for_signature_bytes==null)
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			k=Key.decode(public_key_for_signature_bytes);
 
 			if (!(k instanceof ASymmetricPublicKey))
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			public_key_for_signature = (ASymmetricPublicKey) k;
 
  			ASymmetricAuthentifiedSignatureCheckerAlgorithm checker=new ASymmetricAuthentifiedSignatureCheckerAlgorithm(public_key_for_signature);
 			if (!checker.verify(public_key_for_encryption_bytes, signedPublicKey))
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			
 		} catch (Exception e) {
-			if (e instanceof MessageSerializationException)
-				throw (MessageSerializationException)e;
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			if (e instanceof MessageExternalizationException)
+				throw (MessageExternalizationException)e;
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		}
 	}
 

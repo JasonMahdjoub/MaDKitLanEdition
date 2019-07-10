@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.madkit.util.SerializationTools;
@@ -90,31 +90,31 @@ public class MultipleIP extends AbstractIP {
 		int totalSize=4;
 		int size=in.readInt();
 		if (size<0 || totalSize+size*4>globalSize)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		this.inet4Adresses = new ArrayList<>(size);
 		for (int i=0;i<size;i++)
 		{
 			Inet4Address ia=in.readObject(false, Inet4Address.class);
 			totalSize+=SerializationTools.getInternalSize(ia);
 			if (totalSize>globalSize)
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			inet4Adresses.add(ia);
 		}
 		size=in.readInt();
 		totalSize+=4;
 		if (size<0 || totalSize+size*4>globalSize)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		this.inet6Adresses = new ArrayList<>(size);
 		for (int i=0;i<size;i++)
 		{
 			Inet6Address ia=in.readObject(false, Inet6Address.class);
 			totalSize+=SerializationTools.getInternalSize(ia);
 			if (totalSize>globalSize)
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			inet6Adresses.add(ia);
 		}
 		if (inet4Adresses.isEmpty() && inet6Adresses.isEmpty())
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 	}
 
 	@Override

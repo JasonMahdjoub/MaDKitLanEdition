@@ -40,10 +40,10 @@ package com.distrimind.madkit.kernel.network.connection.secured;
 import com.distrimind.madkit.database.KeysPairs;
 import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.exceptions.ConnectionException;
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.*;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
+import com.distrimind.madkit.kernel.network.WithoutInnerSizeControl.Integrity;
 import com.distrimind.madkit.kernel.network.connection.*;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 import com.distrimind.madkit.util.SecuredObjectOutputStream;
@@ -1000,7 +1000,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 			}
 			catch(Exception e2)
 			{
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, e2);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, e2);
 			}
 		}
 

@@ -49,7 +49,7 @@ import com.distrimind.madkit.kernel.CGRSynchro.Code;
 import com.distrimind.madkit.kernel.network.AbstractAgentSocket.AgentSocketKilled;
 import com.distrimind.madkit.kernel.network.AbstractAgentSocket.Groups;
 import com.distrimind.madkit.kernel.network.AbstractAgentSocket.ReceivedBlockData;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
+import com.distrimind.madkit.kernel.network.WithoutInnerSizeControl.Integrity;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
@@ -328,7 +328,7 @@ class DistantKernelAgent extends AgentFakeThread {
 								ml.lock();
 							}
 
-							CGRSynchroSystemMessage message = new CGRSynchroSystemMessage(m);
+							CGRSynchroWithoutInnerSizeControl message = new CGRSynchroWithoutInnerSizeControl(m);
 							sendData(asd.getAgentAddress(), message, m.getCode() != Code.LEAVE_GROUP && m.getCode() != Code.LEAVE_ROLE, ml, false);
 							if (ml!=null)
 								ml.waitUnlock(this, true);
@@ -697,18 +697,18 @@ class DistantKernelAgent extends AgentFakeThread {
 							//updateLocalAcceptedGroups();
 						}
 
-					} else if (o.getClass() == ConnectionInfoSystemMessage.class) {
+					} else if (o.getClass() == ConnectionInfoWithoutInnerSizeControl.class) {
 						AgentSocketData asd = getAgentSocketDataFromItsAgentAddress(_message.getSender());
 						if (asd != null) {
 							if (logger != null && logger.isLoggable(Level.FINEST))
 								logger.finest("Receiving connection information from " + _message.getSender()
 										+ " (distantInterfacedKernelAddress=" + distant_kernel_address + ") : " + o);
 
-							asd.setConnectionInfo((ConnectionInfoSystemMessage) o);
+							asd.setConnectionInfo((ConnectionInfoWithoutInnerSizeControl) o);
 						} else if (logger != null)
 							logger.severe(
 									"Impossible to found agent socket data from agent address " + _message.getSender()
-											+ ". So impossible to set given ConnectionInfoSystemMessage.");
+											+ ". So impossible to set given ConnectionInfoWithoutInnerSizeControl.");
 					} else if (o.getClass() == BigDataPropositionMessage.class) {
 						BigDataPropositionMessage bdpm = (BigDataPropositionMessage) o;
 						if (bdpm.getSender().getKernelAddress().equals(distant_kernel_address)) {
@@ -1403,7 +1403,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		private Groups myAcceptedGroups = null;
 		final InetSocketAddress distant_inet_socket_address;
 		final int numberOfIntermediatePeers;
-		ConnectionInfoSystemMessage distantConnectionInfo = null;
+		ConnectionInfoWithoutInnerSizeControl distantConnectionInfo = null;
 		private boolean distantKernelAddressValidated;
 		//private final CounterSelector counterSelector;
 
@@ -1463,11 +1463,11 @@ class DistantKernelAgent extends AgentFakeThread {
 			return Double.compare(v, 0.0);
 		}
 
-		void setConnectionInfo(ConnectionInfoSystemMessage distantConnectionInfo) {
+		void setConnectionInfo(ConnectionInfoWithoutInnerSizeControl distantConnectionInfo) {
 			this.distantConnectionInfo = distantConnectionInfo;
 		}
 
-		ConnectionInfoSystemMessage getConnectionInfo() {
+		ConnectionInfoWithoutInnerSizeControl getConnectionInfo() {
 			return this.distantConnectionInfo;
 		}
 
@@ -1674,7 +1674,7 @@ class DistantKernelAgent extends AgentFakeThread {
 
 				if (!agent_addresses.isEmpty()) {
 
-					CGRSynchrosSystemMessage message = new CGRSynchrosSystemMessage(agent_addresses, getKernelAddress(),
+					CGRSynchrosWithoutInnerSizeControl message = new CGRSynchrosWithoutInnerSizeControl(agent_addresses, getKernelAddress(),
 							removedAcceptedGroups);
 					AgentSocketData asd = getBestAgentSocket(false);
 					if (asd != null) {
@@ -1756,8 +1756,8 @@ class DistantKernelAgent extends AgentFakeThread {
 	 * last_message) throws MadkitException { sendData(receiver, _data, false,
 	 * _local_lan_message, last_message); }
 	 */
-	protected void sendData(AgentAddress receiver, SystemMessage _data, boolean prioritary,
-			MessageLocker _messageLocker, boolean last_message) throws NIOException {
+	protected void sendData(AgentAddress receiver, WithoutInnerSizeControl _data, boolean prioritary,
+							MessageLocker _messageLocker, boolean last_message) throws NIOException {
 		try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
 			try (OOS oos = new OOS(baos); SecuredObjectOutputStream soos=new SecuredObjectOutputStream(oos)) {
 				soos.writeObject(_data, false);
@@ -2233,8 +2233,8 @@ class DistantKernelAgent extends AgentFakeThread {
 
 		private final MessageLocker messageLocker;
 
-		protected PacketData(AgentAddress first_receiver, SystemMessage lan_message, WritePacket _packet,
-				MessageLocker _messageLocker, boolean _last_message, boolean pioririty, boolean excludedFromEncryption) {
+		protected PacketData(AgentAddress first_receiver, WithoutInnerSizeControl lan_message, WritePacket _packet,
+							 MessageLocker _messageLocker, boolean _last_message, boolean pioririty, boolean excludedFromEncryption) {
 			super(pioririty, first_receiver, _packet,
 					(lan_message instanceof LanMessage) ? ((LanMessage) lan_message).message.getReceiver() : null, excludedFromEncryption);
 			if (_packet.concernsBigData())
@@ -2339,12 +2339,12 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 	}
 
-	static class SendDataFromAgentSocket extends ObjectMessage<SystemMessage> {
+	static class SendDataFromAgentSocket extends ObjectMessage<WithoutInnerSizeControl> {
 
 		final boolean last_message;
 		final boolean prioritary;
 
-		public SendDataFromAgentSocket(SystemMessage _content, boolean last_message, boolean prioritary) {
+		public SendDataFromAgentSocket(WithoutInnerSizeControl _content, boolean last_message, boolean prioritary) {
 			super(_content);
 			this.last_message = last_message;
 			this.prioritary = prioritary;
@@ -2545,7 +2545,7 @@ class DistantKernelAgent extends AgentFakeThread {
 					}
 				}
 				catch (PacketException | IOException e) {
-					boolean candidateToBan=(e instanceof MessageSerializationException) && ((MessageSerializationException) e).getIntegrity().equals(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+					boolean candidateToBan=(e instanceof MessageExternalizationException) && ((MessageExternalizationException) e).getIntegrity().equals(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 					MadkitKernelAccess.dataCorrupted(sr.getOriginalMessage(), sr.getReadPacket().getWritedDataLength(), null);
 					current_big_data_readings.remove(reading.getIdentifier());
 					processInvalidPacketPart(agent_socket_sender, e, p, candidateToBan);
@@ -2614,7 +2614,7 @@ class DistantKernelAgent extends AgentFakeThread {
 
 						}
 					} catch (PacketException | IOException e) {
-						boolean candidateToBan=(e instanceof MessageSerializationException) && ((MessageSerializationException) e).getIntegrity().equals(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+						boolean candidateToBan=(e instanceof MessageExternalizationException) && ((MessageExternalizationException) e).getIntegrity().equals(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 						processInvalidPacketPart(agent_socket_sender, e, p, candidateToBan);
 					}
 				} else {
@@ -2637,7 +2637,7 @@ class DistantKernelAgent extends AgentFakeThread {
 								}
 							}
 						} catch (PacketException | IOException e) {
-							boolean candidateToBan=(e instanceof MessageSerializationException) && ((MessageSerializationException) e).getIntegrity().equals(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+							boolean candidateToBan=(e instanceof MessageExternalizationException) && ((MessageExternalizationException) e).getIntegrity().equals(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 							processInvalidPacketPart(agent_socket_sender, e, p, candidateToBan);
 							sr.freeDataSize();
 						}
@@ -2659,7 +2659,7 @@ class DistantKernelAgent extends AgentFakeThread {
 
 								}
 							}
-							catch(MessageSerializationException e)
+							catch(MessageExternalizationException e)
 							{
 								sr.freeDataSize();
 								processInvalidSerializedObject(agent_socket_sender, e, bytes, e.getIntegrity().equals(Integrity.FAIL_AND_CANDIDATE_TO_BAN));
@@ -2689,8 +2689,8 @@ class DistantKernelAgent extends AgentFakeThread {
 	}
 
 	public void receiveData(AgentAddress agent_socket_sender, Object obj, long dataSize) {
-		if (obj instanceof SystemMessage) {
-			SystemMessage sm = ((SystemMessage) obj);
+		if (obj instanceof WithoutInnerSizeControl) {
+			WithoutInnerSizeControl sm = ((WithoutInnerSizeControl) obj);
 			if (logger != null && logger.isLoggable(Level.FINEST))
 				logger.finest("Receiving system message from " + agent_socket_sender
 						+ " (distantInterfacedKernelAddress=" + distant_kernel_address + ") : " + sm);
@@ -2701,13 +2701,13 @@ class DistantKernelAgent extends AgentFakeThread {
 			processInvalidSerializedObject(agent_socket_sender, null, obj, true);
 	}
 
-	class ReceivedSerializableObject extends ObjectMessage<SystemMessage> {
+	class ReceivedSerializableObject extends ObjectMessage<WithoutInnerSizeControl> {
 
 
 		private final long dataIncrement;
 		private final AtomicLong dataSize = new AtomicLong(0);
 
-		public ReceivedSerializableObject(SystemMessage _content, long dataSize) {
+		public ReceivedSerializableObject(WithoutInnerSizeControl _content, long dataSize) {
 			super(_content);
 			this.dataSize.set(dataSize);
 			this.dataIncrement = dataSize;

@@ -35,45 +35,29 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-package com.distrimind.madkit.exceptions;
+package com.distrimind.madkit.kernel.network;
 
-import java.io.IOException;
+import com.distrimind.madkit.util.SecureExternalizableWithoutInnerSizeControl;
 
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
 
 /**
- * Represents a message destined for connections protocol.
+ * Represent a system message.
  * 
  * @author Jason Mahdjoub
- * @version 1.0
- * @since MadkitLanEdition 1.7
+ * @version 1.2
+ * @since MadkitLanEdition 1.0
  */
-public class MessageSerializationException extends IOException{
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 5325540568268332652L;
+public interface WithoutInnerSizeControl extends SecureExternalizableWithoutInnerSizeControl {
+
+
+
 	
-	private final Integrity integrity;
-	public MessageSerializationException(Integrity integrity)
-	{
-		this(integrity, null, null);
-	}
-	public MessageSerializationException(Integrity integrity, String message)
-	{
-		this(integrity, message, null);
-	}
-	public MessageSerializationException(Integrity integrity, Exception e)
-	{
-		this(integrity, null, e);
-	}
-	public MessageSerializationException(Integrity integrity, String message, Exception e)
-	{
-		super(integrity.toString()+" : "+message, e);
-		this.integrity=integrity;
-	}
-	public Integrity getIntegrity() {
-		return integrity;
-	}
+	//public abstract Integrity checkDataIntegrity();
+	
+	boolean excludedFromEncryption();
+
+
+	
+	
 	
 }

@@ -39,9 +39,9 @@ package com.distrimind.madkit.kernel.network;
 
 import java.io.*;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.MadkitClassLoader;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
+import com.distrimind.madkit.kernel.network.WithoutInnerSizeControl.Integrity;
 
 /**
  * 
@@ -86,10 +86,10 @@ public class FilteredObjectInputStream extends DataInputStream {
 				return c;
 			}
 		}
-		throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, new ClassNotFoundException(desc.getName()));
+		throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, new ClassNotFoundException(desc.getName()));
 	}*/
 	
-	public Class<?> resolveClass(String clazz) throws MessageSerializationException
+	public Class<?> resolveClass(String clazz) throws MessageExternalizationException
 	{
 		try
 		{
@@ -97,7 +97,7 @@ public class FilteredObjectInputStream extends DataInputStream {
 			{
 				Class<?> c=Class.forName(clazz, true, MadkitClassLoader.getSystemClassLoader());
 				if (c==null)
-					throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, new ClassNotFoundException(clazz));
+					throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, new ClassNotFoundException(clazz));
 				if (np.isAcceptedClassForSerializationUsingWhiteClassList(c))
 				{
 					return c;
@@ -106,9 +106,9 @@ public class FilteredObjectInputStream extends DataInputStream {
 		}
 		catch(Exception e)
 		{
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, new ClassNotFoundException(clazz));
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, new ClassNotFoundException(clazz));
 		}
-		throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, new ClassNotFoundException(clazz));
+		throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, new ClassNotFoundException(clazz));
 
 	}
 	
@@ -118,13 +118,13 @@ public class FilteredObjectInputStream extends DataInputStream {
 		for (String s : interfaces)
 		{
 			if (np.isDeniedClassForSerializationUsingPatterns(s))
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, new ClassNotFoundException(s));
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, new ClassNotFoundException(s));
 		}
 		Class<?> c=super.resolveProxyClass(interfaces);
 		if (c==null)
 			return null;
 		if (np.isDeniedClassForSerializationUsingBlackClassList(c))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, new ClassNotFoundException(c.getName()));
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, new ClassNotFoundException(c.getName()));
 		return c;
 	}*/
 }

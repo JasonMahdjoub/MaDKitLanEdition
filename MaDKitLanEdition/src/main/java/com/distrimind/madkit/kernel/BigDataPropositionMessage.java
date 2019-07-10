@@ -37,12 +37,12 @@
  */
 package com.distrimind.madkit.kernel;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.io.RandomInputStream;
 import com.distrimind.madkit.io.RandomOutputStream;
 import com.distrimind.madkit.kernel.network.Block;
 import com.distrimind.madkit.kernel.network.RealTimeTransfertStat;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
+import com.distrimind.madkit.kernel.network.WithoutInnerSizeControl.Integrity;
 import com.distrimind.madkit.util.NetworkMessage;
 import com.distrimind.madkit.util.*;
 import com.distrimind.util.crypto.MessageDigestType;
@@ -265,7 +265,7 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 								outputStream.write(buffer, 0, s);
 								remaining -= s;
 							}
-						} catch(MessageSerializationException e)
+						} catch(MessageExternalizationException e)
 						{
 							dataCorrupted(length - remaining, e);
 						}
@@ -286,7 +286,7 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 			if (data != null) {
 				try {
 					outputStream.write(data);
-				} catch(MessageSerializationException e)
+				} catch(MessageExternalizationException e)
 				{
 					dataCorrupted(0, e);
 				}catch (IOException e) {
@@ -342,7 +342,7 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_PARTIALLY_TRANSFERED, dataTransfered);
 	}
 
-	void dataCorrupted(long dataTransfered, MessageSerializationException e) {
+	void dataCorrupted(long dataTransfered, MessageExternalizationException e) {
 		sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_CORRUPTED, dataTransfered);
 		final AbstractAgent receiver = getReceiver().getAgent();
 		KernelAddress senderKernelAddress=getSender().getKernelAddress();

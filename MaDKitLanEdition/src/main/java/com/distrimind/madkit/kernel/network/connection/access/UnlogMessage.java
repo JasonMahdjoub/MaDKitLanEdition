@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 import com.distrimind.madkit.util.SecuredObjectOutputStream;
@@ -71,14 +71,14 @@ class UnlogMessage extends AccessMessage {
 		int totalSize=4;
 		int globalSize=NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
 		if (size<0 || totalSize+size*4>globalSize)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		identifier_to_unlog=new ArrayList<>(size);
 		for (int i=0;i<size;i++)
 		{
 			Identifier id=in.readObject(false, Identifier.class);
 			totalSize+=id.getInternalSerializedSize();
 			if (totalSize>globalSize)
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			identifier_to_unlog.add(id);
 		}
 	}

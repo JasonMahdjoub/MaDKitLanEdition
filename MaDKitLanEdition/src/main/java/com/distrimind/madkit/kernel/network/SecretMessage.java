@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 import com.distrimind.madkit.util.SecuredObjectOutputStream;
@@ -68,7 +68,7 @@ final class SecretMessage extends KernelAddressNegociationMessage {
 		secretMessage=in.readBytesArray(false, secretMessageSize);
 
 		if (secretMessage.length != secretMessageSize)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		agent_socket_address=in.readObject(true, AgentAddress.class);
 	}
 

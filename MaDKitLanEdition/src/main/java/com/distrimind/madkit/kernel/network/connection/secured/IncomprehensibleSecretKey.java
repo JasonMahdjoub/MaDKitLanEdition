@@ -38,10 +38,9 @@
 package com.distrimind.madkit.kernel.network.connection.secured;
 
 import java.io.IOException;
-import java.io.ObjectInput;
 
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.network.connection.ErrorConnection;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 
@@ -61,7 +60,7 @@ class IncomprehensibleSecretKey extends ErrorConnection {
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		super.readExternal(in);
 		if (!candidate_to_ban)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 	}
 	
 	

@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.CGRSynchro;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 import com.distrimind.madkit.util.SecuredObjectOutputStream;
@@ -50,17 +50,17 @@ import java.io.IOException;
  * @version 1.3
  * @since MadkitLanEdition 1.0
  */
-final class CGRSynchroSystemMessage implements SystemMessage {
+final class CGRSynchroWithoutInnerSizeControl implements WithoutInnerSizeControl {
 
 
 	private CGRSynchro CGRSynchro;
 	@SuppressWarnings("unused")
-	CGRSynchroSystemMessage()
+	CGRSynchroWithoutInnerSizeControl()
 	{
 		
 	}
 	
-	CGRSynchroSystemMessage(CGRSynchro CGRSynchro) {
+	CGRSynchroWithoutInnerSizeControl(CGRSynchro CGRSynchro) {
 		if (CGRSynchro == null)
 			throw new NullPointerException("CGRSynchro");
 
@@ -87,11 +87,11 @@ final class CGRSynchroSystemMessage implements SystemMessage {
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		CGRSynchro=in.readObject(false, CGRSynchro.class);
 		if (CGRSynchro.getInternalSerializedSize()>NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		if (CGRSynchro.getCode() == null)
-			throw new MessageSerializationException(Integrity.FAIL);
+			throw new MessageExternalizationException(Integrity.FAIL);
 		if (CGRSynchro.getContent() == null)
-			throw new MessageSerializationException(Integrity.FAIL);
+			throw new MessageExternalizationException(Integrity.FAIL);
 
 	}
 

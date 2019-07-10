@@ -52,7 +52,6 @@ import com.distrimind.madkit.gui.AgentStatusPanel;
 import com.distrimind.madkit.gui.ConsoleAgent;
 import com.distrimind.madkit.gui.menu.AgentLogLevelMenu;
 import com.distrimind.madkit.i18n.ErrorMessages;
-import com.distrimind.madkit.io.RandomInputStream;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
 import com.distrimind.madkit.kernel.network.*;

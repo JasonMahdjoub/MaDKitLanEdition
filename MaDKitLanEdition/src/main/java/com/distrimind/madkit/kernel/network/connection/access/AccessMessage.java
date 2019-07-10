@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import com.distrimind.madkit.kernel.network.SystemMessage;
+import com.distrimind.madkit.kernel.network.WithoutInnerSizeControl;
 
 /**
  * 
@@ -45,7 +45,7 @@ import com.distrimind.madkit.kernel.network.SystemMessage;
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-public abstract class AccessMessage implements SystemMessage {
+public abstract class AccessMessage implements WithoutInnerSizeControl {
 
 	public short getNbAnomalies() {
 		return 0;

@@ -37,45 +37,70 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.util.SecureExternalizableSystemMessage;
+import com.distrimind.madkit.kernel.KernelAddress;
+import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
+import com.distrimind.madkit.kernel.network.connection.TransferedBlockChecker;
+import com.distrimind.madkit.util.SecuredObjectInputStream;
+import com.distrimind.madkit.util.SecuredObjectOutputStream;
 
-
-
+import java.io.IOException;
 
 /**
- * Represent a system message.
  * 
  * @author Jason Mahdjoub
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-public interface SystemMessage extends SecureExternalizableSystemMessage {
+class TransferBlockCheckerWithoutInnerSizeControl extends BroadcastableWithoutInnerSizeControl {
 
+	private TransferedBlockChecker transferBlockChercker;
 	
-	enum Integrity {
-		/**
-		 * The data integrity is good.
-		 */
-		OK,
+	@SuppressWarnings("unused")
+	TransferBlockCheckerWithoutInnerSizeControl()
+	{
+		
+	}
 
-		/**
-		 * Anomalies occur during the data integrity check.
-		 */
-		FAIL,
+	TransferBlockCheckerWithoutInnerSizeControl(IDTransfer _idTransferDestination, KernelAddress _kernelAddressDestination,
+												TransferedBlockChecker transferBlockChercker) {
+		super(_idTransferDestination, _kernelAddressDestination);
+		if (transferBlockChercker == null)
+			throw new NullPointerException("transferBlockChercker");
+		this.transferBlockChercker = transferBlockChercker;
+	}
 
-		/**
-		 * Anomalies of security occur during the data integrity check.
-		 */
-		FAIL_AND_CANDIDATE_TO_BAN
+	TransferedBlockChecker getTransferBlockChercker() {
+		return transferBlockChercker;
+	}
+	
+	@Override
+	public int getInternalSerializedSize() {
+		
+		return super.getInternalSerializedSize()+transferBlockChercker.getInternalSerializedSize();
+	}
+
+
+	@Override
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+		super.readExternal(in);
+		transferBlockChercker=in.readObject(false, TransferedBlockChecker.class);
+	}
+
+	@Override
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
+		super.writeExternal(oos);
+		oos.writeObject(transferBlockChercker, false );
+
+		
+	}
+	
+
+	@Override
+	public boolean excludedFromEncryption() {
+		return false;
 	}
 
 	
-	//public abstract Integrity checkDataIntegrity();
 	
-	boolean excludedFromEncryption();
 
-
-	
-	
-	
 }

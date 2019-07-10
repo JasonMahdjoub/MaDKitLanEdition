@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
 import com.distrimind.madkit.util.SecureExternalizable;
@@ -52,7 +52,7 @@ import java.io.IOException;
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-class TransferPropositionSystemMessage extends BroadcastableSystemMessage {
+class TransferPropositionWithoutInnerSizeControl extends BroadcastableWithoutInnerSizeControl {
 
 
 	private KernelAddress kernelAddressToConnect;
@@ -62,7 +62,7 @@ class TransferPropositionSystemMessage extends BroadcastableSystemMessage {
 	private boolean finalTestResult = true;
 	private boolean youAskConnection;
 	@SuppressWarnings("unused")
-	TransferPropositionSystemMessage()
+	TransferPropositionWithoutInnerSizeControl()
 	{
 		
 	}
@@ -83,23 +83,23 @@ class TransferPropositionSystemMessage extends BroadcastableSystemMessage {
 		totalSize+=kernelAddressToConnect.getInternalSerializedSize()+1;
 		attachedData=in.readObject(false, SecureExternalizable.class);
 		/*if (attachedData==null)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);*/
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);*/
 		totalSize+=attachedData.getInternalSerializedSize();
 		if (totalSize>globalSize)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		idTransfer=in.readObject( false, IDTransfer.class);
 		totalSize+=idTransfer.getInternalSerializedSize();
 		
 		if (idTransfer.equals(TransferAgent.NullIDTransfer))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		numberOfIntermediatePeers=in.readInt();
 		finalTestResult=in.readBoolean();
 		youAskConnection=in.readBoolean();
 		if (numberOfIntermediatePeers < 0)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		totalSize+=6;
 		if (totalSize>globalSize)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 
 	}
 
@@ -115,9 +115,9 @@ class TransferPropositionSystemMessage extends BroadcastableSystemMessage {
 	}
 	
 	
-	TransferPropositionSystemMessage(IDTransfer idTransferDestinationUsedForBroadcast, IDTransfer idTransfer,
-			KernelAddress kernelAddressToConnect, KernelAddress kernelAddressDestination, int numberOfIntermediatePeers,
-			SecureExternalizable attachedData, boolean youAskConnection) {
+	TransferPropositionWithoutInnerSizeControl(IDTransfer idTransferDestinationUsedForBroadcast, IDTransfer idTransfer,
+											   KernelAddress kernelAddressToConnect, KernelAddress kernelAddressDestination, int numberOfIntermediatePeers,
+											   SecureExternalizable attachedData, boolean youAskConnection) {
 		super(idTransferDestinationUsedForBroadcast, kernelAddressDestination);
 		if (idTransfer == null)
 			throw new NullPointerException("idTransfer");

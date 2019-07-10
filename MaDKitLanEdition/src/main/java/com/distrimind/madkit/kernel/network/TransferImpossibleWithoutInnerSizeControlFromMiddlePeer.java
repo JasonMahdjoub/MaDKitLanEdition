@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
@@ -51,71 +51,49 @@ import java.io.IOException;
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-class TransferClosedSystemMessage extends BroadcastableSystemMessage {
+class TransferImpossibleWithoutInnerSizeControlFromMiddlePeer extends TransferImpossibleWithoutInnerSizeControl {
 
-	private IDTransfer idTransfer;
-	private boolean lastPass;
-	
+	private IDTransfer myIDTransfer;
 	@SuppressWarnings("unused")
-	TransferClosedSystemMessage()
+	TransferImpossibleWithoutInnerSizeControlFromMiddlePeer()
 	{
 		
 	}
+	
+	TransferImpossibleWithoutInnerSizeControlFromMiddlePeer(IDTransfer _idTransferDestination,
+															KernelAddress _kernelAddressDestination, IDTransfer yourIDTransfer, IDTransfer myIDTransfer) {
+		super(_idTransferDestination, _kernelAddressDestination, yourIDTransfer);
+		if (myIDTransfer == null)
+			throw new NullPointerException("myIDTransfer");
+		if (myIDTransfer.equals(TransferAgent.NullIDTransfer))
+			throw new IllegalArgumentException("myIDTransfer cannot be equals to TransferAgent.NullIDTransfer");
 
-	TransferClosedSystemMessage(IDTransfer _idTransferDestination, KernelAddress _kernelAddressDestination,
-			IDTransfer idTransfer, boolean lastPass) {
-		super(_idTransferDestination, _kernelAddressDestination);
-		if (idTransfer == null)
-			throw new NullPointerException("idTransfer");
-		if (idTransfer.equals(TransferAgent.NullIDTransfer))
-			throw new IllegalArgumentException("idTransfer cannot be equals to TransferAgent.NullIDTransfer");
-		this.idTransfer = idTransfer;
-		this.lastPass = lastPass;
-		
+		this.myIDTransfer = myIDTransfer;
 	}
 	@Override
 	public int getInternalSerializedSize() {
 		
-		return super.getInternalSerializedSize()+idTransfer.getInternalSerializedSize()+1;
+		return super.getInternalSerializedSize()+myIDTransfer.getInternalSerializedSize();
 	}
 
 
 	@Override
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		super.readExternal(in);
-		idTransfer=in.readObject(false, IDTransfer.class);
-		lastPass=in.readBoolean();
-		if (idTransfer.equals(TransferAgent.NullIDTransfer))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+		myIDTransfer=in.readObject(false, IDTransfer.class);
+		if (myIDTransfer.equals(TransferAgent.NullIDTransfer))
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 	}
 
 	@Override
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		super.writeExternal(oos);
-		oos.writeObject(idTransfer, false);
-
-		oos.writeBoolean(lastPass);
-	}
-	boolean isLastPass() {
-		return lastPass;
-	}
-
-	IDTransfer getIdTransfer() {
-		return idTransfer;
-	}
-
-	@Override
-	public String toString() {
-		return getClass().getSimpleName() + "[idTransferDestination=" + getIdTransferDestination()
-				+ ", kernelAddressDestination=" + getKernelAddressDestination() + ", idTransfer=" + idTransfer + "]";
-	}
-
-	
-
-	@Override
-	public boolean excludedFromEncryption() {
-		return false;
+		oos.writeObject(myIDTransfer, false);
 	}
 	
-	
+
+	IDTransfer getMyIDTransfer() {
+		return myIDTransfer;
+	}
+
 }

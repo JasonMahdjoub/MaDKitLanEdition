@@ -51,7 +51,7 @@ import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.Connec
 import com.distrimind.madkit.kernel.network.connection.secured.*;
 import com.distrimind.madkit.kernel.network.connection.unsecured.CheckSumConnectionProtocolProperties;
 import com.distrimind.madkit.kernel.network.connection.unsecured.UnsecuredConnectionProtocolProperties;
-import com.distrimind.madkit.util.SecureExternalizableSystemMessage;
+import com.distrimind.madkit.util.SecureExternalizableWithoutInnerSizeControl;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.ood.database.DatabaseConfiguration;
@@ -1016,7 +1016,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		Assert.assertArrayEquals(message, receivedMessage);
 	}
 
-	public static byte[] serialize(SecureExternalizableSystemMessage message) throws IOException {
+	public static byte[] serialize(SecureExternalizableWithoutInnerSizeControl message) throws IOException {
 		
 		try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
 			try (DataOutputStream oos = new DataOutputStream (baos);SecuredObjectOutputStream soos=new SecuredObjectOutputStream(oos)) {
@@ -1026,10 +1026,10 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		}
 	}
 
-	public static SecureExternalizableSystemMessage unserialize(byte[] message) throws IOException, ClassNotFoundException {
+	public static SecureExternalizableWithoutInnerSizeControl unserialize(byte[] message) throws IOException, ClassNotFoundException {
 		try (ByteArrayInputStream bais = new ByteArrayInputStream(message)) {
 			try (DataInputStream ois = new DataInputStream(bais);SecuredObjectInputStream sois=new SecuredObjectInputStream(ois)) {
-				return sois.readObject(false, SecureExternalizableSystemMessage.class);
+				return sois.readObject(false, SecureExternalizableWithoutInnerSizeControl.class);
 
 			}
 		}

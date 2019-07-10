@@ -40,10 +40,10 @@ package com.distrimind.madkit.util;
 import com.distrimind.madkit.action.AgentAction;
 import com.distrimind.madkit.action.GUIManagerAction;
 import com.distrimind.madkit.action.SchedulingAction;
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.network.*;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
+import com.distrimind.madkit.kernel.network.WithoutInnerSizeControl.Integrity;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol;
 import com.distrimind.madkit.kernel.network.connection.PointToPointTransferedBlockChecker;
 import com.distrimind.madkit.kernel.network.connection.access.EncryptedCloudIdentifier;
@@ -126,11 +126,11 @@ public class SerializationTools {
 		if (size==-1)
 		{
 			if (!supportNull)
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			return null;
 		}
 		if (size<0 || size>sizeMax)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, "size="+size+", sizeMax="+sizeMax);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, "size="+size+", sizeMax="+sizeMax);
 		if (sizeMax<MAX_CHAR_BUFFER_SIZE)
 		{
 			synchronized(stringLocker)
@@ -234,11 +234,11 @@ public class SerializationTools {
 		if (size==-1)
 		{
 			if (!supportNull1)
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			return null;
 		}
 		if (size<0 || size>sizeMax1)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		
 		byte [][]tab=new byte[size][];
 		for (int i=0;i<size;i++)
@@ -262,11 +262,11 @@ public class SerializationTools {
 		if (size==-1)
 		{
 			if (!supportNull)
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			return null;
 		}
 		if (size<0 || size>sizeMax)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		if (tab==null) {
 			tab = new byte[size];
 			off = 0;
@@ -307,12 +307,12 @@ public class SerializationTools {
 			try
 			{
 				if (k == null)
-					throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+					throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 				return Key.decode(k);
 			}
 			catch(Exception e)
 			{
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			}
 		}
 		else
@@ -350,12 +350,12 @@ public class SerializationTools {
 			try
 			{
 				if (k==null)
-					throw new MessageSerializationException(Integrity.FAIL);
+					throw new MessageExternalizationException(Integrity.FAIL);
 				return ASymmetricKeyPair.decode(k);
 			}
 			catch(Exception e)
 			{
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			}
 		}
 		else
@@ -407,11 +407,11 @@ public class SerializationTools {
 		if (size==-1)
 		{
 			if (!supportNull)
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			return null;
 		}
 		if (size<0 || size>sizeMax)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 
 		Object []tab=new Object[size];
 		sizeMax-=tab.length;
@@ -437,11 +437,11 @@ public class SerializationTools {
 		if (size==-1)
 		{
 			if (!supportNull)
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			return null;
 		}
 		if (size<0 || size>sizeMax)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 
 		ArrayList<Object> tab=new ArrayList<>(size);
 		sizeMax-=size;
@@ -515,11 +515,11 @@ public class SerializationTools {
 		if (size==-1)
 		{
 			if (!supportNull)
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			return null;
 		}
 		if (size<0 || size*4>sizeMaxBytes)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 
 		ExternalizableAndSizable []tab=new ExternalizableAndSizable[size];
 		sizeMaxBytes-=4;
@@ -527,11 +527,11 @@ public class SerializationTools {
 		{
 			Externalizable o=readExternalizableAndSizable(ois, true);
 			if (!(o instanceof ExternalizableAndSizable))
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			ExternalizableAndSizable s=(ExternalizableAndSizable)o;
 			sizeMaxBytes-=s.getInternalSerializedSize();
 			if (sizeMaxBytes<0)
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			tab[i]=s;
 		}
 
@@ -549,23 +549,23 @@ public class SerializationTools {
 		if (size==-1)
 		{
 			if (!supportNull)
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			return null;
 		}
 		if (size<0 || size*4>sizeMaxBytes)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 
 		SecureExternalizable []tab=new SecureExternalizable[size];
 		sizeMaxBytes-=4;
 		for (int i=0;i<size;i++)
 		{
-			SecureExternalizableSystemMessage s=readExternalizable(ois, true);
+			SecureExternalizableWithoutInnerSizeControl s=readExternalizable(ois, true);
 			if (s!=null) {
 				if (!(s instanceof SecureExternalizable))
-					throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+					throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 				sizeMaxBytes -= ((SecureExternalizable)s).getInternalSerializedSize();
 				if (sizeMaxBytes < 0)
-					throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+					throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			}
 			tab[i]=(SecureExternalizable)s;
 		}
@@ -636,7 +636,7 @@ public class SerializationTools {
 			}
 			catch(Exception e)
 			{
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			}
 		}
 		else
@@ -651,13 +651,13 @@ public class SerializationTools {
 			try
 			{
 				if (address==null)
-					throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+					throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 
 				return InetAddress.getByAddress(address);
 			}
 			catch(Exception e)
 			{
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, e);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, e);
 			}
 		}
 		else
@@ -708,7 +708,7 @@ public class SerializationTools {
 			}
 			catch(Exception e)
 			{
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, e);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, e);
 			}
 		}
 		else
@@ -743,16 +743,16 @@ public class SerializationTools {
 			@SuppressWarnings("rawtypes")
 			Class c=Class.forName(clazz, false, MadkitClassLoader.getSystemClassLoader());
 			if (!c.isEnum())
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			try
 			{
 				if (value==null)
-					throw new MessageSerializationException(Integrity.FAIL);
+					throw new MessageExternalizationException(Integrity.FAIL);
 				return Enum.valueOf(c, value);
 			}
 			catch(ClassCastException e)
 			{
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			}
 
 		}
@@ -771,7 +771,7 @@ public class SerializationTools {
 
 		}
 		Class<?> clazz=e.getClass();
-		if (!ExternalizableAndSizable.class.isAssignableFrom(clazz) && !SystemMessage.class.isAssignableFrom(clazz))
+		if (!ExternalizableAndSizable.class.isAssignableFrom(clazz) && !WithoutInnerSizeControl.class.isAssignableFrom(clazz))
 			throw new IOException();
 
 		if (oos.getClass()==oosClazz)
@@ -790,7 +790,7 @@ public class SerializationTools {
 		oos.writeBoolean(true);
 		SerializationTools.writeString(oos, clazz.getName(), MAX_CLASS_LENGTH, false);
 		if (e==null)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		e.writeExternal(oos);
 
 	}*/
@@ -809,15 +809,15 @@ public class SerializationTools {
 
 
 	}
-	private static void writeExternalizable(final SecuredObjectOutputStream objectOutput, SecureExternalizableSystemMessage e) throws IOException
+	private static void writeExternalizable(final SecuredObjectOutputStream objectOutput, SecureExternalizableWithoutInnerSizeControl e) throws IOException
 	{
 		if (e==null)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 
 
 		e.writeExternal(objectOutput);
 	}
-	static void writeExternalizable(final SecuredObjectOutputStream objectOutput, SecureExternalizableSystemMessage e, boolean supportNull) throws IOException
+	static void writeExternalizable(final SecuredObjectOutputStream objectOutput, SecureExternalizableWithoutInnerSizeControl e, boolean supportNull) throws IOException
 	{
 		if (supportNull)
 			objectOutput.writeBoolean(e!=null);
@@ -837,9 +837,9 @@ public class SerializationTools {
 				Object o=invoke(replaceObject, objectOutput.objectOutput, e);
 				if (o==null)
 					throw new IOException();
-				if (!SecureExternalizableSystemMessage.class.isAssignableFrom(o.getClass()))
+				if (!SecureExternalizableWithoutInnerSizeControl.class.isAssignableFrom(o.getClass()))
 					throw new IOException();
-				e=(SecureExternalizableSystemMessage)o;
+				e=(SecureExternalizableWithoutInnerSizeControl)o;
 				clazz=e.getClass();
 			}
 			catch(Exception e2)
@@ -848,7 +848,7 @@ public class SerializationTools {
 			}
 		}
 
-		writeClass(objectOutput, clazz, false, SecureExternalizableSystemMessage.class);
+		writeClass(objectOutput, clazz, false, SecureExternalizableWithoutInnerSizeControl.class);
 		writeExternalizable(objectOutput, e);
 
 	}
@@ -915,8 +915,8 @@ public class SerializationTools {
 					c= ((FilteredObjectInputStream)ois).resolveClass(clazz);
 				else
 					c= Class.forName(clazz, false, MadkitClassLoader.getSystemClassLoader());
-				if (!ExternalizableAndSizable.class.isAssignableFrom(c) && !SystemMessage.class.isAssignableFrom(c))
-					throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				if (!ExternalizableAndSizable.class.isAssignableFrom(c) && !WithoutInnerSizeControl.class.isAssignableFrom(c))
+					throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 				if (!isOIS)
 					c= Class.forName(clazz, true, MadkitClassLoader.getSystemClassLoader());
 				Constructor<?> cons=getDefaultConstructor(c);
@@ -931,12 +931,12 @@ public class SerializationTools {
 			}
 			catch(InvocationTargetException | NoSuchMethodException | IllegalAccessException | InstantiationException e)
 			{
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, e);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, e);
 			}
 
 		}
 		else if (!supportNull)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		else
 			return null;
 
@@ -960,7 +960,7 @@ public class SerializationTools {
 				c= Class.forName(clazz, !doubleCheck, MadkitClassLoader.getSystemClassLoader());
 			if (doubleCheck) {
 				if (!rootClass.isAssignableFrom(c))
-					throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, "rootClass : "+rootClass+" ; class="+c);
+					throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, "rootClass : "+rootClass+" ; class="+c);
 				if (!isOIS)
 					c = Class.forName(clazz, true, MadkitClassLoader.getSystemClassLoader());
 			}
@@ -970,37 +970,37 @@ public class SerializationTools {
 			return null;
 
 	}
-	private static SecureExternalizableSystemMessage readExternalizable(final SecuredObjectInputStream objectInput, Class<?> c) throws IOException, ClassNotFoundException
+	private static SecureExternalizableWithoutInnerSizeControl readExternalizable(final SecuredObjectInputStream objectInput, Class<?> c) throws IOException, ClassNotFoundException
 	{
 		try
 		{
 			boolean isOIS=objectInput.objectInput.getClass()==oisClazz;
 			Constructor<?> cons=getDefaultConstructor(c);
-			SecureExternalizableSystemMessage res=(SecureExternalizableSystemMessage)cons.newInstance();
+			SecureExternalizableWithoutInnerSizeControl res=(SecureExternalizableWithoutInnerSizeControl)cons.newInstance();
 			res.readExternal(objectInput);
 
 			if (isOIS)
 			{
 				Object o=invoke(resolveObject, objectInput.objectInput, res);
-				if (o!=null && !SecureExternalizableSystemMessage.class.isAssignableFrom(o.getClass()))
-					throw new MessageSerializationException(Integrity.FAIL);
+				if (o!=null && !SecureExternalizableWithoutInnerSizeControl.class.isAssignableFrom(o.getClass()))
+					throw new MessageExternalizationException(Integrity.FAIL);
 
-				res=(SecureExternalizableSystemMessage)o;
+				res=(SecureExternalizableWithoutInnerSizeControl)o;
 			}
 			return res;
 		}
 		catch(InvocationTargetException | NoSuchMethodException | IllegalAccessException | InstantiationException e)
 		{
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, e);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, e);
 		}
 
 	}
-	static SecureExternalizableSystemMessage readExternalizable(final SecuredObjectInputStream objectInput, boolean supportNull) throws IOException, ClassNotFoundException
+	static SecureExternalizableWithoutInnerSizeControl readExternalizable(final SecuredObjectInputStream objectInput, boolean supportNull) throws IOException, ClassNotFoundException
 	{
 		if (!supportNull || objectInput.readBoolean())
 		{
 
-			Class<?> c=readClass(objectInput, false, SecureExternalizableSystemMessage.class);
+			Class<?> c=readClass(objectInput, false, SecureExternalizableWithoutInnerSizeControl.class);
 			return readExternalizable(objectInput, c);
 		}
 		else
@@ -1023,7 +1023,7 @@ public class SerializationTools {
 			oos.write(0);
 		}
 		else //noinspection SuspiciousMethodCalls
-			if (o instanceof SecureExternalizableSystemMessage && (id=identifiersPerClasses.get(o.getClass()))!=null)
+			if (o instanceof SecureExternalizableWithoutInnerSizeControl && (id=identifiersPerClasses.get(o.getClass()))!=null)
 		{
 			if (OOSreplaceObject && oos.objectOutput.getClass()==oosClazz)
 			{
@@ -1032,7 +1032,7 @@ public class SerializationTools {
 					o=invoke(replaceObject, oos.objectOutput, o);
 					if (o==null)
 						throw new IOException();
-					if (!SecureExternalizableSystemMessage.class.isAssignableFrom(o.getClass()))
+					if (!SecureExternalizableWithoutInnerSizeControl.class.isAssignableFrom(o.getClass()))
 						throw new IOException();
 					writeObject(oos,o,sizeMax, false, false);
 					return;
@@ -1044,7 +1044,7 @@ public class SerializationTools {
 			}
 
 			oos.write(id);
-			writeExternalizable(oos, (SecureExternalizableSystemMessage)o);
+			writeExternalizable(oos, (SecureExternalizableWithoutInnerSizeControl)o);
 		}
 		else //noinspection SuspiciousMethodCalls
 			if (o instanceof Enum && (id=identifiersPerEnums.get(o.getClass()))!=null)
@@ -1052,10 +1052,10 @@ public class SerializationTools {
 			oos.write(id);
 			oos.writeInt(((Enum<?>)o).ordinal());
 		}
-		else if (o instanceof SecureExternalizableSystemMessage)
+		else if (o instanceof SecureExternalizableWithoutInnerSizeControl)
 		{
 			oos.write(1);
-			writeExternalizable(oos, (SecureExternalizableSystemMessage) o, false);
+			writeExternalizable(oos, (SecureExternalizableWithoutInnerSizeControl) o, false);
 		}
 		else if (o instanceof String)
 		{
@@ -1160,16 +1160,16 @@ public class SerializationTools {
 					if (e.ordinal()==ordinal)
 						return e;
 				}
-				throw new MessageSerializationException(Integrity.FAIL);
+				throw new MessageExternalizationException(Integrity.FAIL);
 			}
 			else
-				throw new MessageSerializationException(Integrity.FAIL);
+				throw new MessageExternalizationException(Integrity.FAIL);
 		}
 		else {
 			switch (type) {
 				case 0:
 					if (!supportNull)
-						throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+						throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 					return null;
 				case 1:
 					return readExternalizable(ois, false);
@@ -1204,7 +1204,7 @@ public class SerializationTools {
 		/*case Byte.MAX_VALUE:
 			return ois.readObject();*/
 				default:
-					throw new MessageSerializationException(Integrity.FAIL);
+					throw new MessageExternalizationException(Integrity.FAIL);
 			}
 		}
 		
@@ -1215,8 +1215,8 @@ public class SerializationTools {
 	private static byte classesEndIndex=0;
 	private static byte enumsStartIndex=0;
 	private static byte enumsEndIndex=0;
-	private static final ArrayList<Class<? extends SecureExternalizableSystemMessage>> classes=new ArrayList<>();
-	private static final Map<Class<? extends SecureExternalizableSystemMessage>, Byte> identifiersPerClasses=new HashMap<>();
+	private static final ArrayList<Class<? extends SecureExternalizableWithoutInnerSizeControl>> classes=new ArrayList<>();
+	private static final Map<Class<? extends SecureExternalizableWithoutInnerSizeControl>, Byte> identifiersPerClasses=new HashMap<>();
 	private static final ArrayList<Class<? extends Enum<?>>> enums=new ArrayList<>();
 	private static final Map<Class<? extends Enum<?>>, Byte> identifiersPerEnums=new HashMap<>();
 	static
@@ -1227,50 +1227,50 @@ public class SerializationTools {
 			//noinspection unchecked
 			classes.addAll(new HashSet<>(Arrays.asList(
 					KernelAddress.class, KernelAddressInterfaced.class, AgentAddress.class, ConversationID.class, MultiGroup.class, Group.class, DoubleIP.class, MultipleIP.class,
-					HostIP.class, (Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.AcceptedGroups"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.BroadcastLanMessage"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.LocalLanMessage"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferClosedSystemMessage"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferConfirmationSystemMessage"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferImpossibleSystemMessage"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferImpossibleSystemMessageFromMiddlePeer"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferBlockCheckerSystemMessage"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferPropositionSystemMessage"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$IDTransfer"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$DirectConnection"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$DirectConnectionFailed"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$DirectConnectionSuceeded"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$TryDirectConnection"),
+					HostIP.class, (Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.AcceptedGroups"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.BroadcastLanMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.LocalLanMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.TransferClosedSystemMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.TransferConfirmationSystemMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.TransferImpossibleSystemMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.TransferImpossibleSystemMessageFromMiddlePeer"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.TransferBlockCheckerSystemMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.TransferPropositionSystemMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$IDTransfer"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$DirectConnection"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$DirectConnectionFailed"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$DirectConnectionSuceeded"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$TryDirectConnection"),
 					BigDataTransferID.class,
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.CGRSynchrosSystemMessage"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.CGRSynchroSystemMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.CGRSynchrosSystemMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.CGRSynchroSystemMessage"),
 					CGRSynchro.class,
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.ConnectionInfoSystemMessage"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.DataToBroadcast"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.ConnectionInfoSystemMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.DataToBroadcast"),
 					DistantKernelAddressValidated.class,
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.connection.access.IdentifiersPropositionMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.connection.access.IdentifiersPropositionMessage"),
 					Identifier.class, EncryptedIdentifier.class,
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.connection.access.JPakeMessage"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.connection.secured.KeyAgreementDataMessage"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.connection.access.LoginConfirmationMessage"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.connection.access.NewLocalLoginAddedMessage"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.connection.access.NewLocalLoginRemovedMessage"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.PingMessage"),
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.PongMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.connection.access.JPakeMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.connection.secured.KeyAgreementDataMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.connection.access.LoginConfirmationMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.connection.access.NewLocalLoginAddedMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.connection.access.NewLocalLoginRemovedMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.PingMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.PongMessage"),
 					PointToPointTransferedBlockChecker.class,
-					(Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.ValidateBigDataProposition"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.ValidateBigDataProposition"),
 					EnumMessage.class,
 					NetworkObjectMessage.class,TaskID.class,
 					ACLMessage.class, ActMessage.class,BigDataPropositionMessage.class,BigDataResultMessage.class,
-					KernelMessage.class, StringMessage.class, (Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.message.hook.OrganizationEvent"),
+					KernelMessage.class, StringMessage.class, (Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.message.hook.OrganizationEvent"),
 					SchedulingMessage.class, KQMLMessage.class, IntegerMessage.class, BooleanMessage.class,
-					GUIMessage.class, (Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.InternalRole"),
-					EncryptedPassword.class, GUIMessage.class, (Class<? extends SecureExternalizableSystemMessage>)Class.forName("com.distrimind.madkit.kernel.network.DatagramLocalNetworkPresenceMessage"),
+					GUIMessage.class, (Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.InternalRole"),
+					EncryptedPassword.class, GUIMessage.class, (Class<? extends SecureExternalizableWithoutInnerSizeControl>)Class.forName("com.distrimind.madkit.kernel.network.DatagramLocalNetworkPresenceMessage"),
 					EncryptedCloudIdentifier.class)));
 			for (Class<?> c : classes)
 				assert !Modifier.isAbstract(c.getModifiers()):""+c;
 			assert currentID+classes.size()<255;
-			for (Class<? extends SecureExternalizableSystemMessage> c : classes)
+			for (Class<? extends SecureExternalizableWithoutInnerSizeControl> c : classes)
 			{
 				byte id=(byte)(++currentID);
 				identifiersPerClasses.put(c, id);

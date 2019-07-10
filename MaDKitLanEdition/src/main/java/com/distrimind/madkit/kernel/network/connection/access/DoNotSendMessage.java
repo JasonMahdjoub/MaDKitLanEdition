@@ -38,10 +38,8 @@
 package com.distrimind.madkit.kernel.network.connection.access;
 
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 import com.distrimind.madkit.util.SecuredObjectOutputStream;
 
@@ -63,7 +61,7 @@ public class DoNotSendMessage extends AccessMessage {
 
 	@Override
 	public void writeExternal(SecuredObjectOutputStream out) throws IOException {
-		throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+		throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		
 	}
 

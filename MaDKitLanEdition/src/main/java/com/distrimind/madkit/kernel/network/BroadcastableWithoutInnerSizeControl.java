@@ -39,7 +39,7 @@ package com.distrimind.madkit.kernel.network;
 
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
-import com.distrimind.madkit.kernel.network.connection.TransferedBlockChecker;
+import com.distrimind.madkit.util.SecureExternalizable;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 import com.distrimind.madkit.util.SecuredObjectOutputStream;
 
@@ -47,59 +47,75 @@ import java.io.IOException;
 
 /**
  * 
+ * 
  * @author Jason Mahdjoub
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-class TransferBlockCheckerSystemMessage extends BroadcastableSystemMessage {
+abstract class BroadcastableWithoutInnerSizeControl implements WithoutInnerSizeControl, SecureExternalizable {
 
-	private TransferedBlockChecker transferBlockChercker;
+	private IDTransfer idTransferDestination;
+	private KernelAddress kernelAddressDestination;
+	private transient MessageLocker messageLocker = null;
 	
-	@SuppressWarnings("unused")
-	TransferBlockCheckerSystemMessage()
+	BroadcastableWithoutInnerSizeControl()
 	{
 		
 	}
-
-	TransferBlockCheckerSystemMessage(IDTransfer _idTransferDestination, KernelAddress _kernelAddressDestination,
-			TransferedBlockChecker transferBlockChercker) {
-		super(_idTransferDestination, _kernelAddressDestination);
-		if (transferBlockChercker == null)
-			throw new NullPointerException("transferBlockChercker");
-		this.transferBlockChercker = transferBlockChercker;
-	}
-
-	TransferedBlockChecker getTransferBlockChercker() {
-		return transferBlockChercker;
-	}
-	
 	@Override
 	public int getInternalSerializedSize() {
 		
-		return super.getInternalSerializedSize()+transferBlockChercker.getInternalSerializedSize();
+		return (idTransferDestination==null?1:1+idTransferDestination.getInternalSerializedSize())+kernelAddressDestination.getInternalSerializedSize();
 	}
-
-
 	@Override
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
-		super.readExternal(in);
-		transferBlockChercker=in.readObject(false, TransferedBlockChecker.class);
+		idTransferDestination=in.readObject(true, IDTransfer.class);
+		kernelAddressDestination=in.readObject(false, KernelAddress.class);
 	}
 
 	@Override
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
-		super.writeExternal(oos);
-		oos.writeObject(transferBlockChercker, false );
-
-		
+		oos.writeObject(idTransferDestination, true);
+		oos.writeObject(kernelAddressDestination, false);
 	}
 	
-
-	@Override
-	public boolean excludedFromEncryption() {
-		return false;
+	
+	BroadcastableWithoutInnerSizeControl(IDTransfer idTransferDestination, KernelAddress kernelAddressDestination) {
+		if (kernelAddressDestination == null)
+			throw new NullPointerException("kernelAddressDestination");
+		this.idTransferDestination = idTransferDestination;
+		this.kernelAddressDestination = kernelAddressDestination;
 	}
 
+	void setMessageLocker(MessageLocker locker) {
+		messageLocker = locker;
+	}
+
+	MessageLocker getMessageLocker() {
+		return messageLocker;
+	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + "[idTransferDestination=" + idTransferDestination
+				+ ", kernelAddressDestination=" + kernelAddressDestination + "]";
+	}
+
+	final void setIdTransferDestination(IDTransfer id) {
+		if (id == null)
+			throw new NullPointerException("null");
+		idTransferDestination = id;
+	}
+
+	final IDTransfer getIdTransferDestination() {
+		return idTransferDestination;
+	}
+
+	KernelAddress getKernelAddressDestination() {
+		return kernelAddressDestination;
+	}
+
+	
 	
 	
 

@@ -225,7 +225,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 	private final AtomicBoolean exceededDataQueueSize = new AtomicBoolean(false);
 	protected KernelAddressInterfaced distantInterfacedKernelAddress = null;
 	protected final AtomicLong dataToTransferInQueue = new AtomicLong(0);
-	private ConnectionInfoSystemMessage distantConnectionInfo = null;
+	private ConnectionInfoWithoutInnerSizeControl distantConnectionInfo = null;
 	protected final TransferIDs transfer_ids = new TransferIDs();
 	protected final TransferIDs transfer_ids_to_finalize = new TransferIDs();
 	private TaskID taskTransferNodeChecker = null;
@@ -951,19 +951,19 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				 */
 				receiveBroadcastData(_message.getSender(), m, false);
 				// }
-			} else if (o.getClass() == TransferConfirmationSystemMessage.class) {
-				TransferConfirmationSystemMessage t = (TransferConfirmationSystemMessage) o;
+			} else if (o.getClass() == TransferConfirmationWithoutInnerSizeControl.class) {
+				TransferConfirmationWithoutInnerSizeControl t = (TransferConfirmationWithoutInnerSizeControl) o;
 				broadcastPropositionAnwser(t);
-			} else if (o.getClass() == TransferImpossibleSystemMessageFromMiddlePeer.class) {
-				TransferImpossibleSystemMessageFromMiddlePeer t = (TransferImpossibleSystemMessageFromMiddlePeer) o;
+			} else if (o.getClass() == TransferImpossibleWithoutInnerSizeControlFromMiddlePeer.class) {
+				TransferImpossibleWithoutInnerSizeControlFromMiddlePeer t = (TransferImpossibleWithoutInnerSizeControlFromMiddlePeer) o;
 				broadcastPropositionImpossibleAnwser(t);
-			} else if (o.getClass() == TransferClosedSystemMessage.class) {
-				TransferClosedSystemMessage t = (TransferClosedSystemMessage) o;
+			} else if (o.getClass() == TransferClosedWithoutInnerSizeControl.class) {
+				TransferClosedWithoutInnerSizeControl t = (TransferClosedWithoutInnerSizeControl) o;
 				if (logger != null && logger.isLoggable(Level.FINEST))
 					logger.finest("closing undirect connection (distant_inet_address=" + distant_inet_address
 							+ ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress + ") : "
 							+ t.getIdTransfer());
-				t = new TransferClosedSystemMessage(getTransfertType(), t.getKernelAddressDestination(),
+				t = new TransferClosedWithoutInnerSizeControl(getTransfertType(), t.getKernelAddressDestination(),
 						t.getIdTransfer(), t.isLastPass());
 
 				if (getTransfertType().equals(TransferAgent.NullIDTransfer)) {
@@ -1022,7 +1022,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		}
 		if (!ias.isEmpty())
 			mip = new MultipleIP(getMadkitConfig().networkProperties.portsToBindForAutomaticLocalConnections, ias);
-		ConnectionInfoSystemMessage ci = new ConnectionInfoSystemMessage(
+		ConnectionInfoWithoutInnerSizeControl ci = new ConnectionInfoWithoutInnerSizeControl(
 				getMadkitConfig().networkProperties.getPossibleAddressesForDirectConnectionToAttemptFromOtherPeersToThisPeer(),
 				this.local_interface_address.getAddress(),
 				getMadkitConfig().networkProperties.portsToBindForManualDirectConnections,
@@ -1068,7 +1068,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		}
 
 		this.transfer_ids_to_finalize.putTransferAgentAddress(candidate.getIdTransfer(), transferAgentAddress);
-		broadcastDataTowardEachIntermediatePeer(new TransferPropositionSystemMessage(getTransfertType(),
+		broadcastDataTowardEachIntermediatePeer(new TransferPropositionWithoutInnerSizeControl(getTransfertType(),
 				candidate.getIdTransfer(), candidate.getKernelAddress(), this.distant_kernel_address,
 				candidate.getNumberOfIntermediatePeers(), candidate.getOriginalMessage().getAttachedData(),
 				candidate.isYouAskConnection()), true);
@@ -1130,7 +1130,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			if (idtLocal != null)
 				this.transfer_ids.putLocal(idtLocal);
 		}
-		TransferPropositionSystemMessage tp = this.transfer_ids_to_finalize
+		TransferPropositionWithoutInnerSizeControl tp = this.transfer_ids_to_finalize
 				.removeTransferPropositionSystemMessage(idt.getLocalID());
 		if (tp != null)
 			this.transfer_ids.putTransferPropositionSystemMessage(idt.getLocalID(), tp);
@@ -1185,8 +1185,8 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					"Receiving broadcast data (sender=" + sender + ", distant_inet_address=" + distant_inet_address
 							+ ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress + ") : " + d);
 
-		if (d.getMessageToBroadcast().getClass() == TransferPropositionSystemMessage.class) {
-			TransferPropositionSystemMessage t = (TransferPropositionSystemMessage) d.getMessageToBroadcast();
+		if (d.getMessageToBroadcast().getClass() == TransferPropositionWithoutInnerSizeControl.class) {
+			TransferPropositionWithoutInnerSizeControl t = (TransferPropositionWithoutInnerSizeControl) d.getMessageToBroadcast();
 
 			if (t.getIdTransferDestination().equals(this.getTransfertType())
 					&& getKernelAddress().equals(t.getKernelAddressDestination())) {
@@ -1222,14 +1222,14 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 								putInterfacedIDTransferToFinalize(idDest.getTransferToAgentAddress(),
 										interfacedIDTransfer);
 
-								TransferPropositionSystemMessage t2 = new TransferPropositionSystemMessage(
+								TransferPropositionWithoutInnerSizeControl t2 = new TransferPropositionWithoutInnerSizeControl(
 										idDest.getLocalID(), interfacedIDTransfer.getLocalID(),
 										t.getKernelAddressToConnect(), t.getKernelAddressDestination(),
 										t.getNumberOfIntermediatePeers(), t.getAttachedDataForConnection(),
 										t.isYouAskConnection());
 								broadcastDataTowardEachIntermediatePeer(sender, t2, t.getIdTransferDestination(), d);
 							} catch (OverflowException e) {
-								TransferImpossibleSystemMessage t2 = new TransferImpossibleSystemMessage(
+								TransferImpossibleWithoutInnerSizeControl t2 = new TransferImpossibleWithoutInnerSizeControl(
 										idDest.getLocalID(), d.getSender(), t.getIdTransfer());
 								t2.setMessageLocker(t.getMessageLocker());
 								broadcastDataTowardEachIntermediatePeer(t2, true);
@@ -1258,9 +1258,9 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					}
 				}
 			}
-		} else if (d.getMessageToBroadcast().getClass() == TransferImpossibleSystemMessage.class) {
+		} else if (d.getMessageToBroadcast().getClass() == TransferImpossibleWithoutInnerSizeControl.class) {
 
-			TransferImpossibleSystemMessage t = (TransferImpossibleSystemMessage) d.getMessageToBroadcast();
+			TransferImpossibleWithoutInnerSizeControl t = (TransferImpossibleWithoutInnerSizeControl) d.getMessageToBroadcast();
 
 			if ((t.getIdTransferDestination() == getTransfertType()
 					|| t.getIdTransferDestination().equals(this.getTransfertType()))
@@ -1281,11 +1281,11 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 
 						if (idRemoved == null) {
 							processInvalidTransferConnectionProcotol(
-									"Received TransferImpossibleSystemMessage, but impossible to found the correspondant TransferID "
+									"Received TransferImpossibleWithoutInnerSizeControl, but impossible to found the correspondant TransferID "
 											+ t.getYourIDTransfer() + " in the recieving router agent "
 											+ this.toString());
 						} else {
-							TransferImpossibleSystemMessage ti = new TransferImpossibleSystemMessage(
+							TransferImpossibleWithoutInnerSizeControl ti = new TransferImpossibleWithoutInnerSizeControl(
 									idDist.getLocalID(), t.getKernelAddressDestination(), t.getYourIDTransfer());
 							ti.setMessageLocker(t.getMessageLocker());
 							broadcastDataTowardEachIntermediatePeer(sender, ti, t.getIdTransferDestination(), d);
@@ -1297,10 +1297,10 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 							true);
 					if (idRemoved == null) {
 						processInvalidTransferConnectionProcotol(
-								"Received TransferImpossibleSystemMessage, but impossible to found the correspondant TransferID "
+								"Received TransferImpossibleWithoutInnerSizeControl, but impossible to found the correspondant TransferID "
 										+ t.getYourIDTransfer() + " in the sender router agent " + this.toString());
 					} else {
-						TransferImpossibleSystemMessage ti = new TransferImpossibleSystemMessage(
+						TransferImpossibleWithoutInnerSizeControl ti = new TransferImpossibleWithoutInnerSizeControl(
 								t.getIdTransferDestination(), t.getKernelAddressDestination(),
 								getTransfertType().equals(TransferAgent.NullIDTransfer) ? idRemoved.getLocalID()
 										: idRemoved.getDistantID());
@@ -1309,8 +1309,8 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					}
 				}
 			}
-		} else if (d.getMessageToBroadcast().getClass() == TransferImpossibleSystemMessageFromMiddlePeer.class) {
-			TransferImpossibleSystemMessageFromMiddlePeer t = (TransferImpossibleSystemMessageFromMiddlePeer) d
+		} else if (d.getMessageToBroadcast().getClass() == TransferImpossibleWithoutInnerSizeControlFromMiddlePeer.class) {
+			TransferImpossibleWithoutInnerSizeControlFromMiddlePeer t = (TransferImpossibleWithoutInnerSizeControlFromMiddlePeer) d
 					.getMessageToBroadcast();
 
 			if ((t.getIdTransferDestination() == getTransfertType()
@@ -1332,7 +1332,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						if (idRemoved == null)
 							idRemoved = removeInterfacedIDTransferToFinalize(sender, t.getYourIDTransfer(), true);
 						if (idRemoved != null) {
-							TransferImpossibleSystemMessageFromMiddlePeer ti = new TransferImpossibleSystemMessageFromMiddlePeer(
+							TransferImpossibleWithoutInnerSizeControlFromMiddlePeer ti = new TransferImpossibleWithoutInnerSizeControlFromMiddlePeer(
 									idDist.getLocalID(), t.getKernelAddressDestination(), t.getYourIDTransfer(),
 									t.getYourIDTransfer());
 							ti.setMessageLocker(t.getMessageLocker());
@@ -1343,7 +1343,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 							// LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 						} else
 							processInvalidTransferConnectionProcotol(
-									"Received TransferImpossibleSystemMessage, but impossible to found the correspondant TransferID "
+									"Received TransferImpossibleWithoutInnerSizeControl, but impossible to found the correspondant TransferID "
 											+ t.getYourIDTransfer() + " in the sender router agent " + this.toString());
 					}
 				} else {
@@ -1356,10 +1356,10 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						idRemoved = removeInterfacedIDTransferToFinalize(sender, t.getYourIDTransfer(), true);
 					if (idRemoved == null) {
 						processInvalidTransferConnectionProcotol(
-								"Received TransferImpossibleSystemMessage, but impossible to found the correspondant TransferID "
+								"Received TransferImpossibleWithoutInnerSizeControl, but impossible to found the correspondant TransferID "
 										+ t.getYourIDTransfer() + " in the sender router agent " + this.toString());
 					} else {
-						TransferImpossibleSystemMessageFromMiddlePeer ti = new TransferImpossibleSystemMessageFromMiddlePeer(
+						TransferImpossibleWithoutInnerSizeControlFromMiddlePeer ti = new TransferImpossibleWithoutInnerSizeControlFromMiddlePeer(
 								idLocal.getLocalID(), t.getKernelAddressDestination(), idRemoved.getDistantID(),
 								idRemoved.getLocalID());
 						ti.setMessageLocker(t.getMessageLocker());
@@ -1368,8 +1368,8 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					}
 				}
 			}
-		} else if (d.getMessageToBroadcast().getClass() == TransferConfirmationSystemMessage.class) {
-			TransferConfirmationSystemMessage t = (TransferConfirmationSystemMessage) d.getMessageToBroadcast();
+		} else if (d.getMessageToBroadcast().getClass() == TransferConfirmationWithoutInnerSizeControl.class) {
+			TransferConfirmationWithoutInnerSizeControl t = (TransferConfirmationWithoutInnerSizeControl) d.getMessageToBroadcast();
 
 			if ((t.getIdTransferDestination() == getTransfertType()
 					|| t.getIdTransferDestination().equals(this.getTransfertType()))
@@ -1405,7 +1405,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 								idt.setTransferBlockChecker(new ConnectionProtocol.NullBlockChecker(
 										t.getNumberOfSubBlocks(), false, (short) 0));
 
-							TransferConfirmationSystemMessage ti = new TransferConfirmationSystemMessage(
+							TransferConfirmationWithoutInnerSizeControl ti = new TransferConfirmationWithoutInnerSizeControl(
 									idDist.getLocalID(), t.getKernelAddressDestination(), t.getKernelAddressToConnect(),
 									t.getYourIDTransfer(), t.getYourIDTransfer(), t.getNumberOfSubBlocks(), true,
 									t.getDistantInetAddress(), t.getPointToPointBlockChecker());
@@ -1422,7 +1422,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 							getInterfacedIDTransferToFinalize(idDist.getTransferToAgentAddress(), idt.getLocalID())
 									.setDistantID(t.getMyIDTransfer());
 
-							TransferConfirmationSystemMessage ti = new TransferConfirmationSystemMessage(
+							TransferConfirmationWithoutInnerSizeControl ti = new TransferConfirmationWithoutInnerSizeControl(
 									idDist.getLocalID(), t.getKernelAddressDestination(), t.getKernelAddressToConnect(),
 									t.getYourIDTransfer(), t.getYourIDTransfer(), t.getNumberOfSubBlocks(), false,
 									t.getDistantInetAddress(), t.getPointToPointBlockChecker());
@@ -1441,7 +1441,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					if (idLocal == null) {
 						removeInterfacedIDTransferToFinalize(sender, t.getYourIDTransfer());
 						processInvalidTransferConnectionProcotol(
-								"Received TransferConfirmationSystemMessage to transfer for internal use 1, but impossible to found the correspondant TransferID "
+								"Received TransferConfirmationWithoutInnerSizeControl to transfer for internal use 1, but impossible to found the correspondant TransferID "
 										+ t.getYourIDTransfer() + " in the moddile router agent " + this.toString());
 					} else {
 						if (t.getPointToPointBlockChecker()!=null)
@@ -1455,7 +1455,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 							if (getTransfertType().equals(TransferAgent.NullIDTransfer)) {
 								InterfacedIDTransfer idt = getValidatedInterfacedIDTransfer(sender,
 										t.getYourIDTransfer());
-								TransferConfirmationSystemMessage ti = new TransferConfirmationSystemMessage(
+								TransferConfirmationWithoutInnerSizeControl ti = new TransferConfirmationWithoutInnerSizeControl(
 										t.getIdTransferDestination(), t.getKernelAddressDestination(),
 										t.getKernelAddressToConnect(), idt.getDistantID(), idt.getLocalID(),
 										t.getNumberOfSubBlocks(), true, t.getDistantInetAddress(), t.getPointToPointBlockChecker());
@@ -1466,7 +1466,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 							if (getTransfertType().equals(TransferAgent.NullIDTransfer)) {
 								InterfacedIDTransfer idt = getInterfacedIDTransferToFinalize(sender,
 										t.getYourIDTransfer());
-								TransferConfirmationSystemMessage ti = new TransferConfirmationSystemMessage(
+								TransferConfirmationWithoutInnerSizeControl ti = new TransferConfirmationWithoutInnerSizeControl(
 										t.getIdTransferDestination(), t.getKernelAddressDestination(),
 										t.getKernelAddressToConnect(), idt.getDistantID(), idt.getLocalID(),
 										t.getNumberOfSubBlocks(), false, t.getDistantInetAddress(), t.getPointToPointBlockChecker());
@@ -1482,8 +1482,8 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					}
 				}
 			}
-		} else if (d.getMessageToBroadcast().getClass() == TransferBlockCheckerSystemMessage.class) {
-			TransferBlockCheckerSystemMessage t = (TransferBlockCheckerSystemMessage) d.getMessageToBroadcast();
+		} else if (d.getMessageToBroadcast().getClass() == TransferBlockCheckerWithoutInnerSizeControl.class) {
+			TransferBlockCheckerWithoutInnerSizeControl t = (TransferBlockCheckerWithoutInnerSizeControl) d.getMessageToBroadcast();
 
 			if (!t.getIdTransferDestination().equals(this.getTransfertType())
 					|| !getKernelAddress().equals(t.getKernelAddressDestination())) {
@@ -1504,7 +1504,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						if (!t.getKernelAddressDestination().equals(getKernelAddress())) {
 							idDist.setTransferBlockChecker(t.getTransferBlockChercker());
 							idLocal.setTransferBlockChecker(t.getTransferBlockChercker());
-							TransferBlockCheckerSystemMessage tn = new TransferBlockCheckerSystemMessage(
+							TransferBlockCheckerWithoutInnerSizeControl tn = new TransferBlockCheckerWithoutInnerSizeControl(
 									idLocal.getLocalID(), t.getKernelAddressDestination(),
 									t.getTransferBlockChercker());
 							tn.setMessageLocker(t.getMessageLocker());
@@ -1535,14 +1535,14 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					ReturnCode rc = broadcastDataTowardEachIntermediatePeer(sender, t, t.getIdTransferDestination(), d);
 					if (!rc.equals(ReturnCode.SUCCESS) && !rc.equals(ReturnCode.TRANSFER_IN_PROGRESS))
 						processInvalidTransferConnectionProcotol(
-								"Received TransferBlockCheckerSystemMessage, but impossible to found the correspondant TransferID "
+								"Received TransferBlockCheckerWithoutInnerSizeControl, but impossible to found the correspondant TransferID "
 										+ t.getIdTransferDestination() + " in the moddile router agent "
 										+ this.toString());
 
 				}
 			}
-		} else if (d.getMessageToBroadcast().getClass() == TransferClosedSystemMessage.class) {
-			TransferClosedSystemMessage t = (TransferClosedSystemMessage) d.getMessageToBroadcast();
+		} else if (d.getMessageToBroadcast().getClass() == TransferClosedWithoutInnerSizeControl.class) {
+			TransferClosedWithoutInnerSizeControl t = (TransferClosedWithoutInnerSizeControl) d.getMessageToBroadcast();
 
 			if (t.getIdTransfer().equals(this.getTransfertType())
 					&& getKernelAddress().equals(t.getKernelAddressDestination())
@@ -1550,7 +1550,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				transfer_ids.closeAllTransferID(!t.isLastPass());
 				transfer_ids_to_finalize.closeAllTransferID(!t.isLastPass());
 				if (!t.isLastPass()) {
-					TransferClosedSystemMessage t2 = new TransferClosedSystemMessage(getTransfertType(),
+					TransferClosedWithoutInnerSizeControl t2 = new TransferClosedWithoutInnerSizeControl(getTransfertType(),
 							distant_kernel_address, getTransfertType(), true);
 					t2.setMessageLocker(new MessageLocker(null));
 					broadcastDataTowardEachIntermediatePeer(t2, true);
@@ -1563,7 +1563,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		}
 	}
 
-	protected void receiveTransferClosedSystemMessage(final AgentAddress sender, TransferClosedSystemMessage t,
+	protected void receiveTransferClosedSystemMessage(final AgentAddress sender, TransferClosedWithoutInnerSizeControl t,
 			KernelAddress kaSender, boolean isPrioritary, boolean fromTransferAgent) {
 		IDTransfer id;
 		{
@@ -1608,7 +1608,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		if (transferAA == null || fromTransferAgent) {
 			if (destinationReached) {
 				if (idtToClose != null && idtToClose.getLocalID().getID() != getTransfertType().getID()) {
-					TransferClosedSystemMessage t2 = new TransferClosedSystemMessage(idtToClose.getLocalID(),
+					TransferClosedWithoutInnerSizeControl t2 = new TransferClosedWithoutInnerSizeControl(idtToClose.getLocalID(),
 							t.getKernelAddressDestination(), idtToClose.getLocalID(), t.isLastPass());
 					sendMessageWithRole(idtToClose.getTransferToAgentAddress(),
 							new ObjectMessage<>(
@@ -1618,7 +1618,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					return;
 			} else {
 				if (sender == null) {
-					TransferClosedSystemMessage t2 = new TransferClosedSystemMessage(id,
+					TransferClosedWithoutInnerSizeControl t2 = new TransferClosedWithoutInnerSizeControl(id,
 							t.getKernelAddressDestination(), idtToClose.getLocalID(), t.isLastPass());
 					broadcastDataTowardEachIntermediatePeer(null, t2, t.getIdTransferDestination(), kaSender,
 							isPrioritary);
@@ -1628,7 +1628,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				}
 			}
 		} else {
-			TransferClosedSystemMessage t2 = new TransferClosedSystemMessage(id, getKernelAddress(),
+			TransferClosedWithoutInnerSizeControl t2 = new TransferClosedWithoutInnerSizeControl(id, getKernelAddress(),
 					idtToClose.getLocalID(), t.isLastPass());
 			sendMessageWithRole(transferAA, new ObjectMessage<>(t2), LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 		}
@@ -1657,7 +1657,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 
 	}
 
-	private void receiveTransferProposition(AgentAddress sender, TransferPropositionSystemMessage p) {
+	private void receiveTransferProposition(AgentAddress sender, TransferPropositionWithoutInnerSizeControl p) {
 		if (logger != null && logger.isLoggable(Level.FINEST))
 			logger.finest("Receiving receiveTransferProposition (sender=" + sender + ", distant_inet_address="
 					+ distant_inet_address + ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress
@@ -1679,7 +1679,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 
 				this.transfer_ids_to_finalize.putTransferPropositionSystemMessage(idDist, p);
 
-				TransferConfirmationSystemMessage tcsm = new TransferConfirmationSystemMessage(getTransfertType(),
+				TransferConfirmationWithoutInnerSizeControl tcsm = new TransferConfirmationWithoutInnerSizeControl(getTransfertType(),
 						this.distant_kernel_address, getKernelAddress(), idDist.getDistantID(), idDist.getLocalID(),
 						getMadkitConfig().networkProperties.getConnectionProtocolProperties(distant_inet_address,
 								local_interface_address, true, true).getNumberOfSubConnectionProtocols(),
@@ -1687,7 +1687,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				tcsm.setMessageLocker(p.getMessageLocker());
 				broadcastDataTowardEachIntermediatePeer(tcsm, true);
 			} catch (OverflowException e) {
-				TransferImpossibleSystemMessage ti = new TransferImpossibleSystemMessage(getTransfertType(),
+				TransferImpossibleWithoutInnerSizeControl ti = new TransferImpossibleWithoutInnerSizeControl(getTransfertType(),
 						distant_kernel_address, p.getIdTransfer());
 				ti.setMessageLocker(p.getMessageLocker());
 				broadcastDataTowardEachIntermediatePeer(ti, true);
@@ -1697,14 +1697,14 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			}
 
 		} else {
-			TransferImpossibleSystemMessage ti = new TransferImpossibleSystemMessage(getTransfertType(),
+			TransferImpossibleWithoutInnerSizeControl ti = new TransferImpossibleWithoutInnerSizeControl(getTransfertType(),
 					distant_kernel_address, p.getIdTransfer());
 			ti.setMessageLocker(p.getMessageLocker());
 			broadcastDataTowardEachIntermediatePeer(ti, true);
 		}
 	}
 
-	private void receiveTransferImpossibleAnwser(AgentAddress sender, TransferImpossibleSystemMessage ti) {
+	private void receiveTransferImpossibleAnwser(AgentAddress sender, TransferImpossibleWithoutInnerSizeControl ti) {
 		if (logger != null && logger.isLoggable(Level.FINEST))
 			logger.finest("Receiving transfer impossible as anwser (distant_inet_address=" + distant_inet_address
 					+ ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress + ") : " + ti);
@@ -1713,7 +1713,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 
 		if (aat == null) {
 			processInvalidTransferConnectionProcotol(
-					"Received TransferImpossibleSystemMessage, but impossible to found the correspondant TransferID "
+					"Received TransferImpossibleWithoutInnerSizeControl, but impossible to found the correspondant TransferID "
 							+ ti.getYourIDTransfer() + " in the peer agent " + this.toString());
 		} else {
 			sendMessageWithRole(aat, new ObjectMessage<>(ti), LocalCommunity.Roles.SOCKET_AGENT_ROLE);
@@ -1721,7 +1721,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 	}
 
 	private void receiveTransferImpossibleAnwser(AgentAddress sender,
-			TransferImpossibleSystemMessageFromMiddlePeer ti) {
+			TransferImpossibleWithoutInnerSizeControlFromMiddlePeer ti) {
 		if (logger != null && logger.isLoggable(Level.FINEST))
 			logger.finest("Receiving transfer impossible as anwser from middle peer (distant_inet_address="
 					+ distant_inet_address + ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress
@@ -1732,7 +1732,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 
 		if (aat == null) {
 			processInvalidTransferConnectionProcotol(
-					"Received TransferImpossibleSystemMessageFromMiddlePeer, but impossible to found the correspondant TransferID "
+					"Received TransferImpossibleWithoutInnerSizeControlFromMiddlePeer, but impossible to found the correspondant TransferID "
 							+ ti.getYourIDTransfer() + " in the peer agent " + this.toString());
 		} else {
 			sendMessageWithRole(aat, new ObjectMessage<>(ti), LocalCommunity.Roles.SOCKET_AGENT_ROLE);
@@ -1746,12 +1746,12 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		private final InterfacedIDTransfer idDist;
 		private final IndirectAgentSocket indirectAgentSocket;
 		private final DistantKernelAgent dka;
-		private final TransferConfirmationSystemMessage ti;
-		private final TransferPropositionSystemMessage p;
+		private final TransferConfirmationWithoutInnerSizeControl ti;
+		private final TransferPropositionWithoutInnerSizeControl p;
 
 		FailedCreateIndirectAgentSocket(Exception e, InterfacedIDTransfer idLocal, InterfacedIDTransfer idDist,
-				IndirectAgentSocket indirectAgentSocket, DistantKernelAgent dka, TransferConfirmationSystemMessage ti,
-				TransferPropositionSystemMessage p) {
+				IndirectAgentSocket indirectAgentSocket, DistantKernelAgent dka, TransferConfirmationWithoutInnerSizeControl ti,
+				TransferPropositionWithoutInnerSizeControl p) {
 			this.e = e;
 			this.idLocal = idLocal;
 			this.idDist = idDist;
@@ -1772,7 +1772,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			getMadkitConfig().networkProperties.removeStatsBandwidth(idLocal.getLocalID().getID());
 			killAgent(indirectAgentSocket);
 			killAgent(dka);
-			TransferClosedSystemMessage tc = new TransferClosedSystemMessage(getTransfertType(),
+			TransferClosedWithoutInnerSizeControl tc = new TransferClosedWithoutInnerSizeControl(getTransfertType(),
 					p.getKernelAddressToConnect(), idLocal.getLocalID(), true);
 			tc.setMessageLocker(ti.getMessageLocker());
 			broadcastDataTowardEachIntermediatePeer(tc, true);
@@ -1780,7 +1780,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		}
 	}
 
-	private void receiveTransferConfirmationAnwser(AgentAddress sender, final TransferConfirmationSystemMessage ti) {
+	private void receiveTransferConfirmationAnwser(AgentAddress sender, final TransferConfirmationWithoutInnerSizeControl ti) {
 		if (logger != null && logger.isLoggable(Level.FINEST))
 			logger.finest("Receiving transfer confirmation as anwser (distant_inet_address=" + distant_inet_address
 					+ ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress + ") : " + ti);
@@ -1791,7 +1791,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			validateInterfacedIDTransfer(sender, ti.getMyIDTransfer(), false);
 
 			final InterfacedIDTransfer idtDist = getValidatedInterfacedIDTransfer(sender, ti.getMyIDTransfer());
-			final TransferPropositionSystemMessage p = transfer_ids
+			final TransferPropositionWithoutInnerSizeControl p = transfer_ids
 					.removeTransferPropositionSystemMessage(ti.getYourIDTransfer());
 
 			if (idtDist != null) {
@@ -1801,7 +1801,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 
 				if (ti.getDistantInetAddress() == null) {
-					TransferClosedSystemMessage tc = new TransferClosedSystemMessage(getTransfertType(),
+					TransferClosedWithoutInnerSizeControl tc = new TransferClosedWithoutInnerSizeControl(getTransfertType(),
 							p.getKernelAddressToConnect(), idtDist.getLocalID(), true);
 					tc.setMessageLocker(ti.getMessageLocker());
 					removeValidatedInterfacedIDTransfer(sender, ti.getMyIDTransfer());
@@ -1843,7 +1843,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				} else {
 					killAgent(indirectAgentSocket);
 					killAgent(dka);
-					TransferClosedSystemMessage tc = new TransferClosedSystemMessage(getTransfertType(),
+					TransferClosedWithoutInnerSizeControl tc = new TransferClosedWithoutInnerSizeControl(getTransfertType(),
 							p.getKernelAddressToConnect(), idtDist.getLocalID(), true);
 					tc.setMessageLocker(ti.getMessageLocker());
 					removeValidatedInterfacedIDTransfer(sender, ti.getMyIDTransfer());
@@ -1873,7 +1873,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		}
 	}
 
-	private void broadcastPropositionAnwser(TransferConfirmationSystemMessage t) {
+	private void broadcastPropositionAnwser(TransferConfirmationWithoutInnerSizeControl t) {
 		if (logger != null && logger.isLoggable(Level.FINEST))
 			logger.finest("Broadcasting proposition confirmation answer (distant_inet_address=" + distant_inet_address
 					+ ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress + ") : " + t);
@@ -1885,13 +1885,13 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			InterfacedIDTransfer idDist = getValidatedInterfacedIDTransfer(null, t.getYourIDTransfer());
 			if (idDist == null)
 				processInvalidTransferConnectionProcotol(
-						"Broadcasting TransferConfirmationSystemMessage, but impossible to found the correspondant TransferID "
+						"Broadcasting TransferConfirmationWithoutInnerSizeControl, but impossible to found the correspondant TransferID "
 								+ t.getMyIDTransfer() + " in the peer agent " + this.toString());
 			else {
 				AgentAddress aa = transfer_ids.getTransferAgentAddress(idDist.getLocalID());
 				if (aa == null) {
 					processInvalidTransferConnectionProcotol(
-							"Broadcasting TransferConfirmationSystemMessage, but impossible to found the correspondantant TransferID "
+							"Broadcasting TransferConfirmationWithoutInnerSizeControl, but impossible to found the correspondantant TransferID "
 									+ t.getMyIDTransfer() + " and its transfer agent address");
 				} else {
 					broadcastDataTowardEachIntermediatePeer(t, true);
@@ -1904,13 +1904,13 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					((IndirectAgentSocket) this).getParentAgentSocketAddress(), t.getMyIDTransfer());
 			if (idMiddle == null) {
 				processInvalidTransferConnectionProcotol(
-						"Broadcasting TransferConfirmationSystemMessage, but impossible to found the correspondant TransferID "
+						"Broadcasting TransferConfirmationWithoutInnerSizeControl, but impossible to found the correspondant TransferID "
 								+ t.getMyIDTransfer() + " in the middle peer agent " + this.toString());
 			} else {
 				AgentAddress aa = transfer_ids.getTransferAgentAddress(idMiddle);
 				if (aa == null) {
 					processInvalidTransferConnectionProcotol(
-							"Broadcasting TransferConfirmationSystemMessage, but impossible to found the correspondant TransferID "
+							"Broadcasting TransferConfirmationWithoutInnerSizeControl, but impossible to found the correspondant TransferID "
 									+ t.getMyIDTransfer() + " and its transfer agent address");
 				} else {
 					/*
@@ -1930,7 +1930,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		}
 	}
 
-	private void broadcastPropositionImpossibleAnwser(TransferImpossibleSystemMessageFromMiddlePeer t) {
+	private void broadcastPropositionImpossibleAnwser(TransferImpossibleWithoutInnerSizeControlFromMiddlePeer t) {
 		if (logger != null && logger.isLoggable(Level.FINEST))
 			logger.finest("Broadcasting proposition impossible as answer (distant_inet_address=" + distant_inet_address
 					+ ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress + ") : " + t);
@@ -2029,7 +2029,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				return;
 			}
 			if (state.compareTo(State.CONNECTED_INITIALIZING_ACCESS) < 0
-					&& !((obj instanceof ConnectionMessage) || (obj instanceof ConnectionInfoSystemMessage)
+					&& !((obj instanceof ConnectionMessage) || (obj instanceof ConnectionInfoWithoutInnerSizeControl)
 							|| (obj instanceof PingMessage) || (obj instanceof PongMessage))) {
 				processInvalidSerializedObject(
 						new ConnectionException("Attempting to transmit a message of type " + obj.getClass()
@@ -2037,7 +2037,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						obj, "message " + obj.getClass() + " not autorized during connection process", true);
 				return;
 			} else if (state.compareTo(State.CONNECTED) < 0 && !((obj instanceof AccessMessage)
-					|| (obj instanceof ConnectionMessage) || (obj instanceof ConnectionInfoSystemMessage)
+					|| (obj instanceof ConnectionMessage) || (obj instanceof ConnectionInfoWithoutInnerSizeControl)
 					|| (obj instanceof PingMessage) || (obj instanceof PongMessage))) {
 				processInvalidSerializedObject(
 						new ConnectionException("Attempting to transmit a message of type " + obj.getClass()
@@ -2049,7 +2049,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			if (originalMessage != null && !(obj instanceof LanMessage))
 				originalMessage.markDataAsRead();
 
-			if (obj instanceof SystemMessage) {
+			if (obj instanceof WithoutInnerSizeControl) {
 
 				if (obj instanceof ConnectionMessage) {
 					boolean sendAskConnectionMessage = false;
@@ -2172,8 +2172,8 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						sendConnectionInfoSystemMessage();
 					}
 						
-				} else if (obj.getClass() == ConnectionInfoSystemMessage.class) {
-					this.distantConnectionInfo = (ConnectionInfoSystemMessage) obj;
+				} else if (obj.getClass() == ConnectionInfoWithoutInnerSizeControl.class) {
+					this.distantConnectionInfo = (ConnectionInfoWithoutInnerSizeControl) obj;
 					if (logger != null && logger.isLoggable(Level.FINEST))
 						logger.finest("Receiving connection information messsage (distant_inet_address="
 								+ distant_inet_address + ", distantInterfacedKernelAddress="
@@ -2352,15 +2352,15 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 							LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 				}
 				/*
-				 * else if (obj.getClass()== TransferPropositionSystemMessage.class) {
-				 * TransferPropositionSystemMessage tpsm=(TransferPropositionSystemMessage)obj;
+				 * else if (obj.getClass()== TransferPropositionWithoutInnerSizeControl.class) {
+				 * TransferPropositionWithoutInnerSizeControl tpsm=(TransferPropositionWithoutInnerSizeControl)obj;
 				 * if (logger != null && logger.isLoggable(Level.FINEST))
 				 * logger.finest("Receiving transfer proposition (distant_inet_address="
 				 * +distant_inet_address+", distantInterfacedKernelAddress="
 				 * +distantInterfacedKernelAddress+") : "+tpsm);
 				 * receiveTransferProposition(null, tpsm); } else if (obj.getClass()==
-				 * TransferConfirmationSystemMessage.class) { TransferConfirmationSystemMessage
-				 * tcsm=(TransferConfirmationSystemMessage)obj; if (logger != null &&
+				 * TransferConfirmationWithoutInnerSizeControl.class) { TransferConfirmationWithoutInnerSizeControl
+				 * tcsm=(TransferConfirmationWithoutInnerSizeControl)obj; if (logger != null &&
 				 * logger.isLoggable(Level.FINEST))
 				 * logger.finest("Receiving transfer confirmation (distant_inet_address="
 				 * +distant_inet_address+", distantInterfacedKernelAddress="
@@ -2388,20 +2388,20 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					broadcastMessageWithRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.TRANSFER_AGENT_ROLE,
 							new ObjectMessage<>((DirectConnectionSuceeded) obj),
 							LocalCommunity.Roles.SOCKET_AGENT_ROLE);
-				} else if (obj.getClass() == CGRSynchroSystemMessage.class) {
+				} else if (obj.getClass() == CGRSynchroWithoutInnerSizeControl.class) {
 					if (logger != null && logger.isLoggable(Level.FINER))
 						logger.finer("Receiving CGRSynchro message (distantInterfacedKernelAddress="
 								+ distant_kernel_address + ") : " + obj);
-					CGRSynchroSystemMessage cgr = ((CGRSynchroSystemMessage) obj);
+					CGRSynchroWithoutInnerSizeControl cgr = ((CGRSynchroWithoutInnerSizeControl) obj);
 
 					if (!my_accepted_groups.acceptSender(cgr.getCGRSynchro().getContent()))
 						processInvalidSerializedObject(null, cgr, "Invalid CGR Synchro with local interfaced kernel address");
 					else
 						sendMessageWithRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.NET_AGENT,
 							cgr.getCGRSynchro(), LocalCommunity.Roles.SOCKET_AGENT_ROLE);
-				} else if (obj.getClass() == CGRSynchrosSystemMessage.class) {
+				} else if (obj.getClass() == CGRSynchrosWithoutInnerSizeControl.class) {
 					sendMessageWithRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.NET_AGENT,
-							((CGRSynchrosSystemMessage) obj).getCGRSynchros(distant_kernel_address),
+							((CGRSynchrosWithoutInnerSizeControl) obj).getCGRSynchros(distant_kernel_address),
 							LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 				} else if (obj.getClass() == ValidateBigDataProposition.class) {
 					if (logger != null && logger.isLoggable(Level.FINEST))
@@ -2831,19 +2831,19 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 	 * socket, prioritary)); } catch(PacketException | IOException |
 	 * InputStreamException e) { throw new NIOException(e); } }
 	 */
-	protected ReturnCode broadcastDataTowardEachIntermediatePeer(BroadcastableSystemMessage _data, boolean prioritary) {
+	protected ReturnCode broadcastDataTowardEachIntermediatePeer(BroadcastableWithoutInnerSizeControl _data, boolean prioritary) {
 		return broadcastDataTowardEachIntermediatePeer(
 				new DataToBroadcast(_data, getKernelAddress(), prioritary, _data.getIdTransferDestination()),
 				prioritary);
 	}
 
 	protected final ReturnCode broadcastDataTowardEachIntermediatePeer(AgentAddress sender,
-			BroadcastableSystemMessage _data, IDTransfer distantIDDestination, DataToBroadcast d) {
+																	   BroadcastableWithoutInnerSizeControl _data, IDTransfer distantIDDestination, DataToBroadcast d) {
 		return broadcastDataTowardEachIntermediatePeer(sender, _data, distantIDDestination, d.getSender(),
 				d.isPrioritary());
 	}
 
-	protected ReturnCode broadcastDataTowardEachIntermediatePeer(AgentAddress sender, BroadcastableSystemMessage _data,
+	protected ReturnCode broadcastDataTowardEachIntermediatePeer(AgentAddress sender, BroadcastableWithoutInnerSizeControl _data,
 			IDTransfer distantIDDestination, KernelAddress kaServer, boolean isPrioritary) {
 		if (sender == null) {
 			InterfacedIDTransfer idt = getValidatedInterfacedIDTransfer(null, distantIDDestination);
@@ -2871,7 +2871,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		return sendData(_data, prioritary, false);
 	}
 
-	protected ReturnCode sendData(SystemMessage _data, boolean prioritary, boolean last_message) {
+	protected ReturnCode sendData(WithoutInnerSizeControl _data, boolean prioritary, boolean last_message) {
 		if (logger != null && logger.isLoggable(Level.FINEST))
 			logger.finest("Ask for data routing (distant_inet_address=" + distant_inet_address
 					+ ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress + ", prioritary="
@@ -2881,12 +2881,12 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 	}
 
-	/*class DataToSendMessageFromAgentSocket extends ObjectMessage<SystemMessage> {
+	/*class DataToSendMessageFromAgentSocket extends ObjectMessage<WithoutInnerSizeControl> {
 
 		final boolean last_message;
 		final boolean prioritary;
 
-		public DataToSendMessageFromAgentSocket(SystemMessage _content, boolean last_message, boolean prioritary) {
+		public DataToSendMessageFromAgentSocket(WithoutInnerSizeControl _content, boolean last_message, boolean prioritary) {
 			super(_content);
 			this.last_message = last_message;
 			this.prioritary = prioritary;
@@ -3197,7 +3197,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		private final HashMap<Integer, InterfacedIDTransfer> local_transfer_ids = new HashMap<>();
 		private final HashMap<Integer, InterfacedIDTransfer> distant_transfer_ids = new HashMap<>();
 		private final HashMap<Integer, AgentAddress> transfer_agents = new HashMap<>();
-		private final HashMap<Integer, TransferPropositionSystemMessage> propositions_in_progress = new HashMap<>();
+		private final HashMap<Integer, TransferPropositionWithoutInnerSizeControl> propositions_in_progress = new HashMap<>();
 
 		@SuppressWarnings("BooleanMethodIsAlwaysInverted")
         protected boolean hasDataToCheck() {
@@ -3218,7 +3218,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					AgentAddress aa = transfer_agents.remove(e.getValue().getLocalID().getID());
 
 					if (!getTransfertType().equals(e.getValue().getLocalID()) && aa != null && checkAgentAddress(aa)) {
-						TransferClosedSystemMessage t = new TransferClosedSystemMessage(e.getValue().getLocalID(),
+						TransferClosedWithoutInnerSizeControl t = new TransferClosedWithoutInnerSizeControl(e.getValue().getLocalID(),
 								e.getValue().getTransferToKernelAddress(), e.getValue().getLocalID(), true);
 						sendMessageWithRole(aa,
                                 new ObjectMessage<>(new DataToBroadcast(t,
@@ -3245,7 +3245,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						AgentAddress aa = transfer_agents.remove(idt.getLocalID().getID());
 
 						if (!getTransfertType().equals(idt.getLocalID()) && aa != null && checkAgentAddress(aa)) {
-							TransferClosedSystemMessage t = new TransferClosedSystemMessage(idt.getLocalID(),
+							TransferClosedWithoutInnerSizeControl t = new TransferClosedWithoutInnerSizeControl(idt.getLocalID(),
 									idt.getTransferToKernelAddress(), idt.getLocalID(), true);
 							sendMessageWithRole(aa,
                                     new ObjectMessage<>(new DataToBroadcast(t,
@@ -3272,7 +3272,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		 * aa=transfer_agents.remove(new Integer(idLocal.getID())); if (aa==null) {
 		 * AgentAddress aa2=idt.getTransferToAgentAddress(); if (aa2!=null)
 		 * asker.sendMessageWithRole(aa2, new ObjectMessage<>(new
-		 * TransferClosedSystemMessage(idt.getDistantID(), asker.getKernelAddress(),
+		 * TransferClosedWithoutInnerSizeControl(idt.getDistantID(), asker.getKernelAddress(),
 		 * idt.getLocalID())), LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 		 * HashMap<AgentAddress,InterfacedIDTransfer> hm=middle_transfer_ids.remove(new
 		 * Integer(idLocal.getID())); if (hm!=null) {
@@ -3280,11 +3280,11 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		 * LocalCommunity.Roles.SOCKET_AGENT_ROLE)); if (idt!=null &&
 		 * idt.getTransferToAgentAddress()!=null)
 		 * asker.sendMessageWithRole(idt.getTransferToAgentAddress(), new
-		 * ObjectMessage<>(new TransferClosedSystemMessage(idt.getLocalID(),
+		 * ObjectMessage<>(new TransferClosedWithoutInnerSizeControl(idt.getLocalID(),
 		 * asker.getKernelAddress(), idt.getLocalID())),
 		 * LocalCommunity.Roles.SOCKET_AGENT_ROLE); } } else {
 		 * asker.sendMessageWithRole(aa, new ObjectMessage<>(new
-		 * TransferClosedSystemMessage(null, asker.getKernelAddress(), idLocal)),
+		 * TransferClosedWithoutInnerSizeControl(null, asker.getKernelAddress(), idLocal)),
 		 * LocalCommunity.Roles.SOCKET_AGENT_ROLE); } }
 		 * 
 		 * }
@@ -3299,17 +3299,17 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				if (aa == null) {
 					if (e.getValue().getTransferToAgentAddress() != null)
 						broadcastDataTowardEachIntermediatePeer(null,
-								new TransferClosedSystemMessage(e.getValue().getLocalID(),
+								new TransferClosedWithoutInnerSizeControl(e.getValue().getLocalID(),
 										e.getValue().getTransferToKernelAddress(), e.getValue().getLocalID(), true),
 								e.getValue().getDistantID(), AbstractAgentSocket.this.getKernelAddress(), true);
 				} else {
 					sendMessageWithRole(aa,
-							new ObjectMessage<>(new TransferClosedSystemMessage(null,
+							new ObjectMessage<>(new TransferClosedWithoutInnerSizeControl(null,
 									AbstractAgentSocket.this.getKernelAddress(), e.getValue().getLocalID(), true)),
 							LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 				}
 				if (returnsToAsker) {
-					TransferClosedSystemMessage t = new TransferClosedSystemMessage(e.getValue().getLocalID(),
+					TransferClosedWithoutInnerSizeControl t = new TransferClosedWithoutInnerSizeControl(e.getValue().getLocalID(),
 							AbstractAgentSocket.this.distant_kernel_address, e.getValue().getLocalID(), true);
 					t.setMessageLocker(new MessageLocker(null));
 					AbstractAgentSocket.this.broadcastDataTowardEachIntermediatePeer(t, true);
@@ -3328,13 +3328,13 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 							if (idt.getTransferToAgentAddress() != null) {
 								AbstractAgentSocket.this.broadcastDataTowardEachIntermediatePeer(
 										((IndirectAgentSocket) AbstractAgentSocket.this).getParentAgentSocketAddress(),
-										new TransferClosedSystemMessage(idt.getLocalID(),
+										new TransferClosedWithoutInnerSizeControl(idt.getLocalID(),
 												idt.getTransferToKernelAddress(), idt.getLocalID(), true),
 										idt.getLocalID(), AbstractAgentSocket.this.getKernelAddress(), true);
 							}
 						} else {
 							AbstractAgentSocket.this.sendMessageWithRole(aa,
-									new ObjectMessage<>(new TransferClosedSystemMessage(null,
+									new ObjectMessage<>(new TransferClosedWithoutInnerSizeControl(null,
 											AbstractAgentSocket.this.getKernelAddress(), idt.getLocalID(), true)),
 									LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 						}
@@ -3344,7 +3344,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 									.equals(TransferAgent.NullIDTransfer) ? AbstractAgentSocket.this.getKernelAddress()
 											: ((IndirectAgentSocket) AbstractAgentSocket.this)
 													.getDistantKernelAddressRequester();
-							TransferClosedSystemMessage t = new TransferClosedSystemMessage(getTransfertType(), ka,
+							TransferClosedWithoutInnerSizeControl t = new TransferClosedWithoutInnerSizeControl(getTransfertType(), ka,
 									idt2.getLocalID(), true);
 							t.setMessageLocker(new MessageLocker(null));
 							broadcastDataTowardEachIntermediatePeer(t, true);
@@ -3362,42 +3362,42 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		}
 
 		protected void putTransferPropositionSystemMessage(InterfacedIDTransfer id,
-				TransferPropositionSystemMessage proposition) {
+				TransferPropositionWithoutInnerSizeControl proposition) {
 			putTransferPropositionSystemMessage(id.getLocalID(), proposition);
 		}
 
 		protected void putTransferPropositionSystemMessage(IDTransfer id,
-				TransferPropositionSystemMessage proposition) {
+				TransferPropositionWithoutInnerSizeControl proposition) {
 			putTransferPropositionSystemMessage(id.getID(), proposition);
 		}
 
-		protected void putTransferPropositionSystemMessage(int id, TransferPropositionSystemMessage proposition) {
+		protected void putTransferPropositionSystemMessage(int id, TransferPropositionWithoutInnerSizeControl proposition) {
 			if (proposition == null)
 				throw new NullPointerException("null");
 			propositions_in_progress.put(id, proposition);
 		}
 
-		/*protected TransferPropositionSystemMessage getTransferPropositionSystemMessage(InterfacedIDTransfer id) {
+		/*protected TransferPropositionWithoutInnerSizeControl getTransferPropositionSystemMessage(InterfacedIDTransfer id) {
 			return getTransferPropositionSystemMessage(id.getLocalID());
 		}*/
 
-		/*protected TransferPropositionSystemMessage getTransferPropositionSystemMessage(IDTransfer id) {
+		/*protected TransferPropositionWithoutInnerSizeControl getTransferPropositionSystemMessage(IDTransfer id) {
 			return getTransferPropositionSystemMessage(id.getID());
 		}*/
 
-		/*protected TransferPropositionSystemMessage getTransferPropositionSystemMessage(int id) {
+		/*protected TransferPropositionWithoutInnerSizeControl getTransferPropositionSystemMessage(int id) {
 			return propositions_in_progress.get(id);
 		}*/
 
-		/*protected TransferPropositionSystemMessage removeTransferPropositionSystemMessage(InterfacedIDTransfer id) {
+		/*protected TransferPropositionWithoutInnerSizeControl removeTransferPropositionSystemMessage(InterfacedIDTransfer id) {
 			return removeTransferPropositionSystemMessage(id.getLocalID());
 		}*/
 
-		protected TransferPropositionSystemMessage removeTransferPropositionSystemMessage(IDTransfer id) {
+		protected TransferPropositionWithoutInnerSizeControl removeTransferPropositionSystemMessage(IDTransfer id) {
 			return removeTransferPropositionSystemMessage(id.getID());
 		}
 
-		protected TransferPropositionSystemMessage removeTransferPropositionSystemMessage(int id) {
+		protected TransferPropositionWithoutInnerSizeControl removeTransferPropositionSystemMessage(int id) {
 			return propositions_in_progress.remove(id);
 		}
 

@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.util.crypto.AbstractSecureRandom;
@@ -73,7 +73,7 @@ public class JPakeAccessInitialized extends AccessInitialized {
 		generatedSalt=in.readBytesArray(false, generatedSaltSize);
 		assert generatedSalt != null;
 		if (generatedSalt.length!=generatedSaltSize)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 	}
 
 	@Override

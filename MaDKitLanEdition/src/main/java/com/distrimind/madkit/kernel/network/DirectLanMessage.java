@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 
@@ -67,7 +67,7 @@ final class DirectLanMessage extends LanMessage {
 		
 		super.readExternal(in);
 		if (message.getSender()==null)
-			throw new MessageSerializationException(Integrity.FAIL);
+			throw new MessageExternalizationException(Integrity.FAIL);
 	}
 
 	@Override

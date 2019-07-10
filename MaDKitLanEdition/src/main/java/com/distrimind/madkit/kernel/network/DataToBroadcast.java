@@ -50,10 +50,10 @@ import java.io.IOException;
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-final class DataToBroadcast implements SystemMessage {
+final class DataToBroadcast implements WithoutInnerSizeControl {
 
 
-	private BroadcastableSystemMessage messageToBroadcast;
+	private BroadcastableWithoutInnerSizeControl messageToBroadcast;
 	private KernelAddress sender;
 	private boolean prioritary;
 	private IDTransfer transferID;
@@ -65,7 +65,7 @@ final class DataToBroadcast implements SystemMessage {
 	}
 	@Override
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
-		messageToBroadcast=in.readObject(false, BroadcastableSystemMessage.class);
+		messageToBroadcast=in.readObject(false, BroadcastableWithoutInnerSizeControl.class);
 		sender=in.readObject(false, KernelAddress.class);
 		prioritary=in.readBoolean();
 		transferID=in.readObject(false, IDTransfer.class);
@@ -79,8 +79,8 @@ final class DataToBroadcast implements SystemMessage {
 		oos.writeObject(transferID, false);
 	}
 	
-	DataToBroadcast(BroadcastableSystemMessage messageToBroadcast, KernelAddress sender, boolean prioritary,
-			IDTransfer transferID) {
+	DataToBroadcast(BroadcastableWithoutInnerSizeControl messageToBroadcast, KernelAddress sender, boolean prioritary,
+					IDTransfer transferID) {
 		if (messageToBroadcast == null)
 			throw new NullPointerException("messageToBroadcast");
 		if (sender == null)
@@ -103,7 +103,7 @@ final class DataToBroadcast implements SystemMessage {
 		return transferID;
 	}
 
-	BroadcastableSystemMessage getMessageToBroadcast() {
+	BroadcastableWithoutInnerSizeControl getMessageToBroadcast() {
 		return messageToBroadcast;
 	}
 

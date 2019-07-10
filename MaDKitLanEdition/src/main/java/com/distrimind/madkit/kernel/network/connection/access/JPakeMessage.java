@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.madkit.util.SecureExternalizable;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
@@ -93,23 +93,23 @@ class JPakeMessage extends AccessMessage{
 		for (int i=0;i<tab.length;i++)
 		{
 			if (!(tab[i] instanceof Identifier))
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			identifiers[i]=(Identifier)tab[i];
 			totalSize+=tab[i].getInternalSerializedSize();
 		}
 		
 		if (totalSize>globalSize)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		jpakeMessages=in.read2DBytesArray(false, true, identifiers.length, MAX_JPAKE_MESSAGE_LENGTH);
 		step=in.readShort();
 		totalSize+=SerializationTools.getInternalSize(jpakeMessages, identifiers.length);
 		if (totalSize>globalSize)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		/*for (byte[] b : jpakeMessages)
 			if (b==null)
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);*/
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);*/
 		if (step<1 || step>5)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		
 	}
 	@Override

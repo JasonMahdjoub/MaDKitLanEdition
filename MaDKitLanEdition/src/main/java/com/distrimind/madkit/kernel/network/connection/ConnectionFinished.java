@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network.connection;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionState;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
@@ -78,7 +78,7 @@ public class ConnectionFinished extends ConnectionMessage {
 		}
 		catch(Exception e)
 		{
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		}
 	}
 

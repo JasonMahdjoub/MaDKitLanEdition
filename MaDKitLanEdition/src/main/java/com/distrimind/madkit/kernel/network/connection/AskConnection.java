@@ -38,10 +38,8 @@
 package com.distrimind.madkit.kernel.network.connection;
 
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 import com.distrimind.madkit.util.SecuredObjectOutputStream;
 
@@ -69,7 +67,7 @@ public class AskConnection extends ConnectionMessage {
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		you_are_asking=in.readBoolean();
 		if (you_are_asking)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 	}
 
 	@Override

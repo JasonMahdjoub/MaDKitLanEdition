@@ -38,9 +38,9 @@
 
 package com.distrimind.madkit.kernel;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
+import com.distrimind.madkit.kernel.network.WithoutInnerSizeControl.Integrity;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 import com.distrimind.madkit.util.SecuredObjectOutputStream;
 
@@ -113,14 +113,14 @@ public class MultiGroup extends AbstractGroup {
 		int total=8;
 		int globalSize=NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
 		if (notforbiden<0 || forbiden<0 || total+notforbiden*4+total+forbiden*4>globalSize)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		for (int i = 0; i < notforbiden; i++)
 		{
 			AbstractGroup ag=ois.readObject(false, AbstractGroup.class);
 
 			total+=ag.getInternalSerializedSize();
 			if (total>globalSize)
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			addGroup(ag);
 		}
 		for (int i = 0; i < forbiden; i++)
@@ -128,7 +128,7 @@ public class MultiGroup extends AbstractGroup {
 			AbstractGroup ag=ois.readObject( false, AbstractGroup.class);
 			total+=ag.getInternalSerializedSize();
 			if (total>globalSize)
-				throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			addForbidenGroup(ag);
 		}
 			

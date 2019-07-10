@@ -33,9 +33,9 @@
  */
 package com.distrimind.madkit.message;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
+import com.distrimind.madkit.kernel.network.WithoutInnerSizeControl.Integrity;
 import com.distrimind.madkit.util.NetworkMessage;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 import com.distrimind.madkit.util.SecuredObjectOutputStream;
@@ -89,18 +89,18 @@ public class ActMessage extends com.distrimind.madkit.kernel.Message implements 
 		int globalSize=NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
 		int totalSize=super.getInternalSerializedSizeImpl();
 		if (totalSize>globalSize)
-			throw new MessageSerializationException(Integrity.FAIL);
+			throw new MessageExternalizationException(Integrity.FAIL);
 		action=in.readString(true, MAX_ACTION_LENGTH);
 
 		totalSize+=SerializationTools.getInternalSize(action, MAX_ACTION_LENGTH);
 		if (totalSize>globalSize)
-			throw new MessageSerializationException(Integrity.FAIL);
+			throw new MessageExternalizationException(Integrity.FAIL);
 		int size=in.readInt();
 		totalSize+=4;
 		if (totalSize>globalSize)
-			throw new MessageSerializationException(Integrity.FAIL);
+			throw new MessageExternalizationException(Integrity.FAIL);
 		if (size<0)
-			throw new MessageSerializationException(Integrity.FAIL);
+			throw new MessageExternalizationException(Integrity.FAIL);
 
 		fields=new Hashtable<>();
 		for (int i=0;i<size;i++)
@@ -110,14 +110,14 @@ public class ActMessage extends com.distrimind.madkit.kernel.Message implements 
 			totalSize+=SerializationTools.getInternalSize(k, MAX_FIELD_LENGTH)+SerializationTools.getInternalSize(v, MAX_STRING_VALUE_LENGTH);
 			fields.put(k, v);
 			if (totalSize>globalSize)
-				throw new MessageSerializationException(Integrity.FAIL);
+				throw new MessageExternalizationException(Integrity.FAIL);
 		}
 		excludeFromEncryption=in.readBoolean();
 		totalSize+=1;
 		content=in.readString(true, MAX_STRING_CONTENT_LENGTH);
 		totalSize+=SerializationTools.getInternalSize(content, MAX_STRING_CONTENT_LENGTH);
 		if (totalSize>globalSize)
-			throw new MessageSerializationException(Integrity.FAIL);
+			throw new MessageExternalizationException(Integrity.FAIL);
 	}
 	@Override
 	public void writeExternal(final SecuredObjectOutputStream oos) throws IOException{

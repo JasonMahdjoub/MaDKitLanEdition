@@ -39,13 +39,13 @@ package com.distrimind.madkit.kernel.network.connection.unsecured;
 
 import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.exceptions.ConnectionException;
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.PacketCounter;
 import com.distrimind.madkit.kernel.network.SubBlock;
 import com.distrimind.madkit.kernel.network.SubBlockInfo;
 import com.distrimind.madkit.kernel.network.SubBlockParser;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
+import com.distrimind.madkit.kernel.network.WithoutInnerSizeControl.Integrity;
 import com.distrimind.madkit.kernel.network.connection.*;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 import com.distrimind.madkit.util.SecuredObjectOutputStream;
@@ -257,7 +257,7 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 			}
 			catch(Exception e2)
 			{
-				throw new MessageSerializationException(Integrity.FAIL);
+				throw new MessageExternalizationException(Integrity.FAIL);
 			}
 			
 			

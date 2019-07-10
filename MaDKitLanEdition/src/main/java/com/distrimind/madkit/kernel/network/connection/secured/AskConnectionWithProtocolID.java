@@ -1,6 +1,5 @@
 package com.distrimind.madkit.kernel.network.connection.secured;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
 import com.distrimind.madkit.kernel.network.connection.AskConnection;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 import com.distrimind.madkit.util.SecuredObjectOutputStream;

@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.util.MultiFormatPropertiesObjectParser;
 import com.distrimind.madkit.util.SecureExternalizable;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
@@ -57,7 +57,7 @@ import java.util.Objects;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-public abstract class AbstractIP extends MultiFormatProperties implements SystemMessage, SecureExternalizable {
+public abstract class AbstractIP extends MultiFormatProperties implements WithoutInnerSizeControl, SecureExternalizable {
 	/**
 	 * 
 	 */
@@ -87,7 +87,7 @@ public abstract class AbstractIP extends MultiFormatProperties implements System
 		hashCode=-1;
 		port=in.readInt();
 		if (port<0)
-			throw new MessageSerializationException(Integrity.FAIL);
+			throw new MessageExternalizationException(Integrity.FAIL);
 	}
 
 	@Override

@@ -37,8 +37,8 @@
  */
 package com.distrimind.madkit.kernel;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
+import com.distrimind.madkit.kernel.network.WithoutInnerSizeControl.Integrity;
 import com.distrimind.madkit.util.SecureExternalizable;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 import com.distrimind.madkit.util.SecuredObjectOutputStream;
@@ -120,7 +120,7 @@ public class KernelAddress implements SecureExternalizable, Cloneable {
 		try {
 			internalSize=in.readShort();
 			if (internalSize<16 || internalSize>65)
-				throw new MessageSerializationException(Integrity.FAIL, "internalSize="+internalSize);
+				throw new MessageExternalizationException(Integrity.FAIL, "internalSize="+internalSize);
 			/*synchronized(tab)
 			{*/
 				this.kernelAddressBytes=new byte[internalSize];
@@ -139,13 +139,13 @@ public class KernelAddress implements SecureExternalizable, Cloneable {
 			
 			try {
 				if (id.getBytes() == null)
-					throw new MessageSerializationException(Integrity.FAIL);
+					throw new MessageExternalizationException(Integrity.FAIL);
 				//noinspection EqualsWithItself
 				if (!id.equals(id))
-					throw new MessageSerializationException(Integrity.FAIL);
+					throw new MessageExternalizationException(Integrity.FAIL);
 				
 			} catch (Exception e) {
-				throw new MessageSerializationException(Integrity.FAIL);
+				throw new MessageExternalizationException(Integrity.FAIL);
 			}
 			
 			if (initName)

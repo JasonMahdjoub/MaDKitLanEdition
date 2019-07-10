@@ -33,8 +33,8 @@
  */
 package com.distrimind.madkit.message;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
-import com.distrimind.madkit.kernel.network.SystemMessage.Integrity;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
+import com.distrimind.madkit.kernel.network.WithoutInnerSizeControl.Integrity;
 import com.distrimind.madkit.util.NetworkMessage;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 import com.distrimind.madkit.util.SecuredObjectOutputStream;
@@ -76,7 +76,7 @@ public class EnumMessage<E extends Enum<E>> extends ObjectMessage<Object[]> impl
 		}
 		catch(Exception e)
 		{
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, e);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, e);
 		}
 		
 		

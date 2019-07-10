@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network.connection.secured;
 
-import com.distrimind.madkit.exceptions.MessageSerializationException;
+import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.network.connection.AskConnection;
 import com.distrimind.madkit.util.SecuredObjectInputStream;
 import com.distrimind.madkit.util.SecuredObjectOutputStream;
@@ -75,18 +75,18 @@ class AskClientServerConnection extends AskConnection {
 		secretKeyForSignature=in.readBytesArray(false, MAX_SECRET_KEY_LENGTH);
 		signatureOfSecretKeyForEncryption=in.readBytesArray(true, MAX_SIGNATURE_LENGTH);
 		if (secretKeyForEncryption!=null && secretKeyForEncryption.length == 0)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		if (secretKeyForSignature.length == 0)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		if (this.isYouAreAsking())
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		randomBytes=in.readBytesArray(true, 256);
 		if (secretKeyForEncryption==null && (signatureOfSecretKeyForEncryption!=null || randomBytes!=null))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		if (secretKeyForEncryption!=null && (signatureOfSecretKeyForEncryption==null || randomBytes==null))
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		if (randomBytes!=null  && randomBytes.length!=256)
-			throw new MessageSerializationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 	}
 
 
