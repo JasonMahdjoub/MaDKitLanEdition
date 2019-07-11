@@ -331,7 +331,8 @@ class MadkitKernel extends Agent {
 		this.serviceExecutor = createSchedulerServiceExecutor(SYSTEM, threadPriorityForServiceExecutor, true,
 				SYSTEM.getName(), Math.min(Runtime.getRuntime().availableProcessors(), 2), 4,
 				null);
-		Fortuna.setPersonalDefaultScheduledExecutorService(this.serviceExecutor);
+		if (madkitConfig.isUseMadkitSchedulerWithFortunaSecureRandom())
+			Fortuna.setPersonalDefaultScheduledExecutorService(this.serviceExecutor);
 		/*
 		 * lifeExecutorWithBlockQueue = new
 		 * ThreadPoolExecutor(Math.min(Runtime.getRuntime().availableProcessors(), 2),
@@ -3176,7 +3177,8 @@ class MadkitKernel extends Agent {
 
 		}
 		leaveAllGroupsOfAllAgents();
-		Fortuna.setPersonalDefaultScheduledExecutorService(null);
+		if (getMadkitConfig().isUseMadkitSchedulerWithFortunaSecureRandom())
+			Fortuna.setPersonalDefaultScheduledExecutorService(null);
 		if (this.lifeExecutor!=null) {
 			this.lifeExecutor.shutdownNow();
 			this.serviceExecutor.shutdownNow();

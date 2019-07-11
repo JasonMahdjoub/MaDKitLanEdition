@@ -627,7 +627,16 @@ public class MadkitProperties extends MultiFormatProperties {
 		}
 		return change;
 	}
-	
+	private boolean useMadkitSchedulerWithFortunaSecureRandom=true;
+
+	public boolean isUseMadkitSchedulerWithFortunaSecureRandom() {
+		return useMadkitSchedulerWithFortunaSecureRandom;
+	}
+
+	public void setUseMadkitSchedulerWithFortunaSecureRandom(boolean useMadkitSchedulerWithFortunaSecureRandom) {
+		this.useMadkitSchedulerWithFortunaSecureRandom = useMadkitSchedulerWithFortunaSecureRandom;
+	}
+
 	private String savedRandomSeedForApprovedRandom=null, savedRandomSeedForApprovedRandomForKeys=null;
 	private SecureRandomType approvedRandomType=SecureRandomType.FORTUNA_WITH_BC_FIPS_APPROVED;
 	private SecureRandomType approvedRandomTypeForKeys=SecureRandomType.FORTUNA_WITH_BC_FIPS_APPROVED_FOR_KEYS;
@@ -849,6 +858,8 @@ public class MadkitProperties extends MultiFormatProperties {
 		this.parameterForApprovedRandomForKeys = parameterForApprovedRandomKeys;
 		approvedRandomForKeys=null;
 	}
+
+
 	
 	private transient MadkitProperties reference=null;
 

@@ -119,6 +119,8 @@ class PublicKeyMessage extends ConnectionMessage {
 			public_key_bytes_distant_for_signature = _public_key_distant_for_signature == null ? null : _public_key_distant_for_signature.encodeWithDefaultParameters();
 			ASymmetricAuthenticatedSignerAlgorithm signer=new ASymmetricAuthenticatedSignerAlgorithm(privateKeyForSignature);
 			signedPublicKey=signer.sign(public_key_for_encryption_bytes);
+
+
 		}
 		catch(Exception e)
 		{

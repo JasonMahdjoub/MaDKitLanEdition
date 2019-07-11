@@ -862,7 +862,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 	}
 
 	private byte[] getRandomMessage() {
-		byte[] message = new byte[20000 + rand.nextInt(100000)];
+		byte[] message = new byte[20000 + rand.nextInt(262144/8-20000)];
 		rand.nextBytes(message);
 		return message;
 	}
@@ -987,7 +987,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 			pp = cp.getPacketPart(b, np);
 			rp.readNewPart(pp);
 		}
-
+output.flush();
 		return output.getBytes();
 	}
 
