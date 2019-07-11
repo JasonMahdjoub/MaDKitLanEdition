@@ -51,17 +51,17 @@ import java.io.IOException;
  * @version 1.3
  * @since MadkitLanEdition 1.0
  */
-final class CGRSynchroWithoutInnerSizeControl implements WithoutInnerSizeControl {
+final class CGRSynchroSystemMessage implements WithoutInnerSizeControl {
 
 
 	private CGRSynchro CGRSynchro;
 	@SuppressWarnings("unused")
-	CGRSynchroWithoutInnerSizeControl()
+	CGRSynchroSystemMessage()
 	{
 		
 	}
 	
-	CGRSynchroWithoutInnerSizeControl(CGRSynchro CGRSynchro) {
+	CGRSynchroSystemMessage(CGRSynchro CGRSynchro) {
 		if (CGRSynchro == null)
 			throw new NullPointerException("CGRSynchro");
 

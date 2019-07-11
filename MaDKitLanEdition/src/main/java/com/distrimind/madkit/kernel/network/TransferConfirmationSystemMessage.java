@@ -51,7 +51,7 @@ import java.net.InetSocketAddress;
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-class TransferConfirmationWithoutInnerSizeControl extends BroadcastableWithoutInnerSizeControl {
+class TransferConfirmationSystemMessage extends BroadcastableSystemMessage {
 
 	private IDTransfer yourIDTransfer;
 	private IDTransfer myIDTransfer;
@@ -63,7 +63,7 @@ class TransferConfirmationWithoutInnerSizeControl extends BroadcastableWithoutIn
 	private PointToPointTransferedBlockChecker pointToPointBlockChecker;
 	
 	@SuppressWarnings("unused")
-	TransferConfirmationWithoutInnerSizeControl()
+	TransferConfirmationSystemMessage()
 	{
 		
 	}
@@ -105,10 +105,10 @@ class TransferConfirmationWithoutInnerSizeControl extends BroadcastableWithoutIn
 	}
 	
 	
-	TransferConfirmationWithoutInnerSizeControl(IDTransfer idTransferDestinationUsedForBroadcast,
-												KernelAddress kernelAddressDestination, KernelAddress kernelAddressToConnect, IDTransfer yourIDTransfer,
-												IDTransfer myIDTransfer, int numberOfSubBlocks, boolean middleReached,
-												InetSocketAddress distantInetSocketAddress, PointToPointTransferedBlockChecker pointToPointBlockChecker) {
+	TransferConfirmationSystemMessage(IDTransfer idTransferDestinationUsedForBroadcast,
+									  KernelAddress kernelAddressDestination, KernelAddress kernelAddressToConnect, IDTransfer yourIDTransfer,
+									  IDTransfer myIDTransfer, int numberOfSubBlocks, boolean middleReached,
+									  InetSocketAddress distantInetSocketAddress, PointToPointTransferedBlockChecker pointToPointBlockChecker) {
 		super(idTransferDestinationUsedForBroadcast, kernelAddressDestination);
 		if (yourIDTransfer == null)
 			throw new NullPointerException("null");

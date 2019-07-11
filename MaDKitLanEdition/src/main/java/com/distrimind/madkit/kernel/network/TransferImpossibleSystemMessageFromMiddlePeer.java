@@ -52,17 +52,17 @@ import java.io.IOException;
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-class TransferImpossibleWithoutInnerSizeControlFromMiddlePeer extends TransferImpossibleWithoutInnerSizeControl {
+class TransferImpossibleSystemMessageFromMiddlePeer extends TransferImpossibleSystemMessage {
 
 	private IDTransfer myIDTransfer;
 	@SuppressWarnings("unused")
-	TransferImpossibleWithoutInnerSizeControlFromMiddlePeer()
+	TransferImpossibleSystemMessageFromMiddlePeer()
 	{
 		
 	}
 	
-	TransferImpossibleWithoutInnerSizeControlFromMiddlePeer(IDTransfer _idTransferDestination,
-															KernelAddress _kernelAddressDestination, IDTransfer yourIDTransfer, IDTransfer myIDTransfer) {
+	TransferImpossibleSystemMessageFromMiddlePeer(IDTransfer _idTransferDestination,
+												  KernelAddress _kernelAddressDestination, IDTransfer yourIDTransfer, IDTransfer myIDTransfer) {
 		super(_idTransferDestination, _kernelAddressDestination, yourIDTransfer);
 		if (myIDTransfer == null)
 			throw new NullPointerException("myIDTransfer");

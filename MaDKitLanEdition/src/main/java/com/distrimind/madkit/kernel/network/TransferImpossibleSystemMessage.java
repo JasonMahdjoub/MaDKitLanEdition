@@ -39,7 +39,8 @@ package com.distrimind.madkit.kernel.network;
 
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
-import com.distrimind.madkit.kernel.network.connection.TransferedBlockChecker;
+import com.distrimind.util.io.Integrity;
+import com.distrimind.util.io.MessageExternalizationException;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
 
@@ -48,59 +49,65 @@ import java.io.IOException;
 /**
  * 
  * @author Jason Mahdjoub
- * @version 1.2
+ * @version 1.3
  * @since MadkitLanEdition 1.0
  */
-class TransferBlockCheckerWithoutInnerSizeControl extends BroadcastableWithoutInnerSizeControl {
+class TransferImpossibleSystemMessage extends BroadcastableSystemMessage {
 
-	private TransferedBlockChecker transferBlockChercker;
-	
-	@SuppressWarnings("unused")
-	TransferBlockCheckerWithoutInnerSizeControl()
+	private IDTransfer yourIDTransfer;
+
+	TransferImpossibleSystemMessage()
 	{
 		
 	}
-
-	TransferBlockCheckerWithoutInnerSizeControl(IDTransfer _idTransferDestination, KernelAddress _kernelAddressDestination,
-												TransferedBlockChecker transferBlockChercker) {
-		super(_idTransferDestination, _kernelAddressDestination);
-		if (transferBlockChercker == null)
-			throw new NullPointerException("transferBlockChercker");
-		this.transferBlockChercker = transferBlockChercker;
-	}
-
-	TransferedBlockChecker getTransferBlockChercker() {
-		return transferBlockChercker;
-	}
 	
+	TransferImpossibleSystemMessage(IDTransfer _idTransferDestination, KernelAddress _kernelAddressDestination,
+									IDTransfer yourIDTransfer) {
+		super(_idTransferDestination, _kernelAddressDestination);
+		if (yourIDTransfer == null)
+			throw new NullPointerException("yourIDTransfer");
+		if (yourIDTransfer.equals(TransferAgent.NullIDTransfer))
+			throw new IllegalArgumentException("yourIDTransfer cannot be equals to TransferAgent.NullIDTransfer");
+		this.yourIDTransfer = yourIDTransfer;
+	}
 	@Override
 	public int getInternalSerializedSize() {
 		
-		return super.getInternalSerializedSize()+transferBlockChercker.getInternalSerializedSize();
+		return super.getInternalSerializedSize()+yourIDTransfer.getInternalSerializedSize();
 	}
 
 
 	@Override
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		super.readExternal(in);
-		transferBlockChercker=in.readObject(false, TransferedBlockChecker.class);
+		yourIDTransfer=in.readObject(false, IDTransfer.class);
+		if (yourIDTransfer.equals(TransferAgent.NullIDTransfer))
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 	}
 
 	@Override
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		super.writeExternal(oos);
-		oos.writeObject(transferBlockChercker, false );
 
-		
+		oos.writeObject( yourIDTransfer, false);
 	}
 	
+
+	IDTransfer getYourIDTransfer() {
+		return yourIDTransfer;
+	}
+
+	void setYourIDTransfer(IDTransfer id) {
+		if (id == null)
+			throw new IllegalArgumentException("null");
+		yourIDTransfer = id;
+	}
 
 	@Override
 	public boolean excludedFromEncryption() {
 		return false;
 	}
+	
 
-	
-	
 
 }

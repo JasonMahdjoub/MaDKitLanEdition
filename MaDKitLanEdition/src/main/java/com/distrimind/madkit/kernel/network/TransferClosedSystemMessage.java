@@ -52,19 +52,19 @@ import java.io.IOException;
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-class TransferClosedWithoutInnerSizeControl extends BroadcastableWithoutInnerSizeControl {
+class TransferClosedSystemMessage extends BroadcastableSystemMessage {
 
 	private IDTransfer idTransfer;
 	private boolean lastPass;
 	
 	@SuppressWarnings("unused")
-	TransferClosedWithoutInnerSizeControl()
+	TransferClosedSystemMessage()
 	{
 		
 	}
 
-	TransferClosedWithoutInnerSizeControl(IDTransfer _idTransferDestination, KernelAddress _kernelAddressDestination,
-										  IDTransfer idTransfer, boolean lastPass) {
+	TransferClosedSystemMessage(IDTransfer _idTransferDestination, KernelAddress _kernelAddressDestination,
+								IDTransfer idTransfer, boolean lastPass) {
 		super(_idTransferDestination, _kernelAddressDestination);
 		if (idTransfer == null)
 			throw new NullPointerException("idTransfer");

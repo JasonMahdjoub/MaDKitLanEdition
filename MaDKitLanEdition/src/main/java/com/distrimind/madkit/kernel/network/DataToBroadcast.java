@@ -53,7 +53,7 @@ import java.io.IOException;
 final class DataToBroadcast implements WithoutInnerSizeControl {
 
 
-	private BroadcastableWithoutInnerSizeControl messageToBroadcast;
+	private BroadcastableSystemMessage messageToBroadcast;
 	private KernelAddress sender;
 	private boolean prioritary;
 	private IDTransfer transferID;
@@ -65,7 +65,7 @@ final class DataToBroadcast implements WithoutInnerSizeControl {
 	}
 	@Override
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
-		messageToBroadcast=in.readObject(false, BroadcastableWithoutInnerSizeControl.class);
+		messageToBroadcast=in.readObject(false, BroadcastableSystemMessage.class);
 		sender=in.readObject(false, KernelAddress.class);
 		prioritary=in.readBoolean();
 		transferID=in.readObject(false, IDTransfer.class);
@@ -79,7 +79,7 @@ final class DataToBroadcast implements WithoutInnerSizeControl {
 		oos.writeObject(transferID, false);
 	}
 	
-	DataToBroadcast(BroadcastableWithoutInnerSizeControl messageToBroadcast, KernelAddress sender, boolean prioritary,
+	DataToBroadcast(BroadcastableSystemMessage messageToBroadcast, KernelAddress sender, boolean prioritary,
 					IDTransfer transferID) {
 		if (messageToBroadcast == null)
 			throw new NullPointerException("messageToBroadcast");
@@ -103,7 +103,7 @@ final class DataToBroadcast implements WithoutInnerSizeControl {
 		return transferID;
 	}
 
-	BroadcastableWithoutInnerSizeControl getMessageToBroadcast() {
+	BroadcastableSystemMessage getMessageToBroadcast() {
 		return messageToBroadcast;
 	}
 

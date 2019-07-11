@@ -51,17 +51,17 @@ import java.util.*;
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-final class CGRSynchrosWithoutInnerSizeControl implements WithoutInnerSizeControl {
+final class CGRSynchrosSystemMessage implements WithoutInnerSizeControl {
 
 	private Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> organization_snap_shot;
 	private ArrayList<Group> removedGroups;
 	@SuppressWarnings("unused")
-	CGRSynchrosWithoutInnerSizeControl()
+	CGRSynchrosSystemMessage()
 	{
 		
 	}
-	CGRSynchrosWithoutInnerSizeControl(Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> organization_snap_shop,
-									   KernelAddress from, ArrayList<Group> removedGroups) {
+	CGRSynchrosSystemMessage(Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> organization_snap_shop,
+							 KernelAddress from, ArrayList<Group> removedGroups) {
 		if (organization_snap_shop == null)
 			throw new NullPointerException();
 		if (removedGroups == null)

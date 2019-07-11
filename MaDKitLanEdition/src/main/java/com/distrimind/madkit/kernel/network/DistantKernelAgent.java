@@ -324,7 +324,7 @@ class DistantKernelAgent extends AgentFakeThread {
 								ml.lock();
 							}
 
-							CGRSynchroWithoutInnerSizeControl message = new CGRSynchroWithoutInnerSizeControl(m);
+							CGRSynchroSystemMessage message = new CGRSynchroSystemMessage(m);
 							sendData(asd.getAgentAddress(), message, m.getCode() != Code.LEAVE_GROUP && m.getCode() != Code.LEAVE_ROLE, ml, false);
 							if (ml!=null)
 								ml.waitUnlock(this, true);
@@ -693,18 +693,18 @@ class DistantKernelAgent extends AgentFakeThread {
 							//updateLocalAcceptedGroups();
 						}
 
-					} else if (o.getClass() == ConnectionInfoWithoutInnerSizeControl.class) {
+					} else if (o.getClass() == ConnectionInfoSystemMessage.class) {
 						AgentSocketData asd = getAgentSocketDataFromItsAgentAddress(_message.getSender());
 						if (asd != null) {
 							if (logger != null && logger.isLoggable(Level.FINEST))
 								logger.finest("Receiving connection information from " + _message.getSender()
 										+ " (distantInterfacedKernelAddress=" + distant_kernel_address + ") : " + o);
 
-							asd.setConnectionInfo((ConnectionInfoWithoutInnerSizeControl) o);
+							asd.setConnectionInfo((ConnectionInfoSystemMessage) o);
 						} else if (logger != null)
 							logger.severe(
 									"Impossible to found agent socket data from agent address " + _message.getSender()
-											+ ". So impossible to set given ConnectionInfoWithoutInnerSizeControl.");
+											+ ". So impossible to set given ConnectionInfoSystemMessage.");
 					} else if (o.getClass() == BigDataPropositionMessage.class) {
 						BigDataPropositionMessage bdpm = (BigDataPropositionMessage) o;
 						if (bdpm.getSender().getKernelAddress().equals(distant_kernel_address)) {
@@ -1400,7 +1400,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		private Groups myAcceptedGroups = null;
 		final InetSocketAddress distant_inet_socket_address;
 		final int numberOfIntermediatePeers;
-		ConnectionInfoWithoutInnerSizeControl distantConnectionInfo = null;
+		ConnectionInfoSystemMessage distantConnectionInfo = null;
 		private boolean distantKernelAddressValidated;
 		//private final CounterSelector counterSelector;
 
@@ -1460,11 +1460,11 @@ class DistantKernelAgent extends AgentFakeThread {
 			return Double.compare(v, 0.0);
 		}
 
-		void setConnectionInfo(ConnectionInfoWithoutInnerSizeControl distantConnectionInfo) {
+		void setConnectionInfo(ConnectionInfoSystemMessage distantConnectionInfo) {
 			this.distantConnectionInfo = distantConnectionInfo;
 		}
 
-		ConnectionInfoWithoutInnerSizeControl getConnectionInfo() {
+		ConnectionInfoSystemMessage getConnectionInfo() {
 			return this.distantConnectionInfo;
 		}
 
@@ -1671,7 +1671,7 @@ class DistantKernelAgent extends AgentFakeThread {
 
 				if (!agent_addresses.isEmpty()) {
 
-					CGRSynchrosWithoutInnerSizeControl message = new CGRSynchrosWithoutInnerSizeControl(agent_addresses, getKernelAddress(),
+					CGRSynchrosSystemMessage message = new CGRSynchrosSystemMessage(agent_addresses, getKernelAddress(),
 							removedAcceptedGroups);
 					AgentSocketData asd = getBestAgentSocket(false);
 					if (asd != null) {

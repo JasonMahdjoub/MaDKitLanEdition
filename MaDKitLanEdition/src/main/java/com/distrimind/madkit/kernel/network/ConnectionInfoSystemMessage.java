@@ -58,7 +58,7 @@ import java.util.List;
  * @since MadkitLanEdition 1.0
  *
  */
-class ConnectionInfoWithoutInnerSizeControl implements WithoutInnerSizeControl {
+class ConnectionInfoSystemMessage implements WithoutInnerSizeControl {
 
 	private ArrayList<AbstractIP> addresses;
 	private AbstractIP localAddresses;
@@ -67,7 +67,7 @@ class ConnectionInfoWithoutInnerSizeControl implements WithoutInnerSizeControl {
 	private boolean canBeDirectServer;
 
 	@SuppressWarnings("unused")
-	ConnectionInfoWithoutInnerSizeControl()
+	ConnectionInfoSystemMessage()
 	{
 		
 	}
@@ -120,9 +120,9 @@ class ConnectionInfoWithoutInnerSizeControl implements WithoutInnerSizeControl {
 	}
 	
 	
-	ConnectionInfoWithoutInnerSizeControl(List<PossibleAddressForDirectConnnection> inet_socket_addresses,
-										  InetAddress local_interface_address, int manualPortToConnect, int localPortToConnect,
-										  boolean canBeDirectServer, AbstractIP localAddresses) {
+	ConnectionInfoSystemMessage(List<PossibleAddressForDirectConnnection> inet_socket_addresses,
+								InetAddress local_interface_address, int manualPortToConnect, int localPortToConnect,
+								boolean canBeDirectServer, AbstractIP localAddresses) {
 		this.addresses = new ArrayList<>(inet_socket_addresses.size());
 		for (PossibleAddressForDirectConnnection r : inet_socket_addresses) {
 			if (r.isConcernedBy(local_interface_address)) {

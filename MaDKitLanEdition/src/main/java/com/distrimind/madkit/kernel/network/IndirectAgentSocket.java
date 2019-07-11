@@ -188,7 +188,7 @@ class IndirectAgentSocket extends AbstractAgentSocket {
 	}
 
 	@Override
-	protected ReturnCode broadcastDataTowardEachIntermediatePeer(BroadcastableWithoutInnerSizeControl _data, boolean prioritary) {
+	protected ReturnCode broadcastDataTowardEachIntermediatePeer(BroadcastableSystemMessage _data, boolean prioritary) {
 		if (_data == null)
 			throw new NullPointerException("_data");
 		DataToBroadcast d = new DataToBroadcast(_data, getKernelAddress(), prioritary, getTransfertType());
@@ -209,7 +209,7 @@ class IndirectAgentSocket extends AbstractAgentSocket {
 	}
 
 	@Override
-	protected ReturnCode broadcastDataTowardEachIntermediatePeer(AgentAddress sender, BroadcastableWithoutInnerSizeControl _data,
+	protected ReturnCode broadcastDataTowardEachIntermediatePeer(AgentAddress sender, BroadcastableSystemMessage _data,
 			IDTransfer distantIDDestination, KernelAddress kaServer, boolean isPrioritary) {
 		if (sender == null) {
 			throw new IllegalAccessError();
@@ -273,7 +273,7 @@ class IndirectAgentSocket extends AbstractAgentSocket {
 			else
 				connection_protocol.setPointToPointTransferedBlockChecker(null);
 			
-			TransferBlockCheckerWithoutInnerSizeControl tbcm = new TransferBlockCheckerWithoutInnerSizeControl(getTransfertType(),
+			TransferBlockCheckerSystemMessage tbcm = new TransferBlockCheckerSystemMessage(getTransfertType(),
 					this.kernelAddressDestinationForSystemBroadcast,
 					tbc);
 			tbcm.setMessageLocker(new MessageLocker(null));
@@ -306,7 +306,7 @@ class IndirectAgentSocket extends AbstractAgentSocket {
 	protected void validateInterfacedIDTransfer(AgentAddress sender, IDTransfer id, boolean forceLocalID) {
 		HashMap<AgentAddress, InterfacedIDTransfer> middle = this.transfer_ids_to_finalize.removeMiddle(id);
 		this.transfer_ids.putMiddle(id.getID(), middle);
-		TransferPropositionWithoutInnerSizeControl tp = this.transfer_ids_to_finalize.removeTransferPropositionSystemMessage(id);
+		TransferPropositionSystemMessage tp = this.transfer_ids_to_finalize.removeTransferPropositionSystemMessage(id);
 		if (tp != null)
 			this.transfer_ids.putTransferPropositionSystemMessage(id, tp);
 		AgentAddress aa = this.transfer_ids_to_finalize.removeTransferAgentAddress(id);

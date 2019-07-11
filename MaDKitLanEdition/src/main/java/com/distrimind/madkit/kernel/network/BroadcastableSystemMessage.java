@@ -52,13 +52,13 @@ import java.io.IOException;
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-abstract class BroadcastableWithoutInnerSizeControl implements WithoutInnerSizeControl, SecureExternalizable {
+abstract class BroadcastableSystemMessage implements WithoutInnerSizeControl, SecureExternalizable {
 
 	private IDTransfer idTransferDestination;
 	private KernelAddress kernelAddressDestination;
 	private transient MessageLocker messageLocker = null;
 	
-	BroadcastableWithoutInnerSizeControl()
+	BroadcastableSystemMessage()
 	{
 		
 	}
@@ -80,7 +80,7 @@ abstract class BroadcastableWithoutInnerSizeControl implements WithoutInnerSizeC
 	}
 	
 	
-	BroadcastableWithoutInnerSizeControl(IDTransfer idTransferDestination, KernelAddress kernelAddressDestination) {
+	BroadcastableSystemMessage(IDTransfer idTransferDestination, KernelAddress kernelAddressDestination) {
 		if (kernelAddressDestination == null)
 			throw new NullPointerException("kernelAddressDestination");
 		this.idTransferDestination = idTransferDestination;

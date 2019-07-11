@@ -49,7 +49,7 @@ import java.io.IOException;
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-class TransferPropositionWithoutInnerSizeControl extends BroadcastableWithoutInnerSizeControl {
+class TransferPropositionSystemMessage extends BroadcastableSystemMessage {
 
 
 	private KernelAddress kernelAddressToConnect;
@@ -59,7 +59,7 @@ class TransferPropositionWithoutInnerSizeControl extends BroadcastableWithoutInn
 	private boolean finalTestResult = true;
 	private boolean youAskConnection;
 	@SuppressWarnings("unused")
-	TransferPropositionWithoutInnerSizeControl()
+	TransferPropositionSystemMessage()
 	{
 		
 	}
@@ -112,9 +112,9 @@ class TransferPropositionWithoutInnerSizeControl extends BroadcastableWithoutInn
 	}
 	
 	
-	TransferPropositionWithoutInnerSizeControl(IDTransfer idTransferDestinationUsedForBroadcast, IDTransfer idTransfer,
-											   KernelAddress kernelAddressToConnect, KernelAddress kernelAddressDestination, int numberOfIntermediatePeers,
-											   SecureExternalizable attachedData, boolean youAskConnection) {
+	TransferPropositionSystemMessage(IDTransfer idTransferDestinationUsedForBroadcast, IDTransfer idTransfer,
+									 KernelAddress kernelAddressToConnect, KernelAddress kernelAddressDestination, int numberOfIntermediatePeers,
+									 SecureExternalizable attachedData, boolean youAskConnection) {
 		super(idTransferDestinationUsedForBroadcast, kernelAddressDestination);
 		if (idTransfer == null)
 			throw new NullPointerException("idTransfer");
