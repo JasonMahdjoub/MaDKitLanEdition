@@ -69,6 +69,7 @@ import com.distrimind.ood.database.DatabaseEventType;
 import com.distrimind.ood.database.TransactionIsolation;
 import com.distrimind.util.OS;
 import com.distrimind.util.OSVersion;
+import com.distrimind.util.ReflectionTools;
 import com.distrimind.util.crypto.*;
 import com.distrimind.util.io.SecureExternalizableWithoutInnerSizeControl;
 import com.distrimind.util.io.SerializationTools;
@@ -986,6 +987,7 @@ final public class Madkit {
 
 	static
 	{
+		ReflectionTools.setClassLoader(MadkitClassLoader.getSystemClassLoader());
 		initPreloadedClasses();
 	}
 
