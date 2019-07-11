@@ -43,15 +43,15 @@ import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.connection.access.HostIdentifier;
 import com.distrimind.ood.database.EmbeddedH2DatabaseFactory;
 import com.distrimind.ood.database.exceptions.DatabaseException;
-import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
 
 import java.io.File;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;

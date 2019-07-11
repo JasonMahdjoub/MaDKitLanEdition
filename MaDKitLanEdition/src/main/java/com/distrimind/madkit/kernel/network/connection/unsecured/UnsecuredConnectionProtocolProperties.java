@@ -37,7 +37,6 @@
  */
 package com.distrimind.madkit.kernel.network.connection.unsecured;
 
-import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
 
 /**

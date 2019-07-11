@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel;
 
-import com.distrimind.madkit.util.SecureExternalizable;
+import com.distrimind.util.io.SecureExternalizable;
 
 /**
  *

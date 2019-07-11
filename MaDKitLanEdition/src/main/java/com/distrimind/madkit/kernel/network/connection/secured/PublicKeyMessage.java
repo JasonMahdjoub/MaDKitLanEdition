@@ -39,13 +39,10 @@ package com.distrimind.madkit.kernel.network.connection.secured;
 
 
 import com.distrimind.madkit.exceptions.ConnectionException;
-import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.network.connection.AskConnection;
 import com.distrimind.madkit.kernel.network.connection.ConnectionMessage;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
-import com.distrimind.madkit.util.SerializationTools;
 import com.distrimind.util.crypto.*;
+import com.distrimind.util.io.*;
 
 import java.io.IOException;
 
@@ -92,7 +89,7 @@ class PublicKeyMessage extends ConnectionMessage {
 				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			public_key_for_signature = (ASymmetricPublicKey) k;
 
- 			ASymmetricAuthentifiedSignatureCheckerAlgorithm checker=new ASymmetricAuthentifiedSignatureCheckerAlgorithm(public_key_for_signature);
+ 			ASymmetricAuthenticatedSignatureCheckerAlgorithm checker=new ASymmetricAuthenticatedSignatureCheckerAlgorithm(public_key_for_signature);
 			if (!checker.verify(public_key_for_encryption_bytes, signedPublicKey))
 				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			
@@ -115,12 +112,12 @@ class PublicKeyMessage extends ConnectionMessage {
 		try
 		{
 			public_key_for_encryption = _public_key_for_encryption;
-			public_key_for_encryption_bytes = _public_key_for_encryption.encode();
-			public_key_bytes_distant_for_encryption = _public_key_distant_for_encryption == null ? null : _public_key_distant_for_encryption.encode();
+			public_key_for_encryption_bytes = _public_key_for_encryption.encodeWithDefaultParameters();
+			public_key_bytes_distant_for_encryption = _public_key_distant_for_encryption == null ? null : _public_key_distant_for_encryption.encodeWithDefaultParameters();
 			public_key_for_signature = _public_key_for_signature;
-			public_key_for_signature_bytes = _public_key_for_signature.encode();
-			public_key_bytes_distant_for_signature = _public_key_distant_for_signature == null ? null : _public_key_distant_for_signature.encode();
-			ASymmetricAuthentifiedSignerAlgorithm signer=new ASymmetricAuthentifiedSignerAlgorithm(privateKeyForSignature);
+			public_key_for_signature_bytes = _public_key_for_signature.encodeWithDefaultParameters();
+			public_key_bytes_distant_for_signature = _public_key_distant_for_signature == null ? null : _public_key_distant_for_signature.encodeWithDefaultParameters();
+			ASymmetricAuthenticatedSignerAlgorithm signer=new ASymmetricAuthenticatedSignerAlgorithm(privateKeyForSignature);
 			signedPublicKey=signer.sign(public_key_for_encryption_bytes);
 		}
 		catch(Exception e)

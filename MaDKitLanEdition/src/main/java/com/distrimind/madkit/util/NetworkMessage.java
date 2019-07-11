@@ -38,12 +38,14 @@
 
 package com.distrimind.madkit.util;
 
+import com.distrimind.util.io.SecureExternalizable;
+
 /**
  * @author Jason Mahdjoub
  * @since MaDKitLanEdition 1.7
  * @version 1.2
  *
  */
-public interface NetworkMessage extends SecureExternalizable{
+public interface NetworkMessage extends SecureExternalizable {
 
 }

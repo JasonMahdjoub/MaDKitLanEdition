@@ -37,6 +37,8 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -49,8 +51,6 @@ import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.connection.access.*;
 import com.distrimind.util.crypto.*;
 
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
 
 /**
  * 
@@ -80,9 +80,9 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 
 	}
 	public static final int CLOUD_ID_NUMBER = 28;
-	private static final byte SALT[] = new byte[30];
+	private static final byte[] SALT = new byte[30];
 
-	private static final CloudIdentifier cloudIdentifiers[];
+	private static final CloudIdentifier[] cloudIdentifiers;
 	static {
 		new Random(System.currentTimeMillis()).nextBytes(SALT);
 		cloudIdentifiers = new CloudIdentifier[CLOUD_ID_NUMBER];
@@ -90,7 +90,7 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 			AbstractSecureRandom random = SecureRandomType.DEFAULT.getSingleton(null);
 			for (int i = 0; i < CLOUD_ID_NUMBER; i++) {
 				if (i % 2 == 1)
-					cloudIdentifiers[i] = new CustomCloudIdentifierWithPublicKey(ASymmetricAuthentifiedSignatureType.BC_SHA256withECDSA_CURVE_25519.getKeyPairGenerator(random).generateKeyPair(),SALT);
+					cloudIdentifiers[i] = new CustomCloudIdentifierWithPublicKey(ASymmetricAuthenticatedSignatureType.BC_Ed448.getKeyPairGenerator(random).generateKeyPair(),SALT);
 				else
 					cloudIdentifiers[i] = new CustumCloudIdentifier("cloud" + i, SALT);
 			}
@@ -102,7 +102,7 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 		}
 	}
 
-	private static final CustumPassword paswordIdentifiers[];
+	private static final CustumPassword[] paswordIdentifiers;
 	static {
 		paswordIdentifiers = new CustumPassword[cloudIdentifiers.length];
 		AbstractSecureRandom random;
@@ -110,7 +110,7 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 			random = SecureRandomType.DEFAULT.getSingleton(null);
 			for (int i = 0; i < paswordIdentifiers.length; i++) {
 				String pw = "pw" + i;
-				SymmetricSecretKey sk=null;
+				SymmetricSecretKey sk;
 
 				sk=SymmetricAuthentifiedSignatureType.BC_FIPS_HMAC_SHA2_512.getKeyGenerator(random).generateKey();
 				paswordIdentifiers[i] = new CustumPassword(pw, SALT, sk);

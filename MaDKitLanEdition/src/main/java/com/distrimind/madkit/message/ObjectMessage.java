@@ -33,12 +33,8 @@
  */
 package com.distrimind.madkit.message;
 
-import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.Message;
-import com.distrimind.madkit.kernel.network.WithoutInnerSizeControl.Integrity;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.util.io.*;
 
 import java.io.IOException;
 import java.util.*;
@@ -76,7 +72,7 @@ public class ObjectMessage<T> extends Message {
 	}
 	
 	public int getInternalSerializedSizeImpl(int maxContentLength) {
-		return super.getInternalSerializedSizeImpl()+1+SerializationTools.getInternalSize(content, maxContentLength);
+		return super.getInternalSerializedSizeImpl()+1+ SerializationTools.getInternalSize(content, maxContentLength);
 	}	
 	
 	@SuppressWarnings("unchecked")

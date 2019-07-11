@@ -37,13 +37,10 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.network.connection.access.CloudIdentifier;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
-import com.distrimind.madkit.util.SerializationTools;
 import com.distrimind.util.crypto.ASymmetricKeyPair;
 import com.distrimind.util.crypto.ASymmetricPublicKey;
+import com.distrimind.util.io.*;
 
 import java.io.IOException;
 
@@ -85,7 +82,7 @@ public class CustomCloudIdentifierWithPublicKey extends CloudIdentifier {
 
     @Override
     public byte[] getIdentifierBytes() {
-        return publicKey.encode();
+        return publicKey.encodeWithDefaultParameters();
     }
 
     @Override
@@ -130,7 +127,7 @@ public class CustomCloudIdentifierWithPublicKey extends CloudIdentifier {
         salt=in.readBytesArray(false, 64);
         publicKey=in.readObject(false, ASymmetricPublicKey.class);
         if (publicKey.getAuthentifiedSignatureAlgorithmType()==null)
-            throw new MessageExternalizationException(WithoutInnerSizeControl.Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+            throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
         keyPair=null;
     }
 }

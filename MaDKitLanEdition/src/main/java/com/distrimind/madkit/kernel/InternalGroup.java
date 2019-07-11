@@ -42,7 +42,7 @@ import com.distrimind.madkit.i18n.ErrorMessages;
 import com.distrimind.madkit.i18n.I18nUtilities;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.message.ObjectMessage;
-import com.distrimind.madkit.util.SecureExternalizable;
+import com.distrimind.util.io.SecureExternalizable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

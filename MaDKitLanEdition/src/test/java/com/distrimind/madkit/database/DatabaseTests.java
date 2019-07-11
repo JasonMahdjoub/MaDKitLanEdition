@@ -37,28 +37,26 @@
  */
 package com.distrimind.madkit.database;
 
-import java.io.File;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Collection;
-
-import com.distrimind.ood.database.EmbeddedH2DatabaseWrapper;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.ood.database.DatabaseConfiguration;
 import com.distrimind.ood.database.DatabaseWrapper;
+import com.distrimind.ood.database.EmbeddedH2DatabaseWrapper;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.crypto.ASymmetricEncryptionType;
 import com.distrimind.util.crypto.ASymmetricKeyPair;
 import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.crypto.SecureRandomType;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
+import java.io.File;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.util.Collection;
 
 public class DatabaseTests {
 	static final File databaseFile = new File("tmpfortest.database");
@@ -74,10 +72,10 @@ public class DatabaseTests {
 		closeAndDeleleteDatabase();
 		databaseWrapper = new EmbeddedH2DatabaseWrapper(databaseFile);
 		databaseWrapper.loadDatabase(new DatabaseConfiguration(KeysPairs.class.getPackage()), true);
-		ipbanned = (IPBanned) databaseWrapper.getTableInstance(IPBanned.class);
-		ipbanstat = (IPBanStat) databaseWrapper.getTableInstance(IPBanStat.class);
-		ipExpulsedStat = (IPExpulsedStat) databaseWrapper.getTableInstance(IPExpulsedStat.class);
-		keysPairs = (KeysPairs) databaseWrapper.getTableInstance(KeysPairs.class);
+		ipbanned = databaseWrapper.getTableInstance(IPBanned.class);
+		ipbanstat = databaseWrapper.getTableInstance(IPBanStat.class);
+		ipExpulsedStat = databaseWrapper.getTableInstance(IPExpulsedStat.class);
+		keysPairs = databaseWrapper.getTableInstance(KeysPairs.class);
 	}
 	
 	@AfterClass

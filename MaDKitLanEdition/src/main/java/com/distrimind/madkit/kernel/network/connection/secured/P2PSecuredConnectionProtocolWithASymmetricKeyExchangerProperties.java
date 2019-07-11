@@ -94,7 +94,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties ex
 	/**
 	 * Signature type
 	 */
-	public ASymmetricAuthentifiedSignatureType signatureType = aSymetricEncryptionType.getDefaultSignatureAlgorithm();
+	public ASymmetricAuthenticatedSignatureType signatureType = aSymetricEncryptionType.getDefaultSignatureAlgorithm();
 
 	/**
 	 * ASymmetric key wrapper

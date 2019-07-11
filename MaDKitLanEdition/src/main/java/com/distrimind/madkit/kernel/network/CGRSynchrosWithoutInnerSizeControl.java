@@ -37,13 +37,10 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.kernel.Group;
 import com.distrimind.madkit.kernel.KernelAddress;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.util.io.*;
 
 import java.io.IOException;
 import java.util.*;
@@ -91,7 +88,7 @@ final class CGRSynchrosWithoutInnerSizeControl implements WithoutInnerSizeContro
 			int size2=in.readInt();
 			if (size2<0)
 				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			totalSize+=4+SerializationTools.getInternalSize(comunity, Group.MAX_COMMUNITY_LENGTH);
+			totalSize+=4+ SerializationTools.getInternalSize(comunity, Group.MAX_COMMUNITY_LENGTH);
 			if (totalSize>globalSize)
 				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			Map<Group, Map<String, Collection<AgentAddress>>> groups= new HashMap<>();

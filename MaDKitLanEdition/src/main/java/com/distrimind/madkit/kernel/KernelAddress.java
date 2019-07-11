@@ -37,13 +37,10 @@
  */
 package com.distrimind.madkit.kernel;
 
-import com.distrimind.madkit.exceptions.MessageExternalizationException;
-import com.distrimind.madkit.kernel.network.WithoutInnerSizeControl.Integrity;
-import com.distrimind.madkit.util.SecureExternalizable;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
 import com.distrimind.util.AbstractDecentralizedID;
 import com.distrimind.util.RenforcedDecentralizedIDGenerator;
+import com.distrimind.util.io.*;
 import org.apache.commons.codec.binary.Base64;
 
 import java.io.IOException;
@@ -91,7 +88,7 @@ public class KernelAddress implements SecureExternalizable, Cloneable {
 			id = new RenforcedDecentralizedIDGenerator(false, true);//new SecuredDecentralizedID(generatedid, SecureRandomType.FORTUNA_WITH_BC_FIPS_APPROVED.getInstance(null));
 		} else
 			id = new RenforcedDecentralizedIDGenerator(false, false);//generatedid;
-		internalSize=(short)(id.getBytes().length+1);
+		internalSize=(short)(id.encodeWithDefaultParameters().length+1);
 		if (initName)
 			initName();
 		else
@@ -106,7 +103,7 @@ public class KernelAddress implements SecureExternalizable, Cloneable {
 		if (id == null)
 			throw new NullPointerException("id");
 		this.id = id;
-		internalSize=(short)(id.getBytes().length+1);
+		internalSize=(short)(id.encodeWithDefaultParameters().length+1);
 		if (initName)
 			initName();
 		else
@@ -128,7 +125,7 @@ public class KernelAddress implements SecureExternalizable, Cloneable {
 				//in.readFully(tab, 0, internalSize);
 				try
 				{
-					id=AbstractDecentralizedID.instanceOf(kernelAddressBytes, 0, internalSize);
+					id=AbstractDecentralizedID.decode(kernelAddressBytes, 0, internalSize);
 				}
 				catch(Throwable t)
 				{
@@ -138,7 +135,7 @@ public class KernelAddress implements SecureExternalizable, Cloneable {
 			++internalSize;
 			
 			try {
-				if (id.getBytes() == null)
+				if (id.encodeWithDefaultParameters() == null)
 					throw new MessageExternalizationException(Integrity.FAIL);
 				//noinspection EqualsWithItself
 				if (!id.equals(id))
@@ -164,7 +161,7 @@ public class KernelAddress implements SecureExternalizable, Cloneable {
 	@Override
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		if (kernelAddressBytes==null)
-			kernelAddressBytes=id.getBytes();
+			kernelAddressBytes=id.encodeWithDefaultParameters();
 		oos.writeShort(kernelAddressBytes.length);
 		oos.write(kernelAddressBytes);
 
@@ -192,7 +189,7 @@ public class KernelAddress implements SecureExternalizable, Cloneable {
 	}
 
 	public String getNetworkID() {
-		return getHexString(getAbstractDecentralizedID().getBytes());
+		return getHexString(getAbstractDecentralizedID().encodeWithDefaultParameters());
 	}
 
 	private static String getHexString(byte[] bytes) {

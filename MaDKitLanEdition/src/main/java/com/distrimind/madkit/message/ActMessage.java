@@ -33,13 +33,9 @@
  */
 package com.distrimind.madkit.message;
 
-import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
-import com.distrimind.madkit.kernel.network.WithoutInnerSizeControl.Integrity;
 import com.distrimind.madkit.util.NetworkMessage;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.util.io.*;
 
 import java.io.IOException;
 import java.util.Enumeration;
@@ -74,7 +70,7 @@ public class ActMessage extends com.distrimind.madkit.kernel.Message implements 
 
 	@Override
 	public int getInternalSerializedSize() {
-		int res=super.getInternalSerializedSizeImpl()+SerializationTools.getInternalSize(action, MAX_ACTION_LENGTH)+5+SerializationTools.getInternalSize(content, MAX_STRING_CONTENT_LENGTH);
+		int res=super.getInternalSerializedSizeImpl()+ SerializationTools.getInternalSize(action, MAX_ACTION_LENGTH)+5+SerializationTools.getInternalSize(content, MAX_STRING_CONTENT_LENGTH);
 		for (Map.Entry<String, Object> e : fields.entrySet())
 		{
 			res+=SerializationTools.getInternalSize(e.getKey(), MAX_FIELD_LENGTH)+SerializationTools.getInternalSize(e.getValue(), MAX_STRING_VALUE_LENGTH);

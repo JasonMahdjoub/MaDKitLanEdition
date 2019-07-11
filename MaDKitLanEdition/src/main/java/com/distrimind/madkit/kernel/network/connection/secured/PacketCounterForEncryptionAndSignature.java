@@ -135,7 +135,7 @@ class PacketCounterForEncryptionAndSignature implements PacketCounter {
 			}
 			else
 			{
-				byte tab[][]=Bits.separateEncodingsWithShortSizedTabs(counters);
+				byte[][] tab = Bits.separateEncodingsWithShortSizedTabs(counters);
 				if (tab.length != 2 || tab[0] == null || tab[1] == null || tab[0].length != ENCRYPTION_COUNTER_SIZE_BYTES || tab[1].length != SIGNATURE_COUNTER_SIZE_BYTES)
 					return false;
 				this.otherEncryptionCounter=tab[0];

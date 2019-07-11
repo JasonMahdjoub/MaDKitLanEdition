@@ -48,6 +48,8 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -76,9 +78,6 @@ import com.distrimind.madkit.kernel.network.TransferAgent.TryDirectConnection;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
 import com.distrimind.madkit.message.ObjectMessage;
 import com.distrimind.util.Timer;
-
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
 
 /**
  * Represent an server socket selector for {@link SocketChannel}, and

@@ -41,9 +41,9 @@ import java.io.IOException;
 
 import com.distrimind.madkit.exceptions.PacketException;
 import com.distrimind.madkit.exceptions.UnknownPacketTypeException;
-import com.distrimind.madkit.io.RandomOutputStream;
 import com.distrimind.util.crypto.AbstractMessageDigest;
 import com.distrimind.util.crypto.MessageDigestType;
+import com.distrimind.util.io.RandomOutputStream;
 
 /**
  * It a reader that transfert a {@link PacketPart} to an
@@ -179,14 +179,14 @@ final class ReadPacket {
 				}
 				int currentPacketDataSize = (int) Math.max(Math.min(attempted_lenth, length - current_pos), 0);
 				SubBlock subBlock=_part.getSubBlock();
-				byte bytes[] = subBlock.getBytes();
+				byte[] bytes = subBlock.getBytes();
 				
 				if (messageDigest != null)
 					messageDigest.update(bytes, subBlock.getOffset(), offset);
 
 				offset+=subBlock.getOffset();
 				if (currentPacketDataSize > 0) {
-					output_stream.writeFully(bytes, offset, currentPacketDataSize);
+					output_stream.write(bytes, offset, currentPacketDataSize);
 					if (messageDigest != null)
 						messageDigest.update(bytes, offset, currentPacketDataSize);
 					current_pos += currentPacketDataSize;
@@ -331,8 +331,8 @@ final class ReadPacket {
 		@Override
 		SubBlock getSubBlock() {
 			if (subBlockRes == null) {
-				byte tabRes[] = new byte[subBlock.getSize()];
-				byte tab[] = subBlock.getBytes();
+				byte[] tabRes = new byte[subBlock.getSize()];
+				byte[] tab = subBlock.getBytes();
 				int cursor = subBlock.getOffset();
 				int shiftTabLength=subBlock.getOffset()+subBlock.getSize();
 				int tabResCursor = 0;

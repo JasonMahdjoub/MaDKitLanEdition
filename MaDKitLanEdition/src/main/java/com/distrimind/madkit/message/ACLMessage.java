@@ -33,12 +33,12 @@
  */
 package com.distrimind.madkit.message;
 
-import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
-import com.distrimind.madkit.kernel.network.WithoutInnerSizeControl.Integrity;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
+import com.distrimind.util.io.Integrity;
+import com.distrimind.util.io.MessageExternalizationException;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
 
 import java.io.IOException;
 import java.util.ArrayList;

@@ -42,8 +42,6 @@ import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.exceptions.NIOException;
 import com.distrimind.madkit.exceptions.PacketException;
-import com.distrimind.madkit.io.RandomByteArrayInputStream;
-import com.distrimind.madkit.io.RandomByteArrayOutputStream;
 import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.connection.*;
@@ -51,15 +49,10 @@ import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.Connec
 import com.distrimind.madkit.kernel.network.connection.secured.*;
 import com.distrimind.madkit.kernel.network.connection.unsecured.CheckSumConnectionProtocolProperties;
 import com.distrimind.madkit.kernel.network.connection.unsecured.UnsecuredConnectionProtocolProperties;
-import com.distrimind.madkit.util.SecureExternalizableWithoutInnerSizeControl;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.ood.database.DatabaseConfiguration;
 import com.distrimind.ood.database.EmbeddedH2DatabaseWrapper;
 import com.distrimind.util.crypto.*;
-import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
+import com.distrimind.util.io.*;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Test;
@@ -67,10 +60,14 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -1018,20 +1015,17 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 
 	public static byte[] serialize(SecureExternalizableWithoutInnerSizeControl message) throws IOException {
 		
-		try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-			try (DataOutputStream oos = new DataOutputStream (baos);SecuredObjectOutputStream soos=new SecuredObjectOutputStream(oos)) {
-				soos.writeObject(message, false);
-			}
-			return baos.toByteArray();
+		try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
+			baos.writeObject(message, false);
+			return baos.getBytes();
 		}
 	}
 
 	public static SecureExternalizableWithoutInnerSizeControl unserialize(byte[] message) throws IOException, ClassNotFoundException {
-		try (ByteArrayInputStream bais = new ByteArrayInputStream(message)) {
-			try (DataInputStream ois = new DataInputStream(bais);SecuredObjectInputStream sois=new SecuredObjectInputStream(ois)) {
-				return sois.readObject(false, SecureExternalizableWithoutInnerSizeControl.class);
+		try (RandomByteArrayInputStream bais = new RandomByteArrayInputStream(message)) {
 
-			}
+			return bais.readObject(false, SecureExternalizableWithoutInnerSizeControl.class);
+
 		}
 	}
 

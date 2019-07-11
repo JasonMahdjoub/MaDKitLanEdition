@@ -38,13 +38,13 @@
 package com.distrimind.madkit.kernel;
 
 import com.distrimind.madkit.kernel.network.KernelAddressInterfaced;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
+import com.distrimind.util.io.RandomByteArrayInputStream;
+import com.distrimind.util.io.RandomByteArrayOutputStream;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -164,14 +164,10 @@ public class KernelAddressTest {
 		}
 		for (KernelAddress ka : kas) {
 			KernelAddress kas;
-			try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-				try (DataOutputStream dos=new DataOutputStream(baos); SecuredObjectOutputStream oos = new SecuredObjectOutputStream(dos)) {
-					oos.writeObject(ka, false);
-				}
-				try (ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray())) {
-					try (DataInputStream dis=new DataInputStream(bais); SecuredObjectInputStream ois = new SecuredObjectInputStream(dis)) {
-						kas=ois.readObject(false, KernelAddress.class);
-					}
+			try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
+				baos.writeObject(ka, false);
+				try (RandomByteArrayInputStream bais = new RandomByteArrayInputStream(baos.getBytes())) {
+					kas=bais.readObject(false, KernelAddress.class);
 
 				}
 			}
@@ -179,16 +175,10 @@ public class KernelAddressTest {
 			Assert.assertEquals(ka, kas);
 			KernelAddressInterfaced kai = new KernelAddressInterfaced(ka, true);
 			KernelAddressInterfaced kais;
-			try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-				try (DataOutputStream dos=new DataOutputStream(baos); SecuredObjectOutputStream oos = new SecuredObjectOutputStream(dos)) {
-					oos.writeObject(kai, false);
-				}
-				try (ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray())) {
-					try (DataInputStream dis=new DataInputStream(bais); SecuredObjectInputStream ois = new SecuredObjectInputStream(dis)) {
-						kais=ois.readObject(false, KernelAddressInterfaced.class);
-
-					}
-
+			try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
+				baos.writeObject(kai, false);
+				try (RandomByteArrayInputStream bais = new RandomByteArrayInputStream(baos.getBytes())) {
+					kais=bais.readObject(false, KernelAddressInterfaced.class);
 				}
 			}
 			Assert.assertEquals(kai, kai);
@@ -206,14 +196,10 @@ public class KernelAddressTest {
 			Assert.assertEquals(kais, ka);
 			Assert.assertEquals(ka, kais);
 			kai = new KernelAddressInterfaced(ka, false);
-			try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-				try (DataOutputStream dos=new DataOutputStream(baos); SecuredObjectOutputStream oos = new SecuredObjectOutputStream(dos)) {
-					oos.writeObject(kai, false);
-				}
-				try (ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray())) {
-					try (DataInputStream dis=new DataInputStream(bais); SecuredObjectInputStream ois = new SecuredObjectInputStream(dis)) {
-						kais=ois.readObject(false, KernelAddressInterfaced.class);
-					}
+			try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
+				baos.writeObject(kai, false);
+				try (RandomByteArrayInputStream bais = new RandomByteArrayInputStream(baos.getBytes())) {
+					kais=bais.readObject(false, KernelAddressInterfaced.class);
 
 				}
 			}

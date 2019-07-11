@@ -37,17 +37,17 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
-import com.distrimind.madkit.util.SerializationTools;
 import com.distrimind.util.crypto.*;
-import gnu.vm.jgnu.security.*;
-import gnu.vm.jgnu.security.spec.InvalidKeySpecException;
-import gnu.vm.jgnux.crypto.BadPaddingException;
-import gnu.vm.jgnux.crypto.IllegalBlockSizeException;
-import gnu.vm.jgnux.crypto.NoSuchPaddingException;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
+import com.distrimind.util.io.SerializationTools;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 
 /**

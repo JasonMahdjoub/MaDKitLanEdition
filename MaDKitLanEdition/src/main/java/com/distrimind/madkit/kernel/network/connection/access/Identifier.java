@@ -37,12 +37,11 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import com.distrimind.madkit.util.SecureExternalizable;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
+import com.distrimind.util.io.RandomByteArrayOutputStream;
+import com.distrimind.util.io.SecureExternalizable;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
@@ -160,13 +159,11 @@ public class Identifier implements SecureExternalizable {
 	}
 
 	public byte[] toBytes() throws IOException {
-		try(ByteArrayOutputStream baos=new ByteArrayOutputStream();
-			DataOutputStream oos=new DataOutputStream(baos);
-			SecuredObjectOutputStream soos=new SecuredObjectOutputStream(oos))
+		try(RandomByteArrayOutputStream soos=new RandomByteArrayOutputStream())
 		{
 			soos.writeObject(this, false);
 			soos.flush();
-			return baos.toByteArray();
+			return soos.getBytes();
 		}
 	}
 }

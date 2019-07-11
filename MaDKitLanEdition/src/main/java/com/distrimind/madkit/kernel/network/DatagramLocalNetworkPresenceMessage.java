@@ -40,19 +40,20 @@ package com.distrimind.madkit.kernel.network;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.Message;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.util.crypto.AbstractMessageDigest;
 import com.distrimind.util.crypto.MessageDigestType;
+import com.distrimind.util.io.RandomByteArrayInputStream;
+import com.distrimind.util.io.RandomInputStream;
+import com.distrimind.util.io.RandomOutputStream;
 import com.distrimind.util.sizeof.ObjectSizer;
 import com.distrimind.util.version.Version;
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
 
 import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.Arrays;
 
 /**
@@ -158,7 +159,7 @@ class DatagramLocalNetworkPresenceMessage extends Message {
 		if (this.inetAddress != null && this.inetAddress.length != 16 && this.inetAddress.length != 4)
 			throw new IllegalArgumentException("inetAddress");
 
-		this.kernelAddress = digestMessage(kernelAddress.getAbstractDecentralizedID().getBytes());
+		this.kernelAddress = digestMessage(kernelAddress.getAbstractDecentralizedID().encodeWithDefaultParameters());
 		this.hashCode = computeHashCode();
 	}
 
@@ -180,17 +181,17 @@ class DatagramLocalNetworkPresenceMessage extends Message {
 		this.hashCode = computeHashCode();
 	}
 
-	void writeTo(OutputStream os) throws IOException {
-		try (DataOutputStream d=new DataOutputStream(os);SecuredObjectOutputStream dos = new SecuredObjectOutputStream(d)) {
-			dos.writeLong(onlineTime);
-			dos.writeLong(programBuildNumber);
-			dos.writeLong(madkitBuildNumber);
-            dos.writeLong(programMinimumBuildNumber);
-            dos.writeLong(madkitMinimumBuildNumber);
-			dos.writeBytesArray(inetAddress, true, 20);
-			dos.writeBytesArray(kernelAddress, false, maxKernelAddressLengthLength);
-			dos.writeBytesArray(programName, false, maxProgramNameLength);
-		}
+	void writeTo(RandomOutputStream dos) throws IOException {
+
+		dos.writeLong(onlineTime);
+		dos.writeLong(programBuildNumber);
+		dos.writeLong(madkitBuildNumber);
+		dos.writeLong(programMinimumBuildNumber);
+		dos.writeLong(madkitMinimumBuildNumber);
+		dos.writeBytesArray(inetAddress, true, 20);
+		dos.writeBytesArray(kernelAddress, false, maxKernelAddressLengthLength);
+		dos.writeBytesArray(programName, false, maxProgramNameLength);
+
 	}
 
 	static byte[] getProgramNameInBytes(String programName) {
@@ -205,36 +206,35 @@ class DatagramLocalNetworkPresenceMessage extends Message {
 	}
 
 	static DatagramLocalNetworkPresenceMessage readFrom(byte[] data, int offset, int length) throws IOException {
-		try (ByteArrayInputStream bais = new ByteArrayInputStream(data, offset, length)) {
+		try (RandomByteArrayInputStream bais = new RandomByteArrayInputStream(Arrays.copyOfRange(data, offset, offset+length))) {
 			return readFrom(bais);
 		}
 	}
 
-	static DatagramLocalNetworkPresenceMessage readFrom(InputStream is) throws IOException {
-		try (DataInputStream d=new DataInputStream(is);SecuredObjectInputStream dis = new SecuredObjectInputStream(d)) {
-			long onlineTime = dis.readLong();
-			long programBuildNumber = dis.readLong();
-            long madkitBuildNumber = dis.readLong();
-            long programMinimumBuildNumber = dis.readLong();
-            long madkitMinimumBuildNumber = dis.readLong();
+	static DatagramLocalNetworkPresenceMessage readFrom(RandomInputStream dis) throws IOException {
 
-			byte[] inetAddress = dis.readBytesArray(true, 20);
-			
-			if (inetAddress != null) {
-				try {
-                    //noinspection ResultOfMethodCallIgnored
-                    InetAddress.getByAddress(inetAddress);
-				} catch (UnknownHostException e) {
-					throw new IOException(e);
-				}
+		long onlineTime = dis.readLong();
+		long programBuildNumber = dis.readLong();
+		long madkitBuildNumber = dis.readLong();
+		long programMinimumBuildNumber = dis.readLong();
+		long madkitMinimumBuildNumber = dis.readLong();
+
+		byte[] inetAddress = dis.readBytesArray(true, 20);
+
+		if (inetAddress != null) {
+			try {
+				//noinspection ResultOfMethodCallIgnored
+				InetAddress.getByAddress(inetAddress);
+			} catch (UnknownHostException e) {
+				throw new IOException(e);
 			}
-			byte[] kernelAddress = dis.readBytesArray(false, maxKernelAddressLengthLength);
-
-			byte[] programName =dis.readBytesArray(false, maxProgramNameLength);
-			
-			return new DatagramLocalNetworkPresenceMessage(onlineTime, programBuildNumber, madkitBuildNumber, programMinimumBuildNumber, madkitMinimumBuildNumber,
-					programName, inetAddress, kernelAddress);
 		}
+		byte[] kernelAddress = dis.readBytesArray(false, maxKernelAddressLengthLength);
+
+		byte[] programName =dis.readBytesArray(false, maxProgramNameLength);
+
+		return new DatagramLocalNetworkPresenceMessage(onlineTime, programBuildNumber, madkitBuildNumber, programMinimumBuildNumber, madkitMinimumBuildNumber,
+				programName, inetAddress, kernelAddress);
 	}
 
     @SuppressWarnings("unused")
@@ -290,7 +290,7 @@ class DatagramLocalNetworkPresenceMessage extends Message {
 				return false;
 			}
 
-		byte[] ka = digestMessage(kernelAddress.getAbstractDecentralizedID().getBytes());
+		byte[] ka = digestMessage(kernelAddress.getAbstractDecentralizedID().encodeWithDefaultParameters());
         return !Arrays.equals(ka, this.kernelAddress);
     }
 

@@ -38,7 +38,6 @@
 package com.distrimind.madkit.kernel.network;
 
 import com.distrimind.madkit.agr.LocalCommunity;
-import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.exceptions.OverflowException;
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.NetworkAgent.StopNetworkMessage;
@@ -48,10 +47,8 @@ import com.distrimind.madkit.kernel.network.connection.TransferedBlockChecker;
 import com.distrimind.madkit.message.ObjectMessage;
 import com.distrimind.madkit.message.hook.TransferEventMessage;
 import com.distrimind.madkit.message.hook.TransferEventMessage.TransferEventType;
-import com.distrimind.madkit.util.SecureExternalizable;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.util.IDGeneratorInt;
+import com.distrimind.util.io.*;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

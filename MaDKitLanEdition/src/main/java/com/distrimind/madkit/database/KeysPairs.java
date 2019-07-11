@@ -37,10 +37,6 @@
  */
 package com.distrimind.madkit.database;
 
-import java.math.BigInteger;
-import java.net.InetAddress;
-import java.util.HashMap;
-
 import com.distrimind.ood.database.DatabaseRecord;
 import com.distrimind.ood.database.SynchronizedTransaction;
 import com.distrimind.ood.database.Table;
@@ -49,10 +45,14 @@ import com.distrimind.ood.database.annotations.Field;
 import com.distrimind.ood.database.annotations.NotNull;
 import com.distrimind.ood.database.annotations.PrimaryKey;
 import com.distrimind.ood.database.exceptions.DatabaseException;
-import com.distrimind.util.crypto.ASymmetricAuthentifiedSignatureType;
+import com.distrimind.util.crypto.ASymmetricAuthenticatedSignatureType;
 import com.distrimind.util.crypto.ASymmetricEncryptionType;
 import com.distrimind.util.crypto.ASymmetricKeyPair;
 import com.distrimind.util.crypto.AbstractSecureRandom;
+
+import java.math.BigInteger;
+import java.net.InetAddress;
+import java.util.HashMap;
 
 /**
  * 
@@ -80,7 +80,7 @@ public final class KeysPairs extends Table<KeysPairs.Record> {
 		return res;
 	}
 
-	protected long getIdentifier(InetAddress address, byte usingTypeId, ASymmetricEncryptionType typeEncryption, ASymmetricAuthentifiedSignatureType typeSignature, short keysize,
+	protected long getIdentifier(InetAddress address, byte usingTypeId, ASymmetricEncryptionType typeEncryption, ASymmetricAuthenticatedSignatureType typeSignature, short keysize,
 			short maximumNumberOfKeysForIpSpectrum) {
 		int inet_id = (getBigInteger(address.getAddress()).mod(BigInteger.valueOf(maximumNumberOfKeysForIpSpectrum))
 				.intValue() + maximumNumberOfKeysForIpSpectrum * usingTypeId);
@@ -93,12 +93,12 @@ public final class KeysPairs extends Table<KeysPairs.Record> {
 		return getKeyPair(_inet_address, usingType, algorithm, null, _key_size, random, expiration, maximumNumberOfKeysForIpSpectrum);
 	}
 	public ASymmetricKeyPair getKeyPair(final InetAddress _inet_address, final byte usingType,
-			final ASymmetricAuthentifiedSignatureType algorithm, final short _key_size, final AbstractSecureRandom random,
-			final long expiration, final short maximumNumberOfKeysForIpSpectrum) throws DatabaseException {
+										final ASymmetricAuthenticatedSignatureType algorithm, final short _key_size, final AbstractSecureRandom random,
+										final long expiration, final short maximumNumberOfKeysForIpSpectrum) throws DatabaseException {
 		return getKeyPair(_inet_address, usingType, null, algorithm, _key_size, random, expiration, maximumNumberOfKeysForIpSpectrum);
 	}
 	private ASymmetricKeyPair getKeyPair(final InetAddress _inet_address, final byte usingType,
-			final ASymmetricEncryptionType algorithmForEncryption, final ASymmetricAuthentifiedSignatureType algorithmForSignature, final short _key_size, final AbstractSecureRandom random,
+			final ASymmetricEncryptionType algorithmForEncryption, final ASymmetricAuthenticatedSignatureType algorithmForSignature, final short _key_size, final AbstractSecureRandom random,
 			final long expiration, final short maximumNumberOfKeysForIpSpectrum) throws DatabaseException {
 		try {
 			return this.getDatabaseWrapper()
@@ -174,12 +174,12 @@ public final class KeysPairs extends Table<KeysPairs.Record> {
 		return getNewKeyPair(_inet_address, usingType, algorithm, null, _key_size, random, expiration, maximumNumberOfKeysForIpSpectrum);
 	}
 	public ASymmetricKeyPair getNewKeyPair(InetAddress _inet_address, byte usingType,
-			final ASymmetricAuthentifiedSignatureType algorithm, final short _key_size, final AbstractSecureRandom random,
+			final ASymmetricAuthenticatedSignatureType algorithm, final short _key_size, final AbstractSecureRandom random,
 			final long expiration, short maximumNumberOfKeysForIpSpectrum) throws DatabaseException {
 		return getNewKeyPair(_inet_address, usingType, null, algorithm, _key_size, random, expiration, maximumNumberOfKeysForIpSpectrum);
 	}	
 	private ASymmetricKeyPair getNewKeyPair(InetAddress _inet_address, byte usingType,
-			final ASymmetricEncryptionType algorithmForEncryption, final ASymmetricAuthentifiedSignatureType algorithmForSignature, final short _key_size, final AbstractSecureRandom random,
+			final ASymmetricEncryptionType algorithmForEncryption, final ASymmetricAuthenticatedSignatureType algorithmForSignature, final short _key_size, final AbstractSecureRandom random,
 			final long expiration, short maximumNumberOfKeysForIpSpectrum) throws DatabaseException {
 		final HashMap<String, Object> map = new HashMap<>();
 		map.put("identifier", getIdentifier(_inet_address, usingType, algorithmForEncryption, algorithmForSignature, _key_size, maximumNumberOfKeysForIpSpectrum));

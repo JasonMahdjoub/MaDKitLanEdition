@@ -37,8 +37,8 @@
  */
 package com.distrimind.madkit.kernel.network.connection;
 
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
 
 import java.io.IOException;
 

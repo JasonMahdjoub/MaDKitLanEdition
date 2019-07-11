@@ -41,7 +41,7 @@ import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
-import com.distrimind.madkit.util.SecureExternalizable;
+import com.distrimind.util.io.SecureExternalizable;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;

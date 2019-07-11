@@ -37,22 +37,21 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.IOException;
-import java.util.Random;
-import java.util.concurrent.atomic.AtomicLong;
-
 import com.distrimind.madkit.exceptions.NIOException;
 import com.distrimind.madkit.exceptions.PacketException;
 import com.distrimind.madkit.exceptions.UnknownPacketTypeException;
-import com.distrimind.madkit.io.RandomFileInputStream;
-import com.distrimind.madkit.io.RandomInputStream;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol;
 import com.distrimind.util.Bits;
 import com.distrimind.util.crypto.AbstractMessageDigest;
 import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.crypto.MessageDigestType;
+import com.distrimind.util.io.RandomFileInputStream;
+import com.distrimind.util.io.RandomInputStream;
 
-import gnu.vm.jgnu.security.DigestException;
+import java.io.IOException;
+import java.security.DigestException;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 
@@ -316,7 +315,7 @@ public final class WritePacket {
 			}
 
 			return new PacketPart(res.getSubBlock(), pph);
-		} catch (IOException | DigestException | IllegalAccessError e) {
+		} catch (IOException | IllegalAccessError | DigestException e) {
 			throw new PacketException(e);
 		}
 	}
@@ -458,11 +457,11 @@ public final class WritePacket {
 
 		@Override
 		int writeData(RandomInputStream _is, int _size) throws IOException {
-			int rl = _is.readFully(tab, cursor, _size);
+			_is.readFully(tab, cursor, _size);
 			if (messageDigest != null)
 				messageDigest.update(tab, cursor, _size);
-			cursor += rl;
-			return rl;
+			cursor += _size;
+			return _size;
 		}
 
 		@Override
@@ -495,7 +494,6 @@ public final class WritePacket {
 		private final SubBlock subBlock;
 		private final AbstractSecureRandom random;
 		private final byte[] tab;
-		private final short random_values_size;
 		private short random_values_size_remaining;
 		private int cursor;
 		private int nextRandValuePos;
@@ -509,12 +507,13 @@ public final class WritePacket {
 
 			this.random = rand;
 			int min = getMiniRandomValueSize();
+			short random_values_size;
 			if (max_random_values_size >= min)
-				this.random_values_size = (short)(min + rand.nextInt(
+				random_values_size = (short)(min + rand.nextInt(
 						Math.min(getMaximumGlobalRandomValues(max_buffer_size), max_random_values_size) - min + 1));
 			else
-				this.random_values_size = 0;
-			random_values_size_remaining = this.random_values_size;
+				random_values_size = 0;
+			random_values_size_remaining = random_values_size;
 			/*
 			 * int size=(int)(Math.min(_data_remaining, max_buffer_size)+packet_head_size);
 			 * tab=new byte[(int)Math.max(Math.min(size, max_buffer_size),
@@ -523,7 +522,7 @@ public final class WritePacket {
 			 * packet_head_size); data_size=(short)(tab.length-this.random_values_size);
 			 */
 			int size = (int) (Math.min(_data_remaining, max_buffer_size));
-			subBlock=conProto.initSubBlock(size + packet_head_size + this.random_values_size);
+			subBlock=conProto.initSubBlock(size + packet_head_size + random_values_size);
 			//tab = new byte[size + packet_head_size + this.random_values_size];
 			tab=subBlock.getBytes();
 			realDataSize_WithoutHead = size;
@@ -582,15 +581,13 @@ public final class WritePacket {
 				int length = Math.min(nextRandValuePos - cursor, size);
 
 				if (length > 0) {
-					int readLength = is.readFully(tab, cursor, length);
+					is.readFully(tab, cursor, length);
 					if (messageDigest != null)
 						messageDigest.update(tab, cursor, length);
 
-					cursor += readLength;
-					total += readLength;
-					size -= readLength;
-					if (readLength != length)
-						return total;
+					cursor += length;
+					total += length;
+					size -= length;
 					writeRandomValues();
 				} else if (cursor >= shiftedTabLength)
 					return total;
@@ -612,7 +609,7 @@ public final class WritePacket {
 				short nbrandmax = (short) Math.min(random_values_size_remaining - getMiniRandomValueSize() + 1,
 						getMaximumLocalRandomValues() - 1);
 				byte nbrand = (byte) (random.nextInt(nbrandmax) + 1);
-				byte tabrand[] = new byte[nbrand];
+				byte[] tabrand = new byte[nbrand];
 				random.nextBytes(tabrand);
 				byte nextRand = -1;
 				if (random_values_size_remaining - getMiniRandomValueSize() * 2 + 1 - nbrand >= 0)
@@ -631,7 +628,7 @@ public final class WritePacket {
 
 		@Override
 		void finilizeTab() {
-			byte b[] = new byte[shiftedTabLength - cursor];
+			byte[] b = new byte[shiftedTabLength - cursor];
 			random.nextBytes(b);
 			System.arraycopy(b, 0, tab, cursor, b.length);
 		}

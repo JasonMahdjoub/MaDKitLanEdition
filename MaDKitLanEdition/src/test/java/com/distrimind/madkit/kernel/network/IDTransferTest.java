@@ -41,12 +41,12 @@ import com.distrimind.madkit.exceptions.OverflowException;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
+import com.distrimind.util.io.RandomByteArrayInputStream;
+import com.distrimind.util.io.RandomByteArrayOutputStream;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.*;
+import java.io.IOException;
 
 /**
  * @author Jason Mahdjoub
@@ -77,17 +77,13 @@ public class IDTransferTest extends JunitMadkit {
 							} else
 								Assert.assertNotEquals(ids[i], ids[j]);
 						}
-						try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-							try (DataOutputStream dos=new DataOutputStream(baos);SecuredObjectOutputStream soos=new SecuredObjectOutputStream(dos)) {
-								Assert.assertTrue(ids[i].isGenerated());
-								soos.writeObject(ids[i], false);
-							}
-							try (ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray())) {
-								try (DataInputStream dis=new DataInputStream(bais);SecuredObjectInputStream ois = new SecuredObjectInputStream(dis)) {
-									IDTransfer id = ois.readObject(false, IDTransfer.class);
-									Assert.assertFalse(id.isGenerated());
-									Assert.assertEquals(id, ids[i]);
-								}
+						try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
+							Assert.assertTrue(ids[i].isGenerated());
+							baos.writeObject(ids[i], false);
+							try (RandomByteArrayInputStream bais = new RandomByteArrayInputStream(baos.getBytes())) {
+								IDTransfer id = bais.readObject(false, IDTransfer.class);
+								Assert.assertFalse(id.isGenerated());
+								Assert.assertEquals(id, ids[i]);
 							}
 						}
 					}

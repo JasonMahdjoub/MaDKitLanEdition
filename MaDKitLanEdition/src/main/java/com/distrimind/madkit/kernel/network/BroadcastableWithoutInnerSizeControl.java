@@ -39,9 +39,9 @@ package com.distrimind.madkit.kernel.network;
 
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
-import com.distrimind.madkit.util.SecureExternalizable;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
+import com.distrimind.util.io.SecureExternalizable;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
 
 import java.io.IOException;
 

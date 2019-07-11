@@ -2963,8 +2963,8 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					distant_inet_address.getAddress(), false, message));
 			if (getMadkitConfig().getDatabaseWrapper() != null) {
 				try {
-					IPBanned.Record r = ((IPBanStat) getMadkitConfig().getDatabaseWrapper()
-							.getTableInstance(IPBanStat.class)).processExpulsion(nbAnomalies,
+					IPBanned.Record r = getMadkitConfig().getDatabaseWrapper()
+							.getTableInstance(IPBanStat.class).processExpulsion(nbAnomalies,
 									distant_inet_address.getAddress(), false,
 									getMadkitConfig().networkProperties.expulsionDuration,
 									getMadkitConfig().networkProperties.nbMaxAnomaliesBeforeTrigeringExpulsion,
@@ -3003,8 +3003,8 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		try
 		{
 			if (getMadkitConfig().getDatabaseWrapper() != null) {
-				IPBanned.Record r = ((IPBanStat) getMadkitConfig().getDatabaseWrapper()
-						.getTableInstance(IPBanStat.class)).processExpulsion(distant_inet_address.getAddress(),
+				IPBanned.Record r = getMadkitConfig().getDatabaseWrapper()
+						.getTableInstance(IPBanStat.class).processExpulsion(distant_inet_address.getAddress(),
 								candidate_to_ban, getMadkitConfig().networkProperties.expulsionDuration,
 								getMadkitConfig().networkProperties.nbMaxAnomaliesBeforeTrigeringExpulsion,
 								getMadkitConfig().networkProperties.nbMaxExpulsions,

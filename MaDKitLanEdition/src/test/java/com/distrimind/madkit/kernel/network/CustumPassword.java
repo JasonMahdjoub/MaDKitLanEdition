@@ -55,7 +55,7 @@ public class CustumPassword extends PasswordKey {
 	CustumPassword(String password, byte[] salt, SymmetricSecretKey secretKey) {
 		this.password = password;
 		this.salt = salt;
-		isKey = Math.abs(((int) Math.random())) % 2 == 0;
+		isKey = Math.random()>0.5;
 		this.secretKey=secretKey;
 	}
 

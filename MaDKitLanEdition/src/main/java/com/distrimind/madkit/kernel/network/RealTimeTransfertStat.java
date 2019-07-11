@@ -53,7 +53,7 @@ import java.util.Arrays;
  * @since MadkitLanEdition 1.0
  */
 public class RealTimeTransfertStat {
-	private final long stats[];
+	private final long[] stats;
 	private long totalBytes;
 	private int cursor;
 	private long previousUpdateTime;

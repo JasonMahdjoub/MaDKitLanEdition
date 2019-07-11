@@ -37,16 +37,16 @@ package com.distrimind.madkit.database;
 
 
 import com.distrimind.madkit.kernel.*;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.ood.database.*;
 import com.distrimind.ood.database.annotations.AutoPrimaryKey;
 import com.distrimind.ood.database.annotations.Field;
 import com.distrimind.ood.database.annotations.NotNull;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.HumanReadableBytesCount;
+import com.distrimind.util.io.RandomByteArrayInputStream;
+import com.distrimind.util.io.RandomByteArrayOutputStream;
 
-import java.io.*;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -108,12 +108,11 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 			this.groupPath = groupPath;
 			this.roleSender = roleSender;
 			this.roleReceiver = roleReceiver;
-			try(ByteArrayOutputStream baos=new ByteArrayOutputStream();
-				DataOutputStream dos=new DataOutputStream(baos);
-				SecuredObjectOutputStream soos=new SecuredObjectOutputStream(dos)) {
-				soos.writeObject(differedMessage, false);
-				soos.flush();
-				this.differedMessage = baos.toByteArray();
+			try(RandomByteArrayOutputStream baos=new RandomByteArrayOutputStream())
+			{
+				baos.writeObject(differedMessage, false);
+				baos.flush();
+				this.differedMessage = baos.getBytes();
 				if (this.differedMessage.length>MAX_DIFFERED_MESSAGE_LENGTH)
 					throw new IllegalArgumentException("Differed message size ("+HumanReadableBytesCount.convertToString(this.differedMessage.length)+") exceed limit of "+ HumanReadableBytesCount.convertToString(MAX_DIFFERED_MESSAGE_LENGTH));
 			}
@@ -141,11 +140,9 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 		}
 
 		public Message getDifferedMessage() throws IOException, ClassNotFoundException {
-			try(ByteArrayInputStream bais=new ByteArrayInputStream(differedMessage);
-				DataInputStream dis=new DataInputStream(bais);
-				SecuredObjectInputStream sois=new SecuredObjectInputStream(dis))
+			try(RandomByteArrayInputStream bais=new RandomByteArrayInputStream(differedMessage))
 			{
-				return sois.readObject(false, Message.class);
+				return bais.readObject(false, Message.class);
 			}
 		}
 	}

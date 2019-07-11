@@ -42,11 +42,11 @@ import com.distrimind.util.crypto.SecureRandomType;
 import com.distrimind.util.crypto.SymmetricAuthentifiedSignerAlgorithm;
 import com.distrimind.util.crypto.SymmetricEncryptionAlgorithm;
 import com.distrimind.util.crypto.SymmetricSecretKey;
-import gnu.vm.jgnu.security.InvalidKeyException;
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
-import gnu.vm.jgnu.security.spec.InvalidKeySpecException;
 
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;

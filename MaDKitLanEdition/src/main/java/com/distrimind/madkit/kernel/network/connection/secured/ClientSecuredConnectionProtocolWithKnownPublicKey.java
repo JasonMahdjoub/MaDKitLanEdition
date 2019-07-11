@@ -46,15 +46,15 @@ import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.util.Bits;
 import com.distrimind.util.crypto.*;
 import com.distrimind.util.sizeof.ObjectSizer;
-import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
-import gnu.vm.jgnu.security.InvalidKeyException;
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
-import gnu.vm.jgnu.security.spec.InvalidKeySpecException;
-import gnu.vm.jgnux.crypto.NoSuchPaddingException;
 
+import javax.crypto.NoSuchPaddingException;
 import java.io.ByteArrayInputStream;
 import java.net.InetSocketAddress;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 
 /**
@@ -77,7 +77,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 	protected final ClientASymmetricEncryptionAlgorithm aSymmetricAlgorithm;
 	protected SymmetricEncryptionAlgorithm symmetricEncryption = null;
 	protected SymmetricAuthentifiedSignerAlgorithm signer = null;
-	protected SymmetricAuthentifiedSignatureCheckerAlgorithm signatureChecker=null;
+	protected SymmetricAuthenticatedSignatureCheckerAlgorithm signatureChecker=null;
 	protected SymmetricSecretKey mySecretKeyForEncryption=null,mySecretKeyForSignature=null;
 	protected final ASymmetricKeyWrapperType keyWrapper;
 	int signature_size_bytes;
@@ -143,7 +143,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 			mySecretKeyForSignature=hproperties.getSignatureType().getKeyGenerator(approvedRandomForKeys, hproperties.getSymmetricKeySizeBits()).generateKey();
 			
 			signer = new SymmetricAuthentifiedSignerAlgorithm(mySecretKeyForSignature);
-			signatureChecker = new SymmetricAuthentifiedSignatureCheckerAlgorithm(mySecretKeyForSignature);
+			signatureChecker = new SymmetricAuthenticatedSignatureCheckerAlgorithm(mySecretKeyForSignature);
 		} catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidKeyException | NoSuchPaddingException | InvalidAlgorithmParameterException | InvalidKeySpecException e) {
 			resetKeys();
 			throw new ConnectionException(e);

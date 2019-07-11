@@ -37,10 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.exceptions.MessageExternalizationException;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.util.io.*;
 
 import java.io.IOException;
 import java.net.*;
@@ -65,7 +62,7 @@ public class HostIP extends AbstractIP {
 
 	@Override
 	public int getInternalSerializedSize() {
-		return super.getInternalSerializedSize()+SerializationTools.getInternalSize(host, SerializationTools.MAX_URL_LENGTH);
+		return super.getInternalSerializedSize()+ SerializationTools.getInternalSize(host, SerializationTools.MAX_URL_LENGTH);
 	}
 	
 	@Override

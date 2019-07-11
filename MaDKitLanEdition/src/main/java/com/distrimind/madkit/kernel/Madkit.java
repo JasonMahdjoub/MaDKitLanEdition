@@ -40,6 +40,7 @@ package com.distrimind.madkit.kernel;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -50,10 +51,27 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.distrimind.madkit.action.AgentAction;
+import com.distrimind.madkit.action.GUIManagerAction;
 import com.distrimind.madkit.action.KernelAction;
+import com.distrimind.madkit.action.SchedulingAction;
 import com.distrimind.madkit.i18n.I18nUtilities;
-import com.distrimind.madkit.kernel.network.NetworkProperties;
-import com.distrimind.madkit.message.KernelMessage;
+import com.distrimind.madkit.kernel.network.*;
+import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol;
+import com.distrimind.madkit.kernel.network.connection.PointToPointTransferedBlockChecker;
+import com.distrimind.madkit.kernel.network.connection.access.EncryptedCloudIdentifier;
+import com.distrimind.madkit.kernel.network.connection.access.EncryptedIdentifier;
+import com.distrimind.madkit.kernel.network.connection.access.EncryptedPassword;
+import com.distrimind.madkit.kernel.network.connection.access.Identifier;
+import com.distrimind.madkit.message.*;
+import com.distrimind.madkit.message.hook.HookMessage;
+import com.distrimind.ood.database.DatabaseEventType;
+import com.distrimind.ood.database.TransactionIsolation;
+import com.distrimind.util.OS;
+import com.distrimind.util.OSVersion;
+import com.distrimind.util.crypto.*;
+import com.distrimind.util.io.SecureExternalizableWithoutInnerSizeControl;
+import com.distrimind.util.io.SerializationTools;
 import com.distrimind.util.properties.PropertiesParseException;
 import com.distrimind.util.version.Description;
 import com.distrimind.util.version.Person;
@@ -964,6 +982,106 @@ final public class Madkit {
 	KernelAddress getKernelAddress()
 	{
 		return this.getKernel().getKernelAddress();
+	}
+
+	static
+	{
+		initPreloadedClasses();
+	}
+
+	private static void initPreloadedClasses()
+	{
+		try {
+			//noinspection unchecked
+			ArrayList<Class<? extends SecureExternalizableWithoutInnerSizeControl>> classes = new ArrayList<>(Arrays.asList(
+					KernelAddress.class, KernelAddressInterfaced.class, AgentAddress.class, ConversationID.class, MultiGroup.class, Group.class, DoubleIP.class, MultipleIP.class,
+					HostIP.class, (Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.AcceptedGroups"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.BroadcastLanMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.LocalLanMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.TransferClosedSystemMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.TransferConfirmationSystemMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.TransferImpossibleSystemMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.TransferImpossibleSystemMessageFromMiddlePeer"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.TransferBlockCheckerSystemMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.TransferPropositionSystemMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$IDTransfer"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$DirectConnection"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$DirectConnectionFailed"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$DirectConnectionSuceeded"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$TryDirectConnection"),
+					BigDataTransferID.class,
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.CGRSynchrosSystemMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.CGRSynchroSystemMessage"),
+					CGRSynchro.class,
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.ConnectionInfoSystemMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.DataToBroadcast"),
+					DistantKernelAddressValidated.class,
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.IdentifiersPropositionMessage"),
+					Identifier.class, EncryptedIdentifier.class,
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.JPakeMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.secured.KeyAgreementDataMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.LoginConfirmationMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.NewLocalLoginAddedMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.NewLocalLoginRemovedMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.PingMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.PongMessage"),
+					PointToPointTransferedBlockChecker.class,
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.ValidateBigDataProposition"),
+					EnumMessage.class,
+					NetworkObjectMessage.class, TaskID.class,
+					ACLMessage.class, ActMessage.class, BigDataPropositionMessage.class, BigDataResultMessage.class,
+					KernelMessage.class, StringMessage.class, (Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.message.hook.OrganizationEvent"),
+					SchedulingMessage.class, KQMLMessage.class, IntegerMessage.class, BooleanMessage.class,
+					GUIMessage.class, (Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.InternalRole"),
+					EncryptedPassword.class, GUIMessage.class, (Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.DatagramLocalNetworkPresenceMessage"),
+					EncryptedCloudIdentifier.class));
+			for (Class<?> c : classes)
+				assert !Modifier.isAbstract(c.getModifiers()):""+c;
+			//noinspection unchecked
+			ArrayList<Class<? extends Enum<?>>> enums = new ArrayList<>(new HashSet<>(Arrays.asList(
+					AbstractAgent.ReturnCode.class,
+					AbstractAgent.State.class,
+					(Class<? extends Enum<?>>) Class.forName("com.distrimind.madkit.kernel.CGRSynchro$Code"),
+					ConnectionProtocol.ConnectionState.class,
+					MessageDigestType.class,
+					SecureRandomType.class,
+					SymmetricEncryptionType.class,
+					SymmetricAuthentifiedSignatureType.class,
+					ASymmetricEncryptionType.class,
+					ASymmetricAuthenticatedSignatureType.class,
+					KeyAgreementType.class,
+					PasswordHashType.class,
+					SymmetricKeyWrapperType.class,
+					ASymmetricKeyWrapperType.class,
+					ASymmetricLoginAgreementType.class,
+					CodeProvider.class,
+					EllipticCurveDiffieHellmanType.class,
+					P2PLoginAgreementType.class,
+					PasswordBasedKeyGenerationType.class,
+					Version.Type.class,
+					AgentAction.class,
+					GUIManagerAction.class,
+					SchedulingAction.class,
+					AbstractAgent.KillingType.class,
+					BigDataResultMessage.Type.class,
+					(Class<? extends Enum<?>>) Class.forName("com.distrimind.madkit.kernel.MultiGroup$CONTAINS"),
+					(Class<? extends Enum<?>>) Class.forName("com.distrimind.madkit.kernel.NetCode"),
+					NetworkAgent.NetworkCloseReason.class,
+					Scheduler.SimulationState.class,
+					AskForTransferMessage.Type.class,
+					ConnectionStatusMessage.Type.class,
+					ConnectionProtocol.ConnectionClosedReason.class,
+					OS.class,
+					OSVersion.class,
+					DatabaseEventType.class,
+					TransactionIsolation.class,
+					HookMessage.AgentActionEvent.class
+			)));
+			SerializationTools.setPredefinedClasses(classes, enums);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			System.exit(-1);
+		}
 	}
 
 }

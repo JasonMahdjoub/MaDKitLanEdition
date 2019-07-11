@@ -65,17 +65,21 @@ public final class IPBanStat extends Table<IPBanStat.Record> {
 	}
 
 	public static class Record extends DatabaseRecord {
-		public @NotNull @PrimaryKey(limit=20) byte[] inet_address;
-		public @Field long last_update_time;
+		@Field(limit=20) @NotNull @PrimaryKey
+		public byte[] inet_address;
+		@Field
+		public long last_update_time;
 		// public @Field long time_accumulation;
-		public @Field short number_hits;
-		public @Field short ban_number;
+		@Field
+		public short number_hits;
+		@Field
+		public short ban_number;
 	}
 
 	public void updateDatabase(final long stat_duration_for_expulsion, final long stat_duration_for_banishments,
 			final short expulsion_hit_limit, final short ban_hit_limit) throws DatabaseException {
-		final IPBanned ipb = (IPBanned) this.getDatabaseWrapper().getTableInstance(IPBanned.class);
-		final IPExpulsedStat ipes = (IPExpulsedStat) this.getDatabaseWrapper().getTableInstance(IPExpulsedStat.class);
+		final IPBanned ipb = this.getDatabaseWrapper().getTableInstance(IPBanned.class);
+		final IPExpulsedStat ipes = this.getDatabaseWrapper().getTableInstance(IPExpulsedStat.class);
 		try {
 			this.getDatabaseWrapper().runSynchronizedTransaction(new SynchronizedTransaction<Void>() {
 
@@ -202,12 +206,12 @@ public final class IPBanStat extends Table<IPBanStat.Record> {
 					updateDatabase(stat_duration_for_expulsion, stat_duration_for_banishments, expulsion_hit_limit,
 							ban_hit_limit);
 
-					final IPBanned ipb = (IPBanned) IPBanStat.this.getDatabaseWrapper()
+					final IPBanned ipb = IPBanStat.this.getDatabaseWrapper()
 							.getTableInstance(IPBanned.class);
-					final IPExpulsedStat ipes = (IPExpulsedStat) IPBanStat.this.getDatabaseWrapper()
+					final IPExpulsedStat ipes = IPBanStat.this.getDatabaseWrapper()
 							.getTableInstance(IPExpulsedStat.class);
 
-					byte key[] = add.getAddress();
+					byte[] key = add.getAddress();
 					IPBanned.Record ripbstat = ipb.getRecord("inet_address", key);
 					if (ripbstat != null && ripbstat.expiration_time == Long.MAX_VALUE)
 						return ripbstat;
@@ -353,7 +357,7 @@ public final class IPBanStat extends Table<IPBanStat.Record> {
 
 				@Override
 				public Boolean run() throws Exception {
-					final IPBanned ipb = (IPBanned) IPBanStat.this.getDatabaseWrapper()
+					final IPBanned ipb = IPBanStat.this.getDatabaseWrapper()
 							.getTableInstance(IPBanned.class);
 					HashMap<String, Object> hm = new HashMap<>();
 					hm.put("inet_address", inet_address.getAddress());
@@ -396,12 +400,12 @@ public final class IPBanStat extends Table<IPBanStat.Record> {
 					Record r1 = getRecord(hm);
 					if (r1 != null)
 						removeRecord(r1);
-					final IPBanned ipb = (IPBanned) IPBanStat.this.getDatabaseWrapper()
+					final IPBanned ipb = IPBanStat.this.getDatabaseWrapper()
 							.getTableInstance(IPBanned.class);
 					IPBanned.Record r2 = ipb.getRecord(hm);
 					if (r2 != null)
 						ipb.removeRecord(r2);
-					final IPExpulsedStat ipes = (IPExpulsedStat) IPBanStat.this.getDatabaseWrapper()
+					final IPExpulsedStat ipes = IPBanStat.this.getDatabaseWrapper()
 							.getTableInstance(IPExpulsedStat.class);
 					IPExpulsedStat.Record r3 = ipes.getRecord(hm);
 					if (r3 != null)

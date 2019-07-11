@@ -37,6 +37,9 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
+import java.security.DigestException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.Random;
 
 import org.junit.Assert;
@@ -47,9 +50,6 @@ import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.crypto.MessageDigestType;
 import com.distrimind.util.crypto.SecureRandomType;
 
-import gnu.vm.jgnu.security.DigestException;
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
 
 /**
  * 

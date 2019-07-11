@@ -2,11 +2,12 @@ package com.distrimind.madkit.kernel.network;
 
 import com.distrimind.madkit.kernel.network.connection.secured.ServerSecuredProtocolPropertiesWithKnownPublicKey;
 import com.distrimind.util.crypto.*;
-import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 
 public class ClientServerProfileValidationTest {
     @Test

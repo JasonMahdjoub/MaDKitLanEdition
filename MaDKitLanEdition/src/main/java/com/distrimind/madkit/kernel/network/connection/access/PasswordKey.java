@@ -37,7 +37,6 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import com.distrimind.util.crypto.ASymmetricPublicKey;
 import com.distrimind.util.crypto.SymmetricSecretKey;
 
 /**

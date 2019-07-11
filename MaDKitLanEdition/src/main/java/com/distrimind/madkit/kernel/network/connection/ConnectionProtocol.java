@@ -37,16 +37,20 @@
  */
 package com.distrimind.madkit.kernel.network.connection;
 
-import com.distrimind.madkit.exceptions.*;
+import com.distrimind.madkit.exceptions.BlockParserException;
+import com.distrimind.madkit.exceptions.ConnectionException;
+import com.distrimind.madkit.exceptions.NIOException;
+import com.distrimind.madkit.exceptions.PacketException;
 import com.distrimind.madkit.i18n.ErrorMessages;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.*;
-import com.distrimind.madkit.kernel.network.WithoutInnerSizeControl.Integrity;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.util.crypto.AbstractSecureRandom;
+import com.distrimind.util.io.Integrity;
+import com.distrimind.util.io.MessageExternalizationException;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
 
 import java.io.IOException;
 import java.io.OutputStream;

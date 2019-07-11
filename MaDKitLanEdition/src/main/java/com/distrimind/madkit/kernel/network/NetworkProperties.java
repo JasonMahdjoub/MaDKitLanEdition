@@ -47,9 +47,9 @@ import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolPropert
 import com.distrimind.madkit.kernel.network.connection.access.AbstractAccessProtocolProperties;
 import com.distrimind.madkit.kernel.network.connection.access.AccessData;
 import com.distrimind.madkit.util.MultiFormatPropertiesObjectParser;
-import com.distrimind.madkit.util.SecureExternalizableWithoutInnerSizeControl;
 import com.distrimind.madkit.util.XMLUtilities;
 import com.distrimind.ood.database.DatabaseWrapper;
+import com.distrimind.util.io.SecureExternalizableWithoutInnerSizeControl;
 import com.distrimind.util.properties.MultiFormatProperties;
 import com.distrimind.util.properties.PropertiesParseException;
 import org.w3c.dom.Document;

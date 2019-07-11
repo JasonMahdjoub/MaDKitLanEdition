@@ -37,23 +37,15 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
-import com.distrimind.madkit.util.SecureExternalizable;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
-import com.distrimind.madkit.util.SerializationTools;
 import com.distrimind.util.crypto.*;
-import gnu.vm.jgnu.security.DigestException;
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
+import com.distrimind.util.io.*;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchProviderException;
+import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 
@@ -102,7 +94,7 @@ class JPakeMessage extends AccessMessage{
 			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		jpakeMessages=in.read2DBytesArray(false, true, identifiers.length, MAX_JPAKE_MESSAGE_LENGTH);
 		step=in.readShort();
-		totalSize+=SerializationTools.getInternalSize(jpakeMessages, identifiers.length);
+		totalSize+= SerializationTools.getInternalSize(jpakeMessages, identifiers.length);
 		if (totalSize>globalSize)
 			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		/*for (byte[] b : jpakeMessages)

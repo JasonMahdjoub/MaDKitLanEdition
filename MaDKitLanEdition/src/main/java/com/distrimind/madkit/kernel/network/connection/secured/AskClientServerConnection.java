@@ -37,18 +37,19 @@
  */
 package com.distrimind.madkit.kernel.network.connection.secured;
 
-import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.network.connection.AskConnection;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.util.crypto.*;
-import gnu.vm.jgnu.security.*;
-import gnu.vm.jgnu.security.spec.InvalidKeySpecException;
-import gnu.vm.jgnu.security.spec.InvalidParameterSpecException;
-import gnu.vm.jgnux.crypto.IllegalBlockSizeException;
-import gnu.vm.jgnux.crypto.NoSuchPaddingException;
+import com.distrimind.util.io.Integrity;
+import com.distrimind.util.io.MessageExternalizationException;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
 
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.InvalidParameterSpecException;
 
 /**
  * 
@@ -159,7 +160,7 @@ class AskClientServerConnection extends AskConnection {
 			return false;
 		try {
 
-			SymmetricAuthentifiedSignatureCheckerAlgorithm checker=new SymmetricAuthentifiedSignatureCheckerAlgorithm(signatureSecretKey);
+			SymmetricAuthenticatedSignatureCheckerAlgorithm checker=new SymmetricAuthenticatedSignatureCheckerAlgorithm(signatureSecretKey);
 			checker.init(this.signatureOfSecretKeyForEncryption);
 			if (secretKeyForEncryption!=null)
 				checker.update(this.secretKeyForEncryption);

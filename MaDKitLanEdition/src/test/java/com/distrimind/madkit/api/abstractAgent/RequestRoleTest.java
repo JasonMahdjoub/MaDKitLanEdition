@@ -39,9 +39,9 @@ package com.distrimind.madkit.api.abstractAgent;
 
 import com.distrimind.madkit.agr.Organization;
 import com.distrimind.madkit.kernel.*;
-import com.distrimind.madkit.util.SecureExternalizable;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
+import com.distrimind.util.io.SecureExternalizable;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
 import org.junit.Test;
 
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.*;

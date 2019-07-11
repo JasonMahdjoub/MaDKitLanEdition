@@ -46,12 +46,12 @@ import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.util.Bits;
 import com.distrimind.util.crypto.*;
 import com.distrimind.util.sizeof.ObjectSizer;
-import gnu.vm.jgnu.security.*;
-import gnu.vm.jgnu.security.spec.InvalidKeySpecException;
-import gnu.vm.jgnux.crypto.NoSuchPaddingException;
 
+import javax.crypto.NoSuchPaddingException;
 import java.io.ByteArrayInputStream;
 import java.net.InetSocketAddress;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 
 /**
@@ -75,7 +75,7 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 	protected SymmetricEncryptionType symmetricEncryptionType;
 	protected SymmetricEncryptionAlgorithm symmetricEncryption;
 	protected SymmetricAuthentifiedSignerAlgorithm signer = null;
-	protected SymmetricAuthentifiedSignatureCheckerAlgorithm signatureChecker=null;
+	protected SymmetricAuthenticatedSignatureCheckerAlgorithm signatureChecker=null;
 	protected SymmetricSecretKey mySecretKeyForEncryption=null,mySecretKeyForSignature=null;
 	protected SymmetricAuthentifiedSignatureType signatureType;
 	protected ASymmetricKeyWrapperType keyWrapper;
@@ -202,7 +202,7 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 			
 			
 			signer = new SymmetricAuthentifiedSignerAlgorithm(mySecretKeyForSignature);
-			signatureChecker = new SymmetricAuthentifiedSignatureCheckerAlgorithm(mySecretKeyForSignature);
+			signatureChecker = new SymmetricAuthenticatedSignatureCheckerAlgorithm(mySecretKeyForSignature);
 			// this.secret_key=symmetricAlgorithm.getSecretKey();
 		} catch (Exception e) {
 			resetKeys();

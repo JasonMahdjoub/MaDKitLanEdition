@@ -37,38 +37,29 @@
  */
 package com.distrimind.madkit.kernel;
 
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
-import static com.distrimind.madkit.kernel.AbstractAgent.State.TERMINATED;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import com.distrimind.madkit.action.KernelAction;
+import com.distrimind.madkit.agr.LocalCommunity;
+import com.distrimind.madkit.agr.Organization;
+import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
+import com.distrimind.madkit.kernel.AbstractAgent.State;
+import com.distrimind.madkit.kernel.network.Connection;
+import com.distrimind.madkit.kernel.network.NetworkEventListener;
+import com.distrimind.madkit.message.KernelMessage;
+import com.distrimind.madkit.testing.util.agent.ForEverAgent;
+import com.distrimind.ood.database.DatabaseFactory;
+import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.util.Timer;
+import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.rules.TestName;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
 
-import org.junit.Rule;
-import org.junit.rules.TestName;
-import org.junit.Assert;
-
-import com.distrimind.madkit.action.KernelAction;
-import com.distrimind.madkit.agr.LocalCommunity;
-import com.distrimind.madkit.agr.Organization;
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.Madkit;
-import com.distrimind.madkit.kernel.network.Connection;
-import com.distrimind.madkit.kernel.network.NetworkEventListener;
-import com.distrimind.madkit.message.KernelMessage;
-import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
-import com.distrimind.madkit.kernel.AbstractAgent.State;
-import com.distrimind.madkit.testing.util.agent.ForEverAgent;
-import com.distrimind.ood.database.DatabaseFactory;
-import com.distrimind.ood.database.exceptions.DatabaseException;
-import com.distrimind.util.Timer;
-
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
+import static com.distrimind.madkit.kernel.AbstractAgent.State.TERMINATED;
+import static org.junit.Assert.*;
 
 /**
  * @author Fabien Michel
@@ -115,9 +106,7 @@ public class JunitMadkit {
 
 	ArrayList<Madkit> getHelperInstances() {
 		synchronized (helperInstances) {
-			ArrayList<Madkit> res = new ArrayList<>();
-			res.addAll(helperInstances);
-			return res;
+			return new ArrayList<>(helperInstances);
 		}
 	}
 
@@ -134,9 +123,7 @@ public class JunitMadkit {
 					helperInstances.wait(timeOut);
 			}
 			Assert.assertEquals(nb, helperInstances.size());
-			ArrayList<Madkit> res = new ArrayList<>();
-			res.addAll(helperInstances);
-			return res;
+			return new ArrayList<>(helperInstances);
 		}
 	}
 
@@ -274,7 +261,7 @@ public class JunitMadkit {
 		});
 	}
 
-	public static KernelAddress getKernelAddressInstance() throws NoSuchAlgorithmException, NoSuchProviderException {
+	public static KernelAddress getKernelAddressInstance() {
 		return new KernelAddress(false);
 	}
 
@@ -390,8 +377,8 @@ public class JunitMadkit {
 
 	static public void printMemoryUsage() {
 		// System.gc();
-		Long mem = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
-		System.err.println("\n----used memory: " + mem.toString().substring(0, 3) + " Mo\n");
+		long mem = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+		System.err.println("\n----used memory: " + Long.toString(mem).substring(0, 3) + " Mo\n");
 	}
 
 
@@ -545,7 +532,7 @@ public class JunitMadkit {
 
 	public boolean isAgentsPresentInGroupRole(Madkit m, Group group, String role)
 	{
-		InternalRole r= null;
+		InternalRole r;
 		try {
 			r = m.getKernel().getRole(group, role);
 		} catch (CGRNotAvailable cgrNotAvailable) {
@@ -687,6 +674,7 @@ public class JunitMadkit {
 			if (t.getMili() < timeout && (l == null || l.size() != nb))
 				pause(agent, 1000);
 		} while (t.getMili() < timeout && (l == null || l.size() != nb));
+		assert l != null;
 		assertEquals(nb, l.size());
 	}
 
@@ -703,6 +691,7 @@ public class JunitMadkit {
 			if (t.getMili() < timeout && (l == null || l.size() != nb))
 				pause(agent, 1000);
 		} while (t.getMili() < timeout && (l == null || l.size() != nb));
+		assert l != null;
 		assertEquals(nb, l.size());
 	}
 

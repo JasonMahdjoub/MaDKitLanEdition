@@ -42,9 +42,9 @@ import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.kernel.network.SubBlock;
 import com.distrimind.madkit.kernel.network.SubBlockInfo;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.NullBlockChecker;
-import com.distrimind.madkit.util.SecureExternalizable;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
+import com.distrimind.util.io.SecureExternalizable;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
 
 import java.io.IOException;
 

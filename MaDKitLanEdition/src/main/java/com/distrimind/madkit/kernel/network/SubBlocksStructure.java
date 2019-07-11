@@ -51,10 +51,10 @@ import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol;
  * @since MadkitLanEdition 1.0
  */
 public class SubBlocksStructure {
-	int sub_block_sizes[];
+	int[] sub_block_sizes;
 	// final int sub_block_sizes_for_parent[];
-	int sub_block_offsets[];
-	private int offsets[]=null;
+	int[] sub_block_offsets;
+	private int[] offsets = null;
 	public int initial_packet_offset;
 	public int initial_packet_size;
 	//boolean need_random = false;

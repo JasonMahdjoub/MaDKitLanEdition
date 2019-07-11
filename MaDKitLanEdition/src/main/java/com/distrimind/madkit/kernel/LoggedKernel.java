@@ -37,35 +37,27 @@
  */
 package com.distrimind.madkit.kernel;
 
-import static com.distrimind.madkit.i18n.I18nUtilities.getCGRString;
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.*;
+import com.distrimind.jdkrewrite.concurrent.LockerCondition;
+import com.distrimind.jdkrewrite.concurrent.ScheduledThreadPoolExecutor;
+import com.distrimind.madkit.database.DifferedMessageTable;
+import com.distrimind.madkit.i18n.Words;
+import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
+import com.distrimind.madkit.kernel.network.*;
+import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
+import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
+import com.distrimind.util.IDGeneratorInt;
+import com.distrimind.util.crypto.MessageDigestType;
+import com.distrimind.util.io.RandomInputStream;
+import com.distrimind.util.io.SecureExternalizable;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.BlockingDeque;
 import java.util.logging.Level;
 
-import com.distrimind.jdkrewrite.concurrent.LockerCondition;
-import com.distrimind.madkit.database.DifferedMessageTable;
-import com.distrimind.madkit.i18n.Words;
-import com.distrimind.madkit.io.RandomInputStream;
-import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
-import com.distrimind.madkit.kernel.network.AskForConnectionMessage;
-import com.distrimind.madkit.kernel.network.AskForTransferMessage;
-import com.distrimind.madkit.kernel.network.Connection;
-import com.distrimind.madkit.kernel.network.ConnectionIdentifier;
-import com.distrimind.madkit.kernel.network.LocalLanMessage;
-import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
-import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
-import com.distrimind.jdkrewrite.concurrent.ScheduledThreadPoolExecutor;
-import com.distrimind.madkit.util.SecureExternalizable;
-import com.distrimind.util.IDGeneratorInt;
-import com.distrimind.util.crypto.MessageDigestType;
+import static com.distrimind.madkit.i18n.I18nUtilities.getCGRString;
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.*;
 
 /**
  * @author Fabien Michel

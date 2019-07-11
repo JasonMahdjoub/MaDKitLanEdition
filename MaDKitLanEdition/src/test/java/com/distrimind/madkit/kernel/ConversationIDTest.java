@@ -38,15 +38,11 @@
 package com.distrimind.madkit.kernel;
 
 import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
+import com.distrimind.util.io.RandomByteArrayInputStream;
+import com.distrimind.util.io.RandomByteArrayOutputStream;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -91,17 +87,13 @@ public class ConversationIDTest extends JunitMadkit {
 						Assert.assertEquals(id, id);
 						for (ConversationID other : ids)
 							Assert.assertNotEquals(id, other);
-						try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-							try (DataOutputStream dos=new DataOutputStream(baos); SecuredObjectOutputStream oos = new SecuredObjectOutputStream(dos)) {
-								oos.writeObject(id,false);
-							}
-							try (ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray())) {
-								try (DataInputStream dis=new DataInputStream(bais); SecuredObjectInputStream ois = new SecuredObjectInputStream(dis)) {
-									ConversationID deserializedID = ois.readObject(false, ConversationID.class);
-									Assert.assertEquals(id, deserializedID);
-									for (ConversationID other : ids)
-										Assert.assertNotEquals(deserializedID, other);
-								}
+						try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
+							baos.writeObject(id,false);
+							try (RandomByteArrayInputStream bais = new RandomByteArrayInputStream(baos.getBytes())) {
+								ConversationID deserializedID = bais.readObject(false, ConversationID.class);
+								Assert.assertEquals(id, deserializedID);
+								for (ConversationID other : ids)
+									Assert.assertNotEquals(deserializedID, other);
 							}
 						}
 						ids.add(id);
@@ -134,19 +126,13 @@ public class ConversationIDTest extends JunitMadkit {
 						Assert.assertEquals(id, id);
 						for (ConversationID other : ids)
 							Assert.assertNotEquals(id, other);
-						try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-							try (DataOutputStream dos=new DataOutputStream(baos); SecuredObjectOutputStream oos = new SecuredObjectOutputStream(dos)) {
-								oos.writeObject(id,false);
-								oos.flush();
-							}
-
-							try (ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray())) {
-								try (DataInputStream dis=new DataInputStream(bais); SecuredObjectInputStream ois = new SecuredObjectInputStream(dis)) {
-									ConversationID deserializedID = ois.readObject(false, ConversationID.class);
-									Assert.assertEquals(id, deserializedID);
-									for (ConversationID other : ids)
-										Assert.assertNotEquals(deserializedID, other);
-								}
+						try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
+							baos.writeObject(id,false);
+							try (RandomByteArrayInputStream bais = new RandomByteArrayInputStream(baos.getBytes())) {
+								ConversationID deserializedID = bais.readObject(false, ConversationID.class);
+								Assert.assertEquals(id, deserializedID);
+								for (ConversationID other : ids)
+									Assert.assertNotEquals(deserializedID, other);
 							}
 						}
 						ids.add(id);
@@ -168,18 +154,14 @@ public class ConversationIDTest extends JunitMadkit {
 						for (ConversationID other : interfacedToOtherIds) {
 							Assert.assertNotEquals(interfacedToOther, other);
 						}
-						try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-							try (DataOutputStream dos=new DataOutputStream(baos); SecuredObjectOutputStream oos = new SecuredObjectOutputStream(dos)) {
-								oos.writeObject(interfacedToOther,false);
-							}
-							try (ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray())) {
-								try (DataInputStream dis=new DataInputStream(bais); SecuredObjectInputStream ois = new SecuredObjectInputStream(dis)) {
-									ConversationID deserializedID = ois.readObject(false, ConversationID.class);
-									Assert.assertEquals(interfacedToOther, deserializedID);
-									for (ConversationID other : interfacedToOtherIds)
-										Assert.assertNotEquals(deserializedID, other);
-									interfacedToOtherIdsSerialized.add(deserializedID);
-								}
+						try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
+							baos.writeObject(interfacedToOther,false);
+							try (RandomByteArrayInputStream bais = new RandomByteArrayInputStream(baos.getBytes())) {
+								ConversationID deserializedID = bais.readObject(false, ConversationID.class);
+								Assert.assertEquals(interfacedToOther, deserializedID);
+								for (ConversationID other : interfacedToOtherIds)
+									Assert.assertNotEquals(deserializedID, other);
+								interfacedToOtherIdsSerialized.add(deserializedID);
 							}
 						}
 						interfacedToOtherIds.add(interfacedToOther);
@@ -195,18 +177,14 @@ public class ConversationIDTest extends JunitMadkit {
 						for (ConversationID other : interfacedByOtherIds) {
 							Assert.assertNotEquals(interfacedByOther, other);
 						}
-						try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-							try (DataOutputStream dos=new DataOutputStream(baos); SecuredObjectOutputStream oos = new SecuredObjectOutputStream(dos)) {
-								oos.writeObject(interfacedByOther,false);
-							}
-							try (ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray())) {
-								try (DataInputStream dis=new DataInputStream(bais); SecuredObjectInputStream ois = new SecuredObjectInputStream(dis)) {
-									ConversationID deserializedID = ois.readObject(false, ConversationID.class);
-									Assert.assertEquals(interfacedByOther, deserializedID);
-									for (ConversationID other : interfacedByOtherIds)
-										Assert.assertNotEquals(deserializedID, other);
-									interfacedByOtherIdsSerialized.add(deserializedID);
-								}
+						try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
+							baos.writeObject(interfacedByOther,false);
+							try (RandomByteArrayInputStream bais = new RandomByteArrayInputStream(baos.getBytes())) {
+								ConversationID deserializedID = bais.readObject(false, ConversationID.class);
+								Assert.assertEquals(interfacedByOther, deserializedID);
+								for (ConversationID other : interfacedByOtherIds)
+									Assert.assertNotEquals(deserializedID, other);
+								interfacedByOtherIdsSerialized.add(deserializedID);
 							}
 						}
 						interfacedByOtherIds.add(interfacedByOther);
@@ -221,18 +199,14 @@ public class ConversationIDTest extends JunitMadkit {
 						for (ConversationID other : interfacedFromOtherIds) {
 							Assert.assertNotEquals(interfacedFromOther, other);
 						}
-						try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-							try (DataOutputStream dos=new DataOutputStream(baos); SecuredObjectOutputStream oos = new SecuredObjectOutputStream(dos)) {
-								oos.writeObject(interfacedFromOther,false);
-							}
-							try (ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray())) {
-								try (DataInputStream dis=new DataInputStream(bais); SecuredObjectInputStream ois = new SecuredObjectInputStream(dis)) {
-									ConversationID deserializedID = ois.readObject(false, ConversationID.class);
-									Assert.assertEquals(interfacedFromOther, deserializedID);
-									for (ConversationID other : interfacedFromOtherIds)
-										Assert.assertNotEquals(deserializedID, other);
-									interfacedFromOtherIdsSerialized.add(deserializedID);
-								}
+						try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
+							baos.writeObject(interfacedFromOther,false);
+							try (RandomByteArrayInputStream bais = new RandomByteArrayInputStream(baos.getBytes())) {
+								ConversationID deserializedID = bais.readObject(false, ConversationID.class);
+								Assert.assertEquals(interfacedFromOther, deserializedID);
+								for (ConversationID other : interfacedFromOtherIds)
+									Assert.assertNotEquals(deserializedID, other);
+								interfacedFromOtherIdsSerialized.add(deserializedID);
 							}
 						}
 						interfacedFromOtherIds.add(interfacedFromOther);
@@ -248,18 +222,14 @@ public class ConversationIDTest extends JunitMadkit {
 						for (ConversationID other : interfacedByCurrentIds) {
 							Assert.assertNotEquals(interfacedByCurrent, other);
 						}
-						try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-							try (DataOutputStream dos=new DataOutputStream(baos); SecuredObjectOutputStream oos = new SecuredObjectOutputStream(dos)) {
-								oos.writeObject(interfacedByCurrent,false);
-							}
-							try (ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray())) {
-								try (DataInputStream dis=new DataInputStream(bais); SecuredObjectInputStream ois = new SecuredObjectInputStream(dis)) {
-									ConversationID deserializedID = ois.readObject(false, ConversationID.class);
-									Assert.assertEquals(interfacedByCurrent, deserializedID);
-									for (ConversationID other : interfacedByCurrentIds)
-										Assert.assertNotEquals(deserializedID, other);
-									interfacedByCurrentIdsSerialized.add(deserializedID);
-								}
+						try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
+							baos.writeObject(interfacedByCurrent,false);
+							try (RandomByteArrayInputStream bais = new RandomByteArrayInputStream(baos.getBytes())) {
+								ConversationID deserializedID = bais.readObject(false, ConversationID.class);
+								Assert.assertEquals(interfacedByCurrent, deserializedID);
+								for (ConversationID other : interfacedByCurrentIds)
+									Assert.assertNotEquals(deserializedID, other);
+								interfacedByCurrentIdsSerialized.add(deserializedID);
 							}
 						}
 						interfacedByCurrentIds.add(interfacedByCurrent);

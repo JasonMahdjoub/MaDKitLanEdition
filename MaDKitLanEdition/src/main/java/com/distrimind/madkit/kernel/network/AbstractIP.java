@@ -37,11 +37,8 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.util.MultiFormatPropertiesObjectParser;
-import com.distrimind.madkit.util.SecureExternalizable;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
+import com.distrimind.util.io.*;
 import com.distrimind.util.properties.MultiFormatProperties;
 
 import java.io.IOException;

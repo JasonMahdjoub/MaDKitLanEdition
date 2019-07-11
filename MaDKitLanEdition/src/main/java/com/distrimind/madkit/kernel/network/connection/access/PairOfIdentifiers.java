@@ -37,9 +37,6 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
-
 /**
  * Represents a pair of identifiers, each equivalent between one peer and one
  * other. Each local and distant identifiers has the same cloud identifier, but

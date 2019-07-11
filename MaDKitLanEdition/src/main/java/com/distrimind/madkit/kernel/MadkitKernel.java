@@ -62,13 +62,15 @@ import com.distrimind.madkit.message.ObjectMessage;
 import com.distrimind.madkit.message.hook.*;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.message.task.TasksExecutionConfirmationMessage;
-import com.distrimind.madkit.util.SecureExternalizable;
 import com.distrimind.madkit.util.XMLUtilities;
 import com.distrimind.ood.database.DatabaseConfiguration;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.Utils;
 import com.distrimind.util.crypto.MessageDigestType;
+import com.distrimind.util.crypto.fortuna.Fortuna;
+import com.distrimind.util.io.RandomInputStream;
+import com.distrimind.util.io.SecureExternalizable;
 import com.distrimind.util.properties.PropertiesParseException;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
@@ -329,7 +331,7 @@ class MadkitKernel extends Agent {
 		this.serviceExecutor = createSchedulerServiceExecutor(SYSTEM, threadPriorityForServiceExecutor, true,
 				SYSTEM.getName(), Math.min(Runtime.getRuntime().availableProcessors(), 2), 4,
 				null);
-
+		Fortuna.setPersonalDefaultScheduledExecutorService(this.serviceExecutor);
 		/*
 		 * lifeExecutorWithBlockQueue = new
 		 * ThreadPoolExecutor(Math.min(Runtime.getRuntime().availableProcessors(), 2),
@@ -349,7 +351,7 @@ class MadkitKernel extends Agent {
 			try {
 				madkitConfig.getDatabaseWrapper().loadDatabase(new DatabaseConfiguration(IPBanned.class.getPackage()),
 						true);
-				differedMessageTable=(DifferedMessageTable)madkitConfig.getDatabaseWrapper().getTableInstance(DifferedMessageTable.class);
+				differedMessageTable= madkitConfig.getDatabaseWrapper().getTableInstance(DifferedMessageTable.class);
 			} catch (DatabaseException e) {
 				bugReport(e);
 				try {
@@ -3174,6 +3176,7 @@ class MadkitKernel extends Agent {
 
 		}
 		leaveAllGroupsOfAllAgents();
+		Fortuna.setPersonalDefaultScheduledExecutorService(null);
 		if (this.lifeExecutor!=null) {
 			this.lifeExecutor.shutdownNow();
 			this.serviceExecutor.shutdownNow();

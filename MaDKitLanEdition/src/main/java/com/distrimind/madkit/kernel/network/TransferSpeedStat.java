@@ -53,7 +53,7 @@ import com.distrimind.util.Timer;
  * @since MadkitLanEdition 1.0
  */
 public class TransferSpeedStat {
-	private final float stats[];
+	private final float[] stats;
 	private double bytes_per_second = 0.0;
 	private final long segment;
 	private final long bytes_to_mean;

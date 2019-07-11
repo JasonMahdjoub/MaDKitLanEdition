@@ -103,7 +103,7 @@ public class InetAddressFilter extends MultiFormatProperties {
 	}
 
 	public static InetAddressFilter parse(String _string) throws IllegalArgumentException {
-		String split[] = _string.split("[/:]");
+		String[] split = _string.split("[/:]");
 		if (split.length == 3) {
 			try {
 				InetAddressFilter res = new InetAddressFilter();
@@ -126,7 +126,7 @@ public class InetAddressFilter extends MultiFormatProperties {
 				&& (concernedPort < 0 || concernedPort == _local_port);
 	}
 
-	public static boolean isSameLocalNetwork(byte addr1[], byte addr2[], short network_prefix_length) {
+	public static boolean isSameLocalNetwork(byte[] addr1, byte[] addr2, short network_prefix_length) {
 		int length = network_prefix_length / 8;
 		for (int i = 0; i < length; i++) {
 			if (addr1[i] != addr2[i])

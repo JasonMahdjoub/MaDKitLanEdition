@@ -38,8 +38,8 @@
 package com.distrimind.madkit.kernel;
 
 import com.distrimind.madkit.kernel.network.RealTimeTransfertStat;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
 
 import java.io.IOException;
 import java.util.Map;
@@ -50,7 +50,7 @@ import java.util.Map;
  * @author Jason Mahdjoub
  * @version 2.1
  * @since MadkitLanEdition 1.0
- * @see AbstractAgent#sendBigDataWithRole(AgentAddress, com.distrimind.madkit.io.RandomInputStream, long, long, com.distrimind.madkit.util.SecureExternalizable, com.distrimind.util.crypto.MessageDigestType, String, boolean)
+ * @see AbstractAgent#sendBigDataWithRole(AgentAddress, com.distrimind.util.io.RandomInputStream, long, long, com.distrimind.util.io.SecureExternalizable, com.distrimind.util.crypto.MessageDigestType, String, boolean)
  */
 public class BigDataTransferID extends ConversationID {
 

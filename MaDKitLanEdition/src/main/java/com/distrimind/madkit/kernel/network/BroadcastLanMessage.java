@@ -37,14 +37,11 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.AbstractGroup;
 import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.kernel.Group;
 import com.distrimind.madkit.kernel.Message;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.util.io.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -76,7 +73,7 @@ final class BroadcastLanMessage extends LanMessage {
 		abstract_group=in.readObject( false, AbstractGroup.class);
 		totalSize+=abstract_group.getInternalSerializedSize();
 		role=in.readString( false, Group.MAX_ROLE_NAME_LENGTH);
-		totalSize+=SerializationTools.getInternalSize(role, Group.MAX_ROLE_NAME_LENGTH);
+		totalSize+= SerializationTools.getInternalSize(role, Group.MAX_ROLE_NAME_LENGTH);
 		if (totalSize>globalSize)
 			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		int size=in.readInt();

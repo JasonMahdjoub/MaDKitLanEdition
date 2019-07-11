@@ -38,9 +38,9 @@
 package com.distrimind.madkit.kernel.network.connection.access;
 
 
-import com.distrimind.madkit.util.SecureExternalizable;
 import com.distrimind.util.crypto.ASymmetricKeyPair;
 import com.distrimind.util.crypto.ASymmetricPublicKey;
+import com.distrimind.util.io.SecureExternalizable;
 
 /**
  * This identifier is related to a cloud associated to a user, or an entity.

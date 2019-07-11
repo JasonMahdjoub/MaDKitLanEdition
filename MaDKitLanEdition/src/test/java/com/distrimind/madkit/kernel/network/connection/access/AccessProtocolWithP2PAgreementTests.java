@@ -44,15 +44,13 @@ import com.distrimind.madkit.kernel.KernelAddressTest;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.AccessDataMKEventListener;
 import com.distrimind.madkit.kernel.network.ConnectionsProtocolsTests;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.ood.database.DatabaseConfiguration;
 import com.distrimind.ood.database.EmbeddedH2DatabaseFactory;
 import com.distrimind.ood.database.EmbeddedH2DatabaseWrapper;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.crypto.P2PLoginAgreementType;
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -415,8 +413,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 	}
 
 	@Test
-	public void testAccessProtocol() throws AccessException, ClassNotFoundException, IOException,
-			NoSuchAlgorithmException, NoSuchProviderException {
+	public void testAccessProtocol() throws AccessException, ClassNotFoundException, IOException {
 		int nb = testRegularAccessProtocol(0, -1, false);
 		for (int i = 0; i < nb - 1; i++) {
 			System.out.println(i+"/"+(nb-1));
@@ -487,8 +484,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 	}
 	private boolean infoScreened=false;
 	public int testRegularAccessProtocol(int type, int index, boolean asker)
-			throws AccessException, ClassNotFoundException, IOException, NoSuchAlgorithmException,
-			NoSuchProviderException {
+			throws AccessException, ClassNotFoundException, IOException {
 		
 		this.acceptedAskerIdentifiers= new ArrayList<>();
 		this.acceptedAskerIdentifiers.addAll(this.initialAcceptedAskerIdentifiers);

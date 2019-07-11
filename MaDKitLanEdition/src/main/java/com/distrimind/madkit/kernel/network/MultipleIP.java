@@ -37,10 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.exceptions.MessageExternalizationException;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.util.io.*;
 
 import java.io.IOException;
 import java.net.Inet4Address;
@@ -76,7 +73,7 @@ public class MultipleIP extends AbstractIP {
 	public int getInternalSerializedSize() {
 		int res=super.getInternalSerializedSize()+8;
 		for (InetAddress ia : inet4Adresses)
-			res+=SerializationTools.getInternalSize(ia);
+			res+= SerializationTools.getInternalSize(ia);
 		for (InetAddress ia : inet6Adresses)
 			res+=SerializationTools.getInternalSize(ia);
 		return res;

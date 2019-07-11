@@ -50,11 +50,6 @@ import com.distrimind.madkit.kernel.network.SubBlockInfo;
  */
 public class PointToPointTransferedBlockChecker extends TransferedBlockChecker {
 
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 3951498788798655329L;
 	private transient ConnectionProtocol<?> cpInput=null, cpOutput=null;
 
 	public PointToPointTransferedBlockChecker() {

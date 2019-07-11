@@ -38,13 +38,9 @@
 package com.distrimind.madkit.kernel.network.connection.access;
 
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
-import com.distrimind.madkit.util.SerializationTools;
 import com.distrimind.util.crypto.ASymmetricPublicKey;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
 
 /**
  * 
@@ -52,6 +48,7 @@ import com.distrimind.util.crypto.ASymmetricPublicKey;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
+@SuppressWarnings("unused")
 class AccessPublicKeyMessage extends AccessMessage {
 
 	private byte[] public_key_bytes;
@@ -78,8 +75,8 @@ class AccessPublicKeyMessage extends AccessMessage {
 	
 	public AccessPublicKeyMessage(ASymmetricPublicKey _public_key, ASymmetricPublicKey _distant_public_key,
 			boolean otherCanTakeLoginInitiative) {
-		public_key_bytes = _public_key.encode();
-		distant_public_key = _distant_public_key == null ? null : _distant_public_key.encode();
+		public_key_bytes = _public_key.encodeWithDefaultParameters();
+		distant_public_key = _distant_public_key == null ? null : _distant_public_key.encodeWithDefaultParameters();
 		this.otherCanTakeLoginInitiative = otherCanTakeLoginInitiative;
 	}
 

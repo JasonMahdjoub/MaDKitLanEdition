@@ -63,7 +63,7 @@ public abstract class LoginData extends AccessData {
 	 * @param _id
 	 *            the identifier of the distant user
 	 * @return the authorized group(s)
-	 * @throws com.distrimind.madkit.exceptions.AccessException if a problem occurs
+	 * @throws AccessException if a problem occurs
 	 */
 	public abstract AbstractGroup getGroupsAccess(Identifier _id) throws AccessException;
 
@@ -74,7 +74,7 @@ public abstract class LoginData extends AccessData {
 	 * 
 	 * @param notifier
 	 *            the notifier
-	 * @throws com.distrimind.madkit.exceptions.AccessException
+	 * @throws AccessException
 	 *             if a problem occurs
 	 * @see IdentifierParser
 	 */
@@ -89,7 +89,7 @@ public abstract class LoginData extends AccessData {
 	 *            the cipher which will enable to check the parsed identifiers with
 	 *            the given encrypted identifier
 	 * @return the corresponding clear identifier
-	 * @throws com.distrimind.madkit.exceptions.AccessException
+	 * @throws AccessException
 	 *             if a problem occurs
 	 */
 	public Identifier getIdentifier(final EncryptedIdentifier encryptedIdentifier,
@@ -192,7 +192,7 @@ public abstract class LoginData extends AccessData {
 	 *            the cipher which will enable to check the parsed identifiers with
 	 *            the given encrypted identifier
 	 * 
-	 * @throws com.distrimind.madkit.exceptions.AccessException
+	 * @throws AccessException
 	 *             if a problem occurs
 	 * @see IdentifierParser
 	 */
@@ -223,7 +223,7 @@ public abstract class LoginData extends AccessData {
 	 * 
 	 * @return the list of possible identifiers to initiate
 	 * @see #canTakesLoginInitiative()
-	 * @throws com.distrimind.madkit.exceptions.AccessException if an access problem occurs
+	 * @throws AccessException if an access problem occurs
 	 */
 	public abstract List<Identifier> getIdentifiersToInitiate() throws AccessException;
 
@@ -248,7 +248,7 @@ public abstract class LoginData extends AccessData {
 		 * @param identifier
 		 *            the new identifier parsed
 		 * @return true if the identifier parsing can continue
-		 * @throws com.distrimind.madkit.exceptions.AccessException if access problem occurs
+		 * @throws AccessException if access problem occurs
 		 */
 		public abstract boolean newIdentifier(Identifier identifier) throws AccessException;
 	}
@@ -281,7 +281,7 @@ public abstract class LoginData extends AccessData {
 
 
 
-	private boolean containsTrigger(LoginEventsTrigger logts[], LoginEventsTrigger _trigger) {
+	private boolean containsTrigger(LoginEventsTrigger[] logts, LoginEventsTrigger _trigger) {
 		if (logts == null)
 			return false;
 		for (LoginEventsTrigger lt : logts) {
@@ -295,10 +295,10 @@ public abstract class LoginData extends AccessData {
 		if (_trigger == null)
 			return;
 		synchronized (this) {
-			LoginEventsTrigger logts[] = login_triggers.get();
+			LoginEventsTrigger[] logts = login_triggers.get();
 			if (containsTrigger(logts, _trigger))
 				return;
-			LoginEventsTrigger new_logts[];
+			LoginEventsTrigger[] new_logts;
 			if (logts == null)
 				new_logts = new LoginEventsTrigger[1];
 			else {
@@ -339,7 +339,7 @@ public abstract class LoginData extends AccessData {
 	 *            the added identifier
 	 */
 	public final void newIdentifierAddedEvent(Identifier _identifier) {
-		LoginEventsTrigger logts[] = login_triggers.get();
+		LoginEventsTrigger[] logts = login_triggers.get();
 		if (logts != null) {
 			for (LoginEventsTrigger lt : logts)
 				lt.addingIdentifier(_identifier);
@@ -353,7 +353,7 @@ public abstract class LoginData extends AccessData {
 	 *            the identifiers
 	 */
 	public final void newIdentifiersAddedEvent(Collection<Identifier> _identifiers) {
-		LoginEventsTrigger logts[] = login_triggers.get();
+		LoginEventsTrigger[] logts = login_triggers.get();
 		if (logts != null) {
 			for (LoginEventsTrigger lt : logts)
 				lt.addingIdentifiers(_identifiers);
@@ -367,7 +367,7 @@ public abstract class LoginData extends AccessData {
 	 *            the identifier
 	 */
 	public final void newIdentifierRemovedEvent(Identifier _identifier) {
-		LoginEventsTrigger logts[] = login_triggers.get();
+		LoginEventsTrigger[] logts = login_triggers.get();
 		if (logts != null) {
 			for (LoginEventsTrigger lt : logts)
 				lt.removingIdentifier(_identifier);
@@ -380,7 +380,7 @@ public abstract class LoginData extends AccessData {
 	 * @param _identifiers the identifiers 
 	 */
 	public final void newIdentifiersRemovedEvent(Collection<Identifier> _identifiers) {
-		LoginEventsTrigger logts[] = login_triggers.get();
+		LoginEventsTrigger[] logts = login_triggers.get();
 		if (logts != null) {
 			for (LoginEventsTrigger lt : logts)
 				lt.removingIdentifiers(_identifiers);

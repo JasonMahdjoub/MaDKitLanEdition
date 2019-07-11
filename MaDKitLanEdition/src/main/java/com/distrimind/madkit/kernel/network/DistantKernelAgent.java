@@ -39,17 +39,15 @@ package com.distrimind.madkit.kernel.network;
 
 import com.distrimind.jdkrewrite.concurrent.LockerCondition;
 import com.distrimind.madkit.agr.LocalCommunity;
-import com.distrimind.madkit.exceptions.*;
-import com.distrimind.madkit.io.RandomByteArrayInputStream;
-import com.distrimind.madkit.io.RandomByteArrayOutputStream;
-import com.distrimind.madkit.io.RandomInputStream;
-import com.distrimind.madkit.io.RandomOutputStream;
+import com.distrimind.madkit.exceptions.MadkitException;
+import com.distrimind.madkit.exceptions.NIOException;
+import com.distrimind.madkit.exceptions.PacketException;
+import com.distrimind.madkit.exceptions.SelfKillException;
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.CGRSynchro.Code;
 import com.distrimind.madkit.kernel.network.AbstractAgentSocket.AgentSocketKilled;
 import com.distrimind.madkit.kernel.network.AbstractAgentSocket.Groups;
 import com.distrimind.madkit.kernel.network.AbstractAgentSocket.ReceivedBlockData;
-import com.distrimind.madkit.kernel.network.WithoutInnerSizeControl.Integrity;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
@@ -58,15 +56,12 @@ import com.distrimind.madkit.message.hook.DistantKernelAgentEventMessage;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.message.hook.NetworkGroupsAccessEvent;
 import com.distrimind.madkit.message.hook.NetworkLoginAccessEvent;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.crypto.MessageDigestType;
+import com.distrimind.util.io.*;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -114,6 +109,7 @@ class DistantKernelAgent extends AgentFakeThread {
 	protected TaskID taskForPurgeCheck = null;
 	private ArrayList<ObjectMessage<SecretMessage>> differedSecretMessages = null;
 	private boolean lockSocketUntilCGRSynchroIsSent=false;
+	private FilteredObjectResolver filteredObjectResolver=null;
 
 	DistantKernelAgent() {
 		super();
@@ -1277,6 +1273,7 @@ class DistantKernelAgent extends AgentFakeThread {
 	@Override
 	public void activate() {
 		setLogLevel(getMadkitConfig().networkProperties.networkLogLevel);
+		this.filteredObjectResolver=new FilteredObjectResolver(getMadkitConfig().networkProperties);
 		this.lockSocketUntilCGRSynchroIsSent= getMadkitConfig().networkProperties != null && getMadkitConfig().networkProperties.lockSocketUntilCGRSynchroIsSent;
 		if (logger != null && logger.isLoggable(Level.FINE))
 			logger.fine("Launching DistantKernelAgent  (" + this.distant_kernel_address + ") ... !");
@@ -1758,16 +1755,15 @@ class DistantKernelAgent extends AgentFakeThread {
 	 */
 	protected void sendData(AgentAddress receiver, WithoutInnerSizeControl _data, boolean prioritary,
 							MessageLocker _messageLocker, boolean last_message) throws NIOException {
-		try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-			try (OOS oos = new OOS(baos); SecuredObjectOutputStream soos=new SecuredObjectOutputStream(oos)) {
-				soos.writeObject(_data, false);
-			}
+		try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
+			baos.setObjectResolver(filteredObjectResolver);
+			baos.writeObject(_data, false);
 			baos.flush();
 
 			WritePacket packet = new WritePacket(PacketPartHead.TYPE_PACKET, getNewPacketID(),
 					getMadkitConfig().networkProperties.maxBufferSize,
 					getMadkitConfig().networkProperties.maxRandomPacketValues, random,
-					new RandomByteArrayInputStream(baos.toByteArray()));
+					new RandomByteArrayInputStream(baos.getBytes()));
 			if (logger != null && logger.isLoggable(Level.FINEST))
 				logger.finest("Sending data (distantInterfacedKernelAddress=" + distant_kernel_address + ", packetID="
 						+ packet.getID() + ") : " + _data);
@@ -1783,22 +1779,38 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 	}
 
-	private class OOS extends FilteredObjectOutputStream {
-		
-		OOS(java.io.OutputStream _out) {
-			super(_out, getMadkitConfig().networkProperties);
-			//enableReplaceObject(true);
+	public class FilteredObjectResolver extends SerializationTools.ObjectResolver {
+		private final NetworkProperties np;
+		public FilteredObjectResolver(NetworkProperties np) {
+			this.np=np;
 		}
-		
-	
-		
-		
+
+		public Class<?> resolveClass(String clazz) throws MessageExternalizationException
+		{
+			try
+			{
+				if (np.isAcceptedClassForSerializationUsingPatterns(clazz))
+				{
+					Class<?> c=Class.forName(clazz, true, MadkitClassLoader.getSystemClassLoader());
+					if (c==null)
+						throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, new ClassNotFoundException(clazz));
+					if (np.isAcceptedClassForSerializationUsingWhiteClassList(c))
+					{
+						return c;
+					}
+				}
+			}
+			catch(Exception e)
+			{
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, new ClassNotFoundException(clazz));
+			}
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, new ClassNotFoundException(clazz));
+
+		}
 
 		@Override
-		protected Object replaceObject(Object obj) {
-			Object o=super.replaceObject(obj);
-			if (o==null)
-				return null;
+		public SecureExternalizableWithoutInnerSizeControl replaceObject(SecureExternalizableWithoutInnerSizeControl obj)
+			{
 			if (obj instanceof KernelAddressInterfaced) {
 				return ((KernelAddressInterfaced) obj).getOriginalKernelAddress();
 			} else if (obj instanceof ConversationID) {
@@ -1819,20 +1831,9 @@ class DistantKernelAgent extends AgentFakeThread {
 			} else
 				return obj;
 		}
-	}
 
-	private class OIS extends FilteredObjectInputStream {
-
-		
-		public OIS(InputStream _in) {
-			super(_in, getMadkitConfig().networkProperties);
-			//enableResolveObject(true);
-
-		}
-		
-
-		@SuppressWarnings("unused")
-		protected Object resolveObject(Object obj) {
+		@Override
+		public SecureExternalizableWithoutInnerSizeControl resolveObject(SecureExternalizableWithoutInnerSizeControl obj) {
 			if (obj==null)
 				return null;
 			if (obj.getClass() == KernelAddress.class) {
@@ -1861,6 +1862,8 @@ class DistantKernelAgent extends AgentFakeThread {
 				return obj;
 		}
 	}
+
+
 
 	protected int getNewPacketID() {
 		synchronized (packet_id_generator) {
@@ -2650,14 +2653,11 @@ class DistantKernelAgent extends AgentFakeThread {
 						try {
 							sr.closeStream();
 							byte[] bytes = sr.getBytes();
-							try (java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(bytes)) {
+							try (RandomByteArrayInputStream bais = new RandomByteArrayInputStream(bytes)) {
+								bais.setObjectResolver(filteredObjectResolver);
+								Object obj = bais.readObject(false);
 
-								try (OIS ois = new OIS(bais); SecuredObjectInputStream sois=new SecuredObjectInputStream(ois)) {
-									Object obj = sois.readObject(false);
-
-									receiveData(agent_socket_sender, obj, sr.getDataSize());
-
-								}
+								receiveData(agent_socket_sender, obj, sr.getDataSize());
 							}
 							catch(MessageExternalizationException e)
 							{

@@ -37,16 +37,16 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Random;
-
+import com.distrimind.madkit.exceptions.NIOException;
+import com.distrimind.madkit.exceptions.PacketException;
+import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.MadkitProperties;
+import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol;
+import com.distrimind.madkit.kernel.network.connection.unsecured.UnsecuredConnectionProtocolProperties;
+import com.distrimind.util.crypto.AbstractSecureRandom;
+import com.distrimind.util.crypto.MessageDigestType;
+import com.distrimind.util.crypto.SecureRandomType;
+import com.distrimind.util.io.*;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -55,24 +55,17 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.distrimind.madkit.exceptions.NIOException;
-import com.distrimind.madkit.exceptions.PacketException;
-import com.distrimind.madkit.io.RandomByteArrayInputStream;
-import com.distrimind.madkit.io.RandomByteArrayOutputStream;
-import com.distrimind.madkit.io.RandomFileInputStream;
-import com.distrimind.madkit.io.RandomFileOutputStream;
-import com.distrimind.madkit.io.RandomInputStream;
-import com.distrimind.madkit.io.RandomOutputStream;
-import com.distrimind.madkit.kernel.JunitMadkit;
-import com.distrimind.madkit.kernel.MadkitProperties;
-import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol;
-import com.distrimind.madkit.kernel.network.connection.unsecured.UnsecuredConnectionProtocolProperties;
-import com.distrimind.util.crypto.AbstractSecureRandom;
-import com.distrimind.util.crypto.MessageDigestType;
-import com.distrimind.util.crypto.SecureRandomType;
-
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Random;
 
 /**
  * 
@@ -132,7 +125,7 @@ public class ReadWritePacketTests extends JunitMadkit {
 	public static Collection<Object[]> data() {
 		ArrayList<Object[]> res = new ArrayList<>(testsNumber);
 		for (int i = 0; i < testsNumber; i++) {
-			Object o[] = new Object[1];
+			Object[] o = new Object[1];
 			o[0] = getData();
 
 			res.add(o);

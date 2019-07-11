@@ -39,21 +39,17 @@
 package com.distrimind.madkit.kernel.network.connection.access;
 
 import java.io.IOException;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
 
-import gnu.vm.jgnu.security.DigestException;
-import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
-import gnu.vm.jgnu.security.InvalidKeyException;
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
-import gnu.vm.jgnu.security.spec.InvalidKeySpecException;
-import gnu.vm.jgnux.crypto.BadPaddingException;
-import gnu.vm.jgnux.crypto.IllegalBlockSizeException;
-import gnu.vm.jgnux.crypto.NoSuchPaddingException;
-import gnu.vm.jgnux.crypto.ShortBufferException;
 
 import com.distrimind.util.crypto.AbstractMessageDigest;
 import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.crypto.P2PASymmetricSecretMessageExchanger;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 /**
  * Represent an identifier encrypted
@@ -93,7 +89,7 @@ public class EncryptedIdentifier extends Identifier {
 	EncryptedIdentifier(Identifier identifier, P2PASymmetricSecretMessageExchanger cipher)
 			throws InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException,
 			NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException,
-			InvalidAlgorithmParameterException, NoSuchProviderException, IllegalStateException, ShortBufferException {
+			InvalidAlgorithmParameterException, NoSuchProviderException, IllegalStateException {
 		super(new EncryptedCloudIdentifier(identifier.getCloudIdentifier(), cipher), identifier.getHostIdentifier());
 	}
 

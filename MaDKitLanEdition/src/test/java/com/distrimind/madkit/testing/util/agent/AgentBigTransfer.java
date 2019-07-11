@@ -38,18 +38,13 @@
 package com.distrimind.madkit.testing.util.agent;
 
 import com.distrimind.madkit.exceptions.SelfKillException;
-import com.distrimind.madkit.io.RandomByteArrayInputStream;
-import com.distrimind.madkit.io.RandomByteArrayOutputStream;
-import com.distrimind.madkit.io.RandomInputStream;
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.madkit.kernel.network.RealTimeTransfertStat;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.message.hook.OrganizationEvent;
-import com.distrimind.madkit.util.SecureExternalizable;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.util.crypto.MessageDigestType;
+import com.distrimind.util.io.*;
 import org.junit.Assert;
 
 import java.util.HashMap;

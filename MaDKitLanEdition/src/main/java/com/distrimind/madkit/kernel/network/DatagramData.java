@@ -37,7 +37,8 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.ByteArrayOutputStream;
+import com.distrimind.util.io.RandomByteArrayOutputStream;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -54,13 +55,13 @@ class DatagramData {
 	DatagramData(DatagramLocalNetworkPresenceMessage message) throws IOException {
 		if (message == null)
 			throw new NullPointerException("message");
-		try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+		try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
 			message.writeTo(baos);
-			byte[] b = baos.toByteArray();
+			byte[] b = baos.getBytes();
 			int size = b.length;
 			if (size>DatagramLocalNetworkPresenceMessage.getMaxDatagramMessageLength())
 				throw new IllegalArgumentException();
-			byte res[] = new byte[Block.getBlockSizeLength() + size];
+			byte[] res = new byte[Block.getBlockSizeLength() + size];
 			
 			Block.putShortInt(res, 0, res.length);
 			//Bits.putInt(res, 0, size);

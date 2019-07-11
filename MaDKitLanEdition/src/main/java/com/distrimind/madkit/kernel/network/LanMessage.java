@@ -37,13 +37,14 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.IOException;
-
-import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.util.NetworkMessage;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
+import com.distrimind.util.io.Integrity;
+import com.distrimind.util.io.MessageExternalizationException;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
+
+import java.io.IOException;
 
 /**
  * 

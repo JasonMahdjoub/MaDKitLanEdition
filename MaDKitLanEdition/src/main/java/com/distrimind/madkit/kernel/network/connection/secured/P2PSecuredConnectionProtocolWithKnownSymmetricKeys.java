@@ -42,16 +42,16 @@ import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.*;
 import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.util.crypto.*;
-import gnu.vm.jgnu.security.*;
-import gnu.vm.jgnu.security.spec.InvalidKeySpecException;
-import gnu.vm.jgnux.crypto.BadPaddingException;
-import gnu.vm.jgnux.crypto.IllegalBlockSizeException;
-import gnu.vm.jgnux.crypto.NoSuchPaddingException;
-import gnu.vm.jgnux.crypto.ShortBufferException;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.ShortBufferException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 
 /**
@@ -69,7 +69,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 	private Status status=Status.NOT_CONNECTED;
 	private P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties properties;
 	private SymmetricSecretKey secretKeyForEncryption, secretKeyForSignature;
-	private SymmetricAuthentifiedSignatureCheckerAlgorithm signatureChecker;
+	private SymmetricAuthenticatedSignatureCheckerAlgorithm signatureChecker;
 	private SymmetricAuthentifiedSignerAlgorithm signer;
 	private SymmetricEncryptionAlgorithm cipher;
 	private AbstractSecureRandom approvedRandom;
@@ -100,7 +100,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 			throw new ConnectionException();
 		this.secretKeyForEncryption=properties.getSymmetricSecretKeyForEncryption(id);
 		this.secretKeyForSignature=properties.getSymmetricSecretKeyForSignature(id);
-		this.signatureChecker=new SymmetricAuthentifiedSignatureCheckerAlgorithm(secretKeyForSignature);
+		this.signatureChecker=new SymmetricAuthenticatedSignatureCheckerAlgorithm(secretKeyForSignature);
 		this.signer=new SymmetricAuthentifiedSignerAlgorithm(secretKeyForSignature);
 		if (properties.enableEncryption)
 			this.cipher=new SymmetricEncryptionAlgorithm(approvedRandom, secretKeyForEncryption);

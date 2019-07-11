@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.util.SecureExternalizableWithoutInnerSizeControl;
+import com.distrimind.util.io.SecureExternalizableWithoutInnerSizeControl;
 
 
 /**

@@ -38,13 +38,13 @@
 package com.distrimind.madkit.kernel.network;
 
 import com.distrimind.jdkrewrite.concurrent.LockerCondition;
-import com.distrimind.madkit.exceptions.MessageExternalizationException;
-import com.distrimind.madkit.io.RandomInputStream;
-import com.distrimind.madkit.io.RandomOutputStream;
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.message.hook.HookMessage;
 import com.distrimind.util.IDGeneratorInt;
+import com.distrimind.util.io.MessageExternalizationException;
+import com.distrimind.util.io.RandomInputStream;
+import com.distrimind.util.io.RandomOutputStream;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;

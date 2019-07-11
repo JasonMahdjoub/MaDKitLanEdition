@@ -37,15 +37,11 @@
  */
 package com.distrimind.madkit.kernel;
 
-import com.distrimind.madkit.exceptions.MessageExternalizationException;
-import com.distrimind.madkit.io.RandomInputStream;
-import com.distrimind.madkit.io.RandomOutputStream;
 import com.distrimind.madkit.kernel.network.Block;
 import com.distrimind.madkit.kernel.network.RealTimeTransfertStat;
-import com.distrimind.madkit.kernel.network.WithoutInnerSizeControl.Integrity;
 import com.distrimind.madkit.util.NetworkMessage;
-import com.distrimind.madkit.util.*;
 import com.distrimind.util.crypto.MessageDigestType;
+import com.distrimind.util.io.*;
 
 import java.io.IOException;
 import java.util.concurrent.Callable;
@@ -55,7 +51,7 @@ import java.util.concurrent.ExecutionException;
  * Message received when a big data transfer is requested.
  * 
  * By calling the function
- * {@link BigDataPropositionMessage#acceptTransfer(com.distrimind.madkit.io.RandomOutputStream)},
+ * {@link BigDataPropositionMessage#acceptTransfer(RandomOutputStream)},
  * the transfer will be able to begin.
  * 
  * By calling the function {@link BigDataPropositionMessage#denyTransfer()}, the

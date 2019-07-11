@@ -125,7 +125,7 @@ public final class Block {
 	
 	
 	
-	public Block(byte _block[]) throws PacketException {
+	public Block(byte[] _block) throws PacketException {
 		block = _block;
 		if (block.length < getHeadSize())
 			throw new PacketException(

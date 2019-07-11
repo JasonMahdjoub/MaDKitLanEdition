@@ -39,7 +39,7 @@
 package com.distrimind.madkit.kernel;
 
 import com.distrimind.madkit.kernel.MultiGroup.AssociatedGroup;
-import com.distrimind.madkit.util.SecureExternalizable;
+import com.distrimind.util.io.SecureExternalizable;
 
 import java.util.*;
 

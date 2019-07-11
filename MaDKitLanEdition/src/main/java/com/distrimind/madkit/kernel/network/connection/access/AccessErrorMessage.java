@@ -37,8 +37,8 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
 
 import java.io.IOException;
 
@@ -53,6 +53,7 @@ public class AccessErrorMessage extends AccessMessage {
 
 	public boolean candidate_to_ban;
 
+	@SuppressWarnings("unused")
 	AccessErrorMessage()
 	{
 		

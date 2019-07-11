@@ -38,7 +38,7 @@
 package com.distrimind.madkit.kernel.network;
 
 import com.distrimind.madkit.kernel.KernelAddress;
-import com.distrimind.madkit.util.SecureExternalizable;
+import com.distrimind.util.io.SecureExternalizable;
 
 /**
  * Used when an indirect connection is attempted. The final user must inherit

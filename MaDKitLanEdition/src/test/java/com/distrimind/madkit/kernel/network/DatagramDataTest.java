@@ -40,6 +40,8 @@ package com.distrimind.madkit.kernel.network;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.Date;
 import java.util.Random;
 
@@ -50,8 +52,6 @@ import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.util.version.Version;
 
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
 
 /**
  * 
@@ -237,7 +237,7 @@ public class DatagramDataTest {
 		d2.put(data, 0, data.length);
 		Assert.assertEquals(data.length, Block.getShortInt(d2.getByteBuffer().array(), 0));
 		Random rand = new Random(System.currentTimeMillis());
-		byte randData[] = new byte[rand.nextInt(500) + 600];
+		byte[] randData = new byte[rand.nextInt(500) + 600];
 		rand.nextBytes(randData);
 		d2.put(randData, 0, randData.length);
 		Assert.assertEquals(data.length, Block.getShortInt(d2.getByteBuffer().array(), 0));

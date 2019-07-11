@@ -37,12 +37,11 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
+
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
 
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 
 /**
  * 
@@ -52,10 +51,6 @@ import java.io.ObjectOutput;
  */
 public class AccessAskInitiliazation extends AccessMessage {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -2294233367590774628L;
 
 	
 

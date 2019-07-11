@@ -73,7 +73,8 @@ import javax.swing.JFrame;
 import javax.xml.parsers.ParserConfigurationException;
 
 import com.distrimind.madkit.database.DifferedMessageTable;
-import com.distrimind.madkit.util.SecureExternalizable;
+import com.distrimind.util.io.RandomInputStream;
+import com.distrimind.util.io.SecureExternalizable;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
@@ -97,7 +98,6 @@ import com.distrimind.madkit.gui.menu.MadkitMenu;
 import com.distrimind.madkit.i18n.ErrorMessages;
 import com.distrimind.madkit.i18n.I18nUtilities;
 import com.distrimind.madkit.i18n.Words;
-import com.distrimind.madkit.io.RandomInputStream;
 import com.distrimind.madkit.kernel.network.AskForConnectionMessage;
 import com.distrimind.madkit.kernel.network.AskForTransferMessage;
 import com.distrimind.madkit.kernel.network.Connection;
@@ -4181,7 +4181,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * The targeted agent will first receive a {@link BigDataPropositionMessage}.
 	 * 
 	 * By calling the function
-	 * {@link BigDataPropositionMessage#acceptTransfer(com.distrimind.madkit.io.RandomOutputStream)},
+	 * {@link BigDataPropositionMessage#acceptTransfer(com.distrimind.util.io.RandomOutputStream)},
 	 * the transfer will be able to begin.
 	 * 
 	 * By calling the function {@link BigDataPropositionMessage#denyTransfer()}, the
@@ -4221,7 +4221,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * The targeted agent will first receive a {@link BigDataPropositionMessage}.
 	 * 
 	 * By calling the function
-	 * {@link BigDataPropositionMessage#acceptTransfer(com.distrimind.madkit.io.RandomOutputStream)},
+	 * {@link BigDataPropositionMessage#acceptTransfer(com.distrimind.util.io.RandomOutputStream)},
 	 * the transfer will be able to begin.
 	 * 
 	 * By calling the function {@link BigDataPropositionMessage#denyTransfer()}, the
@@ -4265,7 +4265,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * The targeted agent will first receive a {@link BigDataPropositionMessage}.
 	 * 
 	 * By calling the function
-	 * {@link BigDataPropositionMessage#acceptTransfer(com.distrimind.madkit.io.RandomOutputStream)},
+	 * {@link BigDataPropositionMessage#acceptTransfer(com.distrimind.util.io.RandomOutputStream)},
 	 * the transfer will be able to begin.
 	 * 
 	 * By calling the function {@link BigDataPropositionMessage#denyTransfer()}, the
@@ -4313,7 +4313,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * The targeted agent will first receive a {@link BigDataPropositionMessage}.
 	 * 
 	 * By calling the function
-	 * {@link BigDataPropositionMessage#acceptTransfer(com.distrimind.madkit.io.RandomOutputStream)},
+	 * {@link BigDataPropositionMessage#acceptTransfer(com.distrimind.util.io.RandomOutputStream)},
 	 * the transfer will be able to begin.
 	 * 
 	 * By calling the function {@link BigDataPropositionMessage#denyTransfer()}, the
@@ -4366,7 +4366,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * The targeted agent will first receive a {@link BigDataPropositionMessage}.
 	 * 
 	 * By calling the function
-	 * {@link BigDataPropositionMessage#acceptTransfer(com.distrimind.madkit.io.RandomOutputStream)},
+	 * {@link BigDataPropositionMessage#acceptTransfer(com.distrimind.util.io.RandomOutputStream)},
 	 * the transfer will be able to begin.
 	 * 
 	 * By calling the function {@link BigDataPropositionMessage#denyTransfer()}, the
@@ -4410,7 +4410,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * The targeted agent will first receive a {@link BigDataPropositionMessage}.
 	 * 
 	 * By calling the function
-	 * {@link BigDataPropositionMessage#acceptTransfer(com.distrimind.madkit.io.RandomOutputStream)},
+	 * {@link BigDataPropositionMessage#acceptTransfer(com.distrimind.util.io.RandomOutputStream)},
 	 * the transfer will be able to begin.
 	 * 
 	 * By calling the function {@link BigDataPropositionMessage#denyTransfer()}, the
@@ -4457,7 +4457,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * The targeted agent will first receive a {@link BigDataPropositionMessage}.
 	 * 
 	 * By calling the function
-	 * {@link BigDataPropositionMessage#acceptTransfer(com.distrimind.madkit.io.RandomOutputStream)},
+	 * {@link BigDataPropositionMessage#acceptTransfer(com.distrimind.util.io.RandomOutputStream)},
 	 * the transfer will be able to begin.
 	 * 
 	 * By calling the function {@link BigDataPropositionMessage#denyTransfer()}, the
@@ -4508,7 +4508,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * The targeted agent will first receive a {@link BigDataPropositionMessage}.
 	 * 
 	 * By calling the function
-	 * {@link BigDataPropositionMessage#acceptTransfer(com.distrimind.madkit.io.RandomOutputStream)},
+	 * {@link BigDataPropositionMessage#acceptTransfer(com.distrimind.util.io.RandomOutputStream)},
 	 * the transfer will be able to begin.
 	 * 
 	 * By calling the function {@link BigDataPropositionMessage#denyTransfer()}, the

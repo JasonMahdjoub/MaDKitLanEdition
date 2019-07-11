@@ -37,7 +37,6 @@
  */
 package com.distrimind.madkit.testing.util.agent;
 
-import com.distrimind.madkit.io.RandomByteArrayInputStream;
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.access.AbstractAccessProtocolProperties;
@@ -45,6 +44,7 @@ import com.distrimind.madkit.kernel.network.connection.access.AccessProtocolWith
 import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolWithKeyAgreementProperties;
 import com.distrimind.util.crypto.SymmetricAuthentifiedSignatureType;
 import com.distrimind.util.crypto.SymmetricEncryptionType;
+import com.distrimind.util.io.RandomByteArrayInputStream;
 import org.junit.Assert;
 
 import java.io.IOException;
@@ -189,7 +189,7 @@ public class BigDataTransferSpeed extends JunitMadkit {
                                     if (this.getMaximumGlobalUploadSpeedInBytesPerSecond() != Integer.MAX_VALUE){
                                         double speed=((double) br.getTransferedDataLength()) / ((double) br.getTransferDuration()) * 1000.0;
                                         Assert.assertTrue(speed< getMaximumGlobalUploadSpeedInBytesPerSecond() * 2);
-                                        Assert.assertTrue(speed> getMaximumGlobalUploadSpeedInBytesPerSecond() / 2);
+                                        Assert.assertTrue(speed> getMaximumGlobalUploadSpeedInBytesPerSecond() / 2.0);
                                     }
                                 }
                                 transfered1.set(tr1);
@@ -208,7 +208,7 @@ public class BigDataTransferSpeed extends JunitMadkit {
                                     if (this.getMaximumGlobalUploadSpeedInBytesPerSecond() != Integer.MAX_VALUE) {
                                         double speed=((double) br.getTransferedDataLength()) / ((double) br.getTransferDuration()) * 1000.0;
                                         Assert.assertTrue(speed< getMaximumGlobalUploadSpeedInBytesPerSecond() * 2);
-                                        Assert.assertTrue(speed> getMaximumGlobalUploadSpeedInBytesPerSecond() / 2);
+                                        Assert.assertTrue(speed> getMaximumGlobalUploadSpeedInBytesPerSecond() / 2.0);
                                     }
                                 }
                                 transfered2.set(tr2);
@@ -233,7 +233,6 @@ public class BigDataTransferSpeed extends JunitMadkit {
                 BigDataTransferReceiverAgent bigDataTransferAgent = new BigDataTransferReceiverAgent(2, uploadLimitInBytesPerSecond);
                 launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, bigDataTransferAgent, eventListener2);
 
-                int counter=0;
                 while(transfered1.get()==null || transfered2.get()==null)
                 {
 

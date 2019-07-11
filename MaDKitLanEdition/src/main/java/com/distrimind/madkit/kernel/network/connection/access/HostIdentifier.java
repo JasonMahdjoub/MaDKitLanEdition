@@ -37,19 +37,19 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import com.distrimind.madkit.util.SecureExternalizable;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
-import com.distrimind.madkit.util.SerializationTools;
 import com.distrimind.util.AbstractDecentralizedID;
 import com.distrimind.util.RenforcedDecentralizedIDGenerator;
 import com.distrimind.util.SecuredDecentralizedID;
 import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.crypto.SecureRandomType;
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
+import com.distrimind.util.io.SecureExternalizable;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
+import com.distrimind.util.io.SerializationTools;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 
 /**
  * This identifier is related to a machine, or more precisely to an specific
@@ -154,7 +154,7 @@ public abstract class HostIdentifier implements SecureExternalizable {
 		}
 
 		DefaultHostIdentifier(byte[] bytes, int off, int len) {
-			id = (SecuredDecentralizedID) AbstractDecentralizedID.instanceOf(bytes, off, len);
+			id = (SecuredDecentralizedID) AbstractDecentralizedID.decode(bytes, off, len);
 		}
 
 		@Override

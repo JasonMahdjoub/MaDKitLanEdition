@@ -37,13 +37,10 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
 import com.distrimind.madkit.kernel.network.connection.PointToPointTransferedBlockChecker;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
-import com.distrimind.madkit.util.SerializationTools;
+import com.distrimind.util.io.*;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -74,7 +71,7 @@ class TransferConfirmationWithoutInnerSizeControl extends BroadcastableWithoutIn
 	@Override
 	public int getInternalSerializedSize() {
 		
-		return super.getInternalSerializedSize()+yourIDTransfer.getInternalSerializedSize()+myIDTransfer.getInternalSerializedSize()+5+kernelAddressToConnect.getInternalSerializedSize()+SerializationTools.getInternalSize(distantInetSocketAddress)+(pointToPointBlockChecker==null?1:pointToPointBlockChecker.getInternalSerializedSize());
+		return super.getInternalSerializedSize()+yourIDTransfer.getInternalSerializedSize()+myIDTransfer.getInternalSerializedSize()+5+kernelAddressToConnect.getInternalSerializedSize()+ SerializationTools.getInternalSize(distantInetSocketAddress)+(pointToPointBlockChecker==null?1:pointToPointBlockChecker.getInternalSerializedSize());
 	}
 
 

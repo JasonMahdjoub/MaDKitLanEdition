@@ -45,16 +45,16 @@ import com.distrimind.madkit.kernel.network.connection.*;
 import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.util.Bits;
 import com.distrimind.util.crypto.*;
-import gnu.vm.jgnu.security.*;
-import gnu.vm.jgnu.security.spec.InvalidKeySpecException;
-import gnu.vm.jgnux.crypto.BadPaddingException;
-import gnu.vm.jgnux.crypto.IllegalBlockSizeException;
-import gnu.vm.jgnux.crypto.NoSuchPaddingException;
-import gnu.vm.jgnux.crypto.ShortBufferException;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.ShortBufferException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 
 /**
@@ -75,7 +75,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 	protected SymmetricEncryptionAlgorithm symmetricEncryption = null;
 	protected KeyAgreement keyAgreementForEncryption=null, keyAgreementForSignature=null;
 	protected SymmetricAuthentifiedSignerAlgorithm signer = null;
-	protected SymmetricAuthentifiedSignatureCheckerAlgorithm signatureChecker = null;
+	protected SymmetricAuthenticatedSignatureCheckerAlgorithm signatureChecker = null;
 	final int signature_size_bytes;
 	private final SubBlockParser parser;
 
@@ -131,7 +131,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 				if (signer==null || signatureChecker==null)
 				{
 					signer=new SymmetricAuthentifiedSignerAlgorithm(secret_key_for_signature);
-					signatureChecker=new SymmetricAuthentifiedSignatureCheckerAlgorithm(secret_key_for_signature);
+					signatureChecker=new SymmetricAuthenticatedSignatureCheckerAlgorithm(secret_key_for_signature);
 					blockCheckerChanged=true;
 				}
 			} else {
@@ -169,8 +169,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 		keyAgreementForSignature=null;
 		signer=null;
 		signatureChecker=null;
-		blockCheckerChanged=true;
-		
+
 	}
 
 	private enum Step {

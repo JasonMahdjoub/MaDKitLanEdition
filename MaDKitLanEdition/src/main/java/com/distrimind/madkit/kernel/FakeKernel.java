@@ -40,14 +40,14 @@ package com.distrimind.madkit.kernel;
 import com.distrimind.jdkrewrite.concurrent.LockerCondition;
 import com.distrimind.madkit.database.DifferedMessageTable;
 import com.distrimind.madkit.i18n.ErrorMessages;
-import com.distrimind.madkit.io.RandomInputStream;
 import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
 import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
-import com.distrimind.madkit.util.SecureExternalizable;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.crypto.MessageDigestType;
+import com.distrimind.util.io.RandomInputStream;
+import com.distrimind.util.io.SecureExternalizable;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -37,26 +37,25 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.util.ArrayList;
-import java.util.Collections;
-
 import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.kernel.MadkitEventListener;
 import com.distrimind.madkit.kernel.MadkitProperties;
+import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolNegotiatorProperties;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
 import com.distrimind.madkit.kernel.network.connection.secured.ClientSecuredProtocolPropertiesWithKnownPublicKey;
 import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolWithKeyAgreementProperties;
 import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties;
 import com.distrimind.madkit.kernel.network.connection.secured.ServerSecuredProtocolPropertiesWithKnownPublicKey;
 import com.distrimind.madkit.kernel.network.connection.unsecured.CheckSumConnectionProtocolProperties;
-import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolNegotiatorProperties;
 import com.distrimind.madkit.kernel.network.connection.unsecured.UnsecuredConnectionProtocolProperties;
 import com.distrimind.util.crypto.*;
-
-import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
 import org.junit.Assert;
+
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * 

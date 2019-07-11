@@ -37,15 +37,15 @@
  */
 package com.distrimind.madkit.testing.util.agent;
 
-import static com.distrimind.madkit.kernel.JunitMadkit.GROUP;
-import static com.distrimind.madkit.kernel.JunitMadkit.ROLE;
-
-import com.distrimind.madkit.io.RandomByteArrayOutputStream;
 import com.distrimind.madkit.kernel.Agent;
 import com.distrimind.madkit.kernel.BigDataPropositionMessage;
 import com.distrimind.madkit.kernel.BigDataResultMessage;
 import com.distrimind.madkit.kernel.Message;
+import com.distrimind.util.io.RandomByteArrayOutputStream;
 import org.junit.Assert;
+
+import static com.distrimind.madkit.kernel.JunitMadkit.GROUP;
+import static com.distrimind.madkit.kernel.JunitMadkit.ROLE;
 
 /**
  * @author Jason Mahdjoub
@@ -95,7 +95,7 @@ public class BigDataTransferReceiverAgent extends Agent {
 
                         double speed=((double) rm.getTransferedDataLength()) / ((double) rm.getTransferDuration()) * 1000.0;
                         Assert.assertTrue(speed< getMaximumGlobalDownloadSpeedInBytesPerSecond() * 2);
-                        Assert.assertTrue(speed> getMaximumGlobalDownloadSpeedInBytesPerSecond() / 2);
+                        Assert.assertTrue(speed> getMaximumGlobalDownloadSpeedInBytesPerSecond() / 2.0);
                     }
 				}
 				else

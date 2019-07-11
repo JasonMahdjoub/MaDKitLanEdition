@@ -37,21 +37,20 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.UnsupportedEncodingException;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.UnknownHostException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.logging.Level;
 
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.kernel.AgentFakeThread;
 import com.distrimind.madkit.kernel.Message;
 
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
 
 /**
  * @author Jason Mahdjoub

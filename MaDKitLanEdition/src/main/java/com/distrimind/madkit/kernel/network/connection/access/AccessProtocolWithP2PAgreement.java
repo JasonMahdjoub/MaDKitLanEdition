@@ -38,6 +38,10 @@
 package com.distrimind.madkit.kernel.network.connection.access;
 
 import java.net.InetSocketAddress;
+import java.security.DigestException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -50,10 +54,6 @@ import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.crypto.*;
 
-import gnu.vm.jgnu.security.DigestException;
-import gnu.vm.jgnu.security.InvalidAlgorithmParameterException;
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
 
 /**
  * Represents properties of a specific connection protocol
@@ -87,7 +87,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 				myKeyPair = access_protocol_properties.aSymetricEncryptionType
 						.getKeyPairGenerator(properties.getApprovedSecureRandomForKeys(), access_protocol_properties.aSymetricKeySize).generateKeyPair();
 			else
-				myKeyPair = (((KeysPairs) properties.getDatabaseWrapper().getTableInstance(KeysPairs.class)).getKeyPair(
+				myKeyPair = (properties.getDatabaseWrapper().getTableInstance(KeysPairs.class).getKeyPair(
 						distant_inet_address.getAddress(), NetworkProperties.accessProtocolDatabaseUsingCode,
 						access_protocol_properties.aSymetricEncryptionType, access_protocol_properties.aSymetricKeySize,
 						properties.getApprovedSecureRandomForKeys(), access_protocol_properties.aSymmetricKeyExpirationMs,

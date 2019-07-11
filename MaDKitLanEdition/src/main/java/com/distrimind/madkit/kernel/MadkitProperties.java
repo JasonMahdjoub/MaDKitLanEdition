@@ -37,21 +37,6 @@
  */
 package com.distrimind.madkit.kernel;
 
-import java.io.*;
-import java.net.MalformedURLException;
-import java.net.NetworkInterface;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import org.apache.commons.codec.binary.Base64;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-
 import com.distrimind.madkit.gui.AgentFrame;
 import com.distrimind.madkit.gui.ConsoleAgent;
 import com.distrimind.madkit.gui.MDKDesktopFrame;
@@ -69,9 +54,22 @@ import com.distrimind.util.crypto.SecureRandomType;
 import com.distrimind.util.properties.MultiFormatProperties;
 import com.distrimind.util.properties.PropertiesParseException;
 import com.distrimind.util.version.Version;
+import org.apache.commons.codec.binary.Base64;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
+import java.io.*;
+import java.net.MalformedURLException;
+import java.net.NetworkInterface;
+import java.net.URL;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * The properties object used within MaDKit.
@@ -607,7 +605,7 @@ public class MadkitProperties extends MultiFormatProperties {
 		return res;
 	}
 
-	public static void main(String args[]) {
+	public static void main(String[] args) {
 		MadkitProperties mp = new MadkitProperties();
 		mp.saveYAML(new File("madkit.yaml"));
 	}
@@ -775,7 +773,7 @@ public class MadkitProperties extends MultiFormatProperties {
 		return result;
 		
 	}
-	private static long getHardwareAddress(byte hardwareAddress[]) {
+	private static long getHardwareAddress(byte[] hardwareAddress) {
 		long result = 0;
 		if (hardwareAddress != null) {
 			for (final byte value : hardwareAddress) {

@@ -41,10 +41,11 @@ import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
 import com.distrimind.util.crypto.*;
-import gnu.vm.jgnu.security.InvalidKeyException;
-import gnu.vm.jgnu.security.NoSuchAlgorithmException;
-import gnu.vm.jgnu.security.NoSuchProviderException;
-import gnu.vm.jgnu.security.spec.InvalidKeySpecException;
+
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.spec.InvalidKeySpecException;
 
 /**
  * 

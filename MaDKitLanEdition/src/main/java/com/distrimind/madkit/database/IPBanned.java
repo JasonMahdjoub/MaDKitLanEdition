@@ -57,8 +57,10 @@ public final class IPBanned extends Table<IPBanned.Record> {
 	}
 
 	public final static class Record extends DatabaseRecord {
-		public @NotNull @PrimaryKey(limit=20) byte[] inet_address;
-		public @Field long expiration_time;
+		@Field(limit=20) @NotNull @PrimaryKey()
+		public byte[] inet_address;
+		@Field
+		public long expiration_time;
 	}
 
 }

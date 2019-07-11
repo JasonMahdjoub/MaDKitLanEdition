@@ -56,7 +56,7 @@ import com.distrimind.madkit.kernel.MultiGroup;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-@SuppressWarnings({"SameParameterValue", "BooleanMethodIsAlwaysInverted"})
+@SuppressWarnings({"SameParameterValue"})
 public abstract class AbstractAccessProtocol {
 	protected final AccessData access_data;
 	protected final MadkitProperties properties;

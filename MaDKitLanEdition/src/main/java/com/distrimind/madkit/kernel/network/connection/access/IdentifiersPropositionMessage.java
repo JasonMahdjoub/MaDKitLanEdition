@@ -37,17 +37,14 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
-import com.distrimind.madkit.util.SecureExternalizable;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
 import com.distrimind.util.crypto.*;
-import gnu.vm.jgnu.security.*;
-import gnu.vm.jgnu.security.spec.InvalidKeySpecException;
-import gnu.vm.jgnux.crypto.NoSuchPaddingException;
+import com.distrimind.util.io.*;
 
+import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -115,7 +112,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 	}*/
 
 	public IdentifiersPropositionMessage(Collection<Identifier> _id_pws, AbstractSecureRandom random, AbstractMessageDigest messageDigest,
-			boolean encryptIdentifiers, short nbAnomalies, byte[] distantGeneratedSalt, Map<Identifier, P2PLoginAgreement> jpakes, ASymmetricLoginAgreementType aSymmetricLoginAgreementType) throws  DigestException {
+			boolean encryptIdentifiers, short nbAnomalies, byte[] distantGeneratedSalt, Map<Identifier, P2PLoginAgreement> jpakes, ASymmetricLoginAgreementType aSymmetricLoginAgreementType) throws DigestException {
 		identifiers = new Identifier[_id_pws.size()];
 		isEncrypted = encryptIdentifiers;
 		int index = 0;

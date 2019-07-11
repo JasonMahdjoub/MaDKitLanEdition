@@ -38,11 +38,11 @@
 package com.distrimind.madkit.kernel.network;
 
 import com.distrimind.madkit.kernel.network.connection.access.CloudIdentifier;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
-import com.distrimind.madkit.util.SerializationTools;
 import com.distrimind.util.crypto.ASymmetricKeyPair;
 import com.distrimind.util.crypto.ASymmetricPublicKey;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
+import com.distrimind.util.io.SerializationTools;
 
 import java.io.IOException;
 

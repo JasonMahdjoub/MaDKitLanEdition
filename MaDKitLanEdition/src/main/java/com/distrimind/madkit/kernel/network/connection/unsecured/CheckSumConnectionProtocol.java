@@ -39,20 +39,16 @@ package com.distrimind.madkit.kernel.network.connection.unsecured;
 
 import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.exceptions.ConnectionException;
-import com.distrimind.madkit.exceptions.MessageExternalizationException;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.PacketCounter;
 import com.distrimind.madkit.kernel.network.SubBlock;
 import com.distrimind.madkit.kernel.network.SubBlockInfo;
 import com.distrimind.madkit.kernel.network.SubBlockParser;
-import com.distrimind.madkit.kernel.network.WithoutInnerSizeControl.Integrity;
 import com.distrimind.madkit.kernel.network.connection.*;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
-import com.distrimind.madkit.util.SerializationTools;
 import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.util.crypto.AbstractMessageDigest;
 import com.distrimind.util.crypto.MessageDigestType;
+import com.distrimind.util.io.*;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

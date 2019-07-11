@@ -37,10 +37,8 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.exceptions.MessageExternalizationException;
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
-import com.distrimind.madkit.util.SerializationTools;
+
+import com.distrimind.util.io.*;
 
 import java.io.IOException;
 import java.net.Inet4Address;
@@ -67,7 +65,7 @@ public class DoubleIP extends AbstractIP {
 
 	@Override
 	public int getInternalSerializedSize() {
-		return super.getInternalSerializedSize()+SerializationTools.getInternalSize(inet4Address)+SerializationTools.getInternalSize(inet6Address);
+		return super.getInternalSerializedSize()+ SerializationTools.getInternalSize(inet4Address)+SerializationTools.getInternalSize(inet6Address);
 	}
 	
 	@Override

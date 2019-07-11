@@ -37,12 +37,12 @@
  */
 package com.distrimind.madkit.kernel;
 
-import java.io.*;
-
-import com.distrimind.madkit.util.SecuredObjectInputStream;
-import com.distrimind.madkit.util.SecuredObjectOutputStream;
+import com.distrimind.util.io.RandomByteArrayInputStream;
+import com.distrimind.util.io.RandomByteArrayOutputStream;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.IOException;
 
 
 /**
@@ -184,18 +184,14 @@ public class GroupTest {
 		System.out.println("Test group serialization : " + g);
 		byte[] array;
 
-		try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-			try (DataOutputStream dos=new DataOutputStream(baos); SecuredObjectOutputStream oos = new SecuredObjectOutputStream(dos)) {
-				oos.writeObject(g, false);
-			}
-			array = baos.toByteArray();
+		try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
+			baos.writeObject(g, false);
+			array = baos.getBytes();
 		}
 
 		Group g2;
-		try (ByteArrayInputStream bais = new ByteArrayInputStream(array)) {
-			try (DataInputStream dis=new DataInputStream(bais); SecuredObjectInputStream ois = new SecuredObjectInputStream(dis)) {
-				g2 = ois.readObject(false, Group.class);
-			}
+		try (RandomByteArrayInputStream bais = new RandomByteArrayInputStream(array)) {
+			g2 = bais.readObject(false, Group.class);
 		}
 
 		Assert.assertEquals(g, g2);
