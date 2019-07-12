@@ -217,3 +217,5 @@ hs_err_pid*
 *.database.mv.db
 *.database.mv.db.old
 *.database.trace.db
+MaDKitLanEdition/dbasker.database
+MaDKitLanEdition/dbreceiver.database
