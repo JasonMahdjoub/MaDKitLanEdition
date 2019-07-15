@@ -37,6 +37,13 @@
  */
 package com.distrimind.madkit.agr;
 
+import com.distrimind.madkit.kernel.AbstractAgent;
+import com.distrimind.madkit.kernel.AgentNetworkID;
+import com.distrimind.madkit.kernel.Gatekeeper;
+import com.distrimind.madkit.kernel.Group;
+import com.distrimind.util.DecentralizedValue;
+import org.apache.commons.codec.binary.Base64;
+
 /**
  * Defines the default groups and roles used for networking.
  * 
@@ -123,6 +130,34 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 		 * SCHEDULER_NAME_FOR_AGENTS_FAKE_THREAD="~~MKLE_AGENTS_FAKE_THREAD_SCHEDULER";
 		 */
 
+		private static final Gatekeeper databaseGateKeeper = new Gatekeeper() {
+
+			@Override
+			public boolean allowAgentToCreateSubGroup(Group _parent_group, Group _sub_group,
+													  final Class<? extends AbstractAgent> requesterClass, AgentNetworkID _agentNetworkID,
+													  Object _memberCard) {
+				return requesterClass.getCanonicalName()
+						.equals("com.distrimind.madkit.kernel.distributed_database.DatabaseSynchronizerAgent") ;}
+
+			@Override
+			public boolean allowAgentToTakeRole(Group _group, String _roleName,
+												final Class<? extends AbstractAgent> requesterClass, AgentNetworkID _agentNetworkID,
+												Object _memberCard) {
+				return requesterClass.getCanonicalName()
+						.equals("com.distrimind.madkit.kernel.distributed_database.DatabaseSynchronizerAgent");
+
+			}
+		};
+
+
+		public static final Group DISTRIBUTED_DATABASE = LocalCommunity.Groups.DATABASE.getSubGroup(true, databaseGateKeeper, true, "~~peers");
+
+
+		/*public static Group getDistributedDatabaseGroup(DecentralizedValue identifier)
+		{
+			return DISTRIBUTED_DATABASE.getSubGroup(true, databaseGateKeeper, false, Base64.encodeBase64URLSafeString(identifier.encodeWithDefaultParameters()));
+		}*/
+
 	}
 
 	/**
@@ -145,5 +180,13 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 		// public static final String
 		// SOCKET_AGENT_ROLE=LocalCommunity.Roles.SOCKET_AGENT_ROLE;
 
+		/*public static final String DATABASE_EVENT_EMITTER="~~DATABASE_EVENT_EMITTER";
+
+		public static final String DATABASE_EVENT_LISTENER="~~DATABASE_EVENT_LISTENER";*/
+
+		public static String getDistributedDatabaseRole(DecentralizedValue identifier)
+		{
+			return Base64.encodeBase64URLSafeString(identifier.encodeWithDefaultParameters());
+		}
 	}
 }

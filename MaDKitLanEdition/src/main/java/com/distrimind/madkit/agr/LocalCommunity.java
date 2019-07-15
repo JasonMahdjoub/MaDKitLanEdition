@@ -51,7 +51,7 @@ import com.distrimind.madkit.kernel.network.KernelAddressInterfaced;
  * @author Fabien Michel
  * @author Jason Mahdjoub
  * @since MaDKitGroupEdition 1.0
- * @version 1.0
+ * @version 1.1
  * 
  */
 public class LocalCommunity implements Organization {// TODO check groups protection
@@ -272,23 +272,28 @@ public class LocalCommunity implements Organization {// TODO check groups protec
 						ka.toString());
 		}
 
-		/*
-		 * private static String getHexString(byte[] bytes) { StringBuilder sb = new
-		 * StringBuilder(bytes.length*2); for (byte b : bytes) { sb.append(
-		 * String.format("%x", new Byte(b)) ); } return sb.toString(); }
-		 */
+		private static final Gatekeeper databaseGateKeeper = new Gatekeeper() {
 
-		/*
-		 * public static Group getLocalLanGroup(InterfaceAddress interface_address) {
-		 * return LOCAL_NETWORKS.getSubGroup(false, null, false,
-		 * "~~LocalLan:"+interface_address.toString()); }
-		 * 
-		 * 
-		 * public static Group getNetworkInterfaceGroup(NetworkInterface
-		 * network_interface) throws SocketException { return
-		 * NETWORK_INTERFACES.getSubGroup(false, null, false,
-		 * "~~NI:"+getHexString(network_interface.getHardwareAddress())); }
-		 */
+			@Override
+			public boolean allowAgentToCreateSubGroup(Group _parent_group, Group _sub_group,
+													  final Class<? extends AbstractAgent> requesterClass, AgentNetworkID _agentNetworkID,
+													  Object _memberCard) {
+				return requesterClass.getCanonicalName()
+						.equals("com.distrimind.madkit.kernel.distributed_database.DatabaseSynchronizerAgent");
+			}
+
+			@Override
+			public boolean allowAgentToTakeRole(Group _group, String _roleName,
+												final Class<? extends AbstractAgent> requesterClass, AgentNetworkID _agentNetworkID,
+												Object _memberCard) {
+				return requesterClass.getCanonicalName()
+						.equals("com.distrimind.madkit.kernel.distributed_database.DatabaseSynchronizerAgent");
+			}
+		};
+
+
+		public static final Group DATABASE = SYSTEM_ROOT.getSubGroup(false, databaseGateKeeper, true, "~~database");
+
 
 	}
 
@@ -374,6 +379,11 @@ public class LocalCommunity implements Organization {// TODO check groups protec
 		 * Role taken by multicast listener agents
 		 */
 		public static final String MULTICAST_LISTENER_ROLE = "~~MULTICAST_LISTENER_ROLE";
+
+		/**
+		 * Role taken by DatabaseSynchronizeAgent to listen new incoming/outcomming distant database peer.
+		 */
+		public static final String DISTANT_DATABASE_PEER_LISTENER="~~DISTANT_DATABASE_PEER_LISTENER";
 
 	}
 
