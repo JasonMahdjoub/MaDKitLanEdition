@@ -66,6 +66,8 @@ import com.distrimind.madkit.kernel.network.connection.access.Identifier;
 import com.distrimind.madkit.message.*;
 import com.distrimind.madkit.message.hook.HookMessage;
 import com.distrimind.ood.database.DatabaseEventType;
+import com.distrimind.ood.database.DatabaseWrapper;
+import com.distrimind.ood.database.HookAddRequest;
 import com.distrimind.ood.database.TransactionIsolation;
 import com.distrimind.util.OS;
 import com.distrimind.util.OSVersion;
@@ -1037,7 +1039,12 @@ final public class Madkit {
 					SchedulingMessage.class, KQMLMessage.class, IntegerMessage.class, BooleanMessage.class,
 					GUIMessage.class, (Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.InternalRole"),
 					EncryptedPassword.class, GUIMessage.class, (Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.DatagramLocalNetworkPresenceMessage"),
-					EncryptedCloudIdentifier.class));
+					EncryptedCloudIdentifier.class,
+					DatabaseWrapper.DatabaseEventsToSynchronize.class,
+					DatabaseWrapper.DatabaseTransactionsIdentifiersToSynchronize.class,
+					HookAddRequest.class,
+					DatabaseWrapper.LastIDCorrection.class,
+					DatabaseWrapper.TransactionConfirmationEvents.class));
 			for (Class<?> c : classes)
 				assert !Modifier.isAbstract(c.getModifiers()):""+c;
 			//noinspection unchecked
@@ -1079,6 +1086,7 @@ final public class Madkit {
 					DatabaseEventType.class,
 					TransactionIsolation.class,
 					HookMessage.AgentActionEvent.class
+
 			)));
 			SerializationTools.setPredefinedClasses(classes, enums);
 		} catch (ClassNotFoundException e) {
