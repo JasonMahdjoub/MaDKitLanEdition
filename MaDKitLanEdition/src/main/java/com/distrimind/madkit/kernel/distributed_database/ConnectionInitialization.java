@@ -35,14 +35,14 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-import com.distrimind.madkit.message.ObjectMessage;
+import com.distrimind.madkit.message.NetworkObjectMessage;
 
 /**
  * @author Jason Mahdjoub
  * @version 1.0
  * @since MaDKitLanEdition 2.0.0
  */
-public class ConnectionInitialization extends ObjectMessage<Long> {
+public class ConnectionInitialization extends NetworkObjectMessage<Long> {
 
 
 	public ConnectionInitialization(Long content) {

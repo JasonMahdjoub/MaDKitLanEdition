@@ -166,7 +166,7 @@ final public class Madkit {
 			c.set(2019, Calendar.MAY, 6);
 			Description d = new Description((short)2, (short)0, (short)0, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Update Utils to 4.4.3 Stable");
-			d.addItem("Update OOD to 2.0.0 Stable");
+			d.addItem("Update OOD to 2.1.0 Stable");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();

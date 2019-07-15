@@ -112,7 +112,8 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 				if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.REQUEST_ROLE)) {
 					try {
-						sendMessage(aa, new ConnectionInitialization(synchronizer.getLastValidatedSynchronization(localHostID)));
+						if (synchronizer.isPairedWith(peerID))
+							sendMessage(aa, new ConnectionInitialization(synchronizer.getLastValidatedSynchronization(localHostID)));
 					} catch (DatabaseException e) {
 						if (!_message.getSender().isFrom(getKernelAddress()))
 							anomalyDetectedWithOneDistantKernel(false, _message.getSender().getKernelAddress(), "Unexpected exception");
@@ -120,8 +121,10 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 						getLogger().severeLog("Unexpected exception", e);
 					}
 				} else if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.LEAVE_ROLE)) {
+
 					try {
-						synchronizer.deconnectHook(peerID);
+						if (synchronizer.isInitialized(peerID))
+							synchronizer.deconnectHook(peerID);
 					} catch (DatabaseException e) {
 						getLogger().severeLog("Impossible to disconnect " + peerID, e);
 					}
