@@ -137,14 +137,14 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 													  final Class<? extends AbstractAgent> requesterClass, AgentNetworkID _agentNetworkID,
 													  Object _memberCard) {
 				return requesterClass.getCanonicalName()
-						.equals("com.distrimind.madkit.kernel.distributed_database.DatabaseSynchronizerAgent") ;}
+						.equals("com.distrimind.madkit.kernel.DatabaseSynchronizerAgent") ;}
 
 			@Override
 			public boolean allowAgentToTakeRole(Group _group, String _roleName,
 												final Class<? extends AbstractAgent> requesterClass, AgentNetworkID _agentNetworkID,
 												Object _memberCard) {
 				return requesterClass.getCanonicalName()
-						.equals("com.distrimind.madkit.kernel.distributed_database.DatabaseSynchronizerAgent");
+						.equals("com.distrimind.madkit.kernel.DatabaseSynchronizerAgent");
 
 			}
 		};

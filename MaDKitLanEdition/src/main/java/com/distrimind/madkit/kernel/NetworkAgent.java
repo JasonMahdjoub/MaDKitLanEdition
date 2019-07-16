@@ -45,6 +45,7 @@ import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
 import com.distrimind.madkit.message.EnumMessage;
 import com.distrimind.madkit.message.KernelMessage;
+import com.distrimind.ood.database.exceptions.DatabaseException;
 
 import java.util.HashMap;
 import java.util.logging.Level;
@@ -65,6 +66,7 @@ public final class NetworkAgent extends AgentFakeThread {
 	// private AgentAddress kernelAgent;
 	private AgentAddress NIOAgentAddress = null, LocalNetworkAffectationAgentAddress = null;
 	private HashMap<ConversationID, MessageLocker> messageLockers = new HashMap<>();
+	private DatabaseSynchronizerAgent databaseSynchronizerAgent=null;
 
 	public NetworkAgent() {
 
@@ -82,7 +84,7 @@ public final class NetworkAgent extends AgentFakeThread {
 		// setLogLevel(Level.INFO);
 		requestRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.NET_AGENT);
 		requestRole(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS, LocalCommunity.Roles.NET_AGENT);
-
+		requestRole(LocalCommunity.Groups.DATABASE, LocalCommunity.Roles.NET_AGENT);
 		/*
 		 * kernelAgent = getAgentWithRole(Groups.NETWORK,
 		 * Organization.GROUP_MANAGER_ROLE);
@@ -107,7 +109,18 @@ public final class NetworkAgent extends AgentFakeThread {
 			logger.fine("Launching network agent in " + getKernelAddress() + "...");
 		// requestRole(CloudCommunity.Groups.NETWORK_AGENTS,
 		// CloudCommunity.Roles.NET_AGENT);
-
+		try {
+			if (getMadkitConfig().getDatabaseWrapper().getSynchronizer().getLocalHostID()!=null)
+			{
+				databaseSynchronizerAgent=new DatabaseSynchronizerAgent();
+				if (!launchAgent(databaseSynchronizerAgent).equals(ReturnCode.SUCCESS))
+				{
+					getLogger().warning("Unable to launch Database synchronizer agent");
+				}
+			}
+		} catch (DatabaseException e) {
+			getLogger().severeLog("Problem with database", e);
+		}
 		if (getMadkitConfig().networkProperties.upnpIGDEnabled
 				|| getMadkitConfig().networkProperties.networkInterfaceScan) {
 			AbstractAgent aa = MadkitNetworkAccess.getUpngIDGAgent(this);
@@ -146,6 +159,10 @@ public final class NetworkAgent extends AgentFakeThread {
 
 	private void stopNetwork() {
 		if (LocalNetworkAffectationAgentAddress != null && NIOAgentAddress != null) {
+			if (databaseSynchronizerAgent!=null)
+				killAgent(databaseSynchronizerAgent);
+
+			databaseSynchronizerAgent=null;
 			broadcastMessage(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.TRANSFER_AGENT_ROLE,
 					new StopNetworkMessage(NetworkCloseReason.NORMAL_DETECTION));
 			sendMessage(LocalNetworkAffectationAgentAddress,

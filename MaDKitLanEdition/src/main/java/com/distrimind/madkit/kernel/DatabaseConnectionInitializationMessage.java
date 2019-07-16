@@ -1,4 +1,4 @@
-package com.distrimind.madkit.kernel.distributed_database;
+package com.distrimind.madkit.kernel;
 /*
 Copyright or © or Copr. Jason Mahdjoub (01/04/2013)
 
@@ -42,10 +42,10 @@ import com.distrimind.madkit.message.NetworkObjectMessage;
  * @version 1.0
  * @since MaDKitLanEdition 2.0.0
  */
-public class ConnectionInitialization extends NetworkObjectMessage<Long> {
+public class DatabaseConnectionInitializationMessage extends NetworkObjectMessage<Long> {
 
 
-	public ConnectionInitialization(Long content) {
+	public DatabaseConnectionInitializationMessage(Long content) {
 		super(content);
 	}
 }

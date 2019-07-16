@@ -279,7 +279,9 @@ public class LocalCommunity implements Organization {// TODO check groups protec
 													  final Class<? extends AbstractAgent> requesterClass, AgentNetworkID _agentNetworkID,
 													  Object _memberCard) {
 				return requesterClass.getCanonicalName()
-						.equals("com.distrimind.madkit.kernel.distributed_database.DatabaseSynchronizerAgent");
+						.equals("com.distrimind.madkit.kernel.DatabaseSynchronizerAgent")
+						|| requesterClass.getCanonicalName()
+						.equals("com.distrimind.madkit.kernel.NetworkAgent");
 			}
 
 			@Override
@@ -287,7 +289,9 @@ public class LocalCommunity implements Organization {// TODO check groups protec
 												final Class<? extends AbstractAgent> requesterClass, AgentNetworkID _agentNetworkID,
 												Object _memberCard) {
 				return requesterClass.getCanonicalName()
-						.equals("com.distrimind.madkit.kernel.distributed_database.DatabaseSynchronizerAgent");
+						.equals("com.distrimind.madkit.kernel.DatabaseSynchronizerAgent")
+						|| requesterClass.getCanonicalName()
+						.equals("com.distrimind.madkit.kernel.NetworkAgent");
 			}
 		};
 
@@ -383,7 +387,7 @@ public class LocalCommunity implements Organization {// TODO check groups protec
 		/**
 		 * Role taken by DatabaseSynchronizeAgent to listen new incoming/outcomming distant database peer.
 		 */
-		public static final String DISTANT_DATABASE_PEER_LISTENER="~~DISTANT_DATABASE_PEER_LISTENER";
+		public static final String DATABASE_SYNCHRONIZER_LISTENER ="~~DATABASE_SYNCHRONIZER_LISTENER";
 
 	}
 
