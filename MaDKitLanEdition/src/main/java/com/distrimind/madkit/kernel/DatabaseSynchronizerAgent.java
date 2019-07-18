@@ -120,7 +120,11 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 	@Override
 	protected void end() {
-		synchronizer.disconnectAll();
+		try {
+			synchronizer.disconnectAll();
+		} catch (DatabaseException e) {
+			getLogger().severeLog("Impossible to disconnect database synchronizer", e);
+		}
 	}
 
 	private DecentralizedValue getPeerID(String role, KernelAddress distantKernelAddress)
@@ -222,7 +226,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 						if (!sendMessage(CloudCommunity.Groups.DISTRIBUTED_DATABASE, CloudCommunity.Roles.getDistributedDatabaseRole(dest), new NetworkObjectMessage<>(es)).equals(ReturnCode.SUCCESS)) {
 							getLogger().warning("Impossible to send message to host " + dest);
-							synchronizer.deconnectHook(dest);
+							synchronizer.disconnectHook(dest);
 						}
 
 					} catch (DatabaseException ex) {
