@@ -43,8 +43,9 @@ import com.distrimind.madkit.message.hook.OrganizationEvent;
 import com.distrimind.ood.database.*;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedValue;
-import org.apache.commons.codec.binary.Base64;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 
 /**
@@ -56,8 +57,11 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 
 	private DecentralizedValue localHostID;
-	private String encodedLocalHostID;
+	private String localHostIDString;
 	private DatabaseWrapper.DatabaseSynchronizer synchronizer;
+	private static final CheckEvents checkEvents=new CheckEvents();
+	private final Map<Group, DecentralizedValue> distantGroupIdsPerGroup=new HashMap<>();
+	private final Map<DecentralizedValue, Group> distantGroupIdsPerID=new HashMap<>();
 
 	DatabaseSynchronizerAgent()
 	{
@@ -69,15 +73,43 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 	}
 
+	private void addDistantGroupID(DecentralizedValue id)
+	{
+		Group group=CloudCommunity.Groups.getDistributedDatabaseGroup(localHostIDString, id);
+		distantGroupIdsPerGroup.put(group, id);
+		distantGroupIdsPerID.put(id, group);
+		this.requestRole(group, CloudCommunity.Roles.SYNCHRONIZER);
+		//return group;
+	}
+	/*private Group getOrAddDistantGroupID(DecentralizedValue id)
+	{
+		Group g=distantGroupIdsPerID.get(id);
+		if (g==null)
+			return addDistantGroupID(id);
+		else
+			return g;
+	}*/
+
+	private Group getDistantGroupID(DecentralizedValue id)
+	{
+		return distantGroupIdsPerID.get(id);
+	}
+
+	private void removeDistantGroupID(DecentralizedValue id)
+	{
+		Group group=distantGroupIdsPerID.remove(id);
+		if (group!=null) {
+			this.leaveRole(group, CloudCommunity.Roles.SYNCHRONIZER);
+			distantGroupIdsPerGroup.remove(group);
+		}
+	}
 
 	@Override
 	protected void activate() throws InterruptedException {
 		if (logger!=null && logger.isLoggable(Level.INFO))
 			logger.info("Launch data synchronizer");
 		this.requestRole(LocalCommunity.Groups.DATABASE, LocalCommunity.Roles.DATABASE_SYNCHRONIZER_LISTENER);
-		this.requestRole(CloudCommunity.Groups.DISTRIBUTED_DATABASE, encodedLocalHostID=CloudCommunity.Roles.getDistributedDatabaseRole(localHostID));
-		this.requestHookEvents(HookMessage.AgentActionEvent.REQUEST_ROLE);
-		this.requestHookEvents(HookMessage.AgentActionEvent.LEAVE_ROLE);
+
 
 		try {
 			DatabaseWrapper databaseWrapper = getMadkitConfig().getDatabaseWrapper();
@@ -89,11 +121,13 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 				this.killAgent(this);
 			}
 			else {
-				encodedLocalHostID=Base64.encodeBase64URLSafeString(localHostID.encodeWithDefaultParameters());
+				localHostIDString=CloudCommunity.Groups.encodeDecentralizedValue(localHostID);
+
 				synchronizer.setNotifier(new DatabaseNotifier() {
+
 					@Override
-					public void newDatabaseEventDetected(DatabaseWrapper wrapper) throws DatabaseException {
-						receiveMessage(new CheckEvents());
+					public void newDatabaseEventDetected(DatabaseWrapper wrapper)  {
+						receiveMessage(checkEvents);
 					}
 
 					@Override
@@ -111,6 +145,13 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 				if (logger!=null && logger.isLoggable(Level.INFO))
 					logger.info("Data synchronizer launched");
 
+				for (DecentralizedValue dv : synchronizer.getDistantHostsIDs())
+				{
+					addDistantGroupID(dv);
+				}
+
+				this.requestHookEvents(HookMessage.AgentActionEvent.REQUEST_ROLE);
+				this.requestHookEvents(HookMessage.AgentActionEvent.LEAVE_ROLE);
 			}
 		} catch (DatabaseException e) {
 			getLogger().severeLog("Unexpected exception ", e);
@@ -127,28 +168,25 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 		}
 	}
 
-	private DecentralizedValue getPeerID(String role, KernelAddress distantKernelAddress)
+	private DecentralizedValue getDistantPeerID(KernelAddress distantKernelAddress, Group group, String role)
 	{
-		try {
-			return DecentralizedValue.decode(Base64.decodeBase64(role));
+		if (CloudCommunity.Groups.DISTRIBUTED_DATABASE.equals(group.getParent()) && role.equals(CloudCommunity.Roles.SYNCHRONIZER)) {
+			DecentralizedValue res = distantGroupIdsPerGroup.get(group);
+			if (res == null) {
+				if (distantKernelAddress != null)
+					anomalyDetectedWithOneDistantKernel(true, distantKernelAddress, "Invalided peer ID " + group);
+
+				getLogger().severeLog("Invalided peer ID " + group);
+			}
+			return res;
 		}
-		catch(Exception e)
-		{
-			if (distantKernelAddress!=null)
-				anomalyDetectedWithOneDistantKernel(true, distantKernelAddress, "Invalided peer ID "+role);
-			getLogger().severeLog("Invalided peer ID "+role, e);
+		else
 			return null;
-		}
 	}
 
-	private DecentralizedValue getPeerID(AgentAddress aa)
+	private DecentralizedValue getDistantPeerID(AgentAddress aa)
 	{
-		if (aa.getGroup().getParent()!=null && aa.getGroup().getParent().equals(CloudCommunity.Groups.DISTRIBUTED_DATABASE)) {
-			return getPeerID(aa.getRole(), aa.isFrom(getKernelAddress())?null:aa.getKernelAddress());
-		}
-		else {
-			return null;
-		}
+		return getDistantPeerID(aa.isFrom(getKernelAddress())?null:aa.getKernelAddress(), aa.getGroup(), aa.getRole());
 
 	}
 	@Override
@@ -156,7 +194,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 		if (_message instanceof OrganizationEvent)
 		{
 			AgentAddress aa=((OrganizationEvent) _message).getSourceAgent();
-			DecentralizedValue peerID=getPeerID(aa);
+			DecentralizedValue peerID=getDistantPeerID(aa);
 			if (peerID!=null) {
 
 				if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.REQUEST_ROLE)) {
@@ -165,7 +203,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 							if (logger!=null && logger.isLoggable(Level.FINE))
 								logger.info("Connection initialization with peer : "+peerID);
 
-							sendMessage(aa, new DatabaseConnectionInitializationMessage(synchronizer.getLastValidatedSynchronization(localHostID)));
+							sendMessageWithRole(aa, new DatabaseConnectionInitializationMessage(synchronizer.getLastValidatedSynchronization(localHostID)), CloudCommunity.Roles.SYNCHRONIZER);
 						}
 					} catch (DatabaseException e) {
 						if (!_message.getSender().isFrom(getKernelAddress()))
@@ -192,7 +230,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 		else if (_message instanceof DatabaseConnectionInitializationMessage)
 		{
 
-			DecentralizedValue peerID=getPeerID(_message.getSender());
+			DecentralizedValue peerID=getDistantPeerID(_message.getSender());
 			if (peerID!=null) {
 				try {
 
@@ -211,7 +249,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 
 
-		} else if (_message instanceof CheckEvents)
+		} else if (_message==checkEvents)
 		{
 			DatabaseEvent e;
 			while ((e=synchronizer.nextEvent())!=null)
@@ -224,7 +262,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 						if (logger!=null && logger.isLoggable(Level.FINEST))
 							logger.info("Send event "+es.getClass()+" to peer "+dest);
 
-						if (!sendMessage(CloudCommunity.Groups.DISTRIBUTED_DATABASE, CloudCommunity.Roles.getDistributedDatabaseRole(dest), new NetworkObjectMessage<>(es)).equals(ReturnCode.SUCCESS)) {
+						if (!sendMessageWithRole(this.getDistantGroupID(dest), CloudCommunity.Roles.SYNCHRONIZER, new NetworkObjectMessage<>(es), CloudCommunity.Roles.SYNCHRONIZER).equals(ReturnCode.SUCCESS)) {
 							getLogger().warning("Impossible to send message to host " + dest);
 							synchronizer.disconnectHook(dest);
 						}
@@ -237,37 +275,31 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 		}
 		else if (_message instanceof DatabaseEventToSend)
 		{
-			if (!_message.getReceiver().getRole().equals(encodedLocalHostID))
-			{
-				getLogger().warning("Invalid destination : "+encodedLocalHostID);
-			}
-			else {
-				boolean generateError = true;
-				DecentralizedValue peerID = getPeerID(_message.getSender());
-				if (peerID != null) {
-					DatabaseEventToSend e = (DatabaseEventToSend) _message;
-					try {
-						DecentralizedValue source = e.getHostSource();
-						if (source != null && source.equals(peerID)) {
-							if (synchronizer.isInitialized(source)) {
-								generateError = false;
-								synchronizer.received(e);
-								if (logger!=null && logger.isLoggable(Level.FINEST))
-									logger.info("Event "+e.getClass()+" received from peer "+peerID);
+			boolean generateError = true;
+			DecentralizedValue peerID = getDistantPeerID(_message.getSender());
+			if (peerID != null) {
+				DatabaseEventToSend e = (DatabaseEventToSend) _message;
+				try {
+					DecentralizedValue source = e.getHostSource();
+					if (source != null && source.equals(peerID)) {
+						if (synchronizer.isInitialized(source)) {
+							generateError = false;
+							synchronizer.received(e);
+							if (logger!=null && logger.isLoggable(Level.FINEST))
+								logger.info("Event "+e.getClass()+" received from peer "+peerID);
 
-							}
 						}
-					} catch (DatabaseException ex) {
-						getLogger().severeLog("Unexpected exception", ex);
-						anomalyDetectedWithOneDistantKernel(false, _message.getSender().getKernelAddress(), "Invalided message received from " + _message.getSender());
 					}
+				} catch (DatabaseException ex) {
+					getLogger().severeLog("Unexpected exception", ex);
+					anomalyDetectedWithOneDistantKernel(false, _message.getSender().getKernelAddress(), "Invalided message received from " + _message.getSender());
 				}
-				if (generateError) {
-					if (_message.getSender().isFrom(getKernelAddress()))
-						getLogger().warning("Invalid message received from " + _message.getSender());
-					else
-						anomalyDetectedWithOneDistantKernel(true, _message.getSender().getKernelAddress(), "Invalid message received from " + _message.getSender());
-				}
+			}
+			if (generateError) {
+				if (_message.getSender().isFrom(getKernelAddress()))
+					getLogger().warning("Invalid message received from " + _message.getSender());
+				else
+					anomalyDetectedWithOneDistantKernel(true, _message.getSender().getKernelAddress(), "Invalid message received from " + _message.getSender());
 			}
 		}
 	}
