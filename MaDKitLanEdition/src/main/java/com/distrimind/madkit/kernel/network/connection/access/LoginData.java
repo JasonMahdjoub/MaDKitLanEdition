@@ -42,6 +42,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.distrimind.madkit.kernel.AbstractGroup;
+import com.distrimind.util.DecentralizedValue;
+import com.distrimind.util.crypto.ASymmetricPublicKey;
 import com.distrimind.util.crypto.AbstractMessageDigest;
 import com.distrimind.util.crypto.P2PASymmetricSecretMessageExchanger;
 
@@ -392,4 +394,25 @@ public abstract class LoginData extends AccessData {
 	 * @return true if auto signed logins are autorized
 	 */
 	public abstract boolean acceptAutoSignedLogin();
+
+	/**
+	 * Returns the decentralized database's identifier.
+	 * If the function is not override, it returns the decentralized database returned by {@link HostIdentifier#getDecentralizedDatabaseID()}
+	 * is equals to {@link HostIdentifier#getAuthenticationPublicKey()}
+	 * and if {@link HostIdentifier#getAuthenticationMethod()} enables an authentication by public key.
+	 * Otherwise, you must override this method to determine the database's host identifier.
+	 *
+	 * If this method returns null, distant peer cannot synchronize its database with local database.
+	 * @param identifier the peer identifier
+	 * @return Returns the decentralized database's identifier. Returns null if the distant peer cannot synchronize its database with local peer.
+	 */
+	public DecentralizedValue getDecentralizedDatabaseID(Identifier identifier)
+	{
+		DecentralizedValue dv=identifier.getHostIdentifier().getDecentralizedDatabaseID();
+		if (identifier.getHostIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey() && dv instanceof ASymmetricPublicKey && dv.equals(identifier.getHostIdentifier().getAuthenticationPublicKey()))
+		{
+			return dv;
+		}
+		return null;
+	}
 }

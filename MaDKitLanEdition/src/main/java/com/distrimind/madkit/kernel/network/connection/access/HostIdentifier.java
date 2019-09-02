@@ -38,8 +38,11 @@
 package com.distrimind.madkit.kernel.network.connection.access;
 
 import com.distrimind.util.AbstractDecentralizedID;
+import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.RenforcedDecentralizedIDGenerator;
 import com.distrimind.util.SecuredDecentralizedID;
+import com.distrimind.util.crypto.ASymmetricKeyPair;
+import com.distrimind.util.crypto.ASymmetricPublicKey;
 import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.crypto.SecureRandomType;
 import com.distrimind.util.io.SecureExternalizable;
@@ -61,7 +64,7 @@ import java.security.NoSuchProviderException;
  * @see Identifier
  * @see CloudIdentifier
  */
-public abstract class HostIdentifier implements SecureExternalizable {
+public abstract class HostIdentifier implements SecureExternalizable, Identifier.Authenticated {
 	protected static final AbstractSecureRandom random;
 
 	static {
@@ -81,6 +84,15 @@ public abstract class HostIdentifier implements SecureExternalizable {
 
 	@Override
 	public abstract int hashCode();
+
+	/**
+	 * Returns the decentralized database's identifier. If the function is not override, it returns null by default. So distant peer cannot synchronize its database with local database.
+	 * @return the decentralized database's identifier. Return null if the distant peer cannot synchronize its database with local peer.
+	 */
+	public DecentralizedValue getDecentralizedDatabaseID()
+	{
+		return null;
+	}
 
 
 
@@ -136,6 +148,21 @@ public abstract class HostIdentifier implements SecureExternalizable {
 		@Override
 		public String toString() {
 			return "NullHostIdentifier";
+		}
+
+		@Override
+		public Identifier.AuthenticationMethod getAuthenticationMethod() {
+			return Identifier.AuthenticationMethod.NOT_DEFINED;
+		}
+
+		@Override
+		public ASymmetricPublicKey getAuthenticationPublicKey() {
+			return null;
+		}
+
+		@Override
+		public ASymmetricKeyPair getAuthenticationKeyPair() {
+			return null;
 		}
 	}
 
@@ -197,6 +224,21 @@ public abstract class HostIdentifier implements SecureExternalizable {
 			return "DefaultHostIdentifier[" +
 					"id=" + id +
 					']';
+		}
+
+		@Override
+		public Identifier.AuthenticationMethod getAuthenticationMethod() {
+			return Identifier.AuthenticationMethod.NOT_DEFINED;
+		}
+
+		@Override
+		public ASymmetricPublicKey getAuthenticationPublicKey() {
+			return null;
+		}
+
+		@Override
+		public ASymmetricKeyPair getAuthenticationKeyPair() {
+			return null;
 		}
 	}
 

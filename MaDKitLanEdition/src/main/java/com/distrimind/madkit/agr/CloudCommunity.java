@@ -152,6 +152,74 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 
 		public static final Group DISTRIBUTED_DATABASE = LocalCommunity.Groups.DATABASE.getSubGroup(true, databaseGateKeeper, true, "~~peers");
 
+		public static String encodeDecentralizedValue(DecentralizedValue identifier)
+		{
+			return Base64.encodeBase64URLSafeString(identifier.encodeWithDefaultParameters());
+		}
+
+		public static Group getDistributedDatabaseGroup(String localIdentifier, String distantIdentifier)
+		{
+			if (localIdentifier==null)
+				throw new NullPointerException();
+			if (distantIdentifier==null)
+				throw new NullPointerException();
+			if (localIdentifier.length()==0)
+				throw new IllegalArgumentException();
+			if (distantIdentifier.length()==0)
+				throw new IllegalArgumentException();
+			String subgroup;
+			int cmp=localIdentifier.compareTo(distantIdentifier);
+			if (cmp<0)
+				subgroup=localIdentifier+"~"+distantIdentifier;
+			else if (cmp>0)
+				subgroup=distantIdentifier+"~"+localIdentifier;
+			else
+				throw new IllegalArgumentException();
+
+			return DISTRIBUTED_DATABASE.getSubGroup(true, databaseGateKeeper, false, subgroup);
+		}
+		public static DecentralizedValue extractDistantHostID(Group group, DecentralizedValue localHostID)
+		{
+			return extractDistantHostID(group, encodeDecentralizedValue(localHostID));
+		}
+		public static String extractDistantHostIDString(Group group, String localHostID)
+		{
+			if (group.getParent().equals(DISTRIBUTED_DATABASE))
+			{
+				String[] split=group.getName().split("~");
+				if (split.length==2)
+				{
+					if (localHostID.equals(split[0]))
+					{
+						if (split[1]!=null && !split[1].equals(localHostID))
+							return split[1];
+					}
+					else if (localHostID.equals(split[1]))
+					{
+						if (split[0]!=null)
+							return split[0];
+					}
+				}
+			}
+			return null;
+
+		}
+		public static DecentralizedValue extractDistantHostID(Group group, String localHostID)
+		{
+			String res=extractDistantHostIDString(group, localHostID);
+			if (res==null)
+				return null;
+			return DecentralizedValue.decode(Base64.decodeBase64(res));
+		}
+		public static Group getDistributedDatabaseGroup(String localIdentifier, DecentralizedValue distantIdentifier)
+		{
+			return getDistributedDatabaseGroup(localIdentifier, encodeDecentralizedValue(distantIdentifier));
+		}
+
+		public static Group getDistributedDatabaseGroup(DecentralizedValue localIdentifier, DecentralizedValue distantIdentifier)
+		{
+			return getDistributedDatabaseGroup(encodeDecentralizedValue(localIdentifier), distantIdentifier);
+		}
 
 		/*public static Group getDistributedDatabaseGroup(DecentralizedValue identifier)
 		{
@@ -184,9 +252,11 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 
 		public static final String DATABASE_EVENT_LISTENER="~~DATABASE_EVENT_LISTENER";*/
 
-		public static String getDistributedDatabaseRole(DecentralizedValue identifier)
+		/*public static String getDistributedDatabaseRole(DecentralizedValue identifier)
 		{
 			return Base64.encodeBase64URLSafeString(identifier.encodeWithDefaultParameters());
-		}
+		}*/
+
+		public static final String SYNCHRONIZER="SYNCHRONIZER";
 	}
 }

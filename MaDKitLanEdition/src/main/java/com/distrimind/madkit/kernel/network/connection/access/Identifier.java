@@ -37,6 +37,8 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
+import com.distrimind.util.crypto.ASymmetricKeyPair;
+import com.distrimind.util.crypto.ASymmetricPublicKey;
 import com.distrimind.util.io.RandomByteArrayOutputStream;
 import com.distrimind.util.io.SecureExternalizable;
 import com.distrimind.util.io.SecuredObjectInputStream;
@@ -165,5 +167,65 @@ public class Identifier implements SecureExternalizable {
 			soos.flush();
 			return soos.getBytes();
 		}
+	}
+
+	public enum AuthenticationMethod
+	{
+		/**
+		 * The authentication is not possible. Note that CloudIdentifier or HostIdentifier must define at least one authentication method.
+		 */
+		NOT_DEFINED,
+		/**
+		 * The authentication by public key is sufficient and do not need a password/key authentication
+		 */
+		PUBLIC_KEY,
+		/**
+		 * The authentication need a password or a secret key
+		 */
+		PASSWORD_OR_KEY,
+		/**
+		 * Both authentication by public key and authentication by password or secret key are needed
+		 */
+		PUBLIC_KEY_WITH_PASSWORD_OR_KEY;
+
+		public boolean isAuthenticatedByPublicKey()
+		{
+			return this.equals(PUBLIC_KEY) || this.equals(PUBLIC_KEY_WITH_PASSWORD_OR_KEY);
+		}
+
+		public boolean isAuthenticatedByPasswordOrSecretKey()
+		{
+			return this.equals(PASSWORD_OR_KEY) || this.equals(PUBLIC_KEY_WITH_PASSWORD_OR_KEY);
+		}
+	}
+
+	public interface Authenticated
+	{
+		/**
+		 * Gets the authentication method
+		 * If authentication by public key is accepted, the functions {@link #getAuthenticationPublicKey()} and {@link #getAuthenticationKeyPair()} cannot return null.
+		 * @return the authentication method
+		 * @see #getAuthenticationPublicKey()
+		 * @see #getAuthenticationKeyPair()
+		 */
+		AuthenticationMethod getAuthenticationMethod();
+
+		/**
+		 * Returns the authentication's public key used to authenticate the peer.
+		 * If it not returns null, than the function {@link #getAuthenticationKeyPair()} must not return null.
+		 *
+		 *
+		 * @return the authentication's public key or null if no authentication through the identifier is necessary
+		 * @see #getAuthenticationKeyPair()
+		 */
+		ASymmetricPublicKey getAuthenticationPublicKey();
+
+		/**
+		 * Return the authentication's key pair used to authenticate the peer.
+		 * This function cannot returns null if the {@link #getAuthenticationPublicKey()} does not returns null.
+		 * @return the cloud key pair if the {@link #getAuthenticationPublicKey()} does not returns null, or null.
+		 * @see #getAuthenticationPublicKey()
+		 */
+		ASymmetricKeyPair getAuthenticationKeyPair();
 	}
 }

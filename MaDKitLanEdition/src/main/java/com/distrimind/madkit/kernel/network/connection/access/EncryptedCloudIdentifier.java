@@ -184,17 +184,17 @@ public final class EncryptedCloudIdentifier extends CloudIdentifier {
 	}
 
 	@Override
-	public boolean isAutoIdentifiedCloudWithPublicKey() {
-		return false;
+	public Identifier.AuthenticationMethod getAuthenticationMethod() {
+		return Identifier.AuthenticationMethod.PASSWORD_OR_KEY;
 	}
 
 	@Override
-	public ASymmetricPublicKey getCloudPublicKey() {
+	public ASymmetricPublicKey getAuthenticationPublicKey() {
 		return null;
 	}
 
 	@Override
-	public ASymmetricKeyPair getCloudKeyPair() {
+	public ASymmetricKeyPair getAuthenticationKeyPair() {
 		return null;
 	}
 

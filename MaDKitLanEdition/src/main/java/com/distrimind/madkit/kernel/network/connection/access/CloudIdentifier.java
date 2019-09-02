@@ -38,8 +38,6 @@
 package com.distrimind.madkit.kernel.network.connection.access;
 
 
-import com.distrimind.util.crypto.ASymmetricKeyPair;
-import com.distrimind.util.crypto.ASymmetricPublicKey;
 import com.distrimind.util.io.SecureExternalizable;
 
 /**
@@ -53,7 +51,7 @@ import com.distrimind.util.io.SecureExternalizable;
  * @see Identifier
  * @see HostIdentifier
  */
-public abstract class CloudIdentifier implements SecureExternalizable {
+public abstract class CloudIdentifier implements SecureExternalizable, Identifier.Authenticated {
 
 	public static int MAX_CLOUD_IDENTIFIER_LENGTH=4096;
 	
@@ -75,33 +73,6 @@ public abstract class CloudIdentifier implements SecureExternalizable {
 	 * @return the salt with a byte tab format. The returned value cannot be null.
 	 */
 	public abstract byte[] getSaltBytes();
-
-	/**
-	 * Tells if the authentication by public key is sufficient and do not need a password/key authentication.
-	 * If true is returned, than the functions {@link #getCloudPublicKey()} and {@link #getCloudKeyPair()} cannot return null.
-	 * @return true if the authentication by public key is sufficient and do not need a password/key authentication
-	 * @see #getCloudPublicKey()
-	 * @see #getCloudKeyPair()
-	 */
-	public abstract boolean isAutoIdentifiedCloudWithPublicKey();
-
-	/**
-	 * Returns the cloud public key used to authenticate the peer.
-	 * If it not returns null, than the function {@link #getCloudKeyPair()} must no return null.
-	 *
-	 *
-	 * @return the cloud public key or null if no authentication through the identifier is necessary
-	 * @see #getCloudKeyPair()
-	 */
-	public abstract ASymmetricPublicKey getCloudPublicKey();
-
-	/**
-	 * Return the cloud key pair used to authenticate the peer.
-	 * This function cannot returns null if the {@link #getCloudPublicKey()} doest not returns null.
-	 * @return the cloud key pair, or null if the {@link #getCloudPublicKey()} does not returns null.
-	 * @see #getCloudPublicKey()
-	 */
-	public abstract ASymmetricKeyPair getCloudKeyPair();
 
 
 }
