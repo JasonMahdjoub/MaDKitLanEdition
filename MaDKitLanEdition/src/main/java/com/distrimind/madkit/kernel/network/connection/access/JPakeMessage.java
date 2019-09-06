@@ -118,16 +118,17 @@ class JPakeMessage extends AccessMessage{
 		super();
 		this.identifiersIsEncrypted=identifiersIsEncrypted;
 		this.identifiers=new Identifier[agreements.size()];
-		this.jpakeMessages=new byte[agreements.size()][];
+		this.jpakeMessages=new byte[agreements.size()*2][];
 		this.step = 1;
 		int i=0;
-		for (Map.Entry<Identifier, P2PLoginAgreement> e : agreements.entrySet())
+		for (Map.Entry<Identifier, IdentifiersPropositionMessage.AutoIdentificationCredentials> e : agreements.entrySet())
 		{
-			if (identifiersIsEncrypted && !e.getKey().getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
+			if (identifiersIsEncrypted && !e.getKey().getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey())
 				this.identifiers[i] = new EncryptedIdentifier(e.getKey(), random, messageDigest, distantGeneratedSalt);
 			else
 				this.identifiers[i] = e.getKey();
-			jpakeMessages[i]=e.getValue().getDataToSend();
+			jpakeMessages[i*2]=e.getValue().getP2PLoginAgreementForCloudIdentifier()!=null?e.getValue().getP2PLoginAgreementForCloudIdentifier().getDataToSend():null;
+			jpakeMessages[i*2+1]=e.getValue().getP2PLoginAgreementForHostIdentifier()!=null?e.getValue().getP2PLoginAgreementForHostIdentifier().getDataToSend():null;
 			++i;
 			
 		}

@@ -94,11 +94,9 @@ class IdentifiersPropositionMessage extends AccessMessage {
 			if (!(s[i] instanceof Identifier))
 				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			identifiers[i]=(Identifier)s[i];
-			if (isEncrypted && !(identifiers[i].getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey()
-					|| identifiers[i].getHostIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey()) && !(identifiers[i] instanceof EncryptedIdentifier))
+			if (isEncrypted && !identifiers[i].getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey() && !(identifiers[i] instanceof EncryptedIdentifier))
 				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			if (isEncrypted && (identifiers[i].getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey()
-					|| identifiers[i].getHostIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey()) && (identifiers[i] instanceof EncryptedIdentifier))
+			if (isEncrypted && identifiers[i].getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey() && (identifiers[i] instanceof EncryptedIdentifier))
 				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		}
 		
@@ -138,7 +136,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 			if (ip.getCloudIdentifier().getAuthenticationMethod()== Identifier.AuthenticationMethod.NOT_DEFINED
 					&& ip.getHostIdentifier().getAuthenticationMethod()== Identifier.AuthenticationMethod.NOT_DEFINED)
 				continue;
-			if (encryptIdentifiers && !ip.getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey() && !ip.getHostIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey())
+			if (encryptIdentifiers && !ip.getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey())
 			{
 				identifiers[index++] = new EncryptedIdentifier(ip, random, messageDigest, distantGeneratedSalt);
 			}

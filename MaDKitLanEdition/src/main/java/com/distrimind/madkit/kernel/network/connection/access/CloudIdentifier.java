@@ -74,5 +74,16 @@ public abstract class CloudIdentifier implements SecureExternalizable, Identifie
 	 */
 	public abstract byte[] getSaltBytes();
 
+	/**
+	 * Tells if the identifier must be anonymous.
+	 * If the function returns true, the identifier become anonymous thanks to an encryption process.
+	 *
+	 * Note that even with auto authenticated identifiers, the identifier must be known by the distant peer if this function returns true.
+	 *
+	 * @return true
+	 */
+	public abstract boolean mustBeAnonymous();
+
+
 
 }
