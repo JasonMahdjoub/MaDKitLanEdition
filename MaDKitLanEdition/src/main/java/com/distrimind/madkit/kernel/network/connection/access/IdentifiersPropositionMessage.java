@@ -45,10 +45,7 @@ import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 
@@ -57,6 +54,25 @@ import java.util.Map;
  * @since MadkitLanEdition 1.0
  */
 class IdentifiersPropositionMessage extends AccessMessage {
+
+	static class AutoIdentificationCredentials
+	{
+		private P2PLoginAgreement p2PLoginAgreementForCloudIdentifier;
+		private P2PLoginAgreement p2PLoginAgreementForHostIdentifier;
+
+		AutoIdentificationCredentials(P2PLoginAgreement p2PLoginAgreementForCloudIdentifier, P2PLoginAgreement p2PLoginAgreementForHostIdentifier) {
+			this.p2PLoginAgreementForCloudIdentifier = p2PLoginAgreementForCloudIdentifier;
+			this.p2PLoginAgreementForHostIdentifier = p2PLoginAgreementForHostIdentifier;
+		}
+
+		P2PLoginAgreement getP2PLoginAgreementForCloudIdentifier() {
+			return p2PLoginAgreementForCloudIdentifier;
+		}
+
+		P2PLoginAgreement getP2PLoginAgreementForHostIdentifier() {
+			return p2PLoginAgreementForHostIdentifier;
+		}
+	}
 
 	private Identifier[] identifiers;
 	private boolean isEncrypted;
@@ -78,9 +94,11 @@ class IdentifiersPropositionMessage extends AccessMessage {
 			if (!(s[i] instanceof Identifier))
 				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			identifiers[i]=(Identifier)s[i];
-			if (isEncrypted && !identifiers[i].getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey() && !(identifiers[i] instanceof EncryptedIdentifier))
+			if (isEncrypted && !(identifiers[i].getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey()
+					|| identifiers[i].getHostIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey()) && !(identifiers[i] instanceof EncryptedIdentifier))
 				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			if (isEncrypted && identifiers[i].getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey() && (identifiers[i] instanceof EncryptedIdentifier))
+			if (isEncrypted && (identifiers[i].getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey()
+					|| identifiers[i].getHostIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey()) && (identifiers[i] instanceof EncryptedIdentifier))
 				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		}
 		
@@ -112,12 +130,15 @@ class IdentifiersPropositionMessage extends AccessMessage {
 	}*/
 
 	public IdentifiersPropositionMessage(Collection<Identifier> _id_pws, AbstractSecureRandom random, AbstractMessageDigest messageDigest,
-			boolean encryptIdentifiers, short nbAnomalies, byte[] distantGeneratedSalt, Map<Identifier, P2PLoginAgreement> jpakes, ASymmetricLoginAgreementType aSymmetricLoginAgreementType) throws DigestException {
+			boolean encryptIdentifiers, short nbAnomalies, byte[] distantGeneratedSalt, Map<Identifier, AutoIdentificationCredentials> jpakes, ASymmetricLoginAgreementType aSymmetricLoginAgreementType) throws DigestException {
 		identifiers = new Identifier[_id_pws.size()];
 		isEncrypted = encryptIdentifiers;
 		int index = 0;
 		for (Identifier ip : _id_pws) {
-			if (encryptIdentifiers && !ip.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
+			if (ip.getCloudIdentifier().getAuthenticationMethod()== Identifier.AuthenticationMethod.NOT_DEFINED
+					&& ip.getHostIdentifier().getAuthenticationMethod()== Identifier.AuthenticationMethod.NOT_DEFINED)
+				continue;
+			if (encryptIdentifiers && !ip.getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey() && !ip.getHostIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey())
 			{
 				identifiers[index++] = new EncryptedIdentifier(ip, random, messageDigest, distantGeneratedSalt);
 			}
@@ -125,12 +146,23 @@ class IdentifiersPropositionMessage extends AccessMessage {
 			{
 				identifiers[index++] = ip;
 			}
-			if (jpakes!=null && ip.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
+			P2PLoginAgreement loginAgreementForCloudIdentifier=null;
+			if (jpakes!=null && ip.getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey())
 			{
-				jpakes.put(ip, aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureRequester(random, ip.getCloudIdentifier().getCloudKeyPair()));
+				loginAgreementForCloudIdentifier=aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureRequester(random, ip.getCloudIdentifier().getAuthenticationKeyPair());
 			}
-
+			P2PLoginAgreement loginAgreementForHostIdentifier=null;
+			if (jpakes!=null && ip.getHostIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey())
+			{
+				loginAgreementForHostIdentifier=aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureRequester(random, ip.getHostIdentifier().getAuthenticationKeyPair());
+			}
+			if (loginAgreementForCloudIdentifier!=null || loginAgreementForHostIdentifier!=null)
+			{
+				jpakes.put(ip, new AutoIdentificationCredentials(loginAgreementForCloudIdentifier, loginAgreementForHostIdentifier));
+			}
 		}
+		if (index!=identifiers.length)
+			identifiers=Arrays.copyOf(identifiers, index);
 		this.nbAnomalies = nbAnomalies;
 	}
 
@@ -160,40 +192,52 @@ class IdentifiersPropositionMessage extends AccessMessage {
 
 		return res;
 	}*/
+	private boolean checkIdentifiers(Identifier local, Identifier distant, LoginData loginData)
+	{
+		if (local!=null && distant!=null)
+		{
+			if (local.equals(distant))
+				return false;
+			if (local.getCloudIdentifier().getAuthenticationMethod()!=distant.getCloudIdentifier().getAuthenticationMethod())
+				return false;
+			if (local.getHostIdentifier().getAuthenticationMethod()!=distant.getHostIdentifier().getAuthenticationMethod())
+				return false;
+			if (local.getCloudIdentifier().getAuthenticationMethod()== Identifier.AuthenticationMethod.NOT_DEFINED)
+				return false;
+			if ((local.getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey()
+					|| local.getHostIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey())
+					&& !loginData.acceptAutoSignedLogin())
+			{
+				return false;
+			}
+			return (!local.getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey() || local.getCloudIdentifier().getAuthenticationKeyPair() != null)
+					&& (!local.getHostIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey() || local.getHostIdentifier().getAuthenticationKeyPair() != null);
+		}
+		else
+			return false;
+	}
 	public ArrayList<Identifier> getValidDecodedLocalIdentifiers(LoginData loginData,
 			AbstractMessageDigest messageDigest, byte[] localGeneratedSalt ) throws AccessException {
 		ArrayList<Identifier> res = new ArrayList<>();
 		if (isEncrypted) {
 			for (Identifier id : identifiers) {
+				Identifier i;
 				if (id instanceof EncryptedIdentifier) {
-					Identifier i = loginData.getLocalIdentifier((EncryptedIdentifier) id, messageDigest, localGeneratedSalt);
-					if (i!=null && i.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey() && !loginData.acceptAutoSignedLogin())
-						continue;
-					//Identifier idLocal=loginData.localiseIdentifier(i);
-					if (i != null && (!i.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey() || i.getCloudIdentifier().getCloudKeyPair() != null))
-						res.add(i);
+					 i = loginData.getLocalIdentifier((EncryptedIdentifier) id, messageDigest, localGeneratedSalt);
 				}
 				else
 				{
-					Identifier i = loginData.localiseIdentifier(id);
-					if (i!=null && i.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey() && !loginData.acceptAutoSignedLogin())
-						continue;
-
-					if (i != null && (!i.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey() || i.getCloudIdentifier().getCloudKeyPair() != null))
-						res.add(i);
+					i = loginData.localiseIdentifier(id);
 				}
+				if (checkIdentifiers(i, id, loginData))
+					res.add(i);
 			}
 		} else {
 			for(Identifier id : identifiers) {
-				if (id.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey() && !loginData.acceptAutoSignedLogin())
-					continue;
-
 				Identifier idLocal=loginData.localiseIdentifier(id);
-				if (idLocal!=null && idLocal.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey() && !loginData.acceptAutoSignedLogin())
-					continue;
-
-				if (idLocal!=null && (!idLocal.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey() || idLocal.getCloudIdentifier().getCloudKeyPair()!=null))
+				if (checkIdentifiers(idLocal, id, loginData))
 					res.add(idLocal);
+
 			}
 		}
 
@@ -213,7 +257,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 						: (nbAno > Short.MAX_VALUE) ? Short.MAX_VALUE : (short) nbAno);
 	}*/
 	public IdentifiersPropositionMessage getIdentifiersPropositionMessageAnswer(LoginData loginData,
-			AbstractSecureRandom random, AbstractMessageDigest messageDigest, boolean encryptIdentifiers, List<Identifier> identifiers, byte[] distantGeneratedSalt, byte[] localGeneratedSalt, Map<Identifier, P2PLoginAgreement> jpakes, ASymmetricLoginAgreementType aSymmetricLoginAgreementType)
+			AbstractSecureRandom random, AbstractMessageDigest messageDigest, boolean encryptIdentifiers, List<Identifier> identifiers, byte[] distantGeneratedSalt, byte[] localGeneratedSalt, Map<Identifier, AutoIdentificationCredentials> jpakes, ASymmetricLoginAgreementType aSymmetricLoginAgreementType)
 			throws AccessException,  DigestException {
 		ArrayList<Identifier> validID = getValidDecodedLocalIdentifiers(loginData, messageDigest, localGeneratedSalt);
 		identifiers.addAll(validID);
@@ -269,7 +313,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 						? ((res.size() == 0 && identifiers.length > 0) ? (short) 1 : (short) 0)
 						: (nbAno > Short.MAX_VALUE) ? Short.MAX_VALUE : (short) nbAno);
 }*/
-	private int getJakeMessageSub(Identifier distantID, List<PairOfIdentifiers> acceptedIdentifiers, LoginData loginData, Map<Identifier, P2PLoginAgreement> agreements, P2PLoginAgreementType agreementType, ASymmetricLoginAgreementType aSymmetricLoginAgreementType, AbstractSecureRandom random,
+	private int getJakeMessageSub(Identifier distantID, List<PairOfIdentifiers> acceptedIdentifiers, LoginData loginData, Map<Identifier, AutoIdentificationCredentials> agreements, P2PLoginAgreementType agreementType, ASymmetricLoginAgreementType aSymmetricLoginAgreementType, AbstractSecureRandom random,
 								   ArrayList<Identifier> newIdentifiersToAdd, MessageDigestType messageDigestType, PasswordHashType passwordHashType, ASymmetricPublicKey myPublicKey) throws InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException, IOException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException {
 		if (distantID==null)
 			return 1;
@@ -280,49 +324,79 @@ class IdentifiersPropositionMessage extends AccessMessage {
 					return nbAno;
 		}
 
-		ASymmetricPublicKey pubKey;
+
 		Identifier localId = loginData.localiseIdentifier(distantID);
 
 		if (localId!=null) {
+			P2PLoginAgreement p2PPasswordLoginAgreementForCloudIdentifier=null, p2PASymmetricLoginAgreementForCloudIdentifier=null;
+			P2PLoginAgreement p2PPasswordLoginAgreementForHostIdentifier=null, p2PASymmetricLoginAgreementForHostIdentifier=null;
+			if (checkIdentifiers(localId, distantID, loginData)) {
+				if (distantID.getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey()) {
+					ASymmetricPublicKey pubKey;
+					if ((pubKey = distantID.getCloudIdentifier().getAuthenticationPublicKey()).getAuthentifiedSignatureAlgorithmType() != null) {
+						p2PASymmetricLoginAgreementForCloudIdentifier = aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureReceiver(random, pubKey);
+					} else {
+						++nbAno;
+						return nbAno;
+					}
+				}
+				if (distantID.getHostIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey()) {
+					ASymmetricPublicKey pubKey;
+					if ((pubKey = distantID.getHostIdentifier().getAuthenticationPublicKey()).getAuthentifiedSignatureAlgorithmType() != null) {
+						p2PASymmetricLoginAgreementForHostIdentifier = aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureReceiver(random, pubKey);
+					} else {
+						++nbAno;
+						return nbAno;
+					}
+				}
+				if (distantID.getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPasswordOrSecretKey())
+				{
+					PasswordKey pw = loginData.getCloudPassword(localId);
+					if (pw != null) {
 
-			if (distantID.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey()) {
-				if (!loginData.acceptAutoSignedLogin())
-					return nbAno;
-				if (newIdentifiersToAdd != null && localId.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey() && !localId.getHostIdentifier().equals(HostIdentifier.getNullHostIdentifierSingleton())) {
+						p2PPasswordLoginAgreementForCloudIdentifier = agreementType.getAgreementAlgorithm(random, localId.toBytes(), pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature(), messageDigestType, passwordHashType, myPublicKey);
+					} else{
+						++nbAno;
+						return nbAno;
+					}
+				}
+				if (distantID.getHostIdentifier().getAuthenticationMethod().isAuthenticatedByPasswordOrSecretKey())
+				{
+					PasswordKey pw = loginData.getHostPassword(localId);
+					if (pw != null) {
+						p2PPasswordLoginAgreementForHostIdentifier = agreementType.getAgreementAlgorithm(random, localId.toBytes(), pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature(), messageDigestType, passwordHashType, myPublicKey);
+					} else{
+						++nbAno;
+						return nbAno;
+					}
+				}
+				if (p2PASymmetricLoginAgreementForCloudIdentifier!=null || p2PASymmetricLoginAgreementForHostIdentifier!=null)
+					agreements.put(distantID, new AutoIdentificationCredentials(p2PASymmetricLoginAgreementForCloudIdentifier, p2PASymmetricLoginAgreementForHostIdentifier));
+				if (p2PASymmetricLoginAgreementForCloudIdentifier!=null || p2PASymmetricLoginAgreementForHostIdentifier!=null)
+					agreements.put(localId, new AutoIdentificationCredentials(p2PPasswordLoginAgreementForCloudIdentifier, p2PPasswordLoginAgreementForHostIdentifier));
+				if (newIdentifiersToAdd != null && !localId.getHostIdentifier().equals(HostIdentifier.getNullHostIdentifierSingleton())) {
 					boolean found = false;
 					if (acceptedIdentifiers != null) {
 
 						for (PairOfIdentifiers poi : acceptedIdentifiers)
-							if (poi.getLocalIdentifier().equals(localId) && !poi.getDistantIdentifier().getHostIdentifier().equals(HostIdentifier.getNullHostIdentifierSingleton()))
+							if (poi.getLocalIdentifier().equals(localId) && !poi.getDistantIdentifier().getHostIdentifier().equals(HostIdentifier.getNullHostIdentifierSingleton())) {
 								found = true;
+								break;
+							}
 					}
 					if (!found) {
 						newIdentifiersToAdd.add(localId);
-
 					}
 				}
-
-				if ((pubKey = distantID.getCloudIdentifier().getCloudPublicKey()).getAuthentifiedSignatureAlgorithmType() != null) {
-					P2PLoginAgreement agreement = aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureReceiver(random, pubKey);
-					agreements.put(distantID, agreement);
-				} else
-					++nbAno;
-			} else {
-
-				PasswordKey pw = loginData.getPassword(localId);
-				if (pw != null) {
-
-					P2PLoginAgreement agreement = agreementType.getAgreementAlgorithm(random, localId.toBytes(), pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature(), messageDigestType, passwordHashType, myPublicKey);
-					agreements.put(localId, agreement);
-				} else
-					++nbAno;
 			}
+			else
+				++nbAno;
 		}
 		else
 			++nbAno;
 		return nbAno;
 	}
-	public JPakeMessage getJPakeMessage(List<PairOfIdentifiers> acceptedIdentifiers, LoginData loginData, Map<Identifier, P2PLoginAgreement> agreements, P2PLoginAgreementType agreementType, ASymmetricLoginAgreementType aSymmetricLoginAgreementType, AbstractSecureRandom random, AbstractMessageDigest messageDigest,
+	public JPakeMessage getJPakeMessage(List<PairOfIdentifiers> acceptedIdentifiers, LoginData loginData, Map<Identifier, AutoIdentificationCredentials> agreements, P2PLoginAgreementType agreementType, ASymmetricLoginAgreementType aSymmetricLoginAgreementType, AbstractSecureRandom random, AbstractMessageDigest messageDigest,
 										boolean encryptIdentifiers, byte[] distantGeneratedSalt, byte[] localGeneratedSalt, ArrayList<Identifier> newIdentifiersToAdd,MessageDigestType messageDigestType, PasswordHashType passwordHashType, ASymmetricPublicKey myPublicKey) throws Exception {
 		int nbAno = 0;
 		if (encryptIdentifiers) {

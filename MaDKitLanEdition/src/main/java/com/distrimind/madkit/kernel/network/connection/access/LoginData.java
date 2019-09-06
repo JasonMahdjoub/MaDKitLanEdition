@@ -256,13 +256,22 @@ public abstract class LoginData extends AccessData {
 	}
 
 	/**
-	 * According an identifier, returns a password
-	 * 
+	 * According an identifier, returns the cloud password
+	 *
 	 * @param identifier
 	 *            the identifier
-	 * @return the password corresponding to the given identifier
+	 * @return the cloud password corresponding to the given identifier
 	 */
-	public abstract PasswordKey getPassword(Identifier identifier);
+	public abstract PasswordKey getCloudPassword(Identifier identifier);
+
+	/**
+	 * According an identifier, returns the host password
+	 *
+	 * @param identifier
+	 *            the identifier
+	 * @return the host password corresponding to the given identifier
+	 */
+	public abstract PasswordKey getHostPassword(Identifier identifier);
 
 	/**
 	 * Inform that a bad password has been given to the identifier given as

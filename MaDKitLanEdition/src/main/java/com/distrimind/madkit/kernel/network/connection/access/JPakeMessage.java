@@ -114,7 +114,7 @@ class JPakeMessage extends AccessMessage{
 	}
 	
 	
-	JPakeMessage(Map<Identifier, P2PLoginAgreement> agreements, boolean identifiersIsEncrypted, short nbAnomalies, AbstractSecureRandom random, AbstractMessageDigest messageDigest, byte[] distantGeneratedSalt) throws Exception {
+	JPakeMessage(Map<Identifier, IdentifiersPropositionMessage.AutoIdentificationCredentials> agreements, boolean identifiersIsEncrypted, short nbAnomalies, AbstractSecureRandom random, AbstractMessageDigest messageDigest, byte[] distantGeneratedSalt) throws Exception {
 		super();
 		this.identifiersIsEncrypted=identifiersIsEncrypted;
 		this.identifiers=new Identifier[agreements.size()];

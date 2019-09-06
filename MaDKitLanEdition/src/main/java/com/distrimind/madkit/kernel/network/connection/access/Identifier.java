@@ -39,10 +39,7 @@ package com.distrimind.madkit.kernel.network.connection.access;
 
 import com.distrimind.util.crypto.ASymmetricKeyPair;
 import com.distrimind.util.crypto.ASymmetricPublicKey;
-import com.distrimind.util.io.RandomByteArrayOutputStream;
-import com.distrimind.util.io.SecureExternalizable;
-import com.distrimind.util.io.SecuredObjectInputStream;
-import com.distrimind.util.io.SecuredObjectOutputStream;
+import com.distrimind.util.io.*;
 
 import java.io.IOException;
 
@@ -152,6 +149,10 @@ public class Identifier implements SecureExternalizable {
 	{
 		cloud_identifier=in.readObject(false, CloudIdentifier.class);
 		host_identifier=in.readObject(false, HostIdentifier.class);
+		if (cloud_identifier.getAuthenticationPublicKey()==null && cloud_identifier.getAuthenticationMethod().isAuthenticatedByPublicKey())
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+		if (host_identifier.getAuthenticationPublicKey()==null && host_identifier.getAuthenticationMethod().isAuthenticatedByPublicKey())
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 	}
 	@Override
 	public void writeExternal(final SecuredObjectOutputStream oos) throws IOException
