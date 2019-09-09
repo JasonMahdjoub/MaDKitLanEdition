@@ -103,7 +103,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 					for (boolean loginInitiativeAsker : new boolean[]{false, true}) {
 						for (boolean loginInitiativeReceiver : new boolean[]{true, false}) {
 							AccessProtocolWithP2PAgreementProperties app2 = new AccessProtocolWithP2PAgreementProperties();
-							app2.encryptIdentifiersBeforeSendingToDistantPeer = identifierEncrypted;
+							app2.anonymizeIdentifiersBeforeSendingToDistantPeer = identifierEncrypted;
 							app2.p2pLoginAgreementType=agreement;
 							Collection<Object[]> r = data(databaseEnabled, app2, loginInitiativeAsker, loginInitiativeReceiver);
 							if (res == null)
@@ -519,7 +519,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 				new InetSocketAddress(InetAddress.getByName("192.168.0.55"), 5000), this, mpreceiver);
 		if (!infoScreened) {
 			System.out.println("agreement : "+((AccessProtocolWithP2PAgreementProperties)app).p2pLoginAgreementType);
-			System.out.println("encrypted : " + app.encryptIdentifiersBeforeSendingToDistantPeer);
+			System.out.println("encrypted : " + app.anonymizeIdentifiersBeforeSendingToDistantPeer);
 			System.out.println("login data asker : " + (apasker.access_data instanceof LoginData));
 			System.out.println("login data receiver : " + (apreceiver.access_data instanceof LoginData));
 			System.out.println("login initiative asker : " + ((apasker.access_data instanceof LoginData) && ((LoginData) apasker.access_data).canTakesLoginInitiative()));

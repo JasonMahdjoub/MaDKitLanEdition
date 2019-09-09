@@ -37,11 +37,16 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
+import com.distrimind.util.crypto.ASymmetricAuthenticatedSignatureCheckerAlgorithm;
+import com.distrimind.util.crypto.ASymmetricAuthenticatedSignerAlgorithm;
 import com.distrimind.util.crypto.ASymmetricKeyPair;
 import com.distrimind.util.crypto.ASymmetricPublicKey;
 import com.distrimind.util.io.*;
 
 import java.io.IOException;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.InvalidParameterSpecException;
 
 /**
  * This identifier associates a {@link HostIdentifier} and a
@@ -228,5 +233,24 @@ public class Identifier implements SecureExternalizable {
 		 * @see #getAuthenticationPublicKey()
 		 */
 		ASymmetricKeyPair getAuthenticationKeyPair();
+	}
+
+	public static byte[] signAuthenticatedIdentifier(ASymmetricKeyPair keyPair, byte[] ...data) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, SignatureException, InvalidKeyException, IOException {
+		ASymmetricAuthenticatedSignerAlgorithm signer=new ASymmetricAuthenticatedSignerAlgorithm(keyPair.getASymmetricPrivateKey());
+		signer.init();
+		for (byte[] b : data)
+			signer.update(b);
+		return signer.getSignature();
+	}
+	public static boolean checkAuthenticatedSignature(ASymmetricPublicKey publicKey, byte[] signature, byte[] ...data) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeySpecException, InvalidParameterSpecException, InvalidKeyException, IOException, SignatureException {
+		return checkAuthenticatedSignature(publicKey, signature, 0, signature.length, data);
+	}
+	public static boolean checkAuthenticatedSignature(ASymmetricPublicKey publicKey, byte[] signature, int off, int len, byte[] ...data) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeySpecException, InvalidParameterSpecException, InvalidKeyException, IOException, SignatureException {
+		ASymmetricAuthenticatedSignatureCheckerAlgorithm checker=new ASymmetricAuthenticatedSignatureCheckerAlgorithm(publicKey);
+		checker.init(signature, off, len);
+		for (byte[] b : data)
+			checker.update(b);
+		return checker.verify();
+
 	}
 }

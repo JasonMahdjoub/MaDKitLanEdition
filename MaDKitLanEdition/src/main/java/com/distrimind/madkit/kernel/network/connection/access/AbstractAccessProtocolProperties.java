@@ -53,7 +53,7 @@ import com.distrimind.util.properties.MultiFormatProperties;
  * Represents properties of a specific connection protocol
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MadkitLanEdition 1.2
  *
  */
@@ -71,14 +71,15 @@ public abstract class AbstractAccessProtocolProperties extends MultiFormatProper
 
 
 	/**
-	 * Tells if the identifiers must be encrypted before being sent to the distant
-	 * peer. When it is possible and if it does not decrease security level, we
-	 * recommend to set this boolean to false. Else set it to true. Notice that if
+	 * Tells if the identifiers must be anonymized before being sent to the distant
+	 * peer. When it is possible, ie. on a server side that have lot of clients and if it does not decrease security level,
+	 * we recommend to set this boolean to false, because the process cost CPU and database usage.
+	 * On a peer to peer pattern, set it to true. Notice that if
 	 * this boolean is set to true, all identifiers of the distant peer will be
-	 * encrypted and compared with the local encrypted given login. So the login
+	 * encrypted with a random seed and compared with the local encrypted given login. So the login
 	 * process will be slowest.
 	 */
-	public boolean encryptIdentifiersBeforeSendingToDistantPeer = true;
+	public boolean anonymizeIdentifiersBeforeSendingToDistantPeer = true;
 
 	abstract void checkProperties() throws AccessException;
 	

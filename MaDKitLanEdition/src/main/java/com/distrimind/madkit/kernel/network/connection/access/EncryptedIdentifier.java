@@ -49,13 +49,12 @@ import com.distrimind.util.crypto.P2PASymmetricSecretMessageExchanger;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 
 /**
  * Represent an identifier encrypted
  * 
  * @author Jason Mahdjoub
- * @version 1.1
+ * @version 1.2
  * @since MadKitLanEdition 1.0
  * @see Identifier
  */
@@ -86,12 +85,12 @@ public class EncryptedIdentifier extends Identifier {
 		super(new EncryptedCloudIdentifier(identifier.getCloudIdentifier(), random, messageDigest, distantGeneratedSalt), identifier.getHostIdentifier());
 	}
 
-	EncryptedIdentifier(Identifier identifier, P2PASymmetricSecretMessageExchanger cipher)
+	/*EncryptedIdentifier(Identifier identifier, P2PASymmetricSecretMessageExchanger cipher)
 			throws InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException,
 			NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException,
 			InvalidAlgorithmParameterException, NoSuchProviderException, IllegalStateException {
 		super(new EncryptedCloudIdentifier(identifier.getCloudIdentifier(), cipher), identifier.getHostIdentifier());
-	}
+	}*/
 
 	/**
 	 * Tells if the given identifier corresponds to the current encrypted

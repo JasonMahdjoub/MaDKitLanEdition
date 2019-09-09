@@ -44,9 +44,11 @@ import com.distrimind.util.io.SerializationTools;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
-import java.security.*;
+import java.security.DigestException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 
@@ -54,13 +56,13 @@ import java.util.Arrays;
  * Represent a cloud identifier encrypted
  * 
  * @author Jason Mahdjoub
- * @version 1.1
+ * @version 1.2
  * @since MadKitLanEdition 1.0
  * @see CloudIdentifier
  */
 public final class EncryptedCloudIdentifier extends CloudIdentifier {
 	public final static int MAX_ENCRYPTED_CLOUD_IDENTIFIER_LENGTH=CloudIdentifier.MAX_CLOUD_IDENTIFIER_LENGTH+512;
-	
+
 	private byte[] bytes;
 
 	@SuppressWarnings("unused")
@@ -69,17 +71,29 @@ public final class EncryptedCloudIdentifier extends CloudIdentifier {
 		
 	}
 	
-	EncryptedCloudIdentifier(CloudIdentifier cloudIdentifier, P2PASymmetricSecretMessageExchanger cipher)
+	/*EncryptedCloudIdentifier(CloudIdentifier cloudIdentifier, P2PASymmetricSecretMessageExchanger cipher)
 			throws InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException,
 			NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException,
-			InvalidAlgorithmParameterException, NoSuchProviderException, IllegalStateException {
+			InvalidAlgorithmParameterException, NoSuchProviderException, IllegalStateException{
 		if (cloudIdentifier == null)
 			throw new NullPointerException("cloudIdentifier");
 		if (cipher == null)
 			throw new NullPointerException("cipher");
 
 		bytes = cipher.encode(cloudIdentifier.getIdentifierBytes(), cloudIdentifier.getSaltBytes(), false);
-	}
+	}*/
+
+	/*private void applySignature(CloudIdentifier cloudIdentifier) throws InvalidKeyException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeySpecException {
+		if (cloudIdentifier.getAuthenticationMethod().isAuthenticatedByPublicKey())
+		{
+			if (cloudIdentifier.getAuthenticationKeyPair()==null || cloudIdentifier.getAuthenticationPublicKey()==null)
+				throw new IllegalArgumentException();
+			signature=Identifier.signAuthenticatedIdentifier(cloudIdentifier.getAuthenticationKeyPair(), bytes);
+		}
+		else
+			signature=null;
+
+	}*/
 	EncryptedCloudIdentifier(CloudIdentifier cloudIdentifier, AbstractSecureRandom random, AbstractMessageDigest messageDigest, byte[] distantGeneratedSalt)
 			throws
 			DigestException {
@@ -87,7 +101,6 @@ public final class EncryptedCloudIdentifier extends CloudIdentifier {
 			throw new NullPointerException("cloudIdentifier");
 		if (random == null)
 			throw new NullPointerException("random");
-		
 		
 		bytes = AccessProtocolWithP2PAgreement.anonimizeIdentifier(getByteTabToEncode(cloudIdentifier), random, messageDigest, distantGeneratedSalt);
 	}
@@ -115,12 +128,7 @@ public final class EncryptedCloudIdentifier extends CloudIdentifier {
 			EncryptedCloudIdentifier c = (EncryptedCloudIdentifier) _cloud_identifier;
 			if (c.bytes == null)
 				return false;
-			if (bytes.length != c.bytes.length)
-				return false;
-			for (int i = 0; i < bytes.length; i++)
-				if (bytes[i] != c.bytes[i])
-					return false;
-			return true;
+			return Arrays.equals(bytes, c.bytes);
 		}
 		return false;
 	}
@@ -184,8 +192,13 @@ public final class EncryptedCloudIdentifier extends CloudIdentifier {
 	}
 
 	@Override
+	public boolean mustBeAnonymous() {
+		return false;
+	}
+
+	@Override
 	public Identifier.AuthenticationMethod getAuthenticationMethod() {
-		return Identifier.AuthenticationMethod.PASSWORD_OR_KEY;
+		return Identifier.AuthenticationMethod.NOT_DEFINED;
 	}
 
 	@Override

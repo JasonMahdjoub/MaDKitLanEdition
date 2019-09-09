@@ -120,7 +120,7 @@ public class AccessProtocolWithP2PAgreementProperties extends AbstractAccessProt
 
 	@Override
 	void checkProperties() throws AccessException {
-		if (this.encryptIdentifiersBeforeSendingToDistantPeer)
+		if (this.anonymizeIdentifiersBeforeSendingToDistantPeer)
 		{
 			if (identifierDigestionTypeUsedForAnonymization==null)
 				throw new AccessException(new NullPointerException("identifierDigestionTypeUsedForAnonymization can't be null !"));

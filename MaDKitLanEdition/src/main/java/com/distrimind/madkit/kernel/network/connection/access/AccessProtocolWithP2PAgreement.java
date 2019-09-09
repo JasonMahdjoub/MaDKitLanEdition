@@ -199,7 +199,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 						if (getIdentifiers() != null) {
 							access_state = AccessState.WAITING_FOR_IDENTIFIERS;
 							return new IdentifiersPropositionMessage(getIdentifiers(), properties.getApprovedSecureRandom(), messageDigest,
-									this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer,
+									this.access_protocol_properties.anonymizeIdentifiersBeforeSendingToDistantPeer,
 									(short) 0, distantGeneratedSalt, jpakes, access_protocol_properties.asymmetricLoginAgreementType);
 						} else {
 							if (!isOtherCanTakesInitiative()) {
@@ -228,16 +228,16 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 						if (getIdentifiers() != null) {
 							access_state = AccessState.WAITING_FOR_PASSWORD_VALIDATION;
 							JPakeMessage res=((IdentifiersPropositionMessage) _m).getJPakeMessage(getAllAcceptedIdentifiers(), lp, jpakes,access_protocol_properties.p2pLoginAgreementType, access_protocol_properties.asymmetricLoginAgreementType, properties.getApprovedSecureRandom(), messageDigest,
-									this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, distantGeneratedSalt, localGeneratedSalt, null, access_protocol_properties.identifierDigestionTypeUsedForAnonymization, access_protocol_properties.passwordHashType, myKeyPair==null?null:myKeyPair.getASymmetricPublicKey());
+									this.access_protocol_properties.anonymizeIdentifiersBeforeSendingToDistantPeer, distantGeneratedSalt, localGeneratedSalt, null, access_protocol_properties.identifierDigestionTypeUsedForAnonymization, access_protocol_properties.passwordHashType, myKeyPair==null?null:myKeyPair.getASymmetricPublicKey());
 							maxSteps=res.getMaxSteps();
 							return res;
 						} else {
 							access_state = AccessState.WAITING_FOR_PASSWORD_VALIDATION;
 							setIdentifiers(new ArrayList<Identifier>());
 							IdentifiersPropositionMessage propRep=((IdentifiersPropositionMessage) _m).getIdentifiersPropositionMessageAnswer(lp, properties.getApprovedSecureRandom(), messageDigest,
-									this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, getIdentifiers(), distantGeneratedSalt,  localGeneratedSalt, jpakes, access_protocol_properties.asymmetricLoginAgreementType);
+									this.access_protocol_properties.anonymizeIdentifiersBeforeSendingToDistantPeer, getIdentifiers(), distantGeneratedSalt,  localGeneratedSalt, jpakes, access_protocol_properties.asymmetricLoginAgreementType);
 							JPakeMessage res=((IdentifiersPropositionMessage) _m).getJPakeMessage(getAllAcceptedIdentifiers(), lp, jpakes,access_protocol_properties.p2pLoginAgreementType, access_protocol_properties.asymmetricLoginAgreementType, properties.getApprovedSecureRandom(), messageDigest,
-									this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, distantGeneratedSalt, localGeneratedSalt, null, access_protocol_properties.identifierDigestionTypeUsedForAnonymization, access_protocol_properties.passwordHashType, myKeyPair==null?null:myKeyPair.getASymmetricPublicKey());
+									this.access_protocol_properties.anonymizeIdentifiersBeforeSendingToDistantPeer, distantGeneratedSalt, localGeneratedSalt, null, access_protocol_properties.identifierDigestionTypeUsedForAnonymization, access_protocol_properties.passwordHashType, myKeyPair==null?null:myKeyPair.getASymmetricPublicKey());
 							maxSteps=res.getMaxSteps();
 
 							return new AccessMessagesList(propRep,
@@ -348,7 +348,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 					/*IdentifiersPropositionMessage propRep=ipm.getIdentifiersPropositionMessageAnswer(lp, properties.getApprovedSecureRandom(), messageDigest,
 							this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, getIdentifiers(), distantGeneratedSalt,  localGeneratedSalt, jpakes, access_protocol_properties.asymmetricLoginAgreementType);*/
 
-					JPakeMessage res=ipm.getJPakeMessage(getAllAcceptedIdentifiers(), lp, jpakes, access_protocol_properties.p2pLoginAgreementType,access_protocol_properties.asymmetricLoginAgreementType, properties.getApprovedSecureRandom(), messageDigest, this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, distantGeneratedSalt, localGeneratedSalt, newIdentifiersToAdd, access_protocol_properties.identifierDigestionTypeUsedForAnonymization, access_protocol_properties.passwordHashType, myKeyPair==null?null:myKeyPair.getASymmetricPublicKey());
+					JPakeMessage res=ipm.getJPakeMessage(getAllAcceptedIdentifiers(), lp, jpakes, access_protocol_properties.p2pLoginAgreementType,access_protocol_properties.asymmetricLoginAgreementType, properties.getApprovedSecureRandom(), messageDigest, this.access_protocol_properties.anonymizeIdentifiersBeforeSendingToDistantPeer, distantGeneratedSalt, localGeneratedSalt, newIdentifiersToAdd, access_protocol_properties.identifierDigestionTypeUsedForAnonymization, access_protocol_properties.passwordHashType, myKeyPair==null?null:myKeyPair.getASymmetricPublicKey());
 					maxSteps=res.getMaxSteps();
 
 					step=1;
@@ -558,9 +558,9 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 					List<Identifier> identifiers = new ArrayList<>(m.identifiers);
 					setIdentifiers(identifiers);
 					IdentifiersPropositionMessage m1= new IdentifiersPropositionMessage(identifiers, properties.getApprovedSecureRandom(), messageDigest,
-							this.access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, (short) 0, distantGeneratedSalt, jpakes, access_protocol_properties.asymmetricLoginAgreementType);
+							this.access_protocol_properties.anonymizeIdentifiersBeforeSendingToDistantPeer, (short) 0, distantGeneratedSalt, jpakes, access_protocol_properties.asymmetricLoginAgreementType);
 					
-					JPakeMessage m2=new JPakeMessage((LoginData)access_data, properties.getApprovedSecureRandom(), messageDigest, jpakes, access_protocol_properties.p2pLoginAgreementType, access_protocol_properties.asymmetricLoginAgreementType, access_protocol_properties.encryptIdentifiersBeforeSendingToDistantPeer, identifiers, distantGeneratedSalt, access_protocol_properties.identifierDigestionTypeUsedForAnonymization, access_protocol_properties.passwordHashType, myKeyPair==null?null:myKeyPair.getASymmetricPublicKey());
+					JPakeMessage m2=new JPakeMessage((LoginData)access_data, properties.getApprovedSecureRandom(), messageDigest, jpakes, access_protocol_properties.p2pLoginAgreementType, access_protocol_properties.asymmetricLoginAgreementType, access_protocol_properties.anonymizeIdentifiersBeforeSendingToDistantPeer, identifiers, distantGeneratedSalt, access_protocol_properties.identifierDigestionTypeUsedForAnonymization, access_protocol_properties.passwordHashType, myKeyPair==null?null:myKeyPair.getASymmetricPublicKey());
 					maxSteps=m2.getMaxSteps();
 					return new AccessMessagesList(m1, m2);
 				} else {

@@ -53,7 +53,7 @@ import com.distrimind.util.io.SecureExternalizable;
  */
 public abstract class CloudIdentifier implements SecureExternalizable, Identifier.Authenticated {
 
-	public static int MAX_CLOUD_IDENTIFIER_LENGTH=4096;
+	public static int MAX_CLOUD_IDENTIFIER_LENGTH=5120;
 	
 	@Override
 	public abstract boolean equals(Object _cloud_identifier);
