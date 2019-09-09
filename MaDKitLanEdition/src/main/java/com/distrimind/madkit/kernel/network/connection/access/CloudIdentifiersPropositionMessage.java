@@ -53,7 +53,7 @@ import java.util.*;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-class IdentifiersPropositionMessage extends AccessMessage {
+class CloudIdentifiersPropositionMessage extends AccessMessage {
 
 	static class AutoIdentificationCredentials
 	{
@@ -74,42 +74,38 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		}
 	}
 
-	private Identifier[] identifiers;
+	private CloudIdentifier[] identifiers;
 	private boolean isEncrypted;
 	private final transient short nbAnomalies;
 
 	@SuppressWarnings("unused")
-	IdentifiersPropositionMessage()
+	CloudIdentifiersPropositionMessage()
 	{
 		nbAnomalies=0;
 	}
-	
+
 	@Override
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		isEncrypted=in.readBoolean();
 		SecureExternalizable[] s=in.readObject(false, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE, SecureExternalizable[].class);
-		identifiers=new Identifier[s.length];
+		identifiers=new CloudIdentifier[s.length];
 		for (int i=0;i<s.length;i++)
 		{
-			if (!(s[i] instanceof Identifier))
+			if (!(s[i] instanceof CloudIdentifier))
 				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			identifiers[i]=(Identifier)s[i];
-			if (isEncrypted && !identifiers[i].getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey() && !(identifiers[i] instanceof EncryptedIdentifier))
-				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			if (isEncrypted && identifiers[i].getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey() && (identifiers[i] instanceof EncryptedIdentifier))
-				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			identifiers[i]=(CloudIdentifier) s[i];
 		}
-		
+
 	}
 	@Override
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		oos.writeBoolean(isEncrypted);
 		oos.writeObject(identifiers, false, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE);
 
-		
+
 	}
-	
-	
+
+
 	/*public IdentifiersPropositionMessage(Collection<Identifier> _id_pws, P2PASymmetricSecretMessageExchanger cipher,
 			boolean encryptIdentifiers, short nbAnomalies) throws InvalidKeyException, IOException,
 			IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException,
@@ -127,36 +123,27 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		this.nbAnomalies = nbAnomalies;
 	}*/
 
-	public IdentifiersPropositionMessage(Collection<Identifier> _id_pws, AbstractSecureRandom random, AbstractMessageDigest messageDigest,
-			boolean encryptIdentifiers, short nbAnomalies, byte[] distantGeneratedSalt, Map<Identifier, AutoIdentificationCredentials> jpakes, ASymmetricLoginAgreementType aSymmetricLoginAgreementType) throws DigestException {
-		identifiers = new Identifier[_id_pws.size()];
+	public CloudIdentifiersPropositionMessage(Collection<Identifier> _id_pws, AbstractSecureRandom random, AbstractMessageDigest messageDigest,
+											  boolean encryptIdentifiers, short nbAnomalies, byte[] distantGeneratedSalt, Map<Identifier, P2PLoginAgreement> jpakes, ASymmetricLoginAgreementType aSymmetricLoginAgreementType) throws DigestException {
+		identifiers = new CloudIdentifier[_id_pws.size()];
 		isEncrypted = encryptIdentifiers;
 		int index = 0;
 		for (Identifier ip : _id_pws) {
 			if (ip.getCloudIdentifier().getAuthenticationMethod()== Identifier.AuthenticationMethod.NOT_DEFINED
 					&& ip.getHostIdentifier().getAuthenticationMethod()== Identifier.AuthenticationMethod.NOT_DEFINED)
 				continue;
-			if (encryptIdentifiers && !ip.getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey())
+			if (encryptIdentifiers)
 			{
-				identifiers[index++] = new EncryptedIdentifier(ip, random, messageDigest, distantGeneratedSalt);
+				identifiers[index++] = new EncryptedCloudIdentifier(ip.getCloudIdentifier(), random, messageDigest, distantGeneratedSalt);
 			}
 			else
 			{
-				identifiers[index++] = ip;
+				identifiers[index++] = ip.getCloudIdentifier();
 			}
-			P2PLoginAgreement loginAgreementForCloudIdentifier=null;
 			if (jpakes!=null && ip.getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey())
 			{
-				loginAgreementForCloudIdentifier=aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureRequester(random, ip.getCloudIdentifier().getAuthenticationKeyPair());
-			}
-			P2PLoginAgreement loginAgreementForHostIdentifier=null;
-			if (jpakes!=null && ip.getHostIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey())
-			{
-				loginAgreementForHostIdentifier=aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureRequester(random, ip.getHostIdentifier().getAuthenticationKeyPair());
-			}
-			if (loginAgreementForCloudIdentifier!=null || loginAgreementForHostIdentifier!=null)
-			{
-				jpakes.put(ip, new AutoIdentificationCredentials(loginAgreementForCloudIdentifier, loginAgreementForHostIdentifier));
+				P2PLoginAgreement loginAgreementForCloudIdentifier=aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureRequester(random, ip.getCloudIdentifier().getAuthenticationKeyPair());
+				jpakes.put(ip, loginAgreementForCloudIdentifier);
 			}
 		}
 		if (index!=identifiers.length)
@@ -218,10 +205,10 @@ class IdentifiersPropositionMessage extends AccessMessage {
 			AbstractMessageDigest messageDigest, byte[] localGeneratedSalt ) throws AccessException {
 		ArrayList<Identifier> res = new ArrayList<>();
 		if (isEncrypted) {
-			for (Identifier id : identifiers) {
-				Identifier i;
-				if (id instanceof EncryptedIdentifier) {
-					 i = loginData.getLocalIdentifier((EncryptedIdentifier) id, messageDigest, localGeneratedSalt);
+			for (CloudIdentifier id : identifiers) {
+				CloudIdentifier i;
+				if (id instanceof EncryptedCloudIdentifier) {
+					 i = loginData.getLocalIdentifier((EncryptedCloudIdentifier) id, messageDigest, localGeneratedSalt);
 				}
 				else
 				{
@@ -254,13 +241,13 @@ class IdentifiersPropositionMessage extends AccessMessage {
 						? ((validID.size() == 0 && identifiers.length > 0) ? (short) 1 : (short) 0)
 						: (nbAno > Short.MAX_VALUE) ? Short.MAX_VALUE : (short) nbAno);
 	}*/
-	public IdentifiersPropositionMessage getIdentifiersPropositionMessageAnswer(LoginData loginData,
-			AbstractSecureRandom random, AbstractMessageDigest messageDigest, boolean encryptIdentifiers, List<Identifier> identifiers, byte[] distantGeneratedSalt, byte[] localGeneratedSalt, Map<Identifier, AutoIdentificationCredentials> jpakes, ASymmetricLoginAgreementType aSymmetricLoginAgreementType)
+	public CloudIdentifiersPropositionMessage getIdentifiersPropositionMessageAnswer(LoginData loginData,
+																					 AbstractSecureRandom random, AbstractMessageDigest messageDigest, boolean encryptIdentifiers, List<Identifier> identifiers, byte[] distantGeneratedSalt, byte[] localGeneratedSalt, Map<Identifier, AutoIdentificationCredentials> jpakes, ASymmetricLoginAgreementType aSymmetricLoginAgreementType)
 			throws AccessException,  DigestException {
 		ArrayList<Identifier> validID = getValidDecodedLocalIdentifiers(loginData, messageDigest, localGeneratedSalt);
 		identifiers.addAll(validID);
 		int nbAno = this.identifiers.length - validID.size();
-		return new IdentifiersPropositionMessage(validID, random, messageDigest, encryptIdentifiers,
+		return new CloudIdentifiersPropositionMessage(validID, random, messageDigest, encryptIdentifiers,
 				loginData.canTakesLoginInitiative()
 						? ((validID.size() == 0 && this.identifiers.length > 0) ? (short) 1 : (short) 0)
 						: (nbAno > Short.MAX_VALUE) ? Short.MAX_VALUE : (short) nbAno, distantGeneratedSalt, jpakes, aSymmetricLoginAgreementType);

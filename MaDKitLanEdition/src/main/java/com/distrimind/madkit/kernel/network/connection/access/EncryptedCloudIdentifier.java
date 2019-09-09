@@ -165,7 +165,7 @@ public final class EncryptedCloudIdentifier extends CloudIdentifier {
 	 * @throws NoSuchAlgorithmException if a problem occurs
 	 * @throws NoSuchProviderException  if a problem occurs
 	 */
-	public boolean verifyWithLocalCloudIdentifier(CloudIdentifier originalCloudIdentifier,
+	/*public boolean verifyWithLocalCloudIdentifier(CloudIdentifier originalCloudIdentifier,
 			P2PASymmetricSecretMessageExchanger cipher) throws InvalidKeyException, IllegalAccessException, IOException,
 			IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
 		if (originalCloudIdentifier == null)
@@ -174,8 +174,23 @@ public final class EncryptedCloudIdentifier extends CloudIdentifier {
 			throw new NullPointerException("cipher");
 		return cipher.verifyDistantMessage(originalCloudIdentifier.getIdentifierBytes(),
 				originalCloudIdentifier.getSaltBytes(), bytes, false);
-	}
+	}*/
 
+	/**
+	 * Tells if the given cloud identifier corresponds to the current encrypted
+	 * cloud identifier, considering the given cipher.
+	 *
+	 * @param originalCloudIdentifier
+	 *            the original cloud identifier
+	 * @param messageDigest
+	 *            the message digest algorithm
+	 * @param localGeneratedSalt
+	 * 			  the local generated salt
+	 * @return true if the given cloud identifier corresponds to the current
+	 *         encrypted cloud identifier, considering the given message digest and the given salt.
+	 * @throws DigestException
+	 *             if a problem occurs
+	 */
 	public boolean verifyWithLocalCloudIdentifier(CloudIdentifier originalCloudIdentifier,
 			AbstractMessageDigest messageDigest, byte[] localGeneratedSalt) throws
 			DigestException {

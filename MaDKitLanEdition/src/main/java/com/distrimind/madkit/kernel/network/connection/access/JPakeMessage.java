@@ -172,7 +172,7 @@ class JPakeMessage extends AccessMessage{
 
 				if (localId.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
 				{
-					if (!loginData.acceptAutoSignedLogin())
+					if (!loginData.acceptAutoSignedIdentifiers())
 						continue;
 					P2PLoginAgreement agreement=aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureRequester(random, localId.getCloudIdentifier().getCloudKeyPair());
 					agreements.put(localId, agreement);

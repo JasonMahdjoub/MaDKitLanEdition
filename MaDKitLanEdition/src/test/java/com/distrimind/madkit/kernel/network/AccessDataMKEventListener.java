@@ -209,7 +209,7 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 			}
 
 			@Override
-			public boolean acceptAutoSignedLogin() {
+			public boolean acceptAutoSignedIdentifiers() {
 				return true;
 			}
 

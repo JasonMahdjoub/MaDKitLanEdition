@@ -76,7 +76,7 @@ public abstract class AbstractAccessProtocolProperties extends MultiFormatProper
 	 * we recommend to set this boolean to false, because the process cost CPU and database usage.
 	 * On a peer to peer pattern, set it to true. Notice that if
 	 * this boolean is set to true, all identifiers of the distant peer will be
-	 * encrypted with a random seed and compared with the local encrypted given login. So the login
+	 * hashed with two random seeds given by the two peers and compared with the local encrypted given login. So the login
 	 * process will be slowest.
 	 */
 	public boolean anonymizeIdentifiersBeforeSendingToDistantPeer = true;
