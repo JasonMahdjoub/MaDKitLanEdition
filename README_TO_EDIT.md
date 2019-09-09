@@ -45,6 +45,9 @@ You can also find inspiration into Junit tests.
   * Same thing with the user login. 
   * If the user provide a symmetric secret key for signature, it is used to authentify random messages during the authentication process.
   * If is possible to auto-sign a login with an asymmetric secret key. Then the authentication is validated thanks to an auto-signed login. Server side only check that the login identified by its public key, is well signed thanks to its private key. Auto-signed logins can also be rejected, even if the login is well auto-signed.
+  * Authentication can be done with both auto-signed identifier and a shared password/key
+  * An identifier is composed of a cloud identifier, and a host identifier. In the past, one authentication concerned both cloud and host identifiers. Now it is possible to have two authentications : one for the cloud identifier, and one another for the host identifier. If one of them fails, than identifier is rejected.
+  * Cloud identifiers can be individually anonymous thanks to an encryption process. Host identifiers are sent only if the cloud identifier authentication process succeeded.
 * possibility to connect randomly to one server between several available servers (simple load balancing)
 * ability to ban IP's that generates a number of anomalies above a threshold. Banned IP's are stored into a database. A white ip list is possible. Anomalies can be a problem that occurs during the authentication process, the encryption and signature process, the deserialization process, and in every part of the network protocol. Anomalies considered as attacks trigger ban immediately whereas others anomalies that are suspected as attacks trigger ban only a threshold is reached.
 * There are several levels of ban duration
