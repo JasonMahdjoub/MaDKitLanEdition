@@ -85,5 +85,15 @@ public abstract class CloudIdentifier implements SecureExternalizable, Identifie
 	public abstract boolean mustBeAnonymous();
 
 
+	byte[] getByteTabToEncode()
+	{
+		byte[] idbytes = getIdentifierBytes();
+		byte[] salt = getSaltBytes();
+		byte[] res = new byte[idbytes.length + (salt == null ? 0 : salt.length)];
+		System.arraycopy(idbytes, 0, res, 0, idbytes.length);
+		if (salt!=null)
+			System.arraycopy(salt, 0, res, idbytes.length, salt.length);
+		return res;
 
+	}
 }

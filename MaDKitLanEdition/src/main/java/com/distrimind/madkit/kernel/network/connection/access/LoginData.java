@@ -131,7 +131,7 @@ public abstract class LoginData extends AccessData {
 	 * @throws AccessException
 	 *             if a problem occurs
 	 */
-	public final CloudIdentifier getIdentifier(final EncryptedCloudIdentifier encryptedCloudIdentifier,
+	public final CloudIdentifier getLocalVersionOfDistantCloudIdentifier(final EncryptedCloudIdentifier encryptedCloudIdentifier,
 			final AbstractMessageDigest messageDigest, final byte[] localGeneratedSalt) throws AccessException {
 		final AtomicReference<CloudIdentifier> res = new AtomicReference<>(null);
 
@@ -142,7 +142,7 @@ public abstract class LoginData extends AccessData {
 				try {
 					if (encryptedCloudIdentifier
 									.verifyWithLocalCloudIdentifier(_identifier.getCloudIdentifier(), messageDigest, localGeneratedSalt)) {
-						if (isValidLocalCloudIdentifier(_identifier.getCloudIdentifier()))
+						if (areCloudIdentifiersCompatible(_identifier.getCloudIdentifier(), encryptedCloudIdentifier))
 							res.set(_identifier.getCloudIdentifier());
 						return false;
 					} else
@@ -354,7 +354,7 @@ public abstract class LoginData extends AccessData {
 	 * @param distantCloudIdentifier the received cloud identifier
 	 * @return the local version of the given cloud identifier
 	 */
-	public abstract CloudIdentifier getLocalVersionOfDistantIdentifierImpl(CloudIdentifier distantCloudIdentifier);
+	public abstract CloudIdentifier getLocalVersionOfDistantCloudIdentifierImpl(CloudIdentifier distantCloudIdentifier);
 
 
 	/**
@@ -362,11 +362,11 @@ public abstract class LoginData extends AccessData {
 	 * @param distantCloudIdentifier the distant cloud identifier
 	 * @return true if the given cloud identifier is a valid identifier and if it can be used to authenticate the distant peer
 	 */
-	public final CloudIdentifier getValidCloudIdentifier(CloudIdentifier distantCloudIdentifier)
+	public final CloudIdentifier getLocalVersionOfDistantCloudIdentifier(CloudIdentifier distantCloudIdentifier)
 	{
 		if (distantCloudIdentifier==null)
 			return null;
-		CloudIdentifier cloudIdentifier=getLocalVersionOfDistantIdentifierImpl(distantCloudIdentifier);
+		CloudIdentifier cloudIdentifier=getLocalVersionOfDistantCloudIdentifierImpl(distantCloudIdentifier);
 		if (!areCloudIdentifiersCompatible(cloudIdentifier, distantCloudIdentifier))
 			return null;
 		return cloudIdentifier;
@@ -379,14 +379,19 @@ public abstract class LoginData extends AccessData {
 			return false;
 		if (distantAuthenticatedIdentifier==null)
 			return false;
-		return localAuthenticatedIdentifier.getAuthenticationMethod()==distantAuthenticatedIdentifier.getAuthenticationMethod();
+		if ((localAuthenticatedIdentifier instanceof CloudIdentifier)
+				&& ((CloudIdentifier)localAuthenticatedIdentifier).mustBeAnonymous()
+				&& !(distantAuthenticatedIdentifier instanceof EncryptedCloudIdentifier)
+			)
+			return false;
+		return (distantAuthenticatedIdentifier instanceof EncryptedCloudIdentifier) || localAuthenticatedIdentifier.getAuthenticationMethod()==distantAuthenticatedIdentifier.getAuthenticationMethod();
 	}
 
 	boolean areCloudIdentifiersCompatible(CloudIdentifier localCloudIdentifier, CloudIdentifier distantCloudIdentifier)
 	{
 		if (!areAuthenticatedIdentifiersCompatible(localCloudIdentifier, distantCloudIdentifier))
 			return false;
-		if (!isValidLocalCloudIdentifier(localCloudIdentifier))
+		if (!isValidLocalCloudIdentifier(localCloudIdentifier) || !isValidDistantCloudIdentifier(distantCloudIdentifier))
 			return false;
 		return localCloudIdentifier.equals(distantCloudIdentifier);
 	}
@@ -399,23 +404,35 @@ public abstract class LoginData extends AccessData {
 		return localIdentifier.getCloudIdentifier().equals(distantCloudIdentifier);
 	}
 
-
-	private boolean isValidLocalAuthenticatedIdentifier(Identifier.Authenticated authenticatedIdentifier)
+	private boolean isValidAuthenticatedIdentifier(Identifier.Authenticated authenticatedIdentifier, boolean local)
 	{
 		if (authenticatedIdentifier==null)
-			return false;
-		if (authenticatedIdentifier.getAuthenticationMethod()== Identifier.AuthenticationMethod.NOT_DEFINED)
 			return false;
 		if (authenticatedIdentifier.getAuthenticationMethod().isAuthenticatedByPublicKey() && !acceptAutoSignedIdentifiers())
 			return false;
 		return  !authenticatedIdentifier.getAuthenticationMethod().isAuthenticatedByPublicKey()
-				|| (authenticatedIdentifier.getAuthenticationPublicKey()!=null && authenticatedIdentifier.getAuthenticationKeyPair()!=null);
+				|| (authenticatedIdentifier.getAuthenticationPublicKey()!=null && (!local || authenticatedIdentifier.getAuthenticationKeyPair()!=null));
+
+	}
+	private boolean isValidLocalAuthenticatedIdentifier(Identifier.Authenticated authenticatedIdentifier)
+	{
+		return isValidAuthenticatedIdentifier(authenticatedIdentifier, true);
+	}
+	private boolean isValidDistantAuthenticatedIdentifier(Identifier.Authenticated authenticatedIdentifier)
+	{
+		return isValidAuthenticatedIdentifier(authenticatedIdentifier, false);
 	}
 	final boolean isValidLocalCloudIdentifier(CloudIdentifier cloudIdentifier)
 	{
 		if (!isValidLocalAuthenticatedIdentifier(cloudIdentifier))
 			return false;
-		return cloudIdentifier.getAuthenticationMethod()== Identifier.AuthenticationMethod.NOT_DEFINED;
+		return cloudIdentifier.getAuthenticationMethod()!= Identifier.AuthenticationMethod.NOT_DEFINED;
+	}
+	final boolean isValidDistantCloudIdentifier(CloudIdentifier cloudIdentifier)
+	{
+		if (!isValidDistantAuthenticatedIdentifier(cloudIdentifier))
+			return false;
+		return (cloudIdentifier instanceof EncryptedCloudIdentifier) || cloudIdentifier.getAuthenticationMethod()!= Identifier.AuthenticationMethod.NOT_DEFINED;
 	}
 
 	final boolean isValidLocalHostIdentifier(HostIdentifier hostIdentifier)

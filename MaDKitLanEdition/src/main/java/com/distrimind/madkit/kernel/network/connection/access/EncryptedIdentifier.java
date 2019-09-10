@@ -38,17 +38,10 @@
 
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import java.io.IOException;
-import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-
-
 import com.distrimind.util.crypto.AbstractMessageDigest;
 import com.distrimind.util.crypto.AbstractSecureRandom;
-import com.distrimind.util.crypto.P2PASymmetricSecretMessageExchanger;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
+import java.security.DigestException;
 
 /**
  * Represent an identifier encrypted
@@ -58,7 +51,7 @@ import javax.crypto.IllegalBlockSizeException;
  * @since MadKitLanEdition 1.0
  * @see Identifier
  */
-public class EncryptedIdentifier extends Identifier {
+final class EncryptedIdentifier extends Identifier {
 
 
 	@SuppressWarnings("unused")
@@ -92,7 +85,7 @@ public class EncryptedIdentifier extends Identifier {
 		super(new EncryptedCloudIdentifier(identifier.getCloudIdentifier(), cipher), identifier.getHostIdentifier());
 	}*/
 
-	/**
+	/*
 	 * Tells if the given identifier corresponds to the current encrypted
 	 * identifier, considering the given cipher.
 	 * 
@@ -114,7 +107,7 @@ public class EncryptedIdentifier extends Identifier {
 	 * @throws NoSuchAlgorithmException if a problem occurs
 	 * @throws NoSuchProviderException if a problem occurs
 	 */
-	public boolean verifyWithLocalIdentifier(Identifier originalIdentifier, P2PASymmetricSecretMessageExchanger cipher)
+	/*public boolean verifyWithLocalIdentifier(Identifier originalIdentifier, P2PASymmetricSecretMessageExchanger cipher)
 			throws InvalidKeyException, IllegalAccessException, IOException, IllegalBlockSizeException,
 			BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
 
@@ -126,9 +119,9 @@ public class EncryptedIdentifier extends Identifier {
 			return false;
 		return ((EncryptedCloudIdentifier) this.getCloudIdentifier())
 				.verifyWithLocalCloudIdentifier(originalIdentifier.getCloudIdentifier(), cipher);
-	}
+	}*/
 
-	public EncryptedCloudIdentifier getEncryptedCloudIdentifier() {
+	EncryptedCloudIdentifier getEncryptedCloudIdentifier() {
 		return ((EncryptedCloudIdentifier) this.getCloudIdentifier());
 	}
 }

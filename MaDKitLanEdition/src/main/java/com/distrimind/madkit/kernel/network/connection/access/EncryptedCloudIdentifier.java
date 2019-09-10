@@ -37,19 +37,16 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import com.distrimind.util.crypto.*;
+import com.distrimind.util.crypto.ASymmetricKeyPair;
+import com.distrimind.util.crypto.ASymmetricPublicKey;
+import com.distrimind.util.crypto.AbstractMessageDigest;
+import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
 import com.distrimind.util.io.SerializationTools;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
 import java.io.IOException;
 import java.security.DigestException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 
 /**
@@ -60,7 +57,7 @@ import java.util.Arrays;
  * @since MadKitLanEdition 1.0
  * @see CloudIdentifier
  */
-public final class EncryptedCloudIdentifier extends CloudIdentifier {
+final class EncryptedCloudIdentifier extends CloudIdentifier {
 	public final static int MAX_ENCRYPTED_CLOUD_IDENTIFIER_LENGTH=CloudIdentifier.MAX_CLOUD_IDENTIFIER_LENGTH+512;
 
 	private byte[] bytes;
@@ -102,20 +99,10 @@ public final class EncryptedCloudIdentifier extends CloudIdentifier {
 		if (random == null)
 			throw new NullPointerException("random");
 		
-		bytes = AccessProtocolWithP2PAgreement.anonimizeIdentifier(getByteTabToEncode(cloudIdentifier), random, messageDigest, distantGeneratedSalt);
+		bytes = AccessProtocolWithP2PAgreement.anonymizeIdentifier(cloudIdentifier.getByteTabToEncode(), random, messageDigest, distantGeneratedSalt);
 	}
 	
-	private static byte[] getByteTabToEncode(CloudIdentifier cloudIdentifier)
-	{
-		byte[] idbytes = cloudIdentifier.getIdentifierBytes();
-		byte[] salt = cloudIdentifier.getSaltBytes();
-		byte[] res = new byte[idbytes.length + (salt == null ? 0 : salt.length)];
-		System.arraycopy(idbytes, 0, res, 0, idbytes.length);
-		if (salt!=null)
-			System.arraycopy(salt, 0, res, idbytes.length, salt.length);
-		return res;
-		
-	}
+
 	
 
 	@Override
@@ -143,7 +130,7 @@ public final class EncryptedCloudIdentifier extends CloudIdentifier {
 		return bytes;
 	}
 
-	/**
+	/*
 	 * Tells if the given cloud identifier corresponds to the current encrypted
 	 * cloud identifier, considering the given cipher.
 	 * 
@@ -198,7 +185,7 @@ public final class EncryptedCloudIdentifier extends CloudIdentifier {
 			throw new NullPointerException("originalCloudIdentifier");
 		if (messageDigest == null)
 			throw new NullPointerException("messageDigest");
-		return AccessProtocolWithP2PAgreement.compareAnonymizedIdentifier(getByteTabToEncode(originalCloudIdentifier), bytes, messageDigest, localGeneratedSalt);
+		return AccessProtocolWithP2PAgreement.compareAnonymizedIdentifier(originalCloudIdentifier.getByteTabToEncode(), bytes, messageDigest, localGeneratedSalt);
 	}
 
 	@Override
