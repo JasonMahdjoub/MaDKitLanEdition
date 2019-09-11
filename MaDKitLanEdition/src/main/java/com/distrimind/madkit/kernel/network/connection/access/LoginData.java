@@ -37,6 +37,10 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
+import java.io.IOException;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.InvalidParameterSpecException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -119,19 +123,7 @@ public abstract class LoginData extends AccessData {
 		return res.get();
 	}*/
 
-	/**
-	 * Get the cloud identifier corresponding to the given encrypted cloud identifier
-	 *
-	 * @param encryptedCloudIdentifier
-	 *            the encrypted cloud identifier
-	 * @param messageDigest
-	 *            the cipher which will enable to check the parsed identifiers with
-	 *            the given encrypted identifier
-	 * @return the corresponding clear identifier, or null if no valid identifier was found
-	 * @throws AccessException
-	 *             if a problem occurs
-	 */
-	public final CloudIdentifier getLocalVersionOfDistantCloudIdentifier(final EncryptedCloudIdentifier encryptedCloudIdentifier,
+	private final CloudIdentifier getLocalVersionOfDistantCloudIdentifier(final EncryptedCloudIdentifier encryptedCloudIdentifier,
 			final AbstractMessageDigest messageDigest, final byte[] localGeneratedSalt) throws AccessException {
 		final AtomicReference<CloudIdentifier> res = new AtomicReference<>(null);
 
@@ -154,6 +146,33 @@ public abstract class LoginData extends AccessData {
 		});
 
 		return res.get();
+	}
+	/**
+	 * Get the local version of cloud identifier corresponding to the given distant wrapped cloud identifier.
+	 * If the cloud identifier must be auto-signed, than the signature is checked.
+	 * This function works also with anonymous identifiers
+	 *
+	 * @param wrappedCloudIdentifier
+	 *            the wrapped cloud identifier
+	 * @param messageDigest
+	 *            the cipher which will enable to check the parsed identifiers if a an
+	 *            encrypted identifier is transmitted
+	 * @param localGeneratedSalt the local salt used to check the signature
+	 * @return the corresponding clear identifier, or null if no valid identifier was found
+	 * @throws AccessException
+	 *             if a problem occurs
+	 */
+	public final CloudIdentifier getLocalVersionOfDistantCloudIdentifier(final WrappedCloudIdentifier wrappedCloudIdentifier,
+																		  final AbstractMessageDigest messageDigest, final byte[] localGeneratedSalt) throws AccessException, InvalidAlgorithmParameterException, InvalidKeySpecException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidKeyException, InvalidParameterSpecException {
+		CloudIdentifier res;
+		if (wrappedCloudIdentifier.getCloudIdentifier() instanceof EncryptedCloudIdentifier)
+			res=getLocalVersionOfDistantCloudIdentifier((EncryptedCloudIdentifier)wrappedCloudIdentifier.getCloudIdentifier(), messageDigest, localGeneratedSalt);
+		else
+			res=getLocalVersionOfDistantCloudIdentifier(wrappedCloudIdentifier.getCloudIdentifier());
+		if (res==null || !wrappedCloudIdentifier.checkSignature(res, messageDigest, localGeneratedSalt))
+			return null;
+		else
+			return res;
 	}
 	/**
 	 * Transform the given identifier to a local identifier
@@ -362,7 +381,7 @@ public abstract class LoginData extends AccessData {
 	 * @param distantCloudIdentifier the distant cloud identifier
 	 * @return true if the given cloud identifier is a valid identifier and if it can be used to authenticate the distant peer
 	 */
-	public final CloudIdentifier getLocalVersionOfDistantCloudIdentifier(CloudIdentifier distantCloudIdentifier)
+	private CloudIdentifier getLocalVersionOfDistantCloudIdentifier(CloudIdentifier distantCloudIdentifier)
 	{
 		if (distantCloudIdentifier==null)
 			return null;
