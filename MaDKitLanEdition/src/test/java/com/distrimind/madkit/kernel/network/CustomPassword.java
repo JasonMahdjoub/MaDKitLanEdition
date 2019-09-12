@@ -46,13 +46,13 @@ import com.distrimind.util.crypto.SymmetricSecretKey;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-public class CustumPassword extends PasswordKey {
+public class CustomPassword extends PasswordKey {
 	private final String password;
 	private final byte[] salt;
 	private final boolean isKey;
 	private final SymmetricSecretKey secretKey;
 
-	CustumPassword(String password, byte[] salt, SymmetricSecretKey secretKey) {
+	CustomPassword(String password, byte[] salt, SymmetricSecretKey secretKey) {
 		this.password = password;
 		this.salt = salt;
 		isKey = Math.random()>0.5;
@@ -63,8 +63,8 @@ public class CustumPassword extends PasswordKey {
 	public boolean equals(Object _cloud_identifier) {
 		if (_cloud_identifier == null)
 			return false;
-		if (_cloud_identifier instanceof CustumPassword) {
-			CustumPassword cci = (CustumPassword) _cloud_identifier;
+		if (_cloud_identifier instanceof CustomPassword) {
+			CustomPassword cci = (CustomPassword) _cloud_identifier;
 			return password.equals(cci.password);
 		}
 		return false;

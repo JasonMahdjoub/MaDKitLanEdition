@@ -317,7 +317,7 @@ public abstract class LoginData extends AccessData {
 	 *            the identifier
 	 * @return the cloud password corresponding to the given identifier
 	 */
-	public abstract PasswordKey getCloudPassword(Identifier identifier);
+	public abstract PasswordKey getCloudPassword(CloudIdentifier identifier);
 
 	/**
 	 * According an identifier, returns the host password

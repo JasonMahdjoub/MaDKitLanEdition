@@ -68,6 +68,21 @@ final class WrappedCloudIdentifier extends CloudIdentifier {
 	private CloudIdentifier cloudIdentifier;
 	private byte[] signature;
 
+	WrappedCloudIdentifier getInvalidWrappedCloudIdentifier(AbstractSecureRandom random)
+	{
+		WrappedCloudIdentifier res=new WrappedCloudIdentifier();
+		if (cloudIdentifier instanceof EncryptedCloudIdentifier)
+			res.cloudIdentifier=((EncryptedCloudIdentifier)cloudIdentifier).getRandomEncryptedCloudIdentifier(random);
+		else
+			res.cloudIdentifier=cloudIdentifier;
+		res.signature=new byte[signature.length];
+		random.nextBytes(res.signature);
+		return res;
+	}
+	WrappedCloudIdentifier()
+	{
+
+	}
 	WrappedCloudIdentifier(boolean anonymize, CloudIdentifier cloudIdentifier, AbstractSecureRandom random, AbstractMessageDigest messageDigest, byte[] distantGeneratedSalt) throws DigestException, InvalidKeyException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeySpecException {
 
 		if (cloudIdentifier == null)

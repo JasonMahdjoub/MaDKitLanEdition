@@ -102,9 +102,9 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 		}
 	}
 
-	private static final CustumPassword[] paswordIdentifiers;
+	private static final CustomPassword[] paswordIdentifiers;
 	static {
-		paswordIdentifiers = new CustumPassword[cloudIdentifiers.length];
+		paswordIdentifiers = new CustomPassword[cloudIdentifiers.length];
 		AbstractSecureRandom random;
 		try {
 			random = SecureRandomType.DEFAULT.getSingleton(null);
@@ -113,7 +113,7 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 				SymmetricSecretKey sk;
 
 				sk=SymmetricAuthentifiedSignatureType.BC_FIPS_HMAC_SHA2_512.getKeyGenerator(random).generateKey();
-				paswordIdentifiers[i] = new CustumPassword(pw, SALT, sk);
+				paswordIdentifiers[i] = new CustomPassword(pw, SALT, sk);
 			}
 		} catch (NoSuchAlgorithmException | NoSuchProviderException e) {
 			e.printStackTrace();

@@ -67,7 +67,15 @@ final class EncryptedCloudIdentifier extends CloudIdentifier {
 	{
 		
 	}
-	
+
+	EncryptedCloudIdentifier getRandomEncryptedCloudIdentifier(AbstractSecureRandom random)
+	{
+		EncryptedCloudIdentifier res=new EncryptedCloudIdentifier();
+		res.bytes=new byte[bytes.length];
+		random.nextBytes(res.bytes);
+		return res;
+	}
+
 	/*EncryptedCloudIdentifier(CloudIdentifier cloudIdentifier, P2PASymmetricSecretMessageExchanger cipher)
 			throws InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException,
 			NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException,

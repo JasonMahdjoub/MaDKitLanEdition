@@ -186,6 +186,10 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 					JPakeAccessInitialized m=((JPakeAccessInitialized) _m);
 					setOtherCanTakesInitiative( m.can_takes_login_initiative);
 					distantGeneratedSalt=m.getGeneratedSalt();
+					if (distantGeneratedSalt==null || distantGeneratedSalt.length!=messageDigest.getDigestLength()) {
+						access_state=AccessState.ACCESS_NOT_INITIALIZED;
+						return new AccessErrorMessage(true);
+					}
 					if (access_data instanceof LoginData) {
 						LoginData lp = (LoginData) access_data;
 
@@ -587,7 +591,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 	}
 
 	
-	static byte[] anonimizeIdentifier(byte[] identifier, AbstractSecureRandom random, AbstractMessageDigest messageDigest, byte[] distantGeneratedSalt) throws DigestException
+	static byte[] anonymizeIdentifier(byte[] identifier, AbstractSecureRandom random, AbstractMessageDigest messageDigest, byte[] distantGeneratedSalt) throws DigestException
 	{
 		if (random==null)
 			throw new NullPointerException();
@@ -597,10 +601,12 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 		int mds=messageDigest.getDigestLength();
 		byte[] ivParameter=new byte[mds];
 		random.nextBytes(ivParameter);
-		return anonimizeIdentifier(identifier, ivParameter, messageDigest, distantGeneratedSalt);
+		if (distantGeneratedSalt.length!=ivParameter.length)
+			throw new IllegalArgumentException();
+		return anonymizeIdentifier(identifier, ivParameter, messageDigest, distantGeneratedSalt);
 	}
 	
-	private static byte[] anonimizeIdentifier(byte[] identifier, byte[] ivParameter, AbstractMessageDigest messageDigest, byte[] generatedSalt) throws DigestException
+	private static byte[] anonymizeIdentifier(byte[] identifier, byte[] ivParameter, AbstractMessageDigest messageDigest, byte[] generatedSalt) throws DigestException
 	{
 		if (identifier==null)
 			throw new NullPointerException();
@@ -647,7 +653,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 	{
 		if (anonymizedIdentifier==null || anonymizedIdentifier.length<messageDigest.getDigestLength()*2)
 			return false;
-		byte[] expectedAnonymizedIdentifier=anonimizeIdentifier(identifier, anonymizedIdentifier, messageDigest, localGeneratedSalt);
+		byte[] expectedAnonymizedIdentifier= anonymizeIdentifier(identifier, anonymizedIdentifier, messageDigest, localGeneratedSalt);
 		return Arrays.equals(expectedAnonymizedIdentifier, anonymizedIdentifier);
 	}
 	

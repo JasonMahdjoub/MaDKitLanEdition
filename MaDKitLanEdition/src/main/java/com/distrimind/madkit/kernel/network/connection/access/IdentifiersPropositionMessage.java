@@ -55,27 +55,8 @@ import java.util.*;
  */
 class IdentifiersPropositionMessage extends AccessMessage {
 
-	static class AutoIdentificationCredentials
-	{
-		private P2PLoginAgreement p2PLoginAgreementForCloudIdentifier;
-		private P2PLoginAgreement p2PLoginAgreementForHostIdentifier;
-
-		AutoIdentificationCredentials(P2PLoginAgreement p2PLoginAgreementForCloudIdentifier, P2PLoginAgreement p2PLoginAgreementForHostIdentifier) {
-			this.p2PLoginAgreementForCloudIdentifier = p2PLoginAgreementForCloudIdentifier;
-			this.p2PLoginAgreementForHostIdentifier = p2PLoginAgreementForHostIdentifier;
-		}
-
-		P2PLoginAgreement getP2PLoginAgreementForCloudIdentifier() {
-			return p2PLoginAgreementForCloudIdentifier;
-		}
-
-		P2PLoginAgreement getP2PLoginAgreementForHostIdentifier() {
-			return p2PLoginAgreementForHostIdentifier;
-		}
-	}
 
 	private Identifier[] identifiers;
-	private boolean isEncrypted;
 	private final transient short nbAnomalies;
 
 	@SuppressWarnings("unused")
@@ -127,16 +108,15 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		this.nbAnomalies = nbAnomalies;
 	}*/
 
-	public IdentifiersPropositionMessage(Collection<Identifier> _id_pws, AbstractSecureRandom random, AbstractMessageDigest messageDigest,
-			boolean encryptIdentifiers, short nbAnomalies, byte[] distantGeneratedSalt, Map<Identifier, AutoIdentificationCredentials> jpakes, ASymmetricLoginAgreementType aSymmetricLoginAgreementType) throws DigestException {
+	public IdentifiersPropositionMessage(Collection<Identifier> _id_pws, short nbAnomalies, Map<Identifier, P2PLoginAgreement> jpakes) throws DigestException {
 		identifiers = new Identifier[_id_pws.size()];
-		isEncrypted = encryptIdentifiers;
+		isEncrypted = permitIdentifiersAnonymization;
 		int index = 0;
 		for (Identifier ip : _id_pws) {
 			if (ip.getCloudIdentifier().getAuthenticationMethod()== Identifier.AuthenticationMethod.NOT_DEFINED
 					&& ip.getHostIdentifier().getAuthenticationMethod()== Identifier.AuthenticationMethod.NOT_DEFINED)
 				continue;
-			if (encryptIdentifiers && !ip.getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey())
+			if (permitIdentifiersAnonymization && !ip.getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey())
 			{
 				identifiers[index++] = new EncryptedIdentifier(ip, random, messageDigest, distantGeneratedSalt);
 			}

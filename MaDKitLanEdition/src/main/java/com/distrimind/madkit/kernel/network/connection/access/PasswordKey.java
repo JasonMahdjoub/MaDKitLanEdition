@@ -37,6 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
+import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.crypto.SymmetricSecretKey;
 
 /**
@@ -83,6 +84,43 @@ public abstract class PasswordKey {
 	public abstract SymmetricSecretKey getSecretKeyForSignature();
 
 
+	static PasswordKey getRandomPasswordKey(final AbstractSecureRandom random)
+	{
+		return new PasswordKey() {
+			private byte[] passwordBytes=null;
+			private byte[] saltBytes=null;
+			private void init()
+			{
+				if (passwordBytes==null)
+				{
+					passwordBytes=new byte[32];
+					saltBytes=new byte[32];
+					random.nextBytes(passwordBytes);
+					random.nextBytes(saltBytes);
+				}
+			}
+			@Override
+			public byte[] getPasswordBytes() {
+				init();
+				return passwordBytes;
+			}
 
+			@Override
+			public byte[] getSaltBytes() {
+				init();
+				return saltBytes;
+			}
+
+			@Override
+			public boolean isKey() {
+				return true;
+			}
+
+			@Override
+			public SymmetricSecretKey getSecretKeyForSignature() {
+				return null;
+			}
+		};
+	}
 
 }
