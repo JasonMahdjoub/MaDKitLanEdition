@@ -123,7 +123,7 @@ public abstract class LoginData extends AccessData {
 		return res.get();
 	}*/
 
-	private final CloudIdentifier getLocalVersionOfDistantCloudIdentifier(final EncryptedCloudIdentifier encryptedCloudIdentifier,
+	private CloudIdentifier getLocalVersionOfDistantCloudIdentifier(final EncryptedCloudIdentifier encryptedCloudIdentifier,
 			final AbstractMessageDigest messageDigest, final byte[] localGeneratedSalt) throws AccessException {
 		final AtomicReference<CloudIdentifier> res = new AtomicReference<>(null);
 
@@ -320,13 +320,13 @@ public abstract class LoginData extends AccessData {
 	public abstract PasswordKey getCloudPassword(CloudIdentifier identifier);
 
 	/**
-	 * According an identifier, returns the host password
+	 * Returns true if the distant host identifier can be considered as valid
 	 *
-	 * @param identifier
-	 *            the identifier
-	 * @return the host password corresponding to the given identifier
+	 * @param distantIdentifier
+	 *            the distant identifier
+	 * @return true if the distant host identifier can be considered as valid
 	 */
-	public abstract PasswordKey getHostPassword(Identifier identifier);
+	public abstract boolean isDistantHostIdentifierValid(Identifier distantIdentifier);
 
 	/**
 	 * Inform that a bad password has been given with the cloud identifier given as
@@ -456,7 +456,10 @@ public abstract class LoginData extends AccessData {
 
 	final boolean isValidLocalHostIdentifier(HostIdentifier hostIdentifier)
 	{
-		return isValidLocalAuthenticatedIdentifier(hostIdentifier);
+		if (hostIdentifier==null)
+			return false;
+		return  !hostIdentifier.isAuthenticatedByPublicKey()
+				|| (hostIdentifier.getAuthenticationPublicKey()!=null && hostIdentifier.getAuthenticationKeyPair()!=null);
 	}
 	final boolean isValidLocalIdentifier(Identifier identifier)
 	{
@@ -577,14 +580,13 @@ public abstract class LoginData extends AccessData {
 	 * @see AccessProtocolWithP2PAgreementProperties#asymmetricLoginAgreementType
 	 * @return true if auto signed identifiers are authorized
 	 */
-	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	public abstract boolean acceptAutoSignedIdentifiers();
 
 	/**
 	 * Returns the decentralized database's identifier.
 	 * If the function is not override, it returns the decentralized database returned by {@link HostIdentifier#getDecentralizedDatabaseID()}
 	 * is equals to {@link HostIdentifier#getAuthenticationPublicKey()}
-	 * and if {@link HostIdentifier#getAuthenticationMethod()} enables an authentication by public key.
+	 * and if {@link HostIdentifier#isAuthenticatedByPublicKey()} ()} enables an authentication by public key.
 	 * Otherwise, you must override this method to determine the database's host identifier.
 	 *
 	 * If this method returns null, distant peer cannot synchronize its database with local database.
@@ -594,7 +596,7 @@ public abstract class LoginData extends AccessData {
 	public DecentralizedValue getDecentralizedDatabaseID(Identifier identifier)
 	{
 		DecentralizedValue dv=identifier.getHostIdentifier().getDecentralizedDatabaseID();
-		if (identifier.getHostIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey() && (dv instanceof ASymmetricPublicKey) && dv.equals(identifier.getHostIdentifier().getAuthenticationPublicKey()))
+		if (identifier.getHostIdentifier().isAuthenticatedByPublicKey() && (dv instanceof ASymmetricPublicKey) && dv.equals(identifier.getHostIdentifier().getAuthenticationPublicKey()))
 		{
 			return dv;
 		}

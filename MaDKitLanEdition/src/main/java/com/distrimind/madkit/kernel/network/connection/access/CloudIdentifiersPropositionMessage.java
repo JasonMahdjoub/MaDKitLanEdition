@@ -282,7 +282,7 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 			if (localCloudIdentifier.getAuthenticationMethod().isAuthenticatedByPasswordOrSecretKey()) {
 				PasswordKey pw = loginData.getCloudPassword(localCloudIdentifier);
 				if (pw != null) {
-					P2PLoginAgreement p2PLoginAgreement = agreementType.getAgreementAlgorithm(random, localCloudIdentifier.getByteTabToEncode(), pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature(), messageDigestType, passwordHashType, myPublicKey);
+					P2PLoginAgreement p2PLoginAgreement = agreementType.getAgreementAlgorithm(random, localCloudIdentifier.getBytesTabToEncode(), pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature(), messageDigestType, passwordHashType, myPublicKey);
 					agreements.put(distantCloudID, p2PLoginAgreement);
 					temporaryAcceptedCloudIdentifiers.put(distantCloudID, localCloudIdentifier);
 				} else {
@@ -306,7 +306,7 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 		if (!ok) {
 			PasswordKey pw=PasswordKey.getRandomPasswordKey(random);
 			agreements.put(distantCloudID,
-					agreementType.getAgreementAlgorithm(random, distantCloudID.getByteTabToEncode(), pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature(), messageDigestType, passwordHashType, myPublicKey));
+					agreementType.getAgreementAlgorithm(random, distantCloudID.getBytesTabToEncode(), pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature(), messageDigestType, passwordHashType, myPublicKey));
 		}
 
 		return nbAno;

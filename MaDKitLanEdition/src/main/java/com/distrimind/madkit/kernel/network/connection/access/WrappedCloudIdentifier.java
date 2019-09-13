@@ -53,7 +53,7 @@ import java.util.Objects;
  * @since MaDKitLanEdition 2.0.0
  */
 final class WrappedCloudIdentifier extends CloudIdentifier {
-	private final static int MAX_SIGNATURE_SIZE;
+	public final static int MAX_SIGNATURE_SIZE;
 	static
 	{
 		int s=0;
@@ -109,7 +109,7 @@ final class WrappedCloudIdentifier extends CloudIdentifier {
 				random.nextBytes(localGeneratedSalt);
 				if (distantGeneratedSalt.length!=localGeneratedSalt.length)
 					throw new IllegalArgumentException();
-				byte[] encodedIdentifier=cloudIdentifier.getByteTabToEncode();
+				byte[] encodedIdentifier=cloudIdentifier.getBytesTabToEncode();
 				byte[] s=Identifier.signAuthenticatedIdentifier(cloudIdentifier.getAuthenticationKeyPair(), encodedIdentifier, localGeneratedSalt, distantGeneratedSalt);
 				this.signature=new byte[mds+s.length];
 				System.arraycopy(localGeneratedSalt, 0, this.signature, 0, mds);
@@ -204,7 +204,7 @@ final class WrappedCloudIdentifier extends CloudIdentifier {
 				int mds = messageDigest.getDigestLength();
 				if (signature.length <= mds)
 					return false;
-				byte[] encodedIdentifier = originalCloudIdentifier.getByteTabToEncode();
+				byte[] encodedIdentifier = originalCloudIdentifier.getBytesTabToEncode();
 				return Identifier.checkAuthenticatedSignature(originalCloudIdentifier.getAuthenticationPublicKey(), signature, mds, signature.length - mds, encodedIdentifier, Arrays.copyOfRange(this.signature, 0, mds), localGeneratedSalt);
 			}
 		}

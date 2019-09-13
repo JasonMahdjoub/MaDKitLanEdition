@@ -156,7 +156,7 @@ public class Identifier implements SecureExternalizable {
 		host_identifier=in.readObject(false, HostIdentifier.class);
 		if (cloud_identifier.getAuthenticationPublicKey()==null && cloud_identifier.getAuthenticationMethod().isAuthenticatedByPublicKey())
 			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		if (host_identifier.getAuthenticationPublicKey()==null && host_identifier.getAuthenticationMethod().isAuthenticatedByPublicKey())
+		if (host_identifier.getAuthenticationPublicKey()==null && host_identifier.isAuthenticatedByPublicKey())
 			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 	}
 	@Override

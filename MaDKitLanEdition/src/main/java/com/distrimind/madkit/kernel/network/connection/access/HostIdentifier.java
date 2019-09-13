@@ -64,7 +64,7 @@ import java.security.NoSuchProviderException;
  * @see Identifier
  * @see CloudIdentifier
  */
-public abstract class HostIdentifier implements SecureExternalizable, Identifier.Authenticated {
+public abstract class HostIdentifier implements SecureExternalizable {
 	protected static final AbstractSecureRandom random;
 
 	static {
@@ -84,6 +84,9 @@ public abstract class HostIdentifier implements SecureExternalizable, Identifier
 
 	@Override
 	public abstract int hashCode();
+
+	public abstract byte[] getBytesTabToEncode();
+
 
 	/**
 	 * Returns the decentralized database's identifier. If the function is not override, it returns null by default. So distant peer cannot synchronize its database with local database.
@@ -126,6 +129,11 @@ public abstract class HostIdentifier implements SecureExternalizable, Identifier
 		}
 
 		@Override
+		public byte[] getBytesTabToEncode()
+		{
+			return new byte[0];
+		}
+		@Override
 		public int hashCode() {
 			return 0;
 		}
@@ -151,9 +159,11 @@ public abstract class HostIdentifier implements SecureExternalizable, Identifier
 		}
 
 		@Override
-		public Identifier.AuthenticationMethod getAuthenticationMethod() {
-			return Identifier.AuthenticationMethod.NOT_DEFINED;
+		public boolean isAuthenticatedByPublicKey()
+		{
+			return false;
 		}
+
 
 		@Override
 		public ASymmetricPublicKey getAuthenticationPublicKey() {
@@ -183,6 +193,13 @@ public abstract class HostIdentifier implements SecureExternalizable, Identifier
 		DefaultHostIdentifier(byte[] bytes, int off, int len) {
 			id = (SecuredDecentralizedID) AbstractDecentralizedID.decode(bytes, off, len);
 		}
+
+		@Override
+		public byte[] getBytesTabToEncode()
+		{
+			return id.encode();
+		}
+
 
 		@Override
 		public boolean equals(Object _host_identifier) {
@@ -227,8 +244,9 @@ public abstract class HostIdentifier implements SecureExternalizable, Identifier
 		}
 
 		@Override
-		public Identifier.AuthenticationMethod getAuthenticationMethod() {
-			return Identifier.AuthenticationMethod.NOT_DEFINED;
+		public boolean isAuthenticatedByPublicKey()
+		{
+			return false;
 		}
 
 		@Override
@@ -241,5 +259,14 @@ public abstract class HostIdentifier implements SecureExternalizable, Identifier
 			return null;
 		}
 	}
+
+
+	public abstract ASymmetricPublicKey getAuthenticationPublicKey();
+
+
+
+	public abstract ASymmetricKeyPair getAuthenticationKeyPair();
+
+	public abstract boolean isAuthenticatedByPublicKey();
 
 }

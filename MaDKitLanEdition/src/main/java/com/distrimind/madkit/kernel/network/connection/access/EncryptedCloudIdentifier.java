@@ -107,7 +107,7 @@ final class EncryptedCloudIdentifier extends CloudIdentifier {
 		if (random == null)
 			throw new NullPointerException("random");
 		
-		bytes = AccessProtocolWithP2PAgreement.anonymizeIdentifier(cloudIdentifier.getByteTabToEncode(), random, messageDigest, distantGeneratedSalt);
+		bytes = AccessProtocolWithP2PAgreement.anonymizeIdentifier(cloudIdentifier.getBytesTabToEncode(), random, messageDigest, distantGeneratedSalt);
 	}
 	
 
@@ -193,7 +193,7 @@ final class EncryptedCloudIdentifier extends CloudIdentifier {
 			throw new NullPointerException("originalCloudIdentifier");
 		if (messageDigest == null)
 			throw new NullPointerException("messageDigest");
-		return AccessProtocolWithP2PAgreement.compareAnonymizedIdentifier(originalCloudIdentifier.getByteTabToEncode(), bytes, messageDigest, localGeneratedSalt);
+		return AccessProtocolWithP2PAgreement.compareAnonymizedIdentifier(originalCloudIdentifier.getBytesTabToEncode(), bytes, messageDigest, localGeneratedSalt);
 	}
 
 	@Override

@@ -39,6 +39,7 @@ package com.distrimind.madkit.kernel.network.connection.access;
 
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.util.crypto.AbstractMessageDigest;
+import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.crypto.P2PLoginAgreement;
 import com.distrimind.util.io.*;
 
@@ -166,8 +167,9 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 											Collection<CloudIdentifier> deniedIdentifiers,
 											Map<WrappedCloudIdentifier, CloudIdentifier> temporaryAcceptedCloudIdentifiers,
 											Map<WrappedCloudIdentifier, P2PLoginAgreement> jpakes,
-											Map<Identifier, P2PLoginAgreement> jpakesForHostsAuthentications,
-											byte[] localGeneratedSalt)
+											byte[] localGeneratedSalt,
+											byte[] distantGeneratedSalt,
+											AbstractSecureRandom random)
 			throws Exception {
 
 
@@ -255,7 +257,7 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 				it.remove();
 		}
 		temporaryAcceptedCloudIdentifiers.clear();
-		return new IdentifiersPropositionMessage(identifiers, nbAno > Short.MAX_VALUE ? Short.MAX_VALUE:(short)nbAno, jpakesForHostsAuthentications);
+		return new IdentifiersPropositionMessage(identifiers, nbAno > Short.MAX_VALUE ? Short.MAX_VALUE:(short)nbAno, distantGeneratedSalt, random);
 	}
 
 

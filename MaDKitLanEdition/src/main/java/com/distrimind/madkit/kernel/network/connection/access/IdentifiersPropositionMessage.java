@@ -45,6 +45,7 @@ import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.InvalidParameterSpecException;
 import java.util.*;
 
 /**
@@ -55,8 +56,10 @@ import java.util.*;
  */
 class IdentifiersPropositionMessage extends AccessMessage {
 
+	public static final int MAX_SIGNATURE_SIZE=WrappedCloudIdentifier.MAX_SIGNATURE_SIZE;
 
 	private Identifier[] identifiers;
+	private byte[][] hostSignatures;
 	private final transient short nbAnomalies;
 
 	@SuppressWarnings("unused")
@@ -67,341 +70,96 @@ class IdentifiersPropositionMessage extends AccessMessage {
 	
 	@Override
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
-		isEncrypted=in.readBoolean();
-		SecureExternalizable[] s=in.readObject(false, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE, SecureExternalizable[].class);
-		identifiers=new Identifier[s.length];
-		for (int i=0;i<s.length;i++)
-		{
-			if (!(s[i] instanceof Identifier))
-				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			identifiers[i]=(Identifier)s[i];
-			if (isEncrypted && !identifiers[i].getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey() && !(identifiers[i] instanceof EncryptedIdentifier))
-				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			if (isEncrypted && identifiers[i].getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey() && (identifiers[i] instanceof EncryptedIdentifier))
-				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		}
-		
+
+		identifiers=in.readObject(false, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE, Identifier[].class);
+		hostSignatures=in.read2DBytesArray(false, true, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE, MAX_SIGNATURE_SIZE);
 	}
 	@Override
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
-		oos.writeBoolean(isEncrypted);
+
 		oos.writeObject(identifiers, false, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE);
-
-		
-	}
-	
-	
-	/*public IdentifiersPropositionMessage(Collection<Identifier> _id_pws, P2PASymmetricSecretMessageExchanger cipher,
-			boolean encryptIdentifiers, short nbAnomalies) throws InvalidKeyException, IOException,
-			IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException,
-			NoSuchPaddingException, InvalidAlgorithmParameterException, NoSuchProviderException, IllegalStateException, ShortBufferException {
-		identifiers = new Identifier[_id_pws.size()];
-		isEncrypted = encryptIdentifiers;
-		int index = 0;
-		for (Identifier ip : _id_pws) {
-			if (encryptIdentifiers && !ip.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
-				identifiers[index++] = new EncryptedIdentifier(ip, cipher);
-			else {
-				identifiers[index++] = ip;
-			}
-		}
-		this.nbAnomalies = nbAnomalies;
-	}*/
-
-	public IdentifiersPropositionMessage(Collection<Identifier> _id_pws, short nbAnomalies, Map<Identifier, P2PLoginAgreement> jpakes) throws DigestException {
-		identifiers = new Identifier[_id_pws.size()];
-		isEncrypted = permitIdentifiersAnonymization;
-		int index = 0;
-		for (Identifier ip : _id_pws) {
-			if (ip.getCloudIdentifier().getAuthenticationMethod()== Identifier.AuthenticationMethod.NOT_DEFINED
-					&& ip.getHostIdentifier().getAuthenticationMethod()== Identifier.AuthenticationMethod.NOT_DEFINED)
-				continue;
-			if (permitIdentifiersAnonymization && !ip.getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey())
-			{
-				identifiers[index++] = new EncryptedIdentifier(ip, random, messageDigest, distantGeneratedSalt);
+		oos.write2DBytesArray(hostSignatures, false, true, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE, MAX_SIGNATURE_SIZE);
+		if (identifiers.length!=hostSignatures.length)
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+		for (int i=0;i<identifiers.length;i++)
+		{
+			Identifier id=identifiers[i];
+			if (id==null)
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			if (id.getHostIdentifier().isAuthenticatedByPublicKey()) {
+				if (id.getHostIdentifier().getAuthenticationPublicKey()==null)
+					throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				if (hostSignatures[i]==null)
+					throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				if (hostSignatures[i].length<=saltSizeBytes)
+					throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			}
 			else
-			{
-				identifiers[index++] = ip;
-			}
-			P2PLoginAgreement loginAgreementForCloudIdentifier=null;
-			if (jpakes!=null && ip.getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey())
-			{
-				loginAgreementForCloudIdentifier=aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureRequester(random, ip.getCloudIdentifier().getAuthenticationKeyPair());
-			}
-			P2PLoginAgreement loginAgreementForHostIdentifier=null;
-			if (jpakes!=null && ip.getHostIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey())
-			{
-				loginAgreementForHostIdentifier=aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureRequester(random, ip.getHostIdentifier().getAuthenticationKeyPair());
-			}
-			if (loginAgreementForCloudIdentifier!=null || loginAgreementForHostIdentifier!=null)
-			{
-				jpakes.put(ip, new AutoIdentificationCredentials(loginAgreementForCloudIdentifier, loginAgreementForHostIdentifier));
-			}
+			if (hostSignatures[i]!=null)
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+
 		}
-		if (index!=identifiers.length)
-			identifiers=Arrays.copyOf(identifiers, index);
+
+	}
+
+	private static final int saltSizeBytes=32;
+
+	public IdentifiersPropositionMessage(Collection<Identifier> _id_pws, short nbAnomalies,
+										 byte[] distantGeneratedSalt, AbstractSecureRandom random) throws DigestException, InvalidKeyException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeySpecException {
+		identifiers = new Identifier[_id_pws.size()];
+		hostSignatures=new byte[_id_pws.size()][];
+		int index=0;
+		for (Identifier ip : _id_pws) {
+			identifiers[index]=ip;
+			if (ip.getHostIdentifier().isAuthenticatedByPublicKey() && ip.getHostIdentifier().getAuthenticationPublicKey()!=null && ip.getHostIdentifier().getAuthenticationKeyPair()!=null) {
+
+				byte[] localGeneratedSalt=new byte[saltSizeBytes];
+				random.nextBytes(localGeneratedSalt);
+				if (distantGeneratedSalt.length!=localGeneratedSalt.length)
+					throw new IllegalArgumentException();
+				byte[] encodedIdentifier=ip.getHostIdentifier().getBytesTabToEncode();
+				byte[] s=Identifier.signAuthenticatedIdentifier(ip.getHostIdentifier().getAuthenticationKeyPair(), encodedIdentifier, localGeneratedSalt, distantGeneratedSalt);
+				hostSignatures[index]=new byte[saltSizeBytes +s.length];
+				System.arraycopy(localGeneratedSalt, 0, hostSignatures[index], 0, saltSizeBytes);
+				System.arraycopy(s, 0, hostSignatures[index], saltSizeBytes, s.length);
+			}
+			else
+				hostSignatures[index]=null;
+			++index;
+		}
 		this.nbAnomalies = nbAnomalies;
 	}
 
+	private Identifier getValidDistantIdentifier(Collection<CloudIdentifier> acceptedCloudIdentifiers, Identifier identifier, byte[] signature, LoginData loginData, byte[] localGeneratedSalt) throws InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidParameterSpecException, SignatureException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeySpecException {
+		CloudIdentifier foundCloudIdentifier=null;
+		for (CloudIdentifier cid : acceptedCloudIdentifiers)
+		{
+			if (cid.equals(identifier.getCloudIdentifier()))
+				foundCloudIdentifier=cid;
+		}
+
+		if (foundCloudIdentifier!=null && loginData.isDistantHostIdentifierValid(identifier))
+		{
+			if (identifier.getHostIdentifier().isAuthenticatedByPublicKey()) {
+				byte[] encodedIdentifier = identifier.getHostIdentifier().getBytesTabToEncode();
+				if (Identifier.checkAuthenticatedSignature(identifier.getHostIdentifier().getAuthenticationPublicKey(), signature, saltSizeBytes, signature.length - saltSizeBytes, encodedIdentifier, Arrays.copyOfRange(signature, 0, saltSizeBytes), localGeneratedSalt))
+					return new Identifier(foundCloudIdentifier, identifier.getHostIdentifier());
+				else
+					return null;
+			}
+			else
+				return new Identifier(foundCloudIdentifier, identifier.getHostIdentifier());
+		}
+		else
+			return null;
+
+	}
 
 	
 	@Override
 	public short getNbAnomalies() {
 		return nbAnomalies;
 	}
-
-	/*public ArrayList<Identifier> getValidDecodedIdentifiers(LoginData loginData,
-			P2PASymmetricSecretMessageExchanger cipher) throws AccessException {
-		ArrayList<Identifier> res = new ArrayList<>();
-		if (isEncrypted) {
-			for (Identifier id : identifiers) {
-				if (id instanceof EncryptedIdentifier) {
-					Identifier i = loginData.getIdentifier((EncryptedIdentifier) id, cipher);
-					if (i != null)
-						res.add(i);
-				}
-				else
-					res.add(id);
-			}
-		} else {
-			res.addAll(Arrays.asList(identifiers));
-		}
-
-		return res;
-	}*/
-	private boolean checkIdentifiers(Identifier local, Identifier distant, LoginData loginData)
-	{
-		if (local!=null && distant!=null)
-		{
-			if (local.equals(distant))
-				return false;
-			if (local.getCloudIdentifier().getAuthenticationMethod()!=distant.getCloudIdentifier().getAuthenticationMethod())
-				return false;
-			if (local.getHostIdentifier().getAuthenticationMethod()!=distant.getHostIdentifier().getAuthenticationMethod())
-				return false;
-			if (local.getCloudIdentifier().getAuthenticationMethod()== Identifier.AuthenticationMethod.NOT_DEFINED)
-				return false;
-			if ((local.getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey()
-					|| local.getHostIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey())
-					&& !loginData.acceptAutoSignedIdentifiers())
-			{
-				return false;
-			}
-			return (!local.getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey() || local.getCloudIdentifier().getAuthenticationKeyPair() != null)
-					&& (!local.getHostIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey() || local.getHostIdentifier().getAuthenticationKeyPair() != null);
-		}
-		else
-			return false;
-	}
-	public ArrayList<Identifier> getValidDecodedLocalIdentifiers(LoginData loginData,
-			AbstractMessageDigest messageDigest, byte[] localGeneratedSalt ) throws AccessException {
-		ArrayList<Identifier> res = new ArrayList<>();
-		if (isEncrypted) {
-			for (Identifier id : identifiers) {
-				Identifier i;
-				if (id instanceof EncryptedIdentifier) {
-					 i = loginData.getLocalIdentifier((EncryptedIdentifier) id, messageDigest, localGeneratedSalt);
-				}
-				else
-				{
-					i = loginData.localiseIdentifier(id);
-				}
-				if (checkIdentifiers(i, id, loginData))
-					res.add(i);
-			}
-		} else {
-			for(Identifier id : identifiers) {
-				Identifier idLocal=loginData.localiseIdentifier(id);
-				if (checkIdentifiers(idLocal, id, loginData))
-					res.add(idLocal);
-
-			}
-		}
-
-		return res;
-	}
-
-	/*public IdentifiersPropositionMessage getIdentifiersPropositionMessageAnswer(LoginData loginData,
-			P2PASymmetricSecretMessageExchanger cipher, boolean encryptIdentifiers)
-			throws AccessException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException,
-			NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException,
-			InvalidAlgorithmParameterException, NoSuchProviderException, IllegalStateException, ShortBufferException {
-		ArrayList<Identifier> validID = getValidDecodedIdentifiers(loginData, cipher);
-		int nbAno = identifiers.length - validID.size();
-		return new IdentifiersPropositionMessage(validID, cipher, encryptIdentifiers,
-				loginData.canTakesLoginInitiative()
-						? ((validID.size() == 0 && identifiers.length > 0) ? (short) 1 : (short) 0)
-						: (nbAno > Short.MAX_VALUE) ? Short.MAX_VALUE : (short) nbAno);
-	}*/
-	public IdentifiersPropositionMessage getIdentifiersPropositionMessageAnswer(LoginData loginData,
-			AbstractSecureRandom random, AbstractMessageDigest messageDigest, boolean encryptIdentifiers, List<Identifier> identifiers, byte[] distantGeneratedSalt, byte[] localGeneratedSalt, Map<Identifier, AutoIdentificationCredentials> jpakes, ASymmetricLoginAgreementType aSymmetricLoginAgreementType)
-			throws AccessException,  DigestException {
-		ArrayList<Identifier> validID = getValidDecodedLocalIdentifiers(loginData, messageDigest, localGeneratedSalt);
-		identifiers.addAll(validID);
-		int nbAno = this.identifiers.length - validID.size();
-		return new IdentifiersPropositionMessage(validID, random, messageDigest, encryptIdentifiers,
-				loginData.canTakesLoginInitiative()
-						? ((validID.size() == 0 && this.identifiers.length > 0) ? (short) 1 : (short) 0)
-						: (nbAno > Short.MAX_VALUE) ? Short.MAX_VALUE : (short) nbAno, distantGeneratedSalt, jpakes, aSymmetricLoginAgreementType);
-	}
-
-	/*public IdPwMessage getIdPwMessage(LoginData loginData, P2PASymmetricSecretMessageExchanger cipher,
-			boolean encryptIdentifiers) throws AccessException, InvalidKeyException, IOException,
-			IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException,
-			NoSuchPaddingException, InvalidAlgorithmParameterException, NoSuchProviderException, IllegalStateException, ShortBufferException {
-		ArrayList<IdentifierPassword> res = new ArrayList<>();
-		int nbAno = 0;
-		if (isEncrypted) {
-			for (Identifier id : identifiers) {
-				Identifier i;
-				if (id instanceof EncryptedIdentifier)
-					i = loginData.getIdentifier((EncryptedIdentifier) id, cipher);
-				else
-					i=id;
-
-				if (i != null) {
-					Identifier localId = loginData.localiseIdentifier(i);
-
-					PasswordKey pw = loginData.getPassword(localId);
-					if (pw != null)
-						res.add(new IdentifierPassword(localId, pw));
-					else
-						++nbAno;
-				} else
-					++nbAno;
-			}
-
-		} else {
-			for (Identifier id : identifiers) {
-				Identifier localId = loginData.localiseIdentifier(id);
-				if (localId==null) {
-					++nbAno;
-					continue;
-				}
-				PasswordKey pw = loginData.getPassword(localId);
-				if (pw != null)
-					res.add(new IdentifierPassword(localId, pw));
-				else
-					++nbAno;
-			}
-		}
-		return new IdPwMessage(res, cipher, encryptIdentifiers,
-				loginData.canTakesLoginInitiative()
-						? ((res.size() == 0 && identifiers.length > 0) ? (short) 1 : (short) 0)
-						: (nbAno > Short.MAX_VALUE) ? Short.MAX_VALUE : (short) nbAno);
-}*/
-	private int getJakeMessageSub(Identifier distantID, List<PairOfIdentifiers> acceptedIdentifiers, LoginData loginData, Map<Identifier, AutoIdentificationCredentials> agreements, P2PLoginAgreementType agreementType, ASymmetricLoginAgreementType aSymmetricLoginAgreementType, AbstractSecureRandom random,
-								   ArrayList<Identifier> newIdentifiersToAdd, MessageDigestType messageDigestType, PasswordHashType passwordHashType, ASymmetricPublicKey myPublicKey) throws InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException, IOException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException {
-		if (distantID==null)
-			return 1;
-		int nbAno=0;
-		if (acceptedIdentifiers!=null) {
-			for (PairOfIdentifiers poi : acceptedIdentifiers)
-				if (poi.getDistantIdentifier().equals(distantID))
-					return nbAno;
-		}
-
-
-		Identifier localId = loginData.localiseIdentifier(distantID);
-
-		if (localId!=null) {
-			P2PLoginAgreement p2PPasswordLoginAgreementForCloudIdentifier=null, p2PASymmetricLoginAgreementForCloudIdentifier=null;
-			P2PLoginAgreement p2PPasswordLoginAgreementForHostIdentifier=null, p2PASymmetricLoginAgreementForHostIdentifier=null;
-			if (checkIdentifiers(localId, distantID, loginData)) {
-				if (distantID.getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey()) {
-					ASymmetricPublicKey pubKey;
-					if ((pubKey = distantID.getCloudIdentifier().getAuthenticationPublicKey()).getAuthentifiedSignatureAlgorithmType() != null) {
-						p2PASymmetricLoginAgreementForCloudIdentifier = aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureReceiver(random, pubKey);
-					} else {
-						++nbAno;
-						return nbAno;
-					}
-				}
-				if (distantID.getHostIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey()) {
-					ASymmetricPublicKey pubKey;
-					if ((pubKey = distantID.getHostIdentifier().getAuthenticationPublicKey()).getAuthentifiedSignatureAlgorithmType() != null) {
-						p2PASymmetricLoginAgreementForHostIdentifier = aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureReceiver(random, pubKey);
-					} else {
-						++nbAno;
-						return nbAno;
-					}
-				}
-				if (distantID.getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPasswordOrSecretKey())
-				{
-					PasswordKey pw = loginData.getCloudPassword(localId);
-					if (pw != null) {
-
-						p2PPasswordLoginAgreementForCloudIdentifier = agreementType.getAgreementAlgorithm(random, localId.toBytes(), pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature(), messageDigestType, passwordHashType, myPublicKey);
-					} else{
-						++nbAno;
-						return nbAno;
-					}
-				}
-				if (distantID.getHostIdentifier().getAuthenticationMethod().isAuthenticatedByPasswordOrSecretKey())
-				{
-					PasswordKey pw = loginData.getHostPassword(localId);
-					if (pw != null) {
-						p2PPasswordLoginAgreementForHostIdentifier = agreementType.getAgreementAlgorithm(random, localId.toBytes(), pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature(), messageDigestType, passwordHashType, myPublicKey);
-					} else{
-						++nbAno;
-						return nbAno;
-					}
-				}
-				if (p2PASymmetricLoginAgreementForCloudIdentifier!=null || p2PASymmetricLoginAgreementForHostIdentifier!=null)
-					agreements.put(distantID, new AutoIdentificationCredentials(p2PASymmetricLoginAgreementForCloudIdentifier, p2PASymmetricLoginAgreementForHostIdentifier));
-				if (p2PASymmetricLoginAgreementForCloudIdentifier!=null || p2PASymmetricLoginAgreementForHostIdentifier!=null)
-					agreements.put(localId, new AutoIdentificationCredentials(p2PPasswordLoginAgreementForCloudIdentifier, p2PPasswordLoginAgreementForHostIdentifier));
-				if (newIdentifiersToAdd != null && !localId.getHostIdentifier().equals(HostIdentifier.getNullHostIdentifierSingleton())) {
-					boolean found = false;
-					if (acceptedIdentifiers != null) {
-
-						for (PairOfIdentifiers poi : acceptedIdentifiers)
-							if (poi.getLocalIdentifier().equals(localId) && !poi.getDistantIdentifier().getHostIdentifier().equals(HostIdentifier.getNullHostIdentifierSingleton())) {
-								found = true;
-								break;
-							}
-					}
-					if (!found) {
-						newIdentifiersToAdd.add(localId);
-					}
-				}
-			}
-			else
-				++nbAno;
-		}
-		else
-			++nbAno;
-		return nbAno;
-	}
-	public JPakeMessage getJPakeMessage(List<PairOfIdentifiers> acceptedIdentifiers, LoginData loginData, Map<Identifier, AutoIdentificationCredentials> agreements, P2PLoginAgreementType agreementType, ASymmetricLoginAgreementType aSymmetricLoginAgreementType, AbstractSecureRandom random, AbstractMessageDigest messageDigest,
-										boolean encryptIdentifiers, byte[] distantGeneratedSalt, byte[] localGeneratedSalt, ArrayList<Identifier> newIdentifiersToAdd,MessageDigestType messageDigestType, PasswordHashType passwordHashType, ASymmetricPublicKey myPublicKey) throws Exception {
-		int nbAno = 0;
-		if (encryptIdentifiers) {
-			for (Identifier id : identifiers) {
-				Identifier i;
-				if (id instanceof EncryptedIdentifier)
-					i = loginData.getIdentifier((EncryptedIdentifier) id, messageDigest, localGeneratedSalt);
-				else
-					i = id;
-				if (i != null) {
-					nbAno+=getJakeMessageSub(i, acceptedIdentifiers, loginData, agreements, agreementType, aSymmetricLoginAgreementType, random, newIdentifiersToAdd, messageDigestType, passwordHashType, myPublicKey);
-				} else
-					++nbAno;
-			}
-
-		} else {
-			for (Identifier id : identifiers) {
-				nbAno+=getJakeMessageSub(id, acceptedIdentifiers, loginData, agreements, agreementType, aSymmetricLoginAgreementType, random, newIdentifiersToAdd, messageDigestType, passwordHashType, myPublicKey);
-			}
-		}
-		return new JPakeMessage(agreements, encryptIdentifiers,
-				loginData.canTakesLoginInitiative()
-						? ((agreements.size() == 0 && identifiers.length > 0) ? (short) 1 : (short) 0)
-						: (nbAno > Short.MAX_VALUE) ? Short.MAX_VALUE : (short) nbAno, random, messageDigest, distantGeneratedSalt);
-	}
-
-	
 
 	@Override
 	public boolean checkDifferedMessages() {
