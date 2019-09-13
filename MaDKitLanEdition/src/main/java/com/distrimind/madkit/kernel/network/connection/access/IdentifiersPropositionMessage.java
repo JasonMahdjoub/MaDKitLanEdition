@@ -38,15 +38,20 @@
 package com.distrimind.madkit.kernel.network.connection.access;
 
 import com.distrimind.madkit.kernel.network.NetworkProperties;
-import com.distrimind.util.crypto.*;
-import com.distrimind.util.io.*;
+import com.distrimind.util.crypto.AbstractSecureRandom;
+import com.distrimind.util.io.Integrity;
+import com.distrimind.util.io.MessageExternalizationException;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
 
-import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.InvalidParameterSpecException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * 
@@ -105,7 +110,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 	private static final int saltSizeBytes=32;
 
 	public IdentifiersPropositionMessage(Collection<Identifier> _id_pws, short nbAnomalies,
-										 byte[] distantGeneratedSalt, AbstractSecureRandom random) throws DigestException, InvalidKeyException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeySpecException {
+										 byte[] distantGeneratedSalt, AbstractSecureRandom random) throws InvalidKeyException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeySpecException {
 		identifiers = new Identifier[_id_pws.size()];
 		hostSignatures=new byte[_id_pws.size()][];
 		int index=0;
@@ -130,12 +135,18 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		this.nbAnomalies = nbAnomalies;
 	}
 
-	private Identifier getValidDistantIdentifier(Collection<CloudIdentifier> acceptedCloudIdentifiers, Identifier identifier, byte[] signature, LoginData loginData, byte[] localGeneratedSalt) throws InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidParameterSpecException, SignatureException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeySpecException {
+	private Identifier getValidDistantIdentifier(Collection<CloudIdentifier> acceptedCloudIdentifiers, Identifier identifier, byte[] signature, LoginData loginData, byte[] localGeneratedSalt)
+			throws InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidParameterSpecException, SignatureException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeySpecException {
 		CloudIdentifier foundCloudIdentifier=null;
-		for (CloudIdentifier cid : acceptedCloudIdentifiers)
+
+		for (Iterator<CloudIdentifier> it=acceptedCloudIdentifiers.iterator();it.hasNext();)
 		{
-			if (cid.equals(identifier.getCloudIdentifier()))
-				foundCloudIdentifier=cid;
+			CloudIdentifier cid =it.next();
+			if (cid.equals(identifier.getCloudIdentifier())) {
+				foundCloudIdentifier = cid;
+				it.remove();
+				break;
+			}
 		}
 
 		if (foundCloudIdentifier!=null && loginData.isDistantHostIdentifierValid(identifier))
@@ -155,6 +166,20 @@ class IdentifiersPropositionMessage extends AccessMessage {
 
 	}
 
+	public LoginConfirmationMessage getLoginConfirmationMessage(Collection<CloudIdentifier> acceptedCloudIdentifiers, byte[] signature, LoginData loginData, byte[] localGeneratedSalt)
+			throws InvalidAlgorithmParameterException, InvalidKeySpecException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidKeyException, InvalidParameterSpecException {
+		ArrayList<Identifier> validDistantIds=new ArrayList<>(identifiers.length);
+		int nbAno=nbAnomalies;
+		for (Identifier id : identifiers)
+		{
+			Identifier resid=getValidDistantIdentifier(acceptedCloudIdentifiers, id, signature, loginData, localGeneratedSalt);
+			if (resid!=null)
+				validDistantIds.add(resid);
+			else
+				++nbAno;
+		}
+		return new LoginConfirmationMessage(validDistantIds, nbAno>Short.MAX_VALUE?Short.MAX_VALUE:(short)nbAno, true);
+	}
 	
 	@Override
 	public short getNbAnomalies() {

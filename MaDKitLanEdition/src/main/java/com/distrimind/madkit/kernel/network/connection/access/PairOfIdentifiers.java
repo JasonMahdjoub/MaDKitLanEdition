@@ -37,6 +37,8 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
+import java.util.Objects;
+
 /**
  * Represents a pair of identifiers, each equivalent between one peer and one
  * other. Each local and distant identifiers has the same cloud identifier, but
@@ -51,39 +53,40 @@ public class PairOfIdentifiers {
 	private final Identifier distantIdentifier;
 
 	PairOfIdentifiers(Identifier _localIdentifier, Identifier _distant_identifier) {
-		if (_localIdentifier == null) {
-			throw new NullPointerException("_localIdentifier");
+		if (_localIdentifier == null && _distant_identifier==null) {
+			throw new NullPointerException("_localIdentifier and _distant_identifier are both null");
 		}
-		if (_distant_identifier == null)
-			throw new NullPointerException("_distant_identifier");
-
-
-		if (!_localIdentifier.getHostIdentifier().equals(HostIdentifier.getNullHostIdentifierSingleton()) && _localIdentifier.equalsHostIdentifier(_distant_identifier)) {
-			throw new IllegalArgumentException(
+		if (_distant_identifier!=null && _localIdentifier!=null){
+			if (!_localIdentifier.getHostIdentifier().equals(HostIdentifier.getNullHostIdentifierSingleton()) && _localIdentifier.equalsHostIdentifier(_distant_identifier))
+				throw new IllegalArgumentException(
 					"_localIdentifier and _distant_identifier cannot have the same host identifiers : "+_localIdentifier.getHostIdentifier());
+			if (!_localIdentifier.equalsCloudIdentifier(_distant_identifier)) {
+				throw new IllegalArgumentException(
+						"_localIdentifier and _distant_identifier must have the same cloud identifier");
+			}
 		}
-
-		if (_localIdentifier.equalsCloudIdentifier(_distant_identifier)) {
-			localIdentifier = _localIdentifier;
-			distantIdentifier = _distant_identifier;
-		}
-
-		else {
-			throw new IllegalArgumentException(
-					"_localIdentifier and _distant_identifier must have the same cloud identifier");
-		}
+		localIdentifier = _localIdentifier;
+		distantIdentifier = _distant_identifier;
 	}
+
 	@Override
 	public int hashCode()
 	{
-		return localIdentifier.hashCode()^distantIdentifier.hashCode();
+		int res=0;
+		if (localIdentifier!=null)
+			res=localIdentifier.hashCode();
+		if (distantIdentifier!=null)
+			res^=distantIdentifier.hashCode();
+		return res;
 	}
 
 	@Override
 	public boolean equals(Object o) {
-		if (o instanceof PairOfIdentifiers)
-			return this.equals((PairOfIdentifiers) o);
-		return false;
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		PairOfIdentifiers that = (PairOfIdentifiers) o;
+		return Objects.equals(localIdentifier, that.localIdentifier) &&
+				Objects.equals(distantIdentifier, that.distantIdentifier);
 	}
 
 	@Override
@@ -107,8 +110,4 @@ public class PairOfIdentifiers {
 		return distantIdentifier;
 	}
 
-	public boolean equals(PairOfIdentifiers _identifier) {
-		return localIdentifier.equals(_identifier.localIdentifier)
-				&& distantIdentifier.equals(_identifier.distantIdentifier);
-	}
 }
