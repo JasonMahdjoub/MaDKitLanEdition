@@ -44,10 +44,7 @@ import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -126,7 +123,7 @@ class LoginConfirmationMessage extends AccessMessage {
 		return checkDifferedMessages;
 	}
 
-	private PairOfIdentifiers getAcceptedPairOfIdentifiers(LoginConfirmationMessage localLoginConfirmationMessage, Collection<Identifier> proposedLocalIdentifiers, Identifier identifier)
+	private PairOfIdentifiers getAcceptedPairOfIdentifiers(Collection<PairOfIdentifiers> alreadyValidatedPairOfIdentifiers, Set<PairOfIdentifiers> removedValidatedPairOfIdentifiers, LoginConfirmationMessage localLoginConfirmationMessage, Identifier[] proposedLocalIdentifiers, Identifier identifier)
 	{
 		Identifier foundLocalId=null;
 		for (Identifier id : proposedLocalIdentifiers)
@@ -138,29 +135,53 @@ class LoginConfirmationMessage extends AccessMessage {
 		}
 		if (foundLocalId!=null)
 		{
+			PairOfIdentifiers proposed=null;
+
 			for (Identifier id : localLoginConfirmationMessage.accepted_identifiers)
 			{
 				if (id.getCloudIdentifier().equals(foundLocalId.getCloudIdentifier()))
 				{
 					if (!id.getHostIdentifier().equals(foundLocalId.getHostIdentifier()))
-						return new PairOfIdentifiers(foundLocalId, id);
-					else
-						return null;
+						proposed=new PairOfIdentifiers(foundLocalId, id);
 				}
 			}
-			return new PairOfIdentifiers(foundLocalId, null);
+
+			for (Iterator<PairOfIdentifiers> it = alreadyValidatedPairOfIdentifiers.iterator();it.hasNext();)
+			{
+				PairOfIdentifiers poi = it.next();
+				if (poi.getDistantIdentifier()!=null && poi.getDistantIdentifier().getCloudIdentifier().equals(foundLocalId.getCloudIdentifier()))
+				{
+					removedValidatedPairOfIdentifiers.add(poi);
+					if (poi.getDistantIdentifier().getHostIdentifier().equals(foundLocalId.getHostIdentifier()))
+						break;
+					else if (proposed==null)
+						proposed= new PairOfIdentifiers(foundLocalId, poi.getDistantIdentifier());
+				}
+				else if (proposed!=null && poi.getLocalIdentifier()!=null && poi.getLocalIdentifier().getCloudIdentifier().equals(proposed.getDistantIdentifier().getCloudIdentifier()))
+				{
+					removedValidatedPairOfIdentifiers.add(poi);
+					if (poi.getLocalIdentifier().getHostIdentifier().equals(foundLocalId.getHostIdentifier()))
+						break;
+				}
+			}
+			if (proposed==null)
+				return new PairOfIdentifiers(foundLocalId, null);
+			else
+				return proposed;
 		}
 		else
 			return null;
 	}
 
-	public List<PairOfIdentifiers> getAcceptedPairsOfIdentifiers(LoginConfirmationMessage localLoginConfirmationMessage, Collection<Identifier> proposedLocalIdentifiers)
+	public ArrayList<PairOfIdentifiers> getAcceptedPairsOfIdentifiers(Collection<PairOfIdentifiers> alreadyValidatedPairOfIdentifiers, Set<PairOfIdentifiers> removedValidatedPairOfIdentifiers, LoginConfirmationMessage localLoginConfirmationMessage, Identifier[] proposedLocalIdentifiers)
 	{
+
+
 		ArrayList<PairOfIdentifiers> res=new ArrayList<>();
 		HashSet<Identifier> usedDistantIdentifiers=new HashSet<>();
 		for (Identifier id : accepted_identifiers)
 		{
-			PairOfIdentifiers poi=getAcceptedPairOfIdentifiers(localLoginConfirmationMessage,proposedLocalIdentifiers, id );
+			PairOfIdentifiers poi=getAcceptedPairOfIdentifiers(alreadyValidatedPairOfIdentifiers, removedValidatedPairOfIdentifiers, localLoginConfirmationMessage,proposedLocalIdentifiers, id );
 			if (poi!=null) {
 				res.add(poi);
 				usedDistantIdentifiers.add(poi.getDistantIdentifier());
@@ -168,8 +189,25 @@ class LoginConfirmationMessage extends AccessMessage {
 		}
 		for (Identifier distantID : localLoginConfirmationMessage.accepted_identifiers)
 		{
-			if (!usedDistantIdentifiers.contains(distantID))
-				res.add(new PairOfIdentifiers(null, distantID));
+			if (!usedDistantIdentifiers.contains(distantID)) {
+				boolean add=true;
+				for (Iterator<PairOfIdentifiers> it = alreadyValidatedPairOfIdentifiers.iterator();it.hasNext();)
+				{
+					PairOfIdentifiers poi = it.next();
+					if (poi.getDistantIdentifier()!=null && poi.getDistantIdentifier().getCloudIdentifier().equals(distantID.getCloudIdentifier()))
+					{
+						if (!distantID.equals(poi.getDistantIdentifier())) {
+							removedValidatedPairOfIdentifiers.add(poi);
+						}
+						else
+							add=false;
+						break;
+					}
+				}
+				if (add)
+					res.add(new PairOfIdentifiers(null, distantID));
+			}
+
 		}
 		return res;
 

@@ -63,8 +63,8 @@ public class NewLocalLoginAddedMessage extends LocalLogingAccessMessage {
 		
 	}
 
-	public NewLocalLoginAddedMessage(ArrayList<Identifier> _identifiers, boolean forceLoginInitiative) {
-		identifiers = _identifiers;
+	public NewLocalLoginAddedMessage(ArrayList<CloudIdentifier> _identifiers, boolean forceLoginInitiative) {
+		identifiers = new ArrayList<>(_identifiers);
 		this.forceLoginInitiative=forceLoginInitiative;
 	}
 

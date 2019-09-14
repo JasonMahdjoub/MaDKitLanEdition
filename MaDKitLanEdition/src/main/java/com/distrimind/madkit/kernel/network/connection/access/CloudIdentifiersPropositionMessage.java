@@ -174,14 +174,12 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 			return false;
 	}*/
 	public void getValidDecodedCloudIdentifiers(LoginData loginData,
-			AbstractMessageDigest messageDigest, byte[] localGeneratedSalt , ArrayList<CloudIdentifier> validCloudIdentifiers, ArrayList<WrappedCloudIdentifier> invalidCloudIdentifiers) throws AccessException, InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidParameterSpecException, SignatureException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeySpecException {
+			AbstractMessageDigest messageDigest, byte[] localGeneratedSalt , Collection<CloudIdentifier> validCloudIdentifiers) throws AccessException, InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidParameterSpecException, SignatureException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeySpecException {
 
 		for (WrappedCloudIdentifier id : identifiers) {
 			CloudIdentifier i=loginData.getLocalVersionOfDistantCloudIdentifier(id, messageDigest, localGeneratedSalt);
 			if (i!=null)
 				validCloudIdentifiers.add(i);
-			else
-				invalidCloudIdentifiers.add(id);
 		}
 
 	}
@@ -199,12 +197,16 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 						: (nbAno > Short.MAX_VALUE) ? Short.MAX_VALUE : (short) nbAno);
 	}*/
 	public CloudIdentifiersPropositionMessage getIdentifiersPropositionMessageAnswer(LoginData loginData,
-																					 AbstractSecureRandom random, AbstractMessageDigest messageDigest, boolean encryptIdentifiers, List<CloudIdentifier> autoSignedCloudIdentifiers, byte[] distantGeneratedSalt, byte[] localGeneratedSalt)
+																					 AbstractSecureRandom random,
+																					 AbstractMessageDigest messageDigest,
+																					 boolean encryptIdentifiers,
+																					 Collection<CloudIdentifier> validCloudIdentifiers,
+																					 byte[] distantGeneratedSalt,
+																					 byte[] localGeneratedSalt)
 			throws AccessException, InvalidAlgorithmParameterException, InvalidKeySpecException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidKeyException, InvalidParameterSpecException, DigestException {
 		ArrayList<CloudIdentifier> validID=new ArrayList<>();
-		ArrayList<WrappedCloudIdentifier> invalidID=new ArrayList<>();
-		getValidDecodedCloudIdentifiers(loginData, messageDigest, localGeneratedSalt, validID, invalidID);
-		autoSignedCloudIdentifiers.addAll(validID);
+		getValidDecodedCloudIdentifiers(loginData, messageDigest, localGeneratedSalt, validID);
+		validCloudIdentifiers.addAll(validID);
 		int nbAno = this.identifiers.length - validID.size();
 		return new CloudIdentifiersPropositionMessage(random, messageDigest, encryptIdentifiers,
 				loginData.canTakesLoginInitiative()
@@ -257,7 +259,7 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 						? ((res.size() == 0 && identifiers.length > 0) ? (short) 1 : (short) 0)
 						: (nbAno > Short.MAX_VALUE) ? Short.MAX_VALUE : (short) nbAno);
 }*/
-	private int getJakeMessageSub(WrappedCloudIdentifier distantCloudID, Collection<CloudIdentifier> acceptedCloudIdentifiers,
+	private int getJakeMessageSub(WrappedCloudIdentifier distantCloudID, Collection<PairOfIdentifiers> acceptedIdentifiers,
 								  List<CloudIdentifier> newAcceptedDistantCloudIdentifiers,
 								  Map<WrappedCloudIdentifier, CloudIdentifier> temporaryAcceptedCloudIdentifiers, LoginData loginData,
 								  Map<WrappedCloudIdentifier, P2PLoginAgreement> agreements, P2PLoginAgreementType agreementType,
@@ -273,9 +275,9 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 		boolean ok=true;
 
 		if (localCloudIdentifier!=null) {
-			if (acceptedCloudIdentifiers!=null) {
-				for (CloudIdentifier poi : acceptedCloudIdentifiers)
-					if (poi.equals(localCloudIdentifier))
+			if (acceptedIdentifiers!=null) {
+				for (PairOfIdentifiers poi : acceptedIdentifiers)
+					if (poi.getLocalIdentifier().getCloudIdentifier().equals(localCloudIdentifier))
 						return nbAno;
 			}
 
@@ -311,7 +313,7 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 
 		return nbAno;
 	}
-	public JPakeMessageForAuthenticationOfCloudIdentifiers getJPakeMessage(List<CloudIdentifier> acceptedCloudIdentifiers,
+	public JPakeMessageForAuthenticationOfCloudIdentifiers getJPakeMessage(List<PairOfIdentifiers> acceptedIdentifiers,
 																		   List<CloudIdentifier> newAcceptedCloudIdentifiers,
 																		   Map<WrappedCloudIdentifier, CloudIdentifier> temporaryAcceptedCloudIdentifiers,
 																		   LoginData loginData,
@@ -320,7 +322,7 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 										byte[] localGeneratedSalt, MessageDigestType messageDigestType, PasswordHashType passwordHashType, ASymmetricPublicKey myPublicKey) throws Exception {
 		int nbAno = 0;
 		for (WrappedCloudIdentifier id : identifiers) {
-			nbAno+=getJakeMessageSub(id, acceptedCloudIdentifiers, newAcceptedCloudIdentifiers,
+			nbAno+=getJakeMessageSub(id, acceptedIdentifiers, newAcceptedCloudIdentifiers,
 					temporaryAcceptedCloudIdentifiers, loginData, agreements, agreementType, random, messageDigestType, passwordHashType, myPublicKey,
 					localGeneratedSalt);
 		}

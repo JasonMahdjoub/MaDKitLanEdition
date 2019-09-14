@@ -65,9 +65,11 @@ public abstract class AbstractAccessProtocol {
 	private AtomicReference<MultiGroup> groups_access = new AtomicReference<>();
 	private boolean other_can_takes_initiative;
 
-	private List<Identifier> identifiers = null;
+	private List<CloudIdentifier> cloudIdentifiers = null;
 	private ArrayList<PairOfIdentifiers> acceptedIdentifiers = null;
-	private ArrayList<PairOfIdentifiers> deniedIdentifiers = null;
+	private ArrayList<Identifier> deniedLocalIdentifiers = null;
+	private ArrayList<Identifier> deniedDistantIdentifiers = null;
+	private ArrayList<CloudIdentifier> deniedCloudIdentifiers = null;
 	protected final InetSocketAddress distant_inet_address;
 	// private final InetSocketAddress local_interface_address;
 	private KernelAddress kernel_address = null;
@@ -130,12 +132,16 @@ public abstract class AbstractAccessProtocol {
 	{
 		return kernel_address;
 	}
-	
+
+	protected void resetLogin() throws AccessException {
+		cloudIdentifiers = null;
+		acceptedIdentifiers = null;
+		deniedLocalIdentifiers = null;
+		deniedDistantIdentifiers = null;
+	}
 	protected void reset() throws AccessException
 	{
-		identifiers=null;
-		acceptedIdentifiers=null;
-		deniedIdentifiers=null;
+		resetLogin();
 		groups_access.set(null);
 	}
 
@@ -195,7 +201,9 @@ public abstract class AbstractAccessProtocol {
 	//private KernelAddress distant_kernel_address;
 	private ArrayList<PairOfIdentifiers> last_accepted_identifiers = new ArrayList<>();
 	private ArrayList<PairOfIdentifiers> all_accepted_identifiers = new ArrayList<>();
-	private ArrayList<PairOfIdentifiers> last_denied_identifiers_from_other = new ArrayList<>();
+	private ArrayList<Identifier> last_denied_identifiers_from_other = new ArrayList<>();
+	private ArrayList<Identifier> last_denied_identifiers_to_other = new ArrayList<>();
+	private ArrayList<CloudIdentifier> last_denied_cloud_to_other = new ArrayList<>();
 	private ArrayList<PairOfIdentifiers> last_unlogged_identifiers = new ArrayList<>();
 
 	/*public KernelAddress getDistantKernelAddress() {
@@ -207,8 +215,8 @@ public abstract class AbstractAccessProtocol {
 		distant_kernel_address=ka;
 	}*/
 	
-	protected void addLastAcceptedAndDeniedIdentifiers(ArrayList<PairOfIdentifiers> _accepted_identifiers,
-			ArrayList<PairOfIdentifiers> _denied_identifiers) {
+	protected void addLastAcceptedAndDeniedIdentifiers(ArrayList<CloudIdentifier> deniedDistantCloudIdentifiers, ArrayList<PairOfIdentifiers> _accepted_identifiers,
+			ArrayList<Identifier> _denied_local_identifiers, ArrayList<Identifier> _denied_distant_identifiers) {
 
 
 		for (PairOfIdentifiers poi : _accepted_identifiers)
@@ -241,7 +249,10 @@ public abstract class AbstractAccessProtocol {
 			all_accepted_identifiers.add(poi);
 			last_accepted_identifiers.add(poi);
 		}
-		last_denied_identifiers_from_other.addAll(_denied_identifiers);
+		last_denied_identifiers_from_other.addAll(_denied_local_identifiers);
+		last_denied_identifiers_to_other.addAll(_denied_distant_identifiers);
+		last_denied_cloud_to_other.addAll(deniedDistantCloudIdentifiers);
+
 	}
 
 	protected UnlogMessage removeAcceptedIdentifiers(ArrayList<Identifier> _identifiers) {
@@ -297,9 +308,19 @@ public abstract class AbstractAccessProtocol {
 		return res;
 	}
 
-	public ArrayList<PairOfIdentifiers> getLastDeniedIdentifiers() {
-		ArrayList<PairOfIdentifiers> res = last_denied_identifiers_from_other;
+	public ArrayList<Identifier> getLastDeniedIdentifiersFromOther() {
+		ArrayList<Identifier> res = last_denied_identifiers_from_other;
 		last_denied_identifiers_from_other = new ArrayList<>();
+		return res;
+	}
+	public ArrayList<Identifier> getLastDeniedIdentifiersToOther() {
+		ArrayList<Identifier> res = last_denied_identifiers_to_other;
+		last_denied_identifiers_to_other = new ArrayList<>();
+		return res;
+	}
+	public ArrayList<CloudIdentifier> getLastDeniedCloudIdentifiersToOther() {
+		ArrayList<CloudIdentifier> res = last_denied_cloud_to_other;
+		last_denied_cloud_to_other = new ArrayList<>();
 		return res;
 	}
 
@@ -322,13 +343,13 @@ public abstract class AbstractAccessProtocol {
 
 	public abstract boolean isAccessFinalized();
 	
-	protected void setIdentifiers(List<Identifier> identifiers)
+	protected void setCloudIdentifiers(List<CloudIdentifier> cloudIdentifiers)
 	{
-		this.identifiers=identifiers;
+		this.cloudIdentifiers=cloudIdentifiers;
 	}
-	protected List<Identifier> getIdentifiers()
+	protected List<CloudIdentifier> getCloudIdentifiers()
 	{
-		return this.identifiers;
+		return this.cloudIdentifiers;
 	}
 	
 	protected boolean isAccessFinalizedMessage()
@@ -352,12 +373,28 @@ public abstract class AbstractAccessProtocol {
 		this.acceptedIdentifiers = acceptedIdentifiers;
 	}
 
-	protected ArrayList<PairOfIdentifiers> getDeniedIdentifiers() {
-		return deniedIdentifiers;
+	public ArrayList<Identifier> getDeniedLocalIdentifiers() {
+		return deniedLocalIdentifiers;
 	}
 
-	protected void setDeniedIdentifiers(ArrayList<PairOfIdentifiers> deniedIdentifiers) {
-		this.deniedIdentifiers = deniedIdentifiers;
+	public void setDeniedLocalIdentifiers(ArrayList<Identifier> deniedLocalIdentifiers) {
+		this.deniedLocalIdentifiers = deniedLocalIdentifiers;
+	}
+
+	public ArrayList<Identifier> getDeniedDistantIdentifiers() {
+		return deniedDistantIdentifiers;
+	}
+
+	public void setDeniedDistantIdentifiers(ArrayList<Identifier> deniedDistantIdentifiers) {
+		this.deniedDistantIdentifiers = deniedDistantIdentifiers;
+	}
+
+	protected ArrayList<CloudIdentifier> getDeniedCloudIdentifiers() {
+		return deniedCloudIdentifiers;
+	}
+
+	protected void setDeniedCloudIdentifiers(ArrayList<CloudIdentifier> deniedCloudIdentifiers) {
+		this.deniedCloudIdentifiers = deniedCloudIdentifiers;
 	}
 	
 }

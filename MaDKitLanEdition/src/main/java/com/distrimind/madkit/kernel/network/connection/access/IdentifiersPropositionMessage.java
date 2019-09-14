@@ -72,13 +72,18 @@ class IdentifiersPropositionMessage extends AccessMessage {
 	{
 		nbAnomalies=0;
 	}
-	
+
+	public Identifier[] getIdentifiers() {
+		return identifiers;
+	}
+
 	@Override
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 
 		identifiers=in.readObject(false, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE, Identifier[].class);
 		hostSignatures=in.read2DBytesArray(false, true, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE, MAX_SIGNATURE_SIZE);
 	}
+
 	@Override
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 
@@ -166,13 +171,14 @@ class IdentifiersPropositionMessage extends AccessMessage {
 
 	}
 
-	public LoginConfirmationMessage getLoginConfirmationMessage(Collection<CloudIdentifier> acceptedCloudIdentifiers, byte[] signature, LoginData loginData, byte[] localGeneratedSalt)
+	public LoginConfirmationMessage getLoginConfirmationMessage(Collection<CloudIdentifier> acceptedCloudIdentifiers, LoginData loginData, byte[] localGeneratedSalt)
 			throws InvalidAlgorithmParameterException, InvalidKeySpecException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidKeyException, InvalidParameterSpecException {
 		ArrayList<Identifier> validDistantIds=new ArrayList<>(identifiers.length);
 		int nbAno=nbAnomalies;
-		for (Identifier id : identifiers)
+		for (int i=0;i<identifiers.length;i++)
 		{
-			Identifier resid=getValidDistantIdentifier(acceptedCloudIdentifiers, id, signature, loginData, localGeneratedSalt);
+			Identifier id = identifiers[i];
+			Identifier resid=getValidDistantIdentifier(acceptedCloudIdentifiers, id, hostSignatures[i], loginData, localGeneratedSalt);
 			if (resid!=null)
 				validDistantIds.add(resid);
 			else

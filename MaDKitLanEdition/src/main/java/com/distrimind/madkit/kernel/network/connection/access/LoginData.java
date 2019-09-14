@@ -373,7 +373,7 @@ public abstract class LoginData extends AccessData {
 	 * @param distantCloudIdentifier the received cloud identifier
 	 * @return the local version of the given cloud identifier
 	 */
-	public abstract CloudIdentifier getLocalVersionOfDistantCloudIdentifierImpl(CloudIdentifier distantCloudIdentifier);
+	protected abstract CloudIdentifier getLocalVersionOfDistantCloudIdentifierImpl(CloudIdentifier distantCloudIdentifier);
 
 
 	/**
