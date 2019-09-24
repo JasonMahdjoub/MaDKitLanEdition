@@ -648,7 +648,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		}
 	}
 
-	class AgentSocketKilled extends Message {
+	static class AgentSocketKilled extends Message {
 
 
 		protected final Collection<AbstractData> shortDataNotSent;
@@ -2286,7 +2286,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 							// send to DistantKernelAddressAgent logins and access authorized
 							sendMessageWithRole(agent_for_distant_kernel_aa,
 									new NetworkLoginAccessEvent(distant_kernel_address, my_accepted_logins.identifiers,
-											my_accepted_logins.identifiers, null, null),
+											my_accepted_logins.identifiers, null, null, null, null),
 									LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 							
 						}
@@ -2538,7 +2538,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					logger.severe("Unable to send message to distant kernel agent");
 				rc=sendMessageWithRole(
 						this.agent_for_distant_kernel_aa, new NetworkLoginAccessEvent(distant_kernel_address,
-								my_accepted_logins.identifiers, my_accepted_logins.identifiers, null, null),
+								my_accepted_logins.identifiers, my_accepted_logins.identifiers, null, null, null, null),
 						LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 				if (!rc.equals(ReturnCode.SUCCESS) && logger!=null)
 					logger.severe("Unable to send message to distant kernel agent");
@@ -2755,15 +2755,17 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 
 		void updateData() {
 			if (access_protocol != null) {
-
 				ArrayList<PairOfIdentifiers> accepted = access_protocol.getLastAcceptedIdentifiers();
-				ArrayList<PairOfIdentifiers> denied = access_protocol.getLastDeniedIdentifiers();
+				ArrayList<CloudIdentifier> lastDeniedCloudIdentifiersToOther = access_protocol.getLastDeniedCloudIdentifiersToOther();
+				ArrayList<Identifier> lastDeniedIdentifiersFromOther = access_protocol.getLastDeniedIdentifiersFromOther();
+				ArrayList<Identifier> lastDeniedIdentifiersToOther = access_protocol.getLastDeniedIdentifiersToOther();
 				ArrayList<PairOfIdentifiers> unlogged = access_protocol.getLastUnloggedIdentifiers();
 				identifiers = access_protocol.getAllAcceptedIdentifiers();
 
 				if (distant_kernel_address != null) {
 					sendMessageWithRole(AbstractAgentSocket.this.agent_for_distant_kernel_aa,
-							new NetworkLoginAccessEvent(distant_kernel_address, identifiers, accepted, denied,
+							new NetworkLoginAccessEvent(distant_kernel_address, identifiers, accepted, lastDeniedCloudIdentifiersToOther,
+									lastDeniedIdentifiersFromOther,lastDeniedIdentifiersToOther,
 									unlogged),
 							LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 				}
@@ -3067,7 +3069,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		return connection_protocol.getBlock(_packet, _transfert_type, need_random ? random : null, excludedFromEncryption);
 	}
 
-	protected abstract class BlockData extends AbstractData {
+	static protected abstract class BlockData extends AbstractData {
 		private final IDTransfer id_transfert;
 		private ByteBuffer buffer;
 		private Block block;

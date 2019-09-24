@@ -59,8 +59,6 @@ import com.distrimind.madkit.i18n.I18nUtilities;
 import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol;
 import com.distrimind.madkit.kernel.network.connection.PointToPointTransferedBlockChecker;
-import com.distrimind.madkit.kernel.network.connection.access.EncryptedCloudIdentifier;
-import com.distrimind.madkit.kernel.network.connection.access.EncryptedIdentifier;
 import com.distrimind.madkit.kernel.network.connection.access.EncryptedPassword;
 import com.distrimind.madkit.kernel.network.connection.access.Identifier;
 import com.distrimind.madkit.message.*;
@@ -1026,7 +1024,7 @@ final public class Madkit {
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.DataToBroadcast"),
 					DistantKernelAddressValidated.class,
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.IdentifiersPropositionMessage"),
-					Identifier.class, EncryptedIdentifier.class,
+					Identifier.class,
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.JPakeMessage"),
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.secured.KeyAgreementDataMessage"),
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.LoginConfirmationMessage"),
@@ -1042,8 +1040,12 @@ final public class Madkit {
 					KernelMessage.class, StringMessage.class, (Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.message.hook.OrganizationEvent"),
 					SchedulingMessage.class, KQMLMessage.class, IntegerMessage.class, BooleanMessage.class,
 					GUIMessage.class, (Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.InternalRole"),
-					EncryptedPassword.class, GUIMessage.class, (Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.DatagramLocalNetworkPresenceMessage"),
-					EncryptedCloudIdentifier.class,
+					EncryptedPassword.class, GUIMessage.class,
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.DatagramLocalNetworkPresenceMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.EncryptedCloudIdentifier"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.WrappedCloudIdentifier"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.CloudIdentifiersPropositionMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.JPakeMessageForAuthenticationOfCloudIdentifiers"),
 					DatabaseWrapper.DatabaseEventsToSynchronize.class,
 					DatabaseWrapper.DatabaseTransactionsIdentifiersToSynchronize.class,
 					HookAddRequest.class,

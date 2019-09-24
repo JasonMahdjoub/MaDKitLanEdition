@@ -278,8 +278,9 @@ final class NIOAgent extends Agent {
 	private long getDownloadToWaitInMsToBecomeUnderBandwidthLimit()
     {
         long res=0;
-        long limit=getMaximumGlobalDownloadSpeedInBytesPerSecond()*2;
-        if (limit!=Integer.MAX_VALUE)
+        long max=getMaximumGlobalDownloadSpeedInBytesPerSecond();
+        long limit=max*2L;
+        if (max!=Integer.MAX_VALUE)
         {
             @SuppressWarnings("UnnecessaryLocalVariable") double l=limit;
 
@@ -297,9 +298,10 @@ final class NIOAgent extends Agent {
     private long getUploadToWaitInMsToBecomeUnderBandwidthLimit()
     {
         long res=0;
-        long limit=getMaximumGlobalUploadSpeedInBytesPerSecond()*2;
+        long max=getMaximumGlobalUploadSpeedInBytesPerSecond();
+        long limit=max*2L;
 
-        if (limit!=Integer.MAX_VALUE)
+        if (max!=Integer.MAX_VALUE)
         {
             @SuppressWarnings("UnnecessaryLocalVariable") double l=limit;
 
@@ -2337,7 +2339,7 @@ final class NIOAgent extends Agent {
 		}
 	}
 
-	private class PendingConnection {
+	private static class PendingConnection {
 		protected final InetSocketAddress inetSocketAddress;
 		protected final InetAddress local_interface;
 		private final AskForConnectionMessage askerMessage;

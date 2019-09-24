@@ -50,6 +50,8 @@ import com.distrimind.madkit.kernel.network.AbstractAgentSocket.Groups;
 import com.distrimind.madkit.kernel.network.AbstractAgentSocket.ReceivedBlockData;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
+import com.distrimind.madkit.kernel.network.connection.access.CloudIdentifier;
+import com.distrimind.madkit.kernel.network.connection.access.Identifier;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.ObjectMessage;
 import com.distrimind.madkit.message.hook.DistantKernelAgentEventMessage;
@@ -91,10 +93,12 @@ class DistantKernelAgent extends AgentFakeThread {
 	private boolean kernelAddressActivated = false;
 	private long lastAgentsUpdate = -1;
 
-	private ArrayList<PairOfIdentifiers> accepted_identifiers = new ArrayList<>();
-	private ArrayList<PairOfIdentifiers> last_accepted_identifiers = new ArrayList<>();
-	private ArrayList<PairOfIdentifiers> last_denied_identifiers = new ArrayList<>();
-	private ArrayList<PairOfIdentifiers> last_unlogged_identifiers = new ArrayList<>();
+	private List<PairOfIdentifiers> accepted_identifiers = new ArrayList<>();
+	private List<PairOfIdentifiers> last_accepted_identifiers = new ArrayList<>();
+	private List<CloudIdentifier> lastDeniedCloudIdentifiersToOther = new ArrayList<>();
+	private List<Identifier> lastDeniedIdentifiersFromOther = new ArrayList<>();
+	private List<Identifier> lastDeniedIdentifiersToOther = new ArrayList<>();
+	private List<PairOfIdentifiers> last_unlogged_identifiers = new ArrayList<>();
 	private ArrayList<Group> localAcceptedAndRequestedGroups = new ArrayList<>();
 	private ArrayList<Group> sharedAcceptedAndRequestedGroups = new ArrayList<>();
 	// private MultiGroup localGeneralAcceptedGroups=new MultiGroup();
@@ -1217,11 +1221,17 @@ class DistantKernelAgent extends AgentFakeThread {
 	}*/
 
 	private void updateLoginData(ArrayList<AgentSocketData> agents_socket, Set<PairOfIdentifiers> ids,
-			Set<PairOfIdentifiers> idsnewa, Set<PairOfIdentifiers> idsnewd, Set<PairOfIdentifiers> idsnewu) {
+			Set<PairOfIdentifiers> idsnewa,
+								 Set<CloudIdentifier> lastDeniedCloudIdentifiersToOther,
+								 Set<Identifier> lastDeniedIdentifiersFromOther,
+								 Set<Identifier> lastDeniedIdentifiersToOther,
+								 Set<PairOfIdentifiers> idsnewu) {
 		for (AgentSocketData a : agents_socket) {
 			ids.addAll(a.getAcceptedPairOfIdentifiers());
 			idsnewa.addAll(a.getLastAcceptedPairOfIdentifiers());
-			idsnewd.addAll(a.getLastDeniedPairOfIdentifiers());
+			lastDeniedCloudIdentifiersToOther.addAll(a.getLastDeniedCloudIdentifiersToOther());
+			lastDeniedIdentifiersFromOther.addAll(a.getLastDeniedIdentifiersFromOther());
+			lastDeniedIdentifiersToOther.addAll(a.getLastDeniedIdentifiersToOther());
 			idsnewu.addAll(a.getLastUnloggedPairOfIdentifiers());
 		}
 	}
@@ -1229,10 +1239,12 @@ class DistantKernelAgent extends AgentFakeThread {
 	private void updateLoginData() {
 		Set<PairOfIdentifiers> ids = new HashSet<>();
 		Set<PairOfIdentifiers> idsnewa = new HashSet<>();
-		Set<PairOfIdentifiers> idsnewd = new HashSet<>();
+		Set<CloudIdentifier> lastDeniedCloudIdentifiersToOther=new HashSet<>();
+		Set<Identifier> lastDeniedIdentifiersFromOther=new HashSet<>();
+		Set<Identifier> lastDeniedIdentifiersToOther=new HashSet<>();
 		Set<PairOfIdentifiers> idsnewu = new HashSet<>();
-		updateLoginData(agents_socket, ids, idsnewa, idsnewd, idsnewu);
-		updateLoginData(indirect_agents_socket, ids, idsnewa, idsnewd, idsnewu);
+		updateLoginData(agents_socket, ids, idsnewa, lastDeniedCloudIdentifiersToOther, lastDeniedIdentifiersFromOther, lastDeniedIdentifiersToOther, idsnewu);
+		updateLoginData(indirect_agents_socket, ids, idsnewa, lastDeniedCloudIdentifiersToOther, lastDeniedIdentifiersFromOther, lastDeniedIdentifiersToOther, idsnewu);
 
 		for (Iterator<PairOfIdentifiers> it = idsnewa.iterator(); it.hasNext();) {
 			if (ids.contains(it.next()))
@@ -1246,9 +1258,40 @@ class DistantKernelAgent extends AgentFakeThread {
 		accepted_identifiers = new ArrayList<>();
 		accepted_identifiers.addAll(ids);
 		last_accepted_identifiers.removeAll(idsnewu);
-		last_accepted_identifiers.removeAll(idsnewd);
+		accepted_loop:for (Iterator<PairOfIdentifiers> it=last_accepted_identifiers.iterator();it.hasNext();)
+		{
+			PairOfIdentifiers poi=it.next();
+			for (CloudIdentifier cloudIdentifier : lastDeniedCloudIdentifiersToOther)
+			{
+				if (poi.getLocalIdentifier().getCloudIdentifier().equals(cloudIdentifier)
+					|| poi.getDistantIdentifier().getCloudIdentifier().equals(cloudIdentifier))
+				{
+					it.remove();
+					continue accepted_loop;
+				}
+			}
+			for (Identifier cloudIdentifier : lastDeniedIdentifiersFromOther)
+			{
+				if (poi.getLocalIdentifier().equals(cloudIdentifier))
+				{
+					it.remove();
+					continue accepted_loop;
+				}
+			}
+			for (Identifier cloudIdentifier : lastDeniedIdentifiersToOther)
+			{
+				if (poi.getDistantIdentifier().equals(cloudIdentifier))
+				{
+					it.remove();
+					continue accepted_loop;
+				}
+			}
+		}
 		last_accepted_identifiers.addAll(idsnewa);
-		last_denied_identifiers.addAll(idsnewd);
+
+		this.lastDeniedCloudIdentifiersToOther.addAll(lastDeniedCloudIdentifiersToOther);
+		this.lastDeniedIdentifiersFromOther.addAll(lastDeniedIdentifiersFromOther);
+		this.lastDeniedIdentifiersToOther.addAll(lastDeniedIdentifiersToOther);
 		last_unlogged_identifiers.removeAll(idsnewa);
 		last_unlogged_identifiers.addAll(idsnewu);
 
@@ -1260,12 +1303,16 @@ class DistantKernelAgent extends AgentFakeThread {
 
 	private void informHooksForLoginData() {
 		if (this.kernelAddressActivated && (accepted_identifiers.size() > 0 || last_accepted_identifiers.size() > 0
-				|| last_denied_identifiers.size() > 0 || last_unlogged_identifiers.size() > 0)) {
+				|| lastDeniedCloudIdentifiersToOther.size() > 0
+				|| lastDeniedIdentifiersFromOther.size()>0 || lastDeniedIdentifiersToOther.size()>0
+				|| last_unlogged_identifiers.size() > 0)) {
 			MadkitKernelAccess.informHooks(this,
 					new NetworkLoginAccessEvent(this.distant_kernel_address, accepted_identifiers,
-							last_accepted_identifiers, last_denied_identifiers, last_unlogged_identifiers));
+							last_accepted_identifiers, lastDeniedCloudIdentifiersToOther, lastDeniedIdentifiersFromOther, lastDeniedIdentifiersToOther, last_unlogged_identifiers));
 			last_accepted_identifiers = new ArrayList<>();
-			last_denied_identifiers = new ArrayList<>();
+			lastDeniedCloudIdentifiersToOther = new ArrayList<>();
+			lastDeniedIdentifiersFromOther = new ArrayList<>();
+			lastDeniedIdentifiersToOther = new ArrayList<>();
 			last_unlogged_identifiers = new ArrayList<>();
 		}
 	}
@@ -1395,7 +1442,9 @@ class DistantKernelAgent extends AgentFakeThread {
 		final boolean direct;
 		private List<PairOfIdentifiers> accepted_identifiers = new ArrayList<>();
 		private ArrayList<PairOfIdentifiers> last_accepted_identifiers = new ArrayList<>();
-		private ArrayList<PairOfIdentifiers> last_denied_identifiers = new ArrayList<>();
+		private ArrayList<CloudIdentifier> lastDeniedCloudIdentifiersToOther = new ArrayList<>();
+		private ArrayList<Identifier> lastDeniedIdentifiersFromOther = new ArrayList<>();
+		private ArrayList<Identifier> lastDeniedIdentifiersToOther = new ArrayList<>();
 		private ArrayList<PairOfIdentifiers> last_unlogged_identifiers = new ArrayList<>();
 		private Groups myAcceptedGroups = null;
 		final InetSocketAddress distant_inet_socket_address;
@@ -1500,7 +1549,9 @@ class DistantKernelAgent extends AgentFakeThread {
 		void setAcceptedIdentifiers(NetworkLoginAccessEvent event) {
 			accepted_identifiers = event.getCurrentIdentifiers();
 			last_accepted_identifiers.addAll(event.getNewAcceptedIdentifiers());
-			last_denied_identifiers.addAll(event.getNewDeniedIdentifiers());
+			lastDeniedCloudIdentifiersToOther.addAll(event.getNewDeniedCloudIdentifiersToOther());
+			lastDeniedIdentifiersToOther.addAll(event.getNewDeniedIdentifiersToOther());
+			lastDeniedIdentifiersFromOther.addAll(event.getNewDeniedIdentifiersFromOther());
 			last_unlogged_identifiers.addAll(event.getNewUnloggedIdentifiers());
 		}
 
@@ -1508,9 +1559,19 @@ class DistantKernelAgent extends AgentFakeThread {
 			return accepted_identifiers;
 		}
 
-		ArrayList<PairOfIdentifiers> getLastDeniedPairOfIdentifiers() {
-			ArrayList<PairOfIdentifiers> res = last_denied_identifiers;
-			last_denied_identifiers = new ArrayList<>();
+		ArrayList<CloudIdentifier> getLastDeniedCloudIdentifiersToOther() {
+			ArrayList<CloudIdentifier> res = lastDeniedCloudIdentifiersToOther;
+			lastDeniedCloudIdentifiersToOther = new ArrayList<>();
+			return res;
+		}
+		ArrayList<Identifier> getLastDeniedIdentifiersFromOther() {
+			ArrayList<Identifier> res = lastDeniedIdentifiersFromOther;
+			lastDeniedIdentifiersFromOther = new ArrayList<>();
+			return res;
+		}
+		ArrayList<Identifier> getLastDeniedIdentifiersToOther() {
+			ArrayList<Identifier> res = lastDeniedIdentifiersToOther;
+			lastDeniedIdentifiersToOther = new ArrayList<>();
 			return res;
 		}
 
@@ -2365,7 +2426,7 @@ class DistantKernelAgent extends AgentFakeThread {
 	private final HashMap<Integer, SerializedReading> current_short_readings = new HashMap<>();
 	private final HashMap<Integer, BigDataReading> current_big_data_readings = new HashMap<>();
 
-	private class Reading {
+	private static class Reading {
 		protected final MessageDigestType messageDigestType;
 		protected ReadPacket read_packet;
 		protected final RandomOutputStream output_stream;

@@ -38,6 +38,8 @@
 package com.distrimind.madkit.message.hook;
 
 import com.distrimind.madkit.kernel.KernelAddress;
+import com.distrimind.madkit.kernel.network.connection.access.CloudIdentifier;
+import com.distrimind.madkit.kernel.network.connection.access.Identifier;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 
 import java.util.ArrayList;
@@ -62,12 +64,16 @@ public class NetworkLoginAccessEvent extends HookMessage {
 	private final KernelAddress concernedKernelAddress;
 	private final List<PairOfIdentifiers> currentIdentifiers;
 	private final List<PairOfIdentifiers> newAcceptedIdentifiers;
-	private final List<PairOfIdentifiers> newDeniedIdentifiers;
+	private final List<CloudIdentifier> newDeniedCloudIdentifiersToOther;
+	private final List<Identifier> newDeniedIdentifiersFromOther;
+	private final List<Identifier> newDeniedIdentifiersToOther;
 	private final List<PairOfIdentifiers> newUnloggedIdentifiers;
 
 	public NetworkLoginAccessEvent(KernelAddress _concerned_kernel_address_interfaced,
-			ArrayList<PairOfIdentifiers> allCurrentIdentifiers, ArrayList<PairOfIdentifiers> newAcceptedIdentifiers,
-			ArrayList<PairOfIdentifiers> newDeniedIdentifiers, ArrayList<PairOfIdentifiers> newUnloggedIdentifiers) {
+								   List<PairOfIdentifiers> allCurrentIdentifiers, List<PairOfIdentifiers> newAcceptedIdentifiers,
+								   List<CloudIdentifier> newDeniedCloudIdentifiersToOther,
+								   List<Identifier> newDeniedIdentifiersFromOther,
+								   List<Identifier> newDeniedIdentifiersToOther, List<PairOfIdentifiers> newUnloggedIdentifiers) {
 		super(AgentActionEvent.LOGGED_IDENTIFIERS_UPDATE);
 		if (_concerned_kernel_address_interfaced == null)
 			throw new NullPointerException("_concerned_kernel_address_interfaced");
@@ -79,10 +85,18 @@ public class NetworkLoginAccessEvent extends HookMessage {
 			this.newAcceptedIdentifiers = Collections.unmodifiableList(new ArrayList<PairOfIdentifiers>());
 		else
 			this.newAcceptedIdentifiers = Collections.unmodifiableList(newAcceptedIdentifiers);
-		if (newDeniedIdentifiers == null)
-			this.newDeniedIdentifiers = Collections.unmodifiableList(new ArrayList<PairOfIdentifiers>());
+		if (newDeniedCloudIdentifiersToOther == null)
+			this.newDeniedCloudIdentifiersToOther = Collections.unmodifiableList(new ArrayList<CloudIdentifier>());
 		else
-			this.newDeniedIdentifiers = Collections.unmodifiableList(newDeniedIdentifiers);
+			this.newDeniedCloudIdentifiersToOther = Collections.unmodifiableList(newDeniedCloudIdentifiersToOther);
+		if (newDeniedIdentifiersFromOther == null)
+			this.newDeniedIdentifiersFromOther = Collections.unmodifiableList(new ArrayList<Identifier>());
+		else
+			this.newDeniedIdentifiersFromOther = Collections.unmodifiableList(newDeniedIdentifiersFromOther);
+		if (newDeniedIdentifiersToOther == null)
+			this.newDeniedIdentifiersToOther = Collections.unmodifiableList(new ArrayList<Identifier>());
+		else
+			this.newDeniedIdentifiersToOther = Collections.unmodifiableList(newDeniedIdentifiersToOther);
 		if (newUnloggedIdentifiers == null)
 			this.newUnloggedIdentifiers = Collections.unmodifiableList(new ArrayList<PairOfIdentifiers>());
 		else
@@ -91,9 +105,27 @@ public class NetworkLoginAccessEvent extends HookMessage {
 
 	@Override
 	public String toString() {
-		return "NetworkLoginAccessEvent[concernedKernelAddress=" + concernedKernelAddress + ", newAcceptedIdentifiers="
-				+ newAcceptedIdentifiers + ", newDeniedIdentifiers=" + newDeniedIdentifiers
-				+ ", newUnloggedIdentifiers=" + newUnloggedIdentifiers + "]";
+		return "NetworkLoginAccessEvent[" +
+				"concernedKernelAddress=" + concernedKernelAddress +
+				", currentIdentifiers=" + currentIdentifiers +
+				", newAcceptedIdentifiers=" + newAcceptedIdentifiers +
+				", lastDeniedCloudIdentifiersToOther=" + newDeniedCloudIdentifiersToOther +
+				", lastDeniedIdentifiersFromOther=" + newDeniedIdentifiersFromOther +
+				", lastDeniedIdentifiersToOther=" + newDeniedIdentifiersToOther +
+				", newUnloggedIdentifiers=" + newUnloggedIdentifiers +
+				']';
+	}
+
+	public List<CloudIdentifier> getNewDeniedCloudIdentifiersToOther() {
+		return newDeniedCloudIdentifiersToOther;
+	}
+
+	public List<Identifier> getNewDeniedIdentifiersFromOther() {
+		return newDeniedIdentifiersFromOther;
+	}
+
+	public List<Identifier> getNewDeniedIdentifiersToOther() {
+		return newDeniedIdentifiersToOther;
 	}
 
 	public List<PairOfIdentifiers> getCurrentIdentifiers() {
@@ -104,9 +136,7 @@ public class NetworkLoginAccessEvent extends HookMessage {
 		return newAcceptedIdentifiers;
 	}
 
-	public List<PairOfIdentifiers> getNewDeniedIdentifiers() {
-		return newDeniedIdentifiers;
-	}
+
 
 	public List<PairOfIdentifiers> getNewUnloggedIdentifiers() {
 		return newUnloggedIdentifiers;

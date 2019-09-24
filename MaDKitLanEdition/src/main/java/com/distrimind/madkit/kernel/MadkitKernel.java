@@ -55,6 +55,8 @@ import com.distrimind.madkit.i18n.ErrorMessages;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
 import com.distrimind.madkit.kernel.network.*;
+import com.distrimind.madkit.kernel.network.connection.access.CloudIdentifier;
+import com.distrimind.madkit.kernel.network.connection.access.Identifier;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.BooleanMessage;
 import com.distrimind.madkit.message.KernelMessage;
@@ -1038,8 +1040,9 @@ class MadkitKernel extends Agent {
 				break;
 			case LOGGED_IDENTIFIERS_UPDATE:
 				hm = new NetworkLoginAccessEvent((KernelAddress) parameters[0],
-						(ArrayList<PairOfIdentifiers>) parameters[1], (ArrayList<PairOfIdentifiers>) parameters[2],
-						(ArrayList<PairOfIdentifiers>) parameters[3], (ArrayList<PairOfIdentifiers>) parameters[4]);
+						(List<PairOfIdentifiers>) parameters[1], (List<PairOfIdentifiers>) parameters[2],
+						(List<CloudIdentifier>) parameters[3], (List<Identifier>) parameters[4], (List<Identifier>) parameters[5],
+						(List<PairOfIdentifiers>) parameters[6]);
 				break;
 			case TRANFER_CONNEXION_EVENT:
 				hm = new TransferEventMessage((Integer) parameters[0],
@@ -1087,7 +1090,8 @@ class MadkitKernel extends Agent {
 				case LOGGED_IDENTIFIERS_UPDATE:
 					hm = new NetworkLoginAccessEvent((KernelAddress) parameters[0],
 							(ArrayList<PairOfIdentifiers>) parameters[1], (ArrayList<PairOfIdentifiers>) parameters[2],
-							(ArrayList<PairOfIdentifiers>) parameters[3], (ArrayList<PairOfIdentifiers>) parameters[4]);
+							(List<CloudIdentifier>) parameters[3], (List<Identifier>) parameters[4], (List<Identifier>) parameters[5],
+							(List<PairOfIdentifiers>) parameters[6]);
 					break;
 				case DISTANT_KERNEL_CONNECTED:
 				case DISTANT_KERNEL_DISCONNECTED:

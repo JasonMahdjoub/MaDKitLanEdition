@@ -194,8 +194,10 @@ class LocalNetworkAgent extends AgentFakeThread {
 					if (lna.isConcernedBy(ia)) {
 						boolean add = true;
 						for (LocalNetworkAgent lna2 : found_lna_match) {
-							if (lna == lna2)
+							if (lna == lna2) {
 								add = false;
+								break;
+							}
 						}
 						if (add) {
 							found_lna_match.add(lna);
@@ -229,8 +231,7 @@ class LocalNetworkAgent extends AgentFakeThread {
 
 		ArrayList<LocalNetworkAgent> res = new ArrayList<>();
 		int[] toRemove = new int[_local_network_agents.size()];
-		for (int i = 0; i < toRemove.length; i++)
-			toRemove[i] = 0;
+		Arrays.fill(toRemove, 0);
 		for (NetworkInterface ni : nis) {
 
 			for (int i = 0; i < toRemove.length; i++) {
@@ -978,9 +979,9 @@ class LocalNetworkAgent extends AgentFakeThread {
 			address = _address;
 		}
 
-		InetAddress getAddress() {
+		/*InetAddress getAddress() {
 			return address;
-		}
+		}*/
 
 		protected void changeStatus(StatusInfo status_info) {
 			if (status == null || !status.equals(status_info.getStatus())) {

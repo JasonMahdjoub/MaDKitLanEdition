@@ -1246,6 +1246,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 					for (AskForRouterDetectionInformation m2 : askers_for_router_detection) {
 						if (m2.getSender().equals(m.getSender())) {
 							found = true;
+							break;
 						}
 					}
 					if (!found)
