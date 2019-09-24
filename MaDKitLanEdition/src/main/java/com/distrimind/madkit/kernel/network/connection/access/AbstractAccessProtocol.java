@@ -260,15 +260,16 @@ public abstract class AbstractAccessProtocol {
 		ArrayList<PairOfIdentifiers> toRemove = new ArrayList<>(_identifiers.size());
 		ArrayList<Identifier> res = new ArrayList<>(_identifiers.size());
 		for (Identifier id : _identifiers) {
-			for (PairOfIdentifiers id2 : all_accepted_identifiers) {
+			for (Iterator<PairOfIdentifiers> it= all_accepted_identifiers.iterator();it.hasNext();) {
+				PairOfIdentifiers id2=it.next();
 				if (id.equals(id2.getLocalIdentifier())) {
 					toRemove.add(id2);
+					it.remove();
 					res.add(id2.getDistantIdentifier());
 					break;
 				}
 			}
 		}
-		all_accepted_identifiers.removeAll(toRemove);
 		last_accepted_identifiers.removeAll(toRemove);
 		last_unlogged_identifiers.addAll(toRemove);
 		return new UnlogMessage(res);

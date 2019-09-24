@@ -37,18 +37,18 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
+import com.distrimind.madkit.database.KeysPairs;
+import com.distrimind.madkit.kernel.MadkitProperties;
+import com.distrimind.madkit.kernel.network.NetworkProperties;
+import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.util.crypto.*;
+
 import java.net.InetSocketAddress;
 import java.security.DigestException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.*;
-
-import com.distrimind.madkit.database.KeysPairs;
-import com.distrimind.madkit.kernel.MadkitProperties;
-import com.distrimind.madkit.kernel.network.NetworkProperties;
-import com.distrimind.ood.database.exceptions.DatabaseException;
-import com.distrimind.util.crypto.*;
 
 
 /**
@@ -76,11 +76,12 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 	private Map<WrappedCloudIdentifier, CloudIdentifier> temporaryAcceptedCloudIdentifiers=null;
 	private JPakeMessageForAuthenticationOfCloudIdentifiers initialJPakeMessage;
 	private Identifier[] proposedLocalIdentifiers=null;
+	private Set<PairOfIdentifiers> removedValidatedPairOfIdentifiers=null;
 
 
 	private IdentifiersPropositionMessage suspendedTransaction=null;
 	private JPakeMessageForAuthenticationOfCloudIdentifiers suspendedJpakeMessage=null;
-	private Map<Identifier, P2PLoginAgreement> suspendedJpakes=null;
+	private Map<WrappedCloudIdentifier, P2PLoginAgreement> suspendedJpakes=null;
 	private short suspendedStep;
 	private int suspendMaxSteps;
 	private ASymmetricKeyPair myKeyPair = null;
@@ -135,7 +136,15 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 	}
 	
 	private enum AccessState {
-		ACCESS_NOT_INITIALIZED, ACCESS_INITIALIZED, WAITING_FOR_CLOUD_IDENTIFIERS, WAITING_FOR_CLOUD_PASSWORD_VALIDATION, WAITING_FOR_IDENTIFIERS, WAITING_FOR_LOGIN_CONFIRMATION, ACCESS_FINALIZED, WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION, WAITING_FOR_NEW_LOGIN, WAITING_FOR_NEW_LOGIN_CONFIRMATION,
+		ACCESS_NOT_INITIALIZED,
+		ACCESS_INITIALIZED,
+		WAITING_FOR_CLOUD_IDENTIFIERS,
+		WAITING_FOR_CLOUD_PASSWORD_VALIDATION,
+		WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION,
+		WAITING_FOR_IDENTIFIERS,WAITING_FOR_NEW_IDENTIFIERS,
+		WAITING_FOR_LOGIN_CONFIRMATION,
+		WAITING_FOR_NEW_LOGIN_CONFIRMATION,
+		ACCESS_FINALIZED
 	}
 
 	@Override
@@ -152,6 +161,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 		temporaryAcceptedCloudIdentifiers=null;
 		initialJPakeMessage=null;
 		proposedLocalIdentifiers=null;
+		removedValidatedPairOfIdentifiers=null;
 	}
 
 	@Override
@@ -195,8 +205,10 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 						localGeneratedSalt=res.getGeneratedSalt();
 						return res;
 					}
-				} else
+				} else {
+					resetLogin();
 					return new AccessErrorMessage(true);
+				}
 
 			}
 			
@@ -238,6 +250,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 						return new AccessFinalizedMessage();
 					}
 				} else {
+					resetLogin();
 					access_state = AccessState.ACCESS_NOT_INITIALIZED;
 					return new AccessErrorMessage(false);
 				}
@@ -245,100 +258,117 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 			case WAITING_FOR_CLOUD_IDENTIFIERS: {
 				if (_m instanceof CloudIdentifiersPropositionMessage) {
 					if (access_data instanceof LoginData) {
-						step=1;
-						LoginData lp = (LoginData) access_data;
-						newAcceptedCloudIdentifiers=new ArrayList<>();
-						temporaryAcceptedCloudIdentifiers=new HashMap<>();
-						jpakes=new HashMap<>();
-						CloudIdentifiersPropositionMessage propRep=null;
-						if (getCloudIdentifiers() != null) {
-							access_state = AccessState.WAITING_FOR_CLOUD_PASSWORD_VALIDATION;
-						} else {
-							access_state = AccessState.WAITING_FOR_CLOUD_PASSWORD_VALIDATION;
-							setCloudIdentifiers(new ArrayList<CloudIdentifier>());
-							propRep=((CloudIdentifiersPropositionMessage) _m)
-									.getIdentifiersPropositionMessageAnswer(lp, properties.getApprovedSecureRandom(), messageDigest,
-									this.access_protocol_properties.anonymizeIdentifiersBeforeSendingToDistantPeer,
-											getCloudIdentifiers(), distantGeneratedSalt,  localGeneratedSalt);
-						}
-						initialJPakeMessage=
-								((CloudIdentifiersPropositionMessage) _m).getJPakeMessage(getAllAcceptedIdentifiers(),
-										newAcceptedCloudIdentifiers, temporaryAcceptedCloudIdentifiers, lp, jpakes,
-										access_protocol_properties.p2pLoginAgreementType, properties.getApprovedSecureRandom(), localGeneratedSalt,
-										access_protocol_properties.identifierDigestionTypeUsedForAnonymization, access_protocol_properties.passwordHashType,myKeyPair==null?null:myKeyPair.getASymmetricPublicKey());
-						maxSteps=initialJPakeMessage.getMaxSteps();
-						step=1;
-						if (propRep!=null)
-							return new AccessMessagesList(propRep,
-									initialJPakeMessage);
-						else
-							return initialJPakeMessage;
-
-
+						return receiveCloudIdentifiersPropositionMessage((CloudIdentifiersPropositionMessage)_m);
 
 					} else
 						return new AccessErrorMessage(true);
 				} else if (_m instanceof NullAccessMessage) {
 					return new DoNotSendMessage();
 				} else {
+					resetLogin();
 					access_state = AccessState.ACCESS_NOT_INITIALIZED;
 					return new AccessErrorMessage(false);
 				}
 			}
 			
-			case WAITING_FOR_CLOUD_PASSWORD_VALIDATION:{
-				if (_m instanceof JPakeMessageForAuthenticationOfCloudIdentifiers) {
-					LoginData lp = (LoginData) access_data;
-					JPakeMessageForAuthenticationOfCloudIdentifiers jpakem = (JPakeMessageForAuthenticationOfCloudIdentifiers) _m;
-					if (jpakem.getStep()!=step)
+			case WAITING_FOR_CLOUD_PASSWORD_VALIDATION: case WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION:{
+				if (access_state==AccessState.WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION && _m instanceof IdentifiersPropositionMessage && access_data instanceof LoginData)
+				{
+					suspendedTransaction=(IdentifiersPropositionMessage)_m;
+
+					if (this.isThisAskForConnection())
 					{
-						access_state = AccessState.ACCESS_NOT_INITIALIZED;
-						return new AccessErrorMessage(false);
-					}
-					if (step==1)
-					{
-						setDeniedCloudIdentifiers(new ArrayList<CloudIdentifier>());
-					}
-					if (step<maxSteps)
-					{
-						AccessMessage res=jpakem.getJPakeMessageNewStep(initialJPakeMessage, ++step,
-								lp, messageDigest, getDeniedCloudIdentifiers(), jpakes,localGeneratedSalt);
-						if (res instanceof AccessErrorMessage)
-						{
-							access_state = AccessState.ACCESS_NOT_INITIALIZED;
-						}
-						return res;
-					}
-					else if (step==maxSteps)
-					{
-						AccessMessage res=jpakem.receiveLastMessage(initialJPakeMessage, lp, messageDigest,
-								newAcceptedCloudIdentifiers, getDeniedCloudIdentifiers(),
-								temporaryAcceptedCloudIdentifiers, jpakes, localGeneratedSalt, distantGeneratedSalt,
-								properties.getApprovedSecureRandom());
-						if (res instanceof AccessErrorMessage)
-						{
-							access_state = AccessState.ACCESS_NOT_INITIALIZED;
-						}
-						else
-						{
-							proposedLocalIdentifiers=((IdentifiersPropositionMessage)res).getIdentifiers();
-							access_state = AccessState.WAITING_FOR_IDENTIFIERS;
-						}
-						return res;
+						return null;
 					}
 					else
 					{
+						suspendedJpakes=jpakes;
+						jpakes=new HashMap<>();
+						suspendedStep=step;
+						step=1;
+						suspendMaxSteps=maxSteps;
+						access_state = AccessState.ACCESS_FINALIZED;
+						return this.subSetAndGetNextMessage(_m);
+					}
+				}
+				else if (_m instanceof JPakeMessageForAuthenticationOfCloudIdentifiers) {
+					LoginData lp = (LoginData) access_data;
+					JPakeMessageForAuthenticationOfCloudIdentifiers jpakem = (JPakeMessageForAuthenticationOfCloudIdentifiers) _m;
+					if (jpakem.getStep() != step) {
+						resetLogin();
+						if (access_state == AccessState.WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION) {
+							access_state = AccessState.ACCESS_FINALIZED;
+							return manageDifferedAccessMessage();
+						}
+						else {
+							access_state = AccessState.ACCESS_NOT_INITIALIZED;
+							return new AccessErrorMessage(false);
+						}
+					}
+					if (step == 1) {
+						setDeniedCloudIdentifiers(new ArrayList<CloudIdentifier>());
+					}
+					if (step < maxSteps) {
+						AccessMessage res = jpakem.getJPakeMessageNewStep(initialJPakeMessage, ++step,
+								lp, messageDigest, getDeniedCloudIdentifiers(), jpakes, localGeneratedSalt);
+						if (res instanceof AccessErrorMessage) {
+							if (access_state == AccessState.WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION)
+								access_state = AccessState.ACCESS_FINALIZED;
+							else
+								access_state = AccessState.ACCESS_NOT_INITIALIZED;
+						}
+						return res;
+					} else if (step == maxSteps) {
+						AccessMessage res = jpakem.receiveLastMessage(initialJPakeMessage, lp, messageDigest,
+								newAcceptedCloudIdentifiers, getDeniedCloudIdentifiers(),
+								temporaryAcceptedCloudIdentifiers, jpakes, localGeneratedSalt, distantGeneratedSalt,
+								properties.getApprovedSecureRandom());
+						if (res instanceof AccessErrorMessage) {
+							if (access_state == AccessState.WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION)
+								access_state = AccessState.ACCESS_FINALIZED;
+							else
+								access_state = AccessState.ACCESS_NOT_INITIALIZED;
+						} else {
+							proposedLocalIdentifiers = ((IdentifiersPropositionMessage) res).getIdentifiers();
+							if (access_state == AccessState.WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION)
+								access_state = AccessState.WAITING_FOR_NEW_IDENTIFIERS;
+							else
+								access_state = AccessState.WAITING_FOR_IDENTIFIERS;
+						}
+						return res;
+					} else {
+						resetLogin();
+						if (access_state == AccessState.WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION) {
+							access_state = AccessState.ACCESS_FINALIZED;
+							return manageDifferedAccessMessage();
+						}
+						else {
+							access_state = AccessState.ACCESS_NOT_INITIALIZED;
+							return new AccessErrorMessage(false);
+						}
+					}
+
+					//access_state = AccessState.WAITING_FOR_PASSWORD_VALIDATION_2;
+				} else {
+					if (access_state == AccessState.WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION) {
+						if (!differrAccessMessage(_m)) {
+							resetLogin();
+							access_state = AccessState.ACCESS_FINALIZED;
+							return manageDifferedAccessMessage();
+						}
+						else
+							return null;
+					}
+					else
+					{
+						resetLogin();
 						access_state = AccessState.ACCESS_NOT_INITIALIZED;
 						return new AccessErrorMessage(false);
 					}
-					
-					//access_state = AccessState.WAITING_FOR_PASSWORD_VALIDATION_2;
-				} else {
-					access_state = AccessState.ACCESS_NOT_INITIALIZED;
-					return new AccessErrorMessage(false);
+
 				}
 			}
-			case WAITING_FOR_IDENTIFIERS:
+			case WAITING_FOR_IDENTIFIERS:case WAITING_FOR_NEW_IDENTIFIERS:
 			{
 				if (_m instanceof IdentifiersPropositionMessage) {
 					LoginData lp = (LoginData) access_data;
@@ -357,21 +387,36 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 
 					}
 					setDeniedDistantIdentifiers(deniedIdentifiers);
-
-					access_state = AccessState.WAITING_FOR_LOGIN_CONFIRMATION;
+					if (access_state==AccessState.WAITING_FOR_NEW_IDENTIFIERS)
+						access_state = AccessState.WAITING_FOR_NEW_LOGIN_CONFIRMATION;
+					else
+						access_state = AccessState.WAITING_FOR_LOGIN_CONFIRMATION;
 					return localLoginConfirmationMessage;
 				}
 				else {
-					access_state = AccessState.ACCESS_NOT_INITIALIZED;
-					return new AccessErrorMessage(false);
+					if (access_state == AccessState.WAITING_FOR_NEW_IDENTIFIERS) {
+						if (!differrAccessMessage(_m)) {
+							resetLogin();
+							access_state = AccessState.ACCESS_FINALIZED;
+							return manageDifferedAccessMessage();
+						}
+						else
+							return null;
+					}
+					else
+					{
+						resetLogin();
+						access_state = AccessState.ACCESS_NOT_INITIALIZED;
+						return new AccessErrorMessage(false);
+					}
 				}
 			}
-			break;
-			case WAITING_FOR_LOGIN_CONFIRMATION: {
+			case WAITING_FOR_LOGIN_CONFIRMATION: case WAITING_FOR_NEW_LOGIN_CONFIRMATION:{
 				if (_m instanceof LoginConfirmationMessage && access_data instanceof LoginData) {
 
 					LoginConfirmationMessage distantLoginConfirmationMessage=(LoginConfirmationMessage)_m;
-					setAcceptedIdentifiers(distantLoginConfirmationMessage.getAcceptedPairsOfIdentifiers(localLoginConfirmationMessage, proposedLocalIdentifiers));
+					removedValidatedPairOfIdentifiers=new HashSet<>();
+					setAcceptedIdentifiers(distantLoginConfirmationMessage.getAcceptedPairsOfIdentifiers(getAcceptedIdentifiers(), removedValidatedPairOfIdentifiers, localLoginConfirmationMessage, proposedLocalIdentifiers));
 					ArrayList<Identifier> deniedIdentifiers=new ArrayList<>();
 					denied_search:for (Identifier id : proposedLocalIdentifiers)
 					{
@@ -394,41 +439,31 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 
 					return new AccessFinalizedMessage();
 				} else {
-					access_state = AccessState.ACCESS_NOT_INITIALIZED;
-					return new AccessErrorMessage(false);
+					if (access_state == AccessState.WAITING_FOR_NEW_LOGIN_CONFIRMATION) {
+						if (!differrAccessMessage(_m)) {
+							resetLogin();
+							access_state = AccessState.ACCESS_FINALIZED;
+							return manageDifferedAccessMessage();
+						}
+						else
+							return null;
+					}
+					else
+					{
+						resetLogin();
+						access_state = AccessState.ACCESS_NOT_INITIALIZED;
+						return new AccessErrorMessage(false);
+					}
 				}
 
 			}
 			case ACCESS_FINALIZED: {
 				if (_m instanceof CloudIdentifiersPropositionMessage && access_data instanceof LoginData) {
-					step=1;
-					LoginData lp = (LoginData) access_data;
-					newAcceptedCloudIdentifiers=new ArrayList<>();
-					temporaryAcceptedCloudIdentifiers=new HashMap<>();
-					jpakes=new HashMap<>();
-
-					setCloudIdentifiers(new ArrayList<CloudIdentifier>());
-					CloudIdentifiersPropositionMessage propRep=((CloudIdentifiersPropositionMessage) _m)
-							.getIdentifiersPropositionMessageAnswer(lp, properties.getApprovedSecureRandom(), messageDigest,
-									this.access_protocol_properties.anonymizeIdentifiersBeforeSendingToDistantPeer,
-									getCloudIdentifiers(), distantGeneratedSalt,  localGeneratedSalt);
-					initialJPakeMessage=
-							((CloudIdentifiersPropositionMessage) _m).getJPakeMessage(getAllAcceptedIdentifiers(),
-									newAcceptedCloudIdentifiers, temporaryAcceptedCloudIdentifiers, lp, jpakes,
-									access_protocol_properties.p2pLoginAgreementType, properties.getApprovedSecureRandom(),
-									localGeneratedSalt,
-									access_protocol_properties.identifierDigestionTypeUsedForAnonymization,
-									access_protocol_properties.passwordHashType,myKeyPair==null?null:myKeyPair.getASymmetricPublicKey());
-					maxSteps=initialJPakeMessage.getMaxSteps();
-					step=1;
-					access_state = AccessState.WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION;
-
-					return new AccessMessagesList(propRep,
-							initialJPakeMessage);
+					return receiveCloudIdentifiersPropositionMessage((CloudIdentifiersPropositionMessage)_m);
 				}
 				else if (_m instanceof AccessFinalizedMessage) {
 					updateGroupAccess();
-					return null;
+					return manageDifferedAccessMessage();
 				} else if (_m instanceof UnlogMessage) {
 					removeAcceptedIdentifiers(((UnlogMessage) _m).identifier_to_unlog);
 					updateGroupAccess();
@@ -436,179 +471,6 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 				} else {
 					return manageDifferableAccessMessage(_m);
 				}
-			}
-
-				case WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION:{
-					if (_m instanceof JPakeMessageForAuthenticationOfCloudIdentifiers) {
-						LoginData lp = (LoginData) access_data;
-						JPakeMessageForAuthenticationOfCloudIdentifiers jpakem = (JPakeMessageForAuthenticationOfCloudIdentifiers) _m;
-						if (jpakem.getStep()!=step)
-						{
-							access_state = AccessState.ACCESS_NOT_INITIALIZED;
-							return new AccessErrorMessage(false);
-						}
-						if (step==1)
-						{
-							setDeniedCloudIdentifiers(new ArrayList<CloudIdentifier>());
-						}
-						if (step<maxSteps)
-						{
-							AccessMessage res=jpakem.getJPakeMessageNewStep(initialJPakeMessage, ++step,
-									lp, messageDigest, getDeniedCloudIdentifiers(), jpakes,localGeneratedSalt);
-							if (res instanceof AccessErrorMessage)
-							{
-								access_state = AccessState.ACCESS_NOT_INITIALIZED;
-							}
-							return res;
-						}
-						else if (step==maxSteps)
-						{
-							AccessMessage res=jpakem.receiveLastMessage(initialJPakeMessage, lp, messageDigest,
-									newAcceptedCloudIdentifiers, getDeniedCloudIdentifiers(),
-									temporaryAcceptedCloudIdentifiers, jpakes, localGeneratedSalt, distantGeneratedSalt,
-									properties.getApprovedSecureRandom());
-							if (res instanceof AccessErrorMessage)
-							{
-								access_state = AccessState.ACCESS_NOT_INITIALIZED;
-							}
-							else
-							{
-								proposedLocalIdentifiers=((IdentifiersPropositionMessage)res).getIdentifiers();
-								access_state = AccessState.WAITING_FOR_IDENTIFIERS;
-							}
-							return res;
-						}
-						else
-						{
-							access_state = AccessState.ACCESS_NOT_INITIALIZED;
-							return new AccessErrorMessage(false);
-						}
-
-						//access_state = AccessState.WAITING_FOR_PASSWORD_VALIDATION_2;
-					} else {
-						access_state = AccessState.ACCESS_NOT_INITIALIZED;
-						return new AccessErrorMessage(false);
-					}
-				}
-			case WAITING_FOR_NEW_LOGIN:{
-				if (_m instanceof IdentifiersPropositionMessage && access_data instanceof LoginData)
-				{
-					suspendedTransaction=(IdentifiersPropositionMessage)_m;
-
-					if (this.isThisAskForConnection())
-					{
-						return null;
-					}
-					else
-					{
-						suspendedJpakes=jpakes;
-						jpakes=new HashMap<>();
-						suspendedStep=step;
-						step=1;
-						suspendMaxSteps=maxSteps;
-						access_state = AccessState.ACCESS_FINALIZED;
-						return this.subSetAndGetNextMessage(_m);
-					}
-				}
-				if (_m instanceof JPakeMessage) {
-
-					JPakeMessage jpakem = (JPakeMessage) _m;
-					if (suspendedTransaction!=null && suspendedJpakeMessage==null && this.isThisAskForConnection()) {
-						suspendedJpakeMessage = jpakem;
-						return null;
-					}
-					LoginData lp = (LoginData) access_data;
-					if (jpakem.getStep()!=step)
-					{
-						access_state = AccessState.ACCESS_NOT_INITIALIZED;
-						return new AccessErrorMessage(false);
-					}
-					if (step==1)
-					{
-						setAcceptedIdentifiers(new ArrayList<PairOfIdentifiers>());
-						setDeniedIdentifiers(new ArrayList<PairOfIdentifiers>());
-					}
-					if (step<maxSteps)
-					{
-						AccessMessage res=jpakem.getJPakeMessageNewStep(++step, lp, properties.getApprovedSecureRandom(), messageDigest, getDeniedIdentifiers(), jpakes, distantGeneratedSalt, localGeneratedSalt);
-						if (res instanceof AccessErrorMessage)
-						{
-							access_state = AccessState.ACCESS_NOT_INITIALIZED;
-						}
-						return res;
-					}
-					else if (step==maxSteps)
-					{
-						AccessMessage res=jpakem.receiveLastMessage(lp, messageDigest, getAcceptedIdentifiers(), getDeniedIdentifiers(), jpakes, localGeneratedSalt);
-						if (res instanceof AccessErrorMessage)
-						{
-							access_state = AccessState.ACCESS_NOT_INITIALIZED;
-						}
-						else
-						{
-							access_state = AccessState.WAITING_FOR_NEW_LOGIN_CONFIRMATION;
-						}
-						return res;
-					}
-					else
-					{
-						access_state = AccessState.ACCESS_NOT_INITIALIZED;
-						return new AccessErrorMessage(false);
-					}
-					
-					//access_state = AccessState.WAITING_FOR_PASSWORD_VALIDATION_2;
-				} else if (!differrAccessMessage(_m)) {
-					setIdentifiers(null);
-					setAcceptedIdentifiers(null);
-					setDeniedIdentifiers(null);
-					jpakes.clear();
-					access_state = AccessState.ACCESS_FINALIZED;
-					return manageDifferedAccessMessage();
-				} else 
-					return null;
-				
-				
-			}
-			
-			
-			case WAITING_FOR_NEW_LOGIN_CONFIRMATION: {
-				if (_m instanceof LoginConfirmationMessage && access_data instanceof LoginData) {
-					ArrayList<PairOfIdentifiers> ai = new ArrayList<>();
-					ArrayList<PairOfIdentifiers> denied_identiers = new ArrayList<>();
-
-					for (PairOfIdentifiers id : getAcceptedIdentifiers()) {
-						PairOfIdentifiers found_id = null;
-						for (Identifier id2 : ((LoginConfirmationMessage) _m).accepted_identifiers) {
-							if (id.getLocalIdentifier().equalsCloudIdentifier(id2)) {
-								found_id = id;
-								break;
-							}
-						}
-						if (found_id != null)
-							ai.add(found_id);
-						else
-							denied_identiers.add(id);
-					}
-					setAcceptedIdentifiers(ai);
-
-					addLastAcceptedAndDeniedIdentifiers(getAcceptedIdentifiers(), denied_identiers);
-
-					access_state = AccessState.ACCESS_FINALIZED;
-					setAcceptedIdentifiers(null);
-					setDeniedIdentifiers(null);
-					setIdentifiers(null);
-					jpakes.clear();
-					return manageDifferedAccessMessage();
-				} else if (!differrAccessMessage(_m)) {
-					setIdentifiers(null);
-					setAcceptedIdentifiers(null);
-					setDeniedIdentifiers(null);
-					jpakes.clear();
-					access_state = AccessState.ACCESS_FINALIZED;
-					return manageDifferedAccessMessage();
-				} else 
-					return null;
-
 			}
 			default:
 				throw new IllegalAccessError();
@@ -618,6 +480,40 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 			throw new AccessException(e);
 		}
 	}
+	private AccessMessage receiveCloudIdentifiersPropositionMessage(CloudIdentifiersPropositionMessage m) throws Exception {
+		step=1;
+		LoginData lp = (LoginData) access_data;
+		newAcceptedCloudIdentifiers=new ArrayList<>();
+		temporaryAcceptedCloudIdentifiers=new HashMap<>();
+		jpakes=new HashMap<>();
+		CloudIdentifiersPropositionMessage propRep=null;
+
+		if (access_state==AccessState.ACCESS_FINALIZED || getCloudIdentifiers() == null) {
+			setCloudIdentifiers(new ArrayList<CloudIdentifier>());
+			propRep=m
+					.getIdentifiersPropositionMessageAnswer(lp, properties.getApprovedSecureRandom(), messageDigest,
+							this.access_protocol_properties.anonymizeIdentifiersBeforeSendingToDistantPeer,
+							getCloudIdentifiers(), distantGeneratedSalt,  localGeneratedSalt);
+		}
+		if (access_state==AccessState.ACCESS_FINALIZED)
+			access_state = AccessState.WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION;
+		else
+			access_state = AccessState.WAITING_FOR_CLOUD_PASSWORD_VALIDATION;
+
+		initialJPakeMessage=
+				m.getJPakeMessage(getAllAcceptedIdentifiers(),
+						newAcceptedCloudIdentifiers, temporaryAcceptedCloudIdentifiers, lp, jpakes,
+						access_protocol_properties.p2pLoginAgreementType, properties.getApprovedSecureRandom(), localGeneratedSalt,
+						access_protocol_properties.identifierDigestionTypeUsedForAnonymization, access_protocol_properties.passwordHashType,myKeyPair==null?null:myKeyPair.getASymmetricPublicKey());
+		maxSteps=initialJPakeMessage.getMaxSteps();
+		step=1;
+		if (propRep!=null)
+			return new AccessMessagesList(propRep,
+					initialJPakeMessage);
+		else
+			return initialJPakeMessage;
+	}
+
 	@Override
 	public final boolean isAccessFinalized() {
 
@@ -646,7 +542,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 					jpakes=suspendedJpakes;
 					step=suspendedStep;
 					maxSteps=suspendMaxSteps;
-					access_state=AccessState.WAITING_FOR_NEW_LOGIN;
+					access_state=AccessState.WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION;
 					return null;
 				}
 			}
@@ -671,11 +567,11 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 			if (_m instanceof NewLocalLoginAddedMessage) {
 				NewLocalLoginAddedMessage m=((NewLocalLoginAddedMessage) _m);
 				if (access_data instanceof LoginData && (((LoginData) access_data).canTakesLoginInitiative() || m.isForceLoginInitiative())) {
-					LoginData lp = (LoginData) access_data;
+					//LoginData lp = (LoginData) access_data;
 					newAcceptedCloudIdentifiers=new ArrayList<>();
 					temporaryAcceptedCloudIdentifiers=new HashMap<>();
 					jpakes=new HashMap<>();
-					CloudIdentifiersPropositionMessage propRep=null;
+
 
 					setCloudIdentifiers(new ArrayList<CloudIdentifier>());
 					access_state = AccessState.WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION;
