@@ -165,8 +165,8 @@ final public class Madkit {
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.MAY, 6);
 			Description d = new Description((short)2, (short)0, (short)0, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update Utils to 4.4.3 Stable");
-			d.addItem("Update OOD to 2.2.1 Stable");
+			d.addItem("Update Utils to 4.5.0 Stable");
+			d.addItem("Update OOD to 2.3.0 Stable");
 			d.addItem("Cloud identifiers can be individually anonymous thanks to an encryption process.");
 			d.addItem("Host identifiers are sent only if the cloud identifier authentication process succeeded.");
 			d.addItem("Authentication can be done automatically with public key, through a shared password/key, or both");
