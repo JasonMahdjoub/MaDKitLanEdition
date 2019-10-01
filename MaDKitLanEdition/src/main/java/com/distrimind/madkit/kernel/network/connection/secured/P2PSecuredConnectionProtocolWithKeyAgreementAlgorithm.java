@@ -74,7 +74,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 	
 	protected SymmetricEncryptionAlgorithm symmetricEncryption = null;
 	protected KeyAgreement keyAgreementForEncryption=null, keyAgreementForSignature=null;
-	protected SymmetricAuthentifiedSignerAlgorithm signer = null;
+	protected SymmetricAuthenticatedSignerAlgorithm signer = null;
 	protected SymmetricAuthenticatedSignatureCheckerAlgorithm signatureChecker = null;
 	final int signature_size_bytes;
 	private final SubBlockParser parser;
@@ -108,8 +108,8 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 		
 		int sigsize;
 		try {
-			
-			SymmetricAuthentifiedSignerAlgorithm signerTmp = new SymmetricAuthentifiedSignerAlgorithm(hproperties.symmetricSignatureType.getKeyGenerator(approvedRandomForKeys, hproperties.symmetricEncryptionType.getDefaultKeySizeBits()).generateKey());
+
+			SymmetricAuthenticatedSignerAlgorithm signerTmp = new SymmetricAuthenticatedSignerAlgorithm(hproperties.symmetricSignatureType.getKeyGenerator(approvedRandomForKeys, hproperties.symmetricEncryptionType.getDefaultKeySizeBits()).generateKey());
 			signerTmp.init();
 			sigsize = signerTmp.getMacLengthBytes();
 			
@@ -130,7 +130,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 			if (secret_key_for_signature!=null) {
 				if (signer==null || signatureChecker==null)
 				{
-					signer=new SymmetricAuthentifiedSignerAlgorithm(secret_key_for_signature);
+					signer=new SymmetricAuthenticatedSignerAlgorithm(secret_key_for_signature);
 					signatureChecker=new SymmetricAuthenticatedSignatureCheckerAlgorithm(secret_key_for_signature);
 					blockCheckerChanged=true;
 				}
@@ -231,7 +231,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 						{
 							materialKeyForEncryption=new byte[MATERIAL_KEY_SIZE_BYTES];
 							approvedRandom.nextBytes(materialKeyForEncryption);
-							material=Bits.concateEncodingWithShortSizedTabs(materialKeyForSignature, materialKeyForEncryption);
+							material=Bits.concatenateEncodingWithShortSizedTabs(materialKeyForSignature, materialKeyForEncryption);
 						}
 						else
 							material=materialKeyForSignature;
@@ -297,7 +297,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 							return new IncomprehensiblePublicKey();
 						}
 					}
-					if (keyAgreementForSignature.hasFinishedReceiption())
+					if (keyAgreementForSignature.hasFinishedReception())
 					{
 						reset();
 						current_step=Step.NOT_CONNECTED;
@@ -308,7 +308,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 					if (!keyAgreementForSignature.hasFinishedSend())
 						data=keyAgreementForSignature.getDataToSend();
 					doNotTakeIntoAccountNextState=false;
-					if (keyAgreementForSignature.hasFinishedReceiption())
+					if (keyAgreementForSignature.hasFinishedReception())
 					{
 						doNotTakeIntoAccountNextState=true;
 						if (hproperties.enableEncryption)
@@ -355,7 +355,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 		case WAITING_FOR_ENCRYPTION_DATA:{
 			if (_m instanceof KeyAgreementDataMessage)
 			{
-				if (!keyAgreementForSignature.isAgreementProcessValid() || (keyAgreementForEncryption!=null && keyAgreementForEncryption.hasFinishedReceiption()))
+				if (!keyAgreementForSignature.isAgreementProcessValid() || (keyAgreementForEncryption!=null && keyAgreementForEncryption.hasFinishedReception()))
 				{
 					reset();
 					current_step=Step.NOT_CONNECTED;
@@ -371,7 +371,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 					if (!keyAgreementForEncryption.hasFinishedSend())
 						data=keyAgreementForEncryption.getDataToSend();
 					doNotTakeIntoAccountNextState=false;
-					if (keyAgreementForEncryption.hasFinishedReceiption())
+					if (keyAgreementForEncryption.hasFinishedReception())
 					{
 						doNotTakeIntoAccountNextState=true;
 						current_step=Step.WAITING_FOR_CONNECTION_CONFIRMATION;
@@ -404,7 +404,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 			doNotTakeIntoAccountNextState=false;
 			if (_m instanceof ConnectionFinished)
 			{
-				if (!keyAgreementForSignature.isAgreementProcessValid() || (keyAgreementForEncryption!=null && !keyAgreementForEncryption.hasFinishedReceiption()))
+				if (!keyAgreementForSignature.isAgreementProcessValid() || (keyAgreementForEncryption!=null && !keyAgreementForEncryption.hasFinishedReception()))
 				{
 					reset();
 					current_step=Step.NOT_CONNECTED;

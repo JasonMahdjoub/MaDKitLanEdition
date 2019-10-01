@@ -74,7 +74,7 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 
 	protected SymmetricEncryptionType symmetricEncryptionType;
 	protected SymmetricEncryptionAlgorithm symmetricEncryption;
-	protected SymmetricAuthentifiedSignerAlgorithm signer = null;
+	protected SymmetricAuthenticatedSignerAlgorithm signer = null;
 	protected SymmetricAuthenticatedSignatureCheckerAlgorithm signatureChecker=null;
 	protected SymmetricSecretKey mySecretKeyForEncryption=null,mySecretKeyForSignature=null;
 	protected SymmetricAuthentifiedSignatureType signatureType;
@@ -201,7 +201,7 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 
 			
 			
-			signer = new SymmetricAuthentifiedSignerAlgorithm(mySecretKeyForSignature);
+			signer = new SymmetricAuthenticatedSignerAlgorithm(mySecretKeyForSignature);
 			signatureChecker = new SymmetricAuthenticatedSignatureCheckerAlgorithm(mySecretKeyForSignature);
 			// this.secret_key=symmetricAlgorithm.getSecretKey();
 		} catch (Exception e) {

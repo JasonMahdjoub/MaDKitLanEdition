@@ -76,7 +76,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 	private final ASymmetricPublicKey distant_public_key_for_encryption;
 	protected final ClientASymmetricEncryptionAlgorithm aSymmetricAlgorithm;
 	protected SymmetricEncryptionAlgorithm symmetricEncryption = null;
-	protected SymmetricAuthentifiedSignerAlgorithm signer = null;
+	protected SymmetricAuthenticatedSignerAlgorithm signer = null;
 	protected SymmetricAuthenticatedSignatureCheckerAlgorithm signatureChecker=null;
 	protected SymmetricSecretKey mySecretKeyForEncryption=null,mySecretKeyForSignature=null;
 	protected final ASymmetricKeyWrapperType keyWrapper;
@@ -142,7 +142,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 				mySecretKeyForEncryption=null;
 			mySecretKeyForSignature=hproperties.getSignatureType().getKeyGenerator(approvedRandomForKeys, hproperties.getSymmetricKeySizeBits()).generateKey();
 			
-			signer = new SymmetricAuthentifiedSignerAlgorithm(mySecretKeyForSignature);
+			signer = new SymmetricAuthenticatedSignerAlgorithm(mySecretKeyForSignature);
 			signatureChecker = new SymmetricAuthenticatedSignatureCheckerAlgorithm(mySecretKeyForSignature);
 		} catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidKeyException | NoSuchPaddingException | InvalidAlgorithmParameterException | InvalidKeySpecException e) {
 			resetKeys();

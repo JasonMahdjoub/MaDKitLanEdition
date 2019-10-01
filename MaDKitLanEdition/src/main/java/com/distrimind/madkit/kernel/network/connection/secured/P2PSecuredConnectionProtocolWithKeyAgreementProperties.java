@@ -151,7 +151,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementProperties extends Conn
 		{
             try {
 
-                SymmetricAuthentifiedSignerAlgorithm signerTmp = new SymmetricAuthentifiedSignerAlgorithm(symmetricSignatureType.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), symmetricEncryptionType.getDefaultKeySizeBits()).generateKey());
+				SymmetricAuthenticatedSignerAlgorithm signerTmp = new SymmetricAuthenticatedSignerAlgorithm(symmetricSignatureType.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), symmetricEncryptionType.getDefaultKeySizeBits()).generateKey());
                 signerTmp.init();
                 maxHeadSize = signerTmp.getMacLengthBytes();
 

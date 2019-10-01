@@ -70,7 +70,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 	private P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties properties;
 	private SymmetricSecretKey secretKeyForEncryption, secretKeyForSignature;
 	private SymmetricAuthenticatedSignatureCheckerAlgorithm signatureChecker;
-	private SymmetricAuthentifiedSignerAlgorithm signer;
+	private SymmetricAuthenticatedSignerAlgorithm signer;
 	private SymmetricEncryptionAlgorithm cipher;
 	private AbstractSecureRandom approvedRandom;
 	private final PacketCounterForEncryptionAndSignature packetCounter;
@@ -101,7 +101,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 		this.secretKeyForEncryption=properties.getSymmetricSecretKeyForEncryption(id);
 		this.secretKeyForSignature=properties.getSymmetricSecretKeyForSignature(id);
 		this.signatureChecker=new SymmetricAuthenticatedSignatureCheckerAlgorithm(secretKeyForSignature);
-		this.signer=new SymmetricAuthentifiedSignerAlgorithm(secretKeyForSignature);
+		this.signer=new SymmetricAuthenticatedSignerAlgorithm(secretKeyForSignature);
 		if (properties.enableEncryption)
 			this.cipher=new SymmetricEncryptionAlgorithm(approvedRandom, secretKeyForEncryption);
 		else

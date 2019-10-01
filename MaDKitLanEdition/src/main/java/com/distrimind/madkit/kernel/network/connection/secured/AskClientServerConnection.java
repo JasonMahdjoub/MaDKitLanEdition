@@ -119,7 +119,7 @@ class AskClientServerConnection extends AskConnection {
 		this.secretKeyForSignature=keyWrapper.wrapKey(random, distantPublicKeyForEncryption, signatureSecretKey);
 		this.randomBytes=new byte[256];
 		random.nextBytes(randomBytes);
-		SymmetricAuthentifiedSignerAlgorithm signer=new SymmetricAuthentifiedSignerAlgorithm(signatureSecretKey);
+		SymmetricAuthenticatedSignerAlgorithm signer=new SymmetricAuthenticatedSignerAlgorithm(signatureSecretKey);
 		signer.init();
 		signer.update(secretKeyForEncryption);
 		signer.update(randomBytes);

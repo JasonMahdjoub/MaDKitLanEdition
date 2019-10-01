@@ -39,7 +39,7 @@ import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
 import com.distrimind.util.crypto.SecureRandomType;
-import com.distrimind.util.crypto.SymmetricAuthentifiedSignerAlgorithm;
+import com.distrimind.util.crypto.SymmetricAuthenticatedSignerAlgorithm;
 import com.distrimind.util.crypto.SymmetricEncryptionAlgorithm;
 import com.distrimind.util.crypto.SymmetricSecretKey;
 
@@ -247,7 +247,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties extend
 			try {
 				int max=0;
 				for (SymmetricSecretKey k : secretKeysForSignature.values()) {
-					SymmetricAuthentifiedSignerAlgorithm signerTmp = new SymmetricAuthentifiedSignerAlgorithm(k);
+					SymmetricAuthenticatedSignerAlgorithm signerTmp = new SymmetricAuthenticatedSignerAlgorithm(k);
 					signerTmp.init();
 					max = Math.max(signerTmp.getMacLengthBytes(), max);
 				}

@@ -120,7 +120,7 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 			{
 				try
 				{
-					if (!jpake.hasFinishedReceiption())
+					if (!jpake.hasFinishedReception())
 					{
 						if (jpakeMessages[i]==null)
 						{
@@ -202,7 +202,7 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 
 					try
 					{
-						if (!jpake.hasFinishedReceiption())
+						if (!jpake.hasFinishedReception())
 						{
 							if (jpakeMessages[i]==null)
 							{

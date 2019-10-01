@@ -106,7 +106,7 @@ class PacketCounterForEncryptionAndSignature implements PacketCounter {
 		if (mySignatureCounter==null)
 			return myEncryptionCounter;
 		
-		return Bits.concateEncodingWithShortSizedTabs(myEncryptionCounter, mySignatureCounter);
+		return Bits.concatenateEncodingWithShortSizedTabs(myEncryptionCounter, mySignatureCounter);
 	}
 	
 	@SuppressWarnings("BooleanMethodIsAlwaysInverted")

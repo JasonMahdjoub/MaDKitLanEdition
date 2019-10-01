@@ -76,14 +76,14 @@ class PublicKeyMessage extends ConnectionMessage {
 		public_key_for_signature_bytes=in.readBytesArray(false, AskConnection.MAX_SIGNATURE_LENGTH);
 		try
 		{
-			Key k=Key.decode(public_key_for_encryption_bytes);
+			AbstractKey k=AbstractKey.decode(public_key_for_encryption_bytes);
 			if (!(k instanceof ASymmetricPublicKey))
 				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			public_key_for_encryption = (ASymmetricPublicKey) k;
 
 			if (public_key_for_signature_bytes==null)
 				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			k=Key.decode(public_key_for_signature_bytes);
+			k=AbstractKey.decode(public_key_for_signature_bytes);
 
 			if (!(k instanceof ASymmetricPublicKey))
 				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
