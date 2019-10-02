@@ -648,6 +648,16 @@ public class NetworkProperties extends MultiFormatProperties {
 	 */
 	public boolean lockSocketUntilCGRSynchroIsSent=true;
 
+
+	/**
+	 * Tels which kind of encryption algorithms and protocols that are accepted.
+	 * If no connexion protocol match to the given restriction, the connexion between the two hosts is rejected.
+	 * Else, if no access protocol match to the given restriction, the connexion is done,
+	 * and a secured tunnel is established, but no agent group is accessible to/from the distant host,
+	 * and no one login can be validated.
+	 */
+	public EncryptionRestriction encryptionRestriction=EncryptionRestriction.NO_RESTRICTION;
+
 	/**
 	 * Represents properties of each used connection protocol and each sub network
 	 * 
@@ -720,7 +730,7 @@ public class NetworkProperties extends MultiFormatProperties {
 
 			for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties) {
 				if (cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
-						_distant_inet_address.getAddress(), isServer, needBiDirectionnalConnectionInitiationAbility)) {
+						_distant_inet_address.getAddress(), isServer, needBiDirectionnalConnectionInitiationAbility, encryptionRestriction)) {
 					return cpp.getConnectionProtocolInstance(_distant_inet_address, _local_interface_address,
 							sql_connection, mkProperties, isServer, needBiDirectionnalConnectionInitiationAbility);
 				}
@@ -788,7 +798,7 @@ public class NetworkProperties extends MultiFormatProperties {
 				}
 
 				if (l == 0 && cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
-						_distant_inet_address.getAddress(), isServer, mustSupportBidirectionnalConnectionInitiative)) {
+						_distant_inet_address.getAddress(), isServer, mustSupportBidirectionnalConnectionInitiative, encryptionRestriction)) {
 					return cpp;
 				}
 			}
@@ -970,7 +980,7 @@ public class NetworkProperties extends MultiFormatProperties {
 			InetSocketAddress _local_interface_address) {
 		synchronized (this) {
 			for (AbstractAccessProtocolProperties ad : accessProtocolProperties) {
-				if (ad.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort()))
+				if (ad.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort(), encryptionRestriction))
 					return ad;
 			}
 		}
@@ -1019,7 +1029,7 @@ public class NetworkProperties extends MultiFormatProperties {
 			found = false;
 
 			for (AbstractAccessProtocolProperties app : accessProtocolProperties) {
-				if (app.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort())) {
+				if (app.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort(), encryptionRestriction)) {
 					found = true;
 					break;
 				}
@@ -1030,7 +1040,7 @@ public class NetworkProperties extends MultiFormatProperties {
 
 			for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties) {
 				if (cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
-						_distant_inet_address.getAddress(), isServer, mustSupportBidirectionnalConnectionInitiative)) {
+						_distant_inet_address.getAddress(), isServer, mustSupportBidirectionnalConnectionInitiative, encryptionRestriction)) {
 					return (!takeConnectionInitiative || cpp.canTakeConnectionInitiative());
 				}
 			}
@@ -1582,4 +1592,8 @@ public class NetworkProperties extends MultiFormatProperties {
 		blackListPatternExcludingClassesForDeserialization=null;
 		loadPatternsForAcceptedAndDeniedClasses();
 	}
+
+
+
+
 }

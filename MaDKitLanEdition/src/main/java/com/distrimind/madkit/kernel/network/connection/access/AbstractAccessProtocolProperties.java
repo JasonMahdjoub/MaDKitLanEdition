@@ -40,6 +40,7 @@ package com.distrimind.madkit.kernel.network.connection.access;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
+import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
@@ -96,12 +97,16 @@ public abstract class AbstractAccessProtocolProperties extends MultiFormatProper
 	 *            the local port
 	 * @return true if the filter accept the connection with the given parameters
 	 */
-	public boolean isConcernedBy(InetAddress _distant_inet_address, int _local_port) {
+	public boolean isConcernedBy(InetAddress _distant_inet_address, int _local_port, EncryptionRestriction encryptionRestriction) {
+		if (!isConcernedBy(encryptionRestriction))
+			return false;
 		if (filters == null)
 			return true;
 		else
 			return filters.isConcernedBy(_distant_inet_address, _local_port);
 	}
+
+	public abstract boolean isConcernedBy(EncryptionRestriction encryptionRestriction);
 
 	@Override
 	public Node getRootNode(Document _document) {

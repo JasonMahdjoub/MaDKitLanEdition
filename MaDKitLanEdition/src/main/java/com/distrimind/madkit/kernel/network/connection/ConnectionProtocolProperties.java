@@ -41,6 +41,7 @@ import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.exceptions.NIOException;
 import com.distrimind.madkit.kernel.MadkitProperties;
+import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 import com.distrimind.madkit.kernel.network.InetAddressFilters;
 import com.distrimind.madkit.util.MultiFormatPropertiesObjectParser;
 import com.distrimind.madkit.util.XMLUtilities;
@@ -149,13 +150,16 @@ public abstract class ConnectionProtocolProperties<CP extends ConnectionProtocol
      * @return true if the filter accept the connection with the given parameters
      */
     public boolean isConcernedBy(InetAddress _local_inet_address, int _local_port, InetAddress _distant_inet_address,
-                                 boolean isServer, boolean needBiDirectionnalConnectionInitiationAbility) {
+                                 boolean isServer, boolean needBiDirectionnalConnectionInitiationAbility, EncryptionRestriction encryptionRestriction) {
 
         return isConcernedByLocalNetworkInterface(_local_inet_address, _local_port)
                 && isConcernedByDistantPeer(_distant_inet_address, _local_port)
                 && (!needBiDirectionnalConnectionInitiationAbility || this.supportBidirectionnalConnectionInitiative())
-                && (!isServer || this.canBeServer());
+                && (!isServer || this.canBeServer())
+                && isConcernedBy(encryptionRestriction);
     }
+
+    public abstract boolean isConcernedBy( EncryptionRestriction encryptionRestriction);
 
     public ConnectionProtocol<CP> getConnectionProtocolInstance(InetSocketAddress _distant_inet_address,
                                                                 InetSocketAddress _local_interface_address, DatabaseWrapper sql_connection, MadkitProperties mkProperties,
