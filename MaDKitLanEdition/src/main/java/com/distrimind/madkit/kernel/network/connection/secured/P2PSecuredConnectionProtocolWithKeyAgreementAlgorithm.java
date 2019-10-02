@@ -184,21 +184,44 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 			throw new InternalError();
 		if (this.isCurrentServerAskingConnection())
 		{
-			if (hproperties.enableEncryption)
-				this.keyAgreementForEncryption=hproperties.keyAgreementType.getKeyAgreementServer(this.approvedRandomForKeys, hproperties.symmetricEncryptionType, hproperties.symmetricKeySizeBits, materialKeyForEncryption);
+			if (hproperties.enableEncryption) {
+
+				if (hproperties.postQuantumKeyAgreement!=null) {
+					HybridKeyAgreementType t=new HybridKeyAgreementType(hproperties.keyAgreementType, hproperties.postQuantumKeyAgreement);
+					this.keyAgreementForEncryption = t.getKeyAgreementServer(this.approvedRandomForKeys, hproperties.symmetricEncryptionType, hproperties.symmetricKeySizeBits, materialKeyForEncryption);
+				}
+				else
+					this.keyAgreementForEncryption = hproperties.keyAgreementType.getKeyAgreementServer(this.approvedRandomForKeys, hproperties.symmetricEncryptionType, hproperties.symmetricKeySizeBits, materialKeyForEncryption);
+			}
 			else
 				this.keyAgreementForEncryption=null;
-			this.keyAgreementForSignature=hproperties.keyAgreementType.getKeyAgreementServer(this.approvedRandomForKeys, hproperties.symmetricSignatureType, hproperties.symmetricKeySizeBits, materialKeyForSignature);
+			if (hproperties.postQuantumKeyAgreement!=null) {
+				HybridKeyAgreementType t=new HybridKeyAgreementType(hproperties.keyAgreementType, hproperties.postQuantumKeyAgreement);
+				this.keyAgreementForSignature=t.getKeyAgreementServer(this.approvedRandomForKeys, hproperties.symmetricSignatureType, hproperties.symmetricKeySizeBits, materialKeyForSignature);
+			}
+			else
+				this.keyAgreementForSignature=hproperties.keyAgreementType.getKeyAgreementServer(this.approvedRandomForKeys, hproperties.symmetricSignatureType, hproperties.symmetricKeySizeBits, materialKeyForSignature);
 		}
 		else
 		{
-			if (hproperties.enableEncryption)
-				this.keyAgreementForEncryption=hproperties.keyAgreementType.getKeyAgreementClient(this.approvedRandomForKeys, hproperties.symmetricEncryptionType, hproperties.symmetricKeySizeBits, materialKeyForEncryption);
+			if (hproperties.enableEncryption) {
+				if (hproperties.postQuantumKeyAgreement!=null) {
+					HybridKeyAgreementType t=new HybridKeyAgreementType(hproperties.keyAgreementType, hproperties.postQuantumKeyAgreement);
+					this.keyAgreementForEncryption = t.getKeyAgreementClient(this.approvedRandomForKeys, hproperties.symmetricEncryptionType, hproperties.symmetricKeySizeBits, materialKeyForEncryption);
+				}
+				else
+					this.keyAgreementForEncryption = hproperties.keyAgreementType.getKeyAgreementClient(this.approvedRandomForKeys, hproperties.symmetricEncryptionType, hproperties.symmetricKeySizeBits, materialKeyForEncryption);
+			}
 			else
 				this.keyAgreementForEncryption=null;
-			this.keyAgreementForSignature=hproperties.keyAgreementType.getKeyAgreementClient(this.approvedRandomForKeys, hproperties.symmetricSignatureType, hproperties.symmetricKeySizeBits, materialKeyForSignature);
-			
+			if (hproperties.postQuantumKeyAgreement!=null) {
+				HybridKeyAgreementType t=new HybridKeyAgreementType(hproperties.keyAgreementType, hproperties.postQuantumKeyAgreement);
+				this.keyAgreementForSignature=t.getKeyAgreementClient(this.approvedRandomForKeys, hproperties.symmetricSignatureType, hproperties.symmetricKeySizeBits, materialKeyForSignature);
+			}
+			else
+				this.keyAgreementForSignature=hproperties.keyAgreementType.getKeyAgreementClient(this.approvedRandomForKeys, hproperties.symmetricSignatureType, hproperties.symmetricKeySizeBits, materialKeyForSignature);
 		}
+
 	}
 	
 	private void reinitSymmetricAlgorithmIfNecessary() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, NoSuchProviderException, InvalidKeySpecException

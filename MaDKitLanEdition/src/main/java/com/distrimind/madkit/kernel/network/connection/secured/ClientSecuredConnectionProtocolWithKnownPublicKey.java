@@ -73,7 +73,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 		extends ConnectionProtocol<ClientSecuredConnectionProtocolWithKnownPublicKey> {
 	Step current_step = Step.NOT_CONNECTED;
 
-	private final ASymmetricPublicKey distant_public_key_for_encryption;
+	private final IASymmetricPublicKey distant_public_key_for_encryption;
 	protected final ClientASymmetricEncryptionAlgorithm aSymmetricAlgorithm;
 	protected SymmetricEncryptionAlgorithm symmetricEncryption = null;
 	protected SymmetricAuthenticatedSignerAlgorithm signer = null;

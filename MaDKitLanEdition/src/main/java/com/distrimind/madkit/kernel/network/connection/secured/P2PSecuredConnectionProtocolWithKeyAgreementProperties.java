@@ -75,6 +75,11 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementProperties extends Conn
 	 * Key agreement type
 	 */
 	public KeyAgreementType keyAgreementType=KeyAgreementType.DEFAULT;
+
+	/**
+	 * Post quantum key agreement type
+	 */
+	public KeyAgreementType postQuantumKeyAgreement=KeyAgreementType.BCPQC_NEW_HOPE;
 	
 	/**
 	 * Symmetric encryption algorithm
@@ -97,6 +102,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementProperties extends Conn
 	public boolean isServer = true;
 
 
+
 	@Override
 	public void checkProperties() throws ConnectionException {
 
@@ -110,6 +116,13 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementProperties extends Conn
 			throw new ConnectionException("The key agreement is a post quantum cryptography. However, the given symmetric encryption algorithm associated with the given symmetric key size are not post quantum compatible algorithms.");
 		if (keyAgreementType.isPostQuantumAlgorithm() && !symmetricSignatureType.isPostQuantumAlgorithm(symmetricKeySizeBits))
 			throw new ConnectionException("The key agreement is a post quantum cryptography. However, the given symmetric signature algorithm associated with the given symmetric signature size are not post quantum compatible algorithms.");
+		if (postQuantumKeyAgreement!=null && !postQuantumKeyAgreement.isPostQuantumAlgorithm())
+			throw new ConnectionException("The variable postQuantumKeyAgreement can be null be must a post quantum type when defined.");
+		if (postQuantumKeyAgreement!=null && !symmetricSignatureType.isPostQuantumAlgorithm(symmetricKeySizeBits))
+			throw new ConnectionException("The key agreement is a post quantum cryptography. However, the given symmetric signature algorithm associated with the given symmetric signature size are not post quantum compatible algorithms.");
+		if (postQuantumKeyAgreement!=null && keyAgreementType.isPostQuantumAlgorithm())
+			throw new ConnectionException("Hybrid connexion must use a non post quantum algorithm with a post quantum algorithm");
+
 	}
 
 	@Override

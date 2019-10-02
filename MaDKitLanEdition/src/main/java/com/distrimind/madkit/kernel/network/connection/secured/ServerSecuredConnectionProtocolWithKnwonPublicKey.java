@@ -70,7 +70,7 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 		extends ConnectionProtocol<ServerSecuredConnectionProtocolWithKnwonPublicKey> {
 	Step current_step = Step.NOT_CONNECTED;
 
-	ASymmetricKeyPair myKeyPairForEncryption;
+	AbstractKeyPair myKeyPairForEncryption;
 
 	protected SymmetricEncryptionType symmetricEncryptionType;
 	protected SymmetricEncryptionAlgorithm symmetricEncryption;

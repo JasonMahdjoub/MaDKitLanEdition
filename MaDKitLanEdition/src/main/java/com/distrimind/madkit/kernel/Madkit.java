@@ -171,6 +171,7 @@ final public class Madkit {
 			d.addItem("Host identifiers are sent only if the cloud identifier authentication process succeeded.");
 			d.addItem("Authentication can be done automatically with public key, through a shared password/key, or both");
 			d.addItem("An identifier is composed of a cloud identifier, and a host identifier. In the past, one authentication concerned both cloud and host identifiers. Now it is possible to have two authentications : one for the cloud identifier, and one another for the host identifier. If one of them fails, than identifier is rejected.");
+			d.addItem("Use hybrid connexion protocols that enables to use at the same time non post quantum algorithms and post quantum algorithms. It is to prevent the quantum supremacy without loosing the benefits of stable encryption algorithms. For client/server connexion, two asymmetric key pairs are then used : one for a non post quantum algorithm like RSA and one for a post quantum algorithm like Mc Eliece");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();

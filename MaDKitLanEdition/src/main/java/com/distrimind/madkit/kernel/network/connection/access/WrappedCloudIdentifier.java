@@ -59,7 +59,7 @@ final class WrappedCloudIdentifier extends CloudIdentifier {
 		int s=0;
 		for (ASymmetricAuthenticatedSignatureType sig : ASymmetricAuthenticatedSignatureType.values())
 		{
-			int s2=sig.getSignatureSizeBits(sig.getDefaultKeySize()*4);
+			@SuppressWarnings("deprecation") int s2=sig.getSignatureSizeBits(sig.getDefaultKeySize()*4);
 			if (s2>s)
 				s=s2;
 		}

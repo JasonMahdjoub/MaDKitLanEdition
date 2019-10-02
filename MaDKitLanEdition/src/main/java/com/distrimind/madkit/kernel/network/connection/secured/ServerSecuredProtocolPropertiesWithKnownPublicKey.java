@@ -92,6 +92,27 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 
 	/**
 	 * Generate and add an encryption profile with a new key pair, etc.
+	 *
+	 * @param random
+	 *            a secured random number generator
+	 * @param as_type
+	 *            tge asymmetric encryption type
+	 * @param s_type
+	 *            the symmetric encryption type (if null, use default encryption
+	 *            type)
+	 * @param keyWrapper the key wrapper type
+	 * @return the encryption profile identifier
+	 * @throws NoSuchAlgorithmException if the encryption algorithm was not found
+	 * @throws InvalidAlgorithmParameterException if the encryption algorithm parameter was not valid
+	 * @throws NoSuchProviderException if the encryption algorithm provider was not found
+	 */
+	public int generateAndAddEncryptionProfile(AbstractSecureRandom random, HybridASymmetricEncryptionType as_type,
+											   SymmetricEncryptionType s_type, ASymmetricKeyWrapperType keyWrapper) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+		return addEncryptionProfile(as_type.generateKeyPair(random), s_type, s_type.getDefaultKeySizeBits(), keyWrapper, null);
+	}
+
+	/**
+	 * Generate and add an encryption profile with a new key pair, etc.
 	 * 
 	 * @param random
 	 *            a secured random number generator
@@ -170,7 +191,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	 *            the signature type (if null, use default signature type)
 	 * @return the encryption profile identifier
 	 */
-	public int addEncryptionProfile(ASymmetricKeyPair keyPairForEncryption,
+	public int addEncryptionProfile(AbstractKeyPair keyPairForEncryption,
 									SymmetricEncryptionType symmetricEncryptionType, short symmetricKeySizeBits, ASymmetricKeyWrapperType keyWrapper, SymmetricAuthentifiedSignatureType signatureType) {
 		return addEncryptionProfile(generateNewKeyPairIdentifier(), keyPairForEncryption, symmetricEncryptionType, symmetricKeySizeBits, keyWrapper, signatureType);
 	}
@@ -190,7 +211,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	 *            the signature type (if null, use default signature type)
 	 * @return the encryption profile identifier
 	 */
-	public int addEncryptionProfile(int profileIdentifier, ASymmetricKeyPair keyPairForEncryption,
+	public int addEncryptionProfile(int profileIdentifier, AbstractKeyPair keyPairForEncryption,
 			SymmetricEncryptionType symmetricEncryptionType, short symmetricKeySizeBits, ASymmetricKeyWrapperType keyWrapper, SymmetricAuthentifiedSignatureType signatureType) {
 		if (keyPairForEncryption == null)
 			throw new NullPointerException("keyPairForEncryption");
@@ -229,7 +250,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	 * @return the key pair attached to this connection protocol and the given
 	 *         profile identifier
 	 */
-	public ASymmetricKeyPair getKeyPairForEncryption(int profileIdentifier) {
+	public AbstractKeyPair getKeyPairForEncryption(int profileIdentifier) {
 		return keyPairsForEncryption.get(profileIdentifier);
 	}
 
@@ -242,7 +263,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	    Boolean valid=validProfiles.get(profileIdentifier);
 	    if (valid==null || !valid)
 	        return false;
-		ASymmetricKeyPair kp=keyPairsForEncryption.get(profileIdentifier);
+		AbstractKeyPair kp=keyPairsForEncryption.get(profileIdentifier);
 		return kp!=null && kp.getTimeExpirationUTC()>System.currentTimeMillis();
 	}
 
@@ -324,7 +345,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	 * @return the default key pair attached to this connection protocol and its
 	 *         default profile
 	 */
-	public ASymmetricKeyPair getDefaultKeyPairForEncryption() {
+	public AbstractKeyPair getDefaultKeyPairForEncryption() {
 		return keyPairsForEncryption.get(lastIdentifier);
 	}
 
@@ -406,7 +427,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	/**
 	 * The used key pairs for encryption
 	 */
-	private Map<Integer, ASymmetricKeyPair> keyPairsForEncryption = new HashMap<>();
+	private Map<Integer, AbstractKeyPair> keyPairsForEncryption = new HashMap<>();
 
 	/**
 	 * The used signatures
@@ -445,26 +466,31 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 
 
 
-	private boolean checkKeyPairs(Map<Integer, ASymmetricKeyPair> keyPairs) throws ConnectionException
+	private boolean checkKeyPairs(Map<Integer, AbstractKeyPair> keyPairs) throws ConnectionException
 	{
 		if (keyPairs == null)
 			throw new ConnectionException("The key pairs must defined");
 		if (keyPairs.isEmpty())
 			throw new ConnectionException("The key pairs must defined");
 		boolean valid = false;
-		for (Map.Entry<Integer, ASymmetricKeyPair> e : keyPairs.entrySet()) {
+		for (Map.Entry<Integer, AbstractKeyPair> e : keyPairs.entrySet()) {
 			if (e.getValue() == null)
 				throw new NullPointerException();
 			Boolean vp=validProfiles.get(e.getKey());
 			if (e.getValue().getTimeExpirationUTC() > System.currentTimeMillis() && vp!=null && vp) {
 				valid = true;
 			}
-			int tmp = e.getValue().getKeySizeBits();
+			int s;
+			if (e.getValue() instanceof HybridASymmetricKeyPair)
+				s=((HybridASymmetricKeyPair)e.getValue()).getNonPQCASymmetricKeyPair().getKeySizeBits();
+			else
+				s=((ASymmetricKeyPair)e.getValue()).getKeySizeBits();
+			int tmp=s;
 			while (tmp != 1) {
 				if (tmp % 2 == 0)
 					tmp = tmp / 2;
 				else
-					throw new ConnectionException("The RSA key size have a size of " + e.getValue().getKeySizeBits()
+					throw new ConnectionException("The RSA key size have a size of " + s
 							+ ". This number must correspond to this schema : _rsa_key_size=2^x.");
 			}
 			if (signatures.get(e.getKey()) == null)
@@ -475,7 +501,13 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 				throw new NullPointerException(
 						"No symmetric encryption key size bits found for identifier " + e.getKey());
 		}
-		if (keyPairs.get(this.lastIdentifier).getKeySizeBits() < minASymetricKeySizeBits)
+		AbstractKeyPair akp=keyPairs.get(this.lastIdentifier);
+		int s;
+		if (akp instanceof HybridASymmetricKeyPair)
+			s=((HybridASymmetricKeyPair)akp).getNonPQCASymmetricKeyPair().getKeySizeBits();
+		else
+			s=((ASymmetricKeyPair)akp).getKeySizeBits();
+		if (s < minASymetricKeySizeBits)
 			throw new ConnectionException("_rsa_key_size must be greater or equal than " + minASymetricKeySizeBits
 					+ " . Moreover, this number must correspond to this schema : _rsa_key_size=2^x.");
 		return valid;
