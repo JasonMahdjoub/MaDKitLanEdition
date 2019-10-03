@@ -40,6 +40,7 @@ package com.distrimind.madkit.kernel.network.connection.access;
 import java.net.InetSocketAddress;
 
 import com.distrimind.madkit.kernel.MadkitProperties;
+import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 import com.distrimind.util.crypto.*;
 
 /**
@@ -91,6 +92,7 @@ public class AccessProtocolWithP2PAgreementProperties extends AbstractAccessProt
 	 * {@link P2PASymmetricSecretMessageExchanger}
 	 */
 	public ASymmetricEncryptionType aSymetricEncryptionType = ASymmetricEncryptionType.DEFAULT;
+
 
 	/**
 	 * PasswordDigestType used for {@link P2PASymmetricSecretMessageExchanger}
@@ -148,6 +150,25 @@ public class AccessProtocolWithP2PAgreementProperties extends AbstractAccessProt
 		return new AccessProtocolWithP2PAgreement(_distant_inet_address, _local_interface_address, loginTrigger, _properties);
 	}
 
-	
+	@Override
+	public boolean isConcernedBy(EncryptionRestriction encryptionRestriction) {
+
+		if (encryptionRestriction==EncryptionRestriction.NO_RESTRICTION)
+			return true;
+		if (this.p2pLoginAgreementType!=null && this.p2pLoginAgreementType!=P2PLoginAgreementType.AGREEMENT_WITH_SYMMETRIC_SIGNATURE)
+			return false;
+		if (this.asymmetricLoginAgreementType!=null && this.p2pLoginAgreementType!=null)
+			return false;
+		if (this.aSymetricEncryptionType!=null && !this.aSymetricEncryptionType.isPostQuantumAlgorithm())
+			return false;
+		if (encryptionRestriction==EncryptionRestriction.HYBRID_ALGORITHMS)
+		{
+			return this.aSymetricEncryptionType==null && this.p2pLoginAgreementType!=null;
+		}
+		else
+		{
+			return true;
+		}
+	}
 	
 }

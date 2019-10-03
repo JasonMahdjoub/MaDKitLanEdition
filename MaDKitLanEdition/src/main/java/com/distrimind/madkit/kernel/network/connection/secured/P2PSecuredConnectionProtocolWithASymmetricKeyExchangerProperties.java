@@ -39,6 +39,7 @@ package com.distrimind.madkit.kernel.network.connection.secured;
 
 import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.exceptions.ConnectionException;
+import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
 import com.distrimind.util.crypto.*;
 
@@ -178,7 +179,22 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties ex
         return maxHeadSize;
     }
 
-    @Override
+	@Override
+	public boolean isConcernedBy(EncryptionRestriction encryptionRestriction) {
+		if (subProtocolProperties!=null && subProtocolProperties.isConcernedBy(encryptionRestriction))
+			return true;
+
+		if (encryptionRestriction==EncryptionRestriction.NO_RESTRICTION)
+    		return true;
+    	if (enableEncryption && !symmetricEncryptionType.isPostQuantumAlgorithm(symmetricKeySizeBits))
+    		return false;
+    	if (encryptionRestriction==EncryptionRestriction.HYBRID_ALGORITHMS)
+    		return false;
+    	else
+			return this.aSymetricEncryptionType.isPostQuantumAlgorithm() && this.signatureType.isPostQuantumAlgorithm() && keyWrapper.isPostQuantumKeyAlgorithm();
+	}
+
+	@Override
 	public boolean needsServerSocketImpl() {
 		return isServer;
 	}

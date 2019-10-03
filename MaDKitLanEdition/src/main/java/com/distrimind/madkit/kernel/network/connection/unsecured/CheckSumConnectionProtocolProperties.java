@@ -38,6 +38,7 @@
 package com.distrimind.madkit.kernel.network.connection.unsecured;
 
 import com.distrimind.madkit.exceptions.ConnectionException;
+import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
 import com.distrimind.util.crypto.MessageDigestType;
 
@@ -70,6 +71,14 @@ public class CheckSumConnectionProtocolProperties extends ConnectionProtocolProp
 	 * Tells if the current peer can receive an ask for connection.
 	 */
 	public boolean isServer = true;
+
+	@Override
+	public boolean isConcernedBy(EncryptionRestriction encryptionRestriction) {
+		if (subProtocolProperties!=null && subProtocolProperties.isConcernedBy(encryptionRestriction))
+			return true;
+
+		return encryptionRestriction==EncryptionRestriction.NO_RESTRICTION;
+	}
 
 	@Override
 	public boolean needsServerSocketImpl() {

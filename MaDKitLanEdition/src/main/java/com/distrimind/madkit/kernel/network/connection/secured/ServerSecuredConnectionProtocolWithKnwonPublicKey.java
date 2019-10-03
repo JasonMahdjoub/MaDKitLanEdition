@@ -130,7 +130,7 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 		if (myKeyPairForEncryption != null)
 			return;
 		try {
-			if (!hproperties.isValidProfile(identifier))
+			if (!hproperties.isValidProfile(identifier, network_properties.encryptionRestriction))
 				throw new BlockParserException(
 						"Invalid profile " + identifier);
 

@@ -39,6 +39,7 @@ package com.distrimind.madkit.kernel.network.connection.secured;
 
 import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.exceptions.ConnectionException;
+import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
 import com.distrimind.util.crypto.*;
 
@@ -259,12 +260,27 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	 * @param profileIdentifier the profile identifier
 	 * @return true if the given profile identifier is valid
 	 */
-	public boolean isValidProfile(int profileIdentifier) {
+	public boolean isValidProfile(int profileIdentifier, EncryptionRestriction encryptionRestriction) {
 	    Boolean valid=validProfiles.get(profileIdentifier);
 	    if (valid==null || !valid)
 	        return false;
 		AbstractKeyPair kp=keyPairsForEncryption.get(profileIdentifier);
-		return kp!=null && kp.getTimeExpirationUTC()>System.currentTimeMillis();
+		if (kp!=null && kp.getTimeExpirationUTC()>System.currentTimeMillis())
+		{
+			if (encryptionRestriction==EncryptionRestriction.NO_RESTRICTION)
+				return true;
+			if (!this.signatures.get(profileIdentifier).isPostQuantumAlgorithm(this.symmetricEncryptionKeySizeBits.get(profileIdentifier)))
+				return false;
+
+			if (enableEncryption && !this.symmetricEncryptionTypes.get(profileIdentifier).isPostQuantumAlgorithm(this.symmetricEncryptionKeySizeBits.get(profileIdentifier)))
+				return false;
+			if (encryptionRestriction==EncryptionRestriction.HYBRID_ALGORITHMS)
+				return kp instanceof HybridASymmetricKeyPair && !keyWrappers.get(profileIdentifier).isPostQuantumKeyAlgorithm();
+			else
+				return kp.isPostQuantumKey() && keyWrappers.get(profileIdentifier).isPostQuantumKeyAlgorithm();
+		}
+		else
+			return false;
 	}
 
     /**
@@ -592,5 +608,19 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
             maxSizeHead=getMaximumSignatureSizeBits()/8;
         return maxSizeHead;
     }
+
+	@Override
+	public boolean isConcernedBy(EncryptionRestriction encryptionRestriction) {
+		if (subProtocolProperties!=null && subProtocolProperties.isConcernedBy(encryptionRestriction))
+			return true;
+
+		for (Integer k:  this.keyPairsForEncryption.keySet())
+		{
+			if (isValidProfile(k, encryptionRestriction))
+				return true;
+		}
+		return false;
+
+	}
 
 }

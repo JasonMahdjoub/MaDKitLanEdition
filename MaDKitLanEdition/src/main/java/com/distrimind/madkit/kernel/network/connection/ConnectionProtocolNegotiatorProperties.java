@@ -39,6 +39,7 @@ package com.distrimind.madkit.kernel.network.connection;
 
 import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.exceptions.ConnectionException;
+import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -151,10 +152,15 @@ public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolPr
      * @param identifier the identifier
      * @return true if the connection protocol that corresponds to the given identifier is enabled
      */
-    public boolean isValidConnectionProtocol(int identifier)
+    public boolean isValidConnectionProtocol(int identifier, EncryptionRestriction encryptionRestriction)
     {
         Boolean v=validationOfConnectionProtocols.get(identifier);
-        return v!=null && v;
+        if (v!=null && v)
+        {
+            return this.connectionProtocolProperties.get(identifier).isConcernedBy(encryptionRestriction);
+        }
+        else
+            return false;
     }
 
     /**
@@ -171,13 +177,13 @@ public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolPr
      * Gets the priorities associated to connection protocol identifiers
      * @return the priorities
      */
-    public Map<Integer, Integer> getValidPriorities()
+    public Map<Integer, Integer> getValidPriorities(EncryptionRestriction encryptionRestriction)
     {
         if (validPriorities==null) {
 
             HashMap<Integer, Integer> res=new HashMap<>();
             for (Map.Entry<Integer, Integer> e : connectionProtocolsPriorities.entrySet()) {
-                if (isValidConnectionProtocol(e.getKey()))
+                if (isValidConnectionProtocol(e.getKey(), encryptionRestriction))
                     res.put(e.getKey(), e.getValue());
             }
             validPriorities= Collections.unmodifiableMap(res);
@@ -324,5 +330,16 @@ public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolPr
 
     public HashMap<Integer, ConnectionProtocolProperties<?>> getConnectionProtocolProperties() {
         return connectionProtocolProperties;
+    }
+    @Override
+    public boolean isConcernedBy(EncryptionRestriction encryptionRestriction) {
+        if (subProtocolProperties!=null && subProtocolProperties.isConcernedBy(encryptionRestriction))
+            return true;
+
+        for (Integer id : this.connectionProtocolProperties.keySet()) {
+            if (isValidConnectionProtocol(id, encryptionRestriction))
+                return true;
+        }
+        return false;
     }
 }

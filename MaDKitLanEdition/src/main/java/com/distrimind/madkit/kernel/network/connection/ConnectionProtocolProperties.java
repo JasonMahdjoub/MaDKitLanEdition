@@ -70,6 +70,7 @@ public abstract class ConnectionProtocolProperties<CP extends ConnectionProtocol
      */
     private static final long serialVersionUID = 5967436161679203461L;
 
+
     /**
      * Allowed and forbidden distant peers
      */
@@ -163,15 +164,15 @@ public abstract class ConnectionProtocolProperties<CP extends ConnectionProtocol
 
     public ConnectionProtocol<CP> getConnectionProtocolInstance(InetSocketAddress _distant_inet_address,
                                                                 InetSocketAddress _local_interface_address, DatabaseWrapper sql_connection, MadkitProperties mkProperties,
-                                                                boolean isServer, boolean needBiDirectionnalConnectionInitiationAbility) throws NIOException {
+                                                                boolean isServer, boolean needBiDirectionnalConnectionInitiationAbility, EncryptionRestriction encryptionRestriction) throws NIOException {
         return getConnectionProtocolInstance(_distant_inet_address, _local_interface_address, sql_connection,
-                mkProperties, 0, isServer, needBiDirectionnalConnectionInitiationAbility);
+                mkProperties, 0, isServer, needBiDirectionnalConnectionInitiationAbility, encryptionRestriction);
     }
 
     @SuppressWarnings("unused")
     private ConnectionProtocol<CP> getConnectionProtocolInstance(InetSocketAddress _distant_inet_address,
                                                                  InetSocketAddress _local_interface_address, DatabaseWrapper sql_connection, MadkitProperties mkProperties,
-                                                                 int subProtocolLevel, boolean isServer, boolean needBiDirectionnalConnectionInitiationAbility)
+                                                                 int subProtocolLevel, boolean isServer, boolean needBiDirectionnalConnectionInitiationAbility, EncryptionRestriction encryptionRestriction)
             throws NIOException {
         try {
             Constructor<CP> c = connectionProtocolClass.getDeclaredConstructor(InetSocketAddress.class,
@@ -182,7 +183,7 @@ public abstract class ConnectionProtocolProperties<CP extends ConnectionProtocol
             if (subProtocolProperties != null) {
                 sub = subProtocolProperties.getConnectionProtocolInstance(_distant_inet_address,
                         _local_interface_address, sql_connection, mkProperties, subProtocolLevel + 1, isServer,
-                        needBiDirectionnalConnectionInitiationAbility);
+                        needBiDirectionnalConnectionInitiationAbility, encryptionRestriction);
                 if (sub == null)
                     return null;
             }

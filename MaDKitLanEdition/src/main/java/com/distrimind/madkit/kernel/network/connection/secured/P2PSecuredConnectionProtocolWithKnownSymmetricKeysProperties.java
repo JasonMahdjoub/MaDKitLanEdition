@@ -37,11 +37,9 @@ knowledge of the CeCILL-C license and that you accept its terms.
 
 import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.exceptions.ConnectionException;
+import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
-import com.distrimind.util.crypto.SecureRandomType;
-import com.distrimind.util.crypto.SymmetricAuthenticatedSignerAlgorithm;
-import com.distrimind.util.crypto.SymmetricEncryptionAlgorithm;
-import com.distrimind.util.crypto.SymmetricSecretKey;
+import com.distrimind.util.crypto.*;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -138,10 +136,19 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties extend
 		return secretKeysForSignature.get(profileIdentifier);
 	}
 
-	public boolean isValidProfile(int profileIdentifier)
+	public boolean isValidProfile(int profileIdentifier, EncryptionRestriction encryptionRestriction)
 	{
 		Boolean valid=validProfiles.get(profileIdentifier);
-		return valid!=null && valid;
+		if (valid!=null && valid)
+		{
+			if (encryptionRestriction==EncryptionRestriction.NO_RESTRICTION)
+				return true;
+			if (enableEncryption && !(this.secretKeysForEncryption.get(profileIdentifier).isPostQuantumKey()))
+				return false;
+			return this.secretKeysForSignature.get(profileIdentifier).isPostQuantumKey();
+		}
+		else
+			return false;
 	}
 
 	/**
@@ -155,6 +162,19 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties extend
 	 */
 	public boolean enableEncryption = true;
 
+
+	@Override
+	public boolean isConcernedBy(EncryptionRestriction encryptionRestriction) {
+		if (subProtocolProperties!=null && subProtocolProperties.isConcernedBy(encryptionRestriction))
+			return true;
+
+		for (Integer id : validProfiles.keySet())
+		{
+			if (isValidProfile(id, encryptionRestriction))
+				return true;
+		}
+		return false;
+	}
 
 	@Override
 	public boolean needsServerSocketImpl() {
@@ -260,8 +280,8 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties extend
 		return maxHeadSize;
 	}
 
-	public int getDefaultProfileIdentifier() {
-		if (isValidProfile(defaultProfileIdentifier))
+	public int getDefaultProfileIdentifier(EncryptionRestriction encryptionRestriction) {
+		if (isValidProfile(defaultProfileIdentifier, encryptionRestriction))
 			return defaultProfileIdentifier;
 		else
 			return lastIdentifier;
@@ -272,6 +292,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties extend
 	 * @param defaultProfileIdentifier the default profile identifier
 	 */
 	public void setDefaultProfileIdentifier(int defaultProfileIdentifier) {
+
 		this.defaultProfileIdentifier = defaultProfileIdentifier;
 	}
 

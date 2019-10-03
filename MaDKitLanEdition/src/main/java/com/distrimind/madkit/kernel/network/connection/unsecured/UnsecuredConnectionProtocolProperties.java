@@ -37,6 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network.connection.unsecured;
 
+import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
 
 /**
@@ -87,7 +88,13 @@ public class UnsecuredConnectionProtocolProperties extends ConnectionProtocolPro
 	@Override
 	public void checkProperties()  {
 	}
+	@Override
+	public boolean isConcernedBy(EncryptionRestriction encryptionRestriction) {
+		if (subProtocolProperties!=null && subProtocolProperties.isConcernedBy(encryptionRestriction))
+			return true;
 
+		return encryptionRestriction==EncryptionRestriction.NO_RESTRICTION;
+	}
 	@Override
 	public boolean needsMadkitLanEditionDatabase() {
 		return false;
