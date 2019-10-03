@@ -1026,7 +1026,8 @@ final public class Madkit {
 					DistantKernelAddressValidated.class,
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.IdentifiersPropositionMessage"),
 					Identifier.class,
-					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.JPakeMessage"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.JPakeMessageForAuthenticationOfCloudIdentifiers"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.JPakeAccessInitialized"),
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.secured.KeyAgreementDataMessage"),
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.LoginConfirmationMessage"),
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.NewLocalLoginAddedMessage"),
@@ -1092,8 +1093,9 @@ final public class Madkit {
 					OSVersion.class,
 					DatabaseEventType.class,
 					TransactionIsolation.class,
-					HookMessage.AgentActionEvent.class
-
+					HookMessage.AgentActionEvent.class,
+					EncryptionRestriction.class,
+					Identifier.AuthenticationMethod.class
 			)));
 			SerializationTools.setPredefinedClasses(classes, enums);
 		} catch (ClassNotFoundException e) {

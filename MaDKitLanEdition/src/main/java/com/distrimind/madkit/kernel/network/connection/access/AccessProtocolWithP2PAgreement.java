@@ -195,13 +195,13 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 				if (_m instanceof AccessAskInitiliazation) {
 					if (access_data instanceof LoginData) {
 						access_state = AccessState.ACCESS_INITIALIZED;
-						JPakeAccessInitialized res=new JPakeAccessInitialized(((LoginData)access_data).canTakesLoginInitiative(), properties.getApprovedSecureRandomForKeys());
+						JPakeAccessInitialized res=new JPakeAccessInitialized(((LoginData)access_data).canTakesLoginInitiative(), properties.getApprovedSecureRandomForKeys(), messageDigest.getDigestLength());
 						localGeneratedSalt=res.getGeneratedSalt();
 						return res;
 						
 					} else {
 						access_state = AccessState.ACCESS_INITIALIZED;
-						JPakeAccessInitialized res=new JPakeAccessInitialized(false, properties.getApprovedSecureRandomForKeys());
+						JPakeAccessInitialized res=new JPakeAccessInitialized(false, properties.getApprovedSecureRandomForKeys(), messageDigest.getDigestLength());
 						localGeneratedSalt=res.getGeneratedSalt();
 						return res;
 					}

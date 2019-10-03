@@ -39,6 +39,7 @@ package com.distrimind.madkit.kernel.network.connection.access;
 
 import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
+import com.distrimind.util.DecentralizedIDGenerator;
 import com.distrimind.util.crypto.*;
 import com.distrimind.util.io.*;
 
@@ -69,10 +70,20 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 
 	@Override
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
-		identifiers=in.readObject(false, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE, WrappedCloudIdentifier[].class);
+		SecureExternalizable[] r=in.readObject(false, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE, SecureExternalizable[].class);
+		identifiers=new WrappedCloudIdentifier[r.length];
+		for (int i=0;i<identifiers.length;i++)
+		{
+			if (r[i] instanceof WrappedCloudIdentifier)
+				identifiers[i]=(WrappedCloudIdentifier)r[i];
+			else
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+		}
+
 	}
 	@Override
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
+
 		oos.writeObject(identifiers, false, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE);
 	}
 
@@ -288,7 +299,7 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 				PasswordKey pw = loginData.getCloudPassword(localCloudIdentifier);
 				if (pw != null) {
 					if (accessProtocolProperties.isAcceptablePassword(encryptionRestriction, pw)) {
-						P2PLoginAgreement p2PLoginAgreement = agreementType.getAgreementAlgorithm(random, localCloudIdentifier.getBytesTabToEncode(), pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature(), messageDigestType, passwordHashType, myPublicKey);
+						P2PLoginAgreement p2PLoginAgreement = agreementType.getAgreementAlgorithm(random, new DecentralizedIDGenerator(true, true).encode(), pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature(), messageDigestType, passwordHashType, myPublicKey);
 						agreements.put(distantCloudID, p2PLoginAgreement);
 						temporaryAcceptedCloudIdentifiers.put(distantCloudID, localCloudIdentifier);
 					}
@@ -315,7 +326,7 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 		if (!ok) {
 			PasswordKey pw=PasswordKey.getRandomPasswordKey(random);
 			agreements.put(distantCloudID,
-					agreementType.getAgreementAlgorithm(random, distantCloudID.getBytesTabToEncode(), pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature(), messageDigestType, passwordHashType, myPublicKey));
+					agreementType.getAgreementAlgorithm(random, new DecentralizedIDGenerator(true, true).encode(), pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature(), messageDigestType, passwordHashType, myPublicKey));
 		}
 
 		return nbAno;

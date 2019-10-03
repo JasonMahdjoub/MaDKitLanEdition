@@ -268,7 +268,16 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 	public void readExternal(final SecuredObjectInputStream in) throws IOException, ClassNotFoundException
 	{
 		int globalSize= NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
-		identifiers = in.readObject(false, globalSize, WrappedCloudIdentifier[].class);
+		SecureExternalizable[] r=in.readObject(false, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE, SecureExternalizable[].class);
+		identifiers=new WrappedCloudIdentifier[r.length];
+		for (int i=0;i<identifiers.length;i++)
+		{
+			if (r[i] instanceof WrappedCloudIdentifier)
+				identifiers[i]=(WrappedCloudIdentifier)r[i];
+			else
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+		}
+
 		int totalSize=0;
 		for (WrappedCloudIdentifier identifier : identifiers) {
 			if (identifier != null)

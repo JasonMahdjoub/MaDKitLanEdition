@@ -252,3 +252,5 @@ gradle-app.setting
 hs_err_pid*
 
 
+/testaccessasker*
+/testaccessreceiver*
