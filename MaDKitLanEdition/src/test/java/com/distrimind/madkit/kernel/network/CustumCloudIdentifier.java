@@ -38,8 +38,9 @@
 package com.distrimind.madkit.kernel.network;
 
 import com.distrimind.madkit.kernel.network.connection.access.CloudIdentifier;
-import com.distrimind.util.crypto.ASymmetricKeyPair;
-import com.distrimind.util.crypto.ASymmetricPublicKey;
+import com.distrimind.madkit.kernel.network.connection.access.Identifier;
+import com.distrimind.util.crypto.AbstractKeyPair;
+import com.distrimind.util.crypto.IASymmetricPublicKey;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
 import com.distrimind.util.io.SerializationTools;
@@ -110,24 +111,28 @@ public class CustumCloudIdentifier extends CloudIdentifier {
 	}
 
 	@Override
-	public boolean isAutoIdentifiedCloudWithPublicKey() {
+	public boolean mustBeAnonymous() {
 		return false;
 	}
 
-	@Override
-	public ASymmetricPublicKey getCloudPublicKey() {
-		return null;
-	}
-
-	@Override
-	public ASymmetricKeyPair getCloudKeyPair() {
-		return null;
-	}
 
 	public String toString() {
 		return name;
 	}
 
-	
 
+	@Override
+	public Identifier.AuthenticationMethod getAuthenticationMethod() {
+		return Identifier.AuthenticationMethod.PASSWORD_OR_KEY;
+	}
+
+	@Override
+	public IASymmetricPublicKey getAuthenticationPublicKey() {
+		return null;
+	}
+
+	@Override
+	public AbstractKeyPair getAuthenticationKeyPair() {
+		return null;
+	}
 }

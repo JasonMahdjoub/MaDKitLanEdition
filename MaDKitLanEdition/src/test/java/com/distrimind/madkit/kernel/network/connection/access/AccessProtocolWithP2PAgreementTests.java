@@ -160,11 +160,23 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 					public void run() {
 						Assert.fail();
 					}
+				},new Runnable() {
+
+					@Override
+					public void run() {
+						Assert.fail();
+					}
 				}));
 		adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsReceiver = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustumHostIdentifier(1), 2, 5, 6, 12),
 				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeReceiver, new Runnable() {
+
+					@Override
+					public void run() {
+						Assert.fail();
+					}
+				},new Runnable() {
 
 					@Override
 					public void run() {
@@ -206,11 +218,23 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 					public void run() {
 						Assert.fail();
 					}
+				},new Runnable() {
+
+					@Override
+					public void run() {
+						Assert.fail();
+					}
 				}));
 		adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsReceiver = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustumHostIdentifier(1), 3, 5, 6, 12),
 				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeReceiver, new Runnable() {
+
+					@Override
+					public void run() {
+						Assert.fail();
+					}
+				},new Runnable() {
 
 					@Override
 					public void run() {
@@ -263,11 +287,23 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 					public void run() {
 						Assert.fail();
 					}
+				},new Runnable() {
+
+					@Override
+					public void run() {
+						Assert.fail();
+					}
 				}));
 		adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsReceiver = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustumHostIdentifier(-1)),
 				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeReceiver, new Runnable() {
+
+					@Override
+					public void run() {
+						Assert.fail();
+					}
+				},new Runnable() {
 
 					@Override
 					public void run() {
@@ -307,12 +343,24 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 					public void run() {
 						Assert.fail();
 					}
+				},new Runnable() {
+
+					@Override
+					public void run() {
+						Assert.fail();
+					}
 				}));
 		adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsReceiver = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustumHostIdentifier(1), 0, 8, 6, 12),
 				JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeReceiver,
 				new Runnable() {
+
+					@Override
+					public void run() {
+						Assert.fail();
+					}
+				},new Runnable() {
 
 					@Override
 					public void run() {
@@ -873,8 +921,10 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		for (Identifier id : expectedAcceptedIdentifiers) {
 			boolean found=false;
 			for (PairOfIdentifiers poi : ap.getAllAcceptedIdentifiers()) {
-				if(poi.getLocalIdentifier().equals(id))
-					found=true;
+				if (poi.getLocalIdentifier().equals(id)) {
+					found = true;
+					break;
+				}
 			}
 			if (!found)
 				Assert.fail("Impossible to found : "+id);

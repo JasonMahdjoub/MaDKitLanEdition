@@ -73,6 +73,7 @@ import java.util.Random;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
+@SuppressWarnings("ResultOfMethodCallIgnored")
 @RunWith(Parameterized.class)
 public class ReadWritePacketTests extends JunitMadkit {
 	public static final int testsNumber = 300;
@@ -142,7 +143,7 @@ public class ReadWritePacketTests extends JunitMadkit {
 		connectionProtocol = new UnsecuredConnectionProtocolProperties().getConnectionProtocolInstance(
 				new InetSocketAddress(InetAddress.getByName("254.168.45.1"), 10),
 				new InetSocketAddress(InetAddress.getByName("192.168.0.1"), 10), null, madkitProperties, false,
-				false);
+				false, madkitProperties.networkProperties.encryptionRestriction);
 		synchronizer = new DataSocketSynchronizer();
 		socketAgentInterface = new SAI();
 
@@ -413,6 +414,7 @@ public class ReadWritePacketTests extends JunitMadkit {
 		
 		do {
 			PacketPart pp = output.getNextPart(conProto);
+			assert pp != null;
 			Assert.assertTrue(pp.getHead().isPacketPart());
 			Assert.assertFalse(pp.isReadyToBeRead());
 			Assert.assertTrue(pp.isReadyToBeSent());
@@ -462,7 +464,7 @@ public class ReadWritePacketTests extends JunitMadkit {
 		Assert.assertEquals(length + messageDigestSize, output.getReadDataLengthIncludingHash());
 		Assert.assertEquals(length, output.getReadDataLength());
 		Assert.assertTrue(read.isFinished());
-		byte res[] = outputStream.getBytes();
+		byte[] res = outputStream.getBytes();
 		Assert.assertEquals(_start_position + length, res.length);
 		for (int i = 0; i < length; i++)
 			Assert.assertEquals(data[(int) _start_position + i], res[(int) _start_position + i]);

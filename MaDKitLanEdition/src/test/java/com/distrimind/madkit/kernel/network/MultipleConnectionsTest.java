@@ -76,13 +76,13 @@ public class MultipleConnectionsTest extends JunitMadkit {
 		try {
 			ArrayList<Object[]> res = new ArrayList<>();
 			res.addAll(Objects.requireNonNull(data(NetworkEventListener.getNetworkEventListenersForLocalClientServerConnection(true, true,
-					false, true, true, false, null, HOST_NUMBERS - 1, 1, 2, 3, 4, 5), null, null)));
+					false, true, true, false, null,null, HOST_NUMBERS - 1, 1, 2, 3, 4, 5), null, null)));
 			res.addAll(Objects.requireNonNull(data(NetworkEventListener.getNetworkEventListenersForLocalClientServerConnection(true, true,
-					false, true, true, false, null, HOST_NUMBERS - 1, 1, 2, 3, 4, 5), 100, null)));
+					false, true, true, false, null,null, HOST_NUMBERS - 1, 1, 2, 3, 4, 5), 100, null)));
 			res.addAll(Objects.requireNonNull(data(NetworkEventListener.getNetworkEventListenersForLocalClientServerConnection(true, true,
-					false, true, true, false, null, HOST_NUMBERS - 1, 1, 2, 3, 4, 5), null, 200)));
+					false, true, true, false, null,null, HOST_NUMBERS - 1, 1, 2, 3, 4, 5), null, 200)));
 			res.addAll(Objects.requireNonNull(data(NetworkEventListener.getNetworkEventListenersForLocalClientServerConnection(true, true,
-					false, true, true, false, null, HOST_NUMBERS - 1, 1, 2, 3, 4, 5), 100,
+					false, true, true, false, null,null, HOST_NUMBERS - 1, 1, 2, 3, 4, 5), 100,
 					200)));
 			return res;
 		} catch (Exception e) {

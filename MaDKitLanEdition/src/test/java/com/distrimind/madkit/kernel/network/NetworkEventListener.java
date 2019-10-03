@@ -198,7 +198,7 @@ public class NetworkEventListener implements MadkitEventListener {
 
 	public static ArrayList<NetworkEventListener> getNetworkEventListenersForPeerToPeerConnectionsWithRandomProperties(
 			boolean network, boolean upnpIGDEnabled, final boolean databaseEnabled,
-			final boolean canTakeLoginInitiative, final boolean isServer, final Runnable invalidPassord,
+			final boolean canTakeLoginInitiative, final boolean isServer, final Runnable invalidPassord,final Runnable invalidCloudIdentifier,
 			HostIdentifier hostIdentifier, int... loginIndexes) throws UnknownHostException {
 		ArrayList<NetworkEventListener> res = new ArrayList<>();
 		for (ConnectionsProtocolsMKEventListener cp : ConnectionsProtocolsMKEventListener
@@ -206,13 +206,14 @@ public class NetworkEventListener implements MadkitEventListener {
 			for (AccessProtocolPropertiesMKEventListener app : AccessProtocolPropertiesMKEventListener
 					.getConnectionsProtocolsMKEventListenerForPeerToPeerConnections()) {
 				for (AccessDataMKEventListener ad : AccessDataMKEventListener
-						.getAccessDataMKEventListenerForPeerToPeerConnections(canTakeLoginInitiative, invalidPassord,
+						.getAccessDataMKEventListenerForPeerToPeerConnections(canTakeLoginInitiative, invalidPassord,invalidCloudIdentifier,
 								hostIdentifier, loginIndexes)) {
+					File databaseFile = databaseEnabled ? new File(hostIdentifier + ".database") : null;
 					res.add(new NetworkEventListener(network, upnpIGDEnabled, true,
-							databaseEnabled ? new File(hostIdentifier + ".database") : null, cp, app, ad, 5000, null,
+							databaseFile, cp, app, ad, 5000, null,
 							InetAddress.getByName("0.0.0.0")));
 					res.add(new NetworkEventListener(network, upnpIGDEnabled, false,
-							databaseEnabled ? new File(hostIdentifier + ".database") : null, cp, app, ad, null));
+							databaseFile, cp, app, ad, null));
 				}
 			}
 		}
@@ -222,7 +223,7 @@ public class NetworkEventListener implements MadkitEventListener {
 	public static ArrayList<Object[]> getNetworkEventListenersForLocalClientServerConnection(
 			boolean bindDoubleInetAddress, boolean network, boolean upnpIGDEnabled, boolean databaseEnabled,
 			final boolean canTakeLoginInitiative, boolean includeP2PConnectionPossibilityForClients,
-			final Runnable invalidPassord, int clientNumber, int... loginIndexes)
+			final Runnable invalidPassord,final Runnable invalidCloudIdentifier, int clientNumber, int... loginIndexes)
 			throws UnknownHostException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, ConnectionException {
 		ArrayList<Object[]> res = new ArrayList<>();
 
@@ -231,7 +232,7 @@ public class NetworkEventListener implements MadkitEventListener {
 			for (AccessProtocolPropertiesMKEventListener app : AccessProtocolPropertiesMKEventListener
 					.getConnectionsProtocolsMKEventListenerForServerConnections()) {
 				for (AccessDataMKEventListener ad : AccessDataMKEventListener
-						.getAccessDataMKEventListenerForServerConnections(canTakeLoginInitiative, invalidPassord,
+						.getAccessDataMKEventListenerForServerConnections(canTakeLoginInitiative, invalidPassord,invalidCloudIdentifier,
 								AccessDataMKEventListener.getCustumHostIdentifier(0), loginIndexes)) {
 					Object[] o = new Object[clientNumber + 1];
 					if (bindDoubleInetAddress)
@@ -255,12 +256,13 @@ public class NetworkEventListener implements MadkitEventListener {
 				for (AccessProtocolPropertiesMKEventListener app : AccessProtocolPropertiesMKEventListener
 						.getConnectionsProtocolsMKEventListenerForClientConnections()) {
 					for (AccessDataMKEventListener ad : AccessDataMKEventListener
-							.getAccessDataMKEventListenerForClientConnections(canTakeLoginInitiative, invalidPassord,
+							.getAccessDataMKEventListenerForClientConnections(canTakeLoginInitiative, invalidPassord,invalidCloudIdentifier,
 									AccessDataMKEventListener.getCustumHostIdentifier(h), loginIndexes)) {
-						Object o[] = res.get(index++);
-                        if (bindDoubleInetAddress)
+						Object[] o = res.get(index++);
+						File databaseFile = databaseEnabled ? new File("tmpfortest" + clientNumber + ".database") : null;
+						if (bindDoubleInetAddress)
                             o[h] = new NetworkEventListener(network, upnpIGDEnabled, false,
-                                    databaseEnabled ? new File("tmpfortest" + clientNumber + ".database") : null, cp,
+									databaseFile, cp,
                                     app, ad, 5001+h,
                                     Arrays.asList(
                                             (AbstractIP) new DoubleIP(5001,
@@ -269,7 +271,7 @@ public class NetworkEventListener implements MadkitEventListener {
 													(Inet6Address) InetAddress.getByName("::1"))));
                         else
                             o[h] = new NetworkEventListener(network, upnpIGDEnabled, false,
-                                    databaseEnabled ? new File("tmpfortest" + clientNumber + ".database") : null, cp,
+									databaseFile, cp,
                                     app, ad, 5001+h,
 									Collections.singletonList((AbstractIP) new DoubleIP(5001,
 											(Inet4Address) InetAddress.getByName("127.0.0.1"),
@@ -285,13 +287,13 @@ public class NetworkEventListener implements MadkitEventListener {
 
 	public static ArrayList<Object[]> getNetworkEventListenersForPeerToPeerConnectionsWithRandomProperties(
 			boolean network, boolean upnpIGDEnabled, boolean databaseEnabled, final boolean canTakeLoginInitiative,
-			final Runnable invalidPassord, int hostNumber, int... loginIndexes) throws UnknownHostException {
+			final Runnable invalidPassord,final Runnable invalidCloudIdentifier, int hostNumber, int... loginIndexes) throws UnknownHostException {
 		ArrayList<ArrayList<NetworkEventListener>> col = new ArrayList<>();
 		col.add(NetworkEventListener.getNetworkEventListenersForPeerToPeerConnectionsWithRandomProperties(true, false,
-				false, true, true, null, AccessDataMKEventListener.getCustumHostIdentifier(0), 1, 2, 3));
+				false, true, true, null, null, AccessDataMKEventListener.getCustumHostIdentifier(0), 1, 2, 3));
 		for (int i = 1; i < hostNumber; i++) {
 			col.add(NetworkEventListener.getNetworkEventListenersForPeerToPeerConnectionsWithRandomProperties(true,
-					false, false, true, false, null, AccessDataMKEventListener.getCustumHostIdentifier(i), 1, 2, 3));
+					false, false, true, false, null, null, AccessDataMKEventListener.getCustumHostIdentifier(i), 1, 2, 3));
 		}
 
 		ArrayList<Object[]> res = new ArrayList<>();
@@ -307,7 +309,7 @@ public class NetworkEventListener implements MadkitEventListener {
 
 	public static ArrayList<NetworkEventListener> getNetworkEventListenersForPeerToPeerConnectionsWithRandomProperties(
 			boolean network, boolean upnpIGDEnabled, boolean databaseEnabled, final boolean canTakeLoginInitiative,
-			boolean isServer, boolean autoConnectWithLocalSitePeers, final Runnable invalidPassord,
+			boolean isServer, boolean autoConnectWithLocalSitePeers, final Runnable invalidPassord,final Runnable invalidCloudIdentifier,
 			HostIdentifier hostIdentifier, int... loginIndexes) {
 		ArrayList<NetworkEventListener> res = new ArrayList<>();
 		for (ConnectionsProtocolsMKEventListener cp : ConnectionsProtocolsMKEventListener
@@ -315,7 +317,7 @@ public class NetworkEventListener implements MadkitEventListener {
 			for (AccessProtocolPropertiesMKEventListener app : AccessProtocolPropertiesMKEventListener
 					.getConnectionsProtocolsMKEventListenerForPeerToPeerConnections()) {
 				for (AccessDataMKEventListener ad : AccessDataMKEventListener
-						.getAccessDataMKEventListenerForPeerToPeerConnections(canTakeLoginInitiative, invalidPassord,
+						.getAccessDataMKEventListenerForPeerToPeerConnections(canTakeLoginInitiative, invalidPassord,invalidCloudIdentifier,
 								hostIdentifier, loginIndexes)) {
 					res.add(new NetworkEventListener(network, upnpIGDEnabled, autoConnectWithLocalSitePeers,
 							databaseEnabled ? new File(hostIdentifier + ".database") : null, cp, app, ad, null));
@@ -327,15 +329,15 @@ public class NetworkEventListener implements MadkitEventListener {
 
 	public static ArrayList<Object[]> getNetworkEventListenersForPeerToPeerConnectionsWithRandomProperties(
 			boolean network, boolean upnpIGDEnabled, boolean databaseEnabled, final boolean canTakeLoginInitiative,
-			boolean autoConnectWithLocalSitePeers, final Runnable invalidPassord, int hostNumber, int... loginIndexes) {
+			boolean autoConnectWithLocalSitePeers, final Runnable invalidPassord,final Runnable invalidCloudIdentifier, int hostNumber, int... loginIndexes) {
 		ArrayList<ArrayList<NetworkEventListener>> col = new ArrayList<>();
 		col.add(NetworkEventListener.getNetworkEventListenersForPeerToPeerConnectionsWithRandomProperties(true, false,
-				false, true, true, autoConnectWithLocalSitePeers, null,
+				false, true, true, autoConnectWithLocalSitePeers, null,null,
 				AccessDataMKEventListener.getCustumHostIdentifier(0), 1, 2, 3, 4, 5));
 
 		for (int i = 1; i < hostNumber; i++)
 			col.add(NetworkEventListener.getNetworkEventListenersForPeerToPeerConnectionsWithRandomProperties(true,
-					false, false, true, false, autoConnectWithLocalSitePeers, null,
+					false, false, true, false, autoConnectWithLocalSitePeers, null,null,
 					AccessDataMKEventListener.getCustumHostIdentifier(i), 1, 2, 3, 4, 5));
 
 		ArrayList<Object[]> res = new ArrayList<>();

@@ -38,8 +38,11 @@
 package com.distrimind.madkit.kernel.network;
 
 import com.distrimind.madkit.kernel.network.connection.access.CloudIdentifier;
+import com.distrimind.madkit.kernel.network.connection.access.Identifier;
 import com.distrimind.util.crypto.ASymmetricKeyPair;
 import com.distrimind.util.crypto.ASymmetricPublicKey;
+import com.distrimind.util.crypto.AbstractKeyPair;
+import com.distrimind.util.crypto.IASymmetricPublicKey;
 import com.distrimind.util.io.*;
 
 import java.io.IOException;
@@ -91,24 +94,17 @@ public class CustomCloudIdentifierWithPublicKey extends CloudIdentifier {
     }
 
     @Override
-    public boolean isAutoIdentifiedCloudWithPublicKey() {
-        return true;
+    public boolean mustBeAnonymous() {
+        return false;
     }
+
 
     @Override
     public String toString() {
         return "CloudID["+publicKey.toString()+"]";
     }
 
-    @Override
-    public ASymmetricPublicKey getCloudPublicKey() {
-        return publicKey;
-    }
 
-    @Override
-    public ASymmetricKeyPair getCloudKeyPair() {
-        return keyPair;
-    }
 
     @Override
     public int getInternalSerializedSize() {
@@ -126,8 +122,23 @@ public class CustomCloudIdentifierWithPublicKey extends CloudIdentifier {
     public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
         salt=in.readBytesArray(false, 64);
         publicKey=in.readObject(false, ASymmetricPublicKey.class);
-        if (publicKey.getAuthentifiedSignatureAlgorithmType()==null)
+        if (publicKey.getAuthenticatedSignatureAlgorithmType()==null)
             throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
         keyPair=null;
+    }
+
+    @Override
+    public Identifier.AuthenticationMethod getAuthenticationMethod() {
+        return Identifier.AuthenticationMethod.PUBLIC_KEY;
+    }
+
+    @Override
+    public IASymmetricPublicKey getAuthenticationPublicKey() {
+        return publicKey;
+    }
+
+    @Override
+    public AbstractKeyPair getAuthenticationKeyPair() {
+        return keyPair;
     }
 }

@@ -83,9 +83,9 @@ public class TransferConnectionTest extends JunitMadkit {
 	public static Collection<Object[]> data() {
 		try {
 			ArrayList<Object[]> res = NetworkEventListener.getNetworkEventListenersForLocalClientServerConnection(false,
-					true, false, false, true, true, null, HOST_NUMBERS - 1, 1, 2, 3, 4);
+					true, false, false, true, true, null, null, HOST_NUMBERS - 1, 1, 2, 3, 4);
 			ArrayList<Object[]> tmp = NetworkEventListener.getNetworkEventListenersForLocalClientServerConnection(false,
-					true, false, false, true, true, null, 0, 1, 2, 3, 4);
+					true, false, false, true, true, null,null, 0, 1, 2, 3, 4);
 			ArrayList<Object[]> l = new ArrayList<>();
 
 			for (int i = 0; i < res.size(); i++) {
@@ -214,11 +214,11 @@ public class TransferConnectionTest extends JunitMadkit {
 			for (Integer i : sold.getProfileIdentifiers())
 			{
 				s.addProfile(i, sold.getSymmetricSecretKeyForEncryption(i), sold.getSymmetricSecretKeyForSignature(i));
-				if (!sold.isValidProfile(i))
+				if (!sold.isValidProfile(i, EncryptionRestriction.NO_RESTRICTION))
 					s.invalidateProfile(i);
 			}
 
-			s.setDefaultProfileIdentifier(sold.getDefaultProfileIdentifier());
+			s.setDefaultProfileIdentifier(sold.getDefaultProfileIdentifier(EncryptionRestriction.NO_RESTRICTION));
 			res = s;
 		}
 		else if (cpp.getClass() == CheckSumConnectionProtocolProperties.class) {

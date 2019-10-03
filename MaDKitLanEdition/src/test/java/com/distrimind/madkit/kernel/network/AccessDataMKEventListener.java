@@ -173,7 +173,7 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 
 	public static LoginData getDefaultLoginData(final ArrayList<IdentifierPassword> identifersAndPasswords,
 			final AbstractGroup defaultGroupAccess, final AbstractGroup groupAccess,
-			final boolean canTakeLoginInitiative, final Runnable invalidPassord) {
+			final boolean canTakeLoginInitiative, final Runnable invalidPassord, final Runnable invalidCloudIdentifier) {
 		return new LoginData() {
 
 			@Override
@@ -195,18 +195,7 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 
 			}
 
-			@Override
-			public Identifier localiseIdentifier(Identifier _identifier) {
-				/*if (_identifier.getHostIdentifier().isAutoIdentifiedCloudWithPublicKey())
-					return _identifier;*/
-				for (IdentifierPassword idpw : identifersAndPasswords) {
-					if (idpw.getIdentifier().getCloudIdentifier().equals(_identifier.getCloudIdentifier()))
-						return idpw.getIdentifier();
-				}
-				if (_identifier.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
-					return new Identifier(_identifier.getCloudIdentifier(), HostIdentifier.getNullHostIdentifierSingleton());
-				return null;
-			}
+
 
 			@Override
 			public boolean acceptAutoSignedIdentifiers() {
@@ -214,28 +203,20 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 			}
 
 
-			@Override
-			public void invalidPassword(Identifier _identifier) {
-				if (invalidPassord != null)
-					invalidPassord.run();
-			}
 
 			@Override
-			public PasswordKey getPassword(Identifier _identifier) {
-				if (_identifier.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
-					return null;
+			protected PasswordKey getCloudPassword(CloudIdentifier identifier) {
 				for (IdentifierPassword idpw : identifersAndPasswords) {
-					if (idpw.getIdentifier().getCloudIdentifier().equals(_identifier.getCloudIdentifier()))
+					if (idpw.getIdentifier().getCloudIdentifier().equals(identifier))
 						return idpw.getPassword();
 				}
 				return null;
 			}
-
 			@Override
-			public List<Identifier> getIdentifiersToInitiate() {
-				ArrayList<Identifier> list = new ArrayList<>(identifersAndPasswords.size());
+			protected List<CloudIdentifier> getCloudIdentifiersToInitiateImpl() {
+				ArrayList<CloudIdentifier> list = new ArrayList<>(identifersAndPasswords.size());
 				for (IdentifierPassword idpw : identifersAndPasswords) {
-					list.add(idpw.getIdentifier());
+					list.add(idpw.getIdentifier().getCloudIdentifier());
 				}
 				return list;
 			}
@@ -250,18 +231,54 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 				return canTakeLoginInitiative;
 			}
 
+
+
+			@Override
+			public boolean isDistantHostIdentifierValid(Identifier distantIdentifier) {
+				return true;
+			}
+
+			@Override
+			public void invalidCloudPassword(CloudIdentifier identifier) {
+
+				if (invalidPassord != null)
+					invalidCloudIdentifier.run();
+			}
+
+			@Override
+			public void invalidHostPassword(Identifier identifier) {
+				if (invalidPassord != null)
+					invalidPassord.run();
+			}
+
+			@Override
+			protected Identifier localiseIdentifierImpl(CloudIdentifier _identifier) {
+				for (IdentifierPassword idpw : identifersAndPasswords) {
+					if (idpw.getIdentifier().getCloudIdentifier().equals(_identifier))
+						return idpw.getIdentifier();
+				}
+				if (_identifier.getAuthenticationMethod().isAuthenticatedByPublicKey())
+					return new Identifier(_identifier, HostIdentifier.getNullHostIdentifierSingleton());
+				return null;
+			}
+
+			@Override
+			protected CloudIdentifier getLocalVersionOfDistantCloudIdentifierImpl(CloudIdentifier distantCloudIdentifier) {
+				return distantCloudIdentifier;
+			}
+
 		};
 	}
 
 	public static ArrayList<AccessDataMKEventListener> getAccessDataMKEventListenerForPeerToPeerConnections(
-			final boolean canTakeLoginInitiative, final Runnable invalidPassord, HostIdentifier hostIdentifier,
+			final boolean canTakeLoginInitiative, final Runnable invalidPassord,final Runnable invalidCloudIdentifier, HostIdentifier hostIdentifier,
 			int... loginIndexes) {
 		ArrayList<AccessDataMKEventListener> res = new ArrayList<>();
 
 		AccessData ad1 = getDefaultAccessData(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA);
 		AccessData ad2 = getDefaultLoginData(getClientOrPeerToPeerLogins(hostIdentifier, loginIndexes),
 				JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA,
-				canTakeLoginInitiative, invalidPassord);
+				canTakeLoginInitiative, invalidPassord, invalidCloudIdentifier);
 
 		res.add(new AccessDataMKEventListener(ad1));
 		res.add(new AccessDataMKEventListener(ad1, ad2));
@@ -270,16 +287,16 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 	}
 
 	public static ArrayList<AccessDataMKEventListener> getAccessDataMKEventListenerForServerConnections(
-			final boolean canTakeLoginInitiative, final Runnable invalidPassord, HostIdentifier hostIdentifier,
+			final boolean canTakeLoginInitiative, final Runnable invalidPassord,final Runnable invalidCloudIdentifier, HostIdentifier hostIdentifier,
 			int... loginIndexes) {
-		return getAccessDataMKEventListenerForPeerToPeerConnections(canTakeLoginInitiative, invalidPassord,
+		return getAccessDataMKEventListenerForPeerToPeerConnections(canTakeLoginInitiative, invalidPassord,invalidCloudIdentifier,
 				hostIdentifier, loginIndexes);
 	}
 
 	public static ArrayList<AccessDataMKEventListener> getAccessDataMKEventListenerForClientConnections(
-			final boolean canTakeLoginInitiative, final Runnable invalidPassord, HostIdentifier hostIdentifier,
+			final boolean canTakeLoginInitiative, final Runnable invalidPassord,final Runnable invalidCloudIdentifier, HostIdentifier hostIdentifier,
 			int... loginIndexes) {
-		return getAccessDataMKEventListenerForPeerToPeerConnections(canTakeLoginInitiative, invalidPassord,
+		return getAccessDataMKEventListenerForPeerToPeerConnections(canTakeLoginInitiative, invalidPassord,invalidCloudIdentifier,
 				hostIdentifier, loginIndexes);
 	}
 }

@@ -20,9 +20,9 @@ public class AutomaticLocalConnectionTest extends JunitMadkit {
 	final NetworkEventListener eventListener2;
 
 	@Parameters
-	public static Collection<Object[]> data() throws UnknownHostException {
+	public static Collection<Object[]> data() {
 		return NetworkEventListener.getNetworkEventListenersForPeerToPeerConnectionsWithRandomProperties(true, false,
-				true, true, true, null, 2, 1, 2);
+				true, true, true, null,null, 2, 1, 2);
 	}
 
 	public AutomaticLocalConnectionTest(NetworkEventListener eventListener1, NetworkEventListener eventListener2) {

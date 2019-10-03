@@ -38,6 +38,8 @@
 package com.distrimind.madkit.kernel.network;
 
 import com.distrimind.madkit.kernel.network.connection.access.HostIdentifier;
+import com.distrimind.util.crypto.AbstractKeyPair;
+import com.distrimind.util.crypto.IASymmetricPublicKey;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
 import com.distrimind.util.io.SerializationTools;
@@ -96,6 +98,26 @@ public class CustumHostIdentifier extends HostIdentifier {
 	@Override
 	public int hashCode() {
 		return name.hashCode();
+	}
+
+	@Override
+	public byte[] getBytesTabToEncode() {
+		return name.getBytes();
+	}
+
+	@Override
+	public IASymmetricPublicKey getAuthenticationPublicKey() {
+		return null;
+	}
+
+	@Override
+	public AbstractKeyPair getAuthenticationKeyPair() {
+		return null;
+	}
+
+	@Override
+	public boolean isAuthenticatedByPublicKey() {
+		return false;
 	}
 
 
