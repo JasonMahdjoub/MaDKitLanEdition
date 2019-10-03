@@ -41,6 +41,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import com.distrimind.madkit.kernel.network.EncryptionRestriction;
+import com.distrimind.util.crypto.AbstractKeyPair;
+import com.distrimind.util.crypto.SymmetricSecretKey;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
@@ -131,5 +133,11 @@ public abstract class AbstractAccessProtocolProperties extends MultiFormatProper
 	public abstract AbstractAccessProtocol getAccessProtocolInstance(InetSocketAddress _distant_inet_address, InetSocketAddress _local_interface_address,
 			LoginEventsTrigger loginTrigger,
 			MadkitProperties _properties) throws AccessException;
+
+	abstract boolean isAcceptableHostIdentifier(EncryptionRestriction encryptionRestriction, Identifier.Authenticated cloudIdentifier);
+
+	abstract boolean isAcceptableHostIdentifier(EncryptionRestriction encryptionRestriction, HostIdentifier identifier);
+
+	abstract boolean isAcceptablePassword(EncryptionRestriction encryptionRestriction, PasswordKey passwordKey);
 	
 }

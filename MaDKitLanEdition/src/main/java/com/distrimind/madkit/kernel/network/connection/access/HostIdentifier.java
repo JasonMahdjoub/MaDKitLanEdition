@@ -41,10 +41,7 @@ import com.distrimind.util.AbstractDecentralizedID;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.RenforcedDecentralizedIDGenerator;
 import com.distrimind.util.SecuredDecentralizedID;
-import com.distrimind.util.crypto.ASymmetricKeyPair;
-import com.distrimind.util.crypto.ASymmetricPublicKey;
-import com.distrimind.util.crypto.AbstractSecureRandom;
-import com.distrimind.util.crypto.SecureRandomType;
+import com.distrimind.util.crypto.*;
 import com.distrimind.util.io.SecureExternalizable;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
@@ -166,12 +163,12 @@ public abstract class HostIdentifier implements SecureExternalizable {
 
 
 		@Override
-		public ASymmetricPublicKey getAuthenticationPublicKey() {
+		public IASymmetricPublicKey getAuthenticationPublicKey() {
 			return null;
 		}
 
 		@Override
-		public ASymmetricKeyPair getAuthenticationKeyPair() {
+		public AbstractKeyPair getAuthenticationKeyPair() {
 			return null;
 		}
 	}
@@ -250,22 +247,22 @@ public abstract class HostIdentifier implements SecureExternalizable {
 		}
 
 		@Override
-		public ASymmetricPublicKey getAuthenticationPublicKey() {
+		public IASymmetricPublicKey getAuthenticationPublicKey() {
 			return null;
 		}
 
 		@Override
-		public ASymmetricKeyPair getAuthenticationKeyPair() {
+		public AbstractKeyPair getAuthenticationKeyPair() {
 			return null;
 		}
 	}
 
 
-	public abstract ASymmetricPublicKey getAuthenticationPublicKey();
+	public abstract IASymmetricPublicKey getAuthenticationPublicKey();
 
 
 
-	public abstract ASymmetricKeyPair getAuthenticationKeyPair();
+	public abstract AbstractKeyPair getAuthenticationKeyPair();
 
 	public abstract boolean isAuthenticatedByPublicKey();
 

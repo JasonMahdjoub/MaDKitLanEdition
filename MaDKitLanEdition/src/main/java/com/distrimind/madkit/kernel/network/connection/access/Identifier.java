@@ -37,10 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import com.distrimind.util.crypto.ASymmetricAuthenticatedSignatureCheckerAlgorithm;
-import com.distrimind.util.crypto.ASymmetricAuthenticatedSignerAlgorithm;
-import com.distrimind.util.crypto.ASymmetricKeyPair;
-import com.distrimind.util.crypto.ASymmetricPublicKey;
+import com.distrimind.util.crypto.*;
 import com.distrimind.util.io.*;
 
 import java.io.IOException;
@@ -224,7 +221,7 @@ public class Identifier implements SecureExternalizable {
 		 * @return the authentication's public key or null if no authentication through the identifier is necessary
 		 * @see #getAuthenticationKeyPair()
 		 */
-		ASymmetricPublicKey getAuthenticationPublicKey();
+		IASymmetricPublicKey getAuthenticationPublicKey();
 
 		/**
 		 * Return the authentication's key pair used to authenticate the peer.
@@ -232,20 +229,20 @@ public class Identifier implements SecureExternalizable {
 		 * @return the cloud key pair if the {@link #getAuthenticationPublicKey()} does not returns null, or null.
 		 * @see #getAuthenticationPublicKey()
 		 */
-		ASymmetricKeyPair getAuthenticationKeyPair();
+		AbstractKeyPair getAuthenticationKeyPair();
 	}
 
-	public static byte[] signAuthenticatedIdentifier(ASymmetricKeyPair keyPair, byte[] ...data) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, SignatureException, InvalidKeyException, IOException {
+	public static byte[] signAuthenticatedIdentifier(AbstractKeyPair keyPair, byte[] ...data) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, SignatureException, InvalidKeyException, IOException {
 		ASymmetricAuthenticatedSignerAlgorithm signer=new ASymmetricAuthenticatedSignerAlgorithm(keyPair.getASymmetricPrivateKey());
 		signer.init();
 		for (byte[] b : data)
 			signer.update(b);
 		return signer.getSignature();
 	}
-	public static boolean checkAuthenticatedSignature(ASymmetricPublicKey publicKey, byte[] signature, byte[] ...data) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeySpecException, InvalidParameterSpecException, InvalidKeyException, IOException, SignatureException {
+	public static boolean checkAuthenticatedSignature(IASymmetricPublicKey publicKey, byte[] signature, byte[] ...data) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeySpecException, InvalidParameterSpecException, InvalidKeyException, IOException, SignatureException {
 		return checkAuthenticatedSignature(publicKey, signature, 0, signature.length, data);
 	}
-	public static boolean checkAuthenticatedSignature(ASymmetricPublicKey publicKey, byte[] signature, int off, int len, byte[] ...data) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeySpecException, InvalidParameterSpecException, InvalidKeyException, IOException, SignatureException {
+	public static boolean checkAuthenticatedSignature(IASymmetricPublicKey publicKey, byte[] signature, int off, int len, byte[] ...data) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeySpecException, InvalidParameterSpecException, InvalidKeyException, IOException, SignatureException {
 		ASymmetricAuthenticatedSignatureCheckerAlgorithm checker=new ASymmetricAuthenticatedSignatureCheckerAlgorithm(publicKey);
 		checker.init(signature, off, len);
 		for (byte[] b : data)

@@ -37,6 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
+import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.util.crypto.*;
 import com.distrimind.util.io.*;
@@ -104,18 +105,18 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 	}
 
 	CloudIdentifiersPropositionMessage(Collection<Identifier> _id_pws, AbstractSecureRandom random, AbstractMessageDigest messageDigest,
-											  boolean encryptIdentifiers, short nbAnomalies, byte[] distantGeneratedSalt) throws DigestException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidKeyException, InvalidKeySpecException {
-		this(random, messageDigest, encryptIdentifiers, nbAnomalies, distantGeneratedSalt, getCloudIdentifierList(_id_pws));
+											  boolean encryptIdentifiers, short nbAnomalies, byte[] distantGeneratedSalt, EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties) throws DigestException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidKeyException, InvalidKeySpecException {
+		this(random, messageDigest, encryptIdentifiers, nbAnomalies, distantGeneratedSalt, getCloudIdentifierList(_id_pws), encryptionRestriction, accessProtocolProperties);
 	}
 	CloudIdentifiersPropositionMessage(AbstractSecureRandom random, AbstractMessageDigest messageDigest,
 											  boolean permitAnonymousIdentifiers, short nbAnomalies, byte[] distantGeneratedSalt,
-									   Collection<CloudIdentifier> _id_pws) throws DigestException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidKeyException, InvalidKeySpecException {
+									   Collection<CloudIdentifier> _id_pws, EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties) throws DigestException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidKeyException, InvalidKeySpecException {
 		identifiers = new WrappedCloudIdentifier[_id_pws.size()];
 		int index = 0;
 		for (CloudIdentifier ip : _id_pws) {
 			if (ip.getAuthenticationMethod()== Identifier.AuthenticationMethod.NOT_DEFINED)
 				continue;
-			identifiers[index++]=new WrappedCloudIdentifier(permitAnonymousIdentifiers && ip.mustBeAnonymous(),ip, random, messageDigest, distantGeneratedSalt);
+			identifiers[index++]=new WrappedCloudIdentifier(permitAnonymousIdentifiers && ip.mustBeAnonymous(),ip, random, messageDigest, distantGeneratedSalt, encryptionRestriction, accessProtocolProperties);
 		}
 
 		if (index!=identifiers.length)
@@ -174,10 +175,10 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 			return false;
 	}*/
 	public void getValidDecodedCloudIdentifiers(LoginData loginData,
-			AbstractMessageDigest messageDigest, byte[] localGeneratedSalt , Collection<CloudIdentifier> validCloudIdentifiers) throws AccessException, InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidParameterSpecException, SignatureException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeySpecException {
+												AbstractMessageDigest messageDigest, byte[] localGeneratedSalt , Collection<CloudIdentifier> validCloudIdentifiers, EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties) throws AccessException, InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidParameterSpecException, SignatureException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeySpecException {
 
 		for (WrappedCloudIdentifier id : identifiers) {
-			CloudIdentifier i=loginData.getLocalVersionOfDistantCloudIdentifier(id, messageDigest, localGeneratedSalt);
+			CloudIdentifier i=loginData.getLocalVersionOfDistantCloudIdentifier(id, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
 			if (i!=null)
 				validCloudIdentifiers.add(i);
 		}
@@ -202,16 +203,17 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 																					 boolean encryptIdentifiers,
 																					 Collection<CloudIdentifier> validCloudIdentifiers,
 																					 byte[] distantGeneratedSalt,
-																					 byte[] localGeneratedSalt)
+																					 byte[] localGeneratedSalt,
+																					 EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties)
 			throws AccessException, InvalidAlgorithmParameterException, InvalidKeySpecException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidKeyException, InvalidParameterSpecException, DigestException {
 		ArrayList<CloudIdentifier> validID=new ArrayList<>();
-		getValidDecodedCloudIdentifiers(loginData, messageDigest, localGeneratedSalt, validID);
+		getValidDecodedCloudIdentifiers(loginData, messageDigest, localGeneratedSalt, validID, encryptionRestriction, accessProtocolProperties);
 		validCloudIdentifiers.addAll(validID);
 		int nbAno = this.identifiers.length - validID.size();
 		return new CloudIdentifiersPropositionMessage(random, messageDigest, encryptIdentifiers,
 				loginData.canTakesLoginInitiative()
 						? ((validID.size() == 0 && this.identifiers.length > 0) ? (short) 1 : (short) 0)
-						: (nbAno > Short.MAX_VALUE) ? Short.MAX_VALUE : (short) nbAno, distantGeneratedSalt, validID);
+						: (nbAno > Short.MAX_VALUE) ? Short.MAX_VALUE : (short) nbAno, distantGeneratedSalt, validID, encryptionRestriction, accessProtocolProperties);
 	}
 
 	/*public IdPwMessage getIdPwMessage(LoginData loginData, P2PASymmetricSecretMessageExchanger cipher,
@@ -264,13 +266,14 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 								  Map<WrappedCloudIdentifier, CloudIdentifier> temporaryAcceptedCloudIdentifiers, LoginData loginData,
 								  Map<WrappedCloudIdentifier, P2PLoginAgreement> agreements, P2PLoginAgreementType agreementType,
 								  final AbstractSecureRandom random, MessageDigestType messageDigestType,
-								  PasswordHashType passwordHashType, ASymmetricPublicKey myPublicKey, byte[] localGeneratedSalt)
+								  PasswordHashType passwordHashType, ASymmetricPublicKey myPublicKey, byte[] localGeneratedSalt,
+								  EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties)
 			throws InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException, IOException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, SignatureException, InvalidParameterSpecException, AccessException {
 		if (distantCloudID==null)
 			return 1;
 		int nbAno=0;
 		AbstractMessageDigest messageDigest=messageDigestType.getMessageDigestInstance();
-		CloudIdentifier localCloudIdentifier = loginData.getLocalVersionOfDistantCloudIdentifier(distantCloudID, messageDigest, localGeneratedSalt);
+		CloudIdentifier localCloudIdentifier = loginData.getLocalVersionOfDistantCloudIdentifier(distantCloudID, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
 
 		boolean ok=true;
 
@@ -284,9 +287,13 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 			if (localCloudIdentifier.getAuthenticationMethod().isAuthenticatedByPasswordOrSecretKey()) {
 				PasswordKey pw = loginData.getCloudPassword(localCloudIdentifier);
 				if (pw != null) {
-					P2PLoginAgreement p2PLoginAgreement = agreementType.getAgreementAlgorithm(random, localCloudIdentifier.getBytesTabToEncode(), pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature(), messageDigestType, passwordHashType, myPublicKey);
-					agreements.put(distantCloudID, p2PLoginAgreement);
-					temporaryAcceptedCloudIdentifiers.put(distantCloudID, localCloudIdentifier);
+					if (accessProtocolProperties.isAcceptablePassword(encryptionRestriction, pw)) {
+						P2PLoginAgreement p2PLoginAgreement = agreementType.getAgreementAlgorithm(random, localCloudIdentifier.getBytesTabToEncode(), pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature(), messageDigestType, passwordHashType, myPublicKey);
+						agreements.put(distantCloudID, p2PLoginAgreement);
+						temporaryAcceptedCloudIdentifiers.put(distantCloudID, localCloudIdentifier);
+					}
+					else
+						++nbAno;
 				} else {
 					++nbAno;
 					ok=false;
@@ -319,12 +326,13 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 																		   LoginData loginData,
 																		   Map<WrappedCloudIdentifier,
 																				   P2PLoginAgreement> agreements, P2PLoginAgreementType agreementType, AbstractSecureRandom random,
-										byte[] localGeneratedSalt, MessageDigestType messageDigestType, PasswordHashType passwordHashType, ASymmetricPublicKey myPublicKey) throws Exception {
+										byte[] localGeneratedSalt, MessageDigestType messageDigestType, PasswordHashType passwordHashType, ASymmetricPublicKey myPublicKey,
+																		   EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties) throws Exception {
 		int nbAno = 0;
 		for (WrappedCloudIdentifier id : identifiers) {
 			nbAno+=getJakeMessageSub(id, acceptedIdentifiers, newAcceptedCloudIdentifiers,
 					temporaryAcceptedCloudIdentifiers, loginData, agreements, agreementType, random, messageDigestType, passwordHashType, myPublicKey,
-					localGeneratedSalt);
+					localGeneratedSalt,encryptionRestriction, accessProtocolProperties);
 		}
 		return new JPakeMessageForAuthenticationOfCloudIdentifiers(agreements, nbAno > Short.MAX_VALUE ? Short.MAX_VALUE:(short)nbAno);
 	}

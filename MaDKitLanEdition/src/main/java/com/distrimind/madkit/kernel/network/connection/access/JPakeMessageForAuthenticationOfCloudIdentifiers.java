@@ -37,6 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
+import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.util.crypto.AbstractMessageDigest;
 import com.distrimind.util.crypto.AbstractSecureRandom;
@@ -78,8 +79,8 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 		super(identifiers, agreements, nbAnomalies);
 	}
 
-	static void addPairOfIdentifiers(LoginData loginData, WrappedCloudIdentifier distantIdentifier, Collection<CloudIdentifier> deniedIdentifiers, AbstractMessageDigest messageDigest, byte[] localGeneratedSalt) throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException, NoSuchProviderException, AccessException, InvalidParameterSpecException, InvalidKeySpecException {
-		CloudIdentifier localID=loginData.getLocalVersionOfDistantCloudIdentifier(distantIdentifier, messageDigest, localGeneratedSalt);
+	static void addPairOfIdentifiers(LoginData loginData, WrappedCloudIdentifier distantIdentifier, Collection<CloudIdentifier> deniedIdentifiers, AbstractMessageDigest messageDigest, byte[] localGeneratedSalt, EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties) throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException, NoSuchProviderException, AccessException, InvalidParameterSpecException, InvalidKeySpecException {
+		CloudIdentifier localID=loginData.getLocalVersionOfDistantCloudIdentifier(distantIdentifier, messageDigest, localGeneratedSalt,encryptionRestriction, accessProtocolProperties);
 		if (localID!=null)
 			deniedIdentifiers.add(localID);
 	}
@@ -87,7 +88,8 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 	public AccessMessage getJPakeMessageNewStep(JPakeMessageForAuthenticationOfCloudIdentifiers initialJPakeMessage, short newStep, LoginData loginData, AbstractMessageDigest messageDigest,
 												Collection<CloudIdentifier> deniedIdentifiers,
 												Map<WrappedCloudIdentifier, P2PLoginAgreement> jpakes,
-												byte[] localGeneratedSalt)
+												byte[] localGeneratedSalt,
+												EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties)
 			throws Exception {
 
 		int nbAno=0;
@@ -113,7 +115,7 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 
 			P2PLoginAgreement jpake=jpakes.get(id);
 			if (jpake==null) {
-				addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt);
+				addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
 				++nbAno;
 			}
 			else
@@ -124,7 +126,7 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 					{
 						if (jpakeMessages[i]==null)
 						{
-							addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt);
+							addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
 							jpakes.remove(id);
 							++nbAno;
 						}
@@ -135,7 +137,7 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 					}
 					else if (this.jpakeMessages[i]!=null)
 					{
-						addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt);
+						addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
 						jpakes.remove(id);
 						++nbAno;
 					}
@@ -149,7 +151,7 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 				catch(Exception e)
 				{
 					e.printStackTrace();
-					addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt);
+					addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
 					jpakes.remove(id);
 					++nbAno;
 				}
@@ -169,7 +171,8 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 											Map<WrappedCloudIdentifier, P2PLoginAgreement> jpakes,
 											byte[] localGeneratedSalt,
 											byte[] distantGeneratedSalt,
-											AbstractSecureRandom random)
+											AbstractSecureRandom random,
+											EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties)
 			throws Exception {
 
 
@@ -206,7 +209,7 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 						{
 							if (jpakeMessages[i]==null)
 							{
-								addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt);
+								addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
 								jpakes.remove(id);
 								++nbAno;
 							}
@@ -217,7 +220,7 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 						}
 						else if (this.jpakeMessages[i]!=null)
 						{
-							addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt);
+							addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
 							jpakes.remove(id);
 							++nbAno;
 						}
@@ -227,20 +230,20 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 							newAcceptedDistantCloudIdentifiers.add(localID);
 						}
 						else {
-							addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt);
+							addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt, encryptionRestriction,accessProtocolProperties);
 						}
 					}
 					catch(Exception e)
 					{
 						e.printStackTrace();
-						addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt);
+						addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
 						jpakes.remove(id);
 						++nbAno;
 					}
 				}
 				else
 				{
-					addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt);
+					addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
 					++nbAno;
 				}
 			}
@@ -250,7 +253,7 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 		for(Iterator<CloudIdentifier> it=newAcceptedDistantCloudIdentifiers.iterator();it.hasNext();)
 		{
 			CloudIdentifier cloudIdentifier=it.next();
-			Identifier localID=loginData.localiseIdentifier(cloudIdentifier);
+			Identifier localID=loginData.localiseIdentifier(cloudIdentifier, encryptionRestriction, accessProtocolProperties);
 			if (localID!=null)
 				identifiers.add(localID);
 			else

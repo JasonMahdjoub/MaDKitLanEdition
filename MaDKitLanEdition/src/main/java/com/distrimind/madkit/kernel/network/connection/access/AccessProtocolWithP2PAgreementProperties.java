@@ -69,10 +69,10 @@ public class AccessProtocolWithP2PAgreementProperties extends AbstractAccessProt
 	 */
 	public P2PLoginAgreementType p2pLoginAgreementType=P2PLoginAgreementType.JPAKE_AND_AGREEMENT_WITH_SYMMETRIC_SIGNATURE;
 
-	/**
+	/*
 	 * Asymmetric login agreement type
 	 */
-	public ASymmetricLoginAgreementType asymmetricLoginAgreementType= ASymmetricLoginAgreementType.AGREEMENT_WITH_ASYMMETRIC_SIGNATURE;
+	//public ASymmetricLoginAgreementType asymmetricLoginAgreementType= ASymmetricLoginAgreementType.AGREEMENT_WITH_ASYMMETRIC_SIGNATURE;
 
 
 	/**
@@ -150,6 +150,8 @@ public class AccessProtocolWithP2PAgreementProperties extends AbstractAccessProt
 		return new AccessProtocolWithP2PAgreement(_distant_inet_address, _local_interface_address, loginTrigger, _properties);
 	}
 
+
+
 	@Override
 	public boolean isConcernedBy(EncryptionRestriction encryptionRestriction) {
 
@@ -157,18 +159,38 @@ public class AccessProtocolWithP2PAgreementProperties extends AbstractAccessProt
 			return true;
 		if (this.p2pLoginAgreementType!=null && this.p2pLoginAgreementType!=P2PLoginAgreementType.AGREEMENT_WITH_SYMMETRIC_SIGNATURE)
 			return false;
-		if (this.asymmetricLoginAgreementType!=null && this.p2pLoginAgreementType!=null)
-			return false;
-		if (this.aSymetricEncryptionType!=null && !this.aSymetricEncryptionType.isPostQuantumAlgorithm())
-			return false;
-		if (encryptionRestriction==EncryptionRestriction.HYBRID_ALGORITHMS)
-		{
-			return this.aSymetricEncryptionType==null && this.p2pLoginAgreementType!=null;
-		}
-		else
-		{
-			return true;
-		}
+		/*if (this.asymmetricLoginAgreementType!=null && this.p2pLoginAgreementType!=null)
+			return false;*/
+		return this.aSymetricEncryptionType == null || this.aSymetricEncryptionType.isPostQuantumAlgorithm();
 	}
-	
+
+
+	@Override
+	boolean isAcceptableHostIdentifier(EncryptionRestriction encryptionRestriction, Identifier.Authenticated cloudIdentifier) {
+		if (encryptionRestriction==EncryptionRestriction.NO_RESTRICTION)
+			return true;
+		return !cloudIdentifier.getAuthenticationMethod().isAuthenticatedByPublicKey()
+				||
+				(cloudIdentifier.getAuthenticationPublicKey().isPostQuantumKey()
+						&& (encryptionRestriction != EncryptionRestriction.HYBRID_ALGORITHMS || cloudIdentifier.getAuthenticationPublicKey() instanceof HybridASymmetricPublicKey));
+				//(this.asymmetricLoginAgreementType != null && this.asymmetricLoginAgreementType.isPostQuantumAlgorithm(cloudIdentifier.getAuthenticationPublicKey())
+				//		&& (encryptionRestriction != EncryptionRestriction.HYBRID_ALGORITHMS || cloudIdentifier.getAuthenticationPublicKey() instanceof HybridASymmetricPublicKey));
+	}
+
+	@Override
+	boolean isAcceptableHostIdentifier(EncryptionRestriction encryptionRestriction, HostIdentifier identifier) {
+		if (encryptionRestriction==EncryptionRestriction.NO_RESTRICTION)
+			return true;
+		return !identifier.isAuthenticatedByPublicKey()
+				||
+				(identifier.getAuthenticationPublicKey().isPostQuantumKey()
+						&& (encryptionRestriction != EncryptionRestriction.HYBRID_ALGORITHMS || identifier.getAuthenticationPublicKey() instanceof HybridASymmetricPublicKey));
+	}
+
+	@Override
+	boolean isAcceptablePassword(EncryptionRestriction encryptionRestriction, PasswordKey passwordKey) {
+		if (encryptionRestriction==EncryptionRestriction.NO_RESTRICTION)
+			return true;
+		return passwordKey.isKey() && this.p2pLoginAgreementType != null && this.p2pLoginAgreementType.isPostQuantumAlgorithm(passwordKey.getSecretKeyForSignature());
+	}
 }

@@ -226,7 +226,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 
 						
 						if (lp.canTakesLoginInitiative())
-							setCloudIdentifiers(lp.getCloudIdentifiersToInitiate());
+							setCloudIdentifiers(lp.getCloudIdentifiersToInitiate(properties.networkProperties.encryptionRestriction, access_protocol_properties));
 						else
 							setCloudIdentifiers(null);
 						/*if (getIdentifiers() != null && getIdentifiers().size() == 0)
@@ -235,7 +235,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 							access_state = AccessState.WAITING_FOR_CLOUD_IDENTIFIERS;
 							return new CloudIdentifiersPropositionMessage(properties.getApprovedSecureRandom(), messageDigest,
 									this.access_protocol_properties.anonymizeIdentifiersBeforeSendingToDistantPeer,
-									(short) 0, distantGeneratedSalt, getCloudIdentifiers());
+									(short) 0, distantGeneratedSalt, getCloudIdentifiers(), properties.networkProperties.encryptionRestriction, access_protocol_properties);
 						} else {
 							if (!isOtherCanTakesInitiative()) {
 								access_state = AccessState.ACCESS_NOT_INITIALIZED;
@@ -310,7 +310,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 					}
 					if (step < maxSteps) {
 						AccessMessage res = jpakem.getJPakeMessageNewStep(initialJPakeMessage, ++step,
-								lp, messageDigest, getDeniedCloudIdentifiers(), jpakes, localGeneratedSalt);
+								lp, messageDigest, getDeniedCloudIdentifiers(), jpakes, localGeneratedSalt, properties.networkProperties.encryptionRestriction, access_protocol_properties);
 						if (res instanceof AccessErrorMessage) {
 							if (access_state == AccessState.WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION)
 								access_state = AccessState.ACCESS_FINALIZED;
@@ -322,7 +322,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 						AccessMessage res = jpakem.receiveLastMessage(initialJPakeMessage, lp, messageDigest,
 								newAcceptedCloudIdentifiers, getDeniedCloudIdentifiers(),
 								temporaryAcceptedCloudIdentifiers, jpakes, localGeneratedSalt, distantGeneratedSalt,
-								properties.getApprovedSecureRandom());
+								properties.getApprovedSecureRandom(), properties.networkProperties.encryptionRestriction, access_protocol_properties);
 						if (res instanceof AccessErrorMessage) {
 							if (access_state == AccessState.WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION)
 								access_state = AccessState.ACCESS_FINALIZED;
@@ -493,7 +493,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 			propRep=m
 					.getIdentifiersPropositionMessageAnswer(lp, properties.getApprovedSecureRandom(), messageDigest,
 							this.access_protocol_properties.anonymizeIdentifiersBeforeSendingToDistantPeer,
-							getCloudIdentifiers(), distantGeneratedSalt,  localGeneratedSalt);
+							getCloudIdentifiers(), distantGeneratedSalt,  localGeneratedSalt, properties.networkProperties.encryptionRestriction, access_protocol_properties);
 		}
 		if (access_state==AccessState.ACCESS_FINALIZED)
 			access_state = AccessState.WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION;
@@ -504,7 +504,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 				m.getJPakeMessage(getAllAcceptedIdentifiers(),
 						newAcceptedCloudIdentifiers, temporaryAcceptedCloudIdentifiers, lp, jpakes,
 						access_protocol_properties.p2pLoginAgreementType, properties.getApprovedSecureRandom(), localGeneratedSalt,
-						access_protocol_properties.identifierDigestionTypeUsedForAnonymization, access_protocol_properties.passwordHashType,myKeyPair==null?null:myKeyPair.getASymmetricPublicKey());
+						access_protocol_properties.identifierDigestionTypeUsedForAnonymization, access_protocol_properties.passwordHashType,myKeyPair==null?null:myKeyPair.getASymmetricPublicKey(), properties.networkProperties.encryptionRestriction, access_protocol_properties);
 		maxSteps=initialJPakeMessage.getMaxSteps();
 		step=1;
 		if (propRep!=null)
@@ -577,7 +577,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 					access_state = AccessState.WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION;
 					return new CloudIdentifiersPropositionMessage(properties.getApprovedSecureRandom(), messageDigest,
 							this.access_protocol_properties.anonymizeIdentifiersBeforeSendingToDistantPeer,
-							(short) 0, distantGeneratedSalt, getCloudIdentifiers());
+							(short) 0, distantGeneratedSalt, getCloudIdentifiers(), properties.networkProperties.encryptionRestriction, access_protocol_properties);
 				} else {
 					return null;
 				}

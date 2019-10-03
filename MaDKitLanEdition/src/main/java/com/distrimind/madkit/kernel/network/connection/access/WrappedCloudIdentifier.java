@@ -35,6 +35,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL-C license and that you accept its terms.
  */
 
+import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 import com.distrimind.util.crypto.*;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
@@ -83,7 +84,7 @@ final class WrappedCloudIdentifier extends CloudIdentifier {
 	{
 
 	}
-	WrappedCloudIdentifier(boolean anonymize, CloudIdentifier cloudIdentifier, AbstractSecureRandom random, AbstractMessageDigest messageDigest, byte[] distantGeneratedSalt) throws DigestException, InvalidKeyException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeySpecException {
+	WrappedCloudIdentifier(boolean anonymize, CloudIdentifier cloudIdentifier, AbstractSecureRandom random, AbstractMessageDigest messageDigest, byte[] distantGeneratedSalt, EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties) throws DigestException, InvalidKeyException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeySpecException {
 
 		if (cloudIdentifier == null)
 			throw new NullPointerException("cloudIdentifier");
@@ -156,12 +157,12 @@ final class WrappedCloudIdentifier extends CloudIdentifier {
 	}
 
 	@Override
-	public ASymmetricPublicKey getAuthenticationPublicKey() {
+	public IASymmetricPublicKey getAuthenticationPublicKey() {
 		return cloudIdentifier.getAuthenticationPublicKey();
 	}
 
 	@Override
-	public ASymmetricKeyPair getAuthenticationKeyPair() {
+	public AbstractKeyPair getAuthenticationKeyPair() {
 		return cloudIdentifier.getAuthenticationKeyPair();
 	}
 
