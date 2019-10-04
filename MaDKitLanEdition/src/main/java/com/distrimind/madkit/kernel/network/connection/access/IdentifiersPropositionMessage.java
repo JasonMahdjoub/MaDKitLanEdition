@@ -39,10 +39,7 @@ package com.distrimind.madkit.kernel.network.connection.access;
 
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.util.crypto.AbstractSecureRandom;
-import com.distrimind.util.io.Integrity;
-import com.distrimind.util.io.MessageExternalizationException;
-import com.distrimind.util.io.SecuredObjectInputStream;
-import com.distrimind.util.io.SecuredObjectOutputStream;
+import com.distrimind.util.io.*;
 
 import java.io.IOException;
 import java.security.*;
@@ -80,7 +77,15 @@ class IdentifiersPropositionMessage extends AccessMessage {
 	@Override
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 
-		identifiers=in.readObject(false, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE, Identifier[].class);
+		SecureExternalizable[] s=in.readObject(false, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE, SecureExternalizable[].class);
+		identifiers=new Identifier[s.length];
+		for (int i=0;i<s.length;i++)
+		{
+			Object o=s[i];
+			if (o==null || !(o instanceof Identifier))
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			identifiers[i]=(Identifier)o;
+		}
 		hostSignatures=in.read2DBytesArray(false, true, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE, MAX_SIGNATURE_SIZE);
 	}
 
@@ -158,6 +163,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		{
 			if (identifier.getHostIdentifier().isAuthenticatedByPublicKey()) {
 				byte[] encodedIdentifier = identifier.getHostIdentifier().getBytesTabToEncode();
+
 				if (Identifier.checkAuthenticatedSignature(identifier.getHostIdentifier().getAuthenticationPublicKey(), signature, saltSizeBytes, signature.length - saltSizeBytes, encodedIdentifier, Arrays.copyOfRange(signature, 0, saltSizeBytes), localGeneratedSalt))
 					return new Identifier(foundCloudIdentifier, identifier.getHostIdentifier());
 				else

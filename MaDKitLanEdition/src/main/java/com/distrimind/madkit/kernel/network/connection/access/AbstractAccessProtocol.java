@@ -66,7 +66,7 @@ public abstract class AbstractAccessProtocol {
 	private boolean other_can_takes_initiative;
 
 	private List<CloudIdentifier> cloudIdentifiers = null;
-	private ArrayList<PairOfIdentifiers> acceptedIdentifiers = null;
+	private ArrayList<PairOfIdentifiers> acceptedIdentifiers = new ArrayList<>();
 	private ArrayList<Identifier> deniedLocalIdentifiers = null;
 	private ArrayList<Identifier> deniedDistantIdentifiers = null;
 	private ArrayList<CloudIdentifier> deniedCloudIdentifiers = null;
@@ -133,15 +133,16 @@ public abstract class AbstractAccessProtocol {
 		return kernel_address;
 	}
 
-	protected void resetLogin() throws AccessException {
+	protected void resetLogin(boolean resetLoggedIdentifiers) throws AccessException {
 		cloudIdentifiers = null;
-		acceptedIdentifiers = null;
+		if (resetLoggedIdentifiers)
+			acceptedIdentifiers = new ArrayList<>();
 		deniedLocalIdentifiers = null;
 		deniedDistantIdentifiers = null;
 	}
 	protected void reset() throws AccessException
 	{
-		resetLogin();
+		resetLogin(true);
 		groups_access.set(null);
 	}
 

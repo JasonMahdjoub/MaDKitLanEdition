@@ -88,7 +88,7 @@ public class CustumCloudIdentifier extends CloudIdentifier {
 	public boolean equals(Object _cloud_identifier) {
 		if (_cloud_identifier == null)
 			return false;
-		if (_cloud_identifier instanceof CustumCloudIdentifier) {
+		if (_cloud_identifier.getClass()==CustumCloudIdentifier.class) {
 			CustumCloudIdentifier cci = (CustumCloudIdentifier) _cloud_identifier;
 			return name.equals(cci.name);
 		}
@@ -117,7 +117,7 @@ public class CustumCloudIdentifier extends CloudIdentifier {
 
 
 	public String toString() {
-		return name;
+		return this.getClass().getSimpleName()+"["+name+"]";
 	}
 
 

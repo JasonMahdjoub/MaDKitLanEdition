@@ -65,16 +65,16 @@ public class JPakeAccessInitialized extends AccessInitialized {
 	
 	public JPakeAccessInitialized(boolean _can_takes_login_initiative, AbstractSecureRandom random, int messageDigestSize) {
 		super(_can_takes_login_initiative);
-		generatedSalt=new byte[messageDigestSize];
+		generatedSalt=new byte[Math.max(32,messageDigestSize)];
 		random.nextBytes(generatedSalt);
 	}
 	@Override
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		super.readExternal(in);
 		generatedSalt=in.readBytesArray(false, maxGeneratedSaltSize);
-		/*assert generatedSalt != null;
-		if (generatedSalt.length>maxGeneratedSaltSize)
-			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);*/
+		assert generatedSalt != null;
+		if (generatedSalt.length<32)
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 	}
 
 	@Override

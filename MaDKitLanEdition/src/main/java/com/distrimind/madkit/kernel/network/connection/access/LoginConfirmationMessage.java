@@ -145,7 +145,6 @@ class LoginConfirmationMessage extends AccessMessage {
 						proposed=new PairOfIdentifiers(foundLocalId, id);
 				}
 			}
-
 			for (Iterator<PairOfIdentifiers> it = alreadyValidatedPairOfIdentifiers.iterator();it.hasNext();)
 			{
 				PairOfIdentifiers poi = it.next();

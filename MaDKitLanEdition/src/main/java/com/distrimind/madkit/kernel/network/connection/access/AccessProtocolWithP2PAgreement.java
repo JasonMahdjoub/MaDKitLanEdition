@@ -71,7 +71,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 	private int maxSteps;
 
 
-	private ArrayList<CloudIdentifier> newAcceptedCloudIdentifiers=new ArrayList<>();
+	private ArrayList<CloudIdentifier> newAcceptedCloudIdentifiers=null;
 	private LoginConfirmationMessage localLoginConfirmationMessage=null;
 	private Map<WrappedCloudIdentifier, CloudIdentifier> temporaryAcceptedCloudIdentifiers=null;
 	private JPakeMessageForAuthenticationOfCloudIdentifiers initialJPakeMessage;
@@ -148,15 +148,17 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 	}
 
 	@Override
-	protected void resetLogin() throws AccessException {
-		super.resetLogin();
+	protected void resetLogin(boolean resetLoggedIdentifiers) throws AccessException {
+		super.resetLogin(resetLoggedIdentifiers);
 		jpakes=new HashMap<>();
-		setAcceptedIdentifiers(null);
-		setDeniedCloudIdentifiers(null);
-		setDeniedLocalIdentifiers(null);
-		setDeniedDistantIdentifiers(null);
-		setCloudIdentifiers(null);
-		newAcceptedCloudIdentifiers=new ArrayList<>();
+		if (resetLoggedIdentifiers) {
+			setAcceptedIdentifiers(new ArrayList<PairOfIdentifiers>());
+			setDeniedCloudIdentifiers(null);
+			setDeniedLocalIdentifiers(null);
+			setDeniedDistantIdentifiers(null);
+			setCloudIdentifiers(null);
+		}
+		newAcceptedCloudIdentifiers=null;
 		localLoginConfirmationMessage=null;
 		temporaryAcceptedCloudIdentifiers=null;
 		initialJPakeMessage=null;
@@ -168,7 +170,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 	protected void reset() throws AccessException
 	{
 		super.reset();
-		resetLogin();
+		resetLogin(true);
 
 
 		if (access_protocol_properties.p2pLoginAgreementType== P2PLoginAgreementType.ASYMMETRIC_SECRET_MESSAGE_EXCHANGER
@@ -206,7 +208,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 						return res;
 					}
 				} else {
-					resetLogin();
+					resetLogin(true);
 					return new AccessErrorMessage(true);
 				}
 
@@ -217,7 +219,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 					JPakeAccessInitialized m=((JPakeAccessInitialized) _m);
 					setOtherCanTakesInitiative( m.can_takes_login_initiative);
 					distantGeneratedSalt=m.getGeneratedSalt();
-					if (distantGeneratedSalt==null || distantGeneratedSalt.length!=messageDigest.getDigestLength()) {
+					if (distantGeneratedSalt==null || distantGeneratedSalt.length!=localGeneratedSalt.length) {
 						access_state=AccessState.ACCESS_NOT_INITIALIZED;
 						return new AccessErrorMessage(true);
 					}
@@ -250,7 +252,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 						return new AccessFinalizedMessage();
 					}
 				} else {
-					resetLogin();
+					resetLogin(true);
 					access_state = AccessState.ACCESS_NOT_INITIALIZED;
 					return new AccessErrorMessage(false);
 				}
@@ -265,7 +267,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 				} else if (_m instanceof NullAccessMessage) {
 					return new DoNotSendMessage();
 				} else {
-					resetLogin();
+					resetLogin(true);
 					access_state = AccessState.ACCESS_NOT_INITIALIZED;
 					return new AccessErrorMessage(false);
 				}
@@ -295,12 +297,14 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 					LoginData lp = (LoginData) access_data;
 					JPakeMessageForAuthenticationOfCloudIdentifiers jpakem = (JPakeMessageForAuthenticationOfCloudIdentifiers) _m;
 					if (jpakem.getStep() != step) {
-						resetLogin();
+
 						if (access_state == AccessState.WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION) {
 							access_state = AccessState.ACCESS_FINALIZED;
+							resetLogin(false);
 							return manageDifferedAccessMessage();
 						}
 						else {
+							resetLogin(true);
 							access_state = AccessState.ACCESS_NOT_INITIALIZED;
 							return new AccessErrorMessage(false);
 						}
@@ -337,12 +341,14 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 						}
 						return res;
 					} else {
-						resetLogin();
+
 						if (access_state == AccessState.WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION) {
+							resetLogin(false);
 							access_state = AccessState.ACCESS_FINALIZED;
 							return manageDifferedAccessMessage();
 						}
 						else {
+							resetLogin(true);
 							access_state = AccessState.ACCESS_NOT_INITIALIZED;
 							return new AccessErrorMessage(false);
 						}
@@ -352,7 +358,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 				} else {
 					if (access_state == AccessState.WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION) {
 						if (!differrAccessMessage(_m)) {
-							resetLogin();
+							resetLogin(false);
 							access_state = AccessState.ACCESS_FINALIZED;
 							return manageDifferedAccessMessage();
 						}
@@ -361,7 +367,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 					}
 					else
 					{
-						resetLogin();
+						resetLogin(true);
 						access_state = AccessState.ACCESS_NOT_INITIALIZED;
 						return new AccessErrorMessage(false);
 					}
@@ -396,7 +402,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 				else {
 					if (access_state == AccessState.WAITING_FOR_NEW_IDENTIFIERS) {
 						if (!differrAccessMessage(_m)) {
-							resetLogin();
+							resetLogin(false);
 							access_state = AccessState.ACCESS_FINALIZED;
 							return manageDifferedAccessMessage();
 						}
@@ -405,7 +411,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 					}
 					else
 					{
-						resetLogin();
+						resetLogin(true);
 						access_state = AccessState.ACCESS_NOT_INITIALIZED;
 						return new AccessErrorMessage(false);
 					}
@@ -433,7 +439,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 					//setDistantKernelAddress(((LoginConfirmationMessage) _m).kernel_address);
 					addLastAcceptedAndDeniedIdentifiers(getDeniedCloudIdentifiers(), getAcceptedIdentifiers(), getDeniedLocalIdentifiers(), getDeniedDistantIdentifiers());
 
-					resetLogin();
+					resetLogin(access_state==AccessState.WAITING_FOR_LOGIN_CONFIRMATION);
 
 					access_state = AccessState.ACCESS_FINALIZED;
 
@@ -441,7 +447,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 				} else {
 					if (access_state == AccessState.WAITING_FOR_NEW_LOGIN_CONFIRMATION) {
 						if (!differrAccessMessage(_m)) {
-							resetLogin();
+							resetLogin(false);
 							access_state = AccessState.ACCESS_FINALIZED;
 							return manageDifferedAccessMessage();
 						}
@@ -450,7 +456,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 					}
 					else
 					{
-						resetLogin();
+						resetLogin(true);
 						access_state = AccessState.ACCESS_NOT_INITIALIZED;
 						return new AccessErrorMessage(false);
 					}

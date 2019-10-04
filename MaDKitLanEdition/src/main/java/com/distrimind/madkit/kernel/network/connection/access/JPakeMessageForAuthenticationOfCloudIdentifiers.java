@@ -73,10 +73,10 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 	}
 
 	JPakeMessageForAuthenticationOfCloudIdentifiers(Map<WrappedCloudIdentifier, P2PLoginAgreement> agreements, short nbAnomalies) throws Exception {
-		super(getIdentifiers(agreements), agreements, nbAnomalies);
+		super((short)1, getIdentifiers(agreements), agreements, nbAnomalies);
 	}
-	JPakeMessageForAuthenticationOfCloudIdentifiers(WrappedCloudIdentifier[] identifiers, Map<WrappedCloudIdentifier, P2PLoginAgreement> agreements, short nbAnomalies) throws Exception {
-		super(identifiers, agreements, nbAnomalies);
+	JPakeMessageForAuthenticationOfCloudIdentifiers(short step, WrappedCloudIdentifier[] identifiers, Map<WrappedCloudIdentifier, P2PLoginAgreement> agreements, short nbAnomalies) throws Exception {
+		super(step, identifiers, agreements, nbAnomalies);
 	}
 
 	static void addPairOfIdentifiers(LoginData loginData, WrappedCloudIdentifier distantIdentifier, Collection<CloudIdentifier> deniedIdentifiers, AbstractMessageDigest messageDigest, byte[] localGeneratedSalt, EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties) throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException, NoSuchProviderException, AccessException, InvalidParameterSpecException, InvalidKeySpecException {
@@ -116,7 +116,6 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 			P2PLoginAgreement jpake=jpakes.get(id);
 			if (jpake==null) {
 				addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
-				++nbAno;
 			}
 			else
 			{
@@ -159,7 +158,7 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 
 		}
 
-		return new JPakeMessageForAuthenticationOfCloudIdentifiers(initialJPakeMessage.identifiers, jpkms, nbAno > Short.MAX_VALUE ? Short.MAX_VALUE : (short)nbAno);
+		return new JPakeMessageForAuthenticationOfCloudIdentifiers(++step, initialJPakeMessage.identifiers, jpkms, nbAno > Short.MAX_VALUE ? Short.MAX_VALUE : (short)nbAno);
 	}
 
 	public AccessMessage receiveLastMessage(JPakeMessageForAuthenticationOfCloudIdentifiers initialJPakeMessage,
@@ -260,6 +259,7 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 				it.remove();
 		}
 		temporaryAcceptedCloudIdentifiers.clear();
+		++step;
 		return new IdentifiersPropositionMessage(identifiers, nbAno > Short.MAX_VALUE ? Short.MAX_VALUE:(short)nbAno, distantGeneratedSalt, random);
 	}
 

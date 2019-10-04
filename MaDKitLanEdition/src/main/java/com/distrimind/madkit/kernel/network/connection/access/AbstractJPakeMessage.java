@@ -66,16 +66,24 @@ abstract class AbstractJPakeMessage<T> extends AccessMessage{
 
 
 
-	AbstractJPakeMessage(T[] identifiers, Map<T, P2PLoginAgreement> agreements, short nbAnomalies) throws Exception {
+	AbstractJPakeMessage(short step, T[] identifiers, Map<T, P2PLoginAgreement> agreements, short nbAnomalies) throws Exception {
 		super();
 		if (identifiers.length<agreements.size())
 			throw new IllegalArgumentException();
 		this.identifiers=identifiers.clone();
-		this.jpakeMessages=new byte[agreements.size()][];
-		this.step = 1;
+		this.jpakeMessages=new byte[identifiers.length][];
+		this.step = step;
 		for (int i=0;i<identifiers.length;i++)
 		{
-			this.jpakeMessages[i]=agreements.get(identifiers[i]).getDataToSend();
+			if (identifiers[i]==null)
+				this.jpakeMessages[i]=null;
+			else {
+				P2PLoginAgreement agreement=agreements.get(identifiers[i]);
+				if (agreement==null)
+					this.jpakeMessages[i]=null;
+				else
+					this.jpakeMessages[i] =agreement.getDataToSend();
+			}
 		}
 
 		this.nbAnomalies=nbAnomalies;

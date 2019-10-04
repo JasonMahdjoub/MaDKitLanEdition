@@ -72,7 +72,9 @@ public class CustomCloudIdentifierWithPublicKey extends CloudIdentifier {
 
     @Override
     public boolean equals(Object _object) {
-        if (_object instanceof CustomCloudIdentifierWithPublicKey)
+        if (_object==null)
+            return false;
+        if (_object.getClass()==CustomCloudIdentifierWithPublicKey.class)
             return publicKey.equals(((CustomCloudIdentifierWithPublicKey) _object).publicKey);
         else
             return false;
@@ -101,7 +103,7 @@ public class CustomCloudIdentifierWithPublicKey extends CloudIdentifier {
 
     @Override
     public String toString() {
-        return "CloudID["+publicKey.toString()+"]";
+        return this.getClass().getSimpleName()+"["+publicKey.toString()+"]";
     }
 
 

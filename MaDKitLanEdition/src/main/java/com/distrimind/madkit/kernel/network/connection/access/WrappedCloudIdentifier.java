@@ -212,4 +212,6 @@ final class WrappedCloudIdentifier extends CloudIdentifier {
 		else
 			return signature==null;
 	}
+
+
 }
