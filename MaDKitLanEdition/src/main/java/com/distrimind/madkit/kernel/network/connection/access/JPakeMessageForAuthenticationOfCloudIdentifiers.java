@@ -43,6 +43,7 @@ import com.distrimind.util.crypto.AbstractMessageDigest;
 import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.crypto.P2PLoginAgreement;
 import com.distrimind.util.io.*;
+import org.apache.commons.codec.binary.Base64;
 
 import java.io.IOException;
 import java.security.*;
@@ -67,8 +68,9 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 	{
 		WrappedCloudIdentifier[] res=new WrappedCloudIdentifier[agreements.size()];
 		int i=0;
-		for (WrappedCloudIdentifier id : agreements.keySet())
-			res[i++]=id;
+		for (WrappedCloudIdentifier id : agreements.keySet()) {
+			res[i++] = id;
+		}
 		return res;
 	}
 
@@ -130,7 +132,6 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 							++nbAno;
 						}
 						else {
-
 							jpake.receiveData(this.jpakeMessages[i]);
 						}
 					}
@@ -270,18 +271,17 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 		int globalSize= NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
 		SecureExternalizable[] r=in.readObject(false, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE, SecureExternalizable[].class);
 		identifiers=new WrappedCloudIdentifier[r.length];
+		int totalSize=0;
 		for (int i=0;i<identifiers.length;i++)
 		{
-			if (r[i] instanceof WrappedCloudIdentifier)
-				identifiers[i]=(WrappedCloudIdentifier)r[i];
+			if (r[i]==null)
+				identifiers[i]=null;
+			else if (r[i] instanceof WrappedCloudIdentifier) {
+				identifiers[i] = (WrappedCloudIdentifier) r[i];
+				totalSize += identifiers[i].getInternalSerializedSize();
+			}
 			else
 				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		}
-
-		int totalSize=0;
-		for (WrappedCloudIdentifier identifier : identifiers) {
-			if (identifier != null)
-				totalSize += identifier.getInternalSerializedSize();
 		}
 
 		if (totalSize>globalSize)

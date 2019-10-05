@@ -38,6 +38,7 @@
 package com.distrimind.madkit.kernel.network.connection.access;
 
 import com.distrimind.util.crypto.P2PLoginAgreement;
+import org.apache.commons.codec.binary.Base64;
 
 import java.util.Map;
 
@@ -70,7 +71,7 @@ abstract class AbstractJPakeMessage<T> extends AccessMessage{
 		super();
 		if (identifiers.length<agreements.size())
 			throw new IllegalArgumentException();
-		this.identifiers=identifiers.clone();
+		this.identifiers=identifiers;
 		this.jpakeMessages=new byte[identifiers.length][];
 		this.step = step;
 		for (int i=0;i<identifiers.length;i++)
@@ -81,8 +82,10 @@ abstract class AbstractJPakeMessage<T> extends AccessMessage{
 				P2PLoginAgreement agreement=agreements.get(identifiers[i]);
 				if (agreement==null)
 					this.jpakeMessages[i]=null;
-				else
-					this.jpakeMessages[i] =agreement.getDataToSend();
+				else {
+
+					this.jpakeMessages[i] = agreement.getDataToSend();
+				}
 			}
 		}
 

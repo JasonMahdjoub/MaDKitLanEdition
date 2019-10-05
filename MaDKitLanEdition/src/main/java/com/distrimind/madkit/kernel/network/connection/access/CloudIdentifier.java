@@ -90,10 +90,11 @@ public abstract class CloudIdentifier implements SecureExternalizable, Identifie
 	{
 		byte[] idbytes = getIdentifierBytes();
 		byte[] salt = getSaltBytes();
-		byte[] res = new byte[idbytes.length + (salt == null ? 0 : salt.length)];
+		if (salt==null)
+			return idbytes;
+		byte[] res = new byte[idbytes.length + salt.length];
 		System.arraycopy(idbytes, 0, res, 0, idbytes.length);
-		if (salt!=null)
-			System.arraycopy(salt, 0, res, idbytes.length, salt.length);
+		System.arraycopy(salt, 0, res, idbytes.length, salt.length);
 		return res;
 
 	}
@@ -101,6 +102,6 @@ public abstract class CloudIdentifier implements SecureExternalizable, Identifie
 	@Override
 	public String toString()
 	{
-		return this.getClass().getName()+"["+ Base64.encodeBase64URLSafeString(getBytesTabToEncode())+"]";
+		return this.getClass().getSimpleName()+"["+ Base64.encodeBase64URLSafeString(getBytesTabToEncode())+"]";
 	}
 }
