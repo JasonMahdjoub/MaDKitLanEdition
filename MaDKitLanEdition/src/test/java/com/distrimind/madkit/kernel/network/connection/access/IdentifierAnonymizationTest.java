@@ -61,17 +61,19 @@ public class IdentifierAnonymizationTest {
 	@Test
 	public void testEncryptedJPakeIdentifier() throws DigestException, NoSuchAlgorithmException, NoSuchProviderException
 	{
+
 		for (int i=0;i<100;i++)
 		{
+			AbstractMessageDigest messageDigest=MessageDigestType.DEFAULT.getMessageDigestInstance();
 			Random rand=new Random(System.currentTimeMillis());
 			byte[] id=new byte[rand.nextInt(2000)+20];
 			rand.nextBytes(id);
-			byte[] salt=new byte[rand.nextInt(2000)+20];
+			byte[] salt=new byte[messageDigest.getDigestLength()];
 			rand.nextBytes(salt);
 			
 			
 			AbstractSecureRandom srand=SecureRandomType.DEFAULT.getSingleton(null);
-			AbstractMessageDigest messageDigest=MessageDigestType.DEFAULT.getMessageDigestInstance();
+
 			byte[] encryptedID= AccessProtocolWithP2PAgreement.anonymizeIdentifier(id,srand , messageDigest, salt);
 			Assert.assertTrue(AccessProtocolWithP2PAgreement.compareAnonymizedIdentifier(id, encryptedID, messageDigest, salt));
 		}		
@@ -90,14 +92,15 @@ public class IdentifierAnonymizationTest {
 	{
 		for (int i=0;i<100;i++)
 		{
+			AbstractMessageDigest messageDigest=MessageDigestType.DEFAULT.getMessageDigestInstance();
 			Random rand=new Random(System.currentTimeMillis());
 			byte[] id=new byte[rand.nextInt(2000)+20];
 			rand.nextBytes(id);
-			byte[] salt=new byte[rand.nextInt(2000)+20];
+			byte[] salt=new byte[messageDigest.getDigestLength()];
 			rand.nextBytes(salt);
 			
 			AbstractSecureRandom srand=SecureRandomType.DEFAULT.getSingleton(null);
-			AbstractMessageDigest messageDigest=MessageDigestType.DEFAULT.getMessageDigestInstance();
+
 			byte[] encryptedID= AccessProtocolWithP2PAgreement.anonymizeIdentifier(id,srand , messageDigest, salt);
 			Assert.assertTrue(AccessProtocolWithP2PAgreement.compareAnonymizedIdentifier(id, encryptedID, messageDigest, salt));
 		}		
