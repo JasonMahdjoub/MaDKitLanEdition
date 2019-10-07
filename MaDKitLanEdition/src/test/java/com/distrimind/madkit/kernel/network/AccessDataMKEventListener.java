@@ -264,7 +264,11 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 
 			@Override
 			protected CloudIdentifier getLocalVersionOfDistantCloudIdentifierImpl(CloudIdentifier distantCloudIdentifier) {
-				return distantCloudIdentifier;
+				for (IdentifierPassword idpw : identifersAndPasswords) {
+					if (idpw.getIdentifier().getCloudIdentifier().equals(distantCloudIdentifier))
+						return idpw.getIdentifier().getCloudIdentifier();
+				}
+				return null;
 			}
 
 		};
