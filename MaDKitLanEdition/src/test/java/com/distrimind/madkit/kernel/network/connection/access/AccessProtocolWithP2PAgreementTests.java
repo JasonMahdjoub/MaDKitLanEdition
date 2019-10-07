@@ -894,7 +894,8 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 	}
 	private void checkExpectedLogins(AbstractAccessProtocol ap, List<Identifier> expectedAcceptedIdentifiers, List<Identifier> expectedAcceptedIdentifiersOtherSide)
 	{
-		Assert.assertEquals("\nexpected: "+expectedAcceptedIdentifiers.toString()+"\nactual: "+ap.getAllAcceptedIdentifiers().toString(), expectedAcceptedIdentifiers.size(), ap.getAllAcceptedIdentifiers().size());
+		String message="\nexpected: "+expectedAcceptedIdentifiers.toString()+"\nactual: "+ap.getAllAcceptedIdentifiers().toString();
+		Assert.assertEquals(message, expectedAcceptedIdentifiers.size(), ap.getAllAcceptedIdentifiers().size());
 		for (PairOfIdentifiers poi : ap.getAllAcceptedIdentifiers()) {
 			boolean found = false;
 			for (Identifier id : expectedAcceptedIdentifiers) {
@@ -912,7 +913,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 				}
 			}
 
-			Assert.assertTrue(""+poi, found);
+			Assert.assertTrue(message+"\nNot found : "+poi, found);
 			/*if (!poi.getDistantIdentifier().getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
 				Assert.assertTrue(""+poi.getDistantIdentifier(), found);
 			else

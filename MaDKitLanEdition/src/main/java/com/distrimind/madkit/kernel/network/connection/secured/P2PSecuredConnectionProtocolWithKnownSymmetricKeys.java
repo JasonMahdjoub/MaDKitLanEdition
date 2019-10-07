@@ -96,7 +96,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 	}
 
 	private void initSecretKeys(int id) throws ConnectionException, NoSuchProviderException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchPaddingException {
-		if (!properties.isValidProfile(id, network_properties.encryptionRestriction))
+		if (!properties.isValidProfile(id, network_properties.encryptionRestrictionForConnectionProtocols))
 			throw new ConnectionException();
 		this.secretKeyForEncryption=properties.getSymmetricSecretKeyForEncryption(id);
 		this.secretKeyForSignature=properties.getSymmetricSecretKeyForSignature(id);
@@ -146,7 +146,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 					if (this.isCurrentServerAskingConnection())
 					{
 						status=Status.WAITING_FOR_CONNECTION_CONFIRMATION;
-						int id=properties.getDefaultProfileIdentifier(network_properties.encryptionRestriction);
+						int id=properties.getDefaultProfileIdentifier(network_properties.encryptionRestrictionForConnectionProtocols);
 						try {
 							initSecretKeys(id);
 						} catch (NoSuchProviderException | NoSuchAlgorithmException | InvalidKeySpecException | InvalidKeyException | InvalidAlgorithmParameterException | NoSuchPaddingException e) {

@@ -145,46 +145,55 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		this.nbAnomalies = nbAnomalies;
 	}
 
-	private Identifier getValidDistantIdentifier(Collection<CloudIdentifier> acceptedCloudIdentifiers, Identifier identifier, byte[] signature, LoginData loginData, byte[] localGeneratedSalt)
+	private Identifier getValidDistantIdentifier(Collection<CloudIdentifier> acceptedCloudIdentifiers,Collection<CloudIdentifier> initializedCloudIdentifiers, Identifier identifier, byte[] signature, LoginData loginData, byte[] localGeneratedSalt)
 			throws InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidParameterSpecException, SignatureException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeySpecException {
 		CloudIdentifier foundCloudIdentifier=null;
 
-		for (Iterator<CloudIdentifier> it=acceptedCloudIdentifiers.iterator();it.hasNext();)
+		if (identifier.getHostIdentifier().equals(HostIdentifier.getNullHostIdentifierSingleton()))
 		{
-			CloudIdentifier cid =it.next();
-			if (cid.equals(identifier.getCloudIdentifier())) {
-				foundCloudIdentifier = cid;
-				it.remove();
-				break;
+			for (CloudIdentifier ci : initializedCloudIdentifiers)
+			{
+				if (ci.equals(identifier.getCloudIdentifier()))
+				{
+					return new Identifier(ci,HostIdentifier.getNullHostIdentifierSingleton() );
+				}
 			}
-		}
-
-		if (foundCloudIdentifier!=null && loginData.isDistantHostIdentifierValid(identifier))
-		{
-			if (identifier.getHostIdentifier().isAuthenticatedByPublicKey()) {
-				byte[] encodedIdentifier = identifier.getHostIdentifier().getBytesTabToEncode();
-
-				if (Identifier.checkAuthenticatedSignature(identifier.getHostIdentifier().getAuthenticationPublicKey(), signature, saltSizeBytes, signature.length - saltSizeBytes, encodedIdentifier, Arrays.copyOfRange(signature, 0, saltSizeBytes), localGeneratedSalt))
-					return new Identifier(foundCloudIdentifier, identifier.getHostIdentifier());
-				else
-					return null;
-			}
-			else
-				return new Identifier(foundCloudIdentifier, identifier.getHostIdentifier());
-		}
-		else
 			return null;
+		}
+		else {
+			for (Iterator<CloudIdentifier> it = acceptedCloudIdentifiers.iterator(); it.hasNext(); ) {
+				CloudIdentifier cid = it.next();
+				if (cid.equals(identifier.getCloudIdentifier())) {
+					foundCloudIdentifier = cid;
+					it.remove();
+					break;
+				}
+			}
+
+			if (foundCloudIdentifier != null && loginData.isDistantHostIdentifierValid(identifier)) {
+				if (identifier.getHostIdentifier().isAuthenticatedByPublicKey()) {
+					byte[] encodedIdentifier = identifier.getHostIdentifier().getBytesTabToEncode();
+
+					if (Identifier.checkAuthenticatedSignature(identifier.getHostIdentifier().getAuthenticationPublicKey(), signature, saltSizeBytes, signature.length - saltSizeBytes, encodedIdentifier, Arrays.copyOfRange(signature, 0, saltSizeBytes), localGeneratedSalt))
+						return new Identifier(foundCloudIdentifier, identifier.getHostIdentifier());
+					else
+						return null;
+				} else
+					return new Identifier(foundCloudIdentifier, identifier.getHostIdentifier());
+			} else
+				return null;
+		}
 
 	}
 
-	public LoginConfirmationMessage getLoginConfirmationMessage(Collection<CloudIdentifier> acceptedCloudIdentifiers, LoginData loginData, byte[] localGeneratedSalt)
+	public LoginConfirmationMessage getLoginConfirmationMessage(Collection<CloudIdentifier> acceptedCloudIdentifiers, Collection<CloudIdentifier> initializedCloudIdentifiers, LoginData loginData, byte[] localGeneratedSalt)
 			throws InvalidAlgorithmParameterException, InvalidKeySpecException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidKeyException, InvalidParameterSpecException {
 		ArrayList<Identifier> validDistantIds=new ArrayList<>(identifiers.length);
 		int nbAno=nbAnomalies;
 		for (int i=0;i<identifiers.length;i++)
 		{
 			Identifier id = identifiers[i];
-			Identifier resid=getValidDistantIdentifier(acceptedCloudIdentifiers, id, hostSignatures[i], loginData, localGeneratedSalt);
+			Identifier resid=getValidDistantIdentifier(acceptedCloudIdentifiers, initializedCloudIdentifiers, id, hostSignatures[i], loginData, localGeneratedSalt);
 			if (resid!=null)
 				validDistantIds.add(resid);
 			else

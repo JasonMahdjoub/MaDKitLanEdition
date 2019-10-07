@@ -127,6 +127,9 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 		for (CloudIdentifier ip : _id_pws) {
 			if (ip.getAuthenticationMethod()== Identifier.AuthenticationMethod.NOT_DEFINED)
 				continue;
+			if (ip.getAuthenticationMethod().isAuthenticatedByPublicKey() && ip.getAuthenticationKeyPair()==null)
+				continue;
+
 			identifiers[index++]=new WrappedCloudIdentifier(permitAnonymousIdentifiers && ip.mustBeAnonymous(),ip, random, messageDigest, distantGeneratedSalt, encryptionRestriction, accessProtocolProperties);
 		}
 
@@ -186,12 +189,22 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 			return false;
 	}*/
 	public void getValidDecodedCloudIdentifiers(LoginData loginData,
-												AbstractMessageDigest messageDigest, byte[] localGeneratedSalt , Collection<CloudIdentifier> validCloudIdentifiers, EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties) throws AccessException, InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidParameterSpecException, SignatureException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeySpecException {
+												AbstractMessageDigest messageDigest,
+												byte[] localGeneratedSalt ,
+												Collection<CloudIdentifier> validCloudIdentifiers,
+												//Collection<CloudIdentifier> acceptedAutoSignedCloudIdentifiers,
+												EncryptionRestriction encryptionRestriction,
+												AbstractAccessProtocolProperties accessProtocolProperties
+												) throws AccessException, InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidParameterSpecException, SignatureException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeySpecException {
 
 		for (WrappedCloudIdentifier id : identifiers) {
 			CloudIdentifier i=loginData.getLocalVersionOfDistantCloudIdentifier(id, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
-			if (i!=null)
-				validCloudIdentifiers.add(i);
+			if (i!=null) {
+				/*if (i.getAuthenticationMethod().isAuthenticatedByPublicKey() && i.getAuthenticationKeyPair()==null)
+					acceptedAutoSignedCloudIdentifiers.add(i);
+				else*/
+					validCloudIdentifiers.add(i);
+			}
 		}
 
 	}
@@ -213,6 +226,7 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 																					 AbstractMessageDigest messageDigest,
 																					 boolean encryptIdentifiers,
 																					 Collection<CloudIdentifier> validCloudIdentifiers,
+																					 //Collection<CloudIdentifier> acceptedAutoSignedCloudIdentifiers,
 																					 byte[] distantGeneratedSalt,
 																					 byte[] localGeneratedSalt,
 																					 EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties)

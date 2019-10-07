@@ -148,9 +148,9 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 					else
 						jpkms.put(id, null);
 				}
-				catch(Exception e)
+				catch(Exception ignored)
 				{
-					e.printStackTrace();
+					//e.printStackTrace();
 					addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
 					jpakes.remove(id);
 					++nbAno;
@@ -167,6 +167,7 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 											AbstractMessageDigest messageDigest,
 											Collection<CloudIdentifier> newAcceptedDistantCloudIdentifiers,
 											Collection<CloudIdentifier> deniedIdentifiers,
+											//Collection<CloudIdentifier> acceptedAutoSignedCloudIdentifiers,
 											Map<WrappedCloudIdentifier, CloudIdentifier> temporaryAcceptedCloudIdentifiers,
 											Map<WrappedCloudIdentifier, P2PLoginAgreement> jpakes,
 											byte[] localGeneratedSalt,
@@ -256,9 +257,22 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 			Identifier localID=loginData.localiseIdentifier(cloudIdentifier, encryptionRestriction, accessProtocolProperties);
 			if (localID!=null)
 				identifiers.add(localID);
-			else
-				it.remove();
+			else {
+				identifiers.add(new Identifier(cloudIdentifier, HostIdentifier.getNullHostIdentifierSingleton()));
+				//it.remove();
+			}
 		}
+		/*for (CloudIdentifier ci : acceptedAutoSignedCloudIdentifiers)
+		{
+			if (ci.getAuthenticationMethod().isAuthenticatedByPublicKey()
+					&&
+					!ci.getAuthenticationMethod().isAuthenticatedByPasswordOrSecretKey()
+					&& ci.getAuthenticationKeyPair()==null
+					&& !newAcceptedDistantCloudIdentifiers.contains(ci))
+			{
+				identifiers.add(new Identifier(ci, HostIdentifier.getNullHostIdentifierSingleton()));
+			}
+		}*/
 		temporaryAcceptedCloudIdentifiers.clear();
 		++step;
 		return new IdentifiersPropositionMessage(identifiers, nbAno > Short.MAX_VALUE ? Short.MAX_VALUE:(short)nbAno, distantGeneratedSalt, random);

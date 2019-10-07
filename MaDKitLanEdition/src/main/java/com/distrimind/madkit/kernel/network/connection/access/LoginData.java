@@ -166,7 +166,10 @@ public abstract class LoginData extends AccessData {
 	 *             if a problem occurs
 	 */
 	public final CloudIdentifier getLocalVersionOfDistantCloudIdentifier(final WrappedCloudIdentifier wrappedCloudIdentifier,
-																		  final AbstractMessageDigest messageDigest, final byte[] localGeneratedSalt, EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties) throws AccessException, InvalidAlgorithmParameterException, InvalidKeySpecException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidKeyException, InvalidParameterSpecException {
+																		  final AbstractMessageDigest messageDigest,
+																		 final byte[] localGeneratedSalt,
+																		 EncryptionRestriction encryptionRestriction,
+																		 AbstractAccessProtocolProperties accessProtocolProperties) throws AccessException, InvalidAlgorithmParameterException, InvalidKeySpecException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidKeyException, InvalidParameterSpecException {
 		CloudIdentifier res;
 		if (wrappedCloudIdentifier.getCloudIdentifier() instanceof EncryptedCloudIdentifier)
 			res=getLocalVersionOfDistantCloudIdentifier((EncryptedCloudIdentifier)wrappedCloudIdentifier.getCloudIdentifier(), messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
@@ -177,7 +180,7 @@ public abstract class LoginData extends AccessData {
 		else
 			return res;
 	}
-	/**
+	/*
 	 * Transform the given identifier to a local identifier
 	 *
 	 * @param encryptedCloudIdentifier
@@ -192,7 +195,7 @@ public abstract class LoginData extends AccessData {
 	 *
 	 * @return an identifier transformed to be understood locally
 	 */
-	public final Identifier getLocalIdentifier(final EncryptedCloudIdentifier encryptedCloudIdentifier,
+	/*public final Identifier getLocalIdentifier(final EncryptedCloudIdentifier encryptedCloudIdentifier,
 											   final AbstractMessageDigest messageDigest, final byte[] localGeneratedSalt, final EncryptionRestriction encryptionRestriction, final AbstractAccessProtocolProperties accessProtocolProperties) throws AccessException {
 		final AtomicReference<Identifier> res = new AtomicReference<>(null);
 
@@ -215,7 +218,7 @@ public abstract class LoginData extends AccessData {
 		});
 
 		return res.get();
-	}
+	}*/
 	/*
 	 * Parse the identifiers corresponding to the cloud identifier itself
 	 * corresponding to the given encrypted identifier
@@ -405,8 +408,18 @@ public abstract class LoginData extends AccessData {
 		if (distantCloudIdentifier==null)
 			return null;
 		CloudIdentifier cloudIdentifier=getLocalVersionOfDistantCloudIdentifierImpl(distantCloudIdentifier);
-		if (!areCloudIdentifiersCompatible(cloudIdentifier, distantCloudIdentifier, encryptionRestriction, accessProtocolProperties))
-			return null;
+		if (cloudIdentifier!=null && (!cloudIdentifier.getAuthenticationMethod().isAuthenticatedByPublicKey() || cloudIdentifier.getAuthenticationKeyPair()!=null)) {
+			if (!areCloudIdentifiersCompatible(cloudIdentifier, distantCloudIdentifier, encryptionRestriction, accessProtocolProperties))
+				return null;
+		}
+		else
+		{
+			if (cloudIdentifier==null
+					|| !cloudIdentifier.getAuthenticationMethod().isAuthenticatedByPublicKey()
+					|| cloudIdentifier.getAuthenticationMethod().isAuthenticatedByPasswordOrSecretKey()
+					|| !isValidDistantCloudIdentifier(cloudIdentifier, encryptionRestriction, accessProtocolProperties))
+				return null;
+		}
 		return cloudIdentifier;
 	}
 
@@ -601,7 +614,7 @@ public abstract class LoginData extends AccessData {
 	/**
 	 * Tells if auto signed identifiers are authorized.
 	 * If this function returns 'true', the function {@link #parseIdentifiers(IdentifierParser)} must be implemented.
-	 * @see AccessProtocolWithP2PAgreementProperties#asymmetricLoginAgreementType
+	 * @see AccessProtocolWithP2PAgreementProperties#p2pLoginAgreementType
 	 * @return true if auto signed identifiers are authorized
 	 */
 	public abstract boolean acceptAutoSignedIdentifiers();
@@ -626,4 +639,6 @@ public abstract class LoginData extends AccessData {
 		}
 		return null;
 	}
+
+
 }

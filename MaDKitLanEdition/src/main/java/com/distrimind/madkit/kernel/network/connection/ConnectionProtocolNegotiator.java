@@ -98,7 +98,7 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
                         else
                         {
                             try {
-                                selectedConnectionProtocol=cpp.getConnectionProtocolInstance(this.getDistantInetSocketAddress(), this.getLocalInterfaceAddress(), this.getDatabaseWrapper(),this.mkProperties, this.isServer, this.mustSupportBidirectionnalConnectionInitiative, network_properties.encryptionRestriction);
+                                selectedConnectionProtocol=cpp.getConnectionProtocolInstance(this.getDistantInetSocketAddress(), this.getLocalInterfaceAddress(), this.getDatabaseWrapper(),this.mkProperties, this.isServer, this.mustSupportBidirectionnalConnectionInitiative, network_properties.encryptionRestrictionForConnectionProtocols);
                             } catch (NIOException e) {
                                 throw new ConnectionException(e);
                             }
@@ -109,7 +109,7 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
                                 return selectedConnectionProtocol.setAndGetNextMessage(new AskConnection(true));
                             else {
                                 stateJustChanged=true;
-                                return new NegotiateConnection(false, nproperties.getValidPriorities(network_properties.encryptionRestriction));
+                                return new NegotiateConnection(false, nproperties.getValidPriorities(network_properties.encryptionRestrictionForConnectionProtocols));
                             }
                         }
                     }
@@ -117,7 +117,7 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
                 else if (_m instanceof AskConnection)
                 {
                     if (((AskConnection) _m).isYouAreAsking()) {
-                        return new NegotiateConnection(false, nproperties.getValidPriorities(network_properties.encryptionRestriction));
+                        return new NegotiateConnection(false, nproperties.getValidPriorities(network_properties.encryptionRestrictionForConnectionProtocols));
                     }
                     else {
                         status=Status.INVALID_CONNECTION;

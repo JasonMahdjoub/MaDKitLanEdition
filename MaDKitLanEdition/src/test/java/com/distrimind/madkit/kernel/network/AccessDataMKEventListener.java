@@ -268,7 +268,7 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 					if (idpw.getIdentifier().getCloudIdentifier().equals(distantCloudIdentifier))
 						return idpw.getIdentifier().getCloudIdentifier();
 				}
-				return null;
+				return distantCloudIdentifier;
 			}
 
 		};

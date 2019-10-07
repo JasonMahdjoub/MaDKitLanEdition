@@ -206,8 +206,14 @@ class LoginConfirmationMessage extends AccessMessage {
 				if (add)
 					res.add(new PairOfIdentifiers(null, distantID));
 			}
-
 		}
+		/*for (Identifier distantID : accepted_identifiers)
+		{
+			if (distantID.getHostIdentifier().equals(HostIdentifier.getNullHostIdentifierSingleton()))
+			{
+
+			}
+		}*/
 		return res;
 
 	}

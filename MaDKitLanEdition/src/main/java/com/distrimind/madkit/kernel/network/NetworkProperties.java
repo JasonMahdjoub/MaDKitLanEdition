@@ -652,11 +652,15 @@ public class NetworkProperties extends MultiFormatProperties {
 	/**
 	 * Tels which kind of encryption algorithms and protocols that are accepted.
 	 * If no connexion protocol match to the given restriction, the connexion between the two hosts is rejected.
-	 * Else, if no access protocol match to the given restriction, the connexion is done,
-	 * and a secured tunnel is established, but no agent group is accessible to/from the distant host,
-	 * and no one login can be validated.
+	 *
 	 */
-	public EncryptionRestriction encryptionRestriction=EncryptionRestriction.NO_RESTRICTION;
+	public EncryptionRestriction encryptionRestrictionForConnectionProtocols =EncryptionRestriction.NO_RESTRICTION;
+
+	/**
+	 * Tels which kind of encryption algorithms and protocols that are accepted.
+	 * If an auto-signed identifier use a protocol that do not match to the given restriction, the identifier is rejected
+	 */
+	public EncryptionRestriction encryptionRestrictionForAccessProtocols =EncryptionRestriction.NO_RESTRICTION;
 
 	/**
 	 * Represents properties of each used connection protocol and each sub network
@@ -730,9 +734,9 @@ public class NetworkProperties extends MultiFormatProperties {
 
 			for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties) {
 				if (cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
-						_distant_inet_address.getAddress(), isServer, needBiDirectionnalConnectionInitiationAbility, encryptionRestriction)) {
+						_distant_inet_address.getAddress(), isServer, needBiDirectionnalConnectionInitiationAbility, encryptionRestrictionForConnectionProtocols)) {
 					return cpp.getConnectionProtocolInstance(_distant_inet_address, _local_interface_address,
-							sql_connection, mkProperties, isServer, needBiDirectionnalConnectionInitiationAbility, encryptionRestriction);
+							sql_connection, mkProperties, isServer, needBiDirectionnalConnectionInitiationAbility, encryptionRestrictionForConnectionProtocols);
 				}
 			}
 		}
@@ -798,7 +802,7 @@ public class NetworkProperties extends MultiFormatProperties {
 				}
 
 				if (l == 0 && cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
-						_distant_inet_address.getAddress(), isServer, mustSupportBidirectionnalConnectionInitiative, encryptionRestriction)) {
+						_distant_inet_address.getAddress(), isServer, mustSupportBidirectionnalConnectionInitiative, encryptionRestrictionForConnectionProtocols)) {
 					return cpp;
 				}
 			}
@@ -980,7 +984,7 @@ public class NetworkProperties extends MultiFormatProperties {
 			InetSocketAddress _local_interface_address) {
 		synchronized (this) {
 			for (AbstractAccessProtocolProperties ad : accessProtocolProperties) {
-				if (ad.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort(), encryptionRestriction))
+				if (ad.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort(), encryptionRestrictionForConnectionProtocols))
 					return ad;
 			}
 		}
@@ -1029,7 +1033,7 @@ public class NetworkProperties extends MultiFormatProperties {
 			found = false;
 
 			for (AbstractAccessProtocolProperties app : accessProtocolProperties) {
-				if (app.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort(), encryptionRestriction)) {
+				if (app.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort(), encryptionRestrictionForConnectionProtocols)) {
 					found = true;
 					break;
 				}
@@ -1040,7 +1044,7 @@ public class NetworkProperties extends MultiFormatProperties {
 
 			for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties) {
 				if (cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
-						_distant_inet_address.getAddress(), isServer, mustSupportBidirectionnalConnectionInitiative, encryptionRestriction)) {
+						_distant_inet_address.getAddress(), isServer, mustSupportBidirectionnalConnectionInitiative, encryptionRestrictionForConnectionProtocols)) {
 					return (!takeConnectionInitiative || cpp.canTakeConnectionInitiative());
 				}
 			}
