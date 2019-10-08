@@ -343,7 +343,18 @@ public abstract class LoginData extends AccessData {
 	 *            the distant identifier
 	 * @return true if the distant host identifier can be considered as valid
 	 */
-	public abstract boolean isDistantHostIdentifierValid(Identifier distantIdentifier);
+	public final boolean isDistantHostIdentifierValid(Identifier distantIdentifier)
+	{
+		if (!HostIdentifier.getNullHostIdentifierSingleton().equals(distantIdentifier.getHostIdentifier()))
+		{
+			Identifier id=localiseIdentifierImpl(distantIdentifier.getCloudIdentifier());
+			if (id!=null && id.getHostIdentifier().equals(distantIdentifier.getHostIdentifier()))
+				return false;
+		}
+		return isDistantHostIdentifierValidImpl(distantIdentifier);
+	}
+
+	public abstract boolean isDistantHostIdentifierValidImpl(Identifier distantIdentifier);
 
 	/**
 	 * Inform that a bad password has been given with the cloud identifier given as

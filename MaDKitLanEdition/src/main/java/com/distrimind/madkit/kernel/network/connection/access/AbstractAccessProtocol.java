@@ -227,22 +227,21 @@ public abstract class AbstractAccessProtocol {
 			for (Iterator<PairOfIdentifiers> it=all_accepted_identifiers.iterator();it.hasNext();)
 			{
 				PairOfIdentifiers poiAccepted=it.next();
-				if (poiAccepted.getLocalIdentifier().equals(poi.getLocalIdentifier())) {
-					if (poiAccepted.getDistantIdentifier().equals(toCompare))
+				if (poiAccepted.getLocalIdentifier().equalsCloudIdentifier(poi.getLocalIdentifier())) {
+					if (poiAccepted.equals(poi))
+					{
+						doNotAdd=true;
+					}
+					else if ((poiAccepted.getDistantIdentifier().equals(toCompare) && !poi.getDistantIdentifier().equals(toCompare))
+						|| (poiAccepted.getLocalIdentifier().equals(toCompare) && !poi.getLocalIdentifier().equals(toCompare)))
 					{
 						it.remove();
 						last_accepted_identifiers.remove(poiAccepted);
 						last_unlogged_identifiers.add(poiAccepted);
 					}
-					else if (poiAccepted.getDistantIdentifier().equalsCloudIdentifier(poi.getDistantIdentifier()))
-					{
+					else
 						doNotAdd=true;
-					}
 					break;
-				}
-				else if (poiAccepted.getDistantIdentifier().equals(poi.getDistantIdentifier()) && !poiAccepted.getDistantIdentifier().getHostIdentifier().equals(HostIdentifier.getNullHostIdentifierSingleton()))
-				{
-					doNotAdd=true;
 				}
 			}
 			if (doNotAdd)

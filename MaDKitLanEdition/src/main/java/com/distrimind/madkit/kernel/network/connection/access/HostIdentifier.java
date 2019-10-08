@@ -117,9 +117,12 @@ public abstract class HostIdentifier implements SecureExternalizable {
 	}
 
 	private static final NullHostIdentifier nullHostIdentifierSingleton=new NullHostIdentifier();
-	private static class NullHostIdentifier extends HostIdentifier
+	public static class NullHostIdentifier extends HostIdentifier
 	{
+		private NullHostIdentifier()
+		{
 
+		}
 		@Override
 		public boolean equals(Object _object) {
 			return _object==this || _object instanceof NullHostIdentifier;

@@ -61,6 +61,7 @@ public class Identifier implements SecureExternalizable {
 	private CloudIdentifier cloud_identifier;
 	private HostIdentifier host_identifier;
 
+	@SuppressWarnings("unused")
 	Identifier()
 	{
 		
@@ -72,7 +73,10 @@ public class Identifier implements SecureExternalizable {
 		if (_host_identifier == null)
 			throw new NullPointerException("_host_identifier");
 		cloud_identifier = _cloud_identifier;
-		host_identifier = _host_identifier;
+		if (HostIdentifier.getNullHostIdentifierSingleton().equals(_host_identifier))
+			host_identifier=HostIdentifier.getNullHostIdentifierSingleton();
+		else
+			host_identifier = _host_identifier;
 	}
 
 	@Override
@@ -106,6 +110,8 @@ public class Identifier implements SecureExternalizable {
 	 * @see CloudIdentifier
 	 */
 	public boolean equalsCloudIdentifier(Identifier _identifier) {
+		if (_identifier==null)
+			return false;
 		return cloud_identifier.equals(_identifier.cloud_identifier);
 	}
 
@@ -120,6 +126,8 @@ public class Identifier implements SecureExternalizable {
 	 * @see HostIdentifier
 	 */
 	public boolean equalsHostIdentifier(Identifier _identifier) {
+		if (_identifier==null)
+			return false;
 		return host_identifier.equals(_identifier.host_identifier);
 	}
 
@@ -150,17 +158,26 @@ public class Identifier implements SecureExternalizable {
 	public void readExternal(final SecuredObjectInputStream in) throws IOException, ClassNotFoundException
 	{
 		cloud_identifier=in.readObject(false, CloudIdentifier.class);
-		host_identifier=in.readObject(false, HostIdentifier.class);
+		if (in.readBoolean())
+			host_identifier=HostIdentifier.getNullHostIdentifierSingleton();
+		else {
+			host_identifier = in.readObject(false, HostIdentifier.class);
+			if (host_identifier.getAuthenticationPublicKey() == null && host_identifier.isAuthenticatedByPublicKey())
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+		}
 		if (cloud_identifier.getAuthenticationPublicKey()==null && cloud_identifier.getAuthenticationMethod().isAuthenticatedByPublicKey())
-			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		if (host_identifier.getAuthenticationPublicKey()==null && host_identifier.isAuthenticatedByPublicKey())
 			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 	}
 	@Override
 	public void writeExternal(final SecuredObjectOutputStream oos) throws IOException
 	{
 		oos.writeObject(  cloud_identifier, false);
-		oos.writeObject(  host_identifier, false);
+		if (host_identifier==HostIdentifier.getNullHostIdentifierSingleton())
+			oos.writeBoolean(true);
+		else {
+			oos.writeBoolean(false);
+			oos.writeObject(host_identifier, false);
+		}
 	}
 
 	public byte[] toBytes() throws IOException {
@@ -248,6 +265,10 @@ public class Identifier implements SecureExternalizable {
 		for (byte[] b : data)
 			checker.update(b);
 		return checker.verify();
+	}
 
+	public boolean isHostPartOfCloud()
+	{
+		return HostIdentifier.getNullHostIdentifierSingleton()!=host_identifier;
 	}
 }

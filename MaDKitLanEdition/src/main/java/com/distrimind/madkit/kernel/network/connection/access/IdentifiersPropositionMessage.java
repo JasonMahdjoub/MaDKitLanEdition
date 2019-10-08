@@ -37,6 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
+import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.io.*;
@@ -149,11 +150,11 @@ class IdentifiersPropositionMessage extends AccessMessage {
 			throws InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidParameterSpecException, SignatureException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeySpecException {
 		CloudIdentifier foundCloudIdentifier=null;
 
-		if (identifier.getHostIdentifier().equals(HostIdentifier.getNullHostIdentifierSingleton()))
+		if (HostIdentifier.getNullHostIdentifierSingleton().equals(identifier.getHostIdentifier()))
 		{
 			for (CloudIdentifier ci : initializedCloudIdentifiers)
 			{
-				if (ci.equals(identifier.getCloudIdentifier()))
+				if (ci.equals(identifier.getCloudIdentifier()) && ci.getAuthenticationMethod().isAuthenticatedByPublicKey() && !ci.getAuthenticationMethod().isAuthenticatedByPasswordOrSecretKey())
 				{
 					return new Identifier(ci,HostIdentifier.getNullHostIdentifierSingleton() );
 				}
@@ -186,7 +187,10 @@ class IdentifiersPropositionMessage extends AccessMessage {
 
 	}
 
-	public LoginConfirmationMessage getLoginConfirmationMessage(Collection<CloudIdentifier> acceptedCloudIdentifiers, Collection<CloudIdentifier> initializedCloudIdentifiers, LoginData loginData, byte[] localGeneratedSalt)
+	public LoginConfirmationMessage getLoginConfirmationMessage(Collection<CloudIdentifier> acceptedCloudIdentifiers,
+																Collection<CloudIdentifier> initializedCloudIdentifiers,
+																LoginData loginData,
+																byte[] localGeneratedSalt)
 			throws InvalidAlgorithmParameterException, InvalidKeySpecException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidKeyException, InvalidParameterSpecException {
 		ArrayList<Identifier> validDistantIds=new ArrayList<>(identifiers.length);
 		int nbAno=nbAnomalies;
@@ -194,8 +198,9 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		{
 			Identifier id = identifiers[i];
 			Identifier resid=getValidDistantIdentifier(acceptedCloudIdentifiers, initializedCloudIdentifiers, id, hostSignatures[i], loginData, localGeneratedSalt);
-			if (resid!=null)
+			if (resid!=null) {
 				validDistantIds.add(resid);
+			}
 			else
 				++nbAno;
 		}

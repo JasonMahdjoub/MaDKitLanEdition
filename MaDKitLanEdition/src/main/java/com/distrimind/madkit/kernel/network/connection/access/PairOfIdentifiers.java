@@ -53,20 +53,21 @@ public class PairOfIdentifiers {
 	private final Identifier distantIdentifier;
 
 	PairOfIdentifiers(Identifier _localIdentifier, Identifier _distant_identifier) {
-		if (_localIdentifier == null && _distant_identifier==null) {
-			throw new NullPointerException("_localIdentifier and _distant_identifier are both null");
+		if (_localIdentifier == null) {
+			throw new NullPointerException();
 		}
-		if (_distant_identifier!=null && _localIdentifier!=null){
-			if (!_localIdentifier.getHostIdentifier().equals(HostIdentifier.getNullHostIdentifierSingleton()) && _localIdentifier.equalsHostIdentifier(_distant_identifier))
-				throw new IllegalArgumentException(
-					"_localIdentifier and _distant_identifier cannot have the same host identifiers : "+_localIdentifier.getHostIdentifier());
-			if (!_localIdentifier.equalsCloudIdentifier(_distant_identifier)) {
-				throw new IllegalArgumentException(
-						"_localIdentifier and _distant_identifier must have the same cloud identifier");
-			}
+		if (_distant_identifier == null) {
+			throw new NullPointerException();
+		}
+		if (_localIdentifier.equalsHostIdentifier(_distant_identifier))
+			throw new IllegalArgumentException(
+				"_localIdentifier and _distant_identifier cannot have the same host identifiers : "+_localIdentifier.getHostIdentifier());
+		if (!_localIdentifier.equalsCloudIdentifier(_distant_identifier)) {
+			throw new IllegalArgumentException(
+					"_localIdentifier and _distant_identifier must have the same cloud identifier");
 		}
 		localIdentifier = _localIdentifier;
-		distantIdentifier = _distant_identifier;
+		distantIdentifier = new Identifier(_localIdentifier.getCloudIdentifier(), _distant_identifier.getHostIdentifier());
 	}
 
 	@Override
@@ -110,4 +111,12 @@ public class PairOfIdentifiers {
 		return distantIdentifier;
 	}
 
+	public boolean isDistantHostPartOfCloud()
+	{
+		return distantIdentifier.isHostPartOfCloud();
+	}
+	public boolean isLocalHostPartOfCloud()
+	{
+		return localIdentifier.isHostPartOfCloud();
+	}
 }

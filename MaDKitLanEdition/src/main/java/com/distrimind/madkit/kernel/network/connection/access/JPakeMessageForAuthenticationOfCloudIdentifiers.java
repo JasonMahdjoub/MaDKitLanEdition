@@ -165,6 +165,7 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 	public AccessMessage receiveLastMessage(JPakeMessageForAuthenticationOfCloudIdentifiers initialJPakeMessage,
 											LoginData loginData,
 											AbstractMessageDigest messageDigest,
+											Collection<CloudIdentifier> initializedIdentifiers,
 											Collection<CloudIdentifier> newAcceptedDistantCloudIdentifiers,
 											Collection<CloudIdentifier> deniedIdentifiers,
 											//Collection<CloudIdentifier> acceptedAutoSignedCloudIdentifiers,
@@ -195,7 +196,6 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 		for (int i = 0; i < identifiers.length; i++) {
 			if (identifiers[i]==null)
 				continue;
-
 			WrappedCloudIdentifier id = initialJPakeMessage.identifiers[i];
 			if (id != null) {
 
@@ -262,17 +262,16 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 				//it.remove();
 			}
 		}
-		/*for (CloudIdentifier ci : acceptedAutoSignedCloudIdentifiers)
+		for (CloudIdentifier id : initializedIdentifiers)
 		{
-			if (ci.getAuthenticationMethod().isAuthenticatedByPublicKey()
-					&&
-					!ci.getAuthenticationMethod().isAuthenticatedByPasswordOrSecretKey()
-					&& ci.getAuthenticationKeyPair()==null
-					&& !newAcceptedDistantCloudIdentifiers.contains(ci))
+			if (id.getAuthenticationMethod()== Identifier.AuthenticationMethod.PUBLIC_KEY && !newAcceptedDistantCloudIdentifiers.contains(id))
 			{
-				identifiers.add(new Identifier(ci, HostIdentifier.getNullHostIdentifierSingleton()));
+				Identifier localID=loginData.localiseIdentifier(id, encryptionRestriction, accessProtocolProperties);
+				if (localID!=null)
+					identifiers.add(localID);
 			}
-		}*/
+		}
+
 		temporaryAcceptedCloudIdentifiers.clear();
 		++step;
 		return new IdentifiersPropositionMessage(identifiers, nbAno > Short.MAX_VALUE ? Short.MAX_VALUE:(short)nbAno, distantGeneratedSalt, random);

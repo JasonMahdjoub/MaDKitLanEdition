@@ -234,7 +234,7 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 
 
 			@Override
-			public boolean isDistantHostIdentifierValid(Identifier distantIdentifier) {
+			public boolean isDistantHostIdentifierValidImpl(Identifier distantIdentifier) {
 				return true;
 			}
 

@@ -141,35 +141,32 @@ class LoginConfirmationMessage extends AccessMessage {
 			{
 				if (id.getCloudIdentifier().equals(foundLocalId.getCloudIdentifier()))
 				{
-					if (!id.getHostIdentifier().equals(foundLocalId.getHostIdentifier()))
-						proposed=new PairOfIdentifiers(foundLocalId, id);
+					if (!id.getHostIdentifier().equals(foundLocalId.getHostIdentifier())) {
+						proposed = new PairOfIdentifiers(foundLocalId, id);
+					}
 				}
 			}
-			for (Iterator<PairOfIdentifiers> it = alreadyValidatedPairOfIdentifiers.iterator();it.hasNext();)
-			{
-				PairOfIdentifiers poi = it.next();
-				if (poi.getDistantIdentifier()!=null && poi.getDistantIdentifier().getCloudIdentifier().equals(foundLocalId.getCloudIdentifier()))
-				{
+
+			for (PairOfIdentifiers poi : alreadyValidatedPairOfIdentifiers) {
+				if (poi.getDistantIdentifier().getCloudIdentifier().equals(foundLocalId.getCloudIdentifier())) {
 					removedValidatedPairOfIdentifiers.add(poi);
 					if (poi.getDistantIdentifier().getHostIdentifier().equals(foundLocalId.getHostIdentifier()))
 						break;
-					else if (proposed==null)
-						proposed= new PairOfIdentifiers(foundLocalId, poi.getDistantIdentifier());
-				}
-				else if (proposed!=null && poi.getLocalIdentifier()!=null && poi.getLocalIdentifier().getCloudIdentifier().equals(proposed.getDistantIdentifier().getCloudIdentifier()))
-				{
+					else if (proposed == null || HostIdentifier.getNullHostIdentifierSingleton().equals(proposed.getDistantIdentifier().getHostIdentifier()))
+						proposed = new PairOfIdentifiers(foundLocalId, poi.getDistantIdentifier());
+				} else if (proposed != null && poi.getLocalIdentifier().getCloudIdentifier().equals(proposed.getDistantIdentifier().getCloudIdentifier())) {
 					removedValidatedPairOfIdentifiers.add(poi);
-					if (poi.getLocalIdentifier().getHostIdentifier().equals(foundLocalId.getHostIdentifier()))
-						break;
+					break;
 				}
 			}
 			if (proposed==null)
-				return new PairOfIdentifiers(foundLocalId, null);
+				return null;
 			else
 				return proposed;
 		}
-		else
+		else {
 			return null;
+		}
 	}
 
 	public ArrayList<PairOfIdentifiers> getAcceptedPairsOfIdentifiers(Collection<PairOfIdentifiers> alreadyValidatedPairOfIdentifiers, Set<PairOfIdentifiers> removedValidatedPairOfIdentifiers, LoginConfirmationMessage localLoginConfirmationMessage, Identifier[] proposedLocalIdentifiers)
@@ -177,36 +174,32 @@ class LoginConfirmationMessage extends AccessMessage {
 
 
 		ArrayList<PairOfIdentifiers> res=new ArrayList<>();
-		HashSet<Identifier> usedDistantIdentifiers=new HashSet<>();
+		//HashSet<Identifier> usedDistantIdentifiers=new HashSet<>();
 		for (Identifier id : accepted_identifiers)
 		{
 			PairOfIdentifiers poi=getAcceptedPairOfIdentifiers(alreadyValidatedPairOfIdentifiers, removedValidatedPairOfIdentifiers, localLoginConfirmationMessage,proposedLocalIdentifiers, id );
 			if (poi!=null) {
 				res.add(poi);
-				usedDistantIdentifiers.add(poi.getDistantIdentifier());
+				//usedDistantIdentifiers.add(poi.getDistantIdentifier());
 			}
 		}
-		for (Identifier distantID : localLoginConfirmationMessage.accepted_identifiers)
+		/*for (Identifier distantID : localLoginConfirmationMessage.accepted_identifiers)
 		{
 			if (!usedDistantIdentifiers.contains(distantID)) {
 				boolean add=true;
-				for (Iterator<PairOfIdentifiers> it = alreadyValidatedPairOfIdentifiers.iterator();it.hasNext();)
-				{
-					PairOfIdentifiers poi = it.next();
-					if (poi.getDistantIdentifier()!=null && poi.getDistantIdentifier().getCloudIdentifier().equals(distantID.getCloudIdentifier()))
-					{
+				for (PairOfIdentifiers poi : alreadyValidatedPairOfIdentifiers) {
+					if (poi.getDistantIdentifier().getCloudIdentifier().equals(distantID.getCloudIdentifier())) {
 						if (!distantID.equals(poi.getDistantIdentifier())) {
 							removedValidatedPairOfIdentifiers.add(poi);
-						}
-						else
-							add=false;
+						} else
+							add = false;
 						break;
 					}
 				}
 				if (add)
 					res.add(new PairOfIdentifiers(null, distantID));
 			}
-		}
+		}*/
 		/*for (Identifier distantID : accepted_identifiers)
 		{
 			if (distantID.getHostIdentifier().equals(HostIdentifier.getNullHostIdentifierSingleton()))

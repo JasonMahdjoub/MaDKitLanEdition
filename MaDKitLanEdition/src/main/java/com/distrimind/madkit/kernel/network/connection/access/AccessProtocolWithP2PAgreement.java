@@ -326,7 +326,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 						}
 						return res;
 					} else if (step == maxSteps) {
-						AccessMessage res = jpakem.receiveLastMessage(initialJPakeMessage, lp, messageDigest,
+						AccessMessage res = jpakem.receiveLastMessage(initialJPakeMessage, lp, messageDigest,getCloudIdentifiers(),
 								newAcceptedCloudIdentifiers, getDeniedCloudIdentifiers(),
 								temporaryAcceptedCloudIdentifiers, jpakes, localGeneratedSalt, distantGeneratedSalt,
 								properties.getApprovedSecureRandom(), properties.networkProperties.encryptionRestrictionForAccessProtocols, access_protocol_properties);

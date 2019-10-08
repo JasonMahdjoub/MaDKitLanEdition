@@ -894,7 +894,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 	}
 	private void checkExpectedLogins(AbstractAccessProtocol ap, List<Identifier> expectedAcceptedIdentifiers, List<Identifier> expectedAcceptedIdentifiersOtherSide)
 	{
-		String message="\nexpected: "+expectedAcceptedIdentifiers.toString()+"\nactual: "+ap.getAllAcceptedIdentifiers().toString();
+		String message="\nexpected one side : "+expectedAcceptedIdentifiers.toString()+"\nexpected other side : "+expectedAcceptedIdentifiersOtherSide.toString()+"\nactual: "+ap.getAllAcceptedIdentifiers().toString();
 		Assert.assertEquals(message, expectedAcceptedIdentifiers.size(), ap.getAllAcceptedIdentifiers().size());
 		for (PairOfIdentifiers poi : ap.getAllAcceptedIdentifiers()) {
 			boolean found = false;
