@@ -955,7 +955,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 			if (masker.length==0)
 				Assert.assertTrue((masker = am).length>0);
 			else
-				Assert.assertEquals(0, am.length);
+				Assert.assertEquals(""+Arrays.toString(am), 0, am.length);
 		}
 		AccessMessage[] mreceiver = new AccessMessage[0];
 		testSubNewAddingRemovingIdentifier(masker, mreceiver);
