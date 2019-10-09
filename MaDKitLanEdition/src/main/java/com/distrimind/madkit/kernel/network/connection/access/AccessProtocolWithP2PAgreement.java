@@ -443,7 +443,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 
 					LoginConfirmationMessage distantLoginConfirmationMessage=(LoginConfirmationMessage)_m;
 					removedValidatedPairOfIdentifiers=new HashSet<>();
-					setAcceptedIdentifiers(distantLoginConfirmationMessage.getAcceptedPairsOfIdentifiers(getAllAcceptedIdentifiers(), removedValidatedPairOfIdentifiers, localLoginConfirmationMessage, proposedLocalIdentifiers));
+					setAcceptedIdentifiers(distantLoginConfirmationMessage.getAcceptedPairsOfIdentifiers(getAllAcceptedIdentifiers(), removedValidatedPairOfIdentifiers, localLoginConfirmationMessage, proposedLocalIdentifiers, getCloudIdentifiers(), newAcceptedCloudIdentifiers));
 					ArrayList<Identifier> deniedIdentifiers=new ArrayList<>();
 					denied_search:for (Identifier id : proposedLocalIdentifiers)
 					{

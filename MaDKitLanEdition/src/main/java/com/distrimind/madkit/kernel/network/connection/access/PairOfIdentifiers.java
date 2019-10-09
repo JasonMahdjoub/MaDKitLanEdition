@@ -51,23 +51,33 @@ import java.util.Objects;
 public class PairOfIdentifiers {
 	private final Identifier localIdentifier;
 	private final Identifier distantIdentifier;
+	private final boolean locallyAuthenticatedCloud, distantlyAuthenticatedCloud;
 
-	PairOfIdentifiers(Identifier _localIdentifier, Identifier _distant_identifier) {
+	PairOfIdentifiers(Identifier _localIdentifier, boolean locallyAuthenticatedCloud, Identifier _distant_identifier, boolean distantlyAuthenticatedCloud) {
 		if (_localIdentifier == null) {
 			throw new NullPointerException();
 		}
 		if (_distant_identifier == null) {
 			throw new NullPointerException();
 		}
-		if (_localIdentifier.equalsHostIdentifier(_distant_identifier))
+		if (_localIdentifier.getHostIdentifier().equals(HostIdentifier.getNullHostIdentifierSingleton()))
+		{
+			if (_localIdentifier.equalsHostIdentifier(_distant_identifier) && !locallyAuthenticatedCloud && !distantlyAuthenticatedCloud)
+				throw new IllegalArgumentException();
+		}
+		else if (_localIdentifier.equalsHostIdentifier(_distant_identifier))
 			throw new IllegalArgumentException(
 				"_localIdentifier and _distant_identifier cannot have the same host identifiers : "+_localIdentifier.getHostIdentifier());
 		if (!_localIdentifier.equalsCloudIdentifier(_distant_identifier)) {
 			throw new IllegalArgumentException(
 					"_localIdentifier and _distant_identifier must have the same cloud identifier");
 		}
+		if (!locallyAuthenticatedCloud && !distantlyAuthenticatedCloud)
+			throw new IllegalArgumentException("Cloud authentication can't be not done locally and distantly");
 		localIdentifier = _localIdentifier;
 		distantIdentifier = new Identifier(_localIdentifier.getCloudIdentifier(), _distant_identifier.getHostIdentifier());
+		this.locallyAuthenticatedCloud=locallyAuthenticatedCloud;
+		this.distantlyAuthenticatedCloud=distantlyAuthenticatedCloud;
 	}
 
 	@Override
@@ -118,5 +128,13 @@ public class PairOfIdentifiers {
 	public boolean isLocalHostPartOfCloud()
 	{
 		return localIdentifier.isHostPartOfCloud();
+	}
+
+	public boolean isLocallyAuthenticatedCloud() {
+		return locallyAuthenticatedCloud;
+	}
+
+	public boolean isDistantlyAuthenticatedCloud() {
+		return distantlyAuthenticatedCloud;
 	}
 }

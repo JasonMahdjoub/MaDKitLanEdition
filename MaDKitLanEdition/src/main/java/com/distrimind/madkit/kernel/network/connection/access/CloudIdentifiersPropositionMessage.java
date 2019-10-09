@@ -237,7 +237,12 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 			throws AccessException, InvalidAlgorithmParameterException, InvalidKeySpecException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidKeyException, InvalidParameterSpecException, DigestException {
 		HashSet<CloudIdentifier> validID=new HashSet<>();
 		getValidDecodedCloudIdentifiers(loginData, messageDigest, localGeneratedSalt, validID, encryptionRestriction, accessProtocolProperties);
-		validCloudIdentifiers.addAll(validID);
+		for (CloudIdentifier ci : validID)
+		{
+			if (!ci.getAuthenticationMethod().isAuthenticatedByPublicKey() || ci.getAuthenticationKeyPair()!=null)
+				validCloudIdentifiers.add(ci);
+		}
+
 		int nbAno = this.identifiers.length - validID.size();
 		return new CloudIdentifiersPropositionMessage(random, messageDigest, encryptIdentifiers,
 				loginData.canTakesLoginInitiative()
@@ -301,8 +306,9 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 
 		if (distantCloudID==null)
 			return 1;
-		if (agreements.containsKey(distantCloudID))
+		if (agreements.containsKey(distantCloudID)) {
 			return 1;
+		}
 
 		int nbAno=0;
 		AbstractMessageDigest messageDigest=messageDigestType.getMessageDigestInstance();

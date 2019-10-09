@@ -201,7 +201,6 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 			if (id==null)
 				continue;
 
-
 			P2PLoginAgreement jpake=jpakes.get(id);
 
 			if (jpake!=null)

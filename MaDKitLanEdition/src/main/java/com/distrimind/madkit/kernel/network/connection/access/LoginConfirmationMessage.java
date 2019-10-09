@@ -123,7 +123,13 @@ class LoginConfirmationMessage extends AccessMessage {
 		return checkDifferedMessages;
 	}
 
-	private PairOfIdentifiers getAcceptedPairOfIdentifiers(Collection<PairOfIdentifiers> alreadyValidatedPairOfIdentifiers, Set<PairOfIdentifiers> removedValidatedPairOfIdentifiers, LoginConfirmationMessage localLoginConfirmationMessage, Identifier[] proposedLocalIdentifiers, Identifier identifier)
+	private PairOfIdentifiers getAcceptedPairOfIdentifiers(Collection<PairOfIdentifiers> alreadyValidatedPairOfIdentifiers,
+														   Set<PairOfIdentifiers> removedValidatedPairOfIdentifiers,
+														   LoginConfirmationMessage localLoginConfirmationMessage,
+														   Identifier[] proposedLocalIdentifiers,
+														   Identifier identifier,
+														   Collection<CloudIdentifier> initializedIdentifiers,
+														   Collection<CloudIdentifier> newAcceptedCloudIdentifiers)
 	{
 		Identifier foundLocalId=null;
 		for (Identifier id : proposedLocalIdentifiers)
@@ -137,12 +143,15 @@ class LoginConfirmationMessage extends AccessMessage {
 		{
 			PairOfIdentifiers proposed=null;
 
+
 			for (Identifier id : localLoginConfirmationMessage.accepted_identifiers)
 			{
+
 				if (id.getCloudIdentifier().equals(foundLocalId.getCloudIdentifier()))
 				{
-					if (!id.getHostIdentifier().equals(foundLocalId.getHostIdentifier())) {
-						proposed = new PairOfIdentifiers(foundLocalId, id);
+					if (!id.getHostIdentifier().equals(foundLocalId.getHostIdentifier()) || HostIdentifier.getNullHostIdentifierSingleton().equals(id.getHostIdentifier())) {
+						proposed = new PairOfIdentifiers(foundLocalId, initializedIdentifiers.contains(id.getCloudIdentifier()), id, newAcceptedCloudIdentifiers.contains(id.getCloudIdentifier()));
+
 					}
 				}
 			}
@@ -153,23 +162,27 @@ class LoginConfirmationMessage extends AccessMessage {
 					if (poi.getDistantIdentifier().getHostIdentifier().equals(foundLocalId.getHostIdentifier()))
 						break;
 					else if (proposed == null || HostIdentifier.getNullHostIdentifierSingleton().equals(proposed.getDistantIdentifier().getHostIdentifier()))
-						proposed = new PairOfIdentifiers(foundLocalId, poi.getDistantIdentifier());
+						proposed = new PairOfIdentifiers(foundLocalId, initializedIdentifiers.contains(foundLocalId.getCloudIdentifier()), poi.getDistantIdentifier(), newAcceptedCloudIdentifiers.contains(poi.getDistantIdentifier().getCloudIdentifier()));
 				} else if (proposed != null && poi.getLocalIdentifier().getCloudIdentifier().equals(proposed.getDistantIdentifier().getCloudIdentifier())) {
 					removedValidatedPairOfIdentifiers.add(poi);
 					break;
 				}
 			}
-			if (proposed==null)
-				return null;
-			else
-				return proposed;
+
+			return proposed;
 		}
 		else {
+
 			return null;
 		}
 	}
 
-	public ArrayList<PairOfIdentifiers> getAcceptedPairsOfIdentifiers(Collection<PairOfIdentifiers> alreadyValidatedPairOfIdentifiers, Set<PairOfIdentifiers> removedValidatedPairOfIdentifiers, LoginConfirmationMessage localLoginConfirmationMessage, Identifier[] proposedLocalIdentifiers)
+	public ArrayList<PairOfIdentifiers> getAcceptedPairsOfIdentifiers(Collection<PairOfIdentifiers> alreadyValidatedPairOfIdentifiers,
+																	  Set<PairOfIdentifiers> removedValidatedPairOfIdentifiers,
+																	  LoginConfirmationMessage localLoginConfirmationMessage,
+																	  Identifier[] proposedLocalIdentifiers,
+																	  Collection<CloudIdentifier> initializedIdentifiers,
+																	  Collection<CloudIdentifier> newAcceptedCloudIdentifiers)
 	{
 
 
@@ -177,7 +190,7 @@ class LoginConfirmationMessage extends AccessMessage {
 		//HashSet<Identifier> usedDistantIdentifiers=new HashSet<>();
 		for (Identifier id : accepted_identifiers)
 		{
-			PairOfIdentifiers poi=getAcceptedPairOfIdentifiers(alreadyValidatedPairOfIdentifiers, removedValidatedPairOfIdentifiers, localLoginConfirmationMessage,proposedLocalIdentifiers, id );
+			PairOfIdentifiers poi=getAcceptedPairOfIdentifiers(alreadyValidatedPairOfIdentifiers, removedValidatedPairOfIdentifiers, localLoginConfirmationMessage,proposedLocalIdentifiers, id, initializedIdentifiers, newAcceptedCloudIdentifiers);
 			if (poi!=null) {
 				res.add(poi);
 				//usedDistantIdentifiers.add(poi.getDistantIdentifier());

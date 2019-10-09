@@ -154,7 +154,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		adasker.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsAsker = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustumHostIdentifier(0), 4, 5, 6, 10),
-				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, true, new Runnable() {
+				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeAsker, new Runnable() {
 
 					@Override
 					public void run() {
@@ -914,6 +914,19 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 			}
 
 			Assert.assertTrue(message+"\nNot found : "+poi, found);
+			if (!poi.isLocalHostPartOfCloud() && !poi.isDistantHostPartOfCloud()) {
+				Assert.assertTrue(!poi.isLocallyAuthenticatedCloud() || !poi.isDistantlyAuthenticatedCloud());
+			}
+			else{
+				if (poi.isLocalHostPartOfCloud())
+					Assert.assertTrue(""+poi, poi.isLocallyAuthenticatedCloud());
+				else
+					Assert.assertFalse(""+poi, poi.isLocallyAuthenticatedCloud());
+				if (poi.isDistantHostPartOfCloud())
+					Assert.assertTrue(""+poi,poi.isDistantlyAuthenticatedCloud());
+				else
+					Assert.assertFalse(""+poi, poi.isDistantlyAuthenticatedCloud());
+			}
 			/*if (!poi.getDistantIdentifier().getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
 				Assert.assertTrue(""+poi.getDistantIdentifier(), found);
 			else

@@ -37,7 +37,6 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.io.*;
@@ -46,10 +45,7 @@ import java.io.IOException;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.InvalidParameterSpecException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * 
@@ -83,7 +79,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		for (int i=0;i<s.length;i++)
 		{
 			Object o=s[i];
-			if (o==null || !(o instanceof Identifier))
+			if (!(o instanceof Identifier))
 				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			identifiers[i]=(Identifier)o;
 		}
@@ -146,7 +142,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		this.nbAnomalies = nbAnomalies;
 	}
 
-	private Identifier getValidDistantIdentifier(Collection<CloudIdentifier> acceptedCloudIdentifiers,Collection<CloudIdentifier> initializedCloudIdentifiers, Identifier identifier, byte[] signature, LoginData loginData, byte[] localGeneratedSalt)
+	private Identifier getValidDistantIdentifier(Collection<CloudIdentifier> acceptedCloudIdentifiers,Collection<CloudIdentifier> usedCloudIdentifiers, Collection<CloudIdentifier> initializedCloudIdentifiers, Identifier identifier, byte[] signature, LoginData loginData, byte[] localGeneratedSalt)
 			throws InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidParameterSpecException, SignatureException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeySpecException {
 		CloudIdentifier foundCloudIdentifier=null;
 
@@ -154,36 +150,37 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		{
 			for (CloudIdentifier ci : initializedCloudIdentifiers)
 			{
-				if (ci.equals(identifier.getCloudIdentifier()) && ci.getAuthenticationMethod().isAuthenticatedByPublicKey() && !ci.getAuthenticationMethod().isAuthenticatedByPasswordOrSecretKey())
+				if (ci.equals(identifier.getCloudIdentifier()) && ci.getAuthenticationMethod()== Identifier.AuthenticationMethod.PUBLIC_KEY)
 				{
 					return new Identifier(ci,HostIdentifier.getNullHostIdentifierSingleton() );
 				}
 			}
-			return null;
 		}
-		else {
-			for (Iterator<CloudIdentifier> it = acceptedCloudIdentifiers.iterator(); it.hasNext(); ) {
-				CloudIdentifier cid = it.next();
+
+		if (!usedCloudIdentifiers.contains(identifier.getCloudIdentifier()))
+		{
+			for (CloudIdentifier cid : acceptedCloudIdentifiers) {
 				if (cid.equals(identifier.getCloudIdentifier())) {
 					foundCloudIdentifier = cid;
-					it.remove();
+					usedCloudIdentifiers.add(cid);
 					break;
 				}
 			}
-
-			if (foundCloudIdentifier != null && loginData.isDistantHostIdentifierValid(identifier)) {
-				if (identifier.getHostIdentifier().isAuthenticatedByPublicKey()) {
-					byte[] encodedIdentifier = identifier.getHostIdentifier().getBytesTabToEncode();
-
-					if (Identifier.checkAuthenticatedSignature(identifier.getHostIdentifier().getAuthenticationPublicKey(), signature, saltSizeBytes, signature.length - saltSizeBytes, encodedIdentifier, Arrays.copyOfRange(signature, 0, saltSizeBytes), localGeneratedSalt))
-						return new Identifier(foundCloudIdentifier, identifier.getHostIdentifier());
-					else
-						return null;
-				} else
-					return new Identifier(foundCloudIdentifier, identifier.getHostIdentifier());
-			} else
-				return null;
 		}
+
+		if (foundCloudIdentifier != null && loginData.isDistantHostIdentifierValid(identifier)) {
+			if (identifier.getHostIdentifier().isAuthenticatedByPublicKey()) {
+				byte[] encodedIdentifier = identifier.getHostIdentifier().getBytesTabToEncode();
+
+				if (Identifier.checkAuthenticatedSignature(identifier.getHostIdentifier().getAuthenticationPublicKey(), signature, saltSizeBytes, signature.length - saltSizeBytes, encodedIdentifier, Arrays.copyOfRange(signature, 0, saltSizeBytes), localGeneratedSalt))
+					return new Identifier(foundCloudIdentifier, identifier.getHostIdentifier());
+				else
+					return null;
+			} else {
+				return new Identifier(foundCloudIdentifier, identifier.getHostIdentifier());
+			}
+		} else
+			return null;
 
 	}
 
@@ -193,11 +190,12 @@ class IdentifiersPropositionMessage extends AccessMessage {
 																byte[] localGeneratedSalt)
 			throws InvalidAlgorithmParameterException, InvalidKeySpecException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidKeyException, InvalidParameterSpecException {
 		ArrayList<Identifier> validDistantIds=new ArrayList<>(identifiers.length);
+		Set<CloudIdentifier> usedCloudIdentifiers=new HashSet<>();
 		int nbAno=nbAnomalies;
 		for (int i=0;i<identifiers.length;i++)
 		{
 			Identifier id = identifiers[i];
-			Identifier resid=getValidDistantIdentifier(acceptedCloudIdentifiers, initializedCloudIdentifiers, id, hostSignatures[i], loginData, localGeneratedSalt);
+			Identifier resid=getValidDistantIdentifier(acceptedCloudIdentifiers, usedCloudIdentifiers, initializedCloudIdentifiers, id, hostSignatures[i], loginData, localGeneratedSalt);
 			if (resid!=null) {
 				validDistantIds.add(resid);
 			}
