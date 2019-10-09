@@ -38,7 +38,11 @@
 package com.distrimind.madkit.kernel.network.connection.access;
 
 import com.distrimind.util.crypto.AbstractSecureRandom;
+import com.distrimind.util.crypto.SymmetricAuthentifiedSignatureType;
 import com.distrimind.util.crypto.SymmetricSecretKey;
+
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 
 /**
  * Represent a password.
@@ -88,39 +92,54 @@ public abstract class PasswordKey {
 	{
 		return new PasswordKey() {
 			private byte[] passwordBytes=null;
-			private byte[] saltBytes=null;
-			private void init()
-			{
-				if (passwordBytes==null)
-				{
-					passwordBytes=new byte[32];
-					saltBytes=new byte[32];
-					random.nextBytes(passwordBytes);
-					random.nextBytes(saltBytes);
-				}
-			}
+			private byte[] salt=null;
+			private SymmetricSecretKey secretKey=null;
 			@Override
 			public byte[] getPasswordBytes() {
-				init();
+				if (passwordBytes==null)
+				{
+					if (defaultFakePasswordIsKey)
+						passwordBytes=new byte[32];
+					else
+						passwordBytes=new byte[5+ random.nextInt(25)];
+					random.nextBytes(passwordBytes);
+				}
 				return passwordBytes;
 			}
 
 			@Override
 			public byte[] getSaltBytes() {
-				init();
-				return saltBytes;
+				if (salt==null && defaultFakePasswordSaltSizeBytes>0 && defaultFakePasswordSaltSizeBytes<65)
+				{
+					salt=new byte[defaultFakePasswordSaltSizeBytes];
+					random.nextBytes(salt);
+				}
+				return salt;
 			}
 
 			@Override
 			public boolean isKey() {
-				return true;
+				return defaultFakePasswordIsKey;
 			}
 
 			@Override
 			public SymmetricSecretKey getSecretKeyForSignature() {
-				return null;
+				if (secretKey==null)
+				{
+					try {
+						secretKey= SymmetricAuthentifiedSignatureType.DEFAULT.getKeyGenerator(random, (short)(defaultFakePasswordSecretKeySizeBytes*8)).generateKey();
+					} catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+						e.printStackTrace();
+					}
+				}
+				return secretKey;
 			}
 		};
 	}
+
+
+	public static int defaultFakePasswordSaltSizeBytes=-1;
+	public static int defaultFakePasswordSecretKeySizeBytes=32;
+	public static boolean defaultFakePasswordIsKey =true;
 
 }
