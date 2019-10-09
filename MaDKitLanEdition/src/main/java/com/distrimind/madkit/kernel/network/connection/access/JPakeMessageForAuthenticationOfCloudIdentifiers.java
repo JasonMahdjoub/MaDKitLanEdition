@@ -43,7 +43,6 @@ import com.distrimind.util.crypto.AbstractMessageDigest;
 import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.crypto.P2PLoginAgreement;
 import com.distrimind.util.io.*;
-import org.apache.commons.codec.binary.Base64;
 
 import java.io.IOException;
 import java.security.*;
@@ -73,6 +72,7 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 		}
 		return res;
 	}
+
 
 	JPakeMessageForAuthenticationOfCloudIdentifiers(Map<WrappedCloudIdentifier, P2PLoginAgreement> agreements, short nbAnomalies) throws Exception {
 		super((short)1, getIdentifiers(agreements), agreements, nbAnomalies);
@@ -111,12 +111,13 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 
 		Map<WrappedCloudIdentifier, P2PLoginAgreement> jpkms=new HashMap<>();
 		for (int i = 0; i < identifiers.length; i++) {
-			if (identifiers[i]==null)
+			WrappedCloudIdentifier id = identifiers[i];
+			if (id==null)
 				continue;
-			WrappedCloudIdentifier id = initialJPakeMessage.identifiers[i];
 
 			P2PLoginAgreement jpake=jpakes.get(id);
 			if (jpake==null) {
+
 				addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
 			}
 			else
@@ -145,12 +146,13 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 					{
 						jpkms.put(id, jpake);
 					}
-					else
+					else {
 						jpkms.put(id, null);
+					}
 				}
 				catch(Exception ignored)
 				{
-					//e.printStackTrace();
+					//ignored.printStackTrace();
 					addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
 					jpakes.remove(id);
 					++nbAno;
@@ -174,7 +176,8 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 											byte[] localGeneratedSalt,
 											byte[] distantGeneratedSalt,
 											AbstractSecureRandom random,
-											EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties)
+											EncryptionRestriction encryptionRestriction,
+											AbstractAccessProtocolProperties accessProtocolProperties)
 			throws Exception {
 
 
@@ -194,68 +197,68 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 		}
 
 		for (int i = 0; i < identifiers.length; i++) {
-			if (identifiers[i]==null)
+			WrappedCloudIdentifier id = identifiers[i];
+			if (id==null)
 				continue;
-			WrappedCloudIdentifier id = initialJPakeMessage.identifiers[i];
-			if (id != null) {
 
-				P2PLoginAgreement jpake=jpakes.get(id);
 
-				if (jpake!=null)
+			P2PLoginAgreement jpake=jpakes.get(id);
+
+			if (jpake!=null)
+			{
+
+				try
 				{
-
-					try
+					if (!jpake.hasFinishedReception())
 					{
-						if (!jpake.hasFinishedReception())
-						{
-							if (jpakeMessages[i]==null)
-							{
-								addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
-								jpakes.remove(id);
-								++nbAno;
-							}
-							else {
-
-								jpake.receiveData(this.jpakeMessages[i]);
-							}
-						}
-						else if (this.jpakeMessages[i]!=null)
+						if (jpakeMessages[i]==null)
 						{
 							addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
 							jpakes.remove(id);
 							++nbAno;
 						}
-						CloudIdentifier localID=temporaryAcceptedCloudIdentifiers.get(id);
-						if (localID!=null && jpake.isAgreementProcessValid())
-						{
-							newAcceptedDistantCloudIdentifiers.add(localID);
-						}
 						else {
-							addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt, encryptionRestriction,accessProtocolProperties);
+
+							jpake.receiveData(this.jpakeMessages[i]);
 						}
 					}
-					catch(Exception e)
+					else if (this.jpakeMessages[i]!=null)
 					{
-						e.printStackTrace();
 						addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
 						jpakes.remove(id);
 						++nbAno;
 					}
+					CloudIdentifier localID=temporaryAcceptedCloudIdentifiers.get(id);
+
+					if (localID!=null && jpake.isAgreementProcessValid())
+					{
+						newAcceptedDistantCloudIdentifiers.add(localID);
+					}
+					else {
+						addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt, encryptionRestriction,accessProtocolProperties);
+					}
 				}
-				else
+				catch(Exception e)
 				{
+					e.printStackTrace();
 					addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
+					jpakes.remove(id);
 					++nbAno;
 				}
+			}
+			else
+			{
+
+				addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
+				++nbAno;
 			}
 		}
 
 		ArrayList<Identifier> identifiers=new ArrayList<>();
-		for(Iterator<CloudIdentifier> it=newAcceptedDistantCloudIdentifiers.iterator();it.hasNext();)
-		{
-			CloudIdentifier cloudIdentifier=it.next();
-			Identifier localID=loginData.localiseIdentifier(cloudIdentifier, encryptionRestriction, accessProtocolProperties);
-			if (localID!=null)
+		for (CloudIdentifier cloudIdentifier : newAcceptedDistantCloudIdentifiers) {
+
+			Identifier localID = loginData.localiseIdentifier(cloudIdentifier, encryptionRestriction, accessProtocolProperties);
+			if (localID != null)
 				identifiers.add(localID);
 			else {
 				identifiers.add(new Identifier(cloudIdentifier, HostIdentifier.getNullHostIdentifierSingleton()));

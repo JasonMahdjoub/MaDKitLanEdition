@@ -38,7 +38,6 @@
 package com.distrimind.madkit.kernel.network.connection.access;
 
 import com.distrimind.util.crypto.P2PLoginAgreement;
-import org.apache.commons.codec.binary.Base64;
 
 import java.util.Map;
 
@@ -74,6 +73,7 @@ abstract class AbstractJPakeMessage<T> extends AccessMessage{
 		this.identifiers=identifiers;
 		this.jpakeMessages=new byte[identifiers.length][];
 		this.step = step;
+
 		for (int i=0;i<identifiers.length;i++)
 		{
 			if (identifiers[i]==null)

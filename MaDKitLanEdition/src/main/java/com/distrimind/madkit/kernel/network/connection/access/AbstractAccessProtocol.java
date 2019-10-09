@@ -38,10 +38,7 @@
 package com.distrimind.madkit.kernel.network.connection.access;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 
@@ -65,7 +62,7 @@ public abstract class AbstractAccessProtocol {
 	private AtomicReference<MultiGroup> groups_access = new AtomicReference<>();
 	private boolean other_can_takes_initiative;
 
-	private List<CloudIdentifier> cloudIdentifiers = null;
+	private Set<CloudIdentifier> cloudIdentifiers = null;
 	private ArrayList<PairOfIdentifiers> acceptedIdentifiers = new ArrayList<>();
 	private ArrayList<Identifier> deniedLocalIdentifiers = null;
 	private ArrayList<Identifier> deniedDistantIdentifiers = null;
@@ -344,11 +341,11 @@ public abstract class AbstractAccessProtocol {
 
 	public abstract boolean isAccessFinalized();
 	
-	protected void setCloudIdentifiers(List<CloudIdentifier> cloudIdentifiers)
+	protected void setCloudIdentifiers(Set<CloudIdentifier> cloudIdentifiers)
 	{
 		this.cloudIdentifiers=cloudIdentifiers;
 	}
-	protected List<CloudIdentifier> getCloudIdentifiers()
+	protected Set<CloudIdentifier> getCloudIdentifiers()
 	{
 		return this.cloudIdentifiers;
 	}

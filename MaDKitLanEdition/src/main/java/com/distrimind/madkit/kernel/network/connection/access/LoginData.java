@@ -41,9 +41,7 @@ import java.io.IOException;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.InvalidParameterSpecException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.distrimind.madkit.kernel.AbstractGroup;
@@ -279,19 +277,21 @@ public abstract class LoginData extends AccessData {
 	 * @see #canTakesLoginInitiative()
 	 * @throws AccessException if an access problem occurs
 	 */
-	public final List<CloudIdentifier> getCloudIdentifiersToInitiate(EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties) throws AccessException
+	public final Set<CloudIdentifier> getCloudIdentifiersToInitiate(EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties) throws AccessException
 	{
 
 		List<CloudIdentifier> preres = getCloudIdentifiersToInitiateImpl();
 		if (preres==null)
-			return new ArrayList<>(0);
-		List<CloudIdentifier> res=new ArrayList<>(preres.size());
+			return new HashSet<>();
+		Set<CloudIdentifier> res=new HashSet<>();
 		for (CloudIdentifier ci : preres) {
+
 			if (isValidLocalCloudIdentifier(ci, encryptionRestriction, accessProtocolProperties)) {
 				if (ci.getAuthenticationMethod().isAuthenticatedByPasswordOrSecretKey()) {
 					PasswordKey pk = getCloudPassword(ci);
-					if (!accessProtocolProperties.isAcceptablePassword(encryptionRestriction, pk))
+					if (!accessProtocolProperties.isAcceptablePassword(encryptionRestriction, pk)) {
 						continue;
+					}
 				}
 				res.add(ci);
 			}

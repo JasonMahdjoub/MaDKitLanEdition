@@ -40,6 +40,8 @@ package com.distrimind.madkit.kernel.network;
 import com.distrimind.madkit.kernel.network.connection.access.PasswordKey;
 import com.distrimind.util.crypto.SymmetricSecretKey;
 
+import java.util.Arrays;
+
 /**
  * 
  * @author Jason Mahdjoub
@@ -93,5 +95,15 @@ public class CustomPassword extends PasswordKey {
 	@Override
 	public SymmetricSecretKey getSecretKeyForSignature() {
 		return secretKey;
+	}
+
+	@Override
+	public String toString() {
+		return "CustomPassword{" +
+				"password='" + password + '\'' +
+				", salt=" + Arrays.toString(salt) +
+				", isKey=" + isKey +
+				", secretKey=" + secretKey +
+				'}';
 	}
 }

@@ -526,7 +526,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 		//acceptedAutoSignedCloudIdentifiers=new ArrayList<>();
 
 		if (access_state==AccessState.ACCESS_FINALIZED || getCloudIdentifiers() == null) {
-			setCloudIdentifiers(new ArrayList<CloudIdentifier>());
+			setCloudIdentifiers(new HashSet<CloudIdentifier>());
 			propRep=m
 					.getIdentifiersPropositionMessageAnswer(lp, properties.getApprovedSecureRandom(), messageDigest,
 							this.access_protocol_properties.anonymizeIdentifiersBeforeSendingToDistantPeer,
@@ -610,7 +610,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 					jpakes=new HashMap<>();
 
 
-					setCloudIdentifiers(new ArrayList<CloudIdentifier>());
+					setCloudIdentifiers(new HashSet<CloudIdentifier>());
 					newIdentifiersLoop:for (Identifier id : m.identifiers) {
 						for (PairOfIdentifiers poi : getAllAcceptedIdentifiers())
 						{

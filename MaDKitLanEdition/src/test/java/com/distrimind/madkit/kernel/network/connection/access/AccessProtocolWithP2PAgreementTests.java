@@ -154,7 +154,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		adasker.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsAsker = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustumHostIdentifier(0), 4, 5, 6, 10),
-				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeAsker, new Runnable() {
+				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, true, new Runnable() {
 
 					@Override
 					public void run() {
