@@ -244,12 +244,14 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		p2pp_ecdh = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
 		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
+		p2pp_ecdh.postQuantumKeyAgreement=null;
 		p2pp_ecdh.enableEncryption=true;
 		p2pp_ecdh.symmetricKeySizeBits=256;
 		o[0] = p2pp_ecdh;
 		p2pp_ecdh = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
 		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
+		p2pp_ecdh.postQuantumKeyAgreement=null;
 		p2pp_ecdh.enableEncryption=true;
 		p2pp_ecdh.symmetricKeySizeBits=256;
 		o[1] = p2pp_ecdh;
@@ -259,11 +261,13 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		p2pp_ecdh = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
 		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
+		p2pp_ecdh.postQuantumKeyAgreement=null;
 		p2pp_ecdh.enableEncryption=false;
 		o[0] = p2pp_ecdh;
 		p2pp_ecdh = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
 		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
+		p2pp_ecdh.postQuantumKeyAgreement=null;
 		p2pp_ecdh.enableEncryption=false;
 		o[1] = p2pp_ecdh;
 		res.add(o);
@@ -309,6 +313,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		p2pp_ecdh=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
 		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
+		p2pp_ecdh.postQuantumKeyAgreement=null;
 		p2pp_ecdh.enableEncryption=true;
 		p2pp_ecdh.symmetricKeySizeBits=256;
 
@@ -323,6 +328,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		p2pp_ecdh=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
 		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
+		p2pp_ecdh.postQuantumKeyAgreement=null;
 		p2pp_ecdh.enableEncryption=true;
 		p2pp_ecdh.symmetricKeySizeBits=256;
 
@@ -340,6 +346,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		p2pp_ecdh=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
 		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
+		p2pp_ecdh.postQuantumKeyAgreement=null;
 		p2pp_ecdh.enableEncryption=true;
 		p2pp_ecdh.symmetricKeySizeBits=256;
 
@@ -354,6 +361,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		p2pp_ecdh=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
 		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
+		p2pp_ecdh.postQuantumKeyAgreement=null;
 		p2pp_ecdh.enableEncryption=true;
 		p2pp_ecdh.symmetricKeySizeBits=256;
 
