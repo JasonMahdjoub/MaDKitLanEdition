@@ -279,7 +279,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 					return new DoNotSendMessage();
 				} else {
 					if (access_state==AccessState.WAITING_FOR_NEW_CLOUD_IDENTIFIERS) {
-						if (!differrAccessMessage(_m)) {
+						if (!differAccessMessage(_m)) {
 							resetLogin(false);
 							access_state = AccessState.ACCESS_FINALIZED;
 							return manageDifferedAccessMessage();
@@ -378,7 +378,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 					//access_state = AccessState.WAITING_FOR_PASSWORD_VALIDATION_2;
 				} else {
 					if (access_state == AccessState.WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION) {
-						if (!differrAccessMessage(_m)) {
+						if (!differAccessMessage(_m)) {
 							resetLogin(false);
 							access_state = AccessState.ACCESS_FINALIZED;
 							return manageDifferedAccessMessage();
@@ -422,7 +422,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 				}
 				else {
 					if (access_state == AccessState.WAITING_FOR_NEW_IDENTIFIERS) {
-						if (!differrAccessMessage(_m)) {
+						if (!differAccessMessage(_m)) {
 							resetLogin(false);
 							access_state = AccessState.ACCESS_FINALIZED;
 							return manageDifferedAccessMessage();
@@ -476,7 +476,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 					}
 				} else {
 					if (access_state == AccessState.WAITING_FOR_NEW_LOGIN_CONFIRMATION) {
-						if (!differrAccessMessage(_m)) {
+						if (!differAccessMessage(_m)) {
 							resetLogin(false);
 							access_state = AccessState.ACCESS_FINALIZED;
 							return manageDifferedAccessMessage();

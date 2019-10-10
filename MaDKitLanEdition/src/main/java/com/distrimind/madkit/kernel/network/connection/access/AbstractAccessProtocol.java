@@ -37,15 +37,20 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import java.net.InetSocketAddress;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
-
-
+import com.distrimind.madkit.agr.CloudCommunity;
 import com.distrimind.madkit.kernel.AbstractGroup;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.MultiGroup;
+import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.util.DecentralizedValue;
+
+import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 
@@ -154,7 +159,8 @@ public abstract class AbstractAccessProtocol {
 
 	public abstract AccessMessage subSetAndGetNextMessage(AccessMessage _m) throws AccessException;
 
-	protected boolean differrAccessMessage(AccessMessage m) {
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
+	protected boolean differAccessMessage(AccessMessage m) {
 		if (((m instanceof NewLocalLoginAddedMessage) || (m instanceof NewLocalLoginRemovedMessage))) {
 
 			differedAccessMessages.offer(m);
@@ -284,10 +290,28 @@ public abstract class AbstractAccessProtocol {
 		if (access_data instanceof LoginData) {
 			LoginData lp = (LoginData) access_data;
 
-			for (PairOfIdentifiers id : all_accepted_identifiers)
+			for (PairOfIdentifiers id : all_accepted_identifiers) {
 				mg.addGroup(lp.getGroupsAccess(id.getLocalIdentifier()));
+				if (id.isLocallyAuthenticatedCloud() && id.isDistantlyAuthenticatedCloud()) {
+					try {
+						String localDatabaseHostID=properties.getLocalDatabaseHostIDString();
+						if (localDatabaseHostID!=null)
+						{
+							DecentralizedValue dvDistant = lp.getDecentralizedDatabaseID(id.getLocalIdentifier());
+							if (dvDistant!=null)
+							{
+								mg.addGroup(CloudCommunity.Groups.getDistributedDatabaseGroup(localDatabaseHostID, dvDistant));
+							}
+						}
+					} catch (DatabaseException e) {
+						e.printStackTrace();
+					}
+
+				}
+			}
 
 		}
+
 		groups_access.set(mg);
 
 		notifyAccessGroupChangements = true;

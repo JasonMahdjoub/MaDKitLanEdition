@@ -73,6 +73,8 @@ import javax.swing.JFrame;
 import javax.xml.parsers.ParserConfigurationException;
 
 import com.distrimind.madkit.database.DifferedMessageTable;
+import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.io.RandomInputStream;
 import com.distrimind.util.io.SecureExternalizable;
 import org.w3c.dom.DOMException;
@@ -5009,4 +5011,6 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	{
 		return getMadkitKernel().getMaximumGlobalDownloadSpeedInBytesPerSecond(this);
 	}
+
+
 }

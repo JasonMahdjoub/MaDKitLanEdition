@@ -37,6 +37,8 @@
  */
 package com.distrimind.madkit.kernel;
 
+import com.distrimind.madkit.agr.CloudCommunity;
+import com.distrimind.madkit.exceptions.MadkitException;
 import com.distrimind.madkit.gui.AgentFrame;
 import com.distrimind.madkit.gui.ConsoleAgent;
 import com.distrimind.madkit.gui.MDKDesktopFrame;
@@ -49,6 +51,7 @@ import com.distrimind.ood.database.DatabaseFactory;
 import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.ood.database.Table;
 import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.crypto.SecureRandomType;
 import com.distrimind.util.properties.MultiFormatProperties;
@@ -318,6 +321,44 @@ public class MadkitProperties extends MultiFormatProperties {
 		if (databaseFactory == null)
 			return null;
 		return databaseFactory.getDatabaseWrapperSingleton();
+	}
+
+	private transient volatile String localDatabaseHostIDString=null;
+
+	void resetDatabaseSynchronizerAndRemoveAllDatabaseHosts() throws DatabaseException {
+		synchronized (this) {
+			DatabaseWrapper dw = getDatabaseWrapper();
+			if (dw != null) {
+				dw.getSynchronizer().resetSynchronizerAndRemoveAllHosts();
+				localDatabaseHostIDString = null;
+			} else
+				throw new DatabaseException("No database wrapper is initialized");
+		}
+	}
+
+	void setLocalDatabaseHostID(DecentralizedValue localDatabaseHostID, Package ...packages) throws DatabaseException {
+		synchronized (this) {
+			DatabaseWrapper dw = getDatabaseWrapper();
+			if (dw != null) {
+				dw.getSynchronizer().addHookForLocalDatabaseHost(localDatabaseHostID, packages);
+			} else
+				throw new DatabaseException("No database wrapper is initialized");
+
+		}
+	}
+
+	public String getLocalDatabaseHostIDString() throws DatabaseException {
+		if (localDatabaseHostIDString==null)
+		{
+			synchronized (this) {
+				if (localDatabaseHostIDString==null) {
+					DatabaseWrapper dw = getDatabaseWrapper();
+					if (dw != null)
+						localDatabaseHostIDString = CloudCommunity.Groups.encodeDecentralizedValue(dw.getSynchronizer().getLocalHostID());
+				}
+			}
+		}
+		return localDatabaseHostIDString;
 	}
 
 	public ArrayList<AgentToLaunch> launchAgents=null;

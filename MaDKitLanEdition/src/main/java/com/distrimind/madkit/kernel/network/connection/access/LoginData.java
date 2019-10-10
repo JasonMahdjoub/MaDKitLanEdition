@@ -49,6 +49,7 @@ import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.crypto.ASymmetricPublicKey;
 import com.distrimind.util.crypto.AbstractMessageDigest;
+import com.distrimind.util.crypto.IASymmetricPublicKey;
 
 /**
  * Represents data enabling to identify each peer, and its right access.
@@ -644,12 +645,14 @@ public abstract class LoginData extends AccessData {
 	public DecentralizedValue getDecentralizedDatabaseID(Identifier identifier)
 	{
 		DecentralizedValue dv=identifier.getHostIdentifier().getDecentralizedDatabaseID();
-		if (identifier.getHostIdentifier().isAuthenticatedByPublicKey() && (dv instanceof ASymmetricPublicKey) && dv.equals(identifier.getHostIdentifier().getAuthenticationPublicKey()))
+		if (identifier.getHostIdentifier().isAuthenticatedByPublicKey() && (dv instanceof IASymmetricPublicKey) && dv.equals(identifier.getHostIdentifier().getAuthenticationPublicKey()))
 		{
 			return dv;
 		}
 		return null;
 	}
+
+
 
 
 }
