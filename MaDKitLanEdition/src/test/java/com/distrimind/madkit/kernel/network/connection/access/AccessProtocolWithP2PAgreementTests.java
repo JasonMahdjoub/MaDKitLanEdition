@@ -330,7 +330,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 						.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustomAutoSignedHostIdentifier(3), AccessDataMKEventListener.CLOUD_ID_NUMBER+1));
 			if (loginInitiativeAsker)
 				acceptedReceiverIdentifiers
-						.add(new Identifier(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustomAutoSignedHostIdentifier(3), 9).getCloudIdentifier(), HostIdentifier.getNullHostIdentifierSingleton()));
+						.add(new Identifier(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustomAutoSignedHostIdentifier(3), AccessDataMKEventListener.CLOUD_ID_NUMBER+3).getCloudIdentifier(), HostIdentifier.getNullHostIdentifierSingleton()));
 		}
 		o[0] = adasker;
 		o[1] = adreceiver;
