@@ -37,6 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.ArrayList;
@@ -85,7 +86,7 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 	private static final CloudIdentifier[] cloudIdentifiers;
 	static {
 		new Random(System.currentTimeMillis()).nextBytes(SALT);
-		cloudIdentifiers = new CloudIdentifier[CLOUD_ID_NUMBER];
+		cloudIdentifiers = new CloudIdentifier[CLOUD_ID_NUMBER+4];
 		try {
 			AbstractSecureRandom random = SecureRandomType.DEFAULT.getSingleton(null);
 			for (int i = 0; i < CLOUD_ID_NUMBER; i++) {
@@ -94,12 +95,34 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 				else
 					cloudIdentifiers[i] = new CustumCloudIdentifier("cloud" + i, SALT);
 			}
+			cloudIdentifiers[CLOUD_ID_NUMBER] = new CustomCloudIdentifierWithPublicKey(ASymmetricAuthenticatedSignatureType.BCPQC_SPHINCS256_SHA3_512.getKeyPairGenerator(random).generateKeyPair(),SALT);
+			cloudIdentifiers[CLOUD_ID_NUMBER+1] = new CustomCloudIdentifierWithPublicKey(ASymmetricAuthenticatedSignatureType.BCPQC_SPHINCS256_SHA3_512.getKeyPairGenerator(random).generateKeyPair(),SALT);
+			cloudIdentifiers[CLOUD_ID_NUMBER+2] = new CustomCloudIdentifierWithPublicKey(new HybridASymmetricAuthenticatedSignatureType(ASymmetricAuthenticatedSignatureType.BC_Ed448, ASymmetricAuthenticatedSignatureType.BCPQC_SPHINCS256_SHA3_512).generateKeyPair(random),SALT);
+			cloudIdentifiers[CLOUD_ID_NUMBER+3] = new CustomCloudIdentifierWithPublicKey(new HybridASymmetricAuthenticatedSignatureType(ASymmetricAuthenticatedSignatureType.BC_Ed448, ASymmetricAuthenticatedSignatureType.BCPQC_SPHINCS256_SHA3_512).generateKeyPair(random),SALT);
 		}
 		catch(Exception e)
 		{
 			e.printStackTrace();
 			System.exit(-1);
 		}
+	}
+
+	private static final HostIdentifier[] autoSignedHostIdentifiers;
+	static
+	{
+		autoSignedHostIdentifiers =new HostIdentifier[4];
+		AbstractSecureRandom random;
+		try {
+			random = SecureRandomType.DEFAULT.getSingleton(null);
+			autoSignedHostIdentifiers[0]=new CustomAutoSignedHostIdentifier(random, ASymmetricAuthenticatedSignatureType.BC_Ed25519);
+			autoSignedHostIdentifiers[1]=new CustomAutoSignedHostIdentifier(random, ASymmetricAuthenticatedSignatureType.BC_Ed25519);
+			autoSignedHostIdentifiers[2]=new CustomAutoSignedHostIdentifier(random, ASymmetricAuthenticatedSignatureType.BC_Ed25519, ASymmetricAuthenticatedSignatureType.BCPQC_SPHINCS256_SHA3_512);
+			autoSignedHostIdentifiers[3]=new CustomAutoSignedHostIdentifier(random, ASymmetricAuthenticatedSignatureType.BC_Ed25519, ASymmetricAuthenticatedSignatureType.BCPQC_SPHINCS256_SHA3_512);
+		} catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
+			e.printStackTrace();
+			System.exit(-1);
+		}
+
 	}
 
 	private static final CustomPassword[] paswordIdentifiers;
@@ -124,11 +147,19 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 
 
 
-	public static HostIdentifier getCustumHostIdentifier(int hostNumber) {
+	public static HostIdentifier getCustomHostIdentifier(int hostNumber) {
 	    if (hostNumber<0)
 	        return HostIdentifier.getNullHostIdentifierSingleton();
 		return new CustumHostIdentifier("host" + hostNumber);
 	}
+
+	public static HostIdentifier getCustomAutoSignedHostIdentifier(int hostNumber) {
+		if (hostNumber<0)
+			return HostIdentifier.getNullHostIdentifierSingleton();
+		return autoSignedHostIdentifiers[hostNumber];
+	}
+
+
 
 	public static ArrayList<IdentifierPassword> getServerLogins(CustumHostIdentifier host) {
 		ArrayList<IdentifierPassword> res = new ArrayList<>(cloudIdentifiers.length);

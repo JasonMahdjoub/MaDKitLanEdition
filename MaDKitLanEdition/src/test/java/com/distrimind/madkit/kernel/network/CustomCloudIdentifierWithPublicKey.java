@@ -54,8 +54,8 @@ import java.io.IOException;
  */
 @SuppressWarnings({"unused"})
 public class CustomCloudIdentifierWithPublicKey extends CloudIdentifier {
-    private ASymmetricKeyPair keyPair;
-    private ASymmetricPublicKey publicKey;
+    private AbstractKeyPair keyPair;
+    private IASymmetricPublicKey publicKey;
     private byte[] salt;
 
     private CustomCloudIdentifierWithPublicKey()
@@ -63,7 +63,7 @@ public class CustomCloudIdentifierWithPublicKey extends CloudIdentifier {
 
     }
 
-    public CustomCloudIdentifierWithPublicKey(ASymmetricKeyPair keyPair, byte[] salt) {
+    public CustomCloudIdentifierWithPublicKey(AbstractKeyPair keyPair, byte[] salt) {
         assert keyPair!=null;
         this.keyPair = keyPair;
         this.publicKey=keyPair.getASymmetricPublicKey();
@@ -110,7 +110,7 @@ public class CustomCloudIdentifierWithPublicKey extends CloudIdentifier {
 
     @Override
     public int getInternalSerializedSize() {
-        return SerializationTools.getInternalSize(publicKey, Short.MAX_VALUE);
+        return SerializationTools.getInternalSize(publicKey);
     }
 
     @Override
@@ -123,9 +123,7 @@ public class CustomCloudIdentifierWithPublicKey extends CloudIdentifier {
     @Override
     public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
         salt=in.readBytesArray(false, 64);
-        publicKey=in.readObject(false, ASymmetricPublicKey.class);
-        if (publicKey.getAuthenticatedSignatureAlgorithmType()==null)
-            throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+        publicKey=in.readObject(false, IASymmetricPublicKey.class);
         keyPair=null;
     }
 

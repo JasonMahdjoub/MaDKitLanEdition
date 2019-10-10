@@ -125,15 +125,15 @@ class IdentifiersPropositionMessage extends AccessMessage {
 			identifiers[index]=ip;
 			if (ip.getHostIdentifier().isAuthenticatedByPublicKey() && ip.getHostIdentifier().getAuthenticationPublicKey()!=null && ip.getHostIdentifier().getAuthenticationKeyPair()!=null) {
 
-				byte[] localGeneratedSalt=new byte[saltSizeBytes];
+				if (distantGeneratedSalt.length<saltSizeBytes)
+					throw new IllegalArgumentException(""+distantGeneratedSalt.length);
+				byte[] localGeneratedSalt=new byte[distantGeneratedSalt.length];
 				random.nextBytes(localGeneratedSalt);
-				if (distantGeneratedSalt.length!=localGeneratedSalt.length)
-					throw new IllegalArgumentException();
 				byte[] encodedIdentifier=ip.getHostIdentifier().getBytesTabToEncode();
 				byte[] s=Identifier.signAuthenticatedIdentifier(ip.getHostIdentifier().getAuthenticationKeyPair(), encodedIdentifier, localGeneratedSalt, distantGeneratedSalt);
-				hostSignatures[index]=new byte[saltSizeBytes +s.length];
-				System.arraycopy(localGeneratedSalt, 0, hostSignatures[index], 0, saltSizeBytes);
-				System.arraycopy(s, 0, hostSignatures[index], saltSizeBytes, s.length);
+				hostSignatures[index]=new byte[localGeneratedSalt.length +s.length];
+				System.arraycopy(localGeneratedSalt, 0, hostSignatures[index], 0, localGeneratedSalt.length);
+				System.arraycopy(s, 0, hostSignatures[index], localGeneratedSalt.length, s.length);
 			}
 			else
 				hostSignatures[index]=null;
@@ -172,7 +172,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 			if (identifier.getHostIdentifier().isAuthenticatedByPublicKey()) {
 				byte[] encodedIdentifier = identifier.getHostIdentifier().getBytesTabToEncode();
 
-				if (Identifier.checkAuthenticatedSignature(identifier.getHostIdentifier().getAuthenticationPublicKey(), signature, saltSizeBytes, signature.length - saltSizeBytes, encodedIdentifier, Arrays.copyOfRange(signature, 0, saltSizeBytes), localGeneratedSalt))
+				if (Identifier.checkAuthenticatedSignature(identifier.getHostIdentifier().getAuthenticationPublicKey(), signature, localGeneratedSalt.length, signature.length - localGeneratedSalt.length, encodedIdentifier, Arrays.copyOfRange(signature, 0, localGeneratedSalt.length), localGeneratedSalt))
 					return new Identifier(foundCloudIdentifier, identifier.getHostIdentifier());
 				else
 					return null;
