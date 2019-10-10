@@ -47,7 +47,9 @@ import com.distrimind.util.crypto.MessageDigestType;
 import com.distrimind.util.io.*;
 import org.junit.Assert;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 
@@ -82,9 +84,9 @@ public class AgentBigTransfer extends AgentFakeThread {
 			return o.getClass()==this.getClass();
 		}
 	};
-	private final HashMap<AgentAddress, Boolean> otherConnected = new HashMap<>();
-	private final HashMap<ConversationID, RandomByteArrayInputStream> inputStreams = new HashMap<>();
-	private final HashMap<ConversationID, RealTimeTransfertStat> myStats = new HashMap<>(),
+	private final Map<AgentAddress, Boolean> otherConnected = Collections.synchronizedMap(new HashMap<AgentAddress, Boolean>());
+	private final Map<ConversationID, RandomByteArrayInputStream> inputStreams = Collections.synchronizedMap(new HashMap<ConversationID, RandomByteArrayInputStream>());
+	private final Map<ConversationID, RealTimeTransfertStat> myStats = Collections.synchronizedMap(new HashMap<ConversationID, RealTimeTransfertStat>()),
 			otherStats = new HashMap<>();
 	// private final HashMap<String, ConversationID> otherConversationIDs=new
 	// HashMap<>();
@@ -139,11 +141,11 @@ public class AgentBigTransfer extends AgentFakeThread {
 
 	}
 
-	public HashMap<ConversationID, RealTimeTransfertStat> getMyStats() {
+	public Map<ConversationID, RealTimeTransfertStat> getMyStats() {
 		return myStats;
 	}
 
-	public HashMap<ConversationID, RealTimeTransfertStat> getOtherStats() {
+	public Map<ConversationID, RealTimeTransfertStat> getOtherStats() {
 		return otherStats;
 	}
 
@@ -417,14 +419,14 @@ public class AgentBigTransfer extends AgentFakeThread {
 	public String getStatString() {
 		StringBuilder res = new StringBuilder();
 		res.append(", other number=").append(otherNumber).append(" other sent finished=").append(otherSentManaged).append("/").append(otherSendDataNumber).append(" other replied finished=").append(otherRepliedManaged).append("/").append(otherReplieNumber).append(", otherStatSize=").append(otherStats.size()).append(", alive=").append(this.isAlive()).append(", myTransferFinished=").append(myTransferFinished).append(", otherTransferFinished=").append(otherTransferFinished).append(", hasReceivedProposition=").append(hasReceivedProposition).append("\n\t");
-		for (ConversationID s : ((HashMap<ConversationID, RealTimeTransfertStat>) myStats.clone()).keySet()) {
+		for (ConversationID s : (new HashMap<>(myStats)).keySet()) {
 			RealTimeTransfertStat myStat = myStats.get(s);
 
 			res.append(", upload(").append(s).append(")=").append(myStat == null ? Double.valueOf(-1)
 					: Double.valueOf((((double) myStat.getNumberOfIndentifiedBytes()) / ((double) myStat.getDurationMilli()))));
 		}
 		res.append("\n\t");
-		for (ConversationID s : ((HashMap<ConversationID, RealTimeTransfertStat>) otherStats.clone()).keySet()) {
+		for (ConversationID s : (new HashMap<>(otherStats)).keySet()) {
 			RealTimeTransfertStat otherStat = otherStats.get(s);
 
 			res.append(", download(").append(s).append(")=").append(otherStat == null ? Double.valueOf(-1)
