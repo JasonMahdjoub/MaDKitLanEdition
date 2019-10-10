@@ -110,7 +110,10 @@ public final class NetworkAgent extends AgentFakeThread {
 		// requestRole(CloudCommunity.Groups.NETWORK_AGENTS,
 		// CloudCommunity.Roles.NET_AGENT);
 		try {
-			if (getMadkitConfig().getDatabaseWrapper().getSynchronizer().getLocalHostID()!=null)
+			if (getMadkitConfig().getDatabaseWrapper()!=null && getMadkitConfig()
+					.getDatabaseWrapper()
+					.getSynchronizer()
+					.getLocalHostID()!=null)
 			{
 				databaseSynchronizerAgent=new DatabaseSynchronizerAgent();
 				if (!launchAgent(databaseSynchronizerAgent).equals(ReturnCode.SUCCESS))
