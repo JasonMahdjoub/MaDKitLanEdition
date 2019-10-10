@@ -155,7 +155,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	 * @param keyWrapper the key wrapper type
 	 * @return the encryption profile identifier
 	 */
-	public int addEncryptionProfile(ASymmetricKeyPair keyPairForEncryption, SymmetricEncryptionType symmetricEncryptionType, ASymmetricKeyWrapperType keyWrapper) {
+	public int addEncryptionProfile(AbstractKeyPair keyPairForEncryption, SymmetricEncryptionType symmetricEncryptionType, ASymmetricKeyWrapperType keyWrapper) {
 		return this.addEncryptionProfile(generateNewKeyPairIdentifier(), keyPairForEncryption, symmetricEncryptionType, keyWrapper);
 
 	}
@@ -171,7 +171,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	 * @param keyWrapper the key wrapper type
 	 * @return the encryption profile identifier
 	 */
-	public int addEncryptionProfile(int profileIdentifier, ASymmetricKeyPair keyPairForEncryption, SymmetricEncryptionType symmetricEncryptionType, ASymmetricKeyWrapperType keyWrapper) {
+	public int addEncryptionProfile(int profileIdentifier, AbstractKeyPair keyPairForEncryption, SymmetricEncryptionType symmetricEncryptionType, ASymmetricKeyWrapperType keyWrapper) {
 		return this.addEncryptionProfile(profileIdentifier, keyPairForEncryption, symmetricEncryptionType,
 				symmetricEncryptionType == null ? (short) -1 : symmetricEncryptionType.getDefaultKeySizeBits(), keyWrapper, null);
 	}

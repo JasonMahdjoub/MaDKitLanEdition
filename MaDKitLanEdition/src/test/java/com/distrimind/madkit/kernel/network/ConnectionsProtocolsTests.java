@@ -391,9 +391,8 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		o = new ConnectionProtocolProperties<?>[2];
 		sp = new ServerSecuredProtocolPropertiesWithKnownPublicKey();
 		cp = new ClientSecuredProtocolPropertiesWithKnownPublicKey();
-		kpe = ASymmetricEncryptionType.DEFAULT
-				.getKeyPairGenerator(SecureRandomType.DEFAULT.getSingleton(null), (short) 2048).generateKeyPair();
-		sp.addEncryptionProfile(kpe, SymmetricEncryptionType.AES_GCM, ASymmetricKeyWrapperType.DEFAULT);
+		HybridASymmetricKeyPair kpepqc=new HybridASymmetricEncryptionType(ASymmetricEncryptionType.RSA_OAEPWithSHA384AndMGF1Padding, ASymmetricEncryptionType.BCPQC_MCELIECE_FUJISAKI_CCA2_SHA256).generateKeyPair(SecureRandomType.DEFAULT.getSingleton(null), 2048);
+		sp.addEncryptionProfile(kpepqc, SymmetricEncryptionType.AES_GCM, ASymmetricKeyWrapperType.DEFAULT);
 		cp.setEncryptionProfile(sp);
 		sp.enableEncryption = true;
 		cp.enableEncryption = true;
@@ -405,6 +404,17 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		sp = new ServerSecuredProtocolPropertiesWithKnownPublicKey();
 		cp = new ClientSecuredProtocolPropertiesWithKnownPublicKey();
 		sp.addEncryptionProfile(kpe, SymmetricEncryptionType.DEFAULT, ASymmetricKeyWrapperType.DEFAULT);
+		cp.setEncryptionProfile(sp);
+		sp.enableEncryption = false;
+		cp.enableEncryption = false;
+		o[0] = cp;
+		o[1] = sp;
+		res.add(o);
+
+		o = new ConnectionProtocolProperties<?>[2];
+		sp = new ServerSecuredProtocolPropertiesWithKnownPublicKey();
+		cp = new ClientSecuredProtocolPropertiesWithKnownPublicKey();
+		sp.addEncryptionProfile(kpepqc, SymmetricEncryptionType.DEFAULT, ASymmetricKeyWrapperType.DEFAULT);
 		cp.setEncryptionProfile(sp);
 		sp.enableEncryption = false;
 		cp.enableEncryption = false;

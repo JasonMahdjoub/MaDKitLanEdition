@@ -75,7 +75,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementProperties extends Conn
 	/**
 	 * Key agreement type
 	 */
-	public KeyAgreementType keyAgreementType=KeyAgreementType.DEFAULT;
+	public KeyAgreementType keyAgreementType=KeyAgreementType.BC_XDH_X448_WITH_SHA512CKDF;
 
 	/**
 	 * Post quantum key agreement type
