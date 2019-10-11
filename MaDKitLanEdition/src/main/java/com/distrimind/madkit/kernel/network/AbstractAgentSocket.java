@@ -50,6 +50,7 @@ import com.distrimind.madkit.kernel.network.TransferAgent.*;
 import com.distrimind.madkit.kernel.network.connection.*;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
 import com.distrimind.madkit.kernel.network.connection.access.*;
+import com.distrimind.madkit.kernel.network.connection.access.AccessException;
 import com.distrimind.madkit.message.ObjectMessage;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.message.hook.*;
@@ -999,11 +1000,26 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 							"Too much connections with the same peers (distant_inet_address=" + distant_inet_address
 									+ ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress + ")");
 				sendData((TooMuchConnectionWithTheSamePeers) o, true, true);
+			} else if (o.getClass()==String.class)
+			{
+				String m=(String)o;
+
+				if (m.equals(NetworkAgent.REFRESH_GROUPS_ACCESS))
+				{
+					try {
+						access_protocol.updateGroupAccess();
+						notifyNewAccessChangements();
+					} catch (AccessException e) {
+						getLogger().severeLog("", e);
+					}
+				}
 			} else if (o instanceof Runnable) {
 				((Runnable) o).run();
 			}
 		}
 	}
+
+
 
 	private void sendConnectionInfoSystemMessage() {
 		ArrayList<InetAddress> ias = new ArrayList<>();

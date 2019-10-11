@@ -278,7 +278,7 @@ public abstract class AbstractAccessProtocol {
 		return new UnlogMessage(res);
 	}
 
-	protected void updateGroupAccess() throws AccessException {
+	public void updateGroupAccess() throws AccessException {
 
 		AbstractGroup defaultGroup = access_data.getDefaultGroupsAccess();
 		MultiGroup mg;

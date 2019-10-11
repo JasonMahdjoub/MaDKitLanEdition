@@ -46,6 +46,7 @@ import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.Connec
 import com.distrimind.madkit.message.EnumMessage;
 import com.distrimind.madkit.message.KernelMessage;
 import com.distrimind.madkit.message.ObjectMessage;
+import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedValue;
 
@@ -70,6 +71,7 @@ public final class NetworkAgent extends AgentFakeThread {
 	private AgentAddress NIOAgentAddress = null, LocalNetworkAffectationAgentAddress = null;
 	private HashMap<ConversationID, MessageLocker> messageLockers = new HashMap<>();
 	private DatabaseSynchronizerAgent databaseSynchronizerAgent=null;
+	public static final String REFRESH_GROUPS_ACCESS="REFRESH_GROUPS_ACCESS";
 
 	public NetworkAgent() {
 
@@ -87,6 +89,7 @@ public final class NetworkAgent extends AgentFakeThread {
 		// setLogLevel(Level.INFO);
 		requestRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.NET_AGENT);
 		requestRole(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS, LocalCommunity.Roles.NET_AGENT);
+		requestRole(LocalCommunity.Groups.AGENTS_SOCKET_GROUPS, LocalCommunity.Roles.NET_AGENT);
 		requestRole(LocalCommunity.Groups.DATABASE, LocalCommunity.Roles.NET_AGENT);
 		/*
 		 * kernelAgent = getAgentWithRole(Groups.NETWORK,
@@ -323,40 +326,65 @@ public final class NetworkAgent extends AgentFakeThread {
 					if (((ObjectMessage) m).getContent() instanceof MadkitKernel.InternalDatabaseSynchronizerEvent)
 					{
 						MadkitKernel.InternalDatabaseSynchronizerEvent e= (MadkitKernel.InternalDatabaseSynchronizerEvent)((ObjectMessage) m).getContent();
+						boolean updateGroupAccess=false;
+
 						try {
+							DatabaseWrapper dw = getMadkitConfig().getDatabaseWrapper();
 							switch (e.type)
 							{
 
 								case SET_LOCAL_IDENTIFIER:
-									if (getMadkitConfig().getLocalDatabaseHostIDString()!=null)
-									{
-										stopDatabaseSynchronizerAgent();
+
+									if (dw != null){
+										if (dw.getSynchronizer().getLocalHostID()==null) {
+											updateGroupAccess=true;
+											stopDatabaseSynchronizerAgent();
+										}
 									}
 									getMadkitConfig().setLocalDatabaseHostID((DecentralizedValue) e.parameters[0], (Package[])e.parameters[1]);
 									launchDatabaseSynchronizerAgent();
 									break;
 								case RESET_SYNCHRONIZER:
+
+									if (dw!=null && dw.getSynchronizer().getLocalHostID()!=null) {
+										updateGroupAccess = true;
+									}
 									stopDatabaseSynchronizerAgent();
 									getMadkitConfig().resetDatabaseSynchronizerAndRemoveAllDatabaseHosts();
 									break;
 								case ASSOCIATE_DISTANT_DATABASE_HOST:
 									if (databaseSynchronizerAgent!=null && databaseSynchronizerAgent.isAlive())
 									{
+										if (dw != null && dw.getSynchronizer().getLocalHostID()!=null) {
+											if (!dw.getSynchronizer().isPairedWith((DecentralizedValue) e.parameters[0]))
+												updateGroupAccess=true;
+										}
+
 										databaseSynchronizerAgent.receiveMessage(m);
 									}
-									else
-										getMadkitConfig().differDistantDatabaseHostConfiguration((DecentralizedValue) e.parameters[0], (boolean)e.parameters[1],(Package[])e.parameters[2]);
+									else {
+										getMadkitConfig().differDistantDatabaseHostConfiguration((DecentralizedValue) e.parameters[0], (boolean) e.parameters[1], (Package[]) e.parameters[2]);
+									}
 									break;
 								case DISSOCIATE_DISTANT_DATABASE_HOST:
 									if (databaseSynchronizerAgent!=null && databaseSynchronizerAgent.isAlive())
 									{
+										if (dw != null && dw.getSynchronizer().getLocalHostID()!=null) {
+											if (dw.getSynchronizer().isPairedWith((DecentralizedValue) e.parameters[0]))
+												updateGroupAccess=true;
+										}
+
 										databaseSynchronizerAgent.receiveMessage(m);
 									}
 									else
 										getMadkitConfig().removeDistantDatabaseHost((DecentralizedValue) e.parameters[0], (Package[])e.parameters[1]);
 									break;
 							}
-
+							if (updateGroupAccess)
+							{
+								broadcastMessageWithRole(LocalCommunity.Groups.AGENTS_SOCKET_GROUPS,
+										Roles.SOCKET_AGENT_ROLE, new ObjectMessage<>(REFRESH_GROUPS_ACCESS), Roles.NET_AGENT);
+							}
 						} catch (DatabaseException | IOException ex) {
 							getLogger().severeLog("Unable to apply database event "+e.type, ex);
 						}

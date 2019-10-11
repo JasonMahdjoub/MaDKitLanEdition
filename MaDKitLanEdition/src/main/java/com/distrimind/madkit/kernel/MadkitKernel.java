@@ -4127,6 +4127,10 @@ class MadkitKernel extends Agent {
 
 	void setIfNotPresentLocalDatabaseHostIdentifier(AbstractAgent requester, DecentralizedValue localDatabaseHostID, Package ...packages) throws DatabaseException
 	{
+		if (localDatabaseHostID==null)
+			throw new NullPointerException();
+		if (packages==null)
+			throw new NullPointerException();
 		if (!sendInternalDatabaseSynchronizerEvent(new InternalDatabaseSynchronizerEvent(InternalDatabaseSynchronizerEventType.ASSOCIATE_DISTANT_DATABASE_HOST, localDatabaseHostID, packages)))
 			getMadkitConfig().setLocalDatabaseHostID(localDatabaseHostID, packages);
 	}
@@ -4172,6 +4176,10 @@ class MadkitKernel extends Agent {
 	}
 
 	void addOrConfigureDistantDatabaseHost(AbstractAgent requester, DecentralizedValue hostIdentifier, boolean conflictualRecordsReplacedByDistantRecords, Package... packages) throws DatabaseException {
+		if (hostIdentifier==null)
+			throw new NullPointerException();
+		if (packages==null)
+			throw new NullPointerException();
 		if (!sendInternalDatabaseSynchronizerEvent(new InternalDatabaseSynchronizerEvent(InternalDatabaseSynchronizerEventType.ASSOCIATE_DISTANT_DATABASE_HOST, hostIdentifier, conflictualRecordsReplacedByDistantRecords, packages)))
 		{
 			try {
@@ -4184,6 +4192,10 @@ class MadkitKernel extends Agent {
 	}
 
 	void removeDistantDatabaseHostFromDatabaseSynchronizer(AbstractAgent requester, DecentralizedValue hostIdentifier, Package... packages) throws DatabaseException {
+		if (hostIdentifier==null)
+			throw new NullPointerException();
+		if (packages==null)
+			throw new NullPointerException();
 		if (!sendInternalDatabaseSynchronizerEvent(new InternalDatabaseSynchronizerEvent(InternalDatabaseSynchronizerEventType.DISSOCIATE_DISTANT_DATABASE_HOST, hostIdentifier, packages)))
 		{
 			getMadkitConfig().removeDistantDatabaseHost( hostIdentifier, packages);
