@@ -44,6 +44,7 @@ import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
 import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
+import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.crypto.MessageDigestType;
 import com.distrimind.util.io.RandomInputStream;
@@ -510,6 +511,26 @@ class FakeKernel extends MadkitKernel {
 
 	@Override
 	IDGeneratorInt getIDTransferGenerator() {
+		throw buildKernelException(null);
+	}
+
+	@Override
+	void setIfNotPresentLocalDatabaseHostIdentifier(AbstractAgent requester, DecentralizedValue localDatabaseHostID, Package ...packages)
+	{
+		throw buildKernelException(null);
+	}
+
+	@Override
+	void resetDatabaseSynchronizer(AbstractAgent requester) {
+		throw buildKernelException(null);
+	}
+
+	@Override
+	void addOrConfigureDistantDatabaseHost(AbstractAgent requester, DecentralizedValue hostIdentifier, boolean conflictualRecordsReplacedByDistantRecords, Package... packages) {
+		throw buildKernelException(null);
+	}
+	@Override
+	void removeDistantDatabaseHostFromDatabaseSynchronizer(AbstractAgent requester, DecentralizedValue hostIdentifier, Package... packages)  {
 		throw buildKernelException(null);
 	}
 

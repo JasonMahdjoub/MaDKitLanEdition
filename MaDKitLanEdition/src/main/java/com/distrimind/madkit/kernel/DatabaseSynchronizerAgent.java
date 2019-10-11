@@ -37,13 +37,16 @@ knowledge of the CeCILL-C license and that you accept its terms.
 
 import com.distrimind.madkit.agr.CloudCommunity;
 import com.distrimind.madkit.agr.LocalCommunity;
+import com.distrimind.madkit.database.DifferedDistantDatabaseHostConfigurationTable;
 import com.distrimind.madkit.message.NetworkObjectMessage;
+import com.distrimind.madkit.message.ObjectMessage;
 import com.distrimind.madkit.message.hook.HookMessage;
 import com.distrimind.madkit.message.hook.OrganizationEvent;
 import com.distrimind.ood.database.*;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedValue;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -72,10 +75,13 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 	{
 
 	}
-
 	private void addDistantGroupID(DecentralizedValue id)
 	{
 		Group group=CloudCommunity.Groups.getDistributedDatabaseGroup(localHostIDString, id);
+		addDistantGroupID(group, id);
+	}
+	private void addDistantGroupID(Group group, DecentralizedValue id)
+	{
 		distantGroupIdsPerGroup.put(group, id);
 		distantGroupIdsPerID.put(id, group);
 		this.requestRole(group, CloudCommunity.Roles.SYNCHRONIZER);
@@ -149,6 +155,11 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 				{
 					addDistantGroupID(dv);
 				}
+				for (DifferedDistantDatabaseHostConfigurationTable.Record r : databaseWrapper.getTableInstance(DifferedDistantDatabaseHostConfigurationTable.class).getRecords()){
+					if (!distantGroupIdsPerID.containsKey(r.getHostIdentifier())){
+						addDistantGroupID(r.getHostIdentifier());
+					}
+				}
 
 				this.requestHookEvents(HookMessage.AgentActionEvent.REQUEST_ROLE);
 				this.requestHookEvents(HookMessage.AgentActionEvent.LEAVE_ROLE);
@@ -191,6 +202,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 	}
 	@Override
 	protected void liveByStep(Message _message) {
+
 		if (_message instanceof OrganizationEvent)
 		{
 			AgentAddress aa=((OrganizationEvent) _message).getSourceAgent();
@@ -199,12 +211,16 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 				if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.REQUEST_ROLE)) {
 					try {
+
 						if (synchronizer.isPairedWith(peerID)) {
 							if (logger!=null && logger.isLoggable(Level.FINE))
 								logger.info("Connection initialization with peer : "+peerID);
 
 							sendMessageWithRole(aa, new DatabaseConnectionInitializationMessage(synchronizer.getLastValidatedSynchronization(localHostID)), CloudCommunity.Roles.SYNCHRONIZER);
 						}
+						else
+							checkDifferedDistantDatabaseHostConfiguration(peerID);
+
 					} catch (DatabaseException e) {
 						if (!_message.getSender().isFrom(getKernelAddress()))
 							anomalyDetectedWithOneDistantKernel(false, _message.getSender().getKernelAddress(), "Unexpected exception");
@@ -237,6 +253,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 					synchronizer.initHook(peerID, ((DatabaseConnectionInitializationMessage) _message).getContent());
 					if (logger!=null && logger.isLoggable(Level.FINE))
 						logger.info("Connection initialization with peer : "+peerID+" FINISHED");
+					checkDifferedDistantDatabaseHostConfiguration(peerID);
 				} catch (DatabaseException e) {
 					if (!_message.getSender().isFrom(getKernelAddress()))
 						anomalyDetectedWithOneDistantKernel(false, _message.getSender().getKernelAddress(), "Impossible to connect database peer "+peerID);
@@ -273,16 +290,16 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 				}
 			}
 		}
-		else if (_message instanceof DatabaseEventToSend)
+		else if (_message instanceof NetworkObjectMessage && ((NetworkObjectMessage) _message).getContent() instanceof DatabaseEventToSend)
 		{
 			boolean generateError = true;
 			DecentralizedValue peerID = getDistantPeerID(_message.getSender());
 			if (peerID != null) {
-				DatabaseEventToSend e = (DatabaseEventToSend) _message;
+				DatabaseEventToSend e = (DatabaseEventToSend) ((NetworkObjectMessage) _message).getContent();
 				try {
 					DecentralizedValue source = e.getHostSource();
 					if (source != null && source.equals(peerID)) {
-						if (synchronizer.isInitialized(source)) {
+						if ((e instanceof HookAddRequest) || synchronizer.isInitialized(source)) {
 							generateError = false;
 							synchronizer.received(e);
 							if (logger!=null && logger.isLoggable(Level.FINEST))
@@ -301,6 +318,84 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 				else
 					anomalyDetectedWithOneDistantKernel(true, _message.getSender().getKernelAddress(), "Invalid message received from " + _message.getSender());
 			}
+		} else if (_message.getSender().isFrom(getKernelAddress()) && _message.getSender().getRole().equals(LocalCommunity.Roles.KERNEL) && _message instanceof ObjectMessage && ((ObjectMessage) _message).getContent() instanceof MadkitKernel.InternalDatabaseSynchronizerEvent)
+		{
+
+			MadkitKernel.InternalDatabaseSynchronizerEvent e=(MadkitKernel.InternalDatabaseSynchronizerEvent)((ObjectMessage) _message).getContent();
+			if (e.type== MadkitKernel.InternalDatabaseSynchronizerEventType.ASSOCIATE_DISTANT_DATABASE_HOST) {
+				try {
+					DecentralizedValue hostIdentifier = (DecentralizedValue) e.parameters[0];
+					boolean conflictualRecordsReplacedByDistantRecords = (boolean) e.parameters[1];
+					Package[] packages = (Package[]) e.parameters[2];
+
+					Group group = getDistantGroupID(hostIdentifier);
+					if (group!=null) {
+						addDistantGroupID(group, hostIdentifier);
+						AgentAddress aa = getAgentWithRole(group, CloudCommunity.Roles.SYNCHRONIZER);
+						if (aa == null) {
+							getMadkitConfig().differDistantDatabaseHostConfiguration(hostIdentifier, conflictualRecordsReplacedByDistantRecords, packages);
+						} else {
+							askForHookAddingAndSynchronizeDatabase(group, hostIdentifier, conflictualRecordsReplacedByDistantRecords, packages);
+						}
+					}
+					else
+						getLogger().severeLog("Unable to apply database event " + e.type);
+				} catch (Exception ex) {
+					getLogger().severeLog("Unable to apply database event " + e.type, ex);
+				}
+			}
+			else if (e.type== MadkitKernel.InternalDatabaseSynchronizerEventType.DISSOCIATE_DISTANT_DATABASE_HOST) {
+				try {
+					DecentralizedValue hostIdentifier = (DecentralizedValue) e.parameters[0];
+					Package[] packages = (Package[]) e.parameters[1];
+					if (synchronizer.isInitialized(hostIdentifier)) {
+						if (logger!=null && logger.isLoggable(Level.FINE))
+							logger.info("Disconnect peer : "+hostIdentifier);
+
+						synchronizer.disconnectHook(hostIdentifier);
+
+					}
+					removeDistantGroupID(hostIdentifier);
+					getMadkitConfig().removeDistantDatabaseHost(hostIdentifier, packages);
+
+				} catch (Exception ex) {
+					getLogger().severeLog("Unable to apply database event " + e.type, ex);
+				}
+			}
+			else
+				getLogger().warning("incomprehensible message "+_message);
 		}
+	}
+
+	private void askForHookAddingAndSynchronizeDatabase(Group group, DecentralizedValue hostIdentifier,
+																 boolean conflictualRecordsReplacedByDistantRecords, Package... packages) {
+		try {
+			HookAddRequest request=synchronizer.askForHookAddingAndSynchronizeDatabase(hostIdentifier, conflictualRecordsReplacedByDistantRecords, packages);
+			if (!sendMessageWithRole(group, CloudCommunity.Roles.SYNCHRONIZER, new NetworkObjectMessage<>(request), CloudCommunity.Roles.SYNCHRONIZER).equals(ReturnCode.SUCCESS)) {
+				getLogger().warning("Impossible to send message to host " + request);
+				synchronizer.disconnectHook(hostIdentifier);
+			}
+		} catch (DatabaseException ex) {
+			getLogger().severeLog("Unable to apply database event :CONFIGURE_DISTANT_DATABASE_HOST", ex);
+		}
+	}
+
+
+	private void checkDifferedDistantDatabaseHostConfiguration(DecentralizedValue hostIdentifier)
+	{
+		try {
+			DatabaseWrapper dw=getMadkitConfig().getDatabaseWrapper();
+			DifferedDistantDatabaseHostConfigurationTable table=dw.getTableInstance(DifferedDistantDatabaseHostConfigurationTable.class);
+			DifferedDistantDatabaseHostConfigurationTable.Record r=table.getDifferedDistantDatabaseHostConfiguration(hostIdentifier);
+			if (r!=null)
+			{
+				table.removeRecord(r);
+				Group group=getDistantGroupID(hostIdentifier);
+				askForHookAddingAndSynchronizeDatabase(group, r.getHostIdentifier(), r.isConflictualRecordsReplacedByDistantRecords(), r.getPackages());
+			}
+		} catch (DatabaseException | IOException e) {
+			getLogger().severeLog("Unable check database event :CONFIGURE_DISTANT_DATABASE_HOST", e);
+		}
+
 	}
 }

@@ -45,8 +45,11 @@ import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
 import com.distrimind.madkit.message.EnumMessage;
 import com.distrimind.madkit.message.KernelMessage;
+import com.distrimind.madkit.message.ObjectMessage;
 import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.util.DecentralizedValue;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.logging.Level;
 
@@ -101,6 +104,41 @@ public final class NetworkAgent extends AgentFakeThread {
 
 	}
 
+	private void launchDatabaseSynchronizerAgent() {
+		try {
+			if (databaseSynchronizerAgent!=null && getMadkitConfig().getDatabaseWrapper()!=null && getMadkitConfig()
+					.getDatabaseWrapper()
+					.getSynchronizer()
+					.getLocalHostID()!=null)
+			{
+				databaseSynchronizerAgent=new DatabaseSynchronizerAgent();
+				if (!launchAgent(databaseSynchronizerAgent).equals(ReturnCode.SUCCESS))
+				{
+					databaseSynchronizerAgent=null;
+					getLogger().warning("Unable to launch Database synchronizer agent");
+				}
+			}
+		} catch (DatabaseException e) {
+			getLogger().severeLog("Problem with database", e);
+		}
+	}
+
+	private void stopDatabaseSynchronizerAgent()
+	{
+		if (databaseSynchronizerAgent!=null)
+		{
+			if (databaseSynchronizerAgent.isAlive())
+			{
+				if (killAgent(databaseSynchronizerAgent).equals(ReturnCode.SUCCESS))
+					getLogger().warning("Unable to kill Database synchronizer agent");
+				else
+					databaseSynchronizerAgent=null;
+			}
+			else
+				databaseSynchronizerAgent=null;
+		}
+	}
+
 	/**
 	 * @return true if servers are launched
 	 */
@@ -109,21 +147,9 @@ public final class NetworkAgent extends AgentFakeThread {
 			logger.fine("Launching network agent in " + getKernelAddress() + "...");
 		// requestRole(CloudCommunity.Groups.NETWORK_AGENTS,
 		// CloudCommunity.Roles.NET_AGENT);
-		try {
-			if (getMadkitConfig().getDatabaseWrapper()!=null && getMadkitConfig()
-					.getDatabaseWrapper()
-					.getSynchronizer()
-					.getLocalHostID()!=null)
-			{
-				databaseSynchronizerAgent=new DatabaseSynchronizerAgent();
-				if (!launchAgent(databaseSynchronizerAgent).equals(ReturnCode.SUCCESS))
-				{
-					getLogger().warning("Unable to launch Database synchronizer agent");
-				}
-			}
-		} catch (DatabaseException e) {
-			getLogger().severeLog("Problem with database", e);
-		}
+
+		launchDatabaseSynchronizerAgent();
+
 		if (getMadkitConfig().networkProperties.upnpIGDEnabled
 				|| getMadkitConfig().networkProperties.networkInterfaceScan) {
 			AbstractAgent aa = MadkitNetworkAccess.getUpngIDGAgent(this);
@@ -162,10 +188,8 @@ public final class NetworkAgent extends AgentFakeThread {
 
 	private void stopNetwork() {
 		if (LocalNetworkAffectationAgentAddress != null && NIOAgentAddress != null) {
-			if (databaseSynchronizerAgent!=null)
-				killAgent(databaseSynchronizerAgent);
+			stopDatabaseSynchronizerAgent();
 
-			databaseSynchronizerAgent=null;
 			broadcastMessage(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.TRANSFER_AGENT_ROLE,
 					new StopNetworkMessage(NetworkCloseReason.NORMAL_DETECTION));
 			sendMessage(LocalNetworkAffectationAgentAddress,
@@ -292,8 +316,56 @@ public final class NetworkAgent extends AgentFakeThread {
 				break;
 			}
 			case Roles.KERNEL:// message from the kernel
+				if (m instanceof EnumMessage)
+					proceedEnumMessage((EnumMessage<?>) m);
+				else if (m instanceof ObjectMessage)
+				{
+					if (((ObjectMessage) m).getContent() instanceof MadkitKernel.InternalDatabaseSynchronizerEvent)
+					{
+						MadkitKernel.InternalDatabaseSynchronizerEvent e= (MadkitKernel.InternalDatabaseSynchronizerEvent)((ObjectMessage) m).getContent();
+						try {
+							switch (e.type)
+							{
 
-				proceedEnumMessage((EnumMessage<?>) m);
+								case SET_LOCAL_IDENTIFIER:
+									if (getMadkitConfig().getLocalDatabaseHostIDString()!=null)
+									{
+										stopDatabaseSynchronizerAgent();
+									}
+									getMadkitConfig().setLocalDatabaseHostID((DecentralizedValue) e.parameters[0], (Package[])e.parameters[1]);
+									launchDatabaseSynchronizerAgent();
+									break;
+								case RESET_SYNCHRONIZER:
+									stopDatabaseSynchronizerAgent();
+									getMadkitConfig().resetDatabaseSynchronizerAndRemoveAllDatabaseHosts();
+									break;
+								case ASSOCIATE_DISTANT_DATABASE_HOST:
+									if (databaseSynchronizerAgent!=null && databaseSynchronizerAgent.isAlive())
+									{
+										databaseSynchronizerAgent.receiveMessage(m);
+									}
+									else
+										getMadkitConfig().differDistantDatabaseHostConfiguration((DecentralizedValue) e.parameters[0], (boolean)e.parameters[1],(Package[])e.parameters[2]);
+									break;
+								case DISSOCIATE_DISTANT_DATABASE_HOST:
+									if (databaseSynchronizerAgent!=null && databaseSynchronizerAgent.isAlive())
+									{
+										databaseSynchronizerAgent.receiveMessage(m);
+									}
+									else
+										getMadkitConfig().removeDistantDatabaseHost((DecentralizedValue) e.parameters[0], (Package[])e.parameters[1]);
+									break;
+							}
+
+						} catch (DatabaseException | IOException ex) {
+							getLogger().severeLog("Unable to apply database event "+e.type, ex);
+						}
+					}
+					else
+						handleNotUnderstoodMessage(m);
+				}
+				else
+					handleNotUnderstoodMessage(m);
 				break;
 			case LocalCommunity.Roles.SOCKET_AGENT_ROLE:
 				if (m instanceof CGRSynchro) {

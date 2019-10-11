@@ -38,7 +38,7 @@
 package com.distrimind.madkit.kernel;
 
 import com.distrimind.madkit.agr.CloudCommunity;
-import com.distrimind.madkit.exceptions.MadkitException;
+import com.distrimind.madkit.database.DifferedDistantDatabaseHostConfigurationTable;
 import com.distrimind.madkit.gui.AgentFrame;
 import com.distrimind.madkit.gui.ConsoleAgent;
 import com.distrimind.madkit.gui.MDKDesktopFrame;
@@ -331,6 +331,26 @@ public class MadkitProperties extends MultiFormatProperties {
 			if (dw != null) {
 				dw.getSynchronizer().resetSynchronizerAndRemoveAllHosts();
 				localDatabaseHostIDString = null;
+			} else
+				throw new DatabaseException("No database wrapper is initialized");
+		}
+	}
+
+	void differDistantDatabaseHostConfiguration(DecentralizedValue hostIdentifier, boolean conflictualRecordsReplacedByDistantRecords, Package[] packages) throws DatabaseException, IOException {
+		synchronized (this) {
+			DatabaseWrapper dw = getDatabaseWrapper();
+			if (dw != null) {
+				dw.getTableInstance(DifferedDistantDatabaseHostConfigurationTable.class).differDistantDatabaseHostConfiguration(hostIdentifier, conflictualRecordsReplacedByDistantRecords, packages);
+			} else
+				throw new DatabaseException("No database wrapper is initialized");
+		}
+	}
+
+	void removeDistantDatabaseHost(DecentralizedValue hostIdentifier, Package[] packages) throws DatabaseException {
+		synchronized (this) {
+			DatabaseWrapper dw = getDatabaseWrapper();
+			if (dw != null) {
+				dw.getSynchronizer().removeHook(hostIdentifier, packages);
 			} else
 				throw new DatabaseException("No database wrapper is initialized");
 		}

@@ -67,6 +67,7 @@ import com.distrimind.madkit.message.task.TasksExecutionConfirmationMessage;
 import com.distrimind.madkit.util.XMLUtilities;
 import com.distrimind.ood.database.DatabaseConfiguration;
 import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.Utils;
 import com.distrimind.util.crypto.MessageDigestType;
@@ -3953,7 +3954,7 @@ class MadkitKernel extends Agent {
 
 	}
 
-	class AutoRequestedGroup {
+	static class AutoRequestedGroup {
 		private final AbstractAgent agent;
 		private AbstractGroup group;
 		private final String role;
@@ -4123,6 +4124,72 @@ class MadkitKernel extends Agent {
 	IDGeneratorInt getIDTransferGenerator() {
 		return generator_id_transfert;
 	}
+
+	void setIfNotPresentLocalDatabaseHostIdentifier(AbstractAgent requester, DecentralizedValue localDatabaseHostID, Package ...packages) throws DatabaseException
+	{
+		if (!sendInternalDatabaseSynchronizerEvent(new InternalDatabaseSynchronizerEvent(InternalDatabaseSynchronizerEventType.ASSOCIATE_DISTANT_DATABASE_HOST, localDatabaseHostID, packages)))
+			getMadkitConfig().setLocalDatabaseHostID(localDatabaseHostID, packages);
+	}
+
+	void resetDatabaseSynchronizer(AbstractAgent requester) throws DatabaseException {
+		if (!sendInternalDatabaseSynchronizerEvent(new InternalDatabaseSynchronizerEvent(InternalDatabaseSynchronizerEventType.RESET_SYNCHRONIZER)))
+			getMadkitConfig().resetDatabaseSynchronizerAndRemoveAllDatabaseHosts();
+	}
+
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
+	private boolean sendInternalDatabaseSynchronizerEvent(InternalDatabaseSynchronizerEvent event)
+	{
+		updateNetworkAgent();
+		if (netAgent!=null)
+		{
+			ObjectMessage<InternalDatabaseSynchronizerEvent> m=new ObjectMessage<>(event);
+			((Message) m).setSender(kernelRole);
+			((Message) m).setReceiver(netAgent);
+			netAgent.getAgent().receiveMessage(m);
+			return true;
+		}
+		else
+			return false;
+	}
+
+	static class InternalDatabaseSynchronizerEvent
+	{
+		InternalDatabaseSynchronizerEventType type;
+		Object[] parameters;
+
+		private InternalDatabaseSynchronizerEvent(InternalDatabaseSynchronizerEventType type, Object... parameters) {
+			this.type = type;
+			this.parameters = parameters;
+		}
+	}
+
+	enum InternalDatabaseSynchronizerEventType
+	{
+		SET_LOCAL_IDENTIFIER,
+		RESET_SYNCHRONIZER,
+		ASSOCIATE_DISTANT_DATABASE_HOST,
+		DISSOCIATE_DISTANT_DATABASE_HOST
+	}
+
+	void addOrConfigureDistantDatabaseHost(AbstractAgent requester, DecentralizedValue hostIdentifier, boolean conflictualRecordsReplacedByDistantRecords, Package... packages) throws DatabaseException {
+		if (!sendInternalDatabaseSynchronizerEvent(new InternalDatabaseSynchronizerEvent(InternalDatabaseSynchronizerEventType.ASSOCIATE_DISTANT_DATABASE_HOST, hostIdentifier, conflictualRecordsReplacedByDistantRecords, packages)))
+		{
+			try {
+				getMadkitConfig().differDistantDatabaseHostConfiguration(hostIdentifier, conflictualRecordsReplacedByDistantRecords, packages);
+			} catch (IOException e) {
+				throw new DatabaseException("",e);
+			}
+		}
+
+	}
+
+	void removeDistantDatabaseHostFromDatabaseSynchronizer(AbstractAgent requester, DecentralizedValue hostIdentifier, Package... packages) throws DatabaseException {
+		if (!sendInternalDatabaseSynchronizerEvent(new InternalDatabaseSynchronizerEvent(InternalDatabaseSynchronizerEventType.DISSOCIATE_DISTANT_DATABASE_HOST, hostIdentifier, packages)))
+		{
+			getMadkitConfig().removeDistantDatabaseHost( hostIdentifier, packages);
+		}
+
+	}
 }
 
 final class CGRNotAvailable extends Exception {
@@ -4206,5 +4273,7 @@ abstract class AgentsJob implements Callable<Void>, Cloneable {
 
 
 	abstract void proceedAgent(AbstractAgent a);
+
+
 
 }

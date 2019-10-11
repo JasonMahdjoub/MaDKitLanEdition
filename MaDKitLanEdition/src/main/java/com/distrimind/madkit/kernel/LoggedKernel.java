@@ -45,6 +45,8 @@ import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
 import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
+import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.crypto.MessageDigestType;
 import com.distrimind.util.io.RandomInputStream;
@@ -979,6 +981,36 @@ final class LoggedKernel extends MadkitKernel {
 			kernel.logger.log(Level.FINEST, "checkMemoryLeakAfterNetworkStopped (res=" + res + ")");
 
 		return res;
+	}
+
+	@Override
+	void setIfNotPresentLocalDatabaseHostIdentifier(AbstractAgent requester, DecentralizedValue localDatabaseHostID, Package ...packages) throws DatabaseException
+	{
+		kernel.setIfNotPresentLocalDatabaseHostIdentifier(requester, localDatabaseHostID, packages);
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "setIfNotPresentLocalDatabaseHostIdentifier (requester=" + requester + ", localDatabaseHostID="+localDatabaseHostID+", packages="+Arrays.toString(packages)+")");
+
+	}
+
+	@Override
+	void resetDatabaseSynchronizer(AbstractAgent requester) throws DatabaseException {
+		kernel.resetDatabaseSynchronizer(requester);
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "resetDatabaseSynchronizer (requester=" + requester + ")");
+	}
+
+	@Override
+	void addOrConfigureDistantDatabaseHost(AbstractAgent requester, DecentralizedValue hostIdentifier, boolean conflictualRecordsReplacedByDistantRecords, Package... packages) throws DatabaseException {
+		kernel.addOrConfigureDistantDatabaseHost(requester, hostIdentifier, conflictualRecordsReplacedByDistantRecords, packages);
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "addOrConfigureDistantDatabaseHost (requester=" + requester + ", hostIdentifier="+hostIdentifier+", conflictualRecordsReplacedByDistantRecords="+conflictualRecordsReplacedByDistantRecords+", packages="+Arrays.toString(packages)+")");
+	}
+
+	@Override
+	void removeDistantDatabaseHostFromDatabaseSynchronizer(AbstractAgent requester, DecentralizedValue hostIdentifier, Package... packages) throws DatabaseException {
+		kernel.removeDistantDatabaseHostFromDatabaseSynchronizer(requester, hostIdentifier, packages);
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "removeDistantDatabaseHostFromDatabaseSynchronizer (requester=" + requester + ", hostIdentifier="+hostIdentifier+", packages="+Arrays.toString(packages)+")");
 	}
 
 	@Override
