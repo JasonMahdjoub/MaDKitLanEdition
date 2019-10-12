@@ -76,6 +76,7 @@ You can also find inspiration into Junit tests.
 	* YAML format (default)
 	* XML format
 	* Properties format
+* Automatically synchronize database with other peers, when it is altered into one of these peers. Moreover resynchronisation is done automatically when two peers become connected after a long time.
 
 All described features are tested and considered as stable.
 
