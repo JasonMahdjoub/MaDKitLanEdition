@@ -40,16 +40,15 @@ package com.distrimind.madkit.kernel.network;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 import com.distrimind.madkit.kernel.AbstractGroup;
 import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.MadkitEventListener;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.connection.access.*;
+import com.distrimind.util.DecentralizedIDGenerator;
+import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.crypto.*;
 
 
@@ -302,8 +301,18 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 				return distantCloudIdentifier;
 			}
 
+			@Override
+			public DecentralizedValue getDecentralizedDatabaseID(Identifier identifier) {
+				synchronized (databaseIdentifiers) {
+					DecentralizedIDGenerator res=databaseIdentifiers.get(identifier);
+					if (res==null)
+						databaseIdentifiers.put(identifier, res=new DecentralizedIDGenerator());
+					return res;
+				}
+			}
 		};
 	}
+	private static HashMap<Identifier, DecentralizedIDGenerator> databaseIdentifiers=new HashMap<>();
 
 	public static ArrayList<AccessDataMKEventListener> getAccessDataMKEventListenerForPeerToPeerConnections(
 			final boolean canTakeLoginInitiative, final Runnable invalidPassord,final Runnable invalidCloudIdentifier, HostIdentifier hostIdentifier,
