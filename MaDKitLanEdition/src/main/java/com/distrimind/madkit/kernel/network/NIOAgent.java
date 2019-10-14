@@ -1887,7 +1887,8 @@ final class NIOAgent extends Agent {
 					return;
 				} else if (firstReceivedData.isComplete()) {
 					try {
-						if (firstReceivedData.getDatagramLocalNetworkPresenceMessage().isCompatibleWith(getMadkitConfig().projectVersion, getMadkitConfig().madkitVersion,
+						DatagramLocalNetworkPresenceMessage dm=firstReceivedData.getDatagramLocalNetworkPresenceMessage();
+						if (dm.isCompatibleWith(getMadkitConfig().projectVersion, getMadkitConfig().madkitVersion,
 								getMadkitConfig().minimumProjectVersion, getMadkitConfig().minimumMadkitVersion,
 								getKernelAddress())) {
 							ByteBuffer bb = firstReceivedData.getUnusedReceivedData();

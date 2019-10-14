@@ -4131,7 +4131,7 @@ class MadkitKernel extends Agent {
 			throw new NullPointerException();
 		if (packages==null)
 			throw new NullPointerException();
-		if (!sendInternalDatabaseSynchronizerEvent(new InternalDatabaseSynchronizerEvent(InternalDatabaseSynchronizerEventType.ASSOCIATE_DISTANT_DATABASE_HOST, localDatabaseHostID, packages)))
+		if (!sendInternalDatabaseSynchronizerEvent(new InternalDatabaseSynchronizerEvent(InternalDatabaseSynchronizerEventType.SET_LOCAL_IDENTIFIER, localDatabaseHostID, packages)))
 			getMadkitConfig().setLocalDatabaseHostID(localDatabaseHostID, packages);
 	}
 

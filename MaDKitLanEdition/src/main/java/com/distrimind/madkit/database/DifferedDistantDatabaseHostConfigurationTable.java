@@ -79,11 +79,12 @@ public final class DifferedDistantDatabaseHostConfigurationTable extends Table<D
 			this.hostIdentifier = hostIdentifier;
 			this.conflictualRecordsReplacedByDistantRecords = conflictualRecordsReplacedByDistantRecords;
 			RandomByteArrayOutputStream baos=new RandomByteArrayOutputStream();
-			baos.writeUnsignedShort(packages.length);
+			baos.writeUnsignedShortInt(packages.length);
 			for (Package p : packages)
 			{
 				baos.writeString(p.getName(), false, Short.MAX_VALUE);
 			}
+			baos.flush();
 			this.packages = baos.getBytes();
 			this._packages=packages;
 		}

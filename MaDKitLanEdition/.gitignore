@@ -255,3 +255,4 @@ hs_err_pid*
 /testaccessasker*
 /testaccessreceiver*
 /tmpfortest*
+/tmpDatabaseFile*

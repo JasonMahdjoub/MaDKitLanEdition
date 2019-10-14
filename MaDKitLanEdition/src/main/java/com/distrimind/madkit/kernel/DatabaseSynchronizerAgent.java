@@ -112,6 +112,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 	@Override
 	protected void activate() throws InterruptedException {
+		setLogLevel(getMadkitConfig().networkProperties.networkLogLevel);
 		if (logger!=null && logger.isLoggable(Level.INFO))
 			logger.info("Launch data synchronizer");
 		this.requestRole(LocalCommunity.Groups.DATABASE, LocalCommunity.Roles.DATABASE_SYNCHRONIZER_LISTENER);
@@ -181,7 +182,11 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 	private DecentralizedValue getDistantPeerID(KernelAddress distantKernelAddress, Group group, String role)
 	{
-		if (CloudCommunity.Groups.DISTRIBUTED_DATABASE.equals(group.getParent()) && role.equals(CloudCommunity.Roles.SYNCHRONIZER)) {
+		String path=group.getPath();
+		path=path.substring(0, path.length()-1);
+		path=path.substring(0, path.lastIndexOf("/")+1);
+		if (CloudCommunity.Groups.DISTRIBUTED_DATABASE.getPath().equals(path)
+				&& role.equals(CloudCommunity.Roles.SYNCHRONIZER)) {
 			DecentralizedValue res = distantGroupIdsPerGroup.get(group);
 			if (res == null) {
 				if (distantKernelAddress != null)
@@ -206,6 +211,8 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 		if (_message instanceof OrganizationEvent)
 		{
 			AgentAddress aa=((OrganizationEvent) _message).getSourceAgent();
+			if (aa.getAgent()==this)
+				return;
 			DecentralizedValue peerID=getDistantPeerID(aa);
 			if (peerID!=null) {
 
@@ -328,8 +335,12 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 					boolean conflictualRecordsReplacedByDistantRecords = (boolean) e.parameters[1];
 					Package[] packages = (Package[]) e.parameters[2];
 
-					Group group = getDistantGroupID(hostIdentifier);
-					if (group!=null) {
+
+					if (hostIdentifier!=null) {
+						Group group = getDistantGroupID(hostIdentifier);
+						if (group==null) {
+							group = CloudCommunity.Groups.getDistributedDatabaseGroup(localHostIDString, hostIdentifier);
+						}
 						addDistantGroupID(group, hostIdentifier);
 						AgentAddress aa = getAgentWithRole(group, CloudCommunity.Roles.SYNCHRONIZER);
 						if (aa == null) {
@@ -371,6 +382,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 																 boolean conflictualRecordsReplacedByDistantRecords, Package... packages) {
 		try {
 			HookAddRequest request=synchronizer.askForHookAddingAndSynchronizeDatabase(hostIdentifier, conflictualRecordsReplacedByDistantRecords, packages);
+
 			if (!sendMessageWithRole(group, CloudCommunity.Roles.SYNCHRONIZER, new NetworkObjectMessage<>(request), CloudCommunity.Roles.SYNCHRONIZER).equals(ReturnCode.SUCCESS)) {
 				getLogger().warning("Impossible to send message to host " + request);
 				synchronizer.disconnectHook(hostIdentifier);
@@ -389,9 +401,11 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			DifferedDistantDatabaseHostConfigurationTable.Record r=table.getDifferedDistantDatabaseHostConfiguration(hostIdentifier);
 			if (r!=null)
 			{
-				table.removeRecord(r);
-				Group group=getDistantGroupID(hostIdentifier);
-				askForHookAddingAndSynchronizeDatabase(group, r.getHostIdentifier(), r.isConflictualRecordsReplacedByDistantRecords(), r.getPackages());
+				Group group=getDistantGroupID( hostIdentifier);
+				if (group!=null) {
+					table.removeRecord(r);
+					askForHookAddingAndSynchronizeDatabase(group, r.getHostIdentifier(), r.isConflictualRecordsReplacedByDistantRecords(), r.getPackages());
+				}
 			}
 		} catch (DatabaseException | IOException e) {
 			getLogger().severeLog("Unable check database event :CONFIGURE_DISTANT_DATABASE_HOST", e);

@@ -89,7 +89,7 @@ public final class NetworkAgent extends AgentFakeThread {
 		// setLogLevel(Level.INFO);
 		requestRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.NET_AGENT);
 		requestRole(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS, LocalCommunity.Roles.NET_AGENT);
-		requestRole(LocalCommunity.Groups.AGENTS_SOCKET_GROUPS, LocalCommunity.Roles.NET_AGENT);
+
 		requestRole(LocalCommunity.Groups.DATABASE, LocalCommunity.Roles.NET_AGENT);
 		/*
 		 * kernelAgent = getAgentWithRole(Groups.NETWORK,
@@ -109,7 +109,7 @@ public final class NetworkAgent extends AgentFakeThread {
 
 	private void launchDatabaseSynchronizerAgent() {
 		try {
-			if (databaseSynchronizerAgent!=null && getMadkitConfig().getDatabaseWrapper()!=null && getMadkitConfig()
+			if (databaseSynchronizerAgent==null && getMadkitConfig().getDatabaseWrapper()!=null && getMadkitConfig()
 					.getDatabaseWrapper()
 					.getSynchronizer()
 					.getLocalHostID()!=null)
@@ -336,10 +336,11 @@ public final class NetworkAgent extends AgentFakeThread {
 								case SET_LOCAL_IDENTIFIER:
 
 									if (dw != null){
-										if (dw.getSynchronizer().getLocalHostID()==null) {
+										if (dw.getSynchronizer().getLocalHostID()!=null) {
 											updateGroupAccess=true;
-											stopDatabaseSynchronizerAgent();
 										}
+										else
+											stopDatabaseSynchronizerAgent();
 									}
 									getMadkitConfig().setLocalDatabaseHostID((DecentralizedValue) e.parameters[0], (Package[])e.parameters[1]);
 									launchDatabaseSynchronizerAgent();
@@ -382,8 +383,11 @@ public final class NetworkAgent extends AgentFakeThread {
 							}
 							if (updateGroupAccess)
 							{
-								broadcastMessageWithRole(LocalCommunity.Groups.AGENTS_SOCKET_GROUPS,
-										Roles.SOCKET_AGENT_ROLE, new ObjectMessage<>(REFRESH_GROUPS_ACCESS), Roles.NET_AGENT);
+								ReturnCode rc;
+								if (!(rc=broadcastMessageWithRole(LocalCommunity.Groups.NETWORK,
+										Roles.SOCKET_AGENT_ROLE, new ObjectMessage<>(REFRESH_GROUPS_ACCESS), Roles.NET_AGENT)).equals(ReturnCode.SUCCESS))
+									if (logger!=null && logger.isLoggable(Level.WARNING))
+										logger.warning("Impossible to broadcast group rights update order : "+rc);
 							}
 						} catch (DatabaseException | IOException ex) {
 							getLogger().severeLog("Unable to apply database event "+e.type, ex);
