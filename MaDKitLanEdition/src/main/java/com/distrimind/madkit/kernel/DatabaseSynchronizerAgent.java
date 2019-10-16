@@ -112,8 +112,8 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 	@Override
 	protected void activate() throws InterruptedException {
-		//setLogLevel(getMadkitConfig().networkProperties.networkLogLevel);
-		setLogLevel(Level.FINEST);
+		setLogLevel(getMadkitConfig().networkProperties.networkLogLevel);
+		//setLogLevel(Level.FINEST);
 		if (logger!=null && logger.isLoggable(Level.INFO))
 			logger.info("Launch database synchronizer");
 		this.requestRole(LocalCommunity.Groups.DATABASE, LocalCommunity.Roles.DATABASE_SYNCHRONIZER_LISTENER);

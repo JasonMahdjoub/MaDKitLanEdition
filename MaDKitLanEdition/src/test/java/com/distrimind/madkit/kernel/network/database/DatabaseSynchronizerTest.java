@@ -230,6 +230,7 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 					return;
 				}
 				Table1 table=wrapper.getTableInstance(Table1.class);
+				System.out.println("add records");
 				int total=0;
 				while(total<myListToAdd.size())
 				{
@@ -239,6 +240,7 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 					{
 						table.addRecord(myListToAdd.get(j));
 					}
+					total+=nb;
 					sleep(1000);
 				}
 				if (checkDistantRecords(this, table, otherListToAdd, finished))
@@ -246,6 +248,7 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 					return;
 				}
 				total=0;
+				System.out.println("update records");
 				while(total<myListToAdd.size())
 				{
 					nb=(int)(Math.random()*(myListToAdd.size()-total)+1);
@@ -275,6 +278,7 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 		}
 	}
 	private static boolean checkDistantRecords(AbstractAgent agent, Table1 table, ArrayList<Table1.Record> otherListToAdd, AtomicReference<Boolean> finished) throws DatabaseException, InterruptedException {
+		System.out.println("check synchronization");
 		ArrayList<Table1.Record> l=new ArrayList<>(otherListToAdd);
 		int nb=0;
 		do {
