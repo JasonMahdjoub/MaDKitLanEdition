@@ -112,9 +112,10 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 	@Override
 	protected void activate() throws InterruptedException {
-		setLogLevel(getMadkitConfig().networkProperties.networkLogLevel);
+		//setLogLevel(getMadkitConfig().networkProperties.networkLogLevel);
+		setLogLevel(Level.FINEST);
 		if (logger!=null && logger.isLoggable(Level.INFO))
-			logger.info("Launch data synchronizer");
+			logger.info("Launch database synchronizer");
 		this.requestRole(LocalCommunity.Groups.DATABASE, LocalCommunity.Roles.DATABASE_SYNCHRONIZER_LISTENER);
 
 
@@ -221,7 +222,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 						if (synchronizer.isPairedWith(peerID)) {
 							if (logger!=null && logger.isLoggable(Level.FINE))
-								logger.info("Connection initialization with peer : "+peerID);
+								logger.fine("Connection initialization with peer : "+peerID);
 
 							sendMessageWithRole(aa, new DatabaseConnectionInitializationMessage(synchronizer.getLastValidatedSynchronization(localHostID)), CloudCommunity.Roles.SYNCHRONIZER);
 						}
@@ -239,7 +240,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 					try {
 						if (synchronizer.isInitialized(peerID)) {
 							if (logger!=null && logger.isLoggable(Level.FINE))
-								logger.info("Disconnect peer : "+peerID);
+								logger.fine("Disconnect peer : "+peerID);
 
 							synchronizer.disconnectHook(peerID);
 						}
@@ -259,7 +260,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 					synchronizer.initHook(peerID, ((DatabaseConnectionInitializationMessage) _message).getContent());
 					if (logger!=null && logger.isLoggable(Level.FINE))
-						logger.info("Connection initialization with peer : "+peerID+" FINISHED");
+						logger.fine("Connection initialization with peer : "+peerID+" FINISHED");
 					checkDifferedDistantDatabaseHostConfiguration(peerID);
 				} catch (DatabaseException e) {
 					if (!_message.getSender().isFrom(getKernelAddress()))
@@ -284,7 +285,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 					try {
 						DecentralizedValue dest=es.getHostDestination();
 						if (logger!=null && logger.isLoggable(Level.FINEST))
-							logger.info("Send event "+es.getClass()+" to peer "+dest);
+							logger.finest("Send event "+es.getClass()+" to peer "+dest);
 
 						if (!sendMessageWithRole(this.getDistantGroupID(dest), CloudCommunity.Roles.SYNCHRONIZER, new NetworkObjectMessage<>(es), CloudCommunity.Roles.SYNCHRONIZER).equals(ReturnCode.SUCCESS)) {
 							getLogger().warning("Impossible to send message to host " + dest);
@@ -306,17 +307,32 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 				try {
 					DecentralizedValue source = e.getHostSource();
 					if (source != null && source.equals(peerID)) {
-						if ((e instanceof HookAddRequest) || synchronizer.isInitialized(source)) {
+						if (e instanceof HookAddRequest)
+						{
+							generateError = false;
+							HookAddRequest rep=synchronizer.receivedHookAddRequest((HookAddRequest)e);
+							if (rep!=null)
+								sendReply(_message, new NetworkObjectMessage<>(rep));
+							else {
+
+								sendMessageWithRole(getDistantGroupID(peerID), CloudCommunity.Roles.SYNCHRONIZER, new DatabaseConnectionInitializationMessage(synchronizer.getLastValidatedSynchronization(localHostID)), CloudCommunity.Roles.SYNCHRONIZER);
+							}
+
+						}
+						else if (synchronizer.isInitialized(source)) {
 							generateError = false;
 							synchronizer.received(e);
-							if (logger!=null && logger.isLoggable(Level.FINEST))
-								logger.info("Event "+e.getClass()+" received from peer "+peerID);
 
+						}
+						if (!generateError) {
+							if (logger != null && logger.isLoggable(Level.FINEST))
+								logger.finest("Event " + e.getClass() + " received from peer " + peerID);
+							receiveMessage(checkEvents);
 						}
 					}
 				} catch (DatabaseException ex) {
 					getLogger().severeLog("Unexpected exception", ex);
-					anomalyDetectedWithOneDistantKernel(false, _message.getSender().getKernelAddress(), "Invalided message received from " + _message.getSender());
+					anomalyDetectedWithOneDistantKernel(false, _message.getSender().getKernelAddress(), "Invalid message received from " + _message.getSender());
 				}
 			}
 			if (generateError) {
@@ -361,7 +377,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 					Package[] packages = (Package[]) e.parameters[1];
 					if (synchronizer.isInitialized(hostIdentifier)) {
 						if (logger!=null && logger.isLoggable(Level.FINE))
-							logger.info("Disconnect peer : "+hostIdentifier);
+							logger.fine("Disconnect peer : "+hostIdentifier);
 
 						synchronizer.disconnectHook(hostIdentifier);
 

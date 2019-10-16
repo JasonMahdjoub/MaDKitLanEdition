@@ -48,4 +48,9 @@ public class DatabaseConnectionInitializationMessage extends NetworkObjectMessag
 	public DatabaseConnectionInitializationMessage(Long content) {
 		super(content);
 	}
+	@SuppressWarnings("unused")
+	DatabaseConnectionInitializationMessage() {
+		super(null);
+	}
+
 }

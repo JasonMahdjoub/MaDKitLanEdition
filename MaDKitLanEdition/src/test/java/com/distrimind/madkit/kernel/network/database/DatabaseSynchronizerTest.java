@@ -191,10 +191,10 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 		@Override
 		protected void liveCycle() {
 			try {
-				sleep(1500);
+				sleep(1900);
 				DatabaseWrapper wrapper=getMadkitConfig().getDatabaseWrapper();
 				Assert.assertNotNull(wrapper);
-				wrapper.loadDatabase(new DatabaseConfiguration(DatabaseSynchronizerAgent.class.getPackage()), true);
+				wrapper.loadDatabase(new DatabaseConfiguration(Table1.class.getPackage()), true);
 				Assert.assertNull(getMadkitConfig().getLocalDatabaseHostIDString());
 				setIfNotPresentLocalDatabaseHostIdentifier(localIdentifier, Table1.class.getPackage());
 				sleep(100);
@@ -203,6 +203,7 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 				addOrConfigureDistantDatabaseHost(localIdentifierOtherSide, true, Table1.class.getPackage());
 				sleep(100);
 				Assert.assertTrue(wrapper.getSynchronizer().isInitialized());
+				System.out.println("check paired");
 				int nb=0;
 				do {
 					if (wrapper.getSynchronizer().isPairedWith(localIdentifierOtherSide))
@@ -215,6 +216,7 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 					finished.set(false);
 					return;
 				}
+				System.out.println("check pair connected");
 				nb=0;
 				do {
 					if (wrapper.getSynchronizer().isInitialized(localIdentifierOtherSide))
@@ -331,7 +333,7 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 				sleep(1500);
 				DatabaseWrapper wrapper=getMadkitConfig().getDatabaseWrapper();
 				Assert.assertNotNull(wrapper);
-				wrapper.loadDatabase(new DatabaseConfiguration(DatabaseSynchronizerAgent.class.getPackage()), true);
+				wrapper.loadDatabase(new DatabaseConfiguration(Table1.class.getPackage()), true);
 				Assert.assertNotNull(getMadkitConfig().getLocalDatabaseHostIDString());
 				Assert.assertEquals(wrapper.getSynchronizer().getLocalHostID(), localIdentifier);
 				Assert.assertTrue(wrapper.getSynchronizer().isPairedWith(localIdentifierOtherSide));
@@ -401,7 +403,7 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 				sleep(1500);
 				DatabaseWrapper wrapper=getMadkitConfig().getDatabaseWrapper();
 				Assert.assertNotNull(wrapper);
-				wrapper.loadDatabase(new DatabaseConfiguration(DatabaseSynchronizerAgent.class.getPackage()), true);
+				wrapper.loadDatabase(new DatabaseConfiguration(Table1.class.getPackage()), true);
 				Assert.assertNull(getMadkitConfig().getLocalDatabaseHostIDString());
 				finished.set(true);
 			} catch (DatabaseException e) {
@@ -436,7 +438,7 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 				ArrayList<Table1.Record> recordsToAddOtherSide=getRecordsToAdd();
 				AbstractAgent agentChecker=new DatabaseAgent(localIdentifier, localIdentifierOtherSide, recordsToAdd, recordsToAddOtherSide, finished1);
 				launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentChecker, eventListener1);
-				sleep(400);
+				sleep(600);
 				AbstractAgent agentCheckerOtherSide=new DatabaseAgent(localIdentifierOtherSide, localIdentifier, recordsToAddOtherSide, recordsToAdd, finished2);
 				launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentCheckerOtherSide, eventListener2);
 

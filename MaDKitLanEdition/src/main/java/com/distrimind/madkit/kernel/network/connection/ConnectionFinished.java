@@ -79,7 +79,7 @@ public class ConnectionFinished extends ConnectionMessage {
 		}
 		catch(Exception e)
 		{
-			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, e);
 		}
 	}
 
