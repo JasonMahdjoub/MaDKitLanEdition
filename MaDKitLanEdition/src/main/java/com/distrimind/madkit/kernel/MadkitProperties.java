@@ -52,6 +52,7 @@ import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.ood.database.Table;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedValue;
+import com.distrimind.util.FileTools;
 import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.crypto.SecureRandomType;
 import com.distrimind.util.properties.MultiFormatProperties;
@@ -321,6 +322,50 @@ public class MadkitProperties extends MultiFormatProperties {
 		if (databaseFactory == null)
 			return null;
 		return databaseFactory.getDatabaseWrapperSingleton();
+	}
+	private transient long databaseSynchronisationFileID=0;
+
+	private transient File temporaryDatabaseDirectoryUsedForSynchronisation=null;
+
+	void resetTemporaryDatabaseDirectoryUsedForSynchronisation() throws DatabaseException {
+		synchronized (this)
+		{
+			DatabaseWrapper dw=getDatabaseWrapper();
+			if (dw!=null) {
+				temporaryDatabaseDirectoryUsedForSynchronisation = new File(.getDatabaseDirectory(), "sync_dir");
+				if (temporaryDatabaseDirectoryUsedForSynchronisation.exists())
+					FileTools.deleteDirectory(temporaryDatabaseDirectoryUsedForSynchronisation);
+			}
+			temporaryDatabaseDirectoryUsedForSynchronisation=null;
+			databaseSynchronisationFileID=0;
+		}
+	}
+
+	File getTemporaryDatabaseDirectoryUsedForSynchronisation() throws DatabaseException {
+		synchronized (this)
+		{
+			if (temporaryDatabaseDirectoryUsedForSynchronisation==null)
+			{
+				temporaryDatabaseDirectoryUsedForSynchronisation=new File(getDatabaseWrapper().getDatabaseDirectory(), "sync_dir");
+				if (!temporaryDatabaseDirectoryUsedForSynchronisation.exists())
+					//noinspection ResultOfMethodCallIgnored
+					temporaryDatabaseDirectoryUsedForSynchronisation.mkdir();
+				if (!temporaryDatabaseDirectoryUsedForSynchronisation.isDirectory())
+					throw new DatabaseException("File "+temporaryDatabaseDirectoryUsedForSynchronisation+" should be a directory");
+			}
+			return temporaryDatabaseDirectoryUsedForSynchronisation;
+		}
+
+	}
+
+	File getDatabaseSynchronisationFileName() throws DatabaseException {
+		synchronized (this)
+		{
+			File f;
+			//noinspection StatementWithEmptyBody
+			while ((f=new File(getTemporaryDatabaseDirectoryUsedForSynchronisation(), "cache"+databaseSynchronisationFileID++)).exists());
+			return f;
+		}
 	}
 
 	private transient volatile String localDatabaseHostIDString=null;

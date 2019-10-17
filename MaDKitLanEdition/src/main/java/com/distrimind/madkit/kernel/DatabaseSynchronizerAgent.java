@@ -59,6 +59,8 @@ import java.util.logging.Level;
 public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 
+
+
 	private DecentralizedValue localHostID;
 	private String localHostIDString;
 	private DatabaseWrapper.DatabaseSynchronizer synchronizer;
@@ -291,6 +293,8 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 							getLogger().warning("Impossible to send message to host " + dest);
 							synchronizer.disconnectHook(dest);
 						}
+						else
+							System.out.println("send : "+e);
 
 					} catch (DatabaseException ex) {
 						getLogger().severeLog("Unexpected exception", ex);
@@ -306,6 +310,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 				DatabaseEventToSend e = (DatabaseEventToSend) ((NetworkObjectMessage) _message).getContent();
 				try {
 					DecentralizedValue source = e.getHostSource();
+
 					if (source != null && source.equals(peerID)) {
 						if (e instanceof HookAddRequest)
 						{
@@ -319,8 +324,10 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 							}
 
 						}
-						else if (synchronizer.isInitialized(source)) {
+						else if (synchronizer.isInitialized(peerID)) {
 							generateError = false;
+							if (e instanceof DatabaseWrapper.DatabaseEventsToSynchronize)
+								System.out.println("receive : "+e.);
 							synchronizer.received(e);
 
 						}

@@ -356,6 +356,7 @@ class MadkitKernel extends Agent {
 				madkitConfig.getDatabaseWrapper().loadDatabase(new DatabaseConfiguration(IPBanned.class.getPackage()),
 						true);
 				differedMessageTable= madkitConfig.getDatabaseWrapper().getTableInstance(DifferedMessageTable.class);
+				madkitConfig.resetTemporaryDatabaseDirectoryUsedForSynchronisation();
 			} catch (DatabaseException e) {
 				bugReport(e);
 				try {
@@ -3213,6 +3214,7 @@ class MadkitKernel extends Agent {
 			this.serviceExecutor = null;
 		}
 		try {
+			getMadkitConfig().resetTemporaryDatabaseDirectoryUsedForSynchronisation();
 			getMadkitConfig().setDatabaseFactory(null);
 		} catch (DatabaseException e) {
 			e.printStackTrace();
