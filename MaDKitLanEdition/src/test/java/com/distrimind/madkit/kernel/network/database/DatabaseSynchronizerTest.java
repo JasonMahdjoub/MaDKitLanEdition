@@ -259,6 +259,7 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 						r.setValue("value"+Math.random());
 						table.updateRecord(r);
 					}
+					total+=nb;
 					sleep(1000);
 				}
 				if (checkDistantRecords(this, table, otherListToAdd, finished))
