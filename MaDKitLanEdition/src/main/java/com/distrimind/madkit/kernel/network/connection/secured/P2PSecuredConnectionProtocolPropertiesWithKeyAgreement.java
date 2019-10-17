@@ -55,15 +55,15 @@ import java.security.spec.InvalidKeySpecException;
  * @version 2.0
  * @since MadkitLanEdition 1.7
  */
-public class P2PSecuredConnectionProtocolWithKeyAgreementProperties extends ConnectionProtocolProperties<P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm> {
+public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends ConnectionProtocolProperties<P2PSecuredConnectionProtocolWithKeyAgreement> {
 	
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -616754777676015639L;
 
-	public P2PSecuredConnectionProtocolWithKeyAgreementProperties() {
-		super(P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm.class);
+	public P2PSecuredConnectionProtocolPropertiesWithKeyAgreement() {
+		super(P2PSecuredConnectionProtocolWithKeyAgreement.class);
 	}
 
 	/**

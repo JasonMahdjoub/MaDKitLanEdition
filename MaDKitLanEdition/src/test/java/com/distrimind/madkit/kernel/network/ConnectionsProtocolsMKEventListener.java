@@ -43,7 +43,7 @@ import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolNegotiatorProperties;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
 import com.distrimind.madkit.kernel.network.connection.secured.ClientSecuredProtocolPropertiesWithKnownPublicKey;
-import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolWithKeyAgreementProperties;
+import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolPropertiesWithKeyAgreement;
 import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties;
 import com.distrimind.madkit.kernel.network.connection.secured.ServerSecuredProtocolPropertiesWithKnownPublicKey;
 import com.distrimind.madkit.kernel.network.connection.unsecured.CheckSumConnectionProtocolProperties;
@@ -99,16 +99,16 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 	public static ArrayList<ConnectionsProtocolsMKEventListener> getConnectionsProtocolsMKEventListenerForPeerToPeerConnections(
 			boolean isServer) {
 		ArrayList<ConnectionsProtocolsMKEventListener> res = new ArrayList<>();
-		P2PSecuredConnectionProtocolWithKeyAgreementProperties p2p_ecdh = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+		P2PSecuredConnectionProtocolPropertiesWithKeyAgreement p2p_ecdh = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 		p2p_ecdh.isServer = isServer;
 		res.add(new ConnectionsProtocolsMKEventListener(p2p_ecdh));
 		UnsecuredConnectionProtocolProperties ucpp = new UnsecuredConnectionProtocolProperties();
 		ucpp.isServer = isServer;
-		p2p_ecdh = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+		p2p_ecdh = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 		p2p_ecdh.isServer = isServer;
 		ucpp.subProtocolProperties = p2p_ecdh;
 		res.add(new ConnectionsProtocolsMKEventListener(ucpp));
-		p2p_ecdh = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+		p2p_ecdh = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 		p2p_ecdh.isServer = isServer;
 		ucpp = new UnsecuredConnectionProtocolProperties();
 		ucpp.isServer = isServer;
@@ -148,7 +148,7 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 
 		encryptionProfileIdentifier = s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.DEFAULT, ASymmetricKeyWrapperType.DEFAULT);
 		if (includeP2PConnectionPossibilityForClients) {
-			P2PSecuredConnectionProtocolWithKeyAgreementProperties p2p = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+			P2PSecuredConnectionProtocolPropertiesWithKeyAgreement p2p = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 			p2p.isServer = true;
 			res.add(new ConnectionsProtocolsMKEventListener(s, p2p));
 		} else
@@ -160,7 +160,7 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 		cpp.subProtocolProperties = s;
 		if (includeP2PConnectionPossibilityForClients) {
 			ConnectionProtocolProperties<?> cpp2 = new UnsecuredConnectionProtocolProperties();
-            cpp2.subProtocolProperties = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+            cpp2.subProtocolProperties = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 			res.add(new ConnectionsProtocolsMKEventListener(cpp, cpp2));
 		} else
 			res.add(new ConnectionsProtocolsMKEventListener(cpp));
@@ -191,11 +191,11 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 
 		if (includeP2PConnectionPossibilityForClients) {
 			ConnectionProtocolNegotiatorProperties cpnp2=new ConnectionProtocolNegotiatorProperties();
-			P2PSecuredConnectionProtocolWithKeyAgreementProperties cpp2=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+			P2PSecuredConnectionProtocolPropertiesWithKeyAgreement cpp2=new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 			cpp2.symmetricEncryptionType=SymmetricEncryptionType.AES_GCM;
             cpp2.isServer=true;
 			cpnp2.addConnectionProtocol(cpp2, 0);
-			cpp2=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+			cpp2=new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 			cpp2.symmetricEncryptionType=SymmetricEncryptionType.AES_CTR;
             cpp2.isServer=true;
 			cpnp2.addConnectionProtocol(cpp2, 1);
@@ -219,7 +219,7 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 		ClientSecuredProtocolPropertiesWithKnownPublicKey c = new ClientSecuredProtocolPropertiesWithKnownPublicKey();
 		c.setEncryptionProfile(encryptionProfileIdentifier, getKeyPairForSignature().getASymmetricPublicKey(), SymmetricEncryptionType.DEFAULT,ASymmetricKeyWrapperType.DEFAULT);
 		if (includeP2PConnectionPossibilityForClients) {
-			P2PSecuredConnectionProtocolWithKeyAgreementProperties p2p = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+			P2PSecuredConnectionProtocolPropertiesWithKeyAgreement p2p = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 			p2p.isServer = false;
 			res.add(new ConnectionsProtocolsMKEventListener(c, p2p));
 		} else
@@ -233,7 +233,7 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 		if (includeP2PConnectionPossibilityForClients) {
 			UnsecuredConnectionProtocolProperties cpp2 = new UnsecuredConnectionProtocolProperties();
 			cpp2.isServer = false;
-			P2PSecuredConnectionProtocolWithKeyAgreementProperties p2p = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+			P2PSecuredConnectionProtocolPropertiesWithKeyAgreement p2p = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 			p2p.isServer = false;
 			cpp2.subProtocolProperties = p2p;
 			res.add(new ConnectionsProtocolsMKEventListener(cpp, cpp2));
@@ -265,11 +265,11 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 
 		if (includeP2PConnectionPossibilityForClients) {
 			ConnectionProtocolNegotiatorProperties cpnp2=new ConnectionProtocolNegotiatorProperties();
-			P2PSecuredConnectionProtocolWithKeyAgreementProperties cpp2=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+			P2PSecuredConnectionProtocolPropertiesWithKeyAgreement cpp2=new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 			cpp2.isServer=false;
 			cpp2.symmetricEncryptionType=SymmetricEncryptionType.AES_GCM;
 			cpnp2.addConnectionProtocol(cpp2, 0);
-			cpp2=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+			cpp2=new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 			cpp2.symmetricEncryptionType=SymmetricEncryptionType.AES_CTR;
             cpp2.isServer=false;
 			cpnp2.addConnectionProtocol(cpp2, 1);

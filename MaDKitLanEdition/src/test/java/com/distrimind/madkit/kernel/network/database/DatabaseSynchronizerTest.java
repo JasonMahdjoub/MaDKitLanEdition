@@ -41,7 +41,7 @@ import com.distrimind.madkit.kernel.network.connection.access.AbstractAccessProt
 import com.distrimind.madkit.kernel.network.connection.access.AccessProtocolWithP2PAgreementProperties;
 import com.distrimind.madkit.kernel.network.connection.access.IdentifierPassword;
 import com.distrimind.madkit.kernel.network.connection.access.LoginData;
-import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolWithKeyAgreementProperties;
+import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolPropertiesWithKeyAgreement;
 import com.distrimind.ood.database.DatabaseConfiguration;
 import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.ood.database.exceptions.DatabaseException;
@@ -87,7 +87,7 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 	}
 
 	public DatabaseSynchronizerTest() throws UnknownHostException {
-		P2PSecuredConnectionProtocolWithKeyAgreementProperties p2pprotocol=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+		P2PSecuredConnectionProtocolPropertiesWithKeyAgreement p2pprotocol=new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 		p2pprotocol.isServer = true;
 		p2pprotocol.symmetricEncryptionType= SymmetricEncryptionType.AES_CTR;
 		p2pprotocol.symmetricSignatureType= SymmetricAuthentifiedSignatureType.HMAC_SHA2_256;
@@ -134,7 +134,7 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 			}
 		};
 
-		P2PSecuredConnectionProtocolWithKeyAgreementProperties u = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+		P2PSecuredConnectionProtocolPropertiesWithKeyAgreement u = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 		u.isServer = false;
 		u.symmetricEncryptionType=SymmetricEncryptionType.AES_CTR;
 		u.symmetricSignatureType= SymmetricAuthentifiedSignatureType.HMAC_SHA2_256;

@@ -64,7 +64,7 @@ import java.util.Arrays;
  * @version 2.1
  * @since MadkitLanEdition 1.7
  */
-public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends ConnectionProtocol<P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm> {
+public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProtocol<P2PSecuredConnectionProtocolWithKeyAgreement> {
 	
 	private static final int MATERIAL_KEY_SIZE_BYTES=64;
 	Step current_step = Step.NOT_CONNECTED;
@@ -80,7 +80,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 	private final SubBlockParser parser;
 
 	
-	private final P2PSecuredConnectionProtocolWithKeyAgreementProperties hproperties;
+	private final P2PSecuredConnectionProtocolPropertiesWithKeyAgreement hproperties;
 	private final AbstractSecureRandom approvedRandom, approvedRandomForKeys;
 	private boolean blockCheckerChanged = true;
 	private byte[] materialKeyForSignature=null, materialKeyForEncryption=null;
@@ -88,13 +88,13 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 	private boolean reinitSymmetricAlgorithm=true;
 	private boolean myCounterSent=false;
 	private boolean doNotTakeIntoAccountNextState=true;
-	private P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm(InetSocketAddress _distant_inet_address,
-			InetSocketAddress _local_interface_address, ConnectionProtocol<?> _subProtocol,
-			DatabaseWrapper sql_connection, MadkitProperties mkProperties, ConnectionProtocolProperties<?> cpp, int subProtocolLevel, boolean isServer,
-			boolean mustSupportBidirectionnalConnectionInitiative) throws ConnectionException {
+	private P2PSecuredConnectionProtocolWithKeyAgreement(InetSocketAddress _distant_inet_address,
+														 InetSocketAddress _local_interface_address, ConnectionProtocol<?> _subProtocol,
+														 DatabaseWrapper sql_connection, MadkitProperties mkProperties, ConnectionProtocolProperties<?> cpp, int subProtocolLevel, boolean isServer,
+														 boolean mustSupportBidirectionnalConnectionInitiative) throws ConnectionException {
 		super(_distant_inet_address, _local_interface_address, _subProtocol, sql_connection, mkProperties,cpp,
 				subProtocolLevel, isServer, mustSupportBidirectionnalConnectionInitiative);
-		hproperties = (P2PSecuredConnectionProtocolWithKeyAgreementProperties) super.connection_protocol_properties;
+		hproperties = (P2PSecuredConnectionProtocolPropertiesWithKeyAgreement) super.connection_protocol_properties;
 		hproperties.checkProperties();
 
 		
@@ -109,7 +109,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 		int sigsize;
 		try {
 
-			SymmetricAuthenticatedSignerAlgorithm signerTmp = new SymmetricAuthenticatedSignerAlgorithm(hproperties.symmetricSignatureType.getKeyGenerator(approvedRandomForKeys, hproperties.symmetricEncryptionType.getDefaultKeySizeBits()).generateKey());
+			SymmetricAuthenticatedSignerAlgorithm signerTmp = new SymmetricAuthenticatedSignerAlgorithm(hproperties.symmetricSignatureType.getKeyGenerator(approvedRandomForKeys, hproperties.symmetricKeySizeBits).generateKey());
 			signerTmp.init();
 			sigsize = signerTmp.getMacLengthBytes();
 			
@@ -774,7 +774,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 
 		@Override
 		public int getSizeHead() {
-			return P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm.this.signature_size_bytes;
+			return P2PSecuredConnectionProtocolWithKeyAgreement.this.signature_size_bytes;
 		}
 
 
@@ -873,7 +873,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm extends Conne
 
 		@Override
 		public int getSizeHead() {
-			return P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm.this.signature_size_bytes;
+			return P2PSecuredConnectionProtocolWithKeyAgreement.this.signature_size_bytes;
 		}
 
 		@Override

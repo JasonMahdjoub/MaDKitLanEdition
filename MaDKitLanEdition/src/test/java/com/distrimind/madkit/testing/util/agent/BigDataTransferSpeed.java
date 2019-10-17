@@ -41,7 +41,7 @@ import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.access.AbstractAccessProtocolProperties;
 import com.distrimind.madkit.kernel.network.connection.access.AccessProtocolWithP2PAgreementProperties;
-import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolWithKeyAgreementProperties;
+import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolPropertiesWithKeyAgreement;
 import com.distrimind.util.crypto.SymmetricAuthentifiedSignatureType;
 import com.distrimind.util.crypto.SymmetricEncryptionType;
 import com.distrimind.util.io.RandomByteArrayInputStream;
@@ -71,7 +71,7 @@ public class BigDataTransferSpeed extends JunitMadkit {
 	public BigDataTransferSpeed(final int downloadLimitInBytesPerSecond, final int uploadLimitInBytesPerSecond) throws UnknownHostException {
         this.downloadLimitInBytesPerSecond=downloadLimitInBytesPerSecond;
         this.uploadLimitInBytesPerSecond=uploadLimitInBytesPerSecond;
-        P2PSecuredConnectionProtocolWithKeyAgreementProperties p2pprotocol=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+        P2PSecuredConnectionProtocolPropertiesWithKeyAgreement p2pprotocol=new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
         p2pprotocol.isServer = true;
         p2pprotocol.symmetricEncryptionType=SymmetricEncryptionType.AES_CTR;
         p2pprotocol.symmetricSignatureType= SymmetricAuthentifiedSignatureType.HMAC_SHA2_256;
@@ -88,7 +88,7 @@ public class BigDataTransferSpeed extends JunitMadkit {
             public void onMadkitPropertiesLoaded(MadkitProperties _properties) {
                 super.onMadkitPropertiesLoaded(_properties);
                 _properties.networkProperties.networkLogLevel = Level.INFO;
-                _properties.networkProperties.maxBufferSize=Short.MAX_VALUE*4;
+                _properties.networkProperties.maxBufferSize=Short.MAX_VALUE*2;
                 _properties.networkProperties.maximumGlobalDownloadSpeedInBytesPerSecond=downloadLimitInBytesPerSecond;
                 _properties.networkProperties.maximumGlobalUploadSpeedInBytesPerSecond=uploadLimitInBytesPerSecond;
 
@@ -120,10 +120,10 @@ public class BigDataTransferSpeed extends JunitMadkit {
 			}
 		};*/
 
-		P2PSecuredConnectionProtocolWithKeyAgreementProperties u = new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
+		P2PSecuredConnectionProtocolPropertiesWithKeyAgreement u = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 		u.isServer = false;
-        u.symmetricEncryptionType=SymmetricEncryptionType.AES_CTR;
-		u.symmetricSignatureType= SymmetricAuthentifiedSignatureType.HMAC_SHA2_256;
+        u.symmetricEncryptionType=p2pprotocol.symmetricEncryptionType;
+		u.symmetricSignatureType= p2pprotocol.symmetricSignatureType;
 
 		app = new AccessProtocolWithP2PAgreementProperties();
 		
@@ -138,7 +138,7 @@ public class BigDataTransferSpeed extends JunitMadkit {
 			public void onMadkitPropertiesLoaded(MadkitProperties _properties) {
 			    super.onMadkitPropertiesLoaded(_properties);
                 _properties.networkProperties.networkLogLevel = Level.INFO;
-                _properties.networkProperties.maxBufferSize=Short.MAX_VALUE*4;
+                _properties.networkProperties.maxBufferSize=Short.MAX_VALUE*2;
 
                 _properties.networkProperties.maximumGlobalDownloadSpeedInBytesPerSecond=downloadLimitInBytesPerSecond;
 				_properties.networkProperties.maximumGlobalUploadSpeedInBytesPerSecond=uploadLimitInBytesPerSecond;
