@@ -356,10 +356,12 @@ public final class NetworkAgent extends AgentFakeThread {
 								case ASSOCIATE_DISTANT_DATABASE_HOST:
 									if (databaseSynchronizerAgent!=null && databaseSynchronizerAgent.isAlive())
 									{
-										if (dw != null && dw.getSynchronizer().getLocalHostID()!=null) {
-											if (!dw.getSynchronizer().isPairedWith((DecentralizedValue) e.parameters[0]))
-												updateGroupAccess=true;
-										}
+										/*if (dw != null && dw.getSynchronizer().getLocalHostID()!=null) {
+											if (!dw.getSynchronizer().isPairedWith((DecentralizedValue) e.parameters[0])) {
+												updateGroupAccess();
+
+											}
+										}*/
 
 										databaseSynchronizerAgent.receiveMessage(m);
 									}
@@ -370,10 +372,10 @@ public final class NetworkAgent extends AgentFakeThread {
 								case DISSOCIATE_DISTANT_DATABASE_HOST:
 									if (databaseSynchronizerAgent!=null && databaseSynchronizerAgent.isAlive())
 									{
-										if (dw != null && dw.getSynchronizer().getLocalHostID()!=null) {
+										/*if (dw != null && dw.getSynchronizer().getLocalHostID()!=null) {
 											if (dw.getSynchronizer().isPairedWith((DecentralizedValue) e.parameters[0]))
 												updateGroupAccess=true;
-										}
+										}*/
 
 										databaseSynchronizerAgent.receiveMessage(m);
 									}
@@ -383,11 +385,7 @@ public final class NetworkAgent extends AgentFakeThread {
 							}
 							if (updateGroupAccess)
 							{
-								ReturnCode rc;
-								if (!(rc=broadcastMessageWithRole(LocalCommunity.Groups.NETWORK,
-										Roles.SOCKET_AGENT_ROLE, new ObjectMessage<>(REFRESH_GROUPS_ACCESS), Roles.NET_AGENT)).equals(ReturnCode.SUCCESS))
-									if (logger!=null && logger.isLoggable(Level.WARNING))
-										logger.warning("Impossible to broadcast group rights update order : "+rc);
+								DatabaseSynchronizerAgent.updateGroupAccess(this);
 							}
 						} catch (DatabaseException | IOException ex) {
 							getLogger().severeLog("Unable to apply database event "+e.type, ex);
@@ -420,6 +418,7 @@ public final class NetworkAgent extends AgentFakeThread {
 			}
 		}
 	}
+
 
 	private void handleNotUnderstoodMessage(Message m) {
 		if (logger != null)

@@ -52,6 +52,8 @@ import com.distrimind.util.crypto.SymmetricAuthentifiedSignatureType;
 import com.distrimind.util.crypto.SymmetricEncryptionType;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.io.File;
 import java.net.Inet4Address;
@@ -70,6 +72,7 @@ import java.util.logging.Level;
  * @version 1.0
  * @since MaDKitLanEdition 2.0.0
  */
+@RunWith(Parameterized.class)
 public class DatabaseSynchronizerTest extends JunitMadkit{
 	final NetworkEventListener eventListener1;
 	final NetworkEventListener eventListener2;
@@ -77,6 +80,11 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 	final DecentralizedValue localIdentifierOtherSide;
 	final LoginData loginData1, loginData2;
 	final File databaseFile1, databaseFile2;
+
+	@Parameterized.Parameters
+	public static Object[][] data() {
+		return new Object[10][0];
+	}
 
 	public DatabaseSynchronizerTest() throws UnknownHostException {
 		P2PSecuredConnectionProtocolWithKeyAgreementProperties p2pprotocol=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
@@ -191,7 +199,7 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 		@Override
 		protected void liveCycle() {
 			try {
-				sleep(1900);
+				sleep(2500);
 				DatabaseWrapper wrapper=getMadkitConfig().getDatabaseWrapper();
 				Assert.assertNotNull(wrapper);
 				wrapper.loadDatabase(new DatabaseConfiguration(Table1.class.getPackage()), true);
@@ -457,80 +465,82 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 		final AtomicReference<Boolean> finished1=new AtomicReference<>(null);
 		final AtomicReference<Boolean> finished2=new AtomicReference<>(null);
 		// addMadkitArgs("--kernelLogLevel",Level.INFO.toString(),"--networkLogLevel",Level.FINEST.toString());
-		launchTest(new AbstractAgent() {
-			@Override
-			protected void end() {
+		try {
+			launchTest(new AbstractAgent() {
+				@Override
+				protected void end() {
 
-			}
-
-			@Override
-			protected void activate() throws InterruptedException {
-
-				ArrayList<Table1.Record> recordsToAdd=getRecordsToAdd();
-				ArrayList<Table1.Record> recordsToAddOtherSide=getRecordsToAdd();
-				AbstractAgent agentChecker=new DatabaseAgent(localIdentifier, localIdentifierOtherSide, recordsToAdd, recordsToAddOtherSide, finished1);
-				launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentChecker, eventListener1);
-				sleep(600);
-				AbstractAgent agentCheckerOtherSide=new DatabaseAgent(localIdentifierOtherSide, localIdentifier, recordsToAddOtherSide, recordsToAdd, finished2);
-				launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentCheckerOtherSide, eventListener2);
-
-				while(finished1.get()==null || finished2.get()==null)
-				{
-
-					sleep(1000);
 				}
 
-				Assert.assertEquals(true, finished1.get());
-				Assert.assertEquals(true, finished2.get());
-				cleanHelperMDKs(this);
-				Assert.assertEquals(getHelperInstances(0).size(), 0);
-				finished1.set(null);
-				finished2.set(null);
-				System.out.println("Second step");
-				agentChecker=new SecondConnexionAgent(localIdentifier, localIdentifierOtherSide, recordsToAdd, recordsToAddOtherSide, finished1);
-				launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentChecker, eventListener1);
-				sleep(400);
-				agentCheckerOtherSide=new SecondConnexionAgent(localIdentifierOtherSide, localIdentifier, recordsToAddOtherSide, recordsToAdd, finished2);
-				launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentCheckerOtherSide, eventListener2);
+				@Override
+				protected void activate() throws InterruptedException {
 
-				while(finished1.get()==null || finished2.get()==null)
-				{
+					ArrayList<Table1.Record> recordsToAdd = getRecordsToAdd();
+					ArrayList<Table1.Record> recordsToAddOtherSide = getRecordsToAdd();
+					AbstractAgent agentChecker = new DatabaseAgent(localIdentifier, localIdentifierOtherSide, recordsToAdd, recordsToAddOtherSide, finished1);
+					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentChecker, eventListener1);
+					sleep(600);
+					AbstractAgent agentCheckerOtherSide = new DatabaseAgent(localIdentifierOtherSide, localIdentifier, recordsToAddOtherSide, recordsToAdd, finished2);
+					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentCheckerOtherSide, eventListener2);
 
-					sleep(1000);
+					while (finished1.get() == null || finished2.get() == null) {
+
+						sleep(1000);
+					}
+
+					Assert.assertEquals(true, finished1.get());
+					Assert.assertEquals(true, finished2.get());
+					cleanHelperMDKs(this);
+					Assert.assertEquals(getHelperInstances(0).size(), 0);
+					finished1.set(null);
+					finished2.set(null);
+					System.out.println("Second step");
+					agentChecker = new SecondConnexionAgent(localIdentifier, localIdentifierOtherSide, recordsToAdd, recordsToAddOtherSide, finished1);
+					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentChecker, eventListener1);
+					sleep(400);
+					agentCheckerOtherSide = new SecondConnexionAgent(localIdentifierOtherSide, localIdentifier, recordsToAddOtherSide, recordsToAdd, finished2);
+					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentCheckerOtherSide, eventListener2);
+
+					while (finished1.get() == null || finished2.get() == null) {
+
+						sleep(1000);
+					}
+
+					Assert.assertEquals(true, finished1.get());
+					Assert.assertEquals(true, finished2.get());
+					cleanHelperMDKs(this);
+					Assert.assertEquals(getHelperInstances(0).size(), 0);
+
+					finished1.set(null);
+					finished2.set(null);
+					System.out.println("Third step");
+					agentChecker = new ThirdConnexionAgent(localIdentifier, finished1);
+					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentChecker, eventListener1);
+					sleep(400);
+					agentCheckerOtherSide = new ThirdConnexionAgent(localIdentifierOtherSide, finished2);
+					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentCheckerOtherSide, eventListener2);
+
+					while (finished1.get() == null || finished2.get() == null) {
+
+						sleep(1000);
+					}
+
+					Assert.assertEquals(finished1.get(), true);
+					Assert.assertEquals(finished2.get(), true);
+
+					cleanHelperMDKs(this);
+					Assert.assertEquals(getHelperInstances(0).size(), 0);
+
 				}
+			});
+		}
+		finally {
+			if(databaseFile1.exists())
+				FileTools.deleteDirectory(databaseFile1);
+			if(databaseFile2.exists())
+				FileTools.deleteDirectory(databaseFile2);
 
-				Assert.assertEquals(true, finished1.get());
-				Assert.assertEquals(true, finished2.get());
-				cleanHelperMDKs(this);
-				Assert.assertEquals(getHelperInstances(0).size(), 0);
-
-				finished1.set(null);
-				finished2.set(null);
-				System.out.println("Third step");
-				agentChecker=new ThirdConnexionAgent(localIdentifier, finished1);
-				launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentChecker, eventListener1);
-				sleep(400);
-				agentCheckerOtherSide=new ThirdConnexionAgent(localIdentifierOtherSide, finished2);
-				launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentCheckerOtherSide, eventListener2);
-
-				while(finished1.get()==null || finished2.get()==null)
-				{
-
-					sleep(1000);
-				}
-
-				Assert.assertEquals(finished1.get(), true);
-				Assert.assertEquals(finished2.get(), true);
-
-				cleanHelperMDKs(this);
-				Assert.assertEquals(getHelperInstances(0).size(), 0);
-
-			}
-		});
-		if(databaseFile1.exists())
-			FileTools.deleteDirectory(databaseFile1);
-		if(databaseFile2.exists())
-			FileTools.deleteDirectory(databaseFile2);
+		}
 
 		Assert.assertTrue(finished1.get());
 		Assert.assertTrue(finished2.get());

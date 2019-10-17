@@ -147,11 +147,11 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 	@Override
 	protected void activate() throws InterruptedException {
 		setLogLevel(getMadkitConfig().networkProperties.networkLogLevel);
-		//setLogLevel(Level.FINEST);
+
 		if (logger!=null && logger.isLoggable(Level.INFO))
 			logger.info("Launch database synchronizer");
 		this.requestRole(LocalCommunity.Groups.DATABASE, LocalCommunity.Roles.DATABASE_SYNCHRONIZER_LISTENER);
-
+		requestRole(LocalCommunity.Groups.NETWORK, CloudCommunity.Roles.SYNCHRONIZER);
 
 		try {
 			wrapper = getMadkitConfig().getDatabaseWrapper();
@@ -575,7 +575,10 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 						AgentAddress aa = getAgentWithRole(group, CloudCommunity.Roles.SYNCHRONIZER);
 						if (aa == null) {
 							getMadkitConfig().differDistantDatabaseHostConfiguration(hostIdentifier, conflictualRecordsReplacedByDistantRecords, packages);
+							updateGroupAccess(this);
+
 						} else {
+							System.out.println("here2");
 							askForHookAddingAndSynchronizeDatabase(group, hostIdentifier, conflictualRecordsReplacedByDistantRecords, packages);
 						}
 					}
@@ -598,6 +601,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 					}
 					removeDistantGroupID(hostIdentifier);
 					getMadkitConfig().removeDistantDatabaseHost(hostIdentifier, packages);
+					updateGroupAccess(this);
 
 				} catch (Exception ex) {
 					getLogger().severeLog("Unable to apply database event " + e.type, ex);
@@ -606,6 +610,14 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			else
 				getLogger().warning("incomprehensible message "+_message);
 		}
+	}
+
+	static void updateGroupAccess(AbstractAgent agent) {
+		ReturnCode rc;
+		if (!(rc=agent.broadcastMessageWithRole(LocalCommunity.Groups.NETWORK,
+				LocalCommunity.Roles.SOCKET_AGENT_ROLE, new ObjectMessage<>(NetworkAgent.REFRESH_GROUPS_ACCESS), CloudCommunity.Roles.SYNCHRONIZER)).equals(ReturnCode.SUCCESS))
+			if (agent.logger!=null && agent.logger.isLoggable(Level.WARNING))
+				agent.logger.warning("Impossible to broadcast group rights update order : "+rc);
 	}
 
 	private void askForHookAddingAndSynchronizeDatabase(Group group, DecentralizedValue hostIdentifier,
