@@ -245,6 +245,7 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 				}
 				if (checkDistantRecords(this, table, otherListToAdd, finished))
 				{
+					finished.set(false);
 					return;
 				}
 				total=0;
@@ -264,6 +265,7 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 				}
 				if (checkDistantRecords(this, table, otherListToAdd, finished))
 				{
+					finished.set(false);
 					return;
 				}
 				finished.set(true);
@@ -275,6 +277,9 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 
 				finished.set(false);
 				throw e;
+			}
+			finally {
+				this.killAgent(this);
 			}
 		}
 	}
@@ -289,7 +294,8 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 				Table1.Record r2=table.getRecord("decentralizedID", r.getDecentralizedID());
 				if (r2!=null) {
 					Assert.assertEquals(r2.getDecentralizedID(), r.getDecentralizedID());
-					Assert.assertEquals(r2.getValue(), r.getValue());
+					if (!r2.getValue().equals(r.getValue()))
+						continue;
 					it.remove();
 				}
 			}
@@ -297,12 +303,7 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 				agent.sleep(1000);
 			++nb;
 		} while(l.size()>0 && nb<10);
-		if (nb==10) {
-
-			finished.set(false);
-			return true;
-		}
-		return false;
+		return l.size()>0;
 	}
 
 	ArrayList<Table1.Record> getRecordsToAdd()
@@ -335,14 +336,30 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 		@Override
 		protected void liveCycle() {
 			try {
-				sleep(1500);
+				sleep(1900);
 				DatabaseWrapper wrapper=getMadkitConfig().getDatabaseWrapper();
 				Assert.assertNotNull(wrapper);
 				wrapper.loadDatabase(new DatabaseConfiguration(Table1.class.getPackage()), true);
 				Assert.assertNotNull(getMadkitConfig().getLocalDatabaseHostIDString());
 				Assert.assertEquals(wrapper.getSynchronizer().getLocalHostID(), localIdentifier);
 				Assert.assertTrue(wrapper.getSynchronizer().isPairedWith(localIdentifierOtherSide));
+				sleep(100);
+				Assert.assertTrue(wrapper.getSynchronizer().isInitialized());
+				System.out.println("check paired");
 				int nb=0;
+				do {
+					if (wrapper.getSynchronizer().isPairedWith(localIdentifierOtherSide))
+						break;
+					sleep(1000);
+					++nb;
+				} while(nb<10);
+				if (nb==10) {
+
+					finished.set(false);
+					return;
+				}
+				System.out.println("check pair connected");
+				nb=0;
 				do {
 					if (wrapper.getSynchronizer().isInitialized(localIdentifierOtherSide))
 						break;
@@ -354,9 +371,13 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 					finished.set(false);
 					return;
 				}
+
+
+
 				Table1 table=wrapper.getTableInstance(Table1.class);
 				if (checkDistantRecords(this, table, otherListToAdd, finished))
 				{
+					finished.set(false);
 					return;
 				}
 				sleep(1000);
@@ -376,7 +397,7 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 					return;
 				}
 				resetDatabaseSynchronizer();
-				sleep(100);
+				sleep(3000);
 				Assert.assertNull(getMadkitConfig().getLocalDatabaseHostIDString());
 				finished.set(true);
 			} catch (DatabaseException | InterruptedException e) {
@@ -384,9 +405,12 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 			}
 			catch(AssertionError e)
 			{
-
+				e.printStackTrace();
 				finished.set(false);
 				throw e;
+			}
+			finally {
+				this.killAgent(this);
 			}
 		}
 	}
@@ -420,6 +444,9 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 				finished.set(false);
 				throw e;
 			}
+			finally {
+				this.killAgent(this);
+			}
 		}
 	}
 
@@ -447,48 +474,54 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 				AbstractAgent agentCheckerOtherSide=new DatabaseAgent(localIdentifierOtherSide, localIdentifier, recordsToAddOtherSide, recordsToAdd, finished2);
 				launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentCheckerOtherSide, eventListener2);
 
-				while(finished1.get()==null || finished1.get()==null)
+				while(finished1.get()==null || finished2.get()==null)
 				{
 
 					sleep(1000);
 				}
-				Assert.assertTrue(finished1.get());
-				Assert.assertTrue(finished2.get());
+
+				Assert.assertEquals(true, finished1.get());
+				Assert.assertEquals(true, finished2.get());
 				cleanHelperMDKs(this);
 				Assert.assertEquals(getHelperInstances(0).size(), 0);
 				finished1.set(null);
 				finished2.set(null);
+				System.out.println("Second step");
 				agentChecker=new SecondConnexionAgent(localIdentifier, localIdentifierOtherSide, recordsToAdd, recordsToAddOtherSide, finished1);
 				launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentChecker, eventListener1);
 				sleep(400);
 				agentCheckerOtherSide=new SecondConnexionAgent(localIdentifierOtherSide, localIdentifier, recordsToAddOtherSide, recordsToAdd, finished2);
 				launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentCheckerOtherSide, eventListener2);
 
-				while(finished1.get()==null || finished1.get()==null)
+				while(finished1.get()==null || finished2.get()==null)
 				{
 
 					sleep(1000);
 				}
-				Assert.assertTrue(finished1.get());
-				Assert.assertTrue(finished2.get());
+
+				Assert.assertEquals(true, finished1.get());
+				Assert.assertEquals(true, finished2.get());
 				cleanHelperMDKs(this);
 				Assert.assertEquals(getHelperInstances(0).size(), 0);
 
 				finished1.set(null);
 				finished2.set(null);
+				System.out.println("Third step");
 				agentChecker=new ThirdConnexionAgent(localIdentifier, finished1);
 				launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentChecker, eventListener1);
 				sleep(400);
 				agentCheckerOtherSide=new ThirdConnexionAgent(localIdentifierOtherSide, finished2);
 				launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentCheckerOtherSide, eventListener2);
 
-				while(finished1.get()==null || finished1.get()==null)
+				while(finished1.get()==null || finished2.get()==null)
 				{
 
 					sleep(1000);
 				}
-				Assert.assertTrue(finished1.get());
-				Assert.assertTrue(finished2.get());
+
+				Assert.assertEquals(finished1.get(), true);
+				Assert.assertEquals(finished2.get(), true);
+
 				cleanHelperMDKs(this);
 				Assert.assertEquals(getHelperInstances(0).size(), 0);
 
