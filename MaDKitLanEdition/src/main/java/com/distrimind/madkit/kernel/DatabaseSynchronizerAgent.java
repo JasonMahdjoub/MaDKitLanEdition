@@ -45,7 +45,11 @@ import com.distrimind.madkit.message.hook.OrganizationEvent;
 import com.distrimind.ood.database.*;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedValue;
+import com.distrimind.util.io.RandomFileOutputStream;
+import com.distrimind.util.io.RandomInputStream;
+import com.distrimind.util.io.RandomOutputStream;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -63,10 +67,38 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 	private DecentralizedValue localHostID;
 	private String localHostIDString;
+	private DatabaseWrapper wrapper;
 	private DatabaseWrapper.DatabaseSynchronizer synchronizer;
+
 	private static final CheckEvents checkEvents=new CheckEvents();
 	private final Map<Group, DecentralizedValue> distantGroupIdsPerGroup=new HashMap<>();
 	private final Map<DecentralizedValue, Group> distantGroupIdsPerID=new HashMap<>();
+	private BigDataTransferID currentBigDataTransferID=null;
+	private File currentBigDataFileName=null;
+	private DecentralizedValue currentBigDataHostID=null;
+	private final HashMap<ConversationID, BigDataMetaData> currentBigDataReceiving=new HashMap<>();
+
+	static final int FILE_BUFFER_LENGTH_BYTES=4096;
+
+	private static class BigDataMetaData
+	{
+		BigDatabaseEventToSend eventToSend;
+		RandomOutputStream randomOutputStream;
+		File concernedFile;
+
+		BigDataMetaData(BigDatabaseEventToSend eventToSend, RandomOutputStream randomOutputStream, File concernedFile) {
+			this.eventToSend = eventToSend;
+			this.randomOutputStream = randomOutputStream;
+			this.concernedFile = concernedFile;
+		}
+
+		public void close() throws IOException {
+			randomOutputStream.close();
+			if (concernedFile.exists())
+				//noinspection ResultOfMethodCallIgnored
+				concernedFile.delete();
+		}
+	}
 
 	DatabaseSynchronizerAgent()
 	{
@@ -122,8 +154,8 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 
 		try {
-			DatabaseWrapper databaseWrapper = getMadkitConfig().getDatabaseWrapper();
-			synchronizer= databaseWrapper.getSynchronizer();
+			wrapper = getMadkitConfig().getDatabaseWrapper();
+			synchronizer= wrapper.getSynchronizer();
 			localHostID=synchronizer.getLocalHostID();
 			if (localHostID==null)
 			{
@@ -159,7 +191,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 				{
 					addDistantGroupID(dv);
 				}
-				for (DifferedDistantDatabaseHostConfigurationTable.Record r : databaseWrapper.getTableInstance(DifferedDistantDatabaseHostConfigurationTable.class).getRecords()){
+				for (DifferedDistantDatabaseHostConfigurationTable.Record r : wrapper.getTableInstance(DifferedDistantDatabaseHostConfigurationTable.class).getRecords()){
 					if (!distantGroupIdsPerID.containsKey(r.getHostIdentifier())){
 						addDistantGroupID(r.getHostIdentifier());
 					}
@@ -209,7 +241,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 	}
 	@Override
-	protected void liveByStep(Message _message) {
+	protected void liveByStep(Message _message) throws InterruptedException {
 
 		if (_message instanceof OrganizationEvent)
 		{
@@ -279,6 +311,8 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 		} else if (_message==checkEvents)
 		{
 			DatabaseEvent e;
+			if (currentBigDataTransferID!=null)
+				return ;
 			while ((e=synchronizer.nextEvent())!=null)
 			{
 				if (e instanceof DatabaseEventToSend)
@@ -288,19 +322,194 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 						DecentralizedValue dest=es.getHostDestination();
 						if (logger!=null && logger.isLoggable(Level.FINEST))
 							logger.finest("Send event "+es.getClass()+" to peer "+dest);
+						AgentAddress aa=getAgentWithRole(this.getDistantGroupID(dest), CloudCommunity.Roles.SYNCHRONIZER);
+						if (aa!=null) {
+							if (es instanceof BigDatabaseEventToSend) {
+								BigDatabaseEventToSend be = (BigDatabaseEventToSend) e;
+								currentBigDataFileName = getMadkitConfig().getDatabaseSynchronisationFileName();
+								currentBigDataHostID=es.getHostDestination();
+								final RandomOutputStream out = getMadkitConfig().getCacheFileCenter().getNewBufferedRandomCacheFileOutputStream(currentBigDataFileName, RandomFileOutputStream.AccessMode.READ_AND_WRITE, FILE_BUFFER_LENGTH_BYTES, 1);
+								be.exportToOutputStream(wrapper, new OutputStreamGetter() {
+									@Override
+									public RandomOutputStream initOrResetOutputStream() throws IOException {
+										out.setLength(0);
+										return out;
+									}
 
-						if (!sendMessageWithRole(this.getDistantGroupID(dest), CloudCommunity.Roles.SYNCHRONIZER, new NetworkObjectMessage<>(es), CloudCommunity.Roles.SYNCHRONIZER).equals(ReturnCode.SUCCESS)) {
+									@Override
+									public void close() throws Exception {
+										out.flush();
+									}
+								});
+								RandomInputStream in=out.getRandomInputStream();
+								currentBigDataTransferID=sendBigDataWithRole(aa, in,be,CloudCommunity.Roles.SYNCHRONIZER);
+								if (currentBigDataTransferID==null) {
+									getLogger().warning("Impossible to send message to host " + dest);
+									synchronizer.disconnectHook(dest);
+								}
+								else
+									return;
+							} else {
+								if (!sendMessageWithRole(aa, new NetworkObjectMessage<>(es), CloudCommunity.Roles.SYNCHRONIZER).equals(ReturnCode.SUCCESS)) {
+									getLogger().warning("Impossible to send message to host " + dest);
+									synchronizer.disconnectHook(dest);
+								}
+							}
+						}
+						else {
 							getLogger().warning("Impossible to send message to host " + dest);
 							synchronizer.disconnectHook(dest);
 						}
-						else
-							System.out.println("send : "+e);
 
-					} catch (DatabaseException ex) {
+					} catch (DatabaseException | IOException ex) {
 						getLogger().severeLog("Unexpected exception", ex);
+					}
+					finally {
+						if (currentBigDataTransferID==null && currentBigDataFileName!=null)
+						{
+							if (currentBigDataFileName.exists())
+								//noinspection ResultOfMethodCallIgnored
+								currentBigDataFileName.delete();
+							currentBigDataFileName=null;
+							currentBigDataHostID=null;
+						}
 					}
 				}
 			}
+		}
+		else if (_message instanceof BigDataPropositionMessage)
+		{
+
+			BigDataPropositionMessage m=(BigDataPropositionMessage)_message;
+			boolean generateError=true;
+			if (m.getAttachedData() instanceof BigDatabaseEventToSend)
+			{
+				if (currentBigDataReceiving.containsKey(m.getConversationID()))
+					getLogger().warning("Unexpected big data proposition message " + m);
+				else
+				{
+
+
+					if (logger!=null && logger.isLoggable(Level.FINEST))
+						logger.finest("Receiving BigDatabaseEventToSend " + m);
+					BigDatabaseEventToSend b=(BigDatabaseEventToSend)m.getAttachedData();
+					try {
+						DecentralizedValue peerID = getDistantPeerID(_message.getSender());
+						if (peerID != null) {
+
+							DecentralizedValue source = b.getHostSource();
+
+							if (source != null && source.equals(peerID)) {
+
+								File fileName=getMadkitConfig().getDatabaseSynchronisationFileName();
+								RandomOutputStream out=getMadkitConfig().getCacheFileCenter().getNewBufferedRandomCacheFileOutputStream(fileName, RandomFileOutputStream.AccessMode.READ_AND_WRITE, FILE_BUFFER_LENGTH_BYTES, 1);
+								m.acceptTransfer(out);
+								currentBigDataReceiving.put(m.getConversationID(), new BigDataMetaData(b, out, fileName));
+								generateError=false;
+							}
+						}
+					} catch (DatabaseException e) {
+						e.printStackTrace();
+						getLogger().severe(e.getMessage());
+					}
+				}
+
+			}
+
+			if (generateError) {
+				if (_message.getSender().isFrom(getKernelAddress()))
+					getLogger().warning("Invalid message received from " + _message.getSender());
+				else
+					anomalyDetectedWithOneDistantKernel(true, _message.getSender().getKernelAddress(), "Invalid message received from " + _message.getSender());
+			}
+		}
+		else if (_message instanceof BigDataResultMessage)
+		{
+			BigDataResultMessage res=(BigDataResultMessage)_message;
+			if (res.getConversationID().equals(currentBigDataTransferID))
+			{
+				if (currentBigDataFileName.exists())
+					//noinspection ResultOfMethodCallIgnored
+					currentBigDataFileName.delete();
+				currentBigDataFileName=null;
+				currentBigDataTransferID=null;
+
+				receiveMessage(checkEvents);
+				if (res.getType()!=BigDataResultMessage.Type.BIG_DATA_TRANSFERED)
+				{
+					try {
+						synchronizer.disconnectHook(currentBigDataHostID);
+					} catch (DatabaseException e) {
+						e.printStackTrace();
+						getLogger().severe(e.getMessage());
+					}
+				}
+				currentBigDataHostID=null;
+			}
+			else if (res.getType()==BigDataResultMessage.Type.BIG_DATA_TRANSFERED) {
+
+
+				final BigDataMetaData e = currentBigDataReceiving.remove(res.getConversationID());
+
+				if (e != null) {
+					if (logger != null && logger.isLoggable(Level.FINEST))
+						logger.finest("Received big data result message " + res);
+
+					try {
+						final RandomInputStream in = e.randomOutputStream.getRandomInputStream();
+
+						synchronizer.received(e.eventToSend, new InputStreamGetter() {
+							@Override
+							public RandomInputStream initOrResetInputStream() throws IOException {
+								in.seek(0);
+								return in;
+							}
+
+							@Override
+							public void close() throws Exception {
+								e.close();
+							}
+						});
+					} catch (DatabaseException | IOException ex) {
+						ex.printStackTrace();
+						getLogger().severe(ex.getMessage());
+						try {
+							e.close();
+						} catch (IOException ex2) {
+							ex.printStackTrace();
+							getLogger().severe(ex.getMessage());
+						}
+					}
+
+				} else {
+					getLogger().warning("Unexpected big data result message " + res);
+
+				}
+
+			}
+			else
+			{
+
+				BigDataMetaData d=currentBigDataReceiving.remove(res.getConversationID());
+
+				if (d!=null) {
+					try {
+						d.close();
+					} catch (IOException e) {
+						e.printStackTrace();
+						getLogger().severe(e.getMessage());
+					}
+					try {
+						synchronizer.disconnectHook(d.eventToSend.getHostSource());
+					} catch (DatabaseException e) {
+						e.printStackTrace();
+						getLogger().severe(e.getMessage());
+					}
+				}
+				getLogger().finest("Unable to send big data result message " + res);
+
+			}
+
 		}
 		else if (_message instanceof NetworkObjectMessage && ((NetworkObjectMessage) _message).getContent() instanceof DatabaseEventToSend)
 		{
@@ -326,8 +535,6 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 						}
 						else if (synchronizer.isInitialized(peerID)) {
 							generateError = false;
-							if (e instanceof DatabaseWrapper.DatabaseEventsToSynchronize)
-								System.out.println("receive : "+e.);
 							synchronizer.received(e);
 
 						}

@@ -55,6 +55,7 @@ import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.FileTools;
 import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.crypto.SecureRandomType;
+import com.distrimind.util.io.RandomCacheFileCenter;
 import com.distrimind.util.properties.MultiFormatProperties;
 import com.distrimind.util.properties.PropertiesParseException;
 import com.distrimind.util.version.Version;
@@ -332,7 +333,7 @@ public class MadkitProperties extends MultiFormatProperties {
 		{
 			DatabaseWrapper dw=getDatabaseWrapper();
 			if (dw!=null) {
-				temporaryDatabaseDirectoryUsedForSynchronisation = new File(.getDatabaseDirectory(), "sync_dir");
+				temporaryDatabaseDirectoryUsedForSynchronisation = new File(dw.getDatabaseDirectory(), "sync_dir");
 				if (temporaryDatabaseDirectoryUsedForSynchronisation.exists())
 					FileTools.deleteDirectory(temporaryDatabaseDirectoryUsedForSynchronisation);
 			}
@@ -429,6 +430,38 @@ public class MadkitProperties extends MultiFormatProperties {
 		}
 		return localDatabaseHostIDString;
 	}
+
+	private long maxMemoryUsedToStoreDataIntoMemoryInsteadOfFiles=20*1024*1024;
+
+	public long getMaxMemoryUsedToStoreDataIntoMemoryInsteadOfFiles() {
+		return maxMemoryUsedToStoreDataIntoMemoryInsteadOfFiles;
+	}
+
+	public void setMaxMemoryUsedToStoreDataIntoMemoryInsteadOfFiles(long maxMemoryUsedToStoreDataIntoMemoryInsteadOfFiles) {
+		synchronized (this)
+		{
+			this.maxMemoryUsedToStoreDataIntoMemoryInsteadOfFiles = maxMemoryUsedToStoreDataIntoMemoryInsteadOfFiles;
+			cacheFileCenter=null;
+		}
+
+	}
+
+	private transient volatile RandomCacheFileCenter cacheFileCenter=null;
+
+	public RandomCacheFileCenter getCacheFileCenter()
+	{
+		synchronized (this)
+		{
+			if (cacheFileCenter==null) {
+				if (maxMemoryUsedToStoreDataIntoMemoryInsteadOfFiles<0)
+					maxMemoryUsedToStoreDataIntoMemoryInsteadOfFiles=0;
+				cacheFileCenter = new RandomCacheFileCenter(maxMemoryUsedToStoreDataIntoMemoryInsteadOfFiles);
+			}
+			return cacheFileCenter;
+		}
+
+	}
+
 
 	public ArrayList<AgentToLaunch> launchAgents=null;
 

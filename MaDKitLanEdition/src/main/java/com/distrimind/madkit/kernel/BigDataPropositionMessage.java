@@ -135,9 +135,9 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		oos.writeString(messageDigestType==null?null:messageDigestType.name(), true, 1000);
 		
 		oos.writeBoolean(excludedFromEncryption);
-	}	
-	
-	
+	}
+
+
 	
 	BigDataPropositionMessage(RandomInputStream stream, long pos, long length, SecureExternalizable attachedData, boolean local,
 			int maxBufferSize, RealTimeTransfertStat stat, MessageDigestType messageDigestType, boolean excludedFromEncryption) throws IOException {
