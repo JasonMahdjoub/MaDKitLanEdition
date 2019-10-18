@@ -43,6 +43,7 @@ import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
 import com.distrimind.util.crypto.*;
 
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -115,6 +116,93 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	 * The profile validation
 	 */
 	private Map<Integer, Boolean> serverSideValidProfiles = new HashMap<>();
+
+	/**
+	 * Add a server profile used to authenticate the server throw an asymmetric signature
+	 * @param type the asymmetric signature type
+	 * @param random the secure random
+	 * @return the generated profile identifier
+	 * @throws InvalidAlgorithmParameterException if a the key generator parameter was invalid
+	 * @throws NoSuchAlgorithmException if the the key generator was not found
+	 * @throws NoSuchProviderException if the key generator provider was not found
+	 */
+	public int generateServerSideProfile(ASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
+		return generateServerSideProfile(type, random, Long.MAX_VALUE);
+	}
+
+	/**
+	 * Add a server profile used to authenticate the server throw an asymmetric signature
+	 * @param type the asymmetric signature type
+	 * @param random the secure random
+	 * @param expirationTimeUTC the expiration time of the generated key pair
+	 * @return the generated profile identifier
+	 * @throws InvalidAlgorithmParameterException if a the key generator parameter was invalid
+	 * @throws NoSuchAlgorithmException if the the key generator was not found
+	 * @throws NoSuchProviderException if the key generator provider was not found
+	 */
+	public int generateServerSideProfile(ASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random, long expirationTimeUTC) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
+		return generateServerSideProfile(type, random, expirationTimeUTC, type.getDefaultKeySize());
+	}
+
+	/**
+	 * Add a server profile used to authenticate the server throw an asymmetric signature
+	 * @param type the asymmetric signature type
+	 * @param random the secure random
+	 * @param expirationTimeUTC the expiration time of the generated key pair
+	 * @param asymmetricKeySizeBits the asymmetric key size in bits
+	 * @return the generated profile identifier
+	 * @throws InvalidAlgorithmParameterException if a the key generator parameter was invalid
+	 * @throws NoSuchAlgorithmException if the the key generator was not found
+	 * @throws NoSuchProviderException if the key generator provider was not found
+	 */
+	public int generateServerSideProfile(ASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random, long expirationTimeUTC, int asymmetricKeySizeBits) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
+		return addServerSideProfile(type.getKeyPairGenerator(random, asymmetricKeySizeBits, expirationTimeUTC).generateKeyPair());
+	}
+
+	/**
+	 * Add a server profile used to authenticate the server throw an asymmetric signature
+	 * @param type the hybrid asymmetric signature type
+	 * @param random the secure random
+	 * @return the generated profile identifier
+	 * @throws InvalidAlgorithmParameterException if a the key generator parameter was invalid
+	 * @throws NoSuchAlgorithmException if the the key generator was not found
+	 * @throws NoSuchProviderException if the key generator provider was not found
+	 */
+	public int generateServerSideProfile(HybridASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
+		return generateServerSideProfile(type, random, Long.MAX_VALUE);
+	}
+
+	/**
+	 * Add a server profile used to authenticate the server throw an asymmetric signature
+	 * @param type the hybrid asymmetric signature type
+	 * @param random the secure random
+	 * @param expirationTimeUTC the expiration time of the generated key pair
+	 * @return the generated profile identifier
+	 * @throws InvalidAlgorithmParameterException if a the key generator parameter was invalid
+	 * @throws NoSuchAlgorithmException if the the key generator was not found
+	 * @throws NoSuchProviderException if the key generator provider was not found
+	 */
+	public int generateServerSideProfile(HybridASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random, long expirationTimeUTC) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
+		return generateServerSideProfile(type, random, expirationTimeUTC, -1);
+	}
+
+
+	/**
+	 * Add a server profile used to authenticate the server throw an asymmetric signature
+	 * @param type the hybrid asymmetric signature type
+	 * @param random the secure random
+	 * @param expirationTimeUTC the expiration time of the generated key pair
+	 * @param asymmetricKeySizeBits the asymmetric key size in bits
+	 * @return the generated profile identifier
+	 * @throws InvalidAlgorithmParameterException if a the key generator parameter was invalid
+	 * @throws NoSuchAlgorithmException if the the key generator was not found
+	 * @throws NoSuchProviderException if the key generator provider was not found
+	 */
+	public int generateServerSideProfile(HybridASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random, long expirationTimeUTC, int asymmetricKeySizeBits) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
+		return addServerSideProfile(type.generateKeyPair(random, asymmetricKeySizeBits, expirationTimeUTC));
+	}
+
+
 
 	/**
 	 * Add a server profile used to authenticate the server throw an asymmetric signature
@@ -260,8 +348,6 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	private boolean checkKeyPairs(Map<Integer, AbstractKeyPair> keyPairs) throws ConnectionException
 	{
 		if (keyPairs == null)
-			throw new ConnectionException("The key pairs must defined");
-		if (keyPairs.isEmpty())
 			throw new ConnectionException("The key pairs must defined");
 		boolean valid = false;
 		for (Map.Entry<Integer, AbstractKeyPair> e : keyPairs.entrySet()) {

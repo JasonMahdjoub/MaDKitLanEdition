@@ -137,7 +137,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	 * @throws NoSuchProviderException if the encryption algorithm provider was not found
 	 */
 	public int generateAndAddEncryptionProfile(AbstractSecureRandom random, ASymmetricEncryptionType as_type,
-			long expirationTimeUTC, short asymmetricKeySizeBits,
+			long expirationTimeUTC, int asymmetricKeySizeBits,
 			SymmetricEncryptionType s_type, short symmetricKeySizeBits, ASymmetricKeyWrapperType keyWrapper, SymmetricAuthentifiedSignatureType signatureType) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
 		return addEncryptionProfile(
 				as_type.getKeyPairGenerator(random, asymmetricKeySizeBits, expirationTimeUTC).generateKeyPair(),
