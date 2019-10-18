@@ -341,7 +341,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 						if (hproperties.enableEncryption)
 							current_step=Step.WAITING_FOR_ENCRYPTION_DATA;
 						else
-							current_step=Step.WAITING_FOR_CONNECTION_CONFIRMATION;
+							current_step=Step.WAITING_FOR_SERVER_PROFILE_MESSAGE;
 						secret_key_for_signature=keyAgreementForSignature.getDerivedKey();
 						checkSymmetricSignatureAlgorithm();
 					}
@@ -349,12 +349,16 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 					
 					if (data!=null)
 					{
-						return new KeyAgreementDataMessage(data, null);
+						KeyAgreementDataMessage ka=new KeyAgreementDataMessage(data, null);
+						if (current_step==Step.WAITING_FOR_SERVER_PROFILE_MESSAGE)
+							return new DoubleConnectionMessage(ka, getServerProfileMessage());
+						else
+							return ka;
 					}
 					else
 					{
 						doNotTakeIntoAccountNextState=false;
-						
+
 						if (hproperties.enableEncryption)
 						{
 							current_step=Step.WAITING_FOR_ENCRYPTION_DATA;
@@ -368,16 +372,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 							return new ConnectionFinished(getDistantInetSocketAddress(), packetCounter.getMyEncodedCounters());*/
 							current_step=Step.WAITING_FOR_SERVER_PROFILE_MESSAGE;
 
-							if (hproperties.hasClientSideProfileIdentifier()) {
-								this.localSalt=null;
-								return new ServerProfileMessage();
-							}
-							else {
-
-								ServerProfileMessage res=new ServerProfileMessage(hproperties.getClientSideProfileIdentifier(), approvedRandom);
-								this.localSalt=res.getSalt();
-								return res;
-							}
+							return getServerProfileMessage();
 						}
 					}
 				}				
@@ -415,29 +410,24 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 					if (keyAgreementForEncryption.hasFinishedReception())
 					{
 						doNotTakeIntoAccountNextState=true;
-						current_step=Step.WAITING_FOR_CONNECTION_CONFIRMATION;
+						current_step=Step.WAITING_FOR_SERVER_PROFILE_MESSAGE;
 						secret_key_for_encryption=keyAgreementForEncryption.getDerivedKey();
 						checkSymmetricEncryptionAlgorithm();
 					}
 						
 					if (data!=null)
 					{
-						return new KeyAgreementDataMessage(data, null);
+						KeyAgreementDataMessage ka=new KeyAgreementDataMessage(data, null);
+						if (current_step==Step.WAITING_FOR_SERVER_PROFILE_MESSAGE)
+							return new DoubleConnectionMessage(ka, getServerProfileMessage());
+						else
+							return ka;
 					}
 					else
 					{
 						doNotTakeIntoAccountNextState=false;
 						myCounterSent=true;
-						if (hproperties.hasClientSideProfileIdentifier()) {
-							this.localSalt=null;
-							return new ServerProfileMessage();
-						}
-						else {
-
-							ServerProfileMessage res=new ServerProfileMessage(hproperties.getClientSideProfileIdentifier(), approvedRandom);
-							this.localSalt=res.getSalt();
-							return res;
-						}
+						return getServerProfileMessage();
 						//return new ConnectionFinished(getDistantInetSocketAddress(), packetCounter.getMyEncodedCounters());
 					}
 				}				
@@ -455,6 +445,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 		}
 		case WAITING_FOR_SERVER_PROFILE_MESSAGE:
 		{
+			doNotTakeIntoAccountNextState=false;
 			if (_m instanceof ServerProfileMessage)
 			{
 				ServerProfileMessage m=(ServerProfileMessage)_m;
@@ -494,6 +485,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 		}
 		case WAITING_FOR_SERVER_SIGNATURE:
 		{
+			doNotTakeIntoAccountNextState=false;
 			if (_m instanceof ServerSignatureMessage)
 			{
 				ServerSignatureMessage m=(ServerSignatureMessage)_m;
@@ -587,6 +579,21 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 		return null;
 	}
 
+	private ServerProfileMessage getServerProfileMessage()
+	{
+		if (!hproperties.hasClientSideProfileIdentifier()) {
+			this.localSalt=null;
+			return new ServerProfileMessage();
+		}
+		else {
+
+			ServerProfileMessage res=new ServerProfileMessage(hproperties.getClientSideProfileIdentifier(), approvedRandom);
+			this.localSalt=res.getSalt();
+			return res;
+		}
+	}
+
+
 	@Override
 	protected void closeConnection(ConnectionClosedReason _reason) {
 		if (_reason.equals(ConnectionClosedReason.CONNECTION_ANOMALY))
@@ -610,7 +617,10 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 						return size;
 					else
 						return size+4;
-				case WAITING_FOR_CONNECTION_CONFIRMATION: {
+				case WAITING_FOR_SERVER_PROFILE_MESSAGE:
+				case WAITING_FOR_SERVER_SIGNATURE:
+				case WAITING_FOR_CONNECTION_CONFIRMATION:
+				{
 					if (doNotTakeIntoAccountNextState)
 						return size+4;
 					else
@@ -648,6 +658,8 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 					return size;
 				case WAITING_FOR_ENCRYPTION_DATA:
 					return size-4;
+				case WAITING_FOR_SERVER_PROFILE_MESSAGE:
+				case WAITING_FOR_SERVER_SIGNATURE:
 				case WAITING_FOR_CONNECTION_CONFIRMATION:
 				case CONNECTED:
 				{
@@ -674,6 +686,8 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 				return getSubBlockWithNoEncryption(_block);
 			case WAITING_FOR_ENCRYPTION_DATA:
 				return getSubBlockWithEncryption(_block, false);
+			case WAITING_FOR_SERVER_PROFILE_MESSAGE:
+			case WAITING_FOR_SERVER_SIGNATURE:
 			case WAITING_FOR_CONNECTION_CONFIRMATION:
 			case CONNECTED: {
 				return getSubBlockWithEncryption(_block, true);
@@ -843,6 +857,8 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 						return getParentBlockWithNoTreatments(_block);
 					else
 						return getParentBlockWithEncryption(_block, true);
+				case WAITING_FOR_SERVER_PROFILE_MESSAGE:
+				case WAITING_FOR_SERVER_SIGNATURE:
 				case WAITING_FOR_CONNECTION_CONFIRMATION: {
 					if (doNotTakeIntoAccountNextState)
 					{
@@ -903,6 +919,8 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 				return checkEntrantPointToPointTransferedBlockWithNoEncryptin(_block);
 			case WAITING_FOR_ENCRYPTION_DATA:
 			case WAITING_FOR_CONNECTION_CONFIRMATION:
+			case WAITING_FOR_SERVER_PROFILE_MESSAGE:
+			case WAITING_FOR_SERVER_SIGNATURE:
 			case CONNECTED: {
 				return checkEntrantPointToPointTransferedBlockWithEncryption(_block);
 			}
@@ -943,7 +961,9 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 					else
 						return signIfPossibleSortantPointToPointTransferedBlockWithEncryption(_block);
 				}
-				case WAITING_FOR_CONNECTION_CONFIRMATION: 
+	 			case WAITING_FOR_SERVER_PROFILE_MESSAGE:
+				case WAITING_FOR_SERVER_SIGNATURE:
+				case WAITING_FOR_CONNECTION_CONFIRMATION:
 				case CONNECTED: {
 					return signIfPossibleSortantPointToPointTransferedBlockWithEncryption(_block);
 				}

@@ -491,7 +491,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 
 
 
-	private boolean checkKeyPairs(Map<Integer, AbstractKeyPair> keyPairs, boolean forEncryption) throws ConnectionException
+	private boolean checkKeyPairs(Map<Integer, AbstractKeyPair> keyPairs) throws ConnectionException
 	{
 		if (keyPairs == null)
 			throw new ConnectionException("The key pairs must defined");
@@ -505,12 +505,12 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 			int s;
 			if (e.getValue() instanceof HybridASymmetricKeyPair)
 			{
-				if ((((HybridASymmetricKeyPair)e.getValue()).getASymmetricPublicKey().getNonPQCPublicKey().getEncryptionAlgorithmType()==null)==forEncryption)
+				if ((((HybridASymmetricKeyPair)e.getValue()).getASymmetricPublicKey().getNonPQCPublicKey().getEncryptionAlgorithmType()==null))
 					throw new ConnectionException();
 				s=((HybridASymmetricKeyPair)e.getValue()).getNonPQCASymmetricKeyPair().getKeySizeBits();
 			}
 			else{
-				if ((((ASymmetricKeyPair)e.getValue()).getEncryptionAlgorithmType()==null)==forEncryption)
+				if ((((ASymmetricKeyPair)e.getValue()).getEncryptionAlgorithmType()==null))
 					throw new ConnectionException();
 				s=((ASymmetricKeyPair)e.getValue()).getKeySizeBits();
 			}
@@ -547,7 +547,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 
     @Override
     public void checkProperties() throws ConnectionException {
-		boolean valid = checkKeyPairs(keyPairsForEncryption, true);
+		boolean valid = checkKeyPairs(keyPairsForEncryption);
 		
 		if (!valid) {
 			throw new ConnectionException("All given public keys has expired");

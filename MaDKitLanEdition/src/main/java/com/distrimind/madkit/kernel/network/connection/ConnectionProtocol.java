@@ -224,6 +224,20 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 	 * @see #getNextStep(ConnectionMessage)
 	 */
 	public final ConnectionMessage setAndGetNextMessage(ConnectionMessage _m) throws ConnectionException {
+		if (_m instanceof DoubleConnectionMessage)
+		{
+			DoubleConnectionMessage m=(DoubleConnectionMessage)_m;
+			ConnectionMessage rep1=setAndGetNextMessage(((DoubleConnectionMessage) _m).getMessage1());
+			ConnectionMessage rep2=setAndGetNextMessage(((DoubleConnectionMessage) _m).getMessage2());
+			if (rep1==null) {
+				return null;
+			}
+			else if (rep2==null)
+				return rep1;
+			else
+				return new DoubleConnectionMessage(rep1, rep2);
+
+		}
 		if (this_ask_connection==null && _m instanceof AskConnection) {
 			this_ask_connection = ((AskConnection) _m).isYouAreAsking();
 		}

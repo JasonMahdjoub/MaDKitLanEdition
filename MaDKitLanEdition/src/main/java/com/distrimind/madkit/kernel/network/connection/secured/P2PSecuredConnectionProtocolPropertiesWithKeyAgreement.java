@@ -349,7 +349,7 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	{
 		if (keyPairs == null)
 			throw new ConnectionException("The key pairs must defined");
-		boolean valid = false;
+		boolean valid = keyPairs.size()==0;
 		for (Map.Entry<Integer, AbstractKeyPair> e : keyPairs.entrySet()) {
 			if (e.getValue() == null)
 				throw new NullPointerException();
@@ -477,7 +477,7 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 
 	@Override
 	public boolean isConcernedBy(EncryptionRestriction encryptionRestriction) {
-    	boolean found=false;
+    	boolean found=serverSideValidProfiles.size()==0;
     	for (Integer k : serverSideValidProfiles.keySet())
 		{
 			if (isValidProfile(k, encryptionRestriction))

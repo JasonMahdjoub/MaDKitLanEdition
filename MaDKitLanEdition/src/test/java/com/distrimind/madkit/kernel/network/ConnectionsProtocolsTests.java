@@ -579,7 +579,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 							getBytesToSend(getBlocks(message,excludeFromEncryption, this.cpasker, npasker, 2, -1, null)), this.cpreceiver,
 							npreceiver, 2, -1, null));
 					
-					Assert.assertFalse(cpreceiver.isConnectionEstablished());
+					//Assert.assertFalse(cpreceiver.isConnectionEstablished());
 					mreceiver = cpreceiver.setAndGetNextMessage(masker);
 					if (this.cpreceiver.isTransferBlockCheckerChanged())
 					{
