@@ -132,10 +132,29 @@ public abstract class LoginData extends AccessData {
 			@Override
 			public boolean newIdentifier(Identifier _identifier) throws AccessException {
 				try {
+					CloudIdentifier cloudIdentifier=_identifier.getCloudIdentifier();
 					if (encryptedCloudIdentifier
 									.verifyWithLocalCloudIdentifier(_identifier.getCloudIdentifier(), messageDigest, localGeneratedSalt)) {
-						if (areCloudIdentifiersCompatible(_identifier.getCloudIdentifier(), encryptedCloudIdentifier, encryptionRestriction, accessProtocolProperties))
+
+
+						if (cloudIdentifier!=null && (!cloudIdentifier.getAuthenticationMethod().isAuthenticatedByPublicKey() || cloudIdentifier.getAuthenticationKeyPair()!=null)) {
+							if (!areCloudIdentifiersCompatible(cloudIdentifier, encryptedCloudIdentifier, encryptionRestriction, accessProtocolProperties)) {
+								return false;
+							}
+						}
+						else
+						{
+							if (cloudIdentifier==null
+									|| !cloudIdentifier.getAuthenticationMethod().isAuthenticatedByPublicKey()
+									|| cloudIdentifier.getAuthenticationMethod().isAuthenticatedByPasswordOrSecretKey()
+									|| !isValidDistantCloudIdentifier(cloudIdentifier, encryptionRestriction, accessProtocolProperties))
+								return false;
+						}
+						res.set(cloudIdentifier);
+
+						/*if (areCloudIdentifiersCompatible(_identifier.getCloudIdentifier(), encryptedCloudIdentifier, encryptionRestriction, accessProtocolProperties)) {
 							res.set(_identifier.getCloudIdentifier());
+						}*/
 						return false;
 					} else
 						return true;
@@ -174,8 +193,9 @@ public abstract class LoginData extends AccessData {
 			res=getLocalVersionOfDistantCloudIdentifier((EncryptedCloudIdentifier)wrappedCloudIdentifier.getCloudIdentifier(), messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
 		else
 			res=getLocalVersionOfDistantCloudIdentifier(wrappedCloudIdentifier.getCloudIdentifier(), encryptionRestriction, accessProtocolProperties);
-		if (res==null || !wrappedCloudIdentifier.checkSignature(res, messageDigest, localGeneratedSalt))
+		if (res==null || !wrappedCloudIdentifier.checkSignature(res, messageDigest, localGeneratedSalt)) {
 			return null;
+		}
 		else
 			return res;
 	}
@@ -296,6 +316,7 @@ public abstract class LoginData extends AccessData {
 				}
 				res.add(ci);
 			}
+
 		}
 		return res;
 
@@ -444,7 +465,7 @@ public abstract class LoginData extends AccessData {
 			return false;
 		if ((localAuthenticatedIdentifier instanceof CloudIdentifier)
 				&& ((CloudIdentifier)localAuthenticatedIdentifier).mustBeAnonymous()
-				&& !(distantAuthenticatedIdentifier instanceof EncryptedCloudIdentifier)
+				&& (!(distantAuthenticatedIdentifier instanceof EncryptedCloudIdentifier) && !((CloudIdentifier)distantAuthenticatedIdentifier).mustBeAnonymous())
 			)
 			return false;
 		return (distantAuthenticatedIdentifier instanceof EncryptedCloudIdentifier) || localAuthenticatedIdentifier.getAuthenticationMethod()==distantAuthenticatedIdentifier.getAuthenticationMethod();
@@ -456,7 +477,10 @@ public abstract class LoginData extends AccessData {
 			return false;
 		if (!isValidLocalCloudIdentifier(localCloudIdentifier, encryptionRestriction, accessProtocolProperties) || !isValidDistantCloudIdentifier(distantCloudIdentifier, encryptionRestriction, accessProtocolProperties))
 			return false;
-		return localCloudIdentifier.equals(distantCloudIdentifier);
+		if (distantCloudIdentifier instanceof EncryptedCloudIdentifier)
+			return true;
+		else
+			return localCloudIdentifier.equals(distantCloudIdentifier);
 	}
 	boolean areCloudIdentifiersCompatible(Identifier localIdentifier, CloudIdentifier distantCloudIdentifier, EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties)
 	{
@@ -464,7 +488,10 @@ public abstract class LoginData extends AccessData {
 			return false;
 		if (!isValidLocalIdentifier(localIdentifier, encryptionRestriction, accessProtocolProperties))
 			return false;
-		return localIdentifier.getCloudIdentifier().equals(distantCloudIdentifier);
+		if (distantCloudIdentifier instanceof EncryptedCloudIdentifier)
+			return true;
+		else
+			return localIdentifier.getCloudIdentifier().equals(distantCloudIdentifier);
 	}
 
 	private boolean isValidAuthenticatedIdentifier(Identifier.Authenticated authenticatedIdentifier, EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties, boolean local)

@@ -207,8 +207,9 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 				else*/
 					validCloudIdentifiers.add(i);
 			}
-			else
+			else {
 				validCloudIdentifiers.remove(id.getCloudIdentifier());
+			}
 		}
 
 	}

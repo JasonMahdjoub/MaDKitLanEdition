@@ -57,6 +57,7 @@ public class CustumCloudIdentifier extends CloudIdentifier {
 
 	private String name;
 	private byte[] salt;
+	private boolean anonymous;
 
 	@SuppressWarnings("unused")
 	CustumCloudIdentifier()
@@ -72,16 +73,19 @@ public class CustumCloudIdentifier extends CloudIdentifier {
 	public void readExternal(final SecuredObjectInputStream in) throws IOException {
 		name=in.readString(false, 1000);
 		salt=in.readBytesArray(false, 64);
+		anonymous=in.readBoolean();
 	}
 	public void writeExternal(final SecuredObjectOutputStream oos) throws IOException
 	{
 		oos.writeString(name, false, 1000);
 		oos.writeBytesArray(salt, false, 64);
+		oos.writeBoolean(anonymous);
 	}
 	
-	CustumCloudIdentifier(String name, byte[] salt) {
+	CustumCloudIdentifier(String name, byte[] salt, boolean anonymous) {
 		this.name = name;
 		this.salt = salt;
+		this.anonymous=anonymous;
 	}
 
 	@Override

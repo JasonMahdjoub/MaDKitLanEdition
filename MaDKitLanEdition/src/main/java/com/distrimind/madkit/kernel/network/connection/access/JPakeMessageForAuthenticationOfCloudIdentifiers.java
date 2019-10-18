@@ -255,10 +255,10 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 
 		ArrayList<Identifier> identifiers=new ArrayList<>();
 		for (CloudIdentifier cloudIdentifier : newAcceptedDistantCloudIdentifiers) {
-
 			Identifier localID = loginData.localiseIdentifier(cloudIdentifier, encryptionRestriction, accessProtocolProperties);
-			if (localID != null)
+			if (localID != null) {
 				identifiers.add(localID);
+			}
 			else {
 				identifiers.add(new Identifier(cloudIdentifier, HostIdentifier.getNullHostIdentifierSingleton()));
 				//it.remove();

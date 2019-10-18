@@ -39,11 +39,11 @@ package com.distrimind.madkit.kernel.network;
 
 import com.distrimind.madkit.kernel.network.connection.access.CloudIdentifier;
 import com.distrimind.madkit.kernel.network.connection.access.Identifier;
-import com.distrimind.util.crypto.ASymmetricKeyPair;
-import com.distrimind.util.crypto.ASymmetricPublicKey;
 import com.distrimind.util.crypto.AbstractKeyPair;
 import com.distrimind.util.crypto.IASymmetricPublicKey;
-import com.distrimind.util.io.*;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
+import com.distrimind.util.io.SerializationTools;
 
 import java.io.IOException;
 
@@ -57,17 +57,19 @@ public class CustomCloudIdentifierWithPublicKey extends CloudIdentifier {
     private AbstractKeyPair keyPair;
     private IASymmetricPublicKey publicKey;
     private byte[] salt;
+    private boolean anonymous;
 
     private CustomCloudIdentifierWithPublicKey()
     {
 
     }
 
-    public CustomCloudIdentifierWithPublicKey(AbstractKeyPair keyPair, byte[] salt) {
+    public CustomCloudIdentifierWithPublicKey(AbstractKeyPair keyPair, byte[] salt, boolean anonymous) {
         assert keyPair!=null;
         this.keyPair = keyPair;
         this.publicKey=keyPair.getASymmetricPublicKey();
         this.salt=salt;
+        this.anonymous=anonymous;
     }
 
     @Override
@@ -97,7 +99,7 @@ public class CustomCloudIdentifierWithPublicKey extends CloudIdentifier {
 
     @Override
     public boolean mustBeAnonymous() {
-        return false;
+        return anonymous;
     }
 
 
@@ -117,6 +119,7 @@ public class CustomCloudIdentifierWithPublicKey extends CloudIdentifier {
     public void writeExternal(SecuredObjectOutputStream out) throws IOException {
         out.writeBytesArray(salt, false, 64);
         out.writeObject(publicKey, false);
+        out.writeBoolean(anonymous);
 
     }
 
@@ -125,6 +128,7 @@ public class CustomCloudIdentifierWithPublicKey extends CloudIdentifier {
         salt=in.readBytesArray(false, 64);
         publicKey=in.readObject(false, IASymmetricPublicKey.class);
         keyPair=null;
+        anonymous=in.readBoolean();
     }
 
     @Override
