@@ -211,7 +211,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		acceptedReceiverIdentifiers = new ArrayList<>();
 		adasker.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsAsker = AccessDataMKEventListener
-						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(0), 2, 5, 6, 9),
+						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(0), 2, 5, 6, 7),
 				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeAsker, new Runnable() {
 
 					@Override
@@ -251,7 +251,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 						.add(new Identifier(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustomHostIdentifier(0), 3).getCloudIdentifier(), HostIdentifier.getNullHostIdentifierSingleton()));
 			if (loginInitiativeAsker)
 				acceptedAskerIdentifiers
-						.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustomHostIdentifier(0), 9));
+						.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustomHostIdentifier(0), 7));
 			acceptedReceiverIdentifiers
 					.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustomHostIdentifier(1), 5));
 			acceptedReceiverIdentifiers
@@ -261,7 +261,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 						.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustomHostIdentifier(1), 3));
 			if (loginInitiativeAsker)
 				acceptedReceiverIdentifiers
-						.add(new Identifier(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustomHostIdentifier(1), 9).getCloudIdentifier(), HostIdentifier.getNullHostIdentifierSingleton()));
+						.add(new Identifier(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustomHostIdentifier(1), 7).getCloudIdentifier(), HostIdentifier.getNullHostIdentifierSingleton()));
 		}
 		o[0] = adasker;
 		o[1] = adreceiver;
@@ -349,7 +349,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		acceptedReceiverIdentifiers = new ArrayList<>();
 		adasker.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsAsker = AccessDataMKEventListener
-						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(-1), 1),
+						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(-1), 3),
 				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeAsker, new Runnable() {
 
 					@Override
@@ -382,10 +382,10 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		if (loginInitiativeAsker || loginInitiativeReceiver) {
 			if (loginInitiativeAsker)
 				acceptedAskerIdentifiers
-						.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustomHostIdentifier(-1), 1));
+						.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustomHostIdentifier(-1), 3));
 			if (loginInitiativeAsker)
 				acceptedReceiverIdentifiers
-						.add(new Identifier(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustomHostIdentifier(-1), 1).getCloudIdentifier(), HostIdentifier.getNullHostIdentifierSingleton()));
+						.add(new Identifier(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustomHostIdentifier(-1), 3).getCloudIdentifier(), HostIdentifier.getNullHostIdentifierSingleton()));
 		}
 		o[0] = adasker;
 		o[1] = adreceiver;

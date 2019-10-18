@@ -179,8 +179,9 @@ class IdentifiersPropositionMessage extends AccessMessage {
 			} else {
 				return new Identifier(foundCloudIdentifier, identifier.getHostIdentifier());
 			}
-		} else
+		} else {
 			return null;
+		}
 
 	}
 
@@ -199,8 +200,9 @@ class IdentifiersPropositionMessage extends AccessMessage {
 			if (resid!=null) {
 				validDistantIds.add(resid);
 			}
-			else
+			else {
 				++nbAno;
+			}
 		}
 		return new LoginConfirmationMessage(validDistantIds, nbAno>Short.MAX_VALUE?Short.MAX_VALUE:(short)nbAno, true);
 	}
