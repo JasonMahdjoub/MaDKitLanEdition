@@ -166,7 +166,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * increase security. This value cannot be greater than
 	 * <code>maxBufferSize/2</code>.
 	 */
-	public short maxRandomPacketValues = 0;
+	public short maxRandomPacketValues = 2048;
 
 	/**
 	 * The maximum data size (in bytes) for a message which is not sent with big

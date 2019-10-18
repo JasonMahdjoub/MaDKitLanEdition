@@ -157,7 +157,7 @@ public final class WritePacket {
 			return 0;
 	}
 
-	static protected int getMiniRandomValueSize() {
+	static protected short getMiniRandomValueSize() {
 		return 3;
 	}
 
@@ -401,7 +401,7 @@ public final class WritePacket {
 			return new ByteTabOutputStream(conProto, messageDigest, max_buffer_size, packet_head_size, _data_remaining);
 		else
 			return new ByteTabOutputStreamWithRandomValues(conProto, messageDigest, max_buffer_size, packet_head_size,
-					_data_remaining, random_values_size, rand);
+					_data_remaining, _data_remaining>max_buffer_size?0:random_values_size, rand);
 	}
 	
 	
@@ -506,13 +506,13 @@ public final class WritePacket {
 			super(messageDigest);
 
 			this.random = rand;
-			int min = getMiniRandomValueSize();
+			short min = getMiniRandomValueSize();
 			short random_values_size;
 			if (max_random_values_size >= min)
 				random_values_size = (short)(min + rand.nextInt(
 						Math.min(getMaximumGlobalRandomValues(max_buffer_size), max_random_values_size) - min + 1));
 			else
-				random_values_size = 0;
+				random_values_size = min;
 			random_values_size_remaining = random_values_size;
 			/*
 			 * int size=(int)(Math.min(_data_remaining, max_buffer_size)+packet_head_size);

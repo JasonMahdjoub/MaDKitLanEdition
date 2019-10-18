@@ -227,8 +227,8 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 		if (_m instanceof DoubleConnectionMessage)
 		{
 			DoubleConnectionMessage m=(DoubleConnectionMessage)_m;
-			ConnectionMessage rep1=setAndGetNextMessage(((DoubleConnectionMessage) _m).getMessage1());
-			ConnectionMessage rep2=setAndGetNextMessage(((DoubleConnectionMessage) _m).getMessage2());
+			ConnectionMessage rep1=setAndGetNextMessage(m.getMessage1());
+			ConnectionMessage rep2=setAndGetNextMessage(m.getMessage2());
 			if (rep1==null) {
 				return null;
 			}
