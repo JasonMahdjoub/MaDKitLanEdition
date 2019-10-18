@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-1.11.1 Stable (Build: 282) (from 22/05/2015 to 24/04/2019)
+2.0.0 Stable (Build: 372) (from 22/05/2015 to 18/10/2019)
 
 # Creator(s):
 Jason MAHDJOUB
@@ -12,6 +12,18 @@ Olivier GUTKNECHT (Entred in the team at 01/02/1997)
 Jacques FERBER (Entred in the team at 01/02/1997)
 
 # Modifications:
+
+
+### 2.0.0 Stable (18/10/2019)
+* Update Utils to 4.6.0 Stable
+* Update OOD to 2.3.4 Stable
+* Cloud identifiers can be individually anonymous thanks to an encryption process.
+* Host identifiers are sent only if the cloud identifier authentication process succeeded.
+* Authentication can be done automatically with public key, through a shared password/key, or both
+* P2PSecuredConnectionProtocolWithKeyAgreeement algorithm permit to make client/server authentication throw asymmetric signatures
+* An identifier is composed of a cloud identifier, and a host identifier. In the past, one authentication concerned both cloud and host identifiers. Now it is possible to have two authentications : one for the cloud identifier, and one another for the host identifier. If one of them fails, than identifier is rejected.
+* Use hybrid connexion protocols that enables to use at the same time non post quantum algorithms and post quantum algorithms. It is to prevent the quantum supremacy without loosing the benefits of stable encryption algorithms. For client/server connexion, two asymmetric key pairs are then used : one for a non post quantum algorithm like RSA and one for a post quantum algorithm like Mc Eliece
+* Synchronize local database with other peers
 
 
 ### 1.11.1 Stable (24/04/2019)

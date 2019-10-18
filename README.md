@@ -33,6 +33,7 @@ You can also find inspiration into Junit tests.
     * Client/server secured or unsecured connections
     * Several encryption algorithms, including authenticated encryption algorithms and Post Quantum Cryptography encryptions
     * Several signature algorithms, including  Post Quantum Cryptography signers
+    * Possibility to combine pairs of encryption/signature algorithms that are non post quantum algorithm and post quantum algorithms. This possibility enable to use stable encryption algorithms that does not resist to quantum computer, with more experimental algorithm that theoritically resist to quantum computers.
     * Forward secrecy is supported only for this peer to peer secured connection protocol : P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm. However it is possible to combine connetion protocols to enable Forward secrecy : for example client/server connection protocol can be used without encryption, and combined with P2PSecuredConnectionProtocolWithKeyAgreementAlgorithm with encryption enabled. Forward secrecy is than possible for client server connetions.
     * Symmetric secret key used for encryption and signature can be generated during the connection process, or can be known in advance by the concerned peers.
     * There is a possibility to choose between several key agreement algorithms, including Post Quantum Cryptography agreements
@@ -41,10 +42,14 @@ You can also find inspiration into Junit tests.
     	* Initialization vectors used with encryption has a secret part composed of counter that is increased at each data exchange.
     	* More over, signatures are computed with a secret part composed of counter that is increased at each data exchange.
 * Access protocol manage peer to peer login and gives rights to specified groups of agents. 
-  * A specific login protocol has been established in order to exchange password or secret keys, without compromising them if the distant peer is not a trusting peer. 
+  * An identifier is composed of a cloud identifier which identify a private subnetwork, and a host identifier which identify a machine.
+  * A specific login protocol has been established in order to exchange password, secret keys or signatures, without compromising them if the distant peer is not a trusting peer. 
   * Same thing with the user login. 
   * If the user provide a symmetric secret key for signature, it is used to authentify random messages during the authentication process.
-  * If is possible to auto-sign a login with an asymmetric secret key. Then the authentication is validated thanks to an auto-signed login. Server side only check that the login identified by its public key, is well signed thanks to its private key. Auto-signed logins can also be rejected, even if the login is well auto-signed.
+  * If is possible to auto-sign a login with an asymmetric secret key. Then the authentication is validated thanks to an auto-signed login. Autosigned identifiers concerns cloud identifiers and host identifiers. Auto-signed identifiers can be optionally used with classic password authentication. Auto-signed logins can also be rejected, even if the login is well auto-signed.
+  * Authentication can be done with both auto-signed identifier and a shared password/key
+  * An identifier is composed of a cloud identifier, and a host identifier. In the past, one authentication concerned both cloud and host identifiers. Now it is possible to have two authentications : one for the cloud identifier, and one another for the host identifier. If one of them fails, than identifier is rejected.
+  * Cloud identifiers can be individually anonymous thanks to an encryption process. Host identifiers are sent only if the cloud identifier authentication process succeeded.
 * possibility to connect randomly to one server between several available servers (simple load balancing)
 * ability to ban IP's that generates a number of anomalies above a threshold. Banned IP's are stored into a database. A white ip list is possible. Anomalies can be a problem that occurs during the authentication process, the encryption and signature process, the deserialization process, and in every part of the network protocol. Anomalies considered as attacks trigger ban immediately whereas others anomalies that are suspected as attacks trigger ban only a threshold is reached.
 * There are several levels of ban duration
@@ -73,6 +78,7 @@ You can also find inspiration into Junit tests.
 	* YAML format (default)
 	* XML format
 	* Properties format
+* Automatically synchronize database with other peers, when it is altered into one of these peers. Moreover resynchronisation is done automatically when two peers become connected after a long time.
 
 All described features are tested and considered as stable.
 
@@ -117,12 +123,12 @@ Adapt into your build.gradle file, the next code :
 	...
 	dependencies {
 		...
-		compile(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '1.11.1-Stable')
+		compile(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.0.0-Stable')
 		...
 	}
 	...
 
-To know what last version has been uploaded, please refer to versions availables into [this repository](https://artifactory.distri-mind.fr/artifactory/DistriMind-Public/com/distrimind/madkit/MaDKitLanEdition)
+To know what last version has been uploaded, please refer to versions availables into [this repository](https://artifactory.distri-mind.fr/artifactory/DistriMind-Public/com/distrimind/madkit/MaDKitLanEdition/)
 ### With Maven :
 Adapt into your pom.xml file, the next code :
 
@@ -133,7 +139,7 @@ Adapt into your pom.xml file, the next code :
 			<dependency>
 				<groupId>com.distrimind.madkit</groupId>
 				<artifactId>MaDKitLanEdition</artifactId>
-				<version>1.11.1-Stable</version>
+				<version>2.0.0-Stable</version>
 			</dependency>
 			...
 		</dependencies>
@@ -148,11 +154,11 @@ Adapt into your pom.xml file, the next code :
 		</repositories>
 	</project>
 
-To know what last version has been uploaded, please refer to versions availables into [this repository](https://mahdjoub.net/artifactory/DistriMind-Public/com/distrimind/madkit/MaDKitLanEdition)
+To know what last version has been uploaded, please refer to versions availables into [this repository](https://artifactory.distri-mind.fr/artifactory/DistriMind-Public/com/distrimind/madkit/MaDKitLanEdition/)
 
 How to get demos ?
 ------------------
 
-To get MaDKitLanEditions demos, please download the lastest [repository](https://artifactory.distri-mind.fr/artifactory/DistriMind-Public/com/distrimind/madkitdemos/MaDKitLanEditionDemos)
+To get MaDKitLanEditions demos, please download the lastest [repository](https://artifactory.distri-mind.fr/artifactory/DistriMind-Public/com/distrimind/madkitdemos/MaDKitLanEditionDemos/)
 
 [1]: http://www.lirmm.fr/~fmichel/publi/pdfs/ferber04ocmas.pdf
