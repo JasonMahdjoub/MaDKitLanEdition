@@ -215,15 +215,18 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		res.add(o);
 
 		o = new ConnectionProtocolProperties<?>[2];
+		AbstractKeyPair keyPairForSignature=new HybridASymmetricAuthenticatedSignatureType(ASymmetricAuthenticatedSignatureType.BC_Ed25519, ASymmetricAuthenticatedSignatureType.BCPQC_SPHINCS256_SHA3_512).generateKeyPair(rand);
 		p2pp_ecdh = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.AES_GCM;
 		p2pp_ecdh.keyAgreementType=KeyAgreementType.BC_XDH_X448_WITH_SHA512CKDF;
 		p2pp_ecdh.enableEncryption=true;
+		int profile=p2pp_ecdh.addServerSideProfile(keyPairForSignature );
 		o[0] = p2pp_ecdh;
 		p2pp_ecdh = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.AES_GCM;
 		p2pp_ecdh.keyAgreementType=KeyAgreementType.BC_XDH_X448_WITH_SHA512CKDF;
 		p2pp_ecdh.enableEncryption=true;
+		p2pp_ecdh.setClientSideProfile(profile, keyPairForSignature.getASymmetricPublicKey());
 		o[1] = p2pp_ecdh;
 		res.add(o);
 
@@ -263,12 +266,14 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
 		p2pp_ecdh.postQuantumKeyAgreement=null;
 		p2pp_ecdh.enableEncryption=false;
+		profile=p2pp_ecdh.addServerSideProfile(keyPairForSignature );
 		o[0] = p2pp_ecdh;
 		p2pp_ecdh = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
 		p2pp_ecdh.keyAgreementType=KeyAgreementType.BCPQC_NEW_HOPE;
 		p2pp_ecdh.postQuantumKeyAgreement=null;
 		p2pp_ecdh.enableEncryption=false;
+		p2pp_ecdh.setClientSideProfile(profile, keyPairForSignature.getASymmetricPublicKey());
 		o[1] = p2pp_ecdh;
 		res.add(o);
 

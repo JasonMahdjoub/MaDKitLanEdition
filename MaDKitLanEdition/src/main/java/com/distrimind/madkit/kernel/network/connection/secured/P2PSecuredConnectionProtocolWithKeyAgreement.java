@@ -76,6 +76,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 	protected KeyAgreement keyAgreementForEncryption=null, keyAgreementForSignature=null;
 	protected SymmetricAuthenticatedSignerAlgorithm signer = null;
 	protected SymmetricAuthenticatedSignatureCheckerAlgorithm signatureChecker = null;
+	private byte[] localSalt;
 	final int signature_size_bytes;
 	private final SubBlockParser parser;
 
@@ -169,11 +170,12 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 		keyAgreementForSignature=null;
 		signer=null;
 		signatureChecker=null;
+		this.localSalt=null;
 
 	}
 
 	private enum Step {
-		NOT_CONNECTED, WAITING_FOR_SIGNATURE_DATA, WAITING_FOR_ENCRYPTION_DATA, WAITING_FOR_CONNECTION_CONFIRMATION, CONNECTED,
+		NOT_CONNECTED, WAITING_FOR_SIGNATURE_DATA, WAITING_FOR_ENCRYPTION_DATA, WAITING_FOR_SERVER_PROFILE_MESSAGE, WAITING_FOR_SERVER_SIGNATURE, WAITING_FOR_CONNECTION_CONFIRMATION, CONNECTED,
 	}
 
 	private void initKeyAgreementAlgorithm() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException
@@ -273,6 +275,8 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 					return new ConnectionFinished(this.getDistantInetSocketAddress(),
 							ConnectionClosedReason.CONNECTION_ANOMALY);
 			} else {
+				reset();
+				current_step=Step.NOT_CONNECTED;
 				return new UnexpectedMessage(this.getDistantInetSocketAddress());
 			}
 		}
@@ -359,9 +363,21 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 						}
 						else
 						{
-							current_step=Step.WAITING_FOR_CONNECTION_CONFIRMATION;
 							myCounterSent=true;
-							return new ConnectionFinished(getDistantInetSocketAddress(), packetCounter.getMyEncodedCounters());
+							/*current_step=Step.WAITING_FOR_CONNECTION_CONFIRMATION;
+							return new ConnectionFinished(getDistantInetSocketAddress(), packetCounter.getMyEncodedCounters());*/
+							current_step=Step.WAITING_FOR_SERVER_PROFILE_MESSAGE;
+
+							if (hproperties.hasClientSideProfileIdentifier()) {
+								this.localSalt=null;
+								return new ServerProfileMessage();
+							}
+							else {
+
+								ServerProfileMessage res=new ServerProfileMessage(hproperties.getClientSideProfileIdentifier(), approvedRandom);
+								this.localSalt=res.getSalt();
+								return res;
+							}
 						}
 					}
 				}				
@@ -372,6 +388,8 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 					return new IncomprehensiblePublicKey();
 				}
 			} else {
+				reset();
+				current_step=Step.NOT_CONNECTED;
 				return new UnexpectedMessage(this.getDistantInetSocketAddress());
 			}
 		}
@@ -410,7 +428,17 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 					{
 						doNotTakeIntoAccountNextState=false;
 						myCounterSent=true;
-						return new ConnectionFinished(getDistantInetSocketAddress(), packetCounter.getMyEncodedCounters());
+						if (hproperties.hasClientSideProfileIdentifier()) {
+							this.localSalt=null;
+							return new ServerProfileMessage();
+						}
+						else {
+
+							ServerProfileMessage res=new ServerProfileMessage(hproperties.getClientSideProfileIdentifier(), approvedRandom);
+							this.localSalt=res.getSalt();
+							return res;
+						}
+						//return new ConnectionFinished(getDistantInetSocketAddress(), packetCounter.getMyEncodedCounters());
 					}
 				}				
 				catch(Exception e)
@@ -420,6 +448,71 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 					return new IncomprehensiblePublicKey();
 				}
 			} else {
+				reset();
+				current_step=Step.NOT_CONNECTED;
+				return new UnexpectedMessage(this.getDistantInetSocketAddress());
+			}
+		}
+		case WAITING_FOR_SERVER_PROFILE_MESSAGE:
+		{
+			if (_m instanceof ServerProfileMessage)
+			{
+				ServerProfileMessage m=(ServerProfileMessage)_m;
+				byte[] salt=m.getSalt();
+				if (salt!=null)
+				{
+					AbstractKeyPair keyPair=hproperties.getKeyPairForSignature(m.getProfileIdentifier());
+					if (keyPair==null)
+					{
+						current_step=Step.NOT_CONNECTED;
+						return new ConnectionFinished(distant_inet_address, ConnectionClosedReason.CONNECTION_ANOMALY);
+					}
+					else
+					{
+						current_step=Step.WAITING_FOR_SERVER_SIGNATURE;
+						try {
+							return new ServerSignatureMessage(salt, keyPair);
+						} catch (NoSuchProviderException | NoSuchAlgorithmException | InvalidKeySpecException | InvalidAlgorithmParameterException | SignatureException | InvalidKeyException | IOException e) {
+							reset();
+							current_step=Step.NOT_CONNECTED;
+							return new IncomprehensiblePublicKey();
+						}
+					}
+				}
+				else
+				{
+					current_step=Step.WAITING_FOR_SERVER_SIGNATURE;
+					return new ServerSignatureMessage();
+				}
+
+			}
+			else {
+				reset();
+				current_step=Step.NOT_CONNECTED;
+				return new UnexpectedMessage(this.getDistantInetSocketAddress());
+			}
+		}
+		case WAITING_FOR_SERVER_SIGNATURE:
+		{
+			if (_m instanceof ServerSignatureMessage)
+			{
+				ServerSignatureMessage m=(ServerSignatureMessage)_m;
+				if (m.checkSignature(this.localSalt, hproperties.getClientSidePublicKey()))
+				{
+					current_step=Step.WAITING_FOR_CONNECTION_CONFIRMATION;
+					return new ConnectionFinished(getDistantInetSocketAddress(), packetCounter.getMyEncodedCounters());
+				}
+				else
+				{
+					reset();
+					current_step=Step.NOT_CONNECTED;
+					return new ConnectionFinished(this.getDistantInetSocketAddress(),
+							ConnectionClosedReason.CONNECTION_ANOMALY);
+				}
+			}
+			else {
+				reset();
+				current_step=Step.NOT_CONNECTED;
 				return new UnexpectedMessage(this.getDistantInetSocketAddress());
 			}
 		}
@@ -458,6 +551,8 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 				
 					
 			} else {
+				reset();
+				current_step=Step.NOT_CONNECTED;
 				return new UnexpectedMessage(this.getDistantInetSocketAddress());
 			}
 		}
@@ -483,6 +578,8 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 				}
 				return null;
 			} else {
+				reset();
+				current_step=Step.NOT_CONNECTED;
 				return new UnexpectedMessage(this.getDistantInetSocketAddress());
 			}
 		}

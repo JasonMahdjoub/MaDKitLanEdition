@@ -113,10 +113,17 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 			if (publicKeyForEncryption == null)
 				throw new NullPointerException("publicKey");
 			int s;
-			if (publicKeyForEncryption instanceof HybridASymmetricPublicKey)
-				s=((HybridASymmetricPublicKey)publicKeyForEncryption).getNonPQCPublicKey().getKeySizeBits();
-			else
-				s=((ASymmetricPublicKey)publicKeyForEncryption).getKeySizeBits();
+			if (publicKeyForEncryption instanceof HybridASymmetricPublicKey) {
+				if (((HybridASymmetricPublicKey)publicKeyForEncryption).getNonPQCPublicKey().getEncryptionAlgorithmType()==null)
+					throw new IllegalArgumentException();
+				s = ((HybridASymmetricPublicKey) publicKeyForEncryption).getNonPQCPublicKey().getKeySizeBits();
+
+			}
+			else {
+				if (((ASymmetricPublicKey)publicKeyForEncryption).getEncryptionAlgorithmType()==null)
+					throw new IllegalArgumentException();
+				s = ((ASymmetricPublicKey) publicKeyForEncryption).getKeySizeBits();
+			}
 			if (s < minASymetricKeySizeBits)
 				throw new IllegalArgumentException("The public key size must be greater than " + minASymetricKeySizeBits);
 
@@ -252,10 +259,19 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 		if (publicKey == null)
 			throw new ConnectionException("The public key must defined");
 		int s;
-		if (publicKeyForEncryption instanceof HybridASymmetricPublicKey)
-			s=((HybridASymmetricPublicKey)publicKey).getNonPQCPublicKey().getKeySizeBits();
+		if (publicKeyForEncryption instanceof HybridASymmetricPublicKey) {
+			if (((HybridASymmetricPublicKey)publicKeyForEncryption).getNonPQCPublicKey().getEncryptionAlgorithmType()==null)
+				throw new IllegalArgumentException();
+
+			s = ((HybridASymmetricPublicKey) publicKey).getNonPQCPublicKey().getKeySizeBits();
+		}
 		else
+		{
+			if (((ASymmetricPublicKey)publicKeyForEncryption).getEncryptionAlgorithmType()==null)
+				throw new IllegalArgumentException();
 			s=((ASymmetricPublicKey)publicKey).getKeySizeBits();
+		}
+
 		if (s < minASymetricKeySizeBits)
 			throw new ConnectionException("_rsa_key_size must be greater or equal than " + minASymetricKeySizeBits
 					+ " . Moreover, this number must correspond to this schema : _rsa_key_size=2^x.");
@@ -263,9 +279,6 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 			throw new ConnectionException("The distant public key has expired !");
 		}
 
-		if (publicKey.getTimeExpirationUTC() < System.currentTimeMillis()) {
-			throw new ConnectionException("The given public key has expired");
-		}
 		int tmp = s;
 		while (tmp != 1) {
 			if (tmp % 2 == 0)

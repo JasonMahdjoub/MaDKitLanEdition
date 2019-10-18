@@ -158,7 +158,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * The maximum buffer size used to make packets. Notice that packet size are
 	 * variable. This value cannot be greater than {@link Block#BLOCK_SIZE_LIMIT}.
 	 */
-	public int maxBufferSize = Short.MAX_VALUE;
+	public int maxBufferSize = Short.MAX_VALUE*2;
 	
 
 	/**

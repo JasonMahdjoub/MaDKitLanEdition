@@ -218,6 +218,15 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 			throw new NullPointerException("keyPairForEncryption");
 		if (keyPairsForEncryption.containsKey(profileIdentifier))
 			throw new IllegalArgumentException("The profile identifier is already used");
+		if (keyPairForEncryption instanceof HybridASymmetricKeyPair)
+		{
+			if (((HybridASymmetricKeyPair)keyPairForEncryption).getASymmetricPublicKey().getNonPQCPublicKey().getEncryptionAlgorithmType()==null)
+				throw new IllegalArgumentException();
+		}
+		else if (((ASymmetricKeyPair)keyPairForEncryption).getEncryptionAlgorithmType()==null)
+			throw new IllegalArgumentException();
+
+
 		lastIdentifier=profileIdentifier;
 		keyPairsForEncryption.put(profileIdentifier, keyPairForEncryption);
 		validProfiles.put(profileIdentifier, true);
@@ -482,7 +491,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 
 
 
-	private boolean checkKeyPairs(Map<Integer, AbstractKeyPair> keyPairs) throws ConnectionException
+	private boolean checkKeyPairs(Map<Integer, AbstractKeyPair> keyPairs, boolean forEncryption) throws ConnectionException
 	{
 		if (keyPairs == null)
 			throw new ConnectionException("The key pairs must defined");
@@ -493,14 +502,21 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 			if (e.getValue() == null)
 				throw new NullPointerException();
 			Boolean vp=validProfiles.get(e.getKey());
+			int s;
+			if (e.getValue() instanceof HybridASymmetricKeyPair)
+			{
+				if ((((HybridASymmetricKeyPair)e.getValue()).getASymmetricPublicKey().getNonPQCPublicKey().getEncryptionAlgorithmType()==null)==forEncryption)
+					throw new ConnectionException();
+				s=((HybridASymmetricKeyPair)e.getValue()).getNonPQCASymmetricKeyPair().getKeySizeBits();
+			}
+			else{
+				if ((((ASymmetricKeyPair)e.getValue()).getEncryptionAlgorithmType()==null)==forEncryption)
+					throw new ConnectionException();
+				s=((ASymmetricKeyPair)e.getValue()).getKeySizeBits();
+			}
 			if (e.getValue().getTimeExpirationUTC() > System.currentTimeMillis() && vp!=null && vp) {
 				valid = true;
 			}
-			int s;
-			if (e.getValue() instanceof HybridASymmetricKeyPair)
-				s=((HybridASymmetricKeyPair)e.getValue()).getNonPQCASymmetricKeyPair().getKeySizeBits();
-			else
-				s=((ASymmetricKeyPair)e.getValue()).getKeySizeBits();
 			int tmp=s;
 			while (tmp != 1) {
 				if (tmp % 2 == 0)
@@ -531,7 +547,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 
     @Override
     public void checkProperties() throws ConnectionException {
-		boolean valid = checkKeyPairs(keyPairsForEncryption);
+		boolean valid = checkKeyPairs(keyPairsForEncryption, true);
 		
 		if (!valid) {
 			throw new ConnectionException("All given public keys has expired");
