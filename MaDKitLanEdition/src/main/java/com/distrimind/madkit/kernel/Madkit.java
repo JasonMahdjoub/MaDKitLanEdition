@@ -141,7 +141,7 @@ final public class Madkit {
 		c.set(2015, Calendar.MAY, 22);
 		Calendar c2 = Calendar.getInstance();
 		c2.set(2019, Calendar.OCTOBER, 19);
-		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)2, (short)0, (short)1, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
+		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)2, (short)0, (short)2, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
 		try {
 
 			InputStream is = Madkit.class.getResourceAsStream("build.txt");
@@ -164,9 +164,9 @@ final public class Madkit {
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.OCTOBER, 19);
-			Description d = new Description((short)2, (short)0, (short)1, Version.Type.Stable, (short)1, c.getTime());
+			Description d = new Description((short)2, (short)0, (short)2, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Update Utils to 4.6.1 Stable");
-			d.addItem("Update OOD to 2.3.5 Stable");
+			d.addItem("Update OOD to 2.3.6 Stable");
 			d.addItem("Update dependencies");
 			VERSION.addDescription(d);
 
