@@ -100,11 +100,6 @@ public class AccessProtocolWithP2PAgreementProperties extends AbstractAccessProt
 	public PasswordHashType passwordHashType = PasswordHashType.DEFAULT;
 
 	/**
-	 * Password hash cost (iterations=2^passwordHashCost)
-	 */
-	public byte passwordHashCost = 16;
-
-	/**
 	 * Default duration of a public key before being regenerated. Must be greater or
 	 * equal than 0.
 	 */
