@@ -97,6 +97,7 @@ public abstract class AbstractAccessProtocolProperties extends MultiFormatProper
 	 *            the distant inet address
 	 * @param _local_port
 	 *            the local port
+	 * @param encryptionRestriction the encryption restriction
 	 * @return true if the filter accept the connection with the given parameters
 	 */
 	public boolean isConcernedBy(InetAddress _distant_inet_address, int _local_port, EncryptionRestriction encryptionRestriction) {

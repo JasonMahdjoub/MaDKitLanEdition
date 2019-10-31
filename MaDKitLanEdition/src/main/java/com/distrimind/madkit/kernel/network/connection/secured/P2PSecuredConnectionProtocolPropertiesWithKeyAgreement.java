@@ -313,6 +313,7 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	/**
 	 * Tells if the given profile identifier is valid
 	 * @param profileIdentifier the profile identifier
+	 * @param encryptionRestriction the encryption restriction
 	 * @return true if the given profile identifier is valid
 	 */
 	public boolean isValidProfile(int profileIdentifier, EncryptionRestriction encryptionRestriction) {
@@ -358,7 +359,7 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 			{
 				if (((HybridASymmetricKeyPair)e.getValue()).getASymmetricPublicKey().getNonPQCPublicKey().getAuthenticatedSignatureAlgorithmType()==null)
 					throw new ConnectionException();
-				s=((HybridASymmetricKeyPair)e.getValue()).getNonPQCASymmetricKeyPair().getKeySizeBits();
+				s= e.getValue().getNonPQCKeyPair().getKeySizeBits();
 			}
 			else{
 				if (((ASymmetricKeyPair)e.getValue()).getAuthenticatedSignatureAlgorithmType()==null)

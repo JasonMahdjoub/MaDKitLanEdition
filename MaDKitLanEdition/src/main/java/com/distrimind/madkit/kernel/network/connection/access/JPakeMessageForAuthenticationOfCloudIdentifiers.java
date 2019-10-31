@@ -81,7 +81,7 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 		super(step, identifiers, agreements, nbAnomalies);
 	}
 
-	static void addPairOfIdentifiers(LoginData loginData, WrappedCloudIdentifier distantIdentifier, Collection<CloudIdentifier> deniedIdentifiers, AbstractMessageDigest messageDigest, byte[] localGeneratedSalt, EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties) throws IOException, NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException, NoSuchProviderException, AccessException, InvalidParameterSpecException, InvalidKeySpecException {
+	static void addPairOfIdentifiers(LoginData loginData, WrappedCloudIdentifier distantIdentifier, Collection<CloudIdentifier> deniedIdentifiers, AbstractMessageDigest messageDigest, byte[] localGeneratedSalt, EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties) throws AccessException {
 		CloudIdentifier localID=loginData.getLocalVersionOfDistantCloudIdentifier(distantIdentifier, messageDigest, localGeneratedSalt,encryptionRestriction, accessProtocolProperties);
 		if (localID!=null)
 			deniedIdentifiers.add(localID);

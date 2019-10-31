@@ -150,6 +150,7 @@ public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolPr
     /**
      * Tels if the connection protocol that corresponds to the given identifier is enabled
      * @param identifier the identifier
+     * @param encryptionRestriction the encryption restriction
      * @return true if the connection protocol that corresponds to the given identifier is enabled
      */
     public boolean isValidConnectionProtocol(int identifier, EncryptionRestriction encryptionRestriction)
@@ -175,7 +176,9 @@ public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolPr
 
     /**
      * Gets the priorities associated to connection protocol identifiers
+     * @param encryptionRestriction the encryption restriction
      * @return the priorities
+     *
      */
     public Map<Integer, Integer> getValidPriorities(EncryptionRestriction encryptionRestriction)
     {

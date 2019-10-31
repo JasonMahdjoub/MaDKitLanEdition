@@ -197,7 +197,7 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 												//Collection<CloudIdentifier> acceptedAutoSignedCloudIdentifiers,
 												EncryptionRestriction encryptionRestriction,
 												AbstractAccessProtocolProperties accessProtocolProperties
-												) throws AccessException, InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidParameterSpecException, SignatureException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeySpecException {
+												) throws AccessException {
 
 		for (WrappedCloudIdentifier id : identifiers) {
 			CloudIdentifier i=loginData.getLocalVersionOfDistantCloudIdentifier(id, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
@@ -235,7 +235,7 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 																					 byte[] distantGeneratedSalt,
 																					 byte[] localGeneratedSalt,
 																					 EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties)
-			throws AccessException, InvalidAlgorithmParameterException, InvalidKeySpecException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidKeyException, InvalidParameterSpecException, DigestException {
+			throws AccessException, InvalidAlgorithmParameterException, InvalidKeySpecException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidKeyException, DigestException {
 		HashSet<CloudIdentifier> validID=new HashSet<>();
 		getValidDecodedCloudIdentifiers(loginData, messageDigest, localGeneratedSalt, validID, encryptionRestriction, accessProtocolProperties);
 		for (CloudIdentifier ci : validID)
@@ -303,7 +303,7 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 								  final AbstractSecureRandom random, MessageDigestType messageDigestType,
 								  PasswordHashType passwordHashType, ASymmetricPublicKey myPublicKey, byte[] localGeneratedSalt,
 								  EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties)
-			throws InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException, IOException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, SignatureException, InvalidParameterSpecException, AccessException {
+			throws InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, AccessException {
 
 		if (distantCloudID==null)
 			return 1;

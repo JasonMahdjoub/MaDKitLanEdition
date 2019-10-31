@@ -180,24 +180,29 @@ public abstract class LoginData extends AccessData {
 	 * @param encryptionRestriction the encryption restriction
 	 * @param accessProtocolProperties the access protocol properties
 	 * @return the corresponding clear identifier, or null if no valid identifier was found
-	 * @throws AccessException
-	 *             if a problem occurs
+	 * @throws AccessException if a problem occurs
 	 */
 	public final CloudIdentifier getLocalVersionOfDistantCloudIdentifier(final WrappedCloudIdentifier wrappedCloudIdentifier,
 																		  final AbstractMessageDigest messageDigest,
 																		 final byte[] localGeneratedSalt,
 																		 EncryptionRestriction encryptionRestriction,
-																		 AbstractAccessProtocolProperties accessProtocolProperties) throws AccessException, InvalidAlgorithmParameterException, InvalidKeySpecException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidKeyException, InvalidParameterSpecException {
+																		 AbstractAccessProtocolProperties accessProtocolProperties) throws AccessException {
 		CloudIdentifier res;
 		if (wrappedCloudIdentifier.getCloudIdentifier() instanceof EncryptedCloudIdentifier)
 			res=getLocalVersionOfDistantCloudIdentifier((EncryptedCloudIdentifier)wrappedCloudIdentifier.getCloudIdentifier(), messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
 		else
 			res=getLocalVersionOfDistantCloudIdentifier(wrappedCloudIdentifier.getCloudIdentifier(), encryptionRestriction, accessProtocolProperties);
-		if (res==null || !wrappedCloudIdentifier.checkSignature(res, messageDigest, localGeneratedSalt)) {
+
+		try {
+			if (res==null || !wrappedCloudIdentifier.checkSignature(res, messageDigest, localGeneratedSalt)) {
+				return null;
+			}
+			else
+				return res;
+		} catch (InvalidKeyException | NoSuchAlgorithmException | IOException | InvalidParameterSpecException | SignatureException | NoSuchProviderException | InvalidAlgorithmParameterException | InvalidKeySpecException e) {
+			e.printStackTrace();
 			return null;
 		}
-		else
-			return res;
 	}
 	/*
 	 * Transform the given identifier to a local identifier
