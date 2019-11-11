@@ -140,8 +140,8 @@ final public class Madkit {
 		Calendar c = Calendar.getInstance();
 		c.set(2015, Calendar.MAY, 22);
 		Calendar c2 = Calendar.getInstance();
-		c2.set(2019, Calendar.OCTOBER, 31);
-		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)2, (short)0, (short)4, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
+		c2.set(2019, Calendar.NOVEMBER, 11);
+		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)2, (short)1, (short)0, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
 		try {
 
 			InputStream is = Madkit.class.getResourceAsStream("build.txt");
@@ -163,8 +163,14 @@ final public class Madkit {
 			VERSION.addDeveloper(new PersonDeveloper("Ferber", "Jacques", c.getTime()));
 
 			c = Calendar.getInstance();
+			c.set(2019, Calendar.NOVEMBER, 11);
+			Description d = new Description((short)2, (short)1, (short)0, Version.Type.Stable, (short)1, c.getTime());
+			d.addItem("Filter distant network roles, and not only distant network groups");
+			VERSION.addDescription(d);
+
+			c = Calendar.getInstance();
 			c.set(2019, Calendar.OCTOBER, 31);
-			Description d = new Description((short)2, (short)0, (short)4, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)2, (short)0, (short)4, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Update Utils to 4.6.2 Stable");
 			d.addItem("Update OOD to 2.3.7 Stable");
 			d.addItem("Update documentation");

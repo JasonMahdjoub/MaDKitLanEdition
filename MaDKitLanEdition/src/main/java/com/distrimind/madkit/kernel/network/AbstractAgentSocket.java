@@ -2450,7 +2450,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 											+ ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress
 											+ ", conversationID=" + blm.message.getConversationID() + ")");
 
-						AbstractGroup bgroups = my_accepted_groups.getAcceptedGroups(blm.abstract_group);
+						AbstractGroup bgroups = my_accepted_groups.getAcceptedGroups(blm.abstract_group, blm.agentAddressesSender);
 						if (!bgroups.isEmpty()) {
 							blm.setAccetedGroups(bgroups);
 							this.sendMessageWithRole(this.agent_for_distant_kernel_aa,
@@ -2617,7 +2617,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 
 	class Groups /* implements GroupChangementNotifier */
 	{
-		private volatile MultiGroup groups;
+		private volatile ListGroupsRoles groups;
 		// private boolean auto_requested=false;
 		private volatile Group[] represented_groups = null;
 
@@ -2628,9 +2628,9 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			this(null);
 		}
 
-		protected Groups(MultiGroup _groups) {
+		protected Groups(ListGroupsRoles _groups) {
 			if (_groups == null)
-				groups = new MultiGroup();
+				groups = new ListGroupsRoles();
 			else
 				updateGroups(_groups);
 			// MadkitKernelAccess.addGroupChangementNotifier(this);
@@ -2647,21 +2647,15 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		}
 
 
-		AbstractGroup getAcceptedGroups(AbstractGroup group) {
-
-			MultiGroup mg = new MultiGroup();
-			for (Group g : groups.intersect(getKernelAddress(), group)) {
-				if (g.isDistributed())
-					mg.addGroup(g);
-			}
-			return mg;
+		AbstractGroup getAcceptedGroups(AbstractGroup group, Collection<AgentAddress> agentsAddressesSender) {
+			return groups.intersect(getKernelAddress(), group, agentsAddressesSender);
 		}
 
-		public MultiGroup getGroups() {
+		public ListGroupsRoles getGroups() {
 			return groups;
 		}
 
-		protected void updateGroups(MultiGroup _groups) {
+		protected void updateGroups(ListGroupsRoles _groups) {
 			if (_groups != null) {
 				// MultiGroup old_groups=groups;
 				groups = _groups;

@@ -496,7 +496,7 @@ public class MadkitProperties extends MultiFormatProperties {
 
 	public MadkitProperties() {
 		super(new MultiFormatPropertiesObjectParser());
-		this.minimumMadkitVersion=new Version(madkitVersion.getProgramName(), madkitVersion.getShortProgramName(), (short)2, (short)0, (short)0, Version.Type.Stable, (short)1, madkitVersion.getProjectStartDate(), madkitVersion.getProjectEndDate());
+		this.minimumMadkitVersion=new Version(madkitVersion.getProgramName(), madkitVersion.getShortProgramName(), (short)2, (short)1, (short)0, Version.Type.Stable, (short)1, madkitVersion.getProjectStartDate(), madkitVersion.getProjectEndDate());
 		this.minimumMadkitVersion.setBuildNumber(100);
 		try {
 			madkitWeb = new URL("https://github.com/JazZ51/MaDKitLanEdition");

@@ -38,13 +38,12 @@
 package com.distrimind.madkit.kernel.network.connection.access;
 
 import com.distrimind.madkit.agr.CloudCommunity;
-import com.distrimind.madkit.kernel.AbstractGroup;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.MadkitProperties;
-import com.distrimind.madkit.kernel.MultiGroup;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedValue;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -64,7 +63,7 @@ public abstract class AbstractAccessProtocol {
 	protected final MadkitProperties properties;
 
 
-	private AtomicReference<MultiGroup> groups_access = new AtomicReference<>();
+	private AtomicReference<ListGroupsRoles> groups_access = new AtomicReference<>();
 	private boolean other_can_takes_initiative;
 
 	private Set<CloudIdentifier> cloudIdentifiers = null;
@@ -110,7 +109,7 @@ public abstract class AbstractAccessProtocol {
 			((LoginData) access_data).addTrigger(loginTrigger);
 		}
 	}
-	protected void setGroupAccess(MultiGroup gp)
+	protected void setGroupAccess(ListGroupsRoles gp)
 	{
 		groups_access.set(gp);
 	}
@@ -279,19 +278,14 @@ public abstract class AbstractAccessProtocol {
 	}
 
 	public void updateGroupAccess() throws AccessException {
-
-		AbstractGroup defaultGroup = access_data.getDefaultGroupsAccess();
-		MultiGroup mg;
-		if (defaultGroup == null)
-			mg = new MultiGroup();
-		else
-			mg = new MultiGroup(defaultGroup);
+		ListGroupsRoles listGroupsRoles=new ListGroupsRoles();
+		listGroupsRoles.addListGroupsRoles(access_data.getDefaultGroupsAccess());
 
 		if (access_data instanceof LoginData) {
 			LoginData lp = (LoginData) access_data;
 
 			for (PairOfIdentifiers id : all_accepted_identifiers) {
-				mg.addGroup(lp.getGroupsAccess(id.getLocalIdentifier()));
+				listGroupsRoles.addListGroupsRoles(lp.getGroupsAccess(id.getLocalIdentifier()));
 				if (id.isLocallyAuthenticatedCloud() && id.isDistantlyAuthenticatedCloud()) {
 					try {
 						String localDatabaseHostID=properties.getLocalDatabaseHostIDString();
@@ -300,7 +294,11 @@ public abstract class AbstractAccessProtocol {
 							DecentralizedValue dvDistant = lp.getDecentralizedDatabaseID(id.getDistantIdentifier());
 							if (dvDistant!=null)
 							{
-								mg.addGroup(CloudCommunity.Groups.getDistributedDatabaseGroup(localDatabaseHostID, dvDistant));
+								try {
+									listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getDistributedDatabaseGroup(localDatabaseHostID, dvDistant));
+								} catch (IOException e) {
+									throw new AccessException(e);
+								}
 							}
 						}
 					} catch (DatabaseException e) {
@@ -312,12 +310,12 @@ public abstract class AbstractAccessProtocol {
 
 		}
 
-		groups_access.set(mg);
+		groups_access.set(listGroupsRoles);
 
 		notifyAccessGroupChangements = true;
 	}
 
-	public MultiGroup getGroupsAccess() {
+	public ListGroupsRoles getGroupsAccess() {
 		return groups_access.get();
 	}
 

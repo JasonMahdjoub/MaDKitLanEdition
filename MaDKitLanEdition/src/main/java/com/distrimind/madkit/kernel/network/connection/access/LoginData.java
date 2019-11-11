@@ -37,19 +37,20 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
+import com.distrimind.madkit.kernel.network.EncryptionRestriction;
+import com.distrimind.util.DecentralizedValue;
+import com.distrimind.util.crypto.AbstractMessageDigest;
+import com.distrimind.util.crypto.IASymmetricPublicKey;
+
 import java.io.IOException;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.InvalidParameterSpecException;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
-
-import com.distrimind.madkit.kernel.AbstractGroup;
-import com.distrimind.madkit.kernel.network.EncryptionRestriction;
-import com.distrimind.util.DecentralizedValue;
-import com.distrimind.util.crypto.ASymmetricPublicKey;
-import com.distrimind.util.crypto.AbstractMessageDigest;
-import com.distrimind.util.crypto.IASymmetricPublicKey;
 
 /**
  * Represents data enabling to identify each peer, and its right access.
@@ -71,7 +72,7 @@ public abstract class LoginData extends AccessData {
 	 * @return the authorized group(s)
 	 * @throws AccessException if a problem occurs
 	 */
-	public abstract AbstractGroup getGroupsAccess(Identifier _id) throws AccessException;
+	public abstract ListGroupsRoles getGroupsAccess(Identifier _id) throws AccessException;
 
 	/**
 	 * Parse all identifiers and call

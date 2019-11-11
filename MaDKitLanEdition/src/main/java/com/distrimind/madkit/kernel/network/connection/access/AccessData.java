@@ -77,7 +77,7 @@ public abstract class AccessData {
 	 * @throws AccessException
 	 *             if a problem occurs
 	 */
-	public abstract AbstractGroup getDefaultGroupsAccess() throws AccessException;
+	public abstract ListGroupsRoles getDefaultGroupsAccess() throws AccessException;
 
 	/**
 	 * 
