@@ -80,14 +80,14 @@ public class GroupsRoles {
 		return distantAcceptedRoles;
 	}
 
-	public RoleID getDistantAcceptedRolesID() throws IOException {
+	public RoleID getDistantAcceptedRolesID() {
 		if (roleID==null) {
 			roleID=computeRoleID(this.distantAcceptedRoles);
 		}
 		return roleID;
 	}
 
-	static RoleID computeRoleID(String...roles) throws IOException {
+	static RoleID computeRoleID(String...roles)  {
 		try (RandomByteArrayOutputStream out = new RandomByteArrayOutputStream()) {
 			if (roles != null) {
 				out.writeShort((short) roles.length);
@@ -97,6 +97,11 @@ public class GroupsRoles {
 			} else
 				out.writeShort(0);
 			return new RoleID(out.getBytes());
+		}
+		catch(IOException e)
+		{
+			e.printStackTrace();
+			throw new IllegalAccessError();
 		}
 	}
 

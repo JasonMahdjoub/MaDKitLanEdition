@@ -43,7 +43,6 @@ import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedValue;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -294,11 +293,7 @@ public abstract class AbstractAccessProtocol {
 							DecentralizedValue dvDistant = lp.getDecentralizedDatabaseID(id.getDistantIdentifier());
 							if (dvDistant!=null)
 							{
-								try {
-									listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getDistributedDatabaseGroup(localDatabaseHostID, dvDistant));
-								} catch (IOException e) {
-									throw new AccessException(e);
-								}
+								listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getDistributedDatabaseGroup(localDatabaseHostID, dvDistant));
 							}
 						}
 					} catch (DatabaseException e) {

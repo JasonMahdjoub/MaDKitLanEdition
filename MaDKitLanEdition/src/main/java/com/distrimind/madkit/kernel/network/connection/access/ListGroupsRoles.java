@@ -37,7 +37,6 @@ knowledge of the CeCILL-C license and that you accept its terms.
 
 import com.distrimind.madkit.kernel.*;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -51,7 +50,13 @@ import java.util.Map;
 public class ListGroupsRoles {
 	private Map<GroupsRoles.RoleID, GroupsRoles> groupsRoles=new HashMap<>();
 
-	public void addGroupsRoles(AbstractGroup group, String...distantAcceptedRoles) throws IOException {
+	/**
+	 * Add distant shared groups, with distant accepted roles
+	 * @param group the distant shared group between the two peers
+	 * @param distantAcceptedRoles the accepted roles from distant peer
+	 *
+	 */
+	public void addGroupsRoles(AbstractGroup group, String...distantAcceptedRoles) {
 		GroupsRoles.RoleID roleID=GroupsRoles.computeRoleID(distantAcceptedRoles);
 		addGroupsRoles(group, roleID, distantAcceptedRoles);
 	}
