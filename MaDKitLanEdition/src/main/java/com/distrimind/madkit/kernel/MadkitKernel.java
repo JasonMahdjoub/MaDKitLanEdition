@@ -57,6 +57,7 @@ import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
 import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.access.CloudIdentifier;
 import com.distrimind.madkit.kernel.network.connection.access.Identifier;
+import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.BooleanMessage;
 import com.distrimind.madkit.message.KernelMessage;
@@ -1037,7 +1038,7 @@ class MadkitKernel extends Agent {
 				break;
 			case ACCESSIBLE_LAN_GROUPS_GIVEN_BY_DISTANT_PEER:
 			case ACCESSIBLE_LAN_GROUPS_GIVEN_TO_DISTANT_PEER:
-				hm = new NetworkGroupsAccessEvent(action, (AbstractGroup) parameters[0], (Group[]) parameters[1],
+				hm = new NetworkGroupsAccessEvent(action, (ListGroupsRoles) parameters[0], (ListGroupsRoles) parameters[1],
 						(KernelAddressInterfaced) parameters[2], (Boolean) parameters[3]);
 				break;
 			case LOGGED_IDENTIFIERS_UPDATE:
@@ -1086,7 +1087,7 @@ class MadkitKernel extends Agent {
 					break;
 				case ACCESSIBLE_LAN_GROUPS_GIVEN_BY_DISTANT_PEER:
 				case ACCESSIBLE_LAN_GROUPS_GIVEN_TO_DISTANT_PEER:
-					hm = new NetworkGroupsAccessEvent(action, (AbstractGroup) parameters[0], (Group[]) parameters[1],
+					hm = new NetworkGroupsAccessEvent(action, (ListGroupsRoles) parameters[0], (ListGroupsRoles) parameters[1],
 							(KernelAddressInterfaced) parameters[2], (Boolean) parameters[3]);
 					break;
 				case LOGGED_IDENTIFIERS_UPDATE:
@@ -1104,7 +1105,10 @@ class MadkitKernel extends Agent {
 				informHooks(hm);
 		}
 	}
-
+	private void updateKernelMapPerGroups(Map<KernelAddress, Set<Group>> groupsPerKernelAddress, Map<Group, Set<KernelAddress>> kernelAddressesPerGroups, KernelAddress ka, ListGroupsRoles l)
+	{
+		updateKernelMapPerGroups(groupsPerKernelAddress, kernelAddressesPerGroups, ka, Arrays.asList(l.getRepresentedGroups(getKernelAddress())));
+	}
 	private void updateKernelMapPerGroups(Map<KernelAddress, Set<Group>> groupsPerKernelAddress, Map<Group, Set<KernelAddress>> kernelAddressesPerGroups, KernelAddress ka, List<Group> l)
     {
 
@@ -1216,7 +1220,7 @@ class MadkitKernel extends Agent {
                     if (n.isLocalGroupsRemoved()) {
 						synchronized (organizations) {
 							for (Iterator<Organization> it = organizations.values().iterator(); it.hasNext(); ) {
-								it.next().updateAcceptedDistantGroups(n.getConcernedKernelAddress(), n.getGeneralAcceptedGroups());
+								it.next().updateAcceptedDistantGroupsGivenToDistantPeer(n.getConcernedKernelAddress(), n.getGeneralAcceptedGroups());
 								if (organizations.isEmpty())
 									it.remove();
 							}
@@ -2910,14 +2914,14 @@ class MadkitKernel extends Agent {
 
 	@Override
 	final public Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> getOrganizationSnapShot(
-			Collection<Group> concerned_groups, boolean global) {
+			List<Group> concerned_groups, ListGroupsRoles distantAcceptedGroups, boolean global) {
 
 		if (concerned_groups == null)
 			throw new NullPointerException("concerned_group");
 		Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> export = new TreeMap<>();
 		synchronized (organizations) {
 			for (Map.Entry<String, Organization> org : organizations.entrySet()) {
-				Map<Group, Map<String, Collection<AgentAddress>>> m = org.getValue().getOrgMap(concerned_groups, global);
+				Map<Group, Map<String, Collection<AgentAddress>>> m = org.getValue().getOrgMap(getKernelAddress(), concerned_groups, distantAcceptedGroups, global);
 				if (!m.isEmpty()) {
 					String com = org.getKey();
 					Map<Group, Map<String, Collection<AgentAddress>>> cur = export.get(com);

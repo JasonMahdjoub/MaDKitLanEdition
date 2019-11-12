@@ -684,7 +684,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 					m = (AccessMessage) ConnectionsProtocolsTests
 							.unserialize(ConnectionsProtocolsTests.serialize(m));
 					mreceiver2.addAll(Arrays.asList(getAccessMessages(apreceiver.setAndGetNextMessage(m))));
-					receiverAsNotifiedGroupsChangements |= apreceiver.isNotifyAccessGroupChangements();
+					receiverAsNotifiedGroupsChangements |= apreceiver.isNotifyAccessGroupChanges();
 				}
 			}
 			if (cycles == index && !asker && type == 1) {
@@ -699,7 +699,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 					m = (AccessMessage) ConnectionsProtocolsTests
 							.unserialize(ConnectionsProtocolsTests.serialize(m));
 					masker2.addAll(Arrays.asList(getAccessMessages(apasker.setAndGetNextMessage(m))));
-					askerAsNotifiedGroupsChangements |= apasker.isNotifyAccessGroupChangements();
+					askerAsNotifiedGroupsChangements |= apasker.isNotifyAccessGroupChanges();
 				}
 			}
 			mreceiver = toArray(mreceiver2);

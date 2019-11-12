@@ -38,14 +38,9 @@
 package com.distrimind.madkit.kernel.network;
 
 import com.distrimind.madkit.kernel.AgentAddress;
-import com.distrimind.madkit.kernel.Group;
 import com.distrimind.madkit.kernel.KernelAddress;
-import com.distrimind.madkit.kernel.MultiGroup;
-import com.distrimind.util.io.Integrity;
-import com.distrimind.util.io.MessageExternalizationException;
-import com.distrimind.util.io.SecuredObjectInputStream;
-import com.distrimind.util.io.SecuredObjectOutputStream;
-import com.distrimind.util.sizeof.ObjectSizer;
+import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
+import com.distrimind.util.io.*;
 
 import java.io.IOException;
 
@@ -57,8 +52,8 @@ import java.io.IOException;
  */
 final class AcceptedGroups implements WithoutInnerSizeControl {
 
-	public Group[] accepted_groups_and_requested;
-	public MultiGroup accepted_groups;
+	public ListGroupsRoles accepted_groups_and_requested;
+	public ListGroupsRoles accepted_groups;
 	public KernelAddress kernelAddress;
 	public AgentAddress distant_agent_socket_address;
 
@@ -68,7 +63,7 @@ final class AcceptedGroups implements WithoutInnerSizeControl {
 		
 	}
 	
-	public AcceptedGroups(MultiGroup accepted_groups, Group[] accepted_groups_and_requested,
+	public AcceptedGroups(ListGroupsRoles accepted_groups, ListGroupsRoles accepted_groups_and_requested,
 			KernelAddress _kernel_address, AgentAddress my_agent_socket_address) {
 		if (accepted_groups == null)
 			throw new NullPointerException("accepted_groups");
@@ -78,8 +73,6 @@ final class AcceptedGroups implements WithoutInnerSizeControl {
 			throw new NullPointerException("_kernel_address");
 		if (my_agent_socket_address == null)
 			throw new NullPointerException("my_agent_socket_address");
-		if (accepted_groups.isEmpty())
-			throw new IllegalArgumentException("accepted_groups cannot be empty : " + accepted_groups);
 		this.accepted_groups_and_requested = accepted_groups_and_requested;
 		this.accepted_groups = accepted_groups;
 		kernelAddress = _kernel_address;
@@ -88,11 +81,7 @@ final class AcceptedGroups implements WithoutInnerSizeControl {
 	
 	@Override
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
-		oos.writeInt(accepted_groups_and_requested.length);
-		for (Group g : accepted_groups_and_requested)
-		{
-			oos.writeObject(g, false);
-		}
+		oos.writeObject(accepted_groups_and_requested, false);
 		oos.writeObject(accepted_groups, false);
 		oos.writeObject(kernelAddress, false);
 		oos.writeObject(distant_agent_socket_address, false);
@@ -103,23 +92,10 @@ final class AcceptedGroups implements WithoutInnerSizeControl {
 	public void readExternal(SecuredObjectInputStream in)
 			throws ClassNotFoundException, IOException {
 		int globalSize=NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
-		int totalSize=4;
-		int size=in.readInt();
-		if (size<0)
-			throw new MessageExternalizationException(Integrity.FAIL);
-		
-		if (totalSize+size*ObjectSizer.OBJREF_SIZE+ObjectSizer.OBJREF_SIZE>globalSize)
-			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		accepted_groups_and_requested=new Group[size];
-		for (int i=0;i<size;i++)
-		{
-			accepted_groups_and_requested[i]=in.readObject(false, Group.class);
-			totalSize+=accepted_groups_and_requested[i].getInternalSerializedSize();
-			if (totalSize>globalSize)
-				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		}
-		accepted_groups=in.readObject(false, MultiGroup.class);
-		totalSize+=accepted_groups.getInternalSerializedSize();
+		accepted_groups_and_requested=in.readObject(false, ListGroupsRoles.class);
+		int totalSize= SerializationTools.getInternalSize(accepted_groups_and_requested);
+		accepted_groups=in.readObject(false, ListGroupsRoles.class);
+		totalSize+=SerializationTools.getInternalSize(accepted_groups);
 		if (totalSize>globalSize)
 			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 
@@ -132,17 +108,6 @@ final class AcceptedGroups implements WithoutInnerSizeControl {
 		totalSize+=distant_agent_socket_address.getInternalSerializedSize();
 		if (totalSize>globalSize)
 			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-
-		
-		if (accepted_groups.isEmpty())
-			throw new MessageExternalizationException(Integrity.FAIL);
-		for (Group g : accepted_groups_and_requested) {
-			if (g == null)
-				throw new MessageExternalizationException(Integrity.FAIL);
-			if (g.isUsedSubGroups())
-				throw new MessageExternalizationException(Integrity.FAIL);
-		}
-		
 	}
 
 	

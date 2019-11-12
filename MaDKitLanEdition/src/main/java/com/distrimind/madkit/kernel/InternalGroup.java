@@ -41,6 +41,8 @@ import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.i18n.ErrorMessages;
 import com.distrimind.madkit.i18n.I18nUtilities;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
+import com.distrimind.madkit.kernel.network.connection.access.GroupsRoles;
+import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
 import com.distrimind.madkit.message.ObjectMessage;
 import com.distrimind.util.io.SecureExternalizable;
 
@@ -252,6 +254,16 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 		}
 	}
 
+	void removeDistantKernelAddressForAllRolesThatDoesNotAcceptDistantRoles(KernelAddress ka, GroupsRoles groupsRoles)
+	{
+		synchronized (this) {
+			for (final InternalRole r : values()) {
+				if (!groupsRoles.isDistantRoleAcceptable(r.getRoleName()))
+					r.removeDistantMembers(ka);
+
+			}
+		}
+	}
 
 	boolean isIn(AbstractAgent agent) {
 		for (final InternalRole r : values()) {
@@ -338,6 +350,21 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 			}
 		}
 		return false;
+	}
+
+	Map<String, Collection<AgentAddress>> getGroupMap(KernelAddress localKernelAddress, ListGroupsRoles listGroupsRoles) {
+		final Map<String, Collection<AgentAddress>> export = new TreeMap<>();
+		for (final Map.Entry<String, InternalRole> org : entrySet()) {
+			Collection<AgentAddress> aas=org.getValue().buildAndGetAddresses();
+			ArrayList<AgentAddress> res=new ArrayList<>();
+			for (AgentAddress aa : aas)
+			{
+				if (listGroupsRoles.includeLocal(localKernelAddress, aa))
+					res.add(aa);
+			}
+			export.put(org.getKey(), res);
+		}
+		return export;
 	}
 
 	Map<String, Collection<AgentAddress>> getGroupMap() {

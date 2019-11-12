@@ -40,6 +40,7 @@ package com.distrimind.madkit.kernel.network;
 import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.kernel.Group;
 import com.distrimind.madkit.kernel.KernelAddress;
+import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
 import com.distrimind.util.io.*;
 
 import java.io.IOException;
@@ -54,19 +55,19 @@ import java.util.*;
 final class CGRSynchrosSystemMessage implements WithoutInnerSizeControl {
 
 	private Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> organization_snap_shot;
-	private ArrayList<Group> removedGroups;
+	private List<Group> removedGroups;
 	@SuppressWarnings("unused")
 	CGRSynchrosSystemMessage()
 	{
 		
 	}
 	CGRSynchrosSystemMessage(Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> organization_snap_shop,
-							 KernelAddress from, ArrayList<Group> removedGroups) {
+							 KernelAddress from, List<Group> removedGroups) {
 		if (organization_snap_shop == null)
 			throw new NullPointerException();
 		if (removedGroups == null)
 			throw new NullPointerException();
-		this.organization_snap_shot = cleanUp(organization_snap_shop, from);
+		this.organization_snap_shot = cleanUp(organization_snap_shop, from, null);
 		this.removedGroups = removedGroups;
 	}
 	
@@ -178,11 +179,11 @@ final class CGRSynchrosSystemMessage implements WithoutInnerSizeControl {
 		oos.writeInt(removedGroups.size());
 		for (Group g : removedGroups)
 			oos.writeObject(g, false);
-		
+
 	}
 
 	private static Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> cleanUp(
-			Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> organization_snap_shop, KernelAddress from) {
+			Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> organization_snap_shop, KernelAddress from, ListGroupsRoles myAcceptedGroups) {
 		Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> res = new TreeMap<>();
 
 		for (Map.Entry<String, Map<Group, Map<String, Collection<AgentAddress>>>> e0 : organization_snap_shop.entrySet()) {
@@ -192,7 +193,7 @@ final class CGRSynchrosSystemMessage implements WithoutInnerSizeControl {
 				for (Map.Entry<String, Collection<AgentAddress>> e2 : e.getValue().entrySet()) {
 					Set<AgentAddress> h = new HashSet<>();
 					for (AgentAddress aa : e2.getValue()) {
-						if (aa.getKernelAddress().equals(from)) {
+						if (aa.getKernelAddress().equals(from) && (myAcceptedGroups==null || myAcceptedGroups.includeDistant(from, aa))) {
 							h.add(aa);
 						}
 					}
@@ -208,8 +209,24 @@ final class CGRSynchrosSystemMessage implements WithoutInnerSizeControl {
 		return res;
 	}
 
+
+
+	/*public Map<String, Map<Group, Map<String, Set<AgentAddress>>>> getOrganisationSnapShot() {
+		return organization_snap_shot;
+	}*/
+
+	/*public ArrayList<Group> getRemovedGroups() {
+		return removedGroups;
+	}*/
+
+	/*CGRSynchros getCGRSynchros(KernelAddress distantKernelAddress) {
+		Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> org = cleanUp(organization_snap_shot,
+				distantKernelAddress);
+		return new CGRSynchros(org, distantKernelAddress, removedGroups.cleanUp(org,distantKernelAddress ));
+	}*/
+
 	private ArrayList<Group> cleanUp(Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> organization_snap_shop,
-			ArrayList<Group> removedGroups) {
+									 List<Group> removedGroups) {
 		ArrayList<Group> res = new ArrayList<>();
 		for (Group g : removedGroups) {
 			boolean add = true;
@@ -237,20 +254,11 @@ final class CGRSynchrosSystemMessage implements WithoutInnerSizeControl {
 		return res;
 	}
 
-	/*public Map<String, Map<Group, Map<String, Set<AgentAddress>>>> getOrganisationSnapShot() {
-		return organization_snap_shot;
-	}*/
-
-	/*public ArrayList<Group> getRemovedGroups() {
-		return removedGroups;
-	}*/
-
-	CGRSynchros getCGRSynchros(KernelAddress distantKernelAddress) {
+	CGRSynchros getCGRSynchros(KernelAddress distantKernelAddress, ListGroupsRoles myAcceptedGroups) {
 		Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> org = cleanUp(organization_snap_shot,
-				distantKernelAddress);
+				distantKernelAddress, myAcceptedGroups);
 		return new CGRSynchros(org, distantKernelAddress, cleanUp(org, removedGroups));
 	}
-
 	
 	@Override
 	public boolean excludedFromEncryption() {

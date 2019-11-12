@@ -36,19 +36,104 @@ knowledge of the CeCILL-C license and that you accept its terms.
  */
 
 import com.distrimind.madkit.kernel.*;
+import com.distrimind.madkit.kernel.network.NetworkProperties;
+import com.distrimind.util.io.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * @author Jason Mahdjoub
  * @version 1.0
  * @since MaDKitLanEdition 2.1.0
  */
-public class ListGroupsRoles {
-	private Map<GroupsRoles.RoleID, GroupsRoles> groupsRoles=new HashMap<>();
+public class ListGroupsRoles implements Cloneable, SecureExternalizable {
+	private final Map<GroupsRoles.RoleID, GroupsRoles> groupsRoles=new HashMap<>();
+	private transient volatile MultiGroup multiGroup=null;
+
+	public MultiGroup getGroups() {
+		if (multiGroup==null) {
+			MultiGroup mg = new MultiGroup();
+			for (GroupsRoles gr : groupsRoles.values())
+				mg.addGroup(gr.getGroup());
+			multiGroup=mg;
+		}
+		return multiGroup;
+
+	}
+
+	public Group[] getRepresentedGroups(KernelAddress localKernelAddress)
+	{
+		return getGroups().getRepresentedGroups(localKernelAddress);
+	}
+
+	public GroupsRoles getGroupsRoles(Group group)
+	{
+		for (GroupsRoles gr : groupsRoles.values())
+		{
+			if (gr.getGroup().includes(group))
+				return gr;
+		}
+		return null;
+	}
+
+	@Override
+	public int getInternalSerializedSize() {
+		int res=4;
+		for (GroupsRoles gr : groupsRoles.values())
+		{
+			res+=gr.getInternalSerializedSize();
+		}
+		return res;
+	}
+
+	@Override
+	public void writeExternal(SecuredObjectOutputStream out) throws IOException {
+		int maxDataSize= NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
+		int dataSize=4+groupsRoles.size()*8;
+		if (dataSize>maxDataSize)
+			throw new IOException();
+		out.writeInt(groupsRoles.size());
+		for (GroupsRoles gr : groupsRoles.values())
+		{
+			out.writeObject(gr, false);
+			dataSize+= SerializationTools.getInternalSize(gr);
+			if (dataSize>maxDataSize)
+				throw new IOException();
+		}
+	}
+
+	@Override
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+		groupsRoles.clear();
+		multiGroup=null;
+		int maxDataSize= NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
+		int s=in.readInt();
+		if (s<0)
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+		int dataSize=4+s*8;
+		if (dataSize>maxDataSize)
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+		for (int i=0;i<s;i++)
+		{
+			GroupsRoles gr=in.readObject(false, GroupsRoles.class);
+			dataSize+=gr.getInternalSerializedSize();
+			if (dataSize>maxDataSize)
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			groupsRoles.put(gr.getDistantAcceptedRolesID(), gr);
+		}
+	}
+
+	@SuppressWarnings({"MethodDoesntCallSuperMethod"})
+	@Override
+	public ListGroupsRoles clone() {
+		ListGroupsRoles res=new ListGroupsRoles();
+		for (Map.Entry<GroupsRoles.RoleID, GroupsRoles> e : groupsRoles.entrySet())
+		{
+			res.groupsRoles.put(e.getKey(), e.getValue().clone());
+		}
+		return res;
+	}
 
 	/**
 	 * Add distant shared groups, with distant accepted roles
@@ -69,6 +154,36 @@ public class ListGroupsRoles {
 		}
 		else
 			gr.getGroup().addGroup(group);
+		MultiGroup mg=multiGroup;
+		if (mg!=null)
+			mg.addGroup(group);
+
+	}
+
+	public ListGroupsRoles getListWithRepresentedGroupsRoles(KernelAddress localKernelAddress)
+	{
+		ListGroupsRoles res=new ListGroupsRoles();
+		for (Map.Entry<GroupsRoles.RoleID, GroupsRoles> e : groupsRoles.entrySet())
+		{
+			Group[] groups=e.getValue().getGroup().getRepresentedGroups(localKernelAddress);
+			if (groups!=null && groups.length>0) {
+				Group[] groups2=new Group[groups.length];
+				int distributedRepresentedNumber = 0;
+				for (Group g : groups)
+				{
+					if (g.isDistributed()) {
+						groups2[distributedRepresentedNumber++]=g;
+					}
+				}
+				if (distributedRepresentedNumber>0) {
+					if (distributedRepresentedNumber!=groups.length)
+						groups2= Arrays.copyOfRange(groups2, 0, distributedRepresentedNumber);
+
+					res.groupsRoles.put(e.getKey(), new GroupsRoles(groups2, e.getKey(), e.getValue().getDistantAcceptedRoles()));
+				}
+			}
+		}
+		return res;
 	}
 
 	public void addListGroupsRoles(ListGroupsRoles l) {
@@ -92,7 +207,7 @@ public class ListGroupsRoles {
 				boolean found=false;
 				for (AgentAddress aa : agentsAddressesSender)
 				{
-					if (gr.isConcernedByDistantSenderAgentAddress(localKernelAddress, aa)) {
+					if (gr.isConcernedByDistantAgentAddress(aa)) {
 						found = true;
 						break;
 					}
@@ -104,5 +219,190 @@ public class ListGroupsRoles {
 			}
 		}
 		return mg;
+	}
+
+	public ListGroupsRoles intersect(KernelAddress localKernelAddress, ListGroupsRoles other)
+	{
+		ListGroupsRoles res=new ListGroupsRoles();
+		for (Map.Entry<GroupsRoles.RoleID, GroupsRoles> e : groupsRoles.entrySet())
+		{
+			GroupsRoles ogr=other.groupsRoles.get(e.getKey());
+			if (ogr!=null)
+			{
+				Group[] groups1=e.getValue().getGroup().getRepresentedGroups(localKernelAddress);
+				Group[] groups2=ogr.getGroup().getRepresentedGroups(localKernelAddress);
+				ArrayList<Group> groupsRes=null;
+				for (Group g1 : groups1) {
+					for (Group g2 : groups2) {
+						if (g2.equals(g1)) {
+							if (groupsRes==null)
+								groupsRes=new ArrayList<>();
+							groupsRes.add(g1);
+							break;
+						}
+					}
+				}
+				if (groupsRes!=null) {
+					Group[] gs=new Group[groupsRes.size()];
+					groupsRes.toArray(gs);
+					res.groupsRoles.put(e.getKey(), new GroupsRoles(gs, e.getKey(), e.getValue().getDistantAcceptedRoles()));
+				}
+			}
+		}
+		return res;
+	}
+
+	public boolean includeDistant(KernelAddress kernelAddress, AgentAddress agentAddress)
+	{
+		return include(kernelAddress, agentAddress, true);
+	}
+
+	public boolean includeLocal(KernelAddress kernelAddress, AgentAddress agentAddress)
+	{
+		return include(kernelAddress, agentAddress, false);
+	}
+
+	private boolean include(KernelAddress kernelAddress, AgentAddress agentAddress, boolean distant)
+	{
+		if (!agentAddress.isFrom(kernelAddress))
+			return false;
+		if (!agentAddress.getGroup().isDistributed())
+			return false;
+		for (GroupsRoles gr : groupsRoles.values())
+		{
+			if (distant) {
+				if (gr.isConcernedByDistantAgentAddress(agentAddress)) {
+					return true;
+				}
+			}
+			else
+			{
+				if (gr.isConcernedByLocalAgentAddress(agentAddress)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	public boolean areDetectedChanges(ListGroupsRoles roles, KernelAddress localKernelAddress, boolean kernelAddressSent)
+	{
+		if (!kernelAddressSent)
+			return true;
+		if (roles==null)
+			return true;
+
+		for (Map.Entry<GroupsRoles.RoleID, GroupsRoles> e : groupsRoles.entrySet())
+		{
+			GroupsRoles gr=roles.groupsRoles.get(e.getKey());
+			Group[] rp = e.getValue().getGroup().getRepresentedGroups(localKernelAddress);
+
+			if (gr==null) {
+				if (rp==null || rp.length==0)
+					continue;
+				return true;
+			}
+			Group[] represented_groups=gr.getGroup().getRepresentedGroups();
+			if (represented_groups == null) {
+				if (rp==null || rp.length==0)
+					continue;
+				return true;
+			} else {
+				if (represented_groups.length != rp.length)
+					return true;
+				else {
+					for (Group g1 : rp) {
+						boolean found = false;
+						for (Group g2 : represented_groups) {
+							if (g2.equals(g1)) {
+								found = true;
+								break;
+							}
+						}
+						if (!found) {
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+
+	public boolean isEmpty() {
+		return groupsRoles.size()==0;
+	}
+
+	public ListGroupsRoles computeMissedGroups(KernelAddress localKernelAddress, ListGroupsRoles listToTest) {
+		ListGroupsRoles res = new ListGroupsRoles();
+		for (Map.Entry<GroupsRoles.RoleID, GroupsRoles> e : listToTest.groupsRoles.entrySet())
+		{
+			ArrayList<Group> groups=new ArrayList<>();
+			for (Group g : e.getValue().getGroup().getRepresentedGroups(localKernelAddress))
+			{
+				boolean found = false;
+				GroupsRoles gr=this.groupsRoles.get(e.getKey());
+				if (gr!=null) {
+					for (Group g2 : gr.getGroup().getRepresentedGroups(localKernelAddress)) {
+						if (g.equals(g2)) {
+							found = true;
+							break;
+						}
+					}
+				}
+				if (!found) {
+					groups.add(g);
+				}
+			}
+			if (!groups.isEmpty()) {
+				Group[] gs=new Group[groups.size()];
+				groups.toArray(gs);
+				res.groupsRoles.put(e.getKey(), new GroupsRoles(gs, e.getKey(), e.getValue().getDistantAcceptedRoles()));
+			}
+		}
+		return res;
+	}
+
+
+	public ListGroupsRoles cleanUp(Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> organization_snap_shop,
+									KernelAddress from) {
+		ListGroupsRoles res = new ListGroupsRoles();
+		for (Map.Entry<GroupsRoles.RoleID, GroupsRoles> entry : groupsRoles.entrySet()) {
+
+			ArrayList<Group> groups=new ArrayList<>();
+			for (Group g : entry.getValue().getGroup().getRepresentedGroups(from)) {
+
+				boolean add = true;
+				for (Map.Entry<String, Map<Group, Map<String, Collection<AgentAddress>>>> e0 : organization_snap_shop.entrySet()) {
+					for (Map.Entry<Group, Map<String, Collection<AgentAddress>>> e : e0.getValue().entrySet()) {
+						for (Map.Entry<String, Collection<AgentAddress>> e2 : e.getValue().entrySet()) {
+							for (AgentAddress aa : e2.getValue()) {
+								if (g.equals(aa.getGroup())) {
+									add = false;
+									break;
+								}
+							}
+							if (!add)
+								break;
+						}
+						if (!add)
+							break;
+					}
+					if (!add)
+						break;
+				}
+				if (add) {
+					groups.add(g);
+				}
+			}
+			if (!groups.isEmpty())
+			{
+				Group[] gs=new Group[groups.size()];
+				groups.toArray(gs);
+				res.groupsRoles.put(entry.getKey(), new GroupsRoles(gs, entry.getKey(), entry.getValue().getDistantAcceptedRoles()));
+			}
+		}
+		return res;
 	}
 }

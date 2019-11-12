@@ -779,7 +779,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			ReceivedSerializableObject m = (ReceivedSerializableObject) _message;
 			receiveData(m.getContent(), m);
 		} else if (_message.getClass() == KernelAddressValidation.class) {
-			if ( access_protocol.isNotifyAccessGroupChangements())
+			if ( access_protocol.isNotifyAccessGroupChanges())
 				notifyNewAccessChangements();
 			if (((KernelAddressValidation) _message).isKernelAddressInterfaceEnabled()) {
 				if (logger != null && logger.isLoggable(Level.FINER))
@@ -2244,7 +2244,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 							}
 							if (con_close_reason != null)
 								startDeconnectionProcess(con_close_reason);
-							else if (this_ask_connection && access_protocol.isNotifyAccessGroupChangements()) {
+							else if (this_ask_connection && access_protocol.isNotifyAccessGroupChanges()) {
 								notifyNewAccessChangements();
 							}
 							State oldState = state;
@@ -2410,14 +2410,14 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 								+ distant_kernel_address + ") : " + obj);
 					CGRSynchroSystemMessage cgr = ((CGRSynchroSystemMessage) obj);
 
-					if (!my_accepted_groups.acceptSender(cgr.getCGRSynchro().getContent()))
+					if (!my_accepted_groups.acceptDistant(cgr.getCGRSynchro().getContent()))
 						processInvalidSerializedObject(null, cgr, "Invalid CGR Synchro with local interfaced kernel address");
 					else
 						sendMessageWithRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.NET_AGENT,
 							cgr.getCGRSynchro(), LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 				} else if (obj.getClass() == CGRSynchrosSystemMessage.class) {
 					sendMessageWithRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.NET_AGENT,
-							((CGRSynchrosSystemMessage) obj).getCGRSynchros(distant_kernel_address),
+							((CGRSynchrosSystemMessage) obj).getCGRSynchros(distant_kernel_address, my_accepted_groups.groups),
 							LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 				} else if (obj.getClass() == ValidateBigDataProposition.class) {
 					if (logger != null && logger.isLoggable(Level.FINEST))
@@ -2437,7 +2437,8 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 									+ ", conversationID=" + dlm.message.getConversationID() + ")");
 
 						if (dlm.message.getReceiver().getKernelAddress().equals(getKernelAddress())
-								&& my_accepted_groups.acceptReceiver(dlm.message.getReceiver())) {
+								&& my_accepted_groups.acceptLocal(dlm.message.getReceiver())
+								&& my_accepted_groups.acceptDistant(dlm.message.getSender())) {
 							this.sendMessageWithRole(this.agent_for_distant_kernel_aa,
 									new ObjectMessage<>(originalMessage),
 									LocalCommunity.Roles.SOCKET_AGENT_ROLE);
@@ -2610,8 +2611,8 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 	private Groups my_accepted_groups = null;
 	private Logins my_accepted_logins = null;
 	// private MultiGroup distant_accepted_multi_groups=null;
-	private Group[] distant_accepted_and_requested_groups = null;
-	private AbstractGroup distant_general_accepted_groups = null;
+	private ListGroupsRoles distant_accepted_and_requested_groups = null;
+	private ListGroupsRoles distant_general_accepted_groups = null;
 	KernelAddress distant_kernel_address = null;
 	// KernelAddressInterfaced distant_kernel_address_interfaced=null;
 
@@ -2619,7 +2620,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 	{
 		private volatile ListGroupsRoles groups;
 		// private boolean auto_requested=false;
-		private volatile Group[] represented_groups = null;
+		private volatile ListGroupsRoles represented_groups = null;
 
 		private AgentAddress distant_agent_address = null;
 		private boolean kernelAddressSent = false;
@@ -2636,14 +2637,12 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			// MadkitKernelAccess.addGroupChangementNotifier(this);
 		}
 
-		boolean acceptReceiver(AgentAddress add) {
-			return add.getKernelAddress().equals(AbstractAgentSocket.this.getKernelAddress())
-					&& add.getGroup().isDistributed() && groups.includes(getKernelAddress(), add.getGroup());
+		boolean acceptLocal(AgentAddress add) {
+			return groups.includeLocal(AbstractAgentSocket.this.getKernelAddress(), add);
 		}
 
-		boolean acceptSender(AgentAddress add) {
-			return add.getKernelAddress().equals(AbstractAgentSocket.this.distantInterfacedKernelAddress)
-					&& add.getGroup().isDistributed() && groups.includes(getKernelAddress(), add.getGroup());
+		boolean acceptDistant(AgentAddress add) {
+			return groups.includeDistant(AbstractAgentSocket.this.distantInterfacedKernelAddress, add);
 		}
 
 
@@ -2670,10 +2669,10 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				 */
 
 				// auto_requested=true;
-				boolean changements = isThereDetectedChangements();
-				if (changements)
+				boolean changes = areThereDetectedChanges();
+				if (changes)
 					notifyGroupChangements();
-				if (changements || distant_agent_address != agent_for_distant_kernel_aa) {
+				if (changes || distant_agent_address != agent_for_distant_kernel_aa) {
 					notifyDistantKernelAgent();
 				}
 
@@ -2687,43 +2686,20 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 		}
 
-		private boolean isThereDetectedChangements() {
+		private boolean areThereDetectedChanges() {
 			synchronized (this) {
-				Group[] rp = groups.getRepresentedGroups(AbstractAgentSocket.this.getKernelAddress());
-
-				boolean res = !kernelAddressSent;
-
-				if (!res) {
-					if (represented_groups == null) {
-						if (rp.length > 0)
-							res = true;
-					} else {
-						if (represented_groups.length != rp.length)
-							res = true;
-						else {
-							for (Group g1 : rp) {
-								boolean found = false;
-								for (Group g2 : represented_groups) {
-									if (g2.equals(g1)) {
-										found = true;
-										break;
-									}
-								}
-								if (!found) {
-									res = true;
-									break;
-								}
-							}
-						}
-					}
+				if (groups.areDetectedChanges(represented_groups,AbstractAgentSocket.this.getKernelAddress(),  kernelAddressSent))
+				{
+					represented_groups=groups.getListWithRepresentedGroupsRoles(AbstractAgentSocket.this.getKernelAddress());
+					return true;
 				}
-				represented_groups = rp;
-				return res;
+				else
+					return false;
 			}
 		}
 
-		public AcceptedGroups potentialChangementInGroups() {
-			if (getState().compareTo(AbstractAgent.State.ACTIVATED) >= 0 && isThereDetectedChangements())
+		public AcceptedGroups potentialChangesInGroups() {
+			if (getState().compareTo(AbstractAgent.State.ACTIVATED) >= 0 && areThereDetectedChanges())
 				return getGroupChangements();
 			return null;
 
@@ -2736,7 +2712,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		}
 
 		private AcceptedGroups getGroupChangements() {
-			if (represented_groups != null && access_protocol.isAccessFinalized() && !groups.isEmpty()) {
+			if (represented_groups != null && access_protocol.isAccessFinalized()) {
 				kernelAddressSent = true;
 				try {
 					// AbstractAgentSocket.this.sendData(new AcceptedGroups(groups,

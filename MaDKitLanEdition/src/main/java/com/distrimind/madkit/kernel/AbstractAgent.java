@@ -73,6 +73,7 @@ import javax.swing.JFrame;
 import javax.xml.parsers.ParserConfigurationException;
 
 import com.distrimind.madkit.database.DifferedMessageTable;
+import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.io.RandomInputStream;
@@ -2702,8 +2703,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @return a data containing all the organization structure
 	 */
 	public Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> getOrganizationSnapShot(
-			Collection<Group> concerned_groups, boolean global) {
-		return getKernel().getOrganizationSnapShot(concerned_groups, global);
+			List<Group> concerned_groups, ListGroupsRoles distantAcceptedGroups, boolean global) {
+		return getKernel().getOrganizationSnapShot(concerned_groups, distantAcceptedGroups, global);
 	}
 
 	/**

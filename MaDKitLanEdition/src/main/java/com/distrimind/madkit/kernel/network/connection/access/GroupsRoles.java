@@ -36,7 +36,8 @@ knowledge of the CeCILL-C license and that you accept its terms.
  */
 
 import com.distrimind.madkit.kernel.*;
-import com.distrimind.util.io.RandomByteArrayOutputStream;
+import com.distrimind.madkit.kernel.network.NetworkProperties;
+import com.distrimind.util.io.*;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -46,16 +47,142 @@ import java.util.Arrays;
  * @version 1.0
  * @since MaDKitLanEdition 2.1.0
  */
-public class GroupsRoles {
+public class GroupsRoles implements Cloneable, SecureExternalizable {
 	public static int MAX_ROLES_NUMBER=Short.MAX_VALUE;
-	private MultiGroup group;
+	private transient MultiGroup group;
 	private String[] distantAcceptedRoles;
-	private transient volatile RoleID roleID;
+	private transient RoleID roleID;
+	private Group[] representedGroups;
+
+
+
+	@Override
+	public void writeExternal(SecuredObjectOutputStream out) throws IOException {
+		int maxDataSize= NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
+		int totalLength=4;
+		if (representedGroups==null)
+			throw new IOException();
+
+		if (distantAcceptedRoles==null)
+			out.writeInt(0);
+		else {
+			if (distantAcceptedRoles.length>MAX_ROLES_NUMBER)
+				throw new IOException();
+			totalLength+=8*distantAcceptedRoles.length;
+			if (totalLength>maxDataSize)
+				throw new IOException();
+			out.writeInt(distantAcceptedRoles.length);
+			for (String s : distantAcceptedRoles) {
+				if (s.length()==0)
+					throw new IOException();
+				totalLength+=SerializationTools.getInternalSize(s, Group.MAX_ROLE_NAME_LENGTH);
+				if (totalLength>maxDataSize)
+					throw new IOException();
+				out.writeString(s, false, Group.MAX_ROLE_NAME_LENGTH);
+			}
+		}
+		totalLength+=8*this.representedGroups.length;
+		if (totalLength>maxDataSize)
+			throw new IOException();
+		out.writeInt(this.representedGroups.length);
+
+		for (Group g : representedGroups) {
+			if (g.isUsedSubGroups())
+				throw new IOException();
+			if (!g.isDistributed())
+				throw new IOException();
+			out.writeObject(g, false);
+			if (totalLength>maxDataSize)
+				throw new IOException();
+			totalLength+=SerializationTools.getInternalSize(g);
+		}
+	}
+
+	@Override
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+		int maxDataSize= NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
+		int totalLength=4;
+		this.roleID=null;
+
+		int s=in.readInt();
+		if (s<0 || s>MAX_ROLES_NUMBER)
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+		totalLength+=8*s;
+		if (totalLength>maxDataSize)
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+		this.distantAcceptedRoles=new String[s];
+		for (int i=0;i<s;i++)
+		{
+			String str=in.readString(false, Group.MAX_ROLE_NAME_LENGTH);
+			if (str.length()==0)
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			this.distantAcceptedRoles[i]=str;
+			totalLength+=SerializationTools.getInternalSize(str, Group.MAX_ROLE_NAME_LENGTH);
+			if (totalLength>maxDataSize)
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+		}
+		s=in.readInt();
+		if (s<0)
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+		totalLength+=8*s;
+		if (totalLength>maxDataSize)
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+		this.representedGroups=new Group[s];
+		for (int i=0;i<s;i++)
+		{
+			Group g=in.readObject(false, Group.class);
+			if (g.isUsedSubGroups())
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			if (!g.isDistributed())
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			this.representedGroups[i]=g;
+			totalLength+=SerializationTools.getInternalSize(g);
+			if (totalLength>maxDataSize)
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+		}
+		this.group=new MultiGroup(representedGroups);
+	}
+
+	@Override
+	public int getInternalSerializedSize() {
+
+
+		int res=8+representedGroups.length*8;
+		if (distantAcceptedRoles!=null) {
+			res += distantAcceptedRoles.length * 8;
+
+			for (String s : distantAcceptedRoles)
+				res += SerializationTools.getInternalSize(s, Group.MAX_ROLE_NAME_LENGTH);
+		}
+		for (Group g : representedGroups)
+		{
+			res+=SerializationTools.getInternalSize(g);
+		}
+		return res;
+
+	}
+
+	@SuppressWarnings({"MethodDoesntCallSuperMethod"})
+	@Override
+	public GroupsRoles clone() {
+		if (representedGroups==null)
+			return new GroupsRoles(group.clone(), roleID, distantAcceptedRoles.clone());
+		else {
+			Group[] gs=new Group[representedGroups.length];
+			for (int i=0;i<gs.length;i++)
+				gs[i]=representedGroups[i].clone();
+			return new GroupsRoles(gs, roleID, distantAcceptedRoles.clone());
+		}
+	}
 
 	/*GroupsRoles(AbstractGroup group, String... distantAcceptedRoles) {
-		this(group, null, distantAcceptedRoles);
-	}*/
+			this(group, null, distantAcceptedRoles);
+		}*/
 	GroupsRoles(AbstractGroup group, RoleID roleID, String... distantAcceptedRoles) {
+		if (roleID==null)
+			throw new NullPointerException();
+		if (group==null)
+			throw new NullPointerException();
 		this.group = new MultiGroup(group);
 		if (distantAcceptedRoles!=null) {
 			if (distantAcceptedRoles.length>MAX_ROLES_NUMBER)
@@ -70,6 +197,33 @@ public class GroupsRoles {
 			this.distantAcceptedRoles =null;
 		}
 		this.roleID=roleID;
+		this.representedGroups=null;
+	}
+	GroupsRoles(Group[] representedGroups, RoleID roleID, String... distantAcceptedRoles) {
+		if (roleID==null)
+			throw new NullPointerException();
+		if (representedGroups==null)
+			throw new NullPointerException();
+		this.group = new MultiGroup(representedGroups);
+		if (distantAcceptedRoles!=null) {
+			if (distantAcceptedRoles.length>MAX_ROLES_NUMBER)
+				throw new IllegalArgumentException();
+			if (distantAcceptedRoles.length==0)
+				this.distantAcceptedRoles =null;
+			else
+				this.distantAcceptedRoles = distantAcceptedRoles;
+		}
+		else
+		{
+			this.distantAcceptedRoles =null;
+		}
+		this.roleID=roleID;
+		this.representedGroups=representedGroups;
+
+	}
+
+	public Group[] getRepresentedGroups() {
+		return representedGroups;
 	}
 
 	public MultiGroup getGroup() {
@@ -81,15 +235,14 @@ public class GroupsRoles {
 	}
 
 	public RoleID getDistantAcceptedRolesID() {
-		if (roleID==null) {
-			roleID=computeRoleID(this.distantAcceptedRoles);
-		}
 		return roleID;
 	}
 
 	static RoleID computeRoleID(String...roles)  {
+
 		try (RandomByteArrayOutputStream out = new RandomByteArrayOutputStream()) {
 			if (roles != null) {
+				Arrays.sort(roles);
 				out.writeShort((short) roles.length);
 				for (String s : roles) {
 					out.writeString(s, false, Group.MAX_ROLE_NAME_LENGTH);
@@ -105,22 +258,36 @@ public class GroupsRoles {
 		}
 	}
 
-	public boolean isConcernedByDistantSenderAgentAddress(KernelAddress localKernelAddress, AgentAddress aa)
+	public boolean isConcernedByDistantAgentAddress(AgentAddress aa)
 	{
-		for (Group g : group.getRepresentedGroups(localKernelAddress))
-		{
-			if (aa.getGroup().getThisGroupWithItsSubGroups().includes(g)) {
-				if (distantAcceptedRoles == null)
+		if (group.includes(aa.getGroup())) {
+			if (distantAcceptedRoles == null)
+				return true;
+			for (String r : distantAcceptedRoles) {
+				if (r.equals(aa.getRole()))
 					return true;
-				for (String r : distantAcceptedRoles) {
-					if (r.equals(aa.getRole()))
-						return true;
-				}
-				return false;
 			}
 		}
 		return false;
+
 	}
+	public boolean isConcernedByLocalAgentAddress(AgentAddress aa)
+	{
+		return group.includes(aa.getGroup());
+
+	}
+
+	public boolean isDistantRoleAcceptable(String roleName) {
+		if (distantAcceptedRoles==null)
+			return true;
+		for (String s : distantAcceptedRoles)
+		{
+			if (s.equals(roleName))
+				return true;
+		}
+		return false;
+	}
+
 
 	public static class RoleID
 	{

@@ -307,7 +307,7 @@ public abstract class AbstractAccessProtocol {
 
 		groups_access.set(listGroupsRoles);
 
-		notifyAccessGroupChangements = true;
+		notifyAccessGroupChanges = true;
 	}
 
 	public ListGroupsRoles getGroupsAccess() {
@@ -315,11 +315,11 @@ public abstract class AbstractAccessProtocol {
 	}
 
 	// private final AccessGroupsNotifier accessGroupsNotifier;
-	private boolean notifyAccessGroupChangements = false;
+	private boolean notifyAccessGroupChanges = false;
 
-	public boolean isNotifyAccessGroupChangements() {
-		boolean res = notifyAccessGroupChangements;
-		notifyAccessGroupChangements = false;
+	public boolean isNotifyAccessGroupChanges() {
+		boolean res = notifyAccessGroupChanges;
+		notifyAccessGroupChanges = false;
 		return res;
 	}
 

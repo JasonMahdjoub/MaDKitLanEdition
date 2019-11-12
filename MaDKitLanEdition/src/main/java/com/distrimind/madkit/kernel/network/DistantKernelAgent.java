@@ -52,6 +52,7 @@ import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
 import com.distrimind.madkit.kernel.network.connection.access.CloudIdentifier;
 import com.distrimind.madkit.kernel.network.connection.access.Identifier;
+import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.ObjectMessage;
 import com.distrimind.madkit.message.hook.DistantKernelAgentEventMessage;
@@ -88,7 +89,7 @@ class DistantKernelAgent extends AgentFakeThread {
 
 	protected KernelAddressInterfaced distant_kernel_address = null;
 	private final IDGeneratorInt packet_id_generator = new IDGeneratorInt();
-	private Group[] distant_accepted_groups = new Group[0];
+	private ListGroupsRoles distant_accepted_groups = new ListGroupsRoles();
 	private AbstractSecureRandom random;
 	private boolean kernelAddressActivated = false;
 	private long lastAgentsUpdate = -1;
@@ -99,7 +100,7 @@ class DistantKernelAgent extends AgentFakeThread {
 	private List<Identifier> lastDeniedIdentifiersFromOther = new ArrayList<>();
 	private List<Identifier> lastDeniedIdentifiersToOther = new ArrayList<>();
 	private List<PairOfIdentifiers> last_unlogged_identifiers = new ArrayList<>();
-	private ArrayList<Group> localAcceptedAndRequestedGroups = new ArrayList<>();
+	private ListGroupsRoles localAcceptedAndRequestedGroups = new ListGroupsRoles();
 	private ArrayList<Group> sharedAcceptedAndRequestedGroups = new ArrayList<>();
 	// private MultiGroup localGeneralAcceptedGroups=new MultiGroup();
 
@@ -165,7 +166,7 @@ class DistantKernelAgent extends AgentFakeThread {
 
 		for (AgentSocketData asd : agents_socket) {
 			if (asd.isUsable()) {
-				AbstractGroup concerned_groups = asd.distant_accessible_and_requested_groups.intersect(groups_lacking);
+				AbstractGroup concerned_groups = asd.distant_accessible_and_requested_groups.getGroups().intersect(groups_lacking);
 				if (!concerned_groups.isEmpty()) {
 					message.getMessageLocker().lock();
 					sendData(asd.getAgentAddress(), message.getBroadcastMessage(concerned_groups), false,
@@ -250,7 +251,7 @@ class DistantKernelAgent extends AgentFakeThread {
 							message.getMessageLocker().lock();
 							// message.setIDPacket(packet_id_generator.getNewID());
 
-							AgentSocketData asd = getBestAgentSocket(message.getOriginalMessage().getReceiver(), true);
+							AgentSocketData asd = getBestAgentSocket(getKernelAddress(), message.getOriginalMessage().getSender(), message.getOriginalMessage().getReceiver(), true);
 							if (asd != null) {
 								Message m = message.getOriginalMessage();
 								if (m instanceof BigDataPropositionMessage) {
@@ -312,7 +313,7 @@ class DistantKernelAgent extends AgentFakeThread {
 							sendReplyEmpty(m);
 						}*/
 
-						AgentSocketData asd = getBestAgentSocket(distant_kernel_address, m.getContent().getGroup(),
+						AgentSocketData asd = getBestAgentSocketForLocalAgentAddress(distant_kernel_address, m.getContent(),
 								false);
 
 						if (asd != null) {
@@ -1187,12 +1188,12 @@ class DistantKernelAgent extends AgentFakeThread {
 
 	}
 
-	private void updateDistantAcceptedGroups(ArrayList<AgentSocketData> agents_socket, MultiGroup general,
-			Set<Group> groups) {
+	private void updateDistantAcceptedGroups(ArrayList<AgentSocketData> agents_socket, ListGroupsRoles general,
+			ListGroupsRoles groups) {
 		for (AgentSocketData a : agents_socket) {
 			if (a.distant_accessible_and_requested_groups2 != null) {
-				groups.addAll(a.distant_accessible_and_requested_groups2);
-				general.addGroup(a.distant_general_accessible_groups);
+				groups.addListGroupsRoles(a.distant_accessible_and_requested_groups2);
+				general.addListGroupsRoles(a.distant_general_accessible_groups);
 			}
 		}
 	}
@@ -1351,10 +1352,10 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 	}
 
-	@SuppressWarnings("SameParameterValue")
-	protected AgentSocketData getBestAgentSocket(AgentAddress _receiver, boolean testOnlyRequestedGroups) {
-		return getBestAgentSocket(_receiver.getKernelAddress(), _receiver.getGroup(), testOnlyRequestedGroups);
-	}
+	/*@SuppressWarnings("SameParameterValue")
+	protected AgentSocketData getBestAgentSocketForDistantAgentAddress(AgentAddress _receiver, boolean testOnlyRequestedGroups) {
+		return getBestAgentSocketForDistantAgentAddress(_receiver.getKernelAddress(), _receiver, testOnlyRequestedGroups);
+	}*/
 
 	private void potentialChangementsInGroups(ArrayList<AgentSocketData> agents_socket) throws MadkitException {
 		for (AgentSocketData asd : agents_socket) {
@@ -1368,33 +1369,78 @@ class DistantKernelAgent extends AgentFakeThread {
 		potentialChangementsInGroups(indirect_agents_socket);
 	}
 
-	protected AgentSocketData getBestAgentSocket(KernelAddress distantKernelAddress, Group group,
-			boolean testOnlyRequestedGroups) {
+	protected AgentSocketData getBestAgentSocketForLocalAgentAddress(KernelAddress distantKernelAddress, AgentAddress agentAddress,
+																	 @SuppressWarnings("SameParameterValue") boolean testOnlyRequestedGroups) {
 		updateBestAgent();
 
 		if (!distantKernelAddress.equals(distant_kernel_address)) {
 			return null;
 		}
 
-		AgentSocketData asd = getFirstValidAgentSocketData(agents_socket, group,
+		AgentSocketData asd = getFirstValidAgentSocketDataForLocalAgentAddress(agents_socket, agentAddress,
 				testOnlyRequestedGroups);
 		if (asd == null)
-			asd = getFirstValidAgentSocketData(indirect_agents_socket, group,
+			asd = getFirstValidAgentSocketDataForLocalAgentAddress(indirect_agents_socket, agentAddress,
+					testOnlyRequestedGroups);
+		return asd;
+	}
+	/*protected AgentSocketData getBestAgentSocketForDistantAgentAddress(KernelAddress distantKernelAddress, AgentAddress agentAddress,
+																	 boolean testOnlyRequestedGroups) {
+		updateBestAgent();
+
+		if (!distantKernelAddress.equals(distant_kernel_address)) {
+			return null;
+		}
+
+		AgentSocketData asd = getFirstValidAgentSocketDataForDistantAgentAddress(agents_socket, agentAddress,
+				testOnlyRequestedGroups);
+		if (asd == null)
+			asd = getFirstValidAgentSocketDataForDistantAgentAddress(indirect_agents_socket, agentAddress,
+					testOnlyRequestedGroups);
+		return asd;
+	}*/
+
+	protected AgentSocketData getBestAgentSocket(KernelAddress distantKernelAddress, AgentAddress agentAddressSender, AgentAddress agentAddressReceiver,
+												 @SuppressWarnings("SameParameterValue") boolean testOnlyRequestedGroups) {
+		updateBestAgent();
+
+		if (!distantKernelAddress.equals(distant_kernel_address)) {
+			return null;
+		}
+
+		AgentSocketData asd = getFirstValidAgentSocketData(agents_socket, agentAddressSender, agentAddressReceiver,
+				testOnlyRequestedGroups);
+		if (asd == null)
+			asd = getFirstValidAgentSocketData(indirect_agents_socket, agentAddressSender, agentAddressReceiver,
 					testOnlyRequestedGroups);
 		return asd;
 	}
 
 
-	private AgentSocketData getFirstValidAgentSocketData(ArrayList<AgentSocketData> agents_socket,
-														 Group group, boolean testOnlyRequestedGroups) {
+	private AgentSocketData getFirstValidAgentSocketDataForLocalAgentAddress(ArrayList<AgentSocketData> agents_socket,
+														 AgentAddress agentAddress, boolean testOnlyRequestedGroups) {
 		for (AgentSocketData asd : agents_socket) {
-			if (asd.isUsable() && asd.contains(group, testOnlyRequestedGroups)
-					&& asd.getAcceptedLocalGroups().getGroups().includes(getKernelAddress(), group))
+			if (asd.isUsable() && asd.acceptLocalAgentAddressToSend(getKernelAddress(),agentAddress, testOnlyRequestedGroups))
 				return asd;
 		}
 		return null;
 	}
-
+	/*private AgentSocketData getFirstValidAgentSocketDataForDistantAgentAddress(ArrayList<AgentSocketData> agents_socket,
+																			 AgentAddress agentAddress, boolean testOnlyRequestedGroups) {
+		for (AgentSocketData asd : agents_socket) {
+			if (asd.isUsable() && asd.acceptDistantAgentAddressToSend(agentAddress, testOnlyRequestedGroups))
+				return asd;
+		}
+		return null;
+	}*/
+	private AgentSocketData getFirstValidAgentSocketData(ArrayList<AgentSocketData> agents_socket,
+														 AgentAddress agentAddressSender, AgentAddress agentAddressReceiver, boolean testOnlyRequestedGroups) {
+		for (AgentSocketData asd : agents_socket) {
+			if (asd.isUsable() && asd.acceptMessageToSend(getKernelAddress(), agentAddressSender, agentAddressReceiver, testOnlyRequestedGroups))
+				return asd;
+		}
+		return null;
+	}
 	private AgentSocketData getBestAgentSocket(boolean includeNotUsable) {
 		updateBestAgent();
 
@@ -1436,9 +1482,9 @@ class DistantKernelAgent extends AgentFakeThread {
 		private final AgentAddress global_address;
 		private AgentAddress address;
 		final StatsBandwidth stat;
-		MultiGroup distant_accessible_and_requested_groups = new MultiGroup();
-		AbstractGroup distant_general_accessible_groups = new MultiGroup();
-		List<Group> distant_accessible_and_requested_groups2 = null;
+		ListGroupsRoles distant_accessible_and_requested_groups = new ListGroupsRoles();
+		ListGroupsRoles distant_general_accessible_groups = new ListGroupsRoles();
+		ListGroupsRoles distant_accessible_and_requested_groups2 = null;
 		final boolean direct;
 		private List<PairOfIdentifiers> accepted_identifiers = new ArrayList<>();
 		private ArrayList<PairOfIdentifiers> last_accepted_identifiers = new ArrayList<>();
@@ -1533,16 +1579,40 @@ class DistantKernelAgent extends AgentFakeThread {
 			return global_address;
 		}
 
-		boolean contains(Group _group, boolean testOnlyRequestedGroups) {
-			if (testOnlyRequestedGroups)
-				return distant_accessible_and_requested_groups.includes(_group);
-			else
-				return distant_general_accessible_groups.includes(_group);
+		boolean acceptMessageToSend(KernelAddress localKernelAddress, AgentAddress agentAddressSender, AgentAddress agentAddressReceiver, boolean testOnlyRequestedGroups) {
+
+			if (testOnlyRequestedGroups) {
+				if (!distant_accessible_and_requested_groups.includeDistant(localKernelAddress, agentAddressSender))
+					return false;
+			}
+			else {
+					if (!distant_general_accessible_groups.includeDistant(localKernelAddress, agentAddressSender))
+						return false;
+			}
+			return getAcceptedLocalGroups().acceptLocal(agentAddressReceiver)
+					&& getAcceptedLocalGroups().acceptLocal(agentAddressSender);
 		}
+
+		boolean acceptLocalAgentAddressToSend(KernelAddress localKernelAddress, AgentAddress agentAddressSender, boolean testOnlyRequestedGroups) {
+
+			if (testOnlyRequestedGroups) {
+				if (!distant_accessible_and_requested_groups.includeDistant(localKernelAddress, agentAddressSender))
+					return false;
+			}
+			else {
+				if (!distant_general_accessible_groups.includeDistant(localKernelAddress, agentAddressSender))
+					return false;
+			}
+			return getAcceptedLocalGroups().acceptLocal(agentAddressSender);
+		}
+
+		/*boolean acceptDistantAgentAddressToSend(AgentAddress agentAddressReceiver, boolean testOnlyRequestedGroups) {
+			return getAcceptedLocalGroups().acceptReceiver(agentAddressReceiver);
+		}*/
 
 		void setDistantAccessibleGroups(NetworkGroupsAccessEvent event) {
 			distant_general_accessible_groups = event.getGeneralAcceptedGroups();
-			distant_accessible_and_requested_groups = new MultiGroup(event.getRequestedAccessibleGroups());
+			distant_accessible_and_requested_groups = event.getRequestedAccessibleGroups();
 			distant_accessible_and_requested_groups2 = event.getRequestedAccessibleGroups();
 		}
 
@@ -1596,7 +1666,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 
 		void potentialChangementInGroups(DistantKernelAgent dka) throws MadkitException {
-			AcceptedGroups ag = getAcceptedLocalGroups().potentialChangementInGroups();
+			AcceptedGroups ag = getAcceptedLocalGroups().potentialChangesInGroups();
 			if (ag != null) {
 				dka.sendData(this.global_address, ag, true, null, false);
 			}
@@ -1608,13 +1678,13 @@ class DistantKernelAgent extends AgentFakeThread {
 	protected void newCGRSynchroDetected(CGRSynchro cgr) {
 		if (cgr.getCode() == Code.REQUEST_ROLE || cgr.getCode() == Code.LEAVE_ROLE
 				|| cgr.getCode() == Code.LEAVE_GROUP) {
-			ArrayList<Group> ag = computeLocalAcceptedAndRequestedGroups();
-			MultiGroup mg = computeLocalGeneralAcceptedGroups();
+			ListGroupsRoles ag = computeLocalAcceptedAndRequestedGroups();
+			ListGroupsRoles mg = computeLocalGeneralAcceptedGroups();
 			if (kernelAddressActivated && hasUsableDistantSocketAgent()
 					&& ((cgr.getCode() == Code.REQUEST_ROLE
-							&& computeMissedGroups(this.localAcceptedAndRequestedGroups, ag).size() > 0)
+							&& this.localAcceptedAndRequestedGroups.areDetectedChanges(ag, getKernelAddress(), true))
 							|| ((cgr.getCode() == Code.LEAVE_ROLE || cgr.getCode() == Code.LEAVE_GROUP)
-									&& computeMissedGroups(ag, this.localAcceptedAndRequestedGroups).size() > 0)))
+									&& this.localAcceptedAndRequestedGroups.areDetectedChanges(ag, getKernelAddress(), true))))
 				MadkitKernelAccess.informHooks(this, new NetworkGroupsAccessEvent(
 						AgentActionEvent.ACCESSIBLE_LAN_GROUPS_GIVEN_TO_DISTANT_PEER, mg, ag, distant_kernel_address, false));
 			localAcceptedAndRequestedGroups = ag;
@@ -1622,43 +1692,55 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 	}
 
-	private MultiGroup computeLocalGeneralAcceptedGroups() {
-		MultiGroup res = new MultiGroup();
+	private ListGroupsRoles computeLocalGeneralAcceptedGroups() {
+		ListGroupsRoles res = new ListGroupsRoles();
 		computeLocalGeneralAcceptedGroups(agents_socket, res);
 		computeLocalGeneralAcceptedGroups(indirect_agents_socket, res);
 		return res;
 	}
 
-	private void computeLocalGeneralAcceptedGroups(ArrayList<AgentSocketData> agents_socket, MultiGroup res) {
+	private void computeLocalGeneralAcceptedGroups(ArrayList<AgentSocketData> agents_socket, ListGroupsRoles res) {
 		for (AgentSocketData asd : agents_socket) {
 			Groups g = asd.getAcceptedLocalGroups();
 			if (g != null) {
-				res.addGroup(g.getGroups());
+				res.addListGroupsRoles(g.getGroups());
 			}
 		}
 	}
 
-	private ArrayList<Group> computeLocalAcceptedAndRequestedGroups() {
-		ArrayList<Group> ag = new ArrayList<>();
+	private ListGroupsRoles computeLocalAcceptedAndRequestedGroups() {
+		ListGroupsRoles ag = new ListGroupsRoles();
 		computeLocalAcceptedAndRequestedGroups(agents_socket, ag);
 		computeLocalAcceptedAndRequestedGroups(indirect_agents_socket, ag);
 		return ag;
 	}
 
-	private void computeLocalAcceptedAndRequestedGroups(ArrayList<AgentSocketData> agents_socket, ArrayList<Group> ag) {
+	private void computeLocalAcceptedAndRequestedGroups(ArrayList<AgentSocketData> agents_socket, ListGroupsRoles ag) {
 		for (AgentSocketData asd : agents_socket) {
 			Groups g = asd.getAcceptedLocalGroups();
 			if (g != null) {
-				Group[] gs = g.getGroups().getRepresentedGroups(getKernelAddress());
-				if (gs != null) {
-					ag.ensureCapacity(gs.length);
-					Collections.addAll(ag, gs);
-				}
+				ag.addListGroupsRoles(g.getGroups().getListWithRepresentedGroupsRoles(getKernelAddress()));
 			}
 		}
 	}
 
-	private ArrayList<Group> computeMissedGroups(ArrayList<Group> reference, ArrayList<Group> listToTest) {
+	private ArrayList<Group> computeMissedGroups(Group[] reference, Group[] listToTest) {
+		ArrayList<Group> res = new ArrayList<>();
+		for (Group g : listToTest) {
+			boolean found = false;
+			for (Group g2 : reference) {
+				if (g.equals(g2)) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				res.add(g);
+			}
+		}
+		return res;
+	}
+	private ArrayList<Group> computeMissedGroups(Collection<Group> reference, Collection<Group> listToTest) {
 		ArrayList<Group> res = new ArrayList<>();
 		for (Group g : listToTest) {
 			boolean found = false;
@@ -1676,25 +1758,23 @@ class DistantKernelAgent extends AgentFakeThread {
 	}
 
 	protected void updateSharedAcceptedGroups(boolean updateDistant, boolean updateLocal) throws NIOException {
-		Group[] old_distant_accepted_groups=null;
-		MultiGroup generalDistantAcceptedGroups=null;
+		ListGroupsRoles old_distant_accepted_groups=null;
+		ListGroupsRoles generalDistantAcceptedGroups=null;
 		if (updateDistant) {
-			generalDistantAcceptedGroups = new MultiGroup();
-			Set<Group> groups = new HashSet<>();
+			generalDistantAcceptedGroups = new ListGroupsRoles();
+			ListGroupsRoles groups = new ListGroupsRoles();
 
 			updateDistantAcceptedGroups(agents_socket, generalDistantAcceptedGroups, groups);
 			updateDistantAcceptedGroups(indirect_agents_socket, generalDistantAcceptedGroups, groups);
 
 			old_distant_accepted_groups = distant_accepted_groups;
-			distant_accepted_groups = new Group[groups.size()];
-
-			groups.toArray(distant_accepted_groups);
+			distant_accepted_groups = groups;
 
 
 		}
 
-		MultiGroup generalLocalMultiGroup =null;
-		ArrayList<Group> localAcceptedGroup=null;
+		/*ListGroupsRoles generalLocalMultiGroup =null;
+		ListGroupsRoles localAcceptedGroup=null;
 		ArrayList<Group> localRemovedAcceptedGroups=null;
 		if (kernelAddressActivated && hasUsableDistantSocketAgent()) {
 
@@ -1709,14 +1789,40 @@ class DistantKernelAgent extends AgentFakeThread {
 
 				}
 				localAcceptedAndRequestedGroups = localAcceptedGroup;
+			}*/
+		ListGroupsRoles generalLocalMultiGroup =null;
+		ListGroupsRoles localAcceptedGroup=null;
+		Group[] localRepresentedAcceptedGroup;
+		ArrayList<Group> localRemovedAcceptedGroups=null;
+
+		if (kernelAddressActivated && hasUsableDistantSocketAgent()) {
+
+			if (updateLocal)
+			{
+				localAcceptedGroup = computeLocalAcceptedAndRequestedGroups();
+				localRepresentedAcceptedGroup=localAcceptedGroup.getRepresentedGroups(getKernelAddress());
+				Group[] localRepresentedAcceptedAndRequestedGroups = localAcceptedAndRequestedGroups.getRepresentedGroups(getKernelAddress());
+				ArrayList<Group> localNewAcceptedGroups = computeMissedGroups(localRepresentedAcceptedAndRequestedGroups, localRepresentedAcceptedGroup);
+				localRemovedAcceptedGroups = computeMissedGroups(localRepresentedAcceptedGroup, localRepresentedAcceptedAndRequestedGroups);
+
+				if (localNewAcceptedGroups.size() > 0 || localRemovedAcceptedGroups.size() > 0) {
+					generalLocalMultiGroup = computeLocalGeneralAcceptedGroups();
+
+				}
+				this.localAcceptedAndRequestedGroups = localAcceptedGroup;
 			}
 
+			/*ListGroupsRoles ag=distant_accepted_groups.intersect(getKernelAddress(), this.localAcceptedAndRequestedGroups);
 
 
-			ArrayList<Group> ag = new ArrayList<>(Math.max(localAcceptedAndRequestedGroups.size(), distant_accepted_groups.length));
-			for (Group g : localAcceptedAndRequestedGroups)
+
+			ListGroupsRoles newAcceptedGroups = this.sharedAcceptedAndRequestedGroups.computeMissedGroups(getKernelAddress(),ag);
+			ListGroupsRoles removedAcceptedGroups = ag.computeMissedGroups(getKernelAddress(), this.sharedAcceptedAndRequestedGroups);
+			if (!newAcceptedGroups.isEmpty() || !removedAcceptedGroups.isEmpty()) {*/
+			ArrayList<Group> ag = new ArrayList<>();
+			for (Group g : localAcceptedAndRequestedGroups.getRepresentedGroups(getKernelAddress()))
 			{
-				for (Group g2 : distant_accepted_groups) {
+				for (Group g2 : distant_accepted_groups.getRepresentedGroups(getKernelAddress())) {
 					if (g2.equals(g)) {
 						ag.add(g);
 						break;
@@ -1727,8 +1833,9 @@ class DistantKernelAgent extends AgentFakeThread {
 			ArrayList<Group> newAcceptedGroups = computeMissedGroups(this.sharedAcceptedAndRequestedGroups, ag);
 			ArrayList<Group> removedAcceptedGroups = computeMissedGroups(ag, this.sharedAcceptedAndRequestedGroups);
 			if (newAcceptedGroups.size() > 0 || removedAcceptedGroups.size() > 0) {
+
 				Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> agent_addresses = getOrganizationSnapShot(
-						newAcceptedGroups, false);
+						newAcceptedGroups, distant_accepted_groups, false);
 
 				if (!agent_addresses.isEmpty()) {
 
@@ -1760,7 +1867,7 @@ class DistantKernelAgent extends AgentFakeThread {
 
 
 
-			if (updateDistant && !((old_distant_accepted_groups == null || old_distant_accepted_groups.length == 0) && distant_accepted_groups.length == 0))
+			if (updateDistant && !((old_distant_accepted_groups == null || old_distant_accepted_groups.isEmpty()) && distant_accepted_groups.isEmpty()))
 			{
 
 				MadkitKernelAccess.informHooks(this,

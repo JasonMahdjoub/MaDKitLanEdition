@@ -37,14 +37,8 @@
  */
 package com.distrimind.madkit.message.hook;
 
-import com.distrimind.madkit.kernel.AbstractGroup;
-import com.distrimind.madkit.kernel.Group;
 import com.distrimind.madkit.kernel.KernelAddress;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
 
 /**
  * Notification message about accessible groups from the network or toward the
@@ -63,31 +57,31 @@ public class NetworkGroupsAccessEvent extends HookMessage {
 
 
 
-	private final List<Group> effective_accessible_groups;
-	private final AbstractGroup general_accessible_groups;
+	private final ListGroupsRoles effective_accessible_groups;
+	private final ListGroupsRoles general_accessible_groups;
 	private KernelAddress concerned_kernel_address_interfaced;
 	private final boolean localGroupsRemoved;
 
-	private static Group[] toArray(Collection<Group> _accessible_groups) {
+	/*private static Group[] toArray(Collection<Group> _accessible_groups) {
 		Group res[] = new Group[_accessible_groups.size()];
 		int index = 0;
 		for (Group g : _accessible_groups) {
 			res[index++] = g;
 		}
 		return res;
-	}
+	}*/
 
 	public boolean isLocalGroupsRemoved() {
 		return localGroupsRemoved;
 	}
 
-	public NetworkGroupsAccessEvent(AgentActionEvent action, AbstractGroup general_accessible_groups,
+	/*public NetworkGroupsAccessEvent(AgentActionEvent action, AbstractGroup general_accessible_groups,
 									Collection<Group> _accessible_groups, KernelAddress _concerned_kernel_address_interfaced, boolean localGroupsRemoved) {
 		this(action, general_accessible_groups, toArray(_accessible_groups), _concerned_kernel_address_interfaced, localGroupsRemoved);
-	}
+	}*/
 
-	public NetworkGroupsAccessEvent(AgentActionEvent action, AbstractGroup general_accessible_groups,
-			Group[] _accessible_groups, KernelAddress _concerned_kernel_address_interfaced, boolean localGroupsRemoved) {
+	public NetworkGroupsAccessEvent(AgentActionEvent action, ListGroupsRoles general_accessible_groups,
+									ListGroupsRoles _accessible_groups, KernelAddress _concerned_kernel_address_interfaced, boolean localGroupsRemoved) {
 		super(action);
 		if (action == null)
 			throw new NullPointerException("action");
@@ -98,9 +92,9 @@ public class NetworkGroupsAccessEvent extends HookMessage {
 		if (general_accessible_groups == null)
 			throw new NullPointerException("general_accessible_groups");
 
-		effective_accessible_groups = Collections.unmodifiableList(Arrays.asList(_accessible_groups));
+		effective_accessible_groups = _accessible_groups.clone();
 		concerned_kernel_address_interfaced = _concerned_kernel_address_interfaced;
-		this.general_accessible_groups = general_accessible_groups;
+		this.general_accessible_groups = general_accessible_groups.clone();
 		this.localGroupsRemoved =localGroupsRemoved;
 	}
 
@@ -111,11 +105,11 @@ public class NetworkGroupsAccessEvent extends HookMessage {
 				+ "]";
 	}
 
-	public List<Group> getRequestedAccessibleGroups() {
+	public ListGroupsRoles getRequestedAccessibleGroups() {
 		return effective_accessible_groups;
 	}
 
-	public AbstractGroup getGeneralAcceptedGroups() {
+	public ListGroupsRoles getGeneralAcceptedGroups() {
 		return general_accessible_groups;
 	}
 

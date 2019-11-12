@@ -37,18 +37,15 @@
  */
 package com.distrimind.madkit.kernel;
 
-import static com.distrimind.madkit.i18n.I18nUtilities.getCGRString;
+import com.distrimind.madkit.i18n.ErrorMessages;
+import com.distrimind.madkit.kernel.network.connection.access.GroupsRoles;
+import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
-import com.distrimind.madkit.i18n.ErrorMessages;
+import static com.distrimind.madkit.i18n.I18nUtilities.getCGRString;
 
 /**
  * @author Fabien Michel
@@ -162,13 +159,16 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 
 	}
 
-	void updateAcceptedDistantGroups(KernelAddress ka, AbstractGroup generalAcceptedGroup)
+	void updateAcceptedDistantGroupsGivenToDistantPeer(KernelAddress ka, ListGroupsRoles generalAcceptedGroup)
 	{
 		for (final Iterator<Map.Entry<Group, InternalGroup>> e = this.entrySet().iterator(); e.hasNext();) {
 			final Map.Entry<Group, InternalGroup> entry = e.next();
 			final InternalGroup g = entry.getValue();
-			if (!generalAcceptedGroup.includes(g.getGroup()))
-				removeDistantKernelAddressForAllGroups(ka);
+
+			if (!generalAcceptedGroup.getGroups().includes(ka, g.getGroup()))
+				g.removeDistantKernelAddressForAllRoles(ka);
+			else
+				g.removeDistantKernelAddressForAllRolesThatDoesNotAcceptDistantRoles(ka, generalAcceptedGroup.getGroupsRoles(g.getGroup()));
 			if (g.isEmpty())
 				e.remove();
 		}
@@ -185,20 +185,23 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 		return export;
 	}
 
-	Map<Group, Map<String, Collection<AgentAddress>>> getOrgMap(Collection<Group> concerned_groups, boolean global) {
+	Map<Group, Map<String, Collection<AgentAddress>>> getOrgMap(KernelAddress localKernelAddress, List<Group> concerned_groups, ListGroupsRoles distantAcceptedGroups, boolean global) {
 		Map<Group, Map<String, Collection<AgentAddress>>> export = new TreeMap<>();
 		for (Map.Entry<Group, InternalGroup> org : entrySet()) {
 			if (global || org.getValue().isDistributed()) {
-				for (Group concerned_group : concerned_groups) {
-					if (concerned_group.getCommunity().equals(this.communityName)
-							&& concerned_group.equals(org.getKey())) {
-						Map<String, Collection<AgentAddress>> m = org.getValue().getGroupMap();
+				if (concerned_groups.contains(org.getValue().getGroup())) {
+					GroupsRoles gr = distantAcceptedGroups.getGroupsRoles(org.getValue().getGroup());
+					if (gr != null) {
+						String[] roles = gr.getDistantAcceptedRoles();
+						Map<String, Collection<AgentAddress>> m;
+						if (roles == null || roles.length == 0)
+							m = org.getValue().getGroupMap();
+						else
+							m = org.getValue().getGroupMap(localKernelAddress, distantAcceptedGroups);
 						if (!m.isEmpty()) {
 							export.put(org.getKey(), m);
 						}
-						break;
 					}
-
 				}
 			}
 		}
