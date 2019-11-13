@@ -358,7 +358,7 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 			ArrayList<AgentAddress> res=new ArrayList<>();
 			for (AgentAddress aa : aas)
 			{
-				if (distantGroupsRoles.includeDistant(localKernelAddress, aa))
+				if (distantGroupsRoles.includesDistant(localKernelAddress, aa))
 					res.add(aa);
 			}
 			export.put(org.getKey(), res);

@@ -193,7 +193,7 @@ final class CGRSynchrosSystemMessage implements WithoutInnerSizeControl {
 				for (Map.Entry<String, Collection<AgentAddress>> e2 : e.getValue().entrySet()) {
 					Set<AgentAddress> h = new HashSet<>();
 					for (AgentAddress aa : e2.getValue()) {
-						if (aa.getKernelAddress().equals(from) && (myAcceptedGroups==null || myAcceptedGroups.includeDistant(from, aa))) {
+						if (aa.getKernelAddress().equals(from) && (myAcceptedGroups==null || myAcceptedGroups.includesDistant(from, aa))) {
 							h.add(aa);
 						}
 					}

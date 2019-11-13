@@ -252,17 +252,17 @@ public class ListGroupsRoles implements Cloneable, SecureExternalizable {
 		return res;
 	}
 
-	public boolean includeDistant(KernelAddress kernelAddress, AgentAddress agentAddress)
+	public boolean includesDistant(KernelAddress kernelAddress, AgentAddress agentAddress)
 	{
-		return include(kernelAddress, agentAddress, true);
+		return includes(kernelAddress, agentAddress, true);
 	}
 
-	public boolean includeLocal(KernelAddress kernelAddress, AgentAddress agentAddress)
+	public boolean includesLocal(KernelAddress kernelAddress, AgentAddress agentAddress)
 	{
-		return include(kernelAddress, agentAddress, false);
+		return includes(kernelAddress, agentAddress, false);
 	}
 
-	private boolean include(KernelAddress kernelAddress, AgentAddress agentAddress, boolean distant)
+	private boolean includes(KernelAddress kernelAddress, AgentAddress agentAddress, boolean distant)
 	{
 		if (!agentAddress.isFrom(kernelAddress))
 			return false;
@@ -292,7 +292,7 @@ public class ListGroupsRoles implements Cloneable, SecureExternalizable {
 		TOTAL
 	}
 
-	public InclusionMode includeGroup(Group group)
+	public InclusionMode includesGroup(Group group)
 	{
 		InclusionMode res=InclusionMode.NONE;
 		for (GroupsRoles gr : groupsRoles.values())

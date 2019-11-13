@@ -1582,11 +1582,11 @@ class DistantKernelAgent extends AgentFakeThread {
 		boolean acceptMessageToSend(KernelAddress localKernelAddress, AgentAddress agentAddressSender, AgentAddress agentAddressReceiver, boolean testOnlyRequestedGroups) {
 
 			if (testOnlyRequestedGroups) {
-				if (!distant_accessible_and_requested_groups.includeDistant(localKernelAddress, agentAddressSender))
+				if (!distant_accessible_and_requested_groups.includesDistant(localKernelAddress, agentAddressSender))
 					return false;
 			}
 			else {
-					if (!distant_general_accessible_groups.includeDistant(localKernelAddress, agentAddressSender))
+					if (!distant_general_accessible_groups.includesDistant(localKernelAddress, agentAddressSender))
 						return false;
 			}
 			return getAcceptedLocalGroups().acceptLocal(agentAddressReceiver)
@@ -1596,11 +1596,11 @@ class DistantKernelAgent extends AgentFakeThread {
 		boolean acceptLocalAgentAddressToSend(KernelAddress localKernelAddress, AgentAddress agentAddressSender, boolean testOnlyRequestedGroups) {
 
 			if (testOnlyRequestedGroups) {
-				if (!distant_accessible_and_requested_groups.includeDistant(localKernelAddress, agentAddressSender))
+				if (!distant_accessible_and_requested_groups.includesDistant(localKernelAddress, agentAddressSender))
 					return false;
 			}
 			else {
-				if (!distant_general_accessible_groups.includeDistant(localKernelAddress, agentAddressSender))
+				if (!distant_general_accessible_groups.includesDistant(localKernelAddress, agentAddressSender))
 					return false;
 			}
 			return getAcceptedLocalGroups().acceptLocal(agentAddressSender);

@@ -38,7 +38,6 @@
 package com.distrimind.madkit.kernel;
 
 import com.distrimind.madkit.i18n.ErrorMessages;
-import com.distrimind.madkit.kernel.network.connection.access.GroupsRoles;
 import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
 
 import java.util.*;
@@ -165,7 +164,7 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 			final Map.Entry<Group, InternalGroup> entry = e.next();
 			final InternalGroup g = entry.getValue();
 
-			if (!generalAcceptedGroup.getGroups().includes(ka, g.getGroup()))
+			if (generalAcceptedGroup.includesGroup(g.getGroup())== ListGroupsRoles.InclusionMode.NONE)
 				g.removeDistantKernelAddressForAllRoles(ka);
 			else
 				g.removeDistantKernelAddressForAllRolesThatDoesNotAcceptDistantRoles(ka, generalAcceptedGroup);
@@ -190,7 +189,7 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 		for (Map.Entry<Group, InternalGroup> org : entrySet()) {
 			if (global || org.getValue().isDistributed()) {
 				if (concerned_groups.contains(org.getValue().getGroup())) {
-					ListGroupsRoles.InclusionMode inclusionMode=distantAcceptedGroups.includeGroup(org.getValue().getGroup());
+					ListGroupsRoles.InclusionMode inclusionMode=distantAcceptedGroups.includesGroup(org.getValue().getGroup());
 
 					if (inclusionMode != ListGroupsRoles.InclusionMode.NONE) {
 						Map<String, Collection<AgentAddress>> m;

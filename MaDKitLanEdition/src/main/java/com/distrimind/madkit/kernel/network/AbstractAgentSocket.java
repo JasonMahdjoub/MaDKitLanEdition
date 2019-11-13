@@ -2638,11 +2638,11 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		}
 
 		boolean acceptLocal(AgentAddress add) {
-			return groups.includeLocal(AbstractAgentSocket.this.getKernelAddress(), add);
+			return groups.includesLocal(AbstractAgentSocket.this.getKernelAddress(), add);
 		}
 
 		boolean acceptDistant(AgentAddress add) {
-			return groups.includeDistant(AbstractAgentSocket.this.distantInterfacedKernelAddress, add);
+			return groups.includesDistant(AbstractAgentSocket.this.distantInterfacedKernelAddress, add);
 		}
 
 
