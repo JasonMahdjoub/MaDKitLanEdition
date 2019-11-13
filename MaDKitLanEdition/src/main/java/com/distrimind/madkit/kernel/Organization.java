@@ -168,7 +168,7 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 			if (!generalAcceptedGroup.getGroups().includes(ka, g.getGroup()))
 				g.removeDistantKernelAddressForAllRoles(ka);
 			else
-				g.removeDistantKernelAddressForAllRolesThatDoesNotAcceptDistantRoles(ka, generalAcceptedGroup.getGroupsRoles(g.getGroup()));
+				g.removeDistantKernelAddressForAllRolesThatDoesNotAcceptDistantRoles(ka, generalAcceptedGroup);
 			if (g.isEmpty())
 				e.remove();
 		}

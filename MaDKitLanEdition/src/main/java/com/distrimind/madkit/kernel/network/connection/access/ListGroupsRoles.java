@@ -334,7 +334,7 @@ public class ListGroupsRoles implements Cloneable, SecureExternalizable {
 		return groupsRoles.size()==0;
 	}
 
-	public ListGroupsRoles computeMissedGroups(KernelAddress localKernelAddress, ListGroupsRoles listToTest) {
+	/*public ListGroupsRoles computeMissedGroups(KernelAddress localKernelAddress, ListGroupsRoles listToTest) {
 		ListGroupsRoles res = new ListGroupsRoles();
 		for (Map.Entry<GroupsRoles.RoleID, GroupsRoles> e : listToTest.groupsRoles.entrySet())
 		{
@@ -404,5 +404,23 @@ public class ListGroupsRoles implements Cloneable, SecureExternalizable {
 			}
 		}
 		return res;
+	}*/
+	public boolean isDistantRoleAcceptable(AgentAddress agentAddress) {
+		return isDistantRoleAcceptable(agentAddress.getGroup(), agentAddress.getRole());
+	}
+	public boolean isDistantRoleAcceptable(Group group, String roleName) {
+		for (GroupsRoles gr : groupsRoles.values())
+		{
+			if (gr.getGroup().includes(group))
+			{
+				for (String s : gr.getDistantAcceptedRoles())
+				{
+					if (s.equals(roleName))
+						return true;
+				}
+			}
+		}
+
+		return false;
 	}
 }

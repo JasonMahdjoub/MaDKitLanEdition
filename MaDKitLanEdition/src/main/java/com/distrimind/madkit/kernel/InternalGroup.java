@@ -41,7 +41,6 @@ import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.i18n.ErrorMessages;
 import com.distrimind.madkit.i18n.I18nUtilities;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
-import com.distrimind.madkit.kernel.network.connection.access.GroupsRoles;
 import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
 import com.distrimind.madkit.message.ObjectMessage;
 import com.distrimind.util.io.SecureExternalizable;
@@ -254,11 +253,11 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 		}
 	}
 
-	void removeDistantKernelAddressForAllRolesThatDoesNotAcceptDistantRoles(KernelAddress ka, GroupsRoles groupsRoles)
+	void removeDistantKernelAddressForAllRolesThatDoesNotAcceptDistantRoles(KernelAddress ka, ListGroupsRoles listGroupsRoles)
 	{
 		synchronized (this) {
 			for (final InternalRole r : values()) {
-				if (!groupsRoles.isDistantRoleAcceptable(r.getRoleName()))
+				if (!listGroupsRoles.isDistantRoleAcceptable(getGroup(), r.getRoleName()))
 					r.removeDistantMembers(ka);
 
 			}
