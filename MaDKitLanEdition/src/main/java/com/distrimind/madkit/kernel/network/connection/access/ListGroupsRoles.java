@@ -67,7 +67,7 @@ public class ListGroupsRoles implements Cloneable, SecureExternalizable {
 		return getGroups().getRepresentedGroups(localKernelAddress);
 	}
 
-	public GroupsRoles getGroupsRoles(Group group)
+	/*public GroupsRoles getGroupsRoles(Group group)
 	{
 		for (GroupsRoles gr : groupsRoles.values())
 		{
@@ -75,7 +75,7 @@ public class ListGroupsRoles implements Cloneable, SecureExternalizable {
 				return gr;
 		}
 		return null;
-	}
+	}*/
 
 	@Override
 	public int getInternalSerializedSize() {
@@ -283,6 +283,29 @@ public class ListGroupsRoles implements Cloneable, SecureExternalizable {
 			}
 		}
 		return false;
+	}
+
+	public enum InclusionMode
+	{
+		NONE,
+		PARTIAL,
+		TOTAL
+	}
+
+	public InclusionMode includeGroup(Group group)
+	{
+		InclusionMode res=InclusionMode.NONE;
+		for (GroupsRoles gr : groupsRoles.values())
+		{
+			if (gr.getGroup().includes(group));
+			{
+				if (gr.getDistantAcceptedRoles()==null)
+					return InclusionMode.TOTAL;
+				else
+					res=InclusionMode.PARTIAL;
+			}
+		}
+		return res;
 	}
 
 	public boolean areDetectedChanges(ListGroupsRoles roles, KernelAddress localKernelAddress, boolean kernelAddressSent)

@@ -190,11 +190,11 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 		for (Map.Entry<Group, InternalGroup> org : entrySet()) {
 			if (global || org.getValue().isDistributed()) {
 				if (concerned_groups.contains(org.getValue().getGroup())) {
-					GroupsRoles gr = distantAcceptedGroups.getGroupsRoles(org.getValue().getGroup());
-					if (gr != null) {
-						String[] roles = gr.getDistantAcceptedRoles();
+					ListGroupsRoles.InclusionMode inclusionMode=distantAcceptedGroups.includeGroup(org.getValue().getGroup());
+
+					if (inclusionMode != ListGroupsRoles.InclusionMode.NONE) {
 						Map<String, Collection<AgentAddress>> m;
-						if (roles == null || roles.length == 0)
+						if (inclusionMode== ListGroupsRoles.InclusionMode.TOTAL)
 							m = org.getValue().getGroupMap();
 						else
 							m = org.getValue().getGroupMap(localKernelAddress, distantAcceptedGroups);
