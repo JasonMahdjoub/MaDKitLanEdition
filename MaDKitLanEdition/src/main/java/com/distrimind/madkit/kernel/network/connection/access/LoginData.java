@@ -72,7 +72,7 @@ public abstract class LoginData extends AccessData {
 	 * @return the authorized group(s)
 	 * @throws AccessException if a problem occurs
 	 */
-	public abstract ListGroupsRoles getGroupsAccess(Identifier _id) throws AccessException;
+	public abstract ListGroupsRoles getGroupsAccess(PairOfIdentifiers _id) throws AccessException;
 
 	/**
 	 * Parse all identifiers and call

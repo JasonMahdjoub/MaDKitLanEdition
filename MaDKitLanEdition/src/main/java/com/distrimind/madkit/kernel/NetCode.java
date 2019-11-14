@@ -49,8 +49,7 @@ enum NetCode {
 	NEW_PEER_DETECTED, PEER_DECONNECTED, NEW_PEER_REQUEST
 }
 
-@SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
-class NetworkMessage extends EnumMessage<NetCode> {
+/*class NetworkMessage extends EnumMessage<NetCode> {
 
 	public NetworkMessage(NetCode code, Object... commandOptions) {
 		super(code, commandOptions);
@@ -61,7 +60,7 @@ class NetworkMessage extends EnumMessage<NetCode> {
 
 	}
 
-}
+}*/
 // class NewPeerMessage extends NetCode<DatagramPacket>{
 // /**
 // *

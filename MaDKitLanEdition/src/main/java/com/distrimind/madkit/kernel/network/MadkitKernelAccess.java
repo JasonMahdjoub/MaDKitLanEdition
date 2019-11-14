@@ -59,7 +59,6 @@ import static com.distrimind.madkit.util.ReflectionTools.*;
  * @author Jason Mahdjoub
  * @version 1.0
  */
-@SuppressWarnings("ConstantConditions")
 class MadkitKernelAccess {
 
 	static Agent getMadkitKernel(AbstractAgent _requester) {
@@ -297,7 +296,7 @@ class MadkitKernelAccess {
 		return -1;
 	}
 
-	static BigDataTransferID getBigDataTransferIDInstance(ConversationID id, RealTimeTransfertStat stat) {
+	/*static BigDataTransferID getBigDataTransferIDInstance(ConversationID id, RealTimeTransfertStat stat) {
 		try {
 			return c_big_data_transfer_id.newInstance(id, stat);
 		} catch (InvocationTargetException | InstantiationException | IllegalAccessException
@@ -307,7 +306,7 @@ class MadkitKernelAccess {
 			System.exit(-1);
 		}
 		return null;
-	}
+	}*/
 
 	static TaskID getTaskIDInstance(ConversationID id) {
 		try {
@@ -395,7 +394,7 @@ class MadkitKernelAccess {
 	private static final Method m_wait_message_sent;
 	private static final Method m_get_global_interfaced_ids;
 
-	private static final Constructor<BigDataTransferID> c_big_data_transfer_id;
+	//private static final Constructor<BigDataTransferID> c_big_data_transfer_id;
 	private static final Constructor<TaskID> c_task_id;
 
 	static {
@@ -433,8 +432,8 @@ class MadkitKernelAccess {
 		//m_get_madkit_life_executor = getMethod(c_madkit_kernel, "getLifeExecutor");
 		m_wait_message_sent = getMethod(c_madkit_kernel, "waitMessageSent", AbstractAgent.class, LockerCondition.class);
 		m_get_global_interfaced_ids = getMethod(c_madkit_kernel, "getGlobalInterfacedIDs");
-		c_big_data_transfer_id = getConstructor(BigDataTransferID.class, ConversationID.class,
-				RealTimeTransfertStat.class);
+		/*c_big_data_transfer_id = getConstructor(BigDataTransferID.class, ConversationID.class,
+				RealTimeTransfertStat.class);*/
 		c_task_id = getConstructor(TaskID.class, ConversationID.class);
 	}
 

@@ -284,7 +284,7 @@ public abstract class AbstractAccessProtocol {
 			LoginData lp = (LoginData) access_data;
 
 			for (PairOfIdentifiers id : all_accepted_identifiers) {
-				listGroupsRoles.addListGroupsRoles(lp.getGroupsAccess(id.getLocalIdentifier()));
+				listGroupsRoles.addListGroupsRoles(lp.getGroupsAccess(id));
 				if (id.isLocallyAuthenticatedCloud() && id.isDistantlyAuthenticatedCloud()) {
 					try {
 						String localDatabaseHostID=properties.getLocalDatabaseHostIDString();
