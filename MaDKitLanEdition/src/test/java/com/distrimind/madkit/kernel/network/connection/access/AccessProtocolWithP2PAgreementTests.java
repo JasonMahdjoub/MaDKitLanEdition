@@ -131,9 +131,15 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		ArrayList<IdentifierPassword> identifierPassordsReceiver;
 
 		Object[] o = new Object[8];
-		adasker.add(AccessDataMKEventListener.getDefaultAccessData(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA));
+		ListGroupsRoles defaultGroupAccess=new ListGroupsRoles();
+		ListGroupsRoles groupAccess=new ListGroupsRoles();
+		defaultGroupAccess.addGroupsRoles(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA);
+		groupAccess.addGroupsRoles(JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA);
+
+
+		adasker.add(AccessDataMKEventListener.getDefaultAccessData(defaultGroupAccess));
 		adreceiver
-				.add(AccessDataMKEventListener.getDefaultAccessData(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA));
+				.add(AccessDataMKEventListener.getDefaultAccessData(defaultGroupAccess));
 		o[0] = adasker;
 		o[1] = adreceiver;
 		o[2] = acceptedAskerIdentifiers;
@@ -154,7 +160,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		adasker.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsAsker = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(0), 4, 5, 6, 10),
-				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeAsker, new Runnable() {
+				null, groupAccess, loginInitiativeAsker, new Runnable() {
 
 					@Override
 					public void run() {
@@ -170,7 +176,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsReceiver = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(1), 2, 5, 6, 12),
-				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeReceiver, new Runnable() {
+				null, groupAccess, loginInitiativeReceiver, new Runnable() {
 
 					@Override
 					public void run() {
@@ -212,7 +218,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		adasker.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsAsker = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(0), 2, 5, 6, 7),
-				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeAsker, new Runnable() {
+				null, groupAccess, loginInitiativeAsker, new Runnable() {
 
 					@Override
 					public void run() {
@@ -228,7 +234,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsReceiver = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(1), 3, 5, 6, 12),
-				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeReceiver, new Runnable() {
+				null, groupAccess, loginInitiativeReceiver, new Runnable() {
 
 					@Override
 					public void run() {
@@ -281,7 +287,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		adasker.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsAsker = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomAutoSignedHostIdentifier(2), AccessDataMKEventListener.CLOUD_ID_NUMBER, AccessDataMKEventListener.CLOUD_ID_NUMBER+2, AccessDataMKEventListener.CLOUD_ID_NUMBER+3),
-				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeAsker, new Runnable() {
+				null, groupAccess, loginInitiativeAsker, new Runnable() {
 
 					@Override
 					public void run() {
@@ -297,7 +303,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsReceiver = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomAutoSignedHostIdentifier(3),  AccessDataMKEventListener.CLOUD_ID_NUMBER, AccessDataMKEventListener.CLOUD_ID_NUMBER+2, AccessDataMKEventListener.CLOUD_ID_NUMBER+1),
-				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeReceiver, new Runnable() {
+				null, groupAccess, loginInitiativeReceiver, new Runnable() {
 
 					@Override
 					public void run() {
@@ -350,7 +356,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		adasker.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsAsker = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(-1), 3),
-				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeAsker, new Runnable() {
+				null, groupAccess, loginInitiativeAsker, new Runnable() {
 
 					@Override
 					public void run() {
@@ -366,7 +372,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsReceiver = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(-1)),
-				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeReceiver, new Runnable() {
+				null, groupAccess, loginInitiativeReceiver, new Runnable() {
 
 					@Override
 					public void run() {
@@ -405,7 +411,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		adasker.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsAsker = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(0), 2, 8, 6, 10),
-				JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeAsker,
+				defaultGroupAccess, groupAccess, loginInitiativeAsker,
 				new Runnable() {
 
 					@Override
@@ -422,7 +428,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsReceiver = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(1), 0, 8, 6, 12),
-				JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, loginInitiativeReceiver,
+				defaultGroupAccess, groupAccess, loginInitiativeReceiver,
 				new Runnable() {
 
 					@Override

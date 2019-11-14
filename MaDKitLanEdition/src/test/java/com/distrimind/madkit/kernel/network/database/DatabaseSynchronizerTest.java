@@ -37,10 +37,7 @@ knowledge of the CeCILL-C license and that you accept its terms.
 
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.network.*;
-import com.distrimind.madkit.kernel.network.connection.access.AbstractAccessProtocolProperties;
-import com.distrimind.madkit.kernel.network.connection.access.AccessProtocolWithP2PAgreementProperties;
-import com.distrimind.madkit.kernel.network.connection.access.IdentifierPassword;
-import com.distrimind.madkit.kernel.network.connection.access.LoginData;
+import com.distrimind.madkit.kernel.network.connection.access.*;
 import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolPropertiesWithKeyAgreement;
 import com.distrimind.ood.database.DatabaseConfiguration;
 import com.distrimind.ood.database.DatabaseWrapper;
@@ -102,9 +99,14 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 		ArrayList<IdentifierPassword> idpws=AccessDataMKEventListener
 				.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(0), 4);
 
+		ListGroupsRoles defaultGroupAccess=new ListGroupsRoles();
+
+		defaultGroupAccess.addGroupsRoles(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA);
+
+
 		loginData1=AccessDataMKEventListener.getDefaultLoginData(
 					idpws,
-				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, true, new Runnable() {
+				null, defaultGroupAccess, true, new Runnable() {
 
 					@Override
 					public void run() {
@@ -142,9 +144,10 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 		app = new AccessProtocolWithP2PAgreementProperties();
 		idpws=AccessDataMKEventListener
 				.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(1), 4);
+
 		loginData2=AccessDataMKEventListener.getDefaultLoginData(
 				idpws,
-				null, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA, true, new Runnable() {
+				null, defaultGroupAccess, true, new Runnable() {
 
 					@Override
 					public void run() {

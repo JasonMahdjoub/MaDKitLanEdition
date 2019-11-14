@@ -45,6 +45,7 @@ import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.logging.Level;
 
+import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
 import com.distrimind.madkit.message.StringMessage;
 import org.junit.Test;
 
@@ -82,6 +83,8 @@ public class NetworkSpeed extends JunitMadkit {
 	final ForEverOnTheSameAASenderAgent forEventAgent1;
 
 	public NetworkSpeed() throws UnknownHostException {
+		final ListGroupsRoles defaultGroupAccess=new ListGroupsRoles();
+		defaultGroupAccess.addGroupsRoles(JunitMadkit.GROUP);
 
 		this.eventListener1 = new MadkitEventListener() {
 
@@ -93,7 +96,7 @@ public class NetworkSpeed extends JunitMadkit {
 					new NetworkEventListener(true, false, false, null,
 							new ConnectionsProtocolsMKEventListener(new UnsecuredConnectionProtocolProperties()),
 							new AccessProtocolPropertiesMKEventListener(app),
-							new AccessDataMKEventListener(AccessDataMKEventListener.getDefaultAccessData(GROUP)), 5000,
+							new AccessDataMKEventListener(AccessDataMKEventListener.getDefaultAccessData(defaultGroupAccess)), 5000,
 							null, InetAddress.getByName("0.0.0.0")).onMadkitPropertiesLoaded(_properties);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -109,7 +112,7 @@ public class NetworkSpeed extends JunitMadkit {
 
 		this.eventListener2 = new NetworkEventListener(true, false, false, null,
 				new ConnectionsProtocolsMKEventListener(u), new AccessProtocolPropertiesMKEventListener(app),
-				new AccessDataMKEventListener(AccessDataMKEventListener.getDefaultAccessData(GROUP)), 5000,
+				new AccessDataMKEventListener(AccessDataMKEventListener.getDefaultAccessData(defaultGroupAccess)), 5000,
                 Collections.singletonList((AbstractIP) new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"),
                         (Inet6Address) InetAddress.getByName("::1"))),
 				InetAddress.getByName("0.0.0.0"));

@@ -37,12 +37,6 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.security.InvalidAlgorithmParameterException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.util.*;
-
-import com.distrimind.madkit.kernel.AbstractGroup;
 import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.MadkitEventListener;
 import com.distrimind.madkit.kernel.MadkitProperties;
@@ -50,6 +44,11 @@ import com.distrimind.madkit.kernel.network.connection.access.*;
 import com.distrimind.util.DecentralizedIDGenerator;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.crypto.*;
+
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.util.*;
 
 
 /**
@@ -184,11 +183,11 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 		return new IdentifierPassword(new Identifier(cloudIdentifiers[index], host), paswordIdentifiers[index]);
 	}
 
-	public static AccessData getDefaultAccessData(final AbstractGroup defaultGroupAccess) {
+	public static AccessData getDefaultAccessData(final ListGroupsRoles defaultGroupAccess) {
 		return new AccessData() {
 
 			@Override
-			public AbstractGroup getDefaultGroupsAccess() {
+			public ListGroupsRoles getDefaultGroupsAccess() {
 				return defaultGroupAccess;
 			}
 
@@ -202,12 +201,12 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 	}
 
 	public static LoginData getDefaultLoginData(final ArrayList<IdentifierPassword> identifersAndPasswords,
-			final AbstractGroup defaultGroupAccess, final AbstractGroup groupAccess,
+			final ListGroupsRoles defaultGroupAccess, final ListGroupsRoles groupAccess,
 			final boolean canTakeLoginInitiative, final Runnable invalidPassord, final Runnable invalidCloudIdentifier) {
 		return new LoginData() {
 
 			@Override
-			public AbstractGroup getDefaultGroupsAccess() {
+			public ListGroupsRoles getDefaultGroupsAccess() {
 				return defaultGroupAccess;
 			}
 
@@ -252,7 +251,7 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 			}
 
 			@Override
-			public AbstractGroup getGroupsAccess(Identifier _id) {
+			public ListGroupsRoles getGroupsAccess(PairOfIdentifiers _id) {
 				return groupAccess;
 			}
 
@@ -312,16 +311,19 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 			}
 		};
 	}
-	private static HashMap<Identifier, DecentralizedIDGenerator> databaseIdentifiers=new HashMap<>();
+	private static final HashMap<Identifier, DecentralizedIDGenerator> databaseIdentifiers=new HashMap<>();
 
 	public static ArrayList<AccessDataMKEventListener> getAccessDataMKEventListenerForPeerToPeerConnections(
 			final boolean canTakeLoginInitiative, final Runnable invalidPassord,final Runnable invalidCloudIdentifier, HostIdentifier hostIdentifier,
 			int... loginIndexes) {
 		ArrayList<AccessDataMKEventListener> res = new ArrayList<>();
-
-		AccessData ad1 = getDefaultAccessData(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA);
+		ListGroupsRoles defaultGroupAccess=new ListGroupsRoles();
+		ListGroupsRoles groupAccess=new ListGroupsRoles();
+		defaultGroupAccess.addGroupsRoles(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA);
+		groupAccess.addGroupsRoles(JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA);
+		AccessData ad1 = getDefaultAccessData(defaultGroupAccess);
 		AccessData ad2 = getDefaultLoginData(getClientOrPeerToPeerLogins(hostIdentifier, loginIndexes),
-				JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA,
+				defaultGroupAccess, groupAccess,
 				canTakeLoginInitiative, invalidPassord, invalidCloudIdentifier);
 
 		res.add(new AccessDataMKEventListener(ad1));
