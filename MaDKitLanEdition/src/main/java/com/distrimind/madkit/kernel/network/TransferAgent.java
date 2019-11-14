@@ -737,7 +737,7 @@ class TransferAgent extends AgentFakeThread {
 		}
 	}
 
-	static class DirectConnection implements WithoutInnerSizeControl {
+	static class DirectConnection implements SystemMessageWithoutInnerSizeControl {
 		protected IDTransfer idTransfer;
 
 		DirectConnection(IDTransfer idTransfer) {

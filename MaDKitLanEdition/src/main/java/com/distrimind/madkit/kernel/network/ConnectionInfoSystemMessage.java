@@ -58,7 +58,7 @@ import java.util.List;
  * @since MadkitLanEdition 1.0
  *
  */
-class ConnectionInfoSystemMessage implements WithoutInnerSizeControl {
+class ConnectionInfoSystemMessage implements SystemMessageWithoutInnerSizeControl {
 
 	private ArrayList<AbstractIP> addresses;
 	private AbstractIP localAddresses;

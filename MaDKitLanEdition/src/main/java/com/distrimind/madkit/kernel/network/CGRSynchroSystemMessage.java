@@ -51,7 +51,7 @@ import java.io.IOException;
  * @version 1.3
  * @since MadkitLanEdition 1.0
  */
-final class CGRSynchroSystemMessage implements WithoutInnerSizeControl {
+final class CGRSynchroSystemMessage implements SystemMessageWithoutInnerSizeControl {
 
 
 	private CGRSynchro CGRSynchro;

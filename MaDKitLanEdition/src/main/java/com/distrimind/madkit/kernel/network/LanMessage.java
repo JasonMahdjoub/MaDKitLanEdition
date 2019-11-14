@@ -52,7 +52,7 @@ import java.io.IOException;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-abstract class LanMessage implements WithoutInnerSizeControl {
+abstract class LanMessage implements SystemMessageWithoutInnerSizeControl {
 
 	public Message message;
 	LanMessage()

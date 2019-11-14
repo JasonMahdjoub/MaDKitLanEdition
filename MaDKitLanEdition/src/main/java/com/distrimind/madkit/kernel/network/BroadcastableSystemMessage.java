@@ -52,7 +52,7 @@ import java.io.IOException;
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-abstract class BroadcastableSystemMessage implements WithoutInnerSizeControl, SecureExternalizable {
+abstract class BroadcastableSystemMessage implements SystemMessageWithoutInnerSizeControl, SecureExternalizable {
 
 	private IDTransfer idTransferDestination;
 	private KernelAddress kernelAddressDestination;

@@ -47,7 +47,7 @@ import com.distrimind.util.io.SecureExternalizableWithoutInnerSizeControl;
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-public interface WithoutInnerSizeControl extends SecureExternalizableWithoutInnerSizeControl {
+public interface SystemMessageWithoutInnerSizeControl extends SecureExternalizableWithoutInnerSizeControl {
 
 
 

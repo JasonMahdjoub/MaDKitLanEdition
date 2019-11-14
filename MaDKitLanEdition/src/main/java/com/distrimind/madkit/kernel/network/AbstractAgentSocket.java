@@ -2065,7 +2065,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			if (originalMessage != null && !(obj instanceof LanMessage))
 				originalMessage.markDataAsRead();
 
-			if (obj instanceof WithoutInnerSizeControl) {
+			if (obj instanceof SystemMessageWithoutInnerSizeControl) {
 
 				if (obj instanceof ConnectionMessage) {
 					boolean sendAskConnectionMessage = false;
@@ -2859,7 +2859,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		return sendData(_data, prioritary, false);
 	}
 
-	protected ReturnCode sendData(WithoutInnerSizeControl _data, boolean prioritary, boolean last_message) {
+	protected ReturnCode sendData(SystemMessageWithoutInnerSizeControl _data, boolean prioritary, boolean last_message) {
 		if (logger != null && logger.isLoggable(Level.FINEST))
 			logger.finest("Ask for data routing (distant_inet_address=" + distant_inet_address
 					+ ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress + ", prioritary="

@@ -50,7 +50,7 @@ import java.io.IOException;
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-final class AcceptedGroups implements WithoutInnerSizeControl {
+final class AcceptedGroups implements SystemMessageWithoutInnerSizeControl {
 
 	public ListGroupsRoles accepted_groups_and_requested;
 	public ListGroupsRoles accepted_groups;

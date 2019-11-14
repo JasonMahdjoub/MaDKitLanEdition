@@ -46,7 +46,7 @@ import com.distrimind.util.io.SecuredObjectOutputStream;
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-final class PongMessage implements WithoutInnerSizeControl {
+final class PongMessage implements SystemMessageWithoutInnerSizeControl {
 
 	@Override
 	public void readExternal(SecuredObjectInputStream in) {

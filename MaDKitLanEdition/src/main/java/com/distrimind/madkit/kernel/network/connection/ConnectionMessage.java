@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network.connection;
 
-import com.distrimind.madkit.kernel.network.WithoutInnerSizeControl;
+import com.distrimind.madkit.kernel.network.SystemMessageWithoutInnerSizeControl;
 
 /**
  * Represents a message destined for connections protocol.
@@ -46,7 +46,7 @@ import com.distrimind.madkit.kernel.network.WithoutInnerSizeControl;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-public abstract class ConnectionMessage implements WithoutInnerSizeControl {
+public abstract class ConnectionMessage implements SystemMessageWithoutInnerSizeControl {
 
 
 	

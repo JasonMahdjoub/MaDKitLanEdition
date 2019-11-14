@@ -50,7 +50,7 @@ import java.io.IOException;
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-final class DataToBroadcast implements WithoutInnerSizeControl {
+final class DataToBroadcast implements SystemMessageWithoutInnerSizeControl {
 
 
 	private BroadcastableSystemMessage messageToBroadcast;

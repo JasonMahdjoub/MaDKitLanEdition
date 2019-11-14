@@ -49,7 +49,7 @@ import java.io.IOException;
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-class ValidateBigDataProposition implements WithoutInnerSizeControl {
+class ValidateBigDataProposition implements SystemMessageWithoutInnerSizeControl {
 	private int packetID;
 
 	@SuppressWarnings("unused")

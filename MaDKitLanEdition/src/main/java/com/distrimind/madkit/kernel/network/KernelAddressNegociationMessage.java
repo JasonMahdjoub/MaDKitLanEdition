@@ -43,7 +43,7 @@ package com.distrimind.madkit.kernel.network;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-abstract class KernelAddressNegociationMessage implements WithoutInnerSizeControl {
+abstract class KernelAddressNegociationMessage implements SystemMessageWithoutInnerSizeControl {
 
 	@Override
 	public String toString() {

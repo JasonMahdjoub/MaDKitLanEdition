@@ -54,7 +54,7 @@ import java.util.Objects;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-public abstract class AbstractIP extends MultiFormatProperties implements WithoutInnerSizeControl, SecureExternalizable {
+public abstract class AbstractIP extends MultiFormatProperties implements SystemMessageWithoutInnerSizeControl, SecureExternalizable {
 	/**
 	 * 
 	 */

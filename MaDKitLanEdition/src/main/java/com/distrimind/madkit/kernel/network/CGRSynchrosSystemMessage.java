@@ -52,7 +52,7 @@ import java.util.*;
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-final class CGRSynchrosSystemMessage implements WithoutInnerSizeControl {
+final class CGRSynchrosSystemMessage implements SystemMessageWithoutInnerSizeControl {
 
 	private Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> organization_snap_shot;
 	private List<Group> removedGroups;
