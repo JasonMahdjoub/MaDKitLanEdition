@@ -60,7 +60,9 @@ import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol;
 import com.distrimind.madkit.kernel.network.connection.PointToPointTransferedBlockChecker;
 import com.distrimind.madkit.kernel.network.connection.access.EncryptedPassword;
+import com.distrimind.madkit.kernel.network.connection.access.GroupsRoles;
 import com.distrimind.madkit.kernel.network.connection.access.Identifier;
+import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
 import com.distrimind.madkit.message.*;
 import com.distrimind.madkit.message.hook.HookMessage;
 import com.distrimind.ood.database.DatabaseEventType;
@@ -1078,7 +1080,8 @@ final public class Madkit {
 					DatabaseWrapper.DatabaseTransactionsIdentifiersToSynchronize.class,
 					HookAddRequest.class,
 					DatabaseWrapper.LastIDCorrection.class,
-					DatabaseWrapper.TransactionConfirmationEvents.class));
+					DatabaseWrapper.TransactionConfirmationEvents.class,
+					ListGroupsRoles.class, GroupsRoles.class));
 			for (Class<?> c : classes)
 				assert !Modifier.isAbstract(c.getModifiers()):""+c;
 			//noinspection unchecked
