@@ -2417,7 +2417,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 							cgr.getCGRSynchro(), LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 				} else if (obj.getClass() == CGRSynchrosSystemMessage.class) {
 					sendMessageWithRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.NET_AGENT,
-							((CGRSynchrosSystemMessage) obj).getCGRSynchros(distant_kernel_address, my_accepted_groups.groups),
+							((CGRSynchrosSystemMessage) obj).getCGRSynchros(distantInterfacedKernelAddress, my_accepted_groups.groups),
 							LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 				} else if (obj.getClass() == ValidateBigDataProposition.class) {
 					if (logger != null && logger.isLoggable(Level.FINEST))

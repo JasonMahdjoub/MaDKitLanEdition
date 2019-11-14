@@ -351,17 +351,18 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 		return false;
 	}
 
-	Map<String, Collection<AgentAddress>> getGroupMap(KernelAddress localKernelAddress, ListGroupsRoles distantGroupsRoles) {
+	Map<String, Collection<AgentAddress>> getLocalGroupMap(ListGroupsRoles distantGroupsRoles) {
 		final Map<String, Collection<AgentAddress>> export = new TreeMap<>();
 		for (final Map.Entry<String, InternalRole> org : entrySet()) {
-			Collection<AgentAddress> aas=org.getValue().buildAndGetAddresses();
-			ArrayList<AgentAddress> res=new ArrayList<>();
-			for (AgentAddress aa : aas)
-			{
-				if (distantGroupsRoles.includesDistant(localKernelAddress, aa))
-					res.add(aa);
-			}
-			export.put(org.getKey(), res);
+			if (distantGroupsRoles.isDistantRoleAcceptable(getGroup(), org.getValue().getRoleName()))
+				export.put(org.getKey(), org.getValue().buildAndGetLocalAddresses());
+		}
+		return export;
+	}
+	Map<String, Collection<AgentAddress>> getLocalGroupMap() {
+		final Map<String, Collection<AgentAddress>> export = new TreeMap<>();
+		for (final Map.Entry<String, InternalRole> org : entrySet()) {
+			export.put(org.getKey(), org.getValue().buildAndGetLocalAddresses());
 		}
 		return export;
 	}

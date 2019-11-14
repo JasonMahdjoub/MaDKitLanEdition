@@ -69,6 +69,7 @@ final class ManagerRole extends InternalRole {
 			// getCGRString(communityName, groupName, roleName));
 			// System.err.println(this+" current players---\n"+players+"\n\n");
 			agentAddresses=null;
+			localAgentAddresses=null;
 			modified = true;
 		}
 	}

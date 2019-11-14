@@ -38,6 +38,7 @@ knowledge of the CeCILL-C license and that you accept its terms.
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.util.io.*;
+import org.apache.commons.codec.binary.Base64;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -54,7 +55,14 @@ public class GroupsRoles implements Cloneable, SecureExternalizable {
 	private transient RoleID roleID;
 	private Group[] representedGroups;
 
-
+	@Override
+	public String toString() {
+		return "GroupsRoles[" +
+				"group=" + group +
+				", distantAcceptedRoles=" + Arrays.toString(distantAcceptedRoles) +
+				", roleID=" + roleID +
+				']';
+	}
 
 	@Override
 	public void writeExternal(SecuredObjectOutputStream out) throws IOException {
@@ -333,6 +341,13 @@ public class GroupsRoles implements Cloneable, SecureExternalizable {
 				throw new IllegalArgumentException();
 			this.id = id;
 			this.hashCode= Arrays.hashCode(this.id);
+		}
+
+		@Override
+		public String toString() {
+			return "RoleID[" +
+					"id=" + Base64.encodeBase64URLSafeString(id) +
+					']';
 		}
 
 		public byte[] getId() {

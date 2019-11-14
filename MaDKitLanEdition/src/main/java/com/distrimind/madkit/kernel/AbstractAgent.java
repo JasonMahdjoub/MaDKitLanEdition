@@ -2696,15 +2696,12 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * 
 	 * @param concerned_groups
 	 *            the concerned communities and groups
-	 * @param global
-	 *            if <code>true</code> this takes into account agents coming from
-	 *            other connected kernels
-	 * 
+	 *
 	 * @return a data containing all the organization structure
 	 */
 	public Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> getOrganizationSnapShot(
-			List<Group> concerned_groups, ListGroupsRoles distantAcceptedGroups, boolean global) {
-		return getKernel().getOrganizationSnapShot(concerned_groups, distantAcceptedGroups, global);
+			List<Group> concerned_groups, ListGroupsRoles distantAcceptedGroups) {
+		return getKernel().getOrganizationSnapShot(concerned_groups, distantAcceptedGroups);
 	}
 
 	/**

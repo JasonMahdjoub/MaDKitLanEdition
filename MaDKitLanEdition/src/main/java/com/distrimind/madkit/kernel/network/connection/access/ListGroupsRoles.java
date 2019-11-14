@@ -446,7 +446,10 @@ public class ListGroupsRoles implements Cloneable, SecureExternalizable {
 		{
 			if (gr.getGroup().includes(group))
 			{
-				for (String s : gr.getDistantAcceptedRoles())
+				String []roles=gr.getDistantAcceptedRoles();
+				if (roles==null)
+					return true;
+				for (String s : roles)
 				{
 					if (s.equals(roleName))
 						return true;
@@ -455,5 +458,18 @@ public class ListGroupsRoles implements Cloneable, SecureExternalizable {
 		}
 
 		return false;
+	}
+
+	@Override
+	public String toString()
+	{
+		StringBuilder res=new StringBuilder("ListGroupsRoles[");
+		for (GroupsRoles gr : groupsRoles.values())
+		{
+			res.append(gr.toString());
+		}
+		res.append("]");
+		return res.toString();
+
 	}
 }

@@ -102,6 +102,10 @@ Note that one agent can't be attached to a MultiGroup or a Group that represents
 
 [<img src="groups.png" align="center" alt="Here you will find examples in the use of classes Group and MultiGroup"/>](groups.png)
 
+###### Requirements under Linux :
+  * ethtool
+
+
 ### Changes
 
 [See historical of changes](./versions.md)

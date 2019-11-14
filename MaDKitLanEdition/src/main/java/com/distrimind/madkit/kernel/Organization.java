@@ -178,25 +178,25 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 		Map<Group, Map<String, Collection<AgentAddress>>> export = new TreeMap<>();
 		for (Map.Entry<Group, InternalGroup> org : entrySet()) {
 			if (global || org.getValue().isDistributed()) {
-				export.put(org.getKey(), org.getValue().getGroupMap());
+				export.put(org.getKey(), org.getValue().getLocalGroupMap());
 			}
 		}
 		return export;
 	}
 
-	Map<Group, Map<String, Collection<AgentAddress>>> getOrgMap(KernelAddress localKernelAddress, List<Group> concerned_groups, ListGroupsRoles distantAcceptedGroups, boolean global) {
+	Map<Group, Map<String, Collection<AgentAddress>>> getOrgMap(List<Group> concerned_groups, ListGroupsRoles distantAcceptedGroups) {
 		Map<Group, Map<String, Collection<AgentAddress>>> export = new TreeMap<>();
 		for (Map.Entry<Group, InternalGroup> org : entrySet()) {
-			if (global || org.getValue().isDistributed()) {
+			if (org.getValue().isDistributed()) {
 				if (concerned_groups.contains(org.getValue().getGroup())) {
 					ListGroupsRoles.InclusionMode inclusionMode=distantAcceptedGroups.includesGroup(org.getValue().getGroup());
 
 					if (inclusionMode != ListGroupsRoles.InclusionMode.NONE) {
 						Map<String, Collection<AgentAddress>> m;
 						if (inclusionMode== ListGroupsRoles.InclusionMode.TOTAL)
-							m = org.getValue().getGroupMap();
+							m = org.getValue().getLocalGroupMap();
 						else
-							m = org.getValue().getGroupMap(localKernelAddress, distantAcceptedGroups);
+							m = org.getValue().getLocalGroupMap(distantAcceptedGroups);
 						if (!m.isEmpty()) {
 							export.put(org.getKey(), m);
 						}

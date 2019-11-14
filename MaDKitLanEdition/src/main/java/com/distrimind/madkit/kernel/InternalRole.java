@@ -84,7 +84,7 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 	protected transient Collection<ParametrizedAgent> players;//=new HashSet<>();// TODO test copyonarraylist and linkedhashset
 
 	private transient List<AbstractAgent> tmpReferenceableAgents;
-	protected volatile transient List<AgentAddress> agentAddresses;
+	protected volatile transient List<AgentAddress> agentAddresses, localAgentAddresses;
     protected transient Map<AgentAddress, AgentAddress> distantAgentAddresses;
 	protected volatile transient boolean modified = true;
 	private transient AtomicReference<Set<Overlooker<? extends AbstractAgent>>> overlookers = new AtomicReference<>(
@@ -280,6 +280,8 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 		kernelAddress = null;
 		number_of_manually_requested_role = null;
 		number_of_manually_distant_requested_role = null;
+		agentAddresses=null;
+		localAgentAddresses=null;
 	}
 
 	/**
@@ -340,7 +342,8 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 				if (aa.agent == requester) {
 					if (aa.manually_requested != manually_requested) {
 						aa.manually_requested = manually_requested;
-						aa.agent.getMadkitKernel().sendNetworkCGRSynchroMessageWithRole(null, new CGRSynchro(REQUEST_ROLE,
+						if (group.isDistributed())
+							aa.agent.getMadkitKernel().sendNetworkCGRSynchroMessageWithRole(null, new CGRSynchro(REQUEST_ROLE,
 								new AgentAddress(aa.agent, this, kernelAddress, aa.manually_requested), manually_requested));
 					}
 					return false;
@@ -355,6 +358,7 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 			// getCGRString(communityName, groupName, roleName));
 			// System.err.println(this+" current players---\n"+players+"\n\n");
 			agentAddresses=null;
+			localAgentAddresses=null;
 			/*if (agentAddresses != null) {
 				agentAddresses.add(new AgentAddress(requester, this, kernelAddress, manually_requested));
 			}*/
@@ -386,6 +390,7 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 				agentAddresses = addresses;
 			}*/
 			agentAddresses=null;
+			localAgentAddresses=null;
 			modified = true;
 		}
 		if (manually_requested)
@@ -465,6 +470,7 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 				return ReturnCode.NOT_IN_GROUP;
 			}
 			agentAddresses=null;
+			localAgentAddresses=null;
 			/*if (agentAddresses != null) {
 				Objects.requireNonNull(removeAgentAddressOf(requester, agentAddresses)).setRoleObject(null);
 			}*/
@@ -516,15 +522,17 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 				}
             }*/
             agentAddresses=null;
+			localAgentAddresses=null;
 			modified = true;
 		}
 		if (manually_requested)
 			updateReferences(null, number);
 		removeFromOverlookers(bucket);
-		if (removed!=null)
-			for (ParametrizedAgent aa : removed)
+		if (removed!=null && group.isDistributed())
+			for (ParametrizedAgent aa : removed) {
 				aa.agent.getMadkitKernel().sendNetworkCGRSynchroMessageWithRole(null, new CGRSynchro(LEAVE_ROLE,
 						new AgentAddress(aa.agent, this, kernelAddress, aa.manually_requested), manually_requested));
+			}
 
 	}
 
@@ -562,13 +570,10 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
         if (set == null) {
             synchronized (players) {
                 if (agentAddresses==null) {
-                    set=new ArrayList<>(players.size()+distantAgentAddresses.size());
+					List<AgentAddress> localAgentAddresses=buildAndGetLocalAddresses();
+                    set=new ArrayList<>(localAgentAddresses.size()+distantAgentAddresses.size());
 
-                    for (final ParametrizedAgent a : players) {
-
-                        set.add(new AgentAddress(a.agent, this, kernelAddress,
-								a.manually_requested));
-                    }
+                    set.addAll(localAgentAddresses);
 
                     set.addAll(distantAgentAddresses.values());
                     agentAddresses = set=Collections.unmodifiableList(set);
@@ -578,6 +583,29 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
             }
         }
         return set;
+
+
+	}
+
+	final List<AgentAddress> buildAndGetLocalAddresses() {
+		List<AgentAddress> set=localAgentAddresses;
+		if (set == null) {
+			synchronized (players) {
+				if (localAgentAddresses==null) {
+					set=new ArrayList<>(players.size());
+
+					for (final ParametrizedAgent a : players) {
+
+						set.add(new AgentAddress(a.agent, this, kernelAddress,
+								a.manually_requested));
+					}
+					localAgentAddresses = set=Collections.unmodifiableList(set);
+				}
+				else
+					set=localAgentAddresses;
+			}
+		}
+		return set;
 
 
 	}
@@ -674,6 +702,7 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 		tmpReferenceableAgents = null;
 		// players = null;
 		agentAddresses = null;
+		localAgentAddresses=null;
 		distantAgentAddresses.clear();
 		players.clear();
 	}

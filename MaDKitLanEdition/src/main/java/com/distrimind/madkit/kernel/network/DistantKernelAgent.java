@@ -307,44 +307,44 @@ class DistantKernelAgent extends AgentFakeThread {
 				} else if (_message.getClass() == CGRSynchro.class) {
 					CGRSynchro m = (CGRSynchro) _message;
 
-					if (this.kernelAddressActivated && sharedAcceptedAndRequestedGroups.contains(m.getContent().getGroup())) {
+					if (this.kernelAddressActivated) {
+						if (sharedAcceptedAndRequestedGroups.contains(m.getContent().getGroup())) {
 						/*if (m.getMessageLocker()!=null) {
 							m.getMessageLocker().lock();
 							sendReplyEmpty(m);
 						}*/
 
-						AgentSocketData asd = getBestAgentSocketForLocalAgentAddress(distant_kernel_address, m.getContent(),
-								false);
+							AgentSocketData asd = getBestAgentSocketForLocalAgentAddress(distant_kernel_address, m.getContent(),
+									false);
 
-						if (asd != null) {
-							if (logger != null && logger.isLoggable(Level.FINER))
-								logger.finer("CGRSynchro (distantInterfacedKernelAddress=" + distant_kernel_address
-										+ ") : " + _message);
+							if (asd != null) {
+								if (logger != null && logger.isLoggable(Level.FINER))
+									logger.finer("CGRSynchro (distantInterfacedKernelAddress=" + distant_kernel_address
+											+ ") : " + _message);
 
-							boolean lock=this.lockSocketUntilCGRSynchroIsSent && m.getCode() != Code.LEAVE_GROUP && m.getCode() != Code.LEAVE_ROLE;
-							MessageLocker ml=null;
-							if (lock)
-							{
-								ml=new MessageLocker();
-								ml.lock();
-							}
+								boolean lock = this.lockSocketUntilCGRSynchroIsSent && m.getCode() != Code.LEAVE_GROUP && m.getCode() != Code.LEAVE_ROLE;
+								MessageLocker ml = null;
+								if (lock) {
+									ml = new MessageLocker();
+									ml.lock();
+								}
 
-							CGRSynchroSystemMessage message = new CGRSynchroSystemMessage(m);
-							sendData(asd.getAgentAddress(), message, m.getCode() != Code.LEAVE_GROUP && m.getCode() != Code.LEAVE_ROLE, ml, false);
-							if (ml!=null)
-								ml.waitUnlock(this, true);
-							potentialChangementsInGroups();
-							newCGRSynchroDetected(m);
+								CGRSynchroSystemMessage message = new CGRSynchroSystemMessage(m);
+								sendData(asd.getAgentAddress(), message, m.getCode() != Code.LEAVE_GROUP && m.getCode() != Code.LEAVE_ROLE, ml, false);
+								if (ml != null)
+									ml.waitUnlock(this, true);
+								potentialChangementsInGroups();
+								newCGRSynchroDetected(m);
 
-							//sendData(asd.getAgentAddress(), message, true, m.getMessageLocker(), false);
-						} else {
-							if (logger != null && logger.isLoggable(Level.FINER))
-								logger.finer("No agent socket found for CGRSynchro (distantInterfacedKernelAddress=" + distant_kernel_address
-										+ ") : " + _message);
+								//sendData(asd.getAgentAddress(), message, true, m.getMessageLocker(), false);
+							} else {
+								if (logger != null && logger.isLoggable(Level.FINER))
+									logger.finer("No agent socket found for CGRSynchro (distantInterfacedKernelAddress=" + distant_kernel_address
+											+ ") : " + _message);
 							/*if (m.getMessageLocker()!=null)
 								m.getMessageLocker().unlock();*/
+							}
 						}
-
 					}
 					/*else if (m.getMessageLocker()!=null)
 						sendReplyEmpty(m);*/
@@ -1835,12 +1835,13 @@ class DistantKernelAgent extends AgentFakeThread {
 			if (newAcceptedGroups.size() > 0 || removedAcceptedGroups.size() > 0) {
 
 				Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> agent_addresses = getOrganizationSnapShot(
-						newAcceptedGroups, distant_accepted_groups, false);
+						newAcceptedGroups, distant_accepted_groups);
 
 				if (!agent_addresses.isEmpty()) {
 
 					CGRSynchrosSystemMessage message = new CGRSynchrosSystemMessage(agent_addresses, getKernelAddress(),
 							removedAcceptedGroups);
+
 					AgentSocketData asd = getBestAgentSocket(false);
 					if (asd != null) {
 
@@ -1863,6 +1864,7 @@ class DistantKernelAgent extends AgentFakeThread {
 				}
 			}
 			this.sharedAcceptedAndRequestedGroups=ag;
+
 
 
 

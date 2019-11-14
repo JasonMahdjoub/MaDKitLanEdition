@@ -2914,14 +2914,14 @@ class MadkitKernel extends Agent {
 
 	@Override
 	final public Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> getOrganizationSnapShot(
-			List<Group> concerned_groups, ListGroupsRoles distantAcceptedGroups, boolean global) {
+			List<Group> concerned_groups, ListGroupsRoles distantAcceptedGroups) {
 
 		if (concerned_groups == null)
 			throw new NullPointerException("concerned_group");
 		Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> export = new TreeMap<>();
 		synchronized (organizations) {
 			for (Map.Entry<String, Organization> org : organizations.entrySet()) {
-				Map<Group, Map<String, Collection<AgentAddress>>> m = org.getValue().getOrgMap(getKernelAddress(), concerned_groups, distantAcceptedGroups, global);
+				Map<Group, Map<String, Collection<AgentAddress>>> m = org.getValue().getOrgMap(concerned_groups, distantAcceptedGroups);
 				if (!m.isEmpty()) {
 					String com = org.getKey();
 					Map<Group, Map<String, Collection<AgentAddress>>> cur = export.get(com);
