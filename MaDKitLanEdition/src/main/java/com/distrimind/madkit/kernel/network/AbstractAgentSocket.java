@@ -2451,7 +2451,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 											+ ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress
 											+ ", conversationID=" + blm.message.getConversationID() + ")");
 
-						AbstractGroup bgroups = my_accepted_groups.getAcceptedGroups(blm.abstract_group, blm.agentAddressesSender);
+						MultiGroup bgroups = my_accepted_groups.getAcceptedGroups(blm.abstract_group, blm.agentAddressesSender);
 						if (!bgroups.isEmpty()) {
 							blm.setAccetedGroups(bgroups);
 							this.sendMessageWithRole(this.agent_for_distant_kernel_aa,
@@ -2646,8 +2646,8 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		}
 
 
-		AbstractGroup getAcceptedGroups(AbstractGroup group, Collection<AgentAddress> agentsAddressesSender) {
-			return groups.intersect(getKernelAddress(), group, agentsAddressesSender);
+		MultiGroup getAcceptedGroups(AbstractGroup group, Collection<AgentAddress> agentsAddressesSender) {
+			return groups.intersect(distant_kernel_address, getKernelAddress(), group, agentsAddressesSender);
 		}
 
 		public ListGroupsRoles getGroups() {

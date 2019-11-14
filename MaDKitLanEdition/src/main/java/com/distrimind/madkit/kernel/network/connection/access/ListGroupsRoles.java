@@ -194,31 +194,39 @@ public class ListGroupsRoles implements Cloneable, SecureExternalizable {
 		}
 	}
 
-	public MultiGroup intersect(KernelAddress localKernelAddress, AbstractGroup group, Collection<AgentAddress> agentsAddressesSender)
+	public MultiGroup intersect(KernelAddress localKernelAddress, KernelAddress distantKernelAddress, AbstractGroup group, Collection<AgentAddress> agentsAddressesSender)
 	{
-		MultiGroup mg=new MultiGroup();
+		Set<Group> groups=new HashSet<>();
 		for (GroupsRoles gr : groupsRoles.values())
 		{
-			ArrayList<Group> igroups=gr.getGroup().intersect(localKernelAddress, group);
-			for (Group g : igroups)
+			ArrayList<Group> igroups=null;
+
+			for (AgentAddress aa : agentsAddressesSender)
 			{
-				if (!g.isDistributed())
+				if (!aa.getGroup().isDistributed())
 					continue;
-				boolean found=false;
-				for (AgentAddress aa : agentsAddressesSender)
-				{
-					if (gr.isConcernedByDistantAgentAddress(aa)) {
-						found = true;
-						break;
+				if (!aa.isFrom(distantKernelAddress))
+					continue;
+
+				if (gr.isConcernedByDistantAgentAddress(aa)) {
+					if (igroups==null)
+						igroups=gr.getGroup().intersect(localKernelAddress, group);
+					Group groupWithSubGroups=aa.getGroup().getThisGroupWithItsSubGroups();
+					for (Group g : igroups)
+					{
+						if (!g.isDistributed())
+							continue;
+						if (groups.contains(g))
+							continue;
+						if (!gr.getGroup().includes(g))
+							continue;
+						if (g.equals(aa.getGroup()) || groupWithSubGroups.includes(g))
+							groups.add(g);
 					}
-				}
-				if (found)
-				{
-					mg.addGroup(g);
 				}
 			}
 		}
-		return mg;
+		return new MultiGroup(groups);
 	}
 
 	public ListGroupsRoles intersect(KernelAddress localKernelAddress, ListGroupsRoles other)
@@ -294,10 +302,12 @@ public class ListGroupsRoles implements Cloneable, SecureExternalizable {
 
 	public InclusionMode includesGroup(Group group)
 	{
+		if (!group.isDistributed())
+			return InclusionMode.NONE;
 		InclusionMode res=InclusionMode.NONE;
 		for (GroupsRoles gr : groupsRoles.values())
 		{
-			if (gr.getGroup().includes(group));
+			if (gr.getGroup().includes(group))
 			{
 				if (gr.getDistantAcceptedRoles()==null)
 					return InclusionMode.TOTAL;

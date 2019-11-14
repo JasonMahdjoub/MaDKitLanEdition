@@ -3011,11 +3011,11 @@ class MadkitKernel extends Agent {
 					try {
 						List<AgentAddress> receivers = getOtherRolePlayers(null, g, m.getRole());
 						if (receivers != null && receivers.size() > 0) {
+							oneReceiver = receivers.iterator().next();
 							final AgentAddress senderAgentAddress = m
-									.getAgentAddressSenderFromReceiver(receivers.iterator().next());
+									.getAgentAddressSenderFromReceiver(oneReceiver);
 							if (senderAgentAddress != null) {
 								receiversSize += receivers.size();
-								oneReceiver = receivers.iterator().next();
 								oneSender = senderAgentAddress;
 								((Message) m).setSender(senderAgentAddress);
 								broadcasting(receivers, m, null, false);
