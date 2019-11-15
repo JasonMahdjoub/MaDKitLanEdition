@@ -181,7 +181,7 @@ class GroupAccessTesterAgent extends NormalAgent
 {
 	private boolean distantAgentRequestGroupWithAllRoles=false;
 	private boolean distantAgentRequestGroupWithAllRolesInOnePeer=false;
-	private boolean distantAgentGroupWithOneRole=false;
+	private boolean distantAgentRequestGroupWithOneRole =false;
 	private final String distantAcceptedRole, distantAcceptedRoleNotRestricted;
 	private final String localAcceptedRole, localAcceptedRoleNotRestricted;
 	private boolean distantAgentRequestGroupNotAccepted=false;
@@ -218,6 +218,14 @@ class GroupAccessTesterAgent extends NormalAgent
 	private static final String distantAgentRequestGroupNotAcceptedBroadcastMessage="distantAgentRequestGroupNotAcceptedBroadcastMessage";
 	private static final String distantAgentRequestGroupWithAllRolesNotDistributedBroadcastMessage="distantAgentRequestGroupWithAllRolesNotDistributedBroadcastMessage";
 
+
+	private boolean distantAgentLeaveGroupWithAllRoles=false;
+	private boolean distantAgentLeaveGroupWithAllRolesInOnePeer=false;
+	private boolean distantAgentLeaveGroupWithOneRole=false;
+	private boolean distantAgentLeaveGroupNotAccepted=false;
+	private boolean distantAgentLeaveGroupWithAllRolesNotDistributed=false;
+
+
 	GroupAccessTesterAgent(boolean firstAgent)
 	{
 		if (firstAgent)
@@ -240,7 +248,7 @@ class GroupAccessTesterAgent extends NormalAgent
 			Assert.assertTrue(testOK==null || testOK);
 			Assert.assertTrue(distantAgentRequestGroupWithAllRoles);
 			Assert.assertFalse(distantAgentRequestGroupWithAllRolesInOnePeer);
-			Assert.assertTrue(distantAgentGroupWithOneRole);
+			Assert.assertTrue(distantAgentRequestGroupWithOneRole);
 			Assert.assertFalse(distantAgentRequestGroupNotAccepted);
 			Assert.assertFalse(distantAgentRequestGroupWithAllRolesNotDistributed);
 
@@ -265,6 +273,13 @@ class GroupAccessTesterAgent extends NormalAgent
 			Assert.assertFalse(broadcastMessageSentToGroupNotDistributed);
 			Assert.assertFalse(broadcastMessageReceivedFromGroupNotDistributed);
 
+			Assert.assertTrue(distantAgentLeaveGroupWithAllRoles);
+			Assert.assertFalse(distantAgentLeaveGroupWithAllRolesInOnePeer);
+			Assert.assertTrue(distantAgentLeaveGroupWithOneRole);
+			Assert.assertFalse(distantAgentLeaveGroupNotAccepted);
+			Assert.assertFalse(distantAgentLeaveGroupWithAllRolesNotDistributed);
+
+
 			testOK=true;
 		}
 		catch(AssertionError e)
@@ -272,6 +287,56 @@ class GroupAccessTesterAgent extends NormalAgent
 			testOK=false;
 			throw e;
 		}
+	}
+	boolean canReleaseGroups()
+	{
+		if (testOK!=null && !testOK)
+			return false;
+		if (!distantAgentRequestGroupWithAllRoles)
+			return false;
+		if (distantAgentRequestGroupWithAllRolesInOnePeer)
+			return false;
+		if (!distantAgentRequestGroupWithOneRole)
+			return false;
+		if (distantAgentRequestGroupNotAccepted)
+			return false;
+		if (distantAgentRequestGroupWithAllRolesNotDistributed)
+			return false;
+
+		if (!messageSentToGroupWithAllRoles)
+			return false;
+		if (!messageReceivedFromGroupWithAllRoles)
+			return false;
+
+		if (!messageSentToGroupWithOneRoles)
+			return false;
+		if (!messageReceivedFromGroupWithOneRoles)
+			return false;
+
+		if (!broadcastMessageSentToGroupWithAllRoles)
+			return false;
+		if (!broadcastMessageReceivedFromGroupWithAllRoles)
+			return false;
+
+		if (!broadcastMessageSentToGroupWithOneRole)
+			return false;
+		if (!broadcastMessageReceivedFromGroupWithOneRole)
+			return false;
+
+		if (broadcastMessageSentToGroupWithOneRolesInOnePeer)
+			return false;
+		if (broadcastMessageReceivedFromGroupWithOneRolesInOnePeer)
+			return false;
+
+		if (broadcastMessageSentToGroupNotAccepted)
+			return false;
+		if (broadcastMessageReceivedFromGroupNotAccepted)
+			return false;
+
+		if (broadcastMessageSentToGroupNotDistributed)
+			return false;
+		return !broadcastMessageReceivedFromGroupNotDistributed;
+
 	}
 
 
@@ -338,9 +403,37 @@ class GroupAccessTesterAgent extends NormalAgent
 				}
 				else if (hm.getSourceAgent().getGroup().equals(DistantGroupAccessTests.groupWithOneRole)) {
 					if (hm.getSourceAgent().getRole().equals(distantAcceptedRole)) {
-						distantAgentGroupWithOneRole=true;
+						distantAgentRequestGroupWithOneRole =true;
 						Assert.assertEquals(ReturnCode.SUCCESS, sendMessage(hm.getSourceAgent(), new StringMessage(distantAgentRequestGroupWithOneRoleMessage)));
 						messageSentToGroupWithOneRoles=true;
+					}
+					else {
+						fail();
+					}
+				}
+			}
+			else if (hm.getContent()== HookMessage.AgentActionEvent.LEAVE_ROLE) {
+				if (hm.getSourceAgent().getGroup().equals(DistantGroupAccessTests.groupNotAccepted)) {
+					distantAgentLeaveGroupNotAccepted = true;
+					fail();
+				} else if (hm.getSourceAgent().getGroup().equals(DistantGroupAccessTests.groupWithAllRolesNotDistributed)) {
+					distantAgentLeaveGroupWithAllRolesNotDistributed = true;
+					fail();
+				} else if (hm.getSourceAgent().getGroup().equals(DistantGroupAccessTests.groupWithAllRolesNotDistributed)) {
+					distantAgentLeaveGroupWithAllRolesInOnePeer = true;
+					fail();
+				}
+				else if (hm.getSourceAgent().getGroup().equals(DistantGroupAccessTests.groupWithAllRoles)) {
+					if (hm.getSourceAgent().getRole().equals(distantAcceptedRoleNotRestricted)) {
+						distantAgentLeaveGroupWithAllRoles=true;
+					}
+					else {
+						fail();
+					}
+				}
+				else if (hm.getSourceAgent().getGroup().equals(DistantGroupAccessTests.groupWithOneRole)) {
+					if (hm.getSourceAgent().getRole().equals(distantAcceptedRole)) {
+						distantAgentLeaveGroupWithOneRole =true;
 					}
 					else {
 						fail();
@@ -397,6 +490,16 @@ class GroupAccessTesterAgent extends NormalAgent
 				else {
 					fail();
 				}
+			}
+			if (canReleaseGroups())
+			{
+				leaveRole(DistantGroupAccessTests.groupWithAllRoles, localAcceptedRoleNotRestricted);
+				leaveRole(DistantGroupAccessTests.groupWithOneRole, localAcceptedRole);
+				leaveRole(DistantGroupAccessTests.groupWithOneRole, DistantGroupAccessTests.notSharedRole);
+				leaveRole(DistantGroupAccessTests.groupWithAllRolesInOnePeer, localAcceptedRoleNotRestricted);
+				leaveRole(DistantGroupAccessTests.groupWithAllRolesNotDistributed, localAcceptedRoleNotRestricted);
+				leaveRole(DistantGroupAccessTests.groupNotAccepted, localAcceptedRoleNotRestricted);
+
 			}
 		}
 	}
