@@ -251,7 +251,7 @@ class DistantKernelAgent extends AgentFakeThread {
 							message.getMessageLocker().lock();
 							// message.setIDPacket(packet_id_generator.getNewID());
 
-							AgentSocketData asd = getBestAgentSocket(getKernelAddress(), message.getOriginalMessage().getSender(), message.getOriginalMessage().getReceiver(), true);
+							AgentSocketData asd = getBestAgentSocket(message.getOriginalMessage().getSender(), message.getOriginalMessage().getReceiver(), true);
 							if (asd != null) {
 								Message m = message.getOriginalMessage();
 								if (m instanceof BigDataPropositionMessage) {
@@ -1400,11 +1400,11 @@ class DistantKernelAgent extends AgentFakeThread {
 		return asd;
 	}*/
 
-	protected AgentSocketData getBestAgentSocket(KernelAddress distantKernelAddress, AgentAddress agentAddressSender, AgentAddress agentAddressReceiver,
+	protected AgentSocketData getBestAgentSocket(AgentAddress agentAddressSender, AgentAddress agentAddressReceiver,
 												 @SuppressWarnings("SameParameterValue") boolean testOnlyRequestedGroups) {
 		updateBestAgent();
 
-		if (!distantKernelAddress.equals(distant_kernel_address)) {
+		if (!agentAddressReceiver.getKernelAddress().equals(distant_kernel_address)) {
 			return null;
 		}
 
@@ -1413,6 +1413,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		if (asd == null)
 			asd = getFirstValidAgentSocketData(indirect_agents_socket, agentAddressSender, agentAddressReceiver,
 					testOnlyRequestedGroups);
+
 		return asd;
 	}
 
@@ -1589,7 +1590,7 @@ class DistantKernelAgent extends AgentFakeThread {
 					if (!distant_general_accessible_groups.includesDistant(localKernelAddress, agentAddressSender))
 						return false;
 			}
-			return getAcceptedLocalGroups().acceptLocal(agentAddressReceiver)
+			return getAcceptedLocalGroups().getGroups().getGroups().includes(agentAddressReceiver.getGroup())
 					&& getAcceptedLocalGroups().acceptLocal(agentAddressSender);
 		}
 

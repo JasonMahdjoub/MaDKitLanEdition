@@ -414,6 +414,7 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 	}*/
 
 	final boolean addDistantMemberIfNecessary(final AgentAddress content) {
+
 		if (content.getKernelAddress()==null)
 			return false;
 		boolean ok;
