@@ -3076,8 +3076,9 @@ class MadkitKernel extends Agent {
 				g=getGroup(group);
 			if (g.isDistributed())
 			{
-				if (g.addDistantMember(agentAddress))
+				if (g.addDistantMember(agentAddress)) {
 					informHooks(AgentActionEvent.REQUEST_ROLE, agentAddress);
+				}
 				return true;
 			}
 			else

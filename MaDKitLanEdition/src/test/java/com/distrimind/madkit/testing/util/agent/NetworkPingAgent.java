@@ -127,7 +127,7 @@ public class NetworkPingAgent extends AgentAddressAgentTester {
 	}
 
 	public void printOK() {
-		System.out.print("distantPongReceived=" + distantPongReceived + " ; localPongReceived=" + localPongReceived
+		System.out.print(" distantPongReceived=" + distantPongReceived + " ; localPongReceived=" + localPongReceived
 				+ " ; testReceiver=" + testReceiver + " ; testSender=" + testSender);
 	}
 

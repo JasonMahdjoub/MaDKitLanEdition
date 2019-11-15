@@ -2647,7 +2647,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 
 
 		MultiGroup getAcceptedGroups(AbstractGroup group, Collection<AgentAddress> agentsAddressesSender) {
-			return groups.intersect(distant_kernel_address, getKernelAddress(), group, agentsAddressesSender);
+			return groups.intersect(getKernelAddress(), distant_kernel_address, group, agentsAddressesSender);
 		}
 
 		public ListGroupsRoles getGroups() {
