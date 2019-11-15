@@ -167,9 +167,10 @@ final public class Madkit {
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.NOVEMBER, 11);
 			Description d = new Description((short)2, (short)1, (short)0, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update Utils to 4.6.3 Stable");
-			d.addItem("Update OOD to 2.3.8 Stable");
+			d.addItem("Update Utils to 4.6.4 Stable");
+			d.addItem("Update OOD to 2.3.9 Stable");
 			d.addItem("Filter distant network roles, and not only distant network groups");
+			d.addItem("Compile with openjdk 13 (compatibility set to Java 7");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();

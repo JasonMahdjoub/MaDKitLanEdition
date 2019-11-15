@@ -53,13 +53,13 @@ repositories {
 
 dependencies {
     //testCompile(group:'org.testng', name: 'testng', version: '6.14.3')
-    testCompile 'junit:junit:4.12'
-    compile(group:'com.distrimind.ood', name: 'OOD', version: '2.3.8-Stable')
-    compile(group:'com.distrimind.jdkrewrite', name: 'JDKRewriteUtils', version: '1.0.3')
-    //compile project(':JDKRewriteUtils')
-    compile(group:'org.fourthline.cling', name: 'cling-core', version: '2.1.2')
-    compile(group:'org.fourthline.cling', name: 'cling-support', version: '2.1.2')
-    testCompile(group:'com.h2database', name:'h2', version:'1.4.200')
+    testImplementation 'junit:junit:4.12'
+    implementation(group:'com.distrimind.ood', name: 'OOD', version: '2.3.8-Stable')
+    implementation(group:'com.distrimind.jdkrewrite', name: 'JDKRewriteUtils', version: '1.0.3')
+    //implementation project(':JDKRewriteUtils')
+    implementation(group:'org.fourthline.cling', name: 'cling-core', version: '2.1.2')
+    implementation(group:'org.fourthline.cling', name: 'cling-support', version: '2.1.2')
+    testImplementation(group:'com.h2database', name:'h2', version:'1.4.200')
      
 }
 def javaVersion=7
@@ -131,8 +131,8 @@ allprojects {
     
     //compileJava.options.compilerArgs << "-Xlint"
     compileJava.options.compilerArgs.addAll(['--release', javaVersion] as Collection<? extends String>)
-    if (project.hasProperty('javaHomeVersion') && javaHomeVersion.toFloat()>1.8)
-    	javadoc.options.addStringOption("html5", "-quiet")
+    if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_1_9))
+        javadoc.options.addStringOption("html5", "-quiet")
 }
 
 idea {
@@ -144,14 +144,14 @@ idea {
 
 
 task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
+    //classifier = 'sources'
     from sourceSets.main.allSource
     from "../LICENSE"
     from "../versions.md"
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
+    //classifier = 'javadoc'
     from javadoc.destinationDir
     from "../LICENSE"
     from "../versions.md"

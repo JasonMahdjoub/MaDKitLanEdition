@@ -12,7 +12,7 @@ apply plugin: 'application'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-def Properties props = new Properties()
+Properties props = new Properties()
 def propFile = file('gradle.properties')
 def artifactory_Url="https://artifactory.distri-mind.fr/artifactory"
 def user=""
@@ -63,10 +63,10 @@ allprojects {
 	group='com.distrimind.madkitdemos'
     
     mainClassName = "com.distrimind.madkitdemos.MKLEDemos"
-    compileJava.options.compilerArgs.addAll(['--release', javaVersion])
+    compileJava.options.compilerArgs.addAll(['--release', javaVersion] as Collection<? extends String>)
     //compileJava.options.compilerArgs << "-Xlint"
-    if (project.hasProperty('javaHomeVersion') && javaHomeVersion.toFloat()>1.8)
-    	javadoc.options.addStringOption("html5", "-quiet")
+    if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_1_9))
+        javadoc.options.addStringOption("html5", "-quiet")
 }
 
 
@@ -74,13 +74,13 @@ version='1.0.16'
 
 
 task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
+    //classifier = 'sources'
     from sourceSets.main.allSource
     from "../LICENSE"
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
+    //classifier = 'javadoc'
     from javadoc.destinationDir
     from "../LICENSE"
 }
