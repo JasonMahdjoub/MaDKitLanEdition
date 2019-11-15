@@ -369,6 +369,7 @@ class GroupAccessTesterAgent extends NormalAgent
 	void fail()
 	{
 		testOK=false;
+		new IllegalAccessError().printStackTrace();
 		this.killAgent(this);
 	}
 
@@ -394,11 +395,12 @@ class GroupAccessTesterAgent extends NormalAgent
 				}
 				else if (hm.getSourceAgent().getGroup().equals(DistantGroupAccessTests.groupWithAllRoles)) {
 					if (hm.getSourceAgent().getRole().equals(distantAcceptedRoleNotRestricted)) {
-						distantAgentRequestGroupWithAllRoles=true;
+						distantAgentRequestGroupWithAllRoles = true;
 						Assert.assertEquals(ReturnCode.SUCCESS, sendMessage(hm.getSourceAgent(), new StringMessage(distantAgentRequestGroupWithAllRolesMessage)));
-						messageSentToGroupWithAllRoles=true;
+						messageSentToGroupWithAllRoles = true;
 					}
-					else {
+					else if (!hm.getSourceAgent().getRole().equals(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE)){
+						System.err.println(hm.getSourceAgent());
 						fail();
 					}
 				}
@@ -408,7 +410,7 @@ class GroupAccessTesterAgent extends NormalAgent
 						Assert.assertEquals(ReturnCode.SUCCESS, sendMessage(hm.getSourceAgent(), new StringMessage(distantAgentRequestGroupWithOneRoleMessage)));
 						messageSentToGroupWithOneRoles=true;
 					}
-					else {
+					else if (!hm.getSourceAgent().getRole().equals(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE)){
 						fail();
 					}
 				}
@@ -428,7 +430,7 @@ class GroupAccessTesterAgent extends NormalAgent
 					if (hm.getSourceAgent().getRole().equals(distantAcceptedRoleNotRestricted)) {
 						distantAgentLeaveGroupWithAllRoles=true;
 					}
-					else {
+					else if (!hm.getSourceAgent().getRole().equals(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE)){
 						fail();
 					}
 				}
@@ -436,7 +438,7 @@ class GroupAccessTesterAgent extends NormalAgent
 					if (hm.getSourceAgent().getRole().equals(distantAcceptedRole)) {
 						distantAgentLeaveGroupWithOneRole =true;
 					}
-					else {
+					else if (!hm.getSourceAgent().getRole().equals(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE)){
 						fail();
 					}
 				}
@@ -464,7 +466,7 @@ class GroupAccessTesterAgent extends NormalAgent
 					{
 						broadcastMessageReceivedFromGroupWithAllRoles=true;
 					}
-					else
+					else if (!sm.getContent().equals(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE))
 					{
 						fail();
 					}
@@ -483,7 +485,7 @@ class GroupAccessTesterAgent extends NormalAgent
 					{
 						broadcastMessageReceivedFromGroupWithOneRole =true;
 					}
-					else
+					else if (!sm.getContent().equals(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE))
 					{
 						fail();
 					}

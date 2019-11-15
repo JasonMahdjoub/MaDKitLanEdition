@@ -113,6 +113,7 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 		synchronized (this) {
 			if (logger != null)
 				logger.finer("Removing" + getCGRString(group));
+
 			if (remove(group) != null) {
 				group.setMadKitCreated(this.myKernel.getKernelAddress(), false);
 				checkEmptyness();
