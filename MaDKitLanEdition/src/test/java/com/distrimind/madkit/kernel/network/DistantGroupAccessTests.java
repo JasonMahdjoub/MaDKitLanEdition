@@ -134,7 +134,7 @@ public class DistantGroupAccessTests extends JunitMadkit{
 	}
 	private static final long timeOut = 20000;
 	@Test
-	public void testGroups() {
+	public void testDistantGroupAccess() {
 
 		final GroupAccessTesterAgent agent1=new GroupAccessTesterAgent(true);
 		final GroupAccessTesterAgent agent2=new GroupAccessTesterAgent(false);
@@ -148,6 +148,7 @@ public class DistantGroupAccessTests extends JunitMadkit{
 
 			@Override
 			protected void activate() throws InterruptedException {
+				System.out.println("Begin test for distant group access");
 				launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agent1, eventListener1);
 				sleep(400);
 				launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agent2, eventListener2);
@@ -377,9 +378,9 @@ class GroupAccessTesterAgent extends NormalAgent
 		Message m=waitNextMessage();
 		if (m instanceof OrganizationEvent)
 		{
-			if (m.getSender().isFrom(getKernelAddress()))
-				return;
 			OrganizationEvent hm=(OrganizationEvent)m;
+			if (hm.getSourceAgent().isFrom(getKernelAddress()))
+				return;
 			if (hm.getContent()== HookMessage.AgentActionEvent.REQUEST_ROLE) {
 				if (hm.getSourceAgent().getGroup().equals(DistantGroupAccessTests.groupNotAccepted)) {
 					distantAgentRequestGroupNotAccepted = true;
@@ -493,6 +494,7 @@ class GroupAccessTesterAgent extends NormalAgent
 			}
 			if (canReleaseGroups())
 			{
+				wait(1000);
 				leaveRole(DistantGroupAccessTests.groupWithAllRoles, localAcceptedRoleNotRestricted);
 				leaveRole(DistantGroupAccessTests.groupWithOneRole, localAcceptedRole);
 				leaveRole(DistantGroupAccessTests.groupWithOneRole, DistantGroupAccessTests.notSharedRole);
