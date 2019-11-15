@@ -7,7 +7,7 @@
  */
 
 // Apply the java-library plugin to add support for Java Library
-apply plugin: 'java'
+apply plugin: 'java-library'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 apply plugin: 'idea'
@@ -53,12 +53,12 @@ repositories {
 
 dependencies {
     //testImplementation(group:'org.testng', name: 'testng', version: '6.14.3')
-    testCompile 'junit:junit:4.12'
-    compile(group:'com.distrimind.ood', name: 'OOD', version: '2.3.9-Stable')
-    compile(group:'com.distrimind.jdkrewrite', name: 'JDKRewriteUtils', version: '1.0.4')
-    compile(group:'org.fourthline.cling', name: 'cling-core', version: '2.1.2')
-    compile(group:'org.fourthline.cling', name: 'cling-support', version: '2.1.2')
-    testCompile(group:'com.h2database', name:'h2', version:'1.4.200')
+    testImplementation 'junit:junit:4.12'
+    api(group:'com.distrimind.ood', name: 'OOD', version: '2.3.10-Stable')
+    api(group:'com.distrimind.jdkrewrite', name: 'JDKRewriteUtils', version: '1.0.4')
+    api(group:'org.fourthline.cling', name: 'cling-core', version: '2.1.2')
+    api(group:'org.fourthline.cling', name: 'cling-support', version: '2.1.2')
+    testImplementation(group:'com.h2database', name:'h2', version:'1.4.200')
      
 }
 def javaVersion=7
