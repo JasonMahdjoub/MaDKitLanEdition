@@ -178,7 +178,6 @@ public class ListGroupsRoles implements Cloneable, SecureExternalizable {
 				if (distributedRepresentedNumber>0) {
 					if (distributedRepresentedNumber!=groups.length)
 						groups2= Arrays.copyOfRange(groups2, 0, distributedRepresentedNumber);
-
 					res.groupsRoles.put(e.getKey(), new GroupsRoles(groups2, e.getKey(), e.getValue().getDistantAcceptedRoles()));
 				}
 			}

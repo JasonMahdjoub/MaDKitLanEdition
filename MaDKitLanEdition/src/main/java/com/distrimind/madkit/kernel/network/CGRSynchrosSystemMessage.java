@@ -69,6 +69,7 @@ final class CGRSynchrosSystemMessage implements SystemMessageWithoutInnerSizeCon
 			throw new NullPointerException();
 		this.organization_snap_shot = cleanUp(organization_snap_shop, from, null);
 		this.removedGroups = removedGroups;
+
 	}
 	
 	@Override

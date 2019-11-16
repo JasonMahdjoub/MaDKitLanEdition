@@ -92,6 +92,7 @@
   			<class name="com.distrimind.madkit.api.abstractAgent.LaunchAgentFakeThreadTest"/>
   			<class name="com.distrimind.madkit.simulation.ActivatorTest"/>
   			<class name="com.distrimind.madkit.kernel.network.ReadWritePacketTests"/>
+			<class name="com.distrimind.madkit.kernel.network.DistantGroupAccessTests"/>
   			<class name="com.distrimind.madkit.kernel.AgentAddressTest"/>
   			<class name="com.distrimind.madkit.database.DatabaseTests"/>
   			<class name="com.distrimind.madkit.visibility.KernelVisibilityTest"/>

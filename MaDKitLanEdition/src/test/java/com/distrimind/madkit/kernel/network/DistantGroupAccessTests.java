@@ -396,7 +396,7 @@ class GroupAccessTesterAgent extends NormalAgent
 				else if (hm.getSourceAgent().getGroup().equals(DistantGroupAccessTests.groupWithAllRoles)) {
 					if (hm.getSourceAgent().getRole().equals(distantAcceptedRoleNotRestricted)) {
 						distantAgentRequestGroupWithAllRoles = true;
-						Assert.assertEquals(ReturnCode.SUCCESS, sendMessage(hm.getSourceAgent(), new StringMessage(distantAgentRequestGroupWithAllRolesMessage)));
+						Assert.assertEquals(ReturnCode.SUCCESS, sendMessageWithRole(hm.getSourceAgent(), new StringMessage(distantAgentRequestGroupWithAllRolesMessage), localAcceptedRoleNotRestricted));
 						messageSentToGroupWithAllRoles = true;
 					}
 					else if (!hm.getSourceAgent().getRole().equals(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE)){
@@ -407,7 +407,7 @@ class GroupAccessTesterAgent extends NormalAgent
 				else if (hm.getSourceAgent().getGroup().equals(DistantGroupAccessTests.groupWithOneRole)) {
 					if (hm.getSourceAgent().getRole().equals(distantAcceptedRole)) {
 						distantAgentRequestGroupWithOneRole =true;
-						Assert.assertEquals(ReturnCode.SUCCESS, sendMessage(hm.getSourceAgent(), new StringMessage(distantAgentRequestGroupWithOneRoleMessage)));
+						Assert.assertEquals(ReturnCode.SUCCESS, sendMessageWithRole(hm.getSourceAgent(), new StringMessage(distantAgentRequestGroupWithOneRoleMessage), localAcceptedRole));
 						messageSentToGroupWithOneRoles=true;
 					}
 					else if (!hm.getSourceAgent().getRole().equals(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE)){
@@ -457,7 +457,7 @@ class GroupAccessTesterAgent extends NormalAgent
 				fail();
 			}
 			else if (sm.getSender().getGroup().equals(DistantGroupAccessTests.groupWithAllRoles)) {
-				if (sm.getSender().getRole().equals(localAcceptedRoleNotRestricted) && sm.getReceiver().getRole().equals(distantAcceptedRoleNotRestricted)) {
+				if (sm.getSender().getRole().equals(distantAcceptedRoleNotRestricted) && sm.getReceiver().getRole().equals(localAcceptedRoleNotRestricted)) {
 					if (sm.getContent().equals(distantAgentRequestGroupWithAllRolesMessage))
 					{
 						messageReceivedFromGroupWithAllRoles=true;
@@ -472,11 +472,12 @@ class GroupAccessTesterAgent extends NormalAgent
 					}
 				}
 				else {
+					System.err.println("Role : "+sm.getSender().getRole());
 					fail();
 				}
 			}
 			else if (sm.getSender().getGroup().equals(DistantGroupAccessTests.groupWithOneRole)) {
-				if (sm.getSender().getRole().equals(localAcceptedRole) && sm.getReceiver().getRole().equals(distantAcceptedRole)) {
+				if (sm.getSender().getRole().equals(distantAcceptedRole) && sm.getReceiver().getRole().equals(localAcceptedRole)) {
 					if (sm.getContent().equals(distantAgentRequestGroupWithOneRoleMessage))
 					{
 						messageReceivedFromGroupWithOneRoles=true;

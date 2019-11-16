@@ -2671,7 +2671,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				// auto_requested=true;
 				boolean changes = areThereDetectedChanges();
 				if (changes)
-					notifyGroupChangements();
+					notifyGroupChanges();
 				if (changes || distant_agent_address != agent_for_distant_kernel_aa) {
 					notifyDistantKernelAgent();
 				}
@@ -2700,18 +2700,19 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 
 		public AcceptedGroups potentialChangesInGroups() {
 			if (getState().compareTo(AbstractAgent.State.ACTIVATED) >= 0 && areThereDetectedChanges())
-				return getGroupChangements();
+				return getGroupChanges();
 			return null;
 
 		}
 
-		private void notifyGroupChangements() {
-			AcceptedGroups ag = getGroupChangements();
+		private void notifyGroupChanges() {
+			AcceptedGroups ag = getGroupChanges();
+
 			if (ag != null)
 				AbstractAgentSocket.this.sendData(ag, true, false);
 		}
 
-		private AcceptedGroups getGroupChangements() {
+		private AcceptedGroups getGroupChanges() {
 			if (represented_groups != null && access_protocol.isAccessFinalized()) {
 				kernelAddressSent = true;
 				try {

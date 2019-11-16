@@ -680,7 +680,7 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 
 	void checkEmptyness() {
 		synchronized (players) {
-			if ((players == null || players.isEmpty()) && (distantAgentAddresses == null || distantAgentAddresses.isEmpty()) && (agentAddresses == null || agentAddresses.isEmpty())) {
+			if ((players == null || players.isEmpty()) && (distantAgentAddresses == null || distantAgentAddresses.isEmpty())) {
 				cleanAndRemove();
 			}
 		}
@@ -838,6 +838,8 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 			//buildAndGetAddresses();
 			for (final AgentAddress content : list) {
 				if (content.getKernelAddress()==null)
+					continue;
+				if (!content.getRole().equals(roleName))
 					continue;
 				content.setRoleObject(this);
 				AgentAddress old = distantAgentAddresses.get(content);

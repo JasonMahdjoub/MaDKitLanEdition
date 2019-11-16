@@ -330,6 +330,8 @@ class DistantKernelAgent extends AgentFakeThread {
 								}
 
 								CGRSynchroSystemMessage message = new CGRSynchroSystemMessage(m);
+
+
 								sendData(asd.getAgentAddress(), message, m.getCode() != Code.LEAVE_GROUP && m.getCode() != Code.LEAVE_ROLE, ml, false);
 								if (ml != null)
 									ml.waitUnlock(this, true);
@@ -345,6 +347,7 @@ class DistantKernelAgent extends AgentFakeThread {
 								m.getMessageLocker().unlock();*/
 							}
 						}
+
 					}
 					/*else if (m.getMessageLocker()!=null)
 						sendReplyEmpty(m);*/
