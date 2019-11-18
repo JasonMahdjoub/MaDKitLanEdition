@@ -60,9 +60,9 @@ public class TimeOutAA extends DoItDuringLifeCycleAbstractAgent {
 	@Override
 	public void doIt() {
 		if (logger != null)
-			logger.info("waiting 1.5s");
+			logger.info("waiting 2.5s");
 		try {
-			Thread.sleep(1500);
+			Thread.sleep(2500);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
