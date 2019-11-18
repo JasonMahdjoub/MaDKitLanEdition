@@ -1818,6 +1818,7 @@ class MadkitKernel extends Agent {
 
 		if (numberOfReceivers == null)
 			numberOfReceivers = new AtomicInteger(0);
+		AtomicInteger nonSentNetworkNumberOfReceivers=new AtomicInteger(0);
 		Replies replies = null;
 		if (receiveAllRepliesInOneBlock) {
 			sendIndividualNetwork = true;
@@ -1829,23 +1830,37 @@ class MadkitKernel extends Agent {
 		try {
 			representedGroups = getRepresentedGroups(group, role);
 			for (Group g : representedGroups) {
-				List<AgentAddress> receivers = getOtherRolePlayers(requester, g, role);
-				if (receivers != null && receivers.size() > 0) {
+				try {
+					List<AgentAddress> receivers = getOtherRolePlayers(requester, g, role);
+					if (receivers != null && receivers.size() > 0) {
 
-					final AgentAddress senderAgentAddress = getSenderAgentAddress(requester,
-							receivers.iterator().next(), senderRole);
-					// receivers.addAll(aas);
-					oneReceiver = receivers.iterator().next();
-					if (senderAgentAddress.getGroup().isDistributed())
-						agentAddressesSender.add(senderAgentAddress);
-					messageToSend.setSender(senderAgentAddress);
-					broadcasting(receivers, messageToSend, numberOfReceivers, sendIndividualNetwork);
+						final AgentAddress senderAgentAddress = getSenderAgentAddress(requester,
+								receivers.iterator().next(), senderRole);
+						// receivers.addAll(aas);
+						oneReceiver = receivers.iterator().next();
+						if (senderAgentAddress.getGroup().isDistributed())
+							agentAddressesSender.add(senderAgentAddress);
+						messageToSend.setSender(senderAgentAddress);
+						broadcasting(receivers, messageToSend, numberOfReceivers, nonSentNetworkNumberOfReceivers, sendIndividualNetwork);
+					}
+				} catch (CGRNotAvailable ignored) {
+					//notAvailable = e.getCode();
 				}
 			}
 		} catch (CGRNotAvailable e) {
 			notAvailable = e.getCode();
 		}
 
+
+
+		ReturnCode rc = null;
+
+		if (!sendIndividualNetwork && getMadkitConfig().networkProperties.network && agentAddressesSender.size() > 0 && nonSentNetworkNumberOfReceivers.get()>0) {
+			rc = broadcastNetworkMessageWithRole(messageToSend, agentAddressesSender.iterator().next(), group, role,
+					agentAddressesSender);
+			if (rc == SUCCESS || rc == TRANSFER_IN_PROGRESS)
+				numberOfReceivers.addAndGet(nonSentNetworkNumberOfReceivers.get());
+		}
 		if (numberOfReceivers.get() == 0) {
 			if (notAvailable == null) {
 				notAvailable = NO_RECIPIENT_FOUND;
@@ -1855,13 +1870,9 @@ class MadkitKernel extends Agent {
 
 			return notAvailable;
 		}
-
-		ReturnCode rc = ReturnCode.SUCCESS;
+		if (rc==null)
+			rc= SUCCESS;
 		rc.setNumberOfConcernedAgents(numberOfReceivers.get());
-		if (!sendIndividualNetwork && getMadkitConfig().networkProperties.network && agentAddressesSender.size() > 0) {
-			rc = broadcastNetworkMessageWithRole(messageToSend, agentAddressesSender.iterator().next(), group, role,
-					agentAddressesSender);
-		}
 
 		if (replies != null) {
 			boolean remove;
@@ -1908,7 +1919,7 @@ class MadkitKernel extends Agent {
 		}
 	}
 
-	private void broadcasting(final Collection<AgentAddress> receivers, Message m, AtomicInteger numberOfReceivers,
+	private void broadcasting(final Collection<AgentAddress> receivers, Message m, AtomicInteger numberOfReceivers,AtomicInteger nonSentNetworkNumberOfReceivers,
 			boolean includeNetworkAgents) {// TODO
 		// optimize
 		// without
@@ -1928,6 +1939,8 @@ class MadkitKernel extends Agent {
 							&& numberOfReceivers != null)
 						numberOfReceivers.incrementAndGet();
 				}
+				else if (nonSentNetworkNumberOfReceivers != null)
+					nonSentNetworkNumberOfReceivers.incrementAndGet();
 			}
 		}
 
@@ -3018,7 +3031,7 @@ class MadkitKernel extends Agent {
 								receiversSize += receivers.size();
 								oneSender = senderAgentAddress;
 								((Message) m).setSender(senderAgentAddress);
-								broadcasting(receivers, m, null, false);
+								broadcasting(receivers, m, null, null,false);
 							}
 						}
 					} catch (CGRNotAvailable e) {

@@ -153,8 +153,8 @@ public class DistantGroupAccessTests extends JunitMadkit{
 				sleep(400);
 				launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agent2, eventListener2);
 				sleep(DistantGroupAccessTests.timeToWaitBeforeFinalTest);
-				agent1.killAgent(agent1);
-				agent2.killAgent(agent2);
+				/*agent1.killAgent(agent1);
+				agent2.killAgent(agent2);*/
 
 				for (Madkit mk : getHelperInstances(2))
 					stopNetwork(mk);

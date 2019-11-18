@@ -172,6 +172,7 @@ final public class Madkit {
 			d.addItem("Update JDKRewriteUtils to 1.0.4 Stable");
 			d.addItem("Filter distant network roles, and not only distant network groups");
 			d.addItem("Compile with openjdk 13 (compatibility set to Java 7");
+			d.addItem("Fix network broadcast message issue when no local agent is present, and when network agents does not received broadcast message");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
