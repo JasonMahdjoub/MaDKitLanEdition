@@ -1976,7 +1976,7 @@ class MadkitKernel extends Agent {
 			}
 
 		} else
-			return ReturnCode.SUCCESS;
+			return NO_RECIPIENT_FOUND;
 	}
 
 	private ReturnCode sendMessage(Message m, AbstractAgent target) {

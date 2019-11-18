@@ -97,6 +97,8 @@ public class JunitMadkit {
 	private final List<Madkit> madkits=Collections.synchronizedList(new ArrayList<Madkit>());
 	private static final ArrayList<Madkit> helperInstances = new ArrayList<>();
 
+
+
 	public void addHelperInstance(Madkit m) {
 		synchronized (helperInstances) {
 			helperInstances.add(m);

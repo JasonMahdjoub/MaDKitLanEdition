@@ -196,6 +196,7 @@ public class ListGroupsRoles implements Cloneable, SecureExternalizable {
 	public MultiGroup intersect(KernelAddress localKernelAddress, KernelAddress distantKernelAddress, AbstractGroup group, Collection<AgentAddress> agentsAddressesSender)
 	{
 		Set<Group> groups=new HashSet<>();
+		Set<AgentAddress> newAgentsAddressesSender=new HashSet<>();
 		for (GroupsRoles gr : groupsRoles.values())
 		{
 			ArrayList<Group> igroups=null;
@@ -219,11 +220,19 @@ public class ListGroupsRoles implements Cloneable, SecureExternalizable {
 							continue;
 						if (!gr.getGroup().includes(g))
 							continue;
-						if (g.equals(aa.getGroup()) || groupWithSubGroups.includes(g))
+						if (g.equals(aa.getGroup()) || groupWithSubGroups.includes(g)) {
 							groups.add(g);
+							newAgentsAddressesSender.add(aa);
+						}
 					}
 				}
 			}
+		}
+		if (newAgentsAddressesSender.size()>agentsAddressesSender.size())
+			throw new InternalError();
+		else if (agentsAddressesSender.size()!=newAgentsAddressesSender.size()) {
+			agentsAddressesSender.clear();
+			agentsAddressesSender.addAll(newAgentsAddressesSender);
 		}
 		return new MultiGroup(groups);
 	}
