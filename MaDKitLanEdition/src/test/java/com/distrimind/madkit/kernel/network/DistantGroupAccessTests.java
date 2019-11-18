@@ -74,7 +74,7 @@ public class DistantGroupAccessTests extends JunitMadkit{
 	static final String sharedRole2="SharedRole2";
 	static final String notSharedRole="NotSharedRole";
 	static final long timeToWaitBeforeBroadcast=2000;
-	static final long timeToWaitBeforeFinalTest=4000;
+	static final long timeToWaitBeforeFinalTest=5000;
 
 	public DistantGroupAccessTests() throws UnknownHostException {
 		P2PSecuredConnectionProtocolPropertiesWithKeyAgreement p2pprotocol=new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
@@ -225,7 +225,7 @@ class GroupAccessTesterAgent extends NormalAgent
 	private boolean distantAgentLeaveGroupWithOneRole=false;
 	private boolean distantAgentLeaveGroupNotAccepted=false;
 	private boolean distantAgentLeaveGroupWithAllRolesNotDistributed=false;
-
+	private boolean released=false;
 
 	GroupAccessTesterAgent(boolean firstAgent)
 	{
@@ -502,17 +502,18 @@ class GroupAccessTesterAgent extends NormalAgent
 					fail();
 				}
 			}
-			if (canReleaseGroups())
-			{
-				wait(1000);
-				leaveRole(DistantGroupAccessTests.groupWithAllRoles, localAcceptedRoleNotRestricted);
-				leaveRole(DistantGroupAccessTests.groupWithOneRole, localAcceptedRole);
-				leaveRole(DistantGroupAccessTests.groupWithOneRole, DistantGroupAccessTests.notSharedRole);
-				leaveRole(DistantGroupAccessTests.groupWithAllRolesInOnePeer, localAcceptedRoleNotRestricted);
-				leaveRole(DistantGroupAccessTests.groupWithAllRolesNotDistributed, localAcceptedRoleNotRestricted);
-				leaveRole(DistantGroupAccessTests.groupNotAccepted, localAcceptedRoleNotRestricted);
+		}
+		if (canReleaseGroups() && !released)
+		{
+			released=true;
+			sleep(1000);
+			leaveRole(DistantGroupAccessTests.groupWithAllRoles, localAcceptedRoleNotRestricted);
+			leaveRole(DistantGroupAccessTests.groupWithOneRole, localAcceptedRole);
+			leaveRole(DistantGroupAccessTests.groupWithOneRole, DistantGroupAccessTests.notSharedRole);
+			leaveRole(DistantGroupAccessTests.groupWithAllRolesInOnePeer, localAcceptedRoleNotRestricted);
+			leaveRole(DistantGroupAccessTests.groupWithAllRolesNotDistributed, localAcceptedRoleNotRestricted);
+			leaveRole(DistantGroupAccessTests.groupNotAccepted, localAcceptedRoleNotRestricted);
 
-			}
 		}
 	}
 
