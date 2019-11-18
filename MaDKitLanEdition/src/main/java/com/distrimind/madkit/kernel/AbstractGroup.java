@@ -1078,4 +1078,13 @@ public abstract class AbstractGroup implements SecureExternalizable, Cloneable {
 		return new Group(community);
 	}
 
+
+	/**
+	 * Tells if this group contains forbidden groups
+	 * @return true if this group contains forbidden groups, false else
+	 */
+	public boolean containsForbiddenGroups()
+	{
+		return false;
+	}
 }

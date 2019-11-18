@@ -244,7 +244,7 @@ public class MultiGroup extends AbstractGroup {
 	}
 
 	enum CONTAINS {
-		CONTAINS_ON_FORBIDEN, CONTAINS_ON_AUTHORIZED, NOT_CONTAINS
+		CONTAINS_ON_FORBIDDEN, CONTAINS_ON_AUTHORIZED, NOT_CONTAINS
 	}
 
 	@SuppressWarnings({"unlikely-arg-type", "EqualsBetweenInconvertibleTypes"})
@@ -252,12 +252,22 @@ public class MultiGroup extends AbstractGroup {
 		for (AssociatedGroup ag : m_groups) {
 			if (ag.equals(_group)) {
 				if (ag.m_forbiden)
-					return CONTAINS.CONTAINS_ON_FORBIDEN;
+					return CONTAINS.CONTAINS_ON_FORBIDDEN;
 				else
 					return CONTAINS.CONTAINS_ON_AUTHORIZED;
 			}
 		}
 		return CONTAINS.NOT_CONTAINS;
+	}
+
+	@Override
+	public boolean containsForbiddenGroups()
+	{
+		for (AssociatedGroup ag : m_groups) {
+			if (ag.m_forbiden)
+				return true;
+		}
+		return true;
 	}
 
 	/*
@@ -351,7 +361,7 @@ public class MultiGroup extends AbstractGroup {
 				if (c.equals(CONTAINS.CONTAINS_ON_AUTHORIZED)) {
 					removeGroup(_g);
 				}
-				if (!c.equals(CONTAINS.CONTAINS_ON_FORBIDEN)) {
+				if (!c.equals(CONTAINS.CONTAINS_ON_FORBIDDEN)) {
 					m_groups.add(new AssociatedGroup(_g.clone(), true));
 					for (RepresentedGroupsDuplicated rgd : m_represented_groups_by_kernel_duplicated)
 						rgd.m_represented_groups_duplicated.set(null);
