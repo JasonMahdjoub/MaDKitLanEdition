@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-2.0.4 Stable (Build: 395) (from 22/05/2015 to 31/10/2019)
+2.1.0 Stable (Build: 471) (from 22/05/2015 to 18/11/2019)
 
 # Creator(s):
 Jason MAHDJOUB
@@ -12,6 +12,15 @@ Olivier GUTKNECHT (Entred in the team at 01/02/1997)
 Jacques FERBER (Entred in the team at 01/02/1997)
 
 # Modifications:
+
+
+### 2.1.0 Stable (18/11/2019)
+* Update Utils to 4.6.5 Stable
+* Update OOD to 2.3.10 Stable
+* Update JDKRewriteUtils to 1.0.4 Stable
+* Filter distant network roles, and not only distant network groups
+* Compile with openjdk 13 (compatibility set to Java 7
+* Fix network broadcast message issue when no local agent is present, and when network agents does not received broadcast message
 
 
 ### 2.0.4 Stable (31/10/2019)

@@ -102,6 +102,10 @@ Note that one agent can't be attached to a MultiGroup or a Group that represents
 
 [<img src="groups.png" align="center" alt="Here you will find examples in the use of classes Group and MultiGroup"/>](groups.png)
 
+###### Requirements under Linux :
+  * ethtool
+
+
 ### Changes
 
 [See historical of changes](./versions.md)
@@ -123,7 +127,7 @@ Adapt into your build.gradle file, the next code :
 	...
 	dependencies {
 		...
-		compile(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.0.4-Stable')
+		compile(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.1.0-Stable')
 		...
 	}
 	...
@@ -139,7 +143,7 @@ Adapt into your pom.xml file, the next code :
 			<dependency>
 				<groupId>com.distrimind.madkit</groupId>
 				<artifactId>MaDKitLanEdition</artifactId>
-				<version>2.0.4-Stable</version>
+				<version>2.1.0-Stable</version>
 			</dependency>
 			...
 		</dependencies>
