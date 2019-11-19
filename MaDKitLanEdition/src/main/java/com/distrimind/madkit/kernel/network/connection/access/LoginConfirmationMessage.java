@@ -157,13 +157,13 @@ class LoginConfirmationMessage extends AccessMessage {
 			}
 
 			for (PairOfIdentifiers poi : alreadyValidatedPairOfIdentifiers) {
-				if (poi.getDistantIdentifier().getCloudIdentifier().equals(foundLocalId.getCloudIdentifier())) {
+				if (poi.getCloudIdentifier().equals(foundLocalId.getCloudIdentifier())) {
 					removedValidatedPairOfIdentifiers.add(poi);
-					if (poi.getDistantIdentifier().getHostIdentifier().equals(foundLocalId.getHostIdentifier()))
+					if (poi.getDistantHostIdentifier().equals(foundLocalId.getHostIdentifier()))
 						break;
-					else if (proposed == null || HostIdentifier.getNullHostIdentifierSingleton().equals(proposed.getDistantIdentifier().getHostIdentifier()))
-						proposed = new PairOfIdentifiers(foundLocalId, initializedIdentifiers.contains(foundLocalId.getCloudIdentifier()), poi.getDistantIdentifier(), newAcceptedCloudIdentifiers.contains(poi.getDistantIdentifier().getCloudIdentifier()));
-				} else if (proposed != null && poi.getLocalIdentifier().getCloudIdentifier().equals(proposed.getDistantIdentifier().getCloudIdentifier())) {
+					else if (proposed == null || proposed.isDistantHostPartOfCloud())
+						proposed = new PairOfIdentifiers(foundLocalId, initializedIdentifiers.contains(foundLocalId.getCloudIdentifier()), poi.generateDistantIdentifier(), newAcceptedCloudIdentifiers.contains(poi.getCloudIdentifier()));
+				} else if (proposed != null && poi.getCloudIdentifier().equals(proposed.getCloudIdentifier())) {
 					removedValidatedPairOfIdentifiers.add(poi);
 					break;
 				}

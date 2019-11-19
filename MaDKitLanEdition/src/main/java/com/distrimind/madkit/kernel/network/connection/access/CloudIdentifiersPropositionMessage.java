@@ -47,7 +47,6 @@ import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.InvalidParameterSpecException;
 import java.util.*;
 
 /**
@@ -87,9 +86,9 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 		oos.writeObject(identifiers, false, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE);
 	}
 
-	WrappedCloudIdentifier[] getIdentifiers() {
+	/*WrappedCloudIdentifier[] getIdentifiers() {
 		return identifiers;
-	}
+	}*/
 
 	/*public IdentifiersPropositionMessage(Collection<Identifier> _id_pws, P2PASymmetricSecretMessageExchanger cipher,
 				boolean encryptIdentifiers, short nbAnomalies) throws InvalidKeyException, IOException,
@@ -107,18 +106,18 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 			}
 			this.nbAnomalies = nbAnomalies;
 		}*/
-	static Collection<CloudIdentifier> getCloudIdentifierList(Collection<Identifier> _id_pws)
+	/*static Collection<CloudIdentifier> getCloudIdentifierList(Collection<Identifier> _id_pws)
 	{
 		ArrayList<CloudIdentifier> res=new ArrayList<>(_id_pws.size());
 		for (Identifier id : _id_pws)
 			res.add(id.getCloudIdentifier());
 		return res;
-	}
+	}*/
 
-	CloudIdentifiersPropositionMessage(Collection<Identifier> _id_pws, AbstractSecureRandom random, AbstractMessageDigest messageDigest,
+	/*CloudIdentifiersPropositionMessage(Collection<Identifier> _id_pws, AbstractSecureRandom random, AbstractMessageDigest messageDigest,
 											  boolean encryptIdentifiers, short nbAnomalies, byte[] distantGeneratedSalt, EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties) throws DigestException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidKeyException, InvalidKeySpecException {
 		this(random, messageDigest, encryptIdentifiers, nbAnomalies, distantGeneratedSalt, getCloudIdentifierList(_id_pws), encryptionRestriction, accessProtocolProperties);
-	}
+	}*/
 	CloudIdentifiersPropositionMessage(AbstractSecureRandom random, AbstractMessageDigest messageDigest,
 											  boolean permitAnonymousIdentifiers, short nbAnomalies, byte[] distantGeneratedSalt,
 									   Collection<CloudIdentifier> _id_pws, EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties) throws DigestException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidKeyException, InvalidKeySpecException {
@@ -321,7 +320,7 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 
 			if (acceptedIdentifiers!=null) {
 				for (PairOfIdentifiers poi : acceptedIdentifiers)
-					if (poi.getLocalIdentifier().getCloudIdentifier().equals(localCloudIdentifier))
+					if (poi.getCloudIdentifier().equals(localCloudIdentifier))
 						return nbAno;
 			}
 

@@ -223,18 +223,18 @@ public abstract class AbstractAccessProtocol {
 
 		for (PairOfIdentifiers poi : _accepted_identifiers)
 		{
-			Identifier toCompare=new Identifier(poi.getLocalIdentifier().getCloudIdentifier(), HostIdentifier.getNullHostIdentifierSingleton());
+			Identifier toCompare=new Identifier(poi.getCloudIdentifier(), HostIdentifier.getNullHostIdentifierSingleton());
 			boolean doNotAdd=false;
 			for (Iterator<PairOfIdentifiers> it=all_accepted_identifiers.iterator();it.hasNext();)
 			{
 				PairOfIdentifiers poiAccepted=it.next();
-				if (poiAccepted.getLocalIdentifier().equalsCloudIdentifier(poi.getLocalIdentifier())) {
+				if (poiAccepted.getCloudIdentifier().equals(poi.getCloudIdentifier())) {
 					if (poiAccepted.equals(poi))
 					{
 						doNotAdd=true;
 					}
-					else if ((poiAccepted.getDistantIdentifier().equals(toCompare) && !poi.getDistantIdentifier().equals(toCompare))
-						|| (poiAccepted.getLocalIdentifier().equals(toCompare) && !poi.getLocalIdentifier().equals(toCompare)))
+					else if ((poiAccepted.equalsDistantIdentifier(toCompare) && !poi.equalsDistantIdentifier(toCompare))
+						|| (poiAccepted.equalsLocalIdentifier(toCompare) && !poi.equalsLocalIdentifier(toCompare)))
 					{
 						it.remove();
 						last_accepted_identifiers.remove(poiAccepted);
@@ -263,10 +263,10 @@ public abstract class AbstractAccessProtocol {
 		for (Identifier id : _identifiers) {
 			for (Iterator<PairOfIdentifiers> it= all_accepted_identifiers.iterator();it.hasNext();) {
 				PairOfIdentifiers id2=it.next();
-				if (id.equals(id2.getLocalIdentifier())) {
+				if (id2.equalsLocalIdentifier(id)) {
 					toRemove.add(id2);
 					it.remove();
-					res.add(id2.getDistantIdentifier());
+					res.add(id2.generateDistantIdentifier());
 					break;
 				}
 			}
@@ -290,7 +290,7 @@ public abstract class AbstractAccessProtocol {
 						String localDatabaseHostID=properties.getLocalDatabaseHostIDString();
 						if (localDatabaseHostID!=null)
 						{
-							DecentralizedValue dvDistant = lp.getDecentralizedDatabaseID(id.getDistantIdentifier());
+							DecentralizedValue dvDistant = lp.getDecentralizedDatabaseID(id.generateDistantIdentifier());
 							if (dvDistant!=null)
 							{
 								listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getDistributedDatabaseGroup(localDatabaseHostID, dvDistant));

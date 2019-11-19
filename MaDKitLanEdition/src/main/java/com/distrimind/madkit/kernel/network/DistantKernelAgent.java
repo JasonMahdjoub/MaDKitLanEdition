@@ -1267,8 +1267,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			PairOfIdentifiers poi=it.next();
 			for (CloudIdentifier cloudIdentifier : lastDeniedCloudIdentifiersToOther)
 			{
-				if (poi.getLocalIdentifier().getCloudIdentifier().equals(cloudIdentifier)
-					|| poi.getDistantIdentifier().getCloudIdentifier().equals(cloudIdentifier))
+				if (poi.getCloudIdentifier().equals(cloudIdentifier))
 				{
 					it.remove();
 					continue accepted_loop;
@@ -1276,7 +1275,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			}
 			for (Identifier cloudIdentifier : lastDeniedIdentifiersFromOther)
 			{
-				if (poi.getLocalIdentifier().equals(cloudIdentifier))
+				if (poi.equalsLocalIdentifier(cloudIdentifier))
 				{
 					it.remove();
 					continue accepted_loop;
@@ -1284,7 +1283,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			}
 			for (Identifier cloudIdentifier : lastDeniedIdentifiersToOther)
 			{
-				if (poi.getDistantIdentifier().equals(cloudIdentifier))
+				if (poi.equalsDistantIdentifier(cloudIdentifier))
 				{
 					it.remove();
 					continue accepted_loop;

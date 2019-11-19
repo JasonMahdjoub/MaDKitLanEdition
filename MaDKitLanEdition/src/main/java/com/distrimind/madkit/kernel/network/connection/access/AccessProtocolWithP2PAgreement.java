@@ -449,7 +449,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 					{
 						for (PairOfIdentifiers poi : getAllAcceptedIdentifiers())
 						{
-							if (poi.getLocalIdentifier().equals(id))
+							if (poi.equalsLocalIdentifier(id))
 								continue denied_search;
 						}
 						deniedIdentifiers.add(id);
@@ -614,7 +614,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 					newIdentifiersLoop:for (Identifier id : m.identifiers) {
 						for (PairOfIdentifiers poi : getAllAcceptedIdentifiers())
 						{
-							if (poi.getLocalIdentifier().equals(id))
+							if (poi.equalsLocalIdentifier(id))
 								continue newIdentifiersLoop;
 						}
 						getCloudIdentifiers().add(id.getCloudIdentifier());

@@ -976,7 +976,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		for (PairOfIdentifiers poi : ap.getAllAcceptedIdentifiers()) {
 			boolean found = false;
 			for (Identifier id : expectedAcceptedIdentifiers) {
-				if (id.equals(poi.getLocalIdentifier())) {
+				if (poi.equalsLocalIdentifier(id)) {
 					found = true;
 					break;
 				}
@@ -984,7 +984,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 			Assert.assertTrue(""+poi, found);
 			found = false;
 			for (Identifier id : expectedAcceptedIdentifiersOtherSide) {
-				if (id.equals(poi.getDistantIdentifier())) {
+				if (poi.equalsDistantIdentifier(id)) {
 					found = true;
 					break;
 				}
@@ -1012,7 +1012,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		for (Identifier id : expectedAcceptedIdentifiers) {
 			boolean found=false;
 			for (PairOfIdentifiers poi : ap.getAllAcceptedIdentifiers()) {
-				if (poi.getLocalIdentifier().equals(id)) {
+				if (poi.equalsLocalIdentifier(id)) {
 					found = true;
 					break;
 				}

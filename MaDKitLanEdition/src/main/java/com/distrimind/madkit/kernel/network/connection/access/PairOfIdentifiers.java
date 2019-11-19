@@ -45,12 +45,15 @@ import java.util.Objects;
  * not the same host identifier
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MadkitLanEdition 1.0
  */
 public class PairOfIdentifiers {
-	private final Identifier localIdentifier;
-	private final Identifier distantIdentifier;
+	private final CloudIdentifier cloudIdentifier;
+	private final HostIdentifier localHostIdentifier, distantHostIdentifier;
+	private final int hashCode;
+	private volatile Identifier localIdentifier=null;
+	private volatile Identifier distantIdentifier=null;
 	private final boolean locallyAuthenticatedCloud, distantlyAuthenticatedCloud;
 
 	PairOfIdentifiers(Identifier _localIdentifier, boolean locallyAuthenticatedCloud, Identifier _distant_identifier, boolean distantlyAuthenticatedCloud) {
@@ -74,42 +77,63 @@ public class PairOfIdentifiers {
 		}
 		if (!locallyAuthenticatedCloud && !distantlyAuthenticatedCloud)
 			throw new IllegalArgumentException("Cloud authentication can't be not done locally and distantly");
-		localIdentifier = _localIdentifier;
-		distantIdentifier = new Identifier(_localIdentifier.getCloudIdentifier(), _distant_identifier.getHostIdentifier());
+		cloudIdentifier=_localIdentifier.getCloudIdentifier();
+		localHostIdentifier=_localIdentifier.getHostIdentifier();
+		distantHostIdentifier=_distant_identifier.getHostIdentifier();
+		/*localIdentifier = _localIdentifier;
+		distantIdentifier = new Identifier(_localIdentifier.getCloudIdentifier(), _distant_identifier.getHostIdentifier());*/
 		this.locallyAuthenticatedCloud=locallyAuthenticatedCloud;
 		this.distantlyAuthenticatedCloud=distantlyAuthenticatedCloud;
+		this.hashCode=cloudIdentifier.hashCode()^localHostIdentifier.hashCode()^distantHostIdentifier.hashCode();
 	}
 
 	@Override
 	public int hashCode()
 	{
-		int res=0;
-		if (localIdentifier!=null)
-			res=localIdentifier.hashCode();
-		if (distantIdentifier!=null)
-			res^=distantIdentifier.hashCode();
-		return res;
+		return hashCode;
 	}
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
-		PairOfIdentifiers that = (PairOfIdentifiers) o;
-		return Objects.equals(localIdentifier, that.localIdentifier) &&
-				Objects.equals(distantIdentifier, that.distantIdentifier);
+		if (this == o) return true;
+		if (this.hashCode==o.hashCode()) {
+			PairOfIdentifiers that = (PairOfIdentifiers) o;
+			return Objects.equals(cloudIdentifier, that.cloudIdentifier) &&
+					Objects.equals(localHostIdentifier, that.localHostIdentifier)
+					&& Objects.equals(distantHostIdentifier, that.distantHostIdentifier);
+		}
+		else
+			return false;
 	}
 
 	@Override
 	public String toString() {
-		return "PairOfIdentifiers["+localIdentifier+", "+distantIdentifier+"]";
+		return "PairOfIdentifiers["+cloudIdentifier+", "+localHostIdentifier+", "+distantHostIdentifier+"]";
+	}
+
+	public CloudIdentifier getCloudIdentifier()
+	{
+		return cloudIdentifier;
+	}
+
+	public boolean equalsLocalIdentifier(Identifier identifier)
+	{
+		return cloudIdentifier.equals(identifier.getCloudIdentifier()) && localHostIdentifier.equals(identifier.getHostIdentifier());
+	}
+
+	public boolean equalsDistantIdentifier(Identifier identifier)
+	{
+		return cloudIdentifier.equals(identifier.getCloudIdentifier()) && distantHostIdentifier.equals(identifier.getHostIdentifier());
 	}
 
 	/**
 	 * 
 	 * @return the identifier of the local peer
 	 */
-	public Identifier getLocalIdentifier() {
+	public Identifier generateLocalIdentifier() {
+		if (localIdentifier==null)
+			localIdentifier=new Identifier(cloudIdentifier, localHostIdentifier);
 		return localIdentifier;
 	}
 
@@ -117,17 +141,27 @@ public class PairOfIdentifiers {
 	 * 
 	 * @return the identifier of the distant peer
 	 */
-	public Identifier getDistantIdentifier() {
+	public Identifier generateDistantIdentifier() {
+		if (distantIdentifier==null)
+			distantIdentifier=new Identifier(cloudIdentifier, distantHostIdentifier);
 		return distantIdentifier;
+	}
+
+	public HostIdentifier getLocalHostIdentifier() {
+		return localHostIdentifier;
+	}
+
+	public HostIdentifier getDistantHostIdentifier() {
+		return distantHostIdentifier;
 	}
 
 	public boolean isDistantHostPartOfCloud()
 	{
-		return distantIdentifier.isHostPartOfCloud();
+		return HostIdentifier.getNullHostIdentifierSingleton()!=distantHostIdentifier;
 	}
 	public boolean isLocalHostPartOfCloud()
 	{
-		return localIdentifier.isHostPartOfCloud();
+		return HostIdentifier.getNullHostIdentifierSingleton()!=localHostIdentifier;
 	}
 
 	public boolean isLocallyAuthenticatedCloud() {
