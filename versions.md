@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-2.1.1 Stable (Build: 473) (from 22/05/2015 to 19/11/2019)
+2.1.1 Stable (Build: 475) (from 22/05/2015 to 19/11/2019)
 
 # Creator(s):
 Jason MAHDJOUB
