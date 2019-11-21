@@ -395,15 +395,6 @@ public abstract class LoginData extends AccessData {
 	public abstract void invalidCloudPassword(CloudIdentifier identifier);
 
 	/**
-	 * Inform that a bad password has been given with the host identifier given as
-	 * parameter
-	 *
-	 * @param identifier
-	 *            the identifier
-	 */
-	public abstract void invalidHostPassword(Identifier identifier);
-
-	/**
 	 * Gets a local identifier correspond to the given cloud identifier
 	 * 
 	 * @param _identifier the cloud identifier

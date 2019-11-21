@@ -332,9 +332,12 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 						agreements.put(distantCloudID, p2PLoginAgreement);
 						temporaryAcceptedCloudIdentifiers.put(distantCloudID, localCloudIdentifier);
 					}
-					else
+					else {
+						loginData.invalidCloudPassword(localCloudIdentifier);
 						++nbAno;
+					}
 				} else {
+					loginData.invalidCloudPassword(localCloudIdentifier);
 					++nbAno;
 					ok=false;
 				}

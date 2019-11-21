@@ -169,6 +169,7 @@ final public class Madkit {
 			Description d = new Description((short)2, (short)1, (short)2, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Update Utils to 4.6.6 Stable");
 			d.addItem("Update OOD to 2.3.11 Stable");
+			d.addItem("Use LoginData.invalidCloudPassword function");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();

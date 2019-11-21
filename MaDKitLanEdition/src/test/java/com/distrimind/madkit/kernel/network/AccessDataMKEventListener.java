@@ -277,12 +277,6 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 			}
 
 			@Override
-			public void invalidHostPassword(Identifier identifier) {
-				if (invalidPassord != null)
-					invalidPassord.run();
-			}
-
-			@Override
 			protected Identifier localiseIdentifierImpl(CloudIdentifier _identifier) {
 				for (IdentifierPassword idpw : identifersAndPasswords) {
 					if (idpw.getIdentifier().getCloudIdentifier().equals(_identifier))
