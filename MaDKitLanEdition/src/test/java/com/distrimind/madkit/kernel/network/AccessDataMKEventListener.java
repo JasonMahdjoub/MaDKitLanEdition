@@ -219,8 +219,10 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 
 			@Override
 			public void parseIdentifiers(IdentifierParser _notifier) throws AccessException {
-				for (IdentifierPassword idpw : identifersAndPasswords)
-					_notifier.newIdentifier(idpw.getIdentifier());
+				for (IdentifierPassword idpw : identifersAndPasswords) {
+					if (!_notifier.newIdentifier(idpw.getIdentifier()))
+						return;
+				}
 
 			}
 
