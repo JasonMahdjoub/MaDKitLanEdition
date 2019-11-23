@@ -159,7 +159,7 @@ class DatagramLocalNetworkPresenceMessage extends Message {
 		if (this.inetAddress != null && this.inetAddress.length != 16 && this.inetAddress.length != 4)
 			throw new IllegalArgumentException("inetAddress");
 
-		this.kernelAddress = digestMessage(kernelAddress.getAbstractDecentralizedID().encodeWithDefaultParameters());
+		this.kernelAddress = digestMessage(kernelAddress.getAbstractDecentralizedID().encode());
 		this.hashCode = computeHashCode();
 	}
 
@@ -290,7 +290,7 @@ class DatagramLocalNetworkPresenceMessage extends Message {
 				return false;
 			}
 
-		byte[] ka = digestMessage(kernelAddress.getAbstractDecentralizedID().encodeWithDefaultParameters());
+		byte[] ka = digestMessage(kernelAddress.getAbstractDecentralizedID().encode());
         return !Arrays.equals(ka, this.kernelAddress);
     }
 

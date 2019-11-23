@@ -89,7 +89,7 @@ public class CustomCloudIdentifierWithPublicKey extends CloudIdentifier {
 
     @Override
     public byte[] getIdentifierBytes() {
-        return publicKey.encodeWithDefaultParameters();
+        return publicKey.encode();
     }
 
     @Override

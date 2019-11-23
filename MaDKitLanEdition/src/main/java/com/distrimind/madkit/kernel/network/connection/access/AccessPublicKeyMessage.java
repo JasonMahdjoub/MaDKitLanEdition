@@ -75,8 +75,8 @@ class AccessPublicKeyMessage extends AccessMessage {
 	
 	public AccessPublicKeyMessage(ASymmetricPublicKey _public_key, ASymmetricPublicKey _distant_public_key,
 			boolean otherCanTakeLoginInitiative) {
-		public_key_bytes = _public_key.encodeWithDefaultParameters();
-		distant_public_key = _distant_public_key == null ? null : _distant_public_key.encodeWithDefaultParameters();
+		public_key_bytes = _public_key.encode();
+		distant_public_key = _distant_public_key == null ? null : _distant_public_key.encode();
 		this.otherCanTakeLoginInitiative = otherCanTakeLoginInitiative;
 	}
 

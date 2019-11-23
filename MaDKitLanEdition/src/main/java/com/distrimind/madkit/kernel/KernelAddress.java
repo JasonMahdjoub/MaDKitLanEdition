@@ -88,7 +88,7 @@ public class KernelAddress implements SecureExternalizable, Cloneable {
 			id = new RenforcedDecentralizedIDGenerator(false, true);//new SecuredDecentralizedID(generatedid, SecureRandomType.FORTUNA_WITH_BC_FIPS_APPROVED.getInstance(null));
 		} else
 			id = new RenforcedDecentralizedIDGenerator(false, false);//generatedid;
-		internalSize=(short)(id.encodeWithDefaultParameters().length+1);
+		internalSize=(short)(id.encode().length+1);
 		if (initName)
 			initName();
 		else
@@ -103,7 +103,7 @@ public class KernelAddress implements SecureExternalizable, Cloneable {
 		if (id == null)
 			throw new NullPointerException("id");
 		this.id = id;
-		internalSize=(short)(id.encodeWithDefaultParameters().length+1);
+		internalSize=(short)(id.encode().length+1);
 		if (initName)
 			initName();
 		else
@@ -135,7 +135,7 @@ public class KernelAddress implements SecureExternalizable, Cloneable {
 			++internalSize;
 			
 			try {
-				if (id.encodeWithDefaultParameters() == null)
+				if (id.encode() == null)
 					throw new MessageExternalizationException(Integrity.FAIL);
 				//noinspection EqualsWithItself
 				if (!id.equals(id))
@@ -161,7 +161,7 @@ public class KernelAddress implements SecureExternalizable, Cloneable {
 	@Override
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		if (kernelAddressBytes==null)
-			kernelAddressBytes=id.encodeWithDefaultParameters();
+			kernelAddressBytes=id.encode();
 		oos.writeShort(kernelAddressBytes.length);
 		oos.write(kernelAddressBytes);
 
@@ -189,7 +189,7 @@ public class KernelAddress implements SecureExternalizable, Cloneable {
 	}
 
 	public String getNetworkID() {
-		return getHexString(getAbstractDecentralizedID().encodeWithDefaultParameters());
+		return getHexString(getAbstractDecentralizedID().encode());
 	}
 
 	private static String getHexString(byte[] bytes) {

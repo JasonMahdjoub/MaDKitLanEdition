@@ -333,11 +333,9 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 						temporaryAcceptedCloudIdentifiers.put(distantCloudID, localCloudIdentifier);
 					}
 					else {
-						loginData.invalidCloudPassword(localCloudIdentifier);
 						++nbAno;
 					}
 				} else {
-					loginData.invalidCloudPassword(localCloudIdentifier);
 					++nbAno;
 					ok=false;
 				}

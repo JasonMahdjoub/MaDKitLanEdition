@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-2.1.2 Stable (Build: 492) (from 22/05/2015 to 21/11/2019)
+2.1.3 Stable (Build: 499) (from 22/05/2015 to 22/11/2019)
 
 # Creator(s):
 Jason MAHDJOUB
@@ -14,8 +14,8 @@ Jacques FERBER (Entred in the team at 01/02/1997)
 # Modifications:
 
 
-### 2.1.2 Stable (21/11/2019)
-* Update Utils to 4.6.6 Stable
+### 2.1.3 Stable (22/11/2019)
+* Update Utils to 4.7.0 Stable
 * Update OOD to 2.3.11 Stable
 * Use LoginData.invalidCloudPassword function
 

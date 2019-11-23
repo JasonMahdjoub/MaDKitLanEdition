@@ -154,7 +154,7 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 
 		public static String encodeDecentralizedValue(DecentralizedValue identifier)
 		{
-			return Base64.encodeBase64URLSafeString(identifier.encodeWithDefaultParameters());
+			return Base64.encodeBase64URLSafeString(identifier.encode());
 		}
 
 		public static Group getDistributedDatabaseGroup(String localIdentifier, String distantIdentifier)

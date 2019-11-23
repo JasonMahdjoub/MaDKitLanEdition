@@ -109,7 +109,7 @@ public class CustomAutoSignedHostIdentifier extends HostIdentifier {
 
 	@Override
 	public byte[] getBytesTabToEncode() {
-		return publicKey.encodeWithDefaultParameters();
+		return publicKey.encode();
 	}
 
 	@Override
