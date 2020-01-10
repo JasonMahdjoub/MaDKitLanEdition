@@ -54,7 +54,7 @@ repositories {
 dependencies {
     //testImplementation(group:'org.testng', name: 'testng', version: '6.14.3')
     testImplementation 'junit:junit:4.12'
-    api(group:'com.distrimind.ood', name: 'OOD', version: '2.3.13-Stable')
+    api(group:'com.distrimind.ood', name: 'OOD', version: '2.3.14-Stable')
     api(group:'com.distrimind.jdkrewrite', name: 'JDKRewriteUtils', version: '1.0.4')
     api(group:'org.fourthline.cling', name: 'cling-core', version: '2.1.2')
     api(group:'org.fourthline.cling', name: 'cling-support', version: '2.1.2')

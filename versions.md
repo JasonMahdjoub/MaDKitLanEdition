@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-2.1.4 Stable (Build: 504) (from 22/05/2015 to 17/12/2019)
+2.1.5 Stable (Build: 507) (from 22/05/2015 to 10/01/2019)
 
 # Creator(s):
 Jason MAHDJOUB
@@ -12,6 +12,10 @@ Olivier GUTKNECHT (Entred in the team at 01/02/1997)
 Jacques FERBER (Entred in the team at 01/02/1997)
 
 # Modifications:
+
+
+### 2.1.5 Stable (10/01/2019)
+* Update OOD to 2.3.14 Stable
 
 
 ### 2.1.4 Stable (17/12/2019)
