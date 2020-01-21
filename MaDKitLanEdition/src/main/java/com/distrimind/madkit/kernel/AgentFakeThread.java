@@ -39,6 +39,7 @@
 package com.distrimind.madkit.kernel;
 
 import com.distrimind.madkit.exceptions.SelfKillException;
+import com.distrimind.madkit.util.concurrent.LockerCondition;
 
 import java.util.concurrent.Callable;
 
@@ -164,18 +165,18 @@ public abstract class AgentFakeThread extends AbstractAgent {
 	/**
 	 * {@inheritDoc}
 	 */
-	/*@Override
+	@Override
 	public void wait(LockerCondition lockerCondition) throws InterruptedException {
 		getMadkitKernel().wait(this, lockerCondition);
-	}*/
+	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	/*@Override
+	@Override
 	public void wait(LockerCondition lockerCondition, long timeOutMillis) throws InterruptedException {
 		getMadkitKernel().wait(this, lockerCondition);
-	}*/
+	}
 
 	/**
 	 * This method is called for every received message. When the agent has no task

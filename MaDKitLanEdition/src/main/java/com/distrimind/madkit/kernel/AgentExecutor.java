@@ -37,6 +37,8 @@
  */
 package com.distrimind.madkit.kernel;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
@@ -58,8 +60,6 @@ final class AgentExecutor {
 	private volatile Future<ReturnCode> activate=null;
 	private volatile Future<?> live=null;
 	private volatile Future<?> end=null;
-	private PoolExecutor executor=null;
-	private volatile boolean activateCanceled=false, liveCanceled=false, endCanceled=false;
 
 	// public AgentExecutor(Agent a, ThreadFactory threadFactory) {
 	// super(1, Integer.MAX_VALUE, 0, TimeUnit.NANOSECONDS, new
@@ -77,118 +77,96 @@ final class AgentExecutor {
 	}
 	void cancelActivate(boolean mayInterrupt)
 	{
-		activateCanceled=true;
-		Future<?> f=this.activate;
-
-		if (f!=null)
-			f.cancel(mayInterrupt);
+		this.activate.cancel(mayInterrupt);
 	}
 	void cancelLive(boolean mayInterrupt)
 	{
-		liveCanceled=true;
-		Future<?> f=this.live;
-
-		if (f!=null)
-			f.cancel(mayInterrupt);
+		this.live.cancel(mayInterrupt);
 	}
 
 	void cancelEnd(boolean mayInterrupt)
 	{
-		endCanceled=true;
-		Future<?> f=this.end;
-
-		if (f!=null && mayInterrupt)
-		{
-			Thread t=myAgent.myThread;
-			if (t!=null)
-				t.interrupt();
-		}
+		this.end.cancel(mayInterrupt);
 
 	}
 
 	Future<ReturnCode> start()
 	{
-		executor=myAgent.kernel.getMadkitServiceExecutor();
-		final Callable<Void> runnableEnd=new Callable<Void>() {
-			public Void call() {
-				myAgent.myThread = Thread.currentThread();
-				String oldName=myAgent.myThread.getName();
-				int oldPriority=myAgent.myThread.getPriority();
+		List<Future<?>> list=myAgent.getMadkitKernel().getMadkitServiceExecutor().launchDedicatedThread(myAgent.isDaemon()?myAgent.getMadkitKernel().getDaemonAgentThreadFactory():myAgent.getMadkitKernel().getNormalAgentThreadFactory(),
+				Arrays.asList(
+						new Callable<ReturnCode>()
+						{
 
-				if (!endCanceled) {
-					myAgent.ending();
+							@Override
+							public ReturnCode call() {
+								myAgent.myThread = Thread.currentThread();
+								final ReturnCode r = myAgent.activation();
 
-					synchronized (myAgent.state) {
-						myAgent.state.notify();
-					}
-				}
-				if (!(myAgent.getKernel() instanceof FakeKernel)) {
-					try {
-						MadkitKernel k = myAgent.getMadkitKernel();
-						myAgent.terminate();
-						k.removeThreadedAgent(myAgent);
-					} catch (KernelException e) {
-						System.err.println(myAgent.getKernel());
-						e.printStackTrace();
-					}
-				}
-				myAgent.myThread.setPriority(oldPriority);
-				myAgent.myThread.setName(oldName);
+								if (r != ReturnCode.SUCCESS) {// alive is false && not a suicide
+									live.cancel(false);
+									if (end.isCancelled())// TO was 0 in the MK
+										synchronized (myAgent.state) {
+											myAgent.state.notify();
+										}
+								}
+								return r;
+							}
+						},
+						new Callable<Void>()
+						{
 
-				myAgent.myThread=null;
-				return null;
-			}
-		};
-		activate = executor.submit(new Callable<ReturnCode>() {
-			public ReturnCode call() {
-				myAgent.myThread = Thread.currentThread();
-				int oldPriority=myAgent.myThread.getPriority();
-				String oldName=myAgent.myThread.getName();
-
-				final ReturnCode r = myAgent.activation();
-				myAgent.myThread.setName(oldName);
-				myAgent.myThread.setPriority(oldPriority);
-
-				if (r != ReturnCode.SUCCESS) {// alive is false && not a suicide
-					cancelLive(false);
-					if (endCanceled)// TO was 0 in the MK
-
-						synchronized (myAgent.state) {
-							myAgent.state.notify();
-						}
-				}
-				else if (!activateCanceled)
-				{
-					if (liveCanceled) {
-						end=executor.submit(runnableEnd);
-					}
-					else {
-						live = executor.submit(new Callable<Void>() {
+							@Override
 							public Void call() {
 								myAgent.myThread = Thread.currentThread();
 								if (myAgent.getAlive().get()) {
-									int oldPriority=myAgent.myThread.getPriority();
-									String oldName=myAgent.myThread.getName();
-
 									myAgent.living();
-									myAgent.myThread.setName(oldName);
-									myAgent.myThread.setPriority(oldPriority);
-
 								}
-								if (endCanceled) {// it is a kill with to == 0
+								if (end.isCancelled()) {// it is a kill with to == 0
 									synchronized (myAgent.state) {
 										myAgent.state.notify();
 									}
 								}
-								end=executor.submit(runnableEnd);
 								return null;
 							}
-						});
-					}
-				}
-				return r;
-			}
-		});
+						},
+						new Callable<Void>()
+						{
+
+							@Override
+							public Void call() {
+								myAgent.myThread = Thread.currentThread();
+								myAgent.ending();
+
+								synchronized (myAgent.state) {
+									myAgent.state.notify();
+								}
+
+								return null;
+							}
+						},
+						new Callable<Void>()
+						{
+
+							@Override
+							public Void call() {
+								if (!(myAgent.getKernel() instanceof FakeKernel)) {
+									try {
+										MadkitKernel k = myAgent.getMadkitKernel();
+										myAgent.terminate();
+										k.removeThreadedAgent(myAgent);
+									} catch (KernelException e) {
+										System.err.println(myAgent.getKernel());
+										e.printStackTrace();
+									}
+								}
+								return null;
+							}
+						}
+				));
+		//noinspection unchecked
+		activate=(Future<ReturnCode>)list.get(0);
+		live=list.get(1);
+		end=list.get(2);
 		return activate;
 	}
 

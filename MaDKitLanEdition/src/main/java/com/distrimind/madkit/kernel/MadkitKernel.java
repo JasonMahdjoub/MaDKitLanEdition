@@ -65,7 +65,6 @@ import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.message.task.TasksExecutionConfirmationMessage;
 import com.distrimind.madkit.util.XMLUtilities;
 import com.distrimind.madkit.util.concurrent.LockerCondition;
-import com.distrimind.madkit.util.concurrent.PoolExecutor;
 import com.distrimind.madkit.util.concurrent.ScheduledPoolExecutor;
 import com.distrimind.ood.database.DatabaseConfiguration;
 import com.distrimind.ood.database.exceptions.DatabaseException;
@@ -154,7 +153,7 @@ class MadkitKernel extends Agent {
 	protected volatile int threadPriorityForServiceExecutor = DEFAULT_THREAD_PRIORITY;
 	private ScheduledPoolExecutor serviceExecutor;
 
-	private PoolExecutor lifeExecutor/* , lifeExecutorWithBlockQueue */;
+	//private PoolExecutor lifeExecutor/* , lifeExecutorWithBlockQueue */;
 	protected volatile int threadPriorityForLifeExecutor = DEFAULT_THREAD_PRIORITY;
 	private final HashMap<Long, LockerCondition> agentsSendingNetworkMessage = new HashMap<>();
     private volatile int maximumGlobalUploadSpeedInBytesPerSecond;
@@ -165,12 +164,12 @@ class MadkitKernel extends Agent {
 
 	void setThreadPriotityForLifeExecutor(int _priority) {
 		threadPriorityForLifeExecutor = _priority;
-		lifeExecutor.setThreadsPriority(_priority);
+		//lifeExecutor.setThreadsPriority(_priority);
 	}
 
 	void setThreadPriotityForServiceExecutor(int _priority) {
 		threadPriorityForServiceExecutor = _priority;
-		serviceExecutor.setThreadsPriority(_priority);
+		//serviceExecutor.setThreadsPriority(_priority);
 	}
 
 	ScheduledPoolExecutor getMadkitServiceExecutor() {
@@ -323,27 +322,27 @@ class MadkitKernel extends Agent {
 
 		normalAgentThreadFactory = new AgentThreadFactory(kernelAddress, false);
 		daemonAgentThreadFactory = new AgentThreadFactory(kernelAddress, true);
-		/*lifeExecutor = new PoolExecutor(2, 2, 2L, TimeUnit.SECONDS,
+		/*lifeExecutor = new PoolExecutor(1, 2, 4L, TimeUnit.SECONDS,
 				new ThreadFactory() {
 					public Thread newThread(Runnable r) {
-						final Thread t = new Thread(normalAgentThreadFactory.getThreadGroup(), r);
+						final Thread t = new Thread(daemonAgentThreadFactory.getThreadGroup(), r);
 						t.setPriority(threadPriorityForLifeExecutor);
 						t.setDaemon(true);
 						return t;
 					}
 				});
 		lifeExecutor.start();*/
-		lifeExecutor = this.serviceExecutor = new ScheduledPoolExecutor(2, Math.min(Runtime.getRuntime().availableProcessors(), 2), 4L, TimeUnit.SECONDS,
+		this.serviceExecutor = /*new ScheduledPoolExecutor(2, Math.min(Runtime.getRuntime().availableProcessors(), 2), 4L, TimeUnit.SECONDS,
 				new ThreadFactory() {
 					public Thread newThread(Runnable r) {
-						final Thread t = new Thread(normalAgentThreadFactory.getThreadGroup(), r);
+						final Thread t = new Thread(daemonAgentThreadFactory.getThreadGroup(), r);
 						t.setPriority(threadPriorityForServiceExecutor);
-						t.setDaemon(true);
+						t.setDaemon(false);
 						return t;
 					}
-				});/*createSchedulerServiceExecutor(SYSTEM, threadPriorityForServiceExecutor, true,
-				SYSTEM.getName(), Math.min(Runtime.getRuntime().availableProcessors(), 2), 4,
-				null);*/
+				});*/createSchedulerServiceExecutor(SYSTEM, threadPriorityForServiceExecutor, true,
+				SYSTEM.getName(), Math.min(Runtime.getRuntime().availableProcessors(), 2), 4L,
+				null);
 		this.serviceExecutor.start();
 		if (madkitConfig.isUseMadkitSchedulerWithFortunaSecureRandom())
 			Fortuna.setPersonalDefaultScheduledExecutorService(this.serviceExecutor);
@@ -379,6 +378,13 @@ class MadkitKernel extends Agent {
 
 	}
 
+	AgentThreadFactory getNormalAgentThreadFactory() {
+		return normalAgentThreadFactory;
+	}
+
+	AgentThreadFactory getDaemonAgentThreadFactory() {
+		return daemonAgentThreadFactory;
+	}
 
 	MadkitKernel() {
 		// for fake kernels
@@ -392,7 +398,7 @@ class MadkitKernel extends Agent {
 		operatingOverlookers = null;
 		normalAgentThreadFactory = null;
 		daemonAgentThreadFactory = null;
-		lifeExecutor = null;
+		//lifeExecutor = null;
 		this.serviceExecutor = null;
 		generator_id_transfert = null;
 		global_interfaced_ids = null;
@@ -412,7 +418,7 @@ class MadkitKernel extends Agent {
 		operatingOverlookers = k.operatingOverlookers;
 		normalAgentThreadFactory = null;
 		daemonAgentThreadFactory = null;
-		lifeExecutor = null;
+		//lifeExecutor = null;
 		this.serviceExecutor = null;
 		generator_id_transfert = null;
 		global_interfaced_ids = null;
@@ -544,7 +550,7 @@ class MadkitKernel extends Agent {
 			// c.setAccessible(false); //useless
 			a.setLogLevel(getMadkitConfig().guiLogLevel);
 			launchAgent(a);
-			threadedAgents.remove(a);
+			//threadedAgents.remove(a);//TODO uncomment ok ?
 			if (logger != null && logger.isLoggable(Level.FINE))
 				logger.fine("\n\t****** GUI Manager launched ******\n");
 		} catch (ClassNotFoundException | SecurityException | NoSuchMethodException | IllegalArgumentException
@@ -757,7 +763,7 @@ class MadkitKernel extends Agent {
 					logger.finer("Launching " + atl.getNumber() + " instance(s) of " + atl.getClassAgent()
 							+ " with GUI = " + atl.isWithGUI());
 				for (int i = 0; i < atl.getNumber(); i++) {
-					lifeExecutor.execute(new Runnable() {
+					serviceExecutor.execute(new Runnable() {
 						public void run() {
 							if (!shuttedDown) {
 								try {
@@ -782,7 +788,7 @@ class MadkitKernel extends Agent {
 			for (final File file : getMadkitConfig().configFiles) {
 
 				if (file.toString().endsWith(".xml")) {
-					lifeExecutor.execute(new Runnable() {
+					serviceExecutor.execute(new Runnable() {
 						@Override
 						public void run() {
 							try {
@@ -2243,7 +2249,7 @@ class MadkitKernel extends Agent {
 			// holds for Integer.MAX_VALUE
 			ReturnCode returnCode;
 
-			Future<ReturnCode> future = lifeExecutor.submit(new Callable<ReturnCode>() {
+			Future<ReturnCode> future = serviceExecutor.submit(new Callable<ReturnCode>() {
 						public ReturnCode call() {
 							return launchingAgent(agent, defaultGUI);
 
@@ -2305,7 +2311,7 @@ class MadkitKernel extends Agent {
 		// AbstractAgent
 		if (!(agent instanceof Agent)) {
 			ReturnCode r = AGENT_CRASH;
-			final Future<ReturnCode> activationAttempt = lifeExecutor.submit(new Callable<ReturnCode>() {
+			final Future<ReturnCode> activationAttempt = serviceExecutor.submit(new Callable<ReturnCode>() {
 						public ReturnCode call() {
 							/*
 							 * if (agent instanceof AgentFakeThread)
@@ -2407,7 +2413,7 @@ class MadkitKernel extends Agent {
 			return ReturnCode.ALREADY_KILLED;
 		}
 
-		final Future<ReturnCode> killAttempt = lifeExecutor.submit(new Callable<ReturnCode>() {
+		final Future<ReturnCode> killAttempt = serviceExecutor.submit(new Callable<ReturnCode>() {
 					@Override
 					public ReturnCode call() {
 
@@ -2561,9 +2567,9 @@ class MadkitKernel extends Agent {
 
 
 	final ReturnCode startEndBehavior(final AbstractAgent target, boolean asDaemon, boolean callEnddingFunction) {
-        final PoolExecutor executor = asDaemon ? serviceExecutor : lifeExecutor;
+        //final PoolExecutor executor = asDaemon ? serviceExecutor : lifeExecutor;
 		if (callEnddingFunction) {
-			final Future<Boolean> endAttempt = executor.submit(new Callable<Boolean>() {
+			final Future<Boolean> endAttempt = serviceExecutor.submit(new Callable<Boolean>() {
 						public Boolean call() {
 							return target.ending();
 						}
@@ -3218,12 +3224,12 @@ class MadkitKernel extends Agent {
 		leaveAllGroupsOfAllAgents();
 		if (getMadkitConfig().isUseMadkitSchedulerWithFortunaSecureRandom())
 			Fortuna.setPersonalDefaultScheduledExecutorService(null);
-		if (this.lifeExecutor!=null) {
-			this.lifeExecutor.shutdownNow();
+		if (this.serviceExecutor!=null) {
+			//this.lifeExecutor.shutdownNow();
 			this.serviceExecutor.shutdownNow();
 			boolean valid=true;
 			try {
-				if (!this.lifeExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
+				if (!this.serviceExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
 					getLogger().warning("Life executor not terminated !");
 					valid = false;
 				}
@@ -3243,7 +3249,7 @@ class MadkitKernel extends Agent {
 			}
 			if (valid && logger!=null)
 				logger.finer("***** Service executors terminated ********\n");
-			this.lifeExecutor = null;
+			//this.lifeExecutor = null;
 			this.serviceExecutor = null;
 		}
 		try {
@@ -3596,22 +3602,22 @@ class MadkitKernel extends Agent {
 	}*/
 
 	void wait(AbstractAgent requester, LockerCondition locker) throws InterruptedException {
-		if (!serviceExecutor.wait(locker) && !lifeExecutor.wait(locker)) {
+		if (!serviceExecutor.wait(locker) /*&& !lifeExecutor.wait(locker)*/) {
 			regularWait(requester, locker);
 		}
 	}
 	void wait(AbstractAgent requester, LockerCondition locker, long delayMillis) throws InterruptedException, TimeoutException {
-		if (!serviceExecutor.wait(locker, delayMillis, TimeUnit.MILLISECONDS) && !lifeExecutor.wait(locker, delayMillis, TimeUnit.MILLISECONDS)) {
+		if (!serviceExecutor.wait(locker, delayMillis, TimeUnit.MILLISECONDS)/* && !lifeExecutor.wait(locker, delayMillis, TimeUnit.MILLISECONDS)*/) {
 			regularWait(requester, locker, delayMillis);
 		}
 	}
 	void wait(AbstractAgent requester, LockerCondition locker, Lock personalLocker, Condition personalCondition, long delay, TimeUnit unit) throws InterruptedException, TimeoutException {
-		if (!serviceExecutor.wait(locker, personalLocker, personalCondition, delay, unit) && !lifeExecutor.wait(locker, personalLocker, personalCondition, delay, unit)) {
+		if (!serviceExecutor.wait(locker, personalLocker, personalCondition, delay, unit) /*&& !lifeExecutor.wait(locker, personalLocker, personalCondition, delay, unit)*/) {
 			regularWait(requester, locker, personalLocker, personalCondition,  delay, unit);
 		}
 	}
 	void wait(AbstractAgent requester, LockerCondition locker, Lock personalLocker, Condition personalCondition) throws InterruptedException{
-		if (!serviceExecutor.wait(locker, personalLocker, personalCondition) && !lifeExecutor.wait(locker, personalLocker, personalCondition)) {
+		if (!serviceExecutor.wait(locker, personalLocker, personalCondition) /*&& !lifeExecutor.wait(locker, personalLocker, personalCondition)*/) {
 			regularWait(requester, locker, personalLocker, personalCondition);
 		}
 	}
@@ -3682,7 +3688,7 @@ class MadkitKernel extends Agent {
 
 
 	void sleep(AgentFakeThread requester, long millis) throws InterruptedException {
-		if (!serviceExecutor.sleep(millis, TimeUnit.MILLISECONDS) && !lifeExecutor.sleep(millis, TimeUnit.MILLISECONDS)) {
+		if (!serviceExecutor.sleep(millis, TimeUnit.MILLISECONDS) /*&& !lifeExecutor.sleep(millis, TimeUnit.MILLISECONDS)*/) {
 			/*
 			 * ArrayList<ThreadPoolExecutor> tpes=null;
 			 * 

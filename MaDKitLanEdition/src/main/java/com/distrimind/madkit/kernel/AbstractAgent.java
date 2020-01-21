@@ -393,7 +393,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @throws InterruptedException if an interrupt signal occurs 
 	 */
 	public void wait(LockerCondition lockerCondition) throws InterruptedException {
-		getMadkitKernel().wait(this, lockerCondition);
+		getMadkitKernel().regularWait(this, lockerCondition);
 	}
 	/**
 	 * Wait until the function {@link LockerCondition#isLocked()} return false,
@@ -407,7 +407,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @throws InterruptedException if an interrupt signal occurs
 	 */
 	public void wait(LockerCondition lockerCondition, long timeOutMillis) throws InterruptedException, TimeoutException {
-		getMadkitKernel().wait(this, lockerCondition, timeOutMillis);
+		getMadkitKernel().regularWait(this, lockerCondition, timeOutMillis);
 	}
 
 

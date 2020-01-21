@@ -105,6 +105,16 @@ final class LoggedKernel extends MadkitKernel {
 	}
 
 	@Override
+	AgentThreadFactory getNormalAgentThreadFactory() {
+		return kernel.getNormalAgentThreadFactory();
+	}
+
+	@Override
+	AgentThreadFactory getDaemonAgentThreadFactory() {
+		return kernel.getDaemonAgentThreadFactory();
+	}
+
+	@Override
 	ReturnCode requestRole(AbstractAgent requester, Group group, String role, SecureExternalizable memberCard,
 			boolean manual_request) {
 		final ReturnCode r = kernel.requestRole(requester, group, role, memberCard, manual_request);

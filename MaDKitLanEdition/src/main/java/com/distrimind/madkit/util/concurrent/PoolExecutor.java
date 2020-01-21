@@ -35,6 +35,8 @@ knowledge of the CeCILL-C license and that you accept its terms.
 
 package com.distrimind.madkit.util.concurrent;
 
+import com.distrimind.util.Reference;
+
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.Condition;
@@ -63,6 +65,7 @@ public class PoolExecutor implements ExecutorService {
 	final Condition waitEventsCondition =lock.newCondition();
 	final Condition waitEmptyWorkingQueue=lock.newCondition();
 	private final ArrayList<Executor> executors=new ArrayList<>();
+	private final HashMap<Thread, DedicatedRunnable> dedicatedThreads=new HashMap<>();
 
 
 	public PoolExecutor(int minimumNumberOfThreads, int maximumNumberOfThreads, long keepAliveTime, TimeUnit unit) {
@@ -164,6 +167,14 @@ public class PoolExecutor implements ExecutorService {
 			shutdownAsked = true;
 			shutdownNow = now;
 			removeRepetitiveTasksUnsafe();
+
+			for (Map.Entry<Thread, DedicatedRunnable> e : dedicatedThreads.entrySet()) {
+				for (java.util.concurrent.Future<?> f : e.getValue().tasks)
+					f.cancel(now);
+				if (now)
+					e.getKey().interrupt();
+
+			}
 			waitEventsCondition.signalAll();
 		}
 		finally {
@@ -269,6 +280,8 @@ public class PoolExecutor implements ExecutorService {
 		@Override
 		public void run()
 		{
+			if (isCancelled)
+				return;
 			this.thread = Thread.currentThread();
 			try {
 				res=callable.call();
@@ -382,6 +395,63 @@ public class PoolExecutor implements ExecutorService {
 	void repeatUnsafe(ScheduledFuture<?> sf) {
 		throw new IllegalAccessError();
 	}
+
+	private class DedicatedRunnable implements Runnable
+	{
+
+		private final Reference<Thread> threadReference;
+		private final ArrayList<java.util.concurrent.Future<?>> tasks;
+
+		public DedicatedRunnable(Reference<Thread> threadReference, ArrayList<java.util.concurrent.Future<?>> tasks) {
+			this.threadReference = threadReference;
+			this.tasks = tasks;
+		}
+
+		@Override
+		public void run() {
+			try {
+				for (java.util.concurrent.Future<?> f : tasks) {
+					if (shutdownNow)
+						return;
+					((Future<?>)f).run();
+				}
+			}
+			finally {
+				lock.lock();
+				try {
+					dedicatedThreads.remove(threadReference.get());
+				}
+				finally {
+					lock.unlock();
+				}
+			}
+		}
+	}
+
+	public List<java.util.concurrent.Future<?>> launchDedicatedThread(ThreadFactory threadFactory, List<Callable<?>> tasks)
+	{
+		final ArrayList<java.util.concurrent.Future<?>> res=new ArrayList<>(tasks.size());
+		for (Callable<?> c : tasks)
+		{
+			res.add(new Future<>(c));
+		}
+		final Reference<Thread> ref=new Reference<>();
+		DedicatedRunnable dr;
+		ref.set(threadFactory.newThread(dr=new DedicatedRunnable(ref, res)));
+
+		lock.lock();
+		try {
+			dedicatedThreads.put(ref.get(), dr);
+			ref.get().start();
+		}
+		finally {
+			lock.unlock();
+		}
+
+
+		return res;
+	}
+
 	@Override
 	public <T> Future<T> submit(Callable<T> task) {
 
@@ -571,8 +641,8 @@ public class PoolExecutor implements ExecutorService {
 		finally {
 			lock.unlock();
 		}
-
 	}
+
 	public static final DefaultHandlerForFailedExecution defaultHandler=new DefaultHandlerForFailedExecution();
 	public static class DefaultHandlerForFailedExecution implements HandlerForFailedExecution {
 		public DefaultHandlerForFailedExecution() {
@@ -806,6 +876,8 @@ public class PoolExecutor implements ExecutorService {
 
 
 
+
+
 	private class Executor implements Runnable
 	{
 		Thread thread;
@@ -864,7 +936,7 @@ public class PoolExecutor implements ExecutorService {
 									if (!core) {
 										long end = System.nanoTime();
 										timeout -= (System.nanoTime() - start);
-										if (timeout < 0)
+										if (timeout < 0 && !core)
 											return;
 										start = end;
 									}
@@ -874,11 +946,11 @@ public class PoolExecutor implements ExecutorService {
 										waitEventsCondition.await();
 									} else {
 
-										if (!waitEventsCondition.await(timeout, TimeUnit.NANOSECONDS))
+										if (!waitEventsCondition.await(timeout, TimeUnit.NANOSECONDS) && !core)
 											return;
 										long end = System.nanoTime();
 										timeout -= (System.nanoTime() - start);
-										if (timeout < 0)
+										if (timeout < 0 && !core)
 											return;
 										start = end;
 

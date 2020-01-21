@@ -83,6 +83,16 @@ class FakeKernel extends MadkitKernel {
 	}
 
 	@Override
+	AgentThreadFactory getNormalAgentThreadFactory() {
+		throw buildKernelException(null);
+	}
+
+	@Override
+	AgentThreadFactory getDaemonAgentThreadFactory() {
+		throw buildKernelException(null);
+	}
+
+	@Override
 	AgentAddress getAgentAddressIn(AbstractAgent agent, Group group, String role) {
 		throw buildKernelException(agent);
 	}
