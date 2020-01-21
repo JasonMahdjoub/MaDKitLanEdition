@@ -2960,7 +2960,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 									getMadkitConfig().networkProperties.nbMaxExpulsions,
 									getMadkitConfig().networkProperties.banishmentDuration,
 									getMadkitConfig().networkProperties.nbMaxAnomaliesBeforeTrigeringBanishment,
-									getMadkitConfig().networkProperties.nbMaxBanishments,
+									getMadkitConfig().networkProperties.nbMaxBans,
 									getMadkitConfig().networkProperties.expulsionStatisticDuration,
 									getMadkitConfig().networkProperties.banishmentStatisticDuration,
 									getMadkitConfig().networkProperties.getWhiteInetAddressesList());
@@ -2999,7 +2999,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 								getMadkitConfig().networkProperties.nbMaxExpulsions,
 								getMadkitConfig().networkProperties.banishmentDuration,
 								getMadkitConfig().networkProperties.nbMaxAnomaliesBeforeTrigeringBanishment,
-								getMadkitConfig().networkProperties.nbMaxBanishments,
+								getMadkitConfig().networkProperties.nbMaxBans,
 								getMadkitConfig().networkProperties.expulsionStatisticDuration,
 								getMadkitConfig().networkProperties.banishmentStatisticDuration,
 								getMadkitConfig().networkProperties.getWhiteInetAddressesList());

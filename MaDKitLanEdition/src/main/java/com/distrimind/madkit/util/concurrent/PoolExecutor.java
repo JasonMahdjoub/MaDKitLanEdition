@@ -273,6 +273,13 @@ public class PoolExecutor implements ExecutorService {
 			this(callable, flock, flock.newCondition());
 		}
 		protected Future(Callable<T> callable, Lock flock, Condition waitForComplete) {
+			if (callable==null)
+				throw new NullPointerException();
+			if (flock==null)
+				throw new NullPointerException();
+			if (waitForComplete==null)
+				throw new NullPointerException();
+
 			this.callable = callable;
 			this.flock = flock;
 			this.waitForComplete=waitForComplete;
@@ -352,7 +359,7 @@ public class PoolExecutor implements ExecutorService {
 					long start = System.nanoTime();
 					timeout = unit.toNanos(timeout);
 					while (!isCancelled && !isFinished) {
-						if (!waitForComplete.await(timeout, TimeUnit.NANOSECONDS))
+						if (!this.waitForComplete.await(timeout, TimeUnit.NANOSECONDS))
 							throw new TimeoutException();
 						long end = System.nanoTime();
 						timeout -= end - start;
@@ -505,6 +512,9 @@ public class PoolExecutor implements ExecutorService {
 			}
 			if (!workQueue.addAll(futures))
 				throw new RejectedExecutionException();
+			assert workQueue.size()>=futures.size();
+			for (Runnable r : workQueue)
+				assert r!=null;
 			waitEventsCondition.signalAll();
 
 
@@ -628,12 +638,13 @@ public class PoolExecutor implements ExecutorService {
 	}
 
 	@Override
-	public void execute(Runnable command) {
+	public void execute(final Runnable command) {
+		if (command==null)
+			throw new NullPointerException();
 		if (shutdownAsked)
 			throw new RejectedExecutionException();
 		lock.lock();
 		try {
-
 			if (!workQueue.add(command))
 				throw new RejectedExecutionException();
 			waitEventsCondition.signalAll();

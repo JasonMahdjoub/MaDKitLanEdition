@@ -2108,10 +2108,24 @@ class MadkitKernel extends Agent {
 
 	void launchAgentBucketWithRoles(final AbstractAgent requester, List<AbstractAgent> bucket, int cpuCoreNb,
 			Role... cgrLocations) {
+		cpuCoreNb=cpuCoreNb>0?cpuCoreNb:1;
 		if (cgrLocations != null && cgrLocations.length != 0) {
-			AgentsJob init = new AgentsJob() {
+			class AJ extends AgentsJob
+			{
+				AJ(List<AbstractAgent> list) {
+					super(list);
+				}
+
+				AJ() {
+				}
+
 				@Override
-				void proceedAgent(final AbstractAgent a) {
+				AgentsJob createNewAgentJobWithList(List<AbstractAgent> l) {
+					return new AJ(l);
+				}
+
+				@Override
+				void proceedAgent(AbstractAgent a) {
 					// no need to test : I created these instances :this is not true for the list
 					// case //TODO
 					a.state.set(INITIALIZING);
@@ -2121,7 +2135,8 @@ class MadkitKernel extends Agent {
 						a.logger.close();
 					a.logger = null;
 				}
-			};
+			}
+			AgentsJob init = new AJ();
 			doMulticore(init.getJobs(bucket, cpuCoreNb));
 			synchronized (this) {
 				for (final Role cgrLocation : cgrLocations) {
@@ -2143,9 +2158,22 @@ class MadkitKernel extends Agent {
 					// test vs assignement ? -> No: cannot touch the organizational
 					// structure !!
 				}
-				init = new AgentsJob() {
+				class AJ2 extends AgentsJob
+				{
+					AJ2(List<AbstractAgent> list) {
+						super(list);
+					}
+
+					AJ2() {
+					}
+
 					@Override
-					void proceedAgent(final AbstractAgent a) {
+					AgentsJob createNewAgentJobWithList(List<AbstractAgent> l) {
+						return new AJ(l);
+					}
+
+					@Override
+					void proceedAgent(AbstractAgent a) {
 						try {
 							a.activate();
 							a.state.set(State.ACTIVATED);
@@ -2154,13 +2182,28 @@ class MadkitKernel extends Agent {
 									: "launchAgentBucketWithRoles : list contains null", e, null);
 						}
 					}
-				};
+				}
+
+				init = new AJ2();
 				doMulticore(init.getJobs(bucket, cpuCoreNb));
 			}
 		} else {
-			AgentsJob aj = new AgentsJob() {
+			class AJ extends AgentsJob
+			{
+				AJ(List<AbstractAgent> list) {
+					super(list);
+				}
+
+				AJ() {
+				}
+
 				@Override
-				void proceedAgent(final AbstractAgent a) {
+				AgentsJob createNewAgentJobWithList(List<AbstractAgent> l) {
+					return new AJ(l);
+				}
+
+				@Override
+				void proceedAgent(AbstractAgent a) {
 					// no need to test : I created these instances :this is not true for the list
 					// case //TODO
 					a.state.set(ACTIVATING);
@@ -2179,7 +2222,8 @@ class MadkitKernel extends Agent {
 						requester.cannotLaunchAgent("launchAgentBucketWithRoles : " + a.getClass().getName(), e, null);
 					}
 				}
-			};
+			}
+			AgentsJob aj = new AJ();
 			doMulticore(aj.getJobs(bucket, cpuCoreNb));
 		}
 	}
@@ -2196,9 +2240,10 @@ class MadkitKernel extends Agent {
 		final List<AbstractAgent> result = new ArrayList<>(bucketSize);
 		final int nbOfAgentsPerTask = bucketSize / (cpuCoreNb);
 
-		final CompletionService<List<AbstractAgent>> ecs = new ExecutorCompletionService<>(serviceExecutor);
+		//final CompletionService<List<AbstractAgent>> ecs = new ExecutorCompletionService<>(serviceExecutor);
+		ArrayList<Future<List<AbstractAgent>>> futures=new ArrayList<>(cpuCoreNb);
 		for (int i = 0; i < cpuCoreNb; i++) {
-			ecs.submit(new Callable<List<AbstractAgent>>() {
+			futures.add(serviceExecutor.submit(new Callable<List<AbstractAgent>>() {
 				public List<AbstractAgent> call() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 					final List<AbstractAgent> list = new ArrayList<>(nbOfAgentsPerTask);
 					for (int j = nbOfAgentsPerTask; j > 0; j--) {
@@ -2206,7 +2251,7 @@ class MadkitKernel extends Agent {
 					}
 					return list;
 				}
-			});
+			}));
 		}
 		// adding the missing ones when the division results as a real number
 		for (int i = bucketSize - nbOfAgentsPerTask * cpuCoreNb; i > 0; i--) {
@@ -2214,7 +2259,7 @@ class MadkitKernel extends Agent {
 		}
 		for (int i = 0; i < cpuCoreNb; ++i) {
 			try {
-				result.addAll(ecs.take().get());
+				result.addAll(futures.get(i).get());
 			} catch (InterruptedException | ExecutionException e) {
 				e.printStackTrace();
 			}
@@ -4348,6 +4393,13 @@ final class CGRNotAvailable extends Exception {
 abstract class AgentsJob implements Callable<Void>, Cloneable {
 	private List<AbstractAgent> list;
 
+	AgentsJob(List<AbstractAgent> list) {
+		this.list = list;
+	}
+
+	AgentsJob() {
+	}
+
 	@Override
 	public Void call() {
 		for (final AbstractAgent a : list) {
@@ -4358,6 +4410,7 @@ abstract class AgentsJob implements Callable<Void>, Cloneable {
 
 
 	final ArrayList<AgentsJob> getJobs(List<AbstractAgent> l, int cpuCoreNb) {
+
 		final ArrayList<AgentsJob> workers = new ArrayList<>(cpuCoreNb);
 		int bucketSize = l.size();
 		final int nbOfAgentsPerTask = bucketSize / cpuCoreNb;
@@ -4378,22 +4431,11 @@ abstract class AgentsJob implements Callable<Void>, Cloneable {
 		return workers;
 	}
 
-	private AgentsJob createNewAgentJobWithList(List<AbstractAgent> l) {
-		AgentsJob aj = null;
-		try {
-			aj = (AgentsJob) this.clone();
-		} catch (CloneNotSupportedException e) {
-			// cannot be
-		}
-		if (aj==null)
-			throw new NullPointerException();
-
-        aj.list = l;
-		return aj;
-	}
+	abstract AgentsJob createNewAgentJobWithList(List<AbstractAgent> l) ;
 
 
 	abstract void proceedAgent(AbstractAgent a);
+
 
 
 

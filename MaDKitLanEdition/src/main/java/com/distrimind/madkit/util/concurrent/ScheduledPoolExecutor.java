@@ -46,7 +46,7 @@ import java.util.concurrent.*;
 public class ScheduledPoolExecutor extends PoolExecutor implements ScheduledExecutorService {
 	private final TreeSet<SF<?>> scheduledFutures=new TreeSet<>();
 	private boolean pull=false;
-	private long timeOfFirstOccurenceInNanos =Long.MAX_VALUE;
+	private long timeOfFirstOccurrenceInNanos =Long.MAX_VALUE;
 
 	public ScheduledPoolExecutor(int minimumPoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit) {
 		super(minimumPoolSize, maximumPoolSize, keepAliveTime, unit);
@@ -169,7 +169,8 @@ public class ScheduledPoolExecutor extends PoolExecutor implements ScheduledExec
 
 	@Override
 	public ScheduledFuture<?> schedule(final Runnable command, long delay, TimeUnit unit) {
-
+		if (command==null)
+			throw new NullPointerException();
 		return schedule(new SF<>(new Callable<Void>() {
 			@Override
 			public Void call() {
@@ -186,6 +187,8 @@ public class ScheduledPoolExecutor extends PoolExecutor implements ScheduledExec
 
 	@Override
 	public ScheduledFuture<?> scheduleAtFixedRate(final Runnable command, long initialDelay, long period, TimeUnit unit) {
+		if (command==null)
+			throw new NullPointerException();
 		return schedule(new RatedSF<>(new Callable<Void>() {
 			@Override
 			public Void call()  {
@@ -197,6 +200,8 @@ public class ScheduledPoolExecutor extends PoolExecutor implements ScheduledExec
 
 	@Override
 	public ScheduledFuture<?> scheduleWithFixedDelay(final Runnable command, long initialDelay, long delay, TimeUnit unit) {
+		if (command==null)
+			throw new NullPointerException();
 		return schedule(new DelayedSF<>(new Callable<Void>() {
 			@Override
 			public Void call() {
@@ -208,6 +213,8 @@ public class ScheduledPoolExecutor extends PoolExecutor implements ScheduledExec
 
 
 	<V> ScheduledFuture<V> schedule(SF<V> sf) {
+		if (sf==null)
+			throw new NullPointerException();
 		lock.lock();
 		try {
 			repeatUnsafe(sf);
@@ -221,7 +228,7 @@ public class ScheduledPoolExecutor extends PoolExecutor implements ScheduledExec
 	@Override
 	void repeatUnsafe(ScheduledFuture<?> sf) {
 		scheduledFutures.add((SF<?>)sf);
-		timeOfFirstOccurenceInNanos =scheduledFutures.first().start;
+		timeOfFirstOccurrenceInNanos =scheduledFutures.first().start;
 	}
 
 	@Override
@@ -243,14 +250,14 @@ public class ScheduledPoolExecutor extends PoolExecutor implements ScheduledExec
 	Runnable pollTaskUnsafe() {
 		Runnable r=null;
 		if (pull) {
-			if (timeOfFirstOccurenceInNanos <=System.nanoTime()) {
+			if (timeOfFirstOccurrenceInNanos <=System.nanoTime()) {
 				pull=false;
 				r= scheduledFutures.pollFirst();
 				assert r!=null;
 				if (scheduledFutures.size()==0)
-					timeOfFirstOccurenceInNanos =Long.MAX_VALUE;
+					timeOfFirstOccurrenceInNanos =Long.MAX_VALUE;
 				else
-					timeOfFirstOccurenceInNanos =scheduledFutures.first().start;
+					timeOfFirstOccurrenceInNanos =scheduledFutures.first().start;
 			}
 		}
 		if (r==null) {
@@ -264,6 +271,6 @@ public class ScheduledPoolExecutor extends PoolExecutor implements ScheduledExec
 
 	@Override
 	long timeToWaitBeforeNewTaskScheduledInNanoSeconds() {
-		return timeOfFirstOccurenceInNanos;
+		return timeOfFirstOccurrenceInNanos;
 	}
 }

@@ -76,7 +76,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import com.distrimind.madkit.database.DifferedMessageTable;
 import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
 import com.distrimind.madkit.util.concurrent.LockerCondition;
-import com.distrimind.madkit.util.concurrent.ScheduledPoolExecutor;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.io.RandomInputStream;
@@ -4674,7 +4673,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * occurs ({@link NetworkProperties#nbMaxAnomaliesBeforeTrigeringBanishment}), than the
 	 * connection is closed and the IP address banned for a while
 	 * ({@link NetworkProperties#banishmentDuration}). If too much bans occurs
-	 * ({@link NetworkProperties#nbMaxBanishments}), the kernel will ban the IP
+	 * ({@link NetworkProperties#nbMaxBans}), the kernel will ban the IP
 	 * address indefinitely. The difference between an expulsion and a banishment is
 	 * defined by the properties see bellow (thresholds and durations)
 	 * 
@@ -4707,7 +4706,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * than the connections associated with the kernel address and their IP
 	 * addresses are banned for a while
 	 * ({@link NetworkProperties#banishmentDuration}). If too much bans occurs
-	 * ({@link NetworkProperties#nbMaxBanishments}), the kernel will ban the
+	 * ({@link NetworkProperties#nbMaxBans}), the kernel will ban the
 	 * connections associated with the kernel address and their IP addresses
 	 * indefinitely. The difference between an expulsion and a banishment is defined
 	 * by the properties see bellow (thresholds and durations)

@@ -244,7 +244,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * the system ban definitively the concerned host. This variable corresponds to
 	 * the maximum number of banishment before triggering the definitive ban.
 	 */
-	public short nbMaxBanishments = 100;
+	public short nbMaxBans = 100;
 
 	/**
 	 * Duration of the statistics concerning the temporary expulsion of a computer.
@@ -269,7 +269,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * security is maintained.
 	 * 
 	 * @see #gatewayDepth
-	 * @see #timeBetweenEachUpdateOfTransfertSpeedForGatewayConnection
+	 * @see #timeBetweenEachUpdateOfTransferSpeedForGatewayConnection
 	 */
 	public boolean gatewayConnection = false;
 
@@ -292,7 +292,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * 
 	 * @see #gatewayConnection
 	 */
-	public long timeBetweenEachUpdateOfTransfertSpeedForGatewayConnection = 30000L;
+	public long timeBetweenEachUpdateOfTransferSpeedForGatewayConnection = 30000L;
 
 	/**
 	 * Define the number of cached blocks in bytes to transfer to another machine.
@@ -360,7 +360,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	/**
 	 * Delay to wait in milliseconds before closing a connection, and in order to being sure to send the last packet.
 	 */
-	public long delayInMsBeforeClosingConnectionNormally=0;
+	public long delayInMsBeforeClosingConnectionNormally=200;
 
 	/**
 	 * Delay after a channel selector returns 0 network event and gives hand to the
@@ -379,7 +379,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * This protocol enables to open port into the local router, in order to have
 	 * access to internet.
 	 * 
-	 * @see #timeBetweenEachUpdateOfTransfertSpeedForGatewayConnection
+	 * @see #timeBetweenEachUpdateOfTransferSpeedForGatewayConnection
 	 */
 	public boolean upnpIGDEnabled = false;
 	
@@ -418,7 +418,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * Tells if the network interfaces availability can be scanned (does not work if
 	 * {@link NetworkProperties#upnpIGDEnabled} is set to <code>false</code>.
 	 * 
-	 * @see #timeBetweenEachUpdateOfTransfertSpeedForGatewayConnection
+	 * @see #timeBetweenEachUpdateOfTransferSpeedForGatewayConnection
 	 */
 	public boolean networkInterfaceScan = true;
 

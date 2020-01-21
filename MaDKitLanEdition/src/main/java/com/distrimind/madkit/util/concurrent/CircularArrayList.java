@@ -430,7 +430,7 @@ public class CircularArrayList<E> extends AbstractList<E> implements List<E>, De
 	public boolean addAll(Collection<? extends E> c) {
 		try {
 			ensureCapacity(c.size());
-			int i=size;
+			int i=size+position;
 			for (Object o : c)
 				array[(i++)%array.length] = o;
 			size+=c.size();
