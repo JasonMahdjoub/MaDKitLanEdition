@@ -3622,7 +3622,8 @@ class MadkitKernel extends Agent {
 		}
 	}
 	void regularWait(AbstractAgent requester, LockerCondition locker, Lock personalLocker, Condition personalCondition, long delay, TimeUnit unit) throws InterruptedException, TimeoutException {
-		long start=System.currentTimeMillis();
+
+		long start=System.nanoTime();
 		delay=unit.toNanos(delay);
 
 		personalLocker.lock();

@@ -139,7 +139,7 @@ public class ChainedBlockingDeque<T> extends AbstractQueue<T> implements Blockin
 
 		if (madkitKernel!=null) {
 			final Reference<T> res=new Reference<>();
-			madkitKernel.wait(madkitKernel, new LockerCondition(lock) {
+			madkitKernel.wait(madkitKernel, new LockerCondition() {
 				boolean ok=false;
 				@Override
 				public boolean isLocked() {
@@ -177,7 +177,7 @@ public class ChainedBlockingDeque<T> extends AbstractQueue<T> implements Blockin
 		if (madkitKernel!=null) {
 			final Reference<T> res=new Reference<>();
 			try {
-				madkitKernel.wait(madkitKernel, new LockerCondition(lock) {
+				madkitKernel.wait(madkitKernel, new LockerCondition() {
 					boolean ok=false;
 					@Override
 					public boolean isLocked() {
@@ -200,14 +200,24 @@ public class ChainedBlockingDeque<T> extends AbstractQueue<T> implements Blockin
 			return res.get();
 		}
 		else {
+			long start=System.currentTimeMillis();
+			time=unit.toNanos(time);
+
 			lock.lock();
 			try {
 				while (list.isEmpty()) {
-					if (!notEmpty.await(time, unit))
+					if (!notEmpty.await(time, TimeUnit.NANOSECONDS))
+						time=-1;
+
+					long end=System.nanoTime();
+					time-=end-start;
+					if (time<0)
 						return null;
+					start=end;
 				}
 				return list.remove();
-			} finally {
+			}
+			finally {
 				lock.unlock();
 			}
 		}
