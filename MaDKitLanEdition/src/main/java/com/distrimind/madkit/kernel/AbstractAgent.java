@@ -76,6 +76,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import com.distrimind.madkit.database.DifferedMessageTable;
 import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
 import com.distrimind.madkit.util.concurrent.LockerCondition;
+import com.distrimind.madkit.util.concurrent.ScheduledPoolExecutor;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.io.RandomInputStream;
@@ -408,6 +409,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	public void wait(LockerCondition lockerCondition, long timeOutMillis) throws InterruptedException, TimeoutException {
 		getMadkitKernel().wait(this, lockerCondition, timeOutMillis);
 	}
+
 
 	/**
 	 * The ID of an agent. All the agents have different hashCode value in one

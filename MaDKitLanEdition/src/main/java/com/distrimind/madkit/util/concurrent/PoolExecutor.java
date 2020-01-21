@@ -566,7 +566,7 @@ public class PoolExecutor implements ExecutorService {
 
 			if (!workQueue.add(command))
 				throw new RejectedExecutionException();
-			waitEventsCondition.signal();
+			waitEventsCondition.signalAll();
 		}
 		finally {
 			lock.unlock();
@@ -817,7 +817,7 @@ public class PoolExecutor implements ExecutorService {
 		{
 			if (shutdownAsked)
 				return new ExecutorWrapper(null);
-			waitEventsCondition.signal();
+			waitEventsCondition.signalAll();
 			if (!needNewThreadUnsafe())
 			{
 				for (Executor e : executors)
@@ -884,8 +884,8 @@ public class PoolExecutor implements ExecutorService {
 
 									}
 								}
-							} catch (InterruptedException e) {
-								e.printStackTrace();
+							} catch (InterruptedException ignored) {
+								return;
 							}
 						}
 
@@ -894,7 +894,7 @@ public class PoolExecutor implements ExecutorService {
 						while (needNewThreadUnsafe()) {
 							launchNewThreadUnsafe(false);
 						}
-						waitEventsCondition.signal();
+						waitEventsCondition.signalAll();
 
 					} finally {
 						lock.unlock();

@@ -2378,7 +2378,7 @@ class MadkitKernel extends Agent {
 			return NOT_YET_LAUNCHED;
 		} else if (target.isKillingInProgress()) {
 			if (target instanceof Agent)
-				((Agent) target).getAgentExecutor().cancelEnd(true);
+				((Agent) target).getAgentExecutor().cancelEnd(!(target instanceof MadkitKernel));
 			if (timeOutSeconds < Integer.MAX_VALUE) {
 
 				final long expirationTime = System.currentTimeMillis() + (((long) timeOutSeconds) * 1000L);
@@ -2594,13 +2594,14 @@ class MadkitKernel extends Agent {
 	private ReturnCode killThreadedAgent(final Agent target) {
 
 		synchronized (target.state) {
+			boolean interrupt=!(target instanceof MadkitKernel);
 			if (target.state.get().equals(State.ENDING) || target.state.get().equals(State.ZOMBIE)
 					|| target.state.get().equals(State.WAIT_FOR_KILL))
-				target.getAgentExecutor().cancelEnd(true);
+				target.getAgentExecutor().cancelEnd(interrupt);
 			target.state.set(State.ENDING);
 
-			target.getAgentExecutor().cancelLive(true);
-			target.getAgentExecutor().cancelActivate(true);
+			target.getAgentExecutor().cancelLive(interrupt);
+			target.getAgentExecutor().cancelActivate(interrupt);
 
 			try {
 				LockerCondition locker = new LockerCondition() {

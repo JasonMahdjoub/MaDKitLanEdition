@@ -211,7 +211,7 @@ public class ScheduledPoolExecutor extends PoolExecutor implements ScheduledExec
 		lock.lock();
 		try {
 			repeatUnsafe(sf);
-			waitEventsCondition.signal();
+			waitEventsCondition.signalAll();
 			return sf;
 		}finally {
 			lock.unlock();

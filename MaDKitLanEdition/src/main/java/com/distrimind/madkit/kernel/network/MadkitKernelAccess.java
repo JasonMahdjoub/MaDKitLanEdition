@@ -41,6 +41,7 @@ import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.message.hook.HookMessage;
 import com.distrimind.madkit.util.concurrent.LockerCondition;
+import com.distrimind.madkit.util.concurrent.PoolExecutor;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.io.MessageExternalizationException;
 import com.distrimind.util.io.RandomInputStream;
@@ -365,6 +366,7 @@ class MadkitKernelAccess {
 		return null;
 	}
 
+
 	private static final String package_name;
 	private static final Class<?> c_madkit_kernel;
 	private static final Method m_get_madkit_kernel;
@@ -436,6 +438,7 @@ class MadkitKernelAccess {
 				RealTimeTransfertStat.class);*/
 		c_task_id = getConstructor(TaskID.class, ConversationID.class);
 	}
+
 
 
 }
