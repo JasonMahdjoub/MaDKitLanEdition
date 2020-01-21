@@ -494,7 +494,7 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 					Assert.assertEquals(true, finished1.get());
 					Assert.assertEquals(true, finished2.get());
 					cleanHelperMDKs(this);
-					Assert.assertEquals(getHelperInstances(0).size(), 0);
+					Assert.assertEquals(getHelperInstances(this, 0).size(), 0);
 					finished1.set(null);
 					finished2.set(null);
 					System.out.println("Second step");
@@ -512,7 +512,7 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 					Assert.assertEquals(true, finished1.get());
 					Assert.assertEquals(true, finished2.get());
 					cleanHelperMDKs(this);
-					Assert.assertEquals(getHelperInstances(0).size(), 0);
+					Assert.assertEquals(getHelperInstances(this, 0).size(), 0);
 
 					finished1.set(null);
 					finished2.set(null);
@@ -532,7 +532,7 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 					Assert.assertEquals(finished2.get(), true);
 
 					cleanHelperMDKs(this);
-					Assert.assertEquals(getHelperInstances(0).size(), 0);
+					Assert.assertEquals(getHelperInstances(this, 0).size(), 0);
 
 				}
 			});

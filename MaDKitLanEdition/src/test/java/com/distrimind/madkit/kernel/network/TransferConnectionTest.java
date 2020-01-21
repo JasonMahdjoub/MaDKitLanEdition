@@ -317,15 +317,15 @@ public class TransferConnectionTest extends JunitMadkit {
 				
 				launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, a1, eventListener1);
 
-				ka1 = TransferConnectionTest.this.getKernelAddress(getHelperInstances(1).get(0));
+				ka1 = TransferConnectionTest.this.getKernelAddress(getHelperInstances(this, 1).get(0));
 
 				launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, null, eventListener5);
-				ka2 = TransferConnectionTest.this.getKernelAddress(getHelperInstances(2).get(1));
+				ka2 = TransferConnectionTest.this.getKernelAddress(getHelperInstances(this, 2).get(1));
 				sleep(2000);
 				launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, a2, eventListener2);
 				System.out.println("**************Test connections 1****************");
 				int index = -1;
-				for (Madkit m : getHelperInstances(3)) {
+				for (Madkit m : getHelperInstances(this, 3)) {
 					++index;
 					if (index == 2)
 					{
@@ -344,7 +344,7 @@ public class TransferConnectionTest extends JunitMadkit {
 				System.out.println("**************Test connections 2****************");
 				// test madkit kernels connection
 				index = -1;
-				for (Madkit m : getHelperInstances(4)) {
+				for (Madkit m : getHelperInstances(this, 4)) {
 					++index;
 					if (index == 0 || index == 2)
 					{
@@ -364,7 +364,7 @@ public class TransferConnectionTest extends JunitMadkit {
 				a1.askForTransferConnection(type, attachedData);
 
 				index = -1;
-				for (Madkit m : getHelperInstances(4)) {
+				for (Madkit m : getHelperInstances(this, 4)) {
 					++index;
 					if (index == 2)
 						checkConnectedKernelsNb(this, m, 3, timeOut);
@@ -379,7 +379,7 @@ public class TransferConnectionTest extends JunitMadkit {
 						"**************Try transafert connection between 5 and 3 (through 2 and 1)****************");
 				a2.askForTransferConnection(type, attachedData);
 				index = -1;
-				for (Madkit m : getHelperInstances(4)) {
+				for (Madkit m : getHelperInstances(this, 4)) {
 					++index;
 					if (index == 2 || index == 3)
 						checkConnectedKernelsNb(this, m, 3, timeOut);
@@ -397,7 +397,7 @@ public class TransferConnectionTest extends JunitMadkit {
 				// test transfer deconnection
 				a1.askForTransferDeconnection();
 				index = -1;
-				for (Madkit m : getHelperInstances(4)) {
+				for (Madkit m : getHelperInstances(this, 4)) {
 					++index;
 					if (index == 0 || index == 2)
 						checkConnectedKernelsNb(this, m, 2, timeOut);
@@ -423,7 +423,7 @@ public class TransferConnectionTest extends JunitMadkit {
 				a1.askForTransferConnection(type, attachedData);
 
 				index = -1;
-				for (Madkit m : getHelperInstances(4)) {
+				for (Madkit m : getHelperInstances(this, 4)) {
 					++index;
 					if (index == 2)
 						checkConnectedKernelsNb(this, m, 3, timeOut);
@@ -452,7 +452,7 @@ public class TransferConnectionTest extends JunitMadkit {
 				// adding new kernel
 				launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, null, eventListener4);
 				index = -1;
-				for (Madkit m : getHelperInstances(5)) {
+				for (Madkit m : getHelperInstances(this, 5)) {
 					if (++index == 0 || index == 2)
 						checkConnectedKernelsNb(this, m, 3, timeOut);
 					else if (index == 3) {
@@ -473,7 +473,7 @@ public class TransferConnectionTest extends JunitMadkit {
 						"**************Disconnect transfert connection between 4 and 3 (through 1) and between 4 and 2 (trough 1)****************");
 				a1.askForTransferConnection(type, attachedData);
 				index = -1;
-				for (Madkit m : getHelperInstances(5)) {
+				for (Madkit m : getHelperInstances(this, 5)) {
 					if (++index == 2)
 						checkConnectedKernelsNb(this, m, 4, timeOut);
 					else if (index != 1 && index != 3) {
@@ -503,13 +503,13 @@ public class TransferConnectionTest extends JunitMadkit {
 				if (logger != null)
 					logger.info("stoping networks");
 				// pause(1000);
-				for (Madkit m : getHelperInstances(5))
+				for (Madkit m : getHelperInstances(this, 5))
 					stopNetwork(m);
-				for (Madkit m : getHelperInstances(5))
+				for (Madkit m : getHelperInstances(this, 5))
 					checkConnectedKernelsNb(this, m, 0, timeOut);
 
 				cleanHelperMDKs(this);
-				Assert.assertEquals(getHelperInstances(0).size(), 0);
+				Assert.assertEquals(getHelperInstances(this, 0).size(), 0);
 
 				sleep(400);
 				System.err.println("------------------------ Thread cound at end : " + Thread.activeCount());

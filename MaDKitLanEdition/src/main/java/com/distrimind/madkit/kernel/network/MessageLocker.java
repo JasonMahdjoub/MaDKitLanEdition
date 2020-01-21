@@ -37,12 +37,13 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.jdkrewrite.concurrent.LockerCondition;
+
 import com.distrimind.madkit.exceptions.MadkitException;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.Message;
+import com.distrimind.madkit.util.concurrent.LockerCondition;
 
 /**
  * 

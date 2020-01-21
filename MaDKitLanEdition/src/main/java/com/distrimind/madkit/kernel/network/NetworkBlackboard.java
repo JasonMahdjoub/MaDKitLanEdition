@@ -46,9 +46,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.distrimind.madkit.kernel.KernelAddress;
-import com.distrimind.jdkrewrite.concurrent.LockerCondition;
 import com.distrimind.madkit.kernel.Task;
 import com.distrimind.madkit.kernel.TaskID;
+import com.distrimind.madkit.util.concurrent.LockerCondition;
 
 /**
  * 

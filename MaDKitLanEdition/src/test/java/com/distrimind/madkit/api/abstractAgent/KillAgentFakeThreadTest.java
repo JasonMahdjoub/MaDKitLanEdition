@@ -161,9 +161,9 @@ public class KillAgentFakeThreadTest extends JunitMadkit {
 			protected void activate() throws InterruptedException {
 				SelfKillAgentFakeThread a = new SelfKillAgentFakeThread(true, false, true);
 				assertEquals(SUCCESS, launchAgent(a));
-				synchronized (this) {
-					this.wait(500);
-				}
+
+				this.sleep(500);
+
 				assertAgentIsTerminated(a);
 			}
 		}, true);

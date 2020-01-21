@@ -156,17 +156,17 @@ public class DistantGroupAccessTests extends JunitMadkit{
 				/*agent1.killAgent(agent1);
 				agent2.killAgent(agent2);*/
 
-				for (Madkit mk : getHelperInstances(2))
+				for (Madkit mk : getHelperInstances(this, 2))
 					stopNetwork(mk);
 
-				for (Madkit mk : getHelperInstances(2)) {
+				for (Madkit mk : getHelperInstances(this, 2)) {
 					checkConnectedKernelsNb(this, mk, 0, timeOut);
 					checkConnectedIntancesNb(this, mk, 0, timeOut);
 				}
 				sleep(400);
 
 				cleanHelperMDKs(this);
-				Assert.assertEquals(getHelperInstances(0).size(), 0);
+				Assert.assertEquals(getHelperInstances(this, 0).size(), 0);
 
 
 			}
@@ -361,7 +361,7 @@ class GroupAccessTesterAgent extends NormalAgent
 				rc=broadcastMessageWithRole(DistantGroupAccessTests.groupWithOneRole, distantAcceptedRole, new StringMessage(distantAgentRequestGroupWithOneRoleBroadcastMessage), localAcceptedRole);
 				broadcastMessageSentToGroupWithOneRole =rc==ReturnCode.SUCCESS || rc==ReturnCode.TRANSFER_IN_PROGRESS;
 				rc=broadcastMessageWithRole(DistantGroupAccessTests.groupNotAccepted, distantAcceptedRoleNotRestricted, new StringMessage(distantAgentRequestGroupNotAcceptedBroadcastMessage), localAcceptedRoleNotRestricted);
-				broadcastMessageSentToGroupNotAccepted=rc==ReturnCode.SUCCESS || rc==ReturnCode.TRANSFER_IN_PROGRESS;;
+				broadcastMessageSentToGroupNotAccepted=rc==ReturnCode.SUCCESS || rc==ReturnCode.TRANSFER_IN_PROGRESS;
 				rc=broadcastMessageWithRole(DistantGroupAccessTests.groupWithAllRolesInOnePeer, distantAcceptedRoleNotRestricted, new StringMessage(distantAgentRequestGroupWithAllRolesInOnePeerBroadcastMessage), localAcceptedRoleNotRestricted);
 				broadcastMessageSentToGroupWithOneRolesInOnePeer= rc==ReturnCode.SUCCESS || rc==ReturnCode.TRANSFER_IN_PROGRESS;
 				rc=broadcastMessageWithRole(DistantGroupAccessTests.groupWithAllRolesNotDistributed, distantAcceptedRoleNotRestricted, new StringMessage(distantAgentRequestGroupWithAllRolesNotDistributedBroadcastMessage), localAcceptedRoleNotRestricted);

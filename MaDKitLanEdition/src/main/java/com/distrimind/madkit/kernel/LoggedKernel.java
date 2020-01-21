@@ -37,14 +37,14 @@
  */
 package com.distrimind.madkit.kernel;
 
-import com.distrimind.jdkrewrite.concurrent.LockerCondition;
-import com.distrimind.jdkrewrite.concurrent.ScheduledThreadPoolExecutor;
 import com.distrimind.madkit.database.DifferedMessageTable;
 import com.distrimind.madkit.i18n.Words;
 import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
 import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
+import com.distrimind.madkit.util.concurrent.LockerCondition;
+import com.distrimind.madkit.util.concurrent.ScheduledPoolExecutor;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.IDGeneratorInt;
@@ -55,7 +55,10 @@ import com.distrimind.util.io.SecureExternalizable;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 
 import static com.distrimind.madkit.i18n.I18nUtilities.getCGRString;
@@ -885,6 +888,33 @@ final class LoggedKernel extends MadkitKernel {
 	}
 
 	@Override
+	void wait(AbstractAgent requester, LockerCondition locker, Lock personalLocker, Condition personCondition) throws InterruptedException {
+		kernel.wait(requester, locker, personalLocker, personCondition);
+
+		if (requester.isFinestLogOn())
+			requester.logger.log(Level.FINEST, "wait (Requester=" + requester + ", locker=" + locker + ")");
+
+	}
+
+	@Override
+	void wait(AbstractAgent requester, LockerCondition locker, Lock personalLocker, Condition personCondition, long time, TimeUnit unit) throws InterruptedException, TimeoutException {
+		kernel.wait(requester, locker, personalLocker, personCondition, time, unit);
+
+		if (requester.isFinestLogOn())
+			requester.logger.log(Level.FINEST, "wait (Requester=" + requester + ", locker=" + locker + ", time="+time+", unit="+unit+")");
+
+	}
+
+	@Override
+	void wait(AbstractAgent requester, LockerCondition locker, long delayMillis) throws InterruptedException, TimeoutException {
+		kernel.wait(requester, locker, delayMillis);
+
+		if (requester.isFinestLogOn())
+			requester.logger.log(Level.FINEST, "wait (Requester=" + requester + ", locker=" + locker + ", delayMillis="+delayMillis+")");
+
+	}
+
+	@Override
 	void regularWait(AbstractAgent requester, LockerCondition locker) throws InterruptedException {
 		kernel.regularWait(requester, locker);
 
@@ -922,7 +952,7 @@ final class LoggedKernel extends MadkitKernel {
 	}
 
 	@Override
-	ScheduledThreadPoolExecutor getMadkitServiceExecutor() {
+	ScheduledPoolExecutor getMadkitServiceExecutor() {
 		return kernel.getMadkitServiceExecutor();
 	}
 
@@ -1027,10 +1057,10 @@ final class LoggedKernel extends MadkitKernel {
 		return kernel.getIDTransferGenerator();
 	}
 
-	@Override
+	/*@Override
 	<V> V take(BlockingDeque<V> toTake) throws InterruptedException {
 		return kernel.take(toTake);
-	}
+	}*/
 
 	@Override
 	List<AbstractAgent> createBucket(final String agentClass, int bucketSize, int cpuCoreNb)

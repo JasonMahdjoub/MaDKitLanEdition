@@ -248,17 +248,17 @@ public class BigDataTransferSpeed extends JunitMadkit {
                 bigDataTransferAgent=null;
                 //noinspection UnusedAssignment
                 bigDataSenderAgent=null;
-                for (Madkit mk : getHelperInstances(2))
+                for (Madkit mk : getHelperInstances(this, 2))
                     stopNetwork(mk);
 
-                for (Madkit mk : getHelperInstances(2)) {
+                for (Madkit mk : getHelperInstances(this, 2)) {
                     checkConnectedKernelsNb(this, mk, 0, timeOut);
                     checkConnectedIntancesNb(this, mk, 0, timeOut);
                 }
                 sleep(400);
 
                 cleanHelperMDKs(this);
-                Assert.assertEquals(getHelperInstances(0).size(), 0);
+                Assert.assertEquals(getHelperInstances(this, 0).size(), 0);
 
 
             }

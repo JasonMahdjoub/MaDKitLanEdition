@@ -173,7 +173,7 @@ public class MultipleConnectionsTest extends JunitMadkit {
 					AgentsToLaunch agentsToLaunch5 = new AgentsToLaunch(5, 1, false);
 
 					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentsToLaunch1, eventListener1);
-					sleep(2000);
+					sleep(2500);
 					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentsToLaunch2, eventListener2);
 					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentsToLaunch3, eventListener3);
 					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentsToLaunch4, eventListener4);
@@ -181,7 +181,7 @@ public class MultipleConnectionsTest extends JunitMadkit {
 
 					sleep(1400);
 					int index = 0;
-					for (Madkit m : getHelperInstances(5)) {
+					for (Madkit m : getHelperInstances(this, 5)) {
 						if (index++ == 0) {
 							checkConnectedKernelsNb(this, m, 4, timeOut);
 							checkConnectedIntancesNb(this, m, 8, timeOut);
@@ -221,8 +221,8 @@ public class MultipleConnectionsTest extends JunitMadkit {
 					Assert.assertEquals(ReturnCode.SUCCESS, agentsToLaunch3.launchBigDataTransferAgent());
 					Assert.assertEquals(ReturnCode.SUCCESS, agentsToLaunch4.launchBigDataTransferAgent());
 					Assert.assertEquals(ReturnCode.SUCCESS, agentsToLaunch5.launchBigDataTransferAgent());
-					sleep(500);
-					for (Madkit m : getHelperInstances(5))
+					sleep(2000);
+					for (Madkit m : getHelperInstances(this, 5))
 					{
 						Assert.assertTrue(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, AgentBigTransfer.class, true, AgentBigTransfer.bigTransferRole));
 						Assert.assertTrue(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, AgentBigTransfer.class, false, AgentBigTransfer.bigTransferRole));
@@ -260,7 +260,7 @@ public class MultipleConnectionsTest extends JunitMadkit {
 							{
 								System.out.println("All agents in all MK killed");
 								int i=0;
-								for (Madkit m : getHelperInstances(5))
+								for (Madkit m : getHelperInstances(this, 5))
 								{
 
 									if (isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, AgentBigTransfer.class, false, AgentBigTransfer.bigTransferRole)) {
@@ -272,7 +272,7 @@ public class MultipleConnectionsTest extends JunitMadkit {
 									++i;
 								}
 								i=0;
-								for (Madkit m : getHelperInstances(5))
+								for (Madkit m : getHelperInstances(this, 5))
 								{
 
 									if (isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, AgentBigTransfer.class, true, AgentBigTransfer.bigTransferRole)) {
@@ -326,15 +326,15 @@ public class MultipleConnectionsTest extends JunitMadkit {
 					Assert.assertTrue(agentsToLaunch5.agentBigTransfer.isKilled());
 					Assert.assertFalse(lanToSynchro);
 
-					for (Madkit m : getHelperInstances(5))
+					for (Madkit m : getHelperInstances(this, 5))
 					{
 						Assert.assertFalse(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, AgentBigTransfer.class, false, AgentBigTransfer.bigTransferRole));
 					}
-					for (Madkit m : getHelperInstances(5))
+					for (Madkit m : getHelperInstances(this, 5))
 					{
 						Assert.assertFalse(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, AgentBigTransfer.class, true, AgentBigTransfer.bigTransferRole));
 					}
-					for (Madkit m : getHelperInstances(5))
+					for (Madkit m : getHelperInstances(this, 5))
 					{
 						Assert.assertTrue(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, NetworkPongAgent.class, true, NetworkPingAgent.pongRole));
 						Assert.assertTrue(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, NetworkPingAgent.class, true, NetworkPingAgent.pingRole));
@@ -342,13 +342,13 @@ public class MultipleConnectionsTest extends JunitMadkit {
 					if (logger != null)
 						logger.info("stoping networks");
 					// pause(1000);
-					for (Madkit m : getHelperInstances(5))
+					for (Madkit m : getHelperInstances(this, 5))
 						stopNetwork(m);
-					for (Madkit m : getHelperInstances(5)) {
+					for (Madkit m : getHelperInstances(this, 5)) {
 						checkConnectedKernelsNb(this, m, 0, timeOut);
 						checkConnectedIntancesNb(this, m, 0, timeOut);
 					}
-					for (Madkit m : getHelperInstances(5))
+					for (Madkit m : getHelperInstances(this, 5))
 					{
 						Assert.assertFalse(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, null, true, null));
 					}
@@ -357,13 +357,13 @@ public class MultipleConnectionsTest extends JunitMadkit {
 					System.out.println("second round");
 					// second round
 					index = 0;
-					for (Madkit m : getHelperInstances(5)) {
+					for (Madkit m : getHelperInstances(this, 5)) {
 						startNetwork(m);
 						if (index++ == 0)
 							sleep(2000);
 					}
 					index = 0;
-					for (Madkit m : getHelperInstances(5)) {
+					for (Madkit m : getHelperInstances(this, 5)) {
 						if (index++ == 0) {
 							checkConnectedKernelsNb(this, m, 4, timeOut);
 							checkConnectedIntancesNb(this, m, 8, timeOut);
@@ -373,19 +373,19 @@ public class MultipleConnectionsTest extends JunitMadkit {
 						}
 					}
 					sleep(400);
-					for (Madkit m : getHelperInstances(5))
+					for (Madkit m : getHelperInstances(this, 5))
 					{
 						Assert.assertTrue(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, NetworkPongAgent.class, true, NetworkPingAgent.pongRole));
 						Assert.assertTrue(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, NetworkPingAgent.class, true, NetworkPingAgent.pingRole));
 					}
-					for (Madkit m : getHelperInstances(5))
+					for (Madkit m : getHelperInstances(this, 5))
 						stopNetwork(m);
-					for (Madkit m : getHelperInstances(5)) {
+					for (Madkit m : getHelperInstances(this, 5)) {
 						checkConnectedKernelsNb(this, m, 0, timeOut);
 						checkConnectedIntancesNb(this, m, 0, timeOut);
 					}
 
-				    for (Madkit m : getHelperInstances(5))
+				    for (Madkit m : getHelperInstances(this, 5))
 					{
 						Assert.assertFalse(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, null, true, null));
 					}
@@ -403,7 +403,7 @@ public class MultipleConnectionsTest extends JunitMadkit {
 					agentsToLaunch5=null;
 
 					cleanHelperMDKs(this);
-					Assert.assertEquals(getHelperInstances(0).size(), 0);
+					Assert.assertEquals(getHelperInstances(this, 0).size(), 0);
 					/*
 					 * for (Madkit m : getHelperInstances()) checkConnectedKernelsNb(this, m, 0,
 					 * timeOut);

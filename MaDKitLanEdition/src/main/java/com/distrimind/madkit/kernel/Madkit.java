@@ -143,7 +143,7 @@ final public class Madkit {
 		c.set(2015, Calendar.MAY, 22);
 		Calendar c2 = Calendar.getInstance();
 		c2.set(2019, Calendar.JANUARY, 10);
-		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)2, (short)1, (short)5, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
+		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)2, (short)1, (short)6, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
 		try {
 
 			InputStream is = Madkit.class.getResourceAsStream("build.txt");
@@ -165,8 +165,14 @@ final public class Madkit {
 			VERSION.addDeveloper(new PersonDeveloper("Ferber", "Jacques", c.getTime()));
 
 			c = Calendar.getInstance();
-			c.set(2019, Calendar.JANUARY, 10);
-			Description d = new Description((short)2, (short)1, (short)5, Version.Type.Stable, (short)1, c.getTime());
+			c.set(2020, Calendar.JANUARY, 20);
+			Description d = new Description((short)2, (short)1, (short)6, Version.Type.Stable, (short)1, c.getTime());
+			d.addItem("Rewrite thread executors and scheduler executors");
+			VERSION.addDescription(d);
+
+			c = Calendar.getInstance();
+			c.set(2020, Calendar.JANUARY, 10);
+			d = new Description((short)2, (short)1, (short)5, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Update OOD to 2.3.14 Stable");
 			VERSION.addDescription(d);
 

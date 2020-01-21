@@ -63,6 +63,7 @@ import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -74,6 +75,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import com.distrimind.madkit.database.DifferedMessageTable;
 import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
+import com.distrimind.madkit.util.concurrent.LockerCondition;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.io.RandomInputStream;
@@ -85,7 +87,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.distrimind.jdkrewrite.concurrent.LockerCondition;
 import com.distrimind.madkit.action.ActionInfo;
 import com.distrimind.madkit.action.GUIManagerAction;
 import com.distrimind.madkit.agr.LocalCommunity;
@@ -124,7 +125,6 @@ import com.distrimind.madkit.message.hook.OrganizationEvent;
 import com.distrimind.madkit.message.task.TasksExecutionConfirmationMessage;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.util.XMLUtilities;
-import com.distrimind.jdkrewrite.concurrent.LinkedBlockingDeque;
 import com.distrimind.util.crypto.MessageDigestType;
 
 // * <img src="doc-files/Capture.png" alt=""/>
@@ -200,9 +200,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 */
 	private String name;
 	final AtomicBoolean alive = new AtomicBoolean(); // default false
-	final LinkedBlockingDeque<Message> messageBox = new LinkedBlockingDeque<>(); // TODO
-																					// lazy
-																					// creation
+	final ChainedBlockingDeque<Message> messageBox=new ChainedBlockingDeque<>(); // TODO lazy creation
 
 	private volatile ArrayList<Replies> conversations = null;
 
@@ -283,6 +281,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	public AbstractAgent() {
 		agentID = agentCounter.getAndIncrement();// TODO bench outside
 		logger = AgentLogger.defaultAgentLogger;
+
+
 	}
 
 	/**
@@ -293,6 +293,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
     @SuppressWarnings("unused")
     AbstractAgent(Object ignored) {
 		agentID = -1;
+
+
 	}
 
 	/**
@@ -390,7 +392,21 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @throws InterruptedException if an interrupt signal occurs 
 	 */
 	public void wait(LockerCondition lockerCondition) throws InterruptedException {
-		getMadkitKernel().regularWait(this, lockerCondition);
+		getMadkitKernel().wait(this, lockerCondition);
+	}
+	/**
+	 * Wait until the function {@link LockerCondition#isLocked()} return false,
+	 * or until the given delay was elapsed.
+	 *
+	 * Use this function instead of {@link #wait()} in order to avoid dead lock,
+	 * especially when using {@link AgentFakeThread}.
+	 *
+	 * @param lockerCondition wait until this locker condition enables the thread unlocking
+	 * @param timeOutMillis the delay before the wait is canceled
+	 * @throws InterruptedException if an interrupt signal occurs
+	 */
+	public void wait(LockerCondition lockerCondition, long timeOutMillis) throws InterruptedException, TimeoutException {
+		getMadkitKernel().wait(this, lockerCondition, timeOutMillis);
 	}
 
 	/**
@@ -1248,6 +1264,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 */
 	final void setKernel(MadkitKernel kernel) {
 		this.kernel = kernel;
+		messageBox.setKernel(kernel);
 	}
 
 	/**

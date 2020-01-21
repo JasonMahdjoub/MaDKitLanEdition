@@ -38,7 +38,6 @@
 
 package com.distrimind.madkit.kernel;
 
-import com.distrimind.jdkrewrite.concurrent.LockerCondition;
 import com.distrimind.madkit.exceptions.SelfKillException;
 
 import java.util.concurrent.Callable;
@@ -165,10 +164,18 @@ public abstract class AgentFakeThread extends AbstractAgent {
 	/**
 	 * {@inheritDoc}
 	 */
-	@Override
+	/*@Override
 	public void wait(LockerCondition lockerCondition) throws InterruptedException {
 		getMadkitKernel().wait(this, lockerCondition);
-	}
+	}*/
+
+	/**
+	 * {@inheritDoc}
+	 */
+	/*@Override
+	public void wait(LockerCondition lockerCondition, long timeOutMillis) throws InterruptedException {
+		getMadkitKernel().wait(this, lockerCondition);
+	}*/
 
 	/**
 	 * This method is called for every received message. When the agent has no task
@@ -221,8 +228,10 @@ public abstract class AgentFakeThread extends AbstractAgent {
 	}
 
 	void manageTaskMessage(boolean force) {
+
 		boolean schedule = false;
 		if (!messageReadAlreadyInProgress && (messageBox.size() == 1 || (force && messageBox.size() > 0))) {
+		//if (!messageReadAlreadyInProgress && messageBox.size() > 0) {
 			messageReadAlreadyInProgress = true;
 			schedule = true;
 		}

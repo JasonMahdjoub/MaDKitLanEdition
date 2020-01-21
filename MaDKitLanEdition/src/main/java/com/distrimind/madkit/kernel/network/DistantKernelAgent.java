@@ -37,7 +37,6 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.jdkrewrite.concurrent.LockerCondition;
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.exceptions.MadkitException;
 import com.distrimind.madkit.exceptions.NIOException;
@@ -59,6 +58,7 @@ import com.distrimind.madkit.message.hook.DistantKernelAgentEventMessage;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.message.hook.NetworkGroupsAccessEvent;
 import com.distrimind.madkit.message.hook.NetworkLoginAccessEvent;
+import com.distrimind.madkit.util.concurrent.LockerCondition;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.crypto.MessageDigestType;
@@ -204,7 +204,7 @@ class DistantKernelAgent extends AgentFakeThread {
 	private volatile boolean concurrent = false;
 
 
-	@SuppressWarnings({"SynchronizeOnNonFinalField", "ConstantConditions"})
+	@SuppressWarnings({"SynchronizeOnNonFinalField"})
     @Override
 	protected void liveByStep(Message _message) {
 		if (concurrent)

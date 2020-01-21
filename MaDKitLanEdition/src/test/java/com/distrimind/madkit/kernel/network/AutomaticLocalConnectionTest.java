@@ -1,6 +1,5 @@
 package com.distrimind.madkit.kernel.network;
 
-import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.logging.Level;
 
@@ -44,15 +43,15 @@ public class AutomaticLocalConnectionTest extends JunitMadkit {
 				pause(2000);
 				launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, null, eventListener1);
 				pause(1400);
-				for (Madkit m : getHelperInstances(2)) {
+				for (Madkit m : getHelperInstances(this, 2)) {
 					checkConnectedKernelsNb(this, m, 1, timeOut);
 				}
-				for (Madkit m : getHelperInstances(2)) {
+				for (Madkit m : getHelperInstances(this, 2)) {
 					checkConnectedIntancesNb(this, m, 2, timeOut);
 				}
 				sleep(400);
 				cleanHelperMDKs(this);
-				Assert.assertEquals(getHelperInstances(0).size(), 0);
+				Assert.assertEquals(getHelperInstances(this, 0).size(), 0);
 
 			}
 		});

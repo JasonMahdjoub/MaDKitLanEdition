@@ -53,12 +53,15 @@ repositories {
 
 dependencies {
     //testImplementation(group:'org.testng', name: 'testng', version: '6.14.3')
+
     testImplementation 'junit:junit:4.12'
+    testImplementation 'org.hamcrest:hamcrest-core:2.2'
     api(group:'com.distrimind.ood', name: 'OOD', version: '2.3.14-Stable')
-    api(group:'com.distrimind.jdkrewrite', name: 'JDKRewriteUtils', version: '1.0.4')
+    //api(group:'com.distrimind.jdkrewrite', name: 'JDKRewriteUtils', version: '1.0.4')
     api(group:'org.fourthline.cling', name: 'cling-core', version: '2.1.2')
     api(group:'org.fourthline.cling', name: 'cling-support', version: '2.1.2')
     testImplementation(group:'com.h2database', name:'h2', version:'1.4.200')
+
      
 }
 def javaVersion=7
@@ -132,6 +135,7 @@ allprojects {
     compileJava.options.compilerArgs.addAll(['--release', javaVersion] as Collection<? extends String>)
     if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_1_9))
         javadoc.options.addStringOption("html5", "-quiet")
+
 }
 
 idea {

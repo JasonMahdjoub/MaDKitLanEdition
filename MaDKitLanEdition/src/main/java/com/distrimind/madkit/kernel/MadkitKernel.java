@@ -37,9 +37,7 @@
  */
 package com.distrimind.madkit.kernel;
 
-import com.distrimind.jdkrewrite.concurrent.ScheduledThreadPoolExecutor;
-import com.distrimind.jdkrewrite.concurrent.ThreadPoolExecutor;
-import com.distrimind.jdkrewrite.concurrent.*;
+
 import com.distrimind.madkit.action.GlobalAction;
 import com.distrimind.madkit.action.KernelAction;
 import com.distrimind.madkit.agr.LocalCommunity;
@@ -66,6 +64,9 @@ import com.distrimind.madkit.message.hook.*;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.message.task.TasksExecutionConfirmationMessage;
 import com.distrimind.madkit.util.XMLUtilities;
+import com.distrimind.madkit.util.concurrent.LockerCondition;
+import com.distrimind.madkit.util.concurrent.PoolExecutor;
+import com.distrimind.madkit.util.concurrent.ScheduledPoolExecutor;
 import com.distrimind.ood.database.DatabaseConfiguration;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedValue;
@@ -93,6 +94,8 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.*;
@@ -149,9 +152,9 @@ class MadkitKernel extends Agent {
 	 */
 
 	protected volatile int threadPriorityForServiceExecutor = DEFAULT_THREAD_PRIORITY;
-	private ScheduledThreadPoolExecutor serviceExecutor;
+	private ScheduledPoolExecutor serviceExecutor;
 
-	private ThreadPoolExecutor lifeExecutor/* , lifeExecutorWithBlockQueue */;
+	private PoolExecutor lifeExecutor/* , lifeExecutorWithBlockQueue */;
 	protected volatile int threadPriorityForLifeExecutor = DEFAULT_THREAD_PRIORITY;
 	private final HashMap<Long, LockerCondition> agentsSendingNetworkMessage = new HashMap<>();
     private volatile int maximumGlobalUploadSpeedInBytesPerSecond;
@@ -170,7 +173,7 @@ class MadkitKernel extends Agent {
 		serviceExecutor.setThreadsPriority(_priority);
 	}
 
-	ScheduledThreadPoolExecutor getMadkitServiceExecutor() {
+	ScheduledPoolExecutor getMadkitServiceExecutor() {
 		return serviceExecutor;
 	}
 
@@ -183,20 +186,17 @@ class MadkitKernel extends Agent {
 	 * lifeExecutorWithBlockQueue; }
 	 */
 
-	private static ScheduledThreadPoolExecutor createSchedulerServiceExecutor(int corePoolSize,
+	private static ScheduledPoolExecutor createSchedulerServiceExecutor(int corePoolSize,
 			ThreadFactory threadFactory, long timeOutSeconds) {
-		ScheduledThreadPoolExecutor res = new ScheduledThreadPoolExecutor(corePoolSize, threadFactory);
-		res.setMaximumPoolSize(Integer.MAX_VALUE);
-		res.prestartAllCoreThreads();
-		if (timeOutSeconds > 0)
-			res.setKeepAliveTime(timeOutSeconds, TimeUnit.SECONDS);
-		res.allowCoreThreadTimeOut(timeOutSeconds > 0);
 
-
-		return res;
+		return new ScheduledPoolExecutor(corePoolSize,
+				Runtime.getRuntime().availableProcessors(),
+				timeOutSeconds,
+				TimeUnit.SECONDS,
+				threadFactory);
 	}
 
-	private static ScheduledThreadPoolExecutor createSchedulerServiceExecutor(final ThreadGroup SYSTEM,
+	private static ScheduledPoolExecutor createSchedulerServiceExecutor(final ThreadGroup SYSTEM,
 																			  final int threadPriorityForServiceExecutor, final boolean daemon, final String threadName,
 																			  int corePoolSize, long timeOutSeconds,
 																			  final AgentThreadFactory agentThreadFactory) {
@@ -323,18 +323,28 @@ class MadkitKernel extends Agent {
 
 		normalAgentThreadFactory = new AgentThreadFactory(kernelAddress, false);
 		daemonAgentThreadFactory = new AgentThreadFactory(kernelAddress, true);
-		lifeExecutor = new ThreadPoolExecutor(2, Integer.MAX_VALUE, 2L, TimeUnit.SECONDS,
-				new SynchronousQueue<Runnable>(true), new ThreadFactory() {
+		/*lifeExecutor = new PoolExecutor(2, 2, 2L, TimeUnit.SECONDS,
+				new ThreadFactory() {
 					public Thread newThread(Runnable r) {
 						final Thread t = new Thread(normalAgentThreadFactory.getThreadGroup(), r);
 						t.setPriority(threadPriorityForLifeExecutor);
-						t.setDaemon(false);
+						t.setDaemon(true);
 						return t;
 					}
 				});
-		this.serviceExecutor = createSchedulerServiceExecutor(SYSTEM, threadPriorityForServiceExecutor, true,
+		lifeExecutor.start();*/
+		lifeExecutor = this.serviceExecutor = new ScheduledPoolExecutor(2, Math.min(Runtime.getRuntime().availableProcessors(), 2), 4L, TimeUnit.SECONDS,
+				new ThreadFactory() {
+					public Thread newThread(Runnable r) {
+						final Thread t = new Thread(normalAgentThreadFactory.getThreadGroup(), r);
+						t.setPriority(threadPriorityForServiceExecutor);
+						t.setDaemon(true);
+						return t;
+					}
+				});/*createSchedulerServiceExecutor(SYSTEM, threadPriorityForServiceExecutor, true,
 				SYSTEM.getName(), Math.min(Runtime.getRuntime().availableProcessors(), 2), 4,
-				null);
+				null);*/
+		this.serviceExecutor.start();
 		if (madkitConfig.isUseMadkitSchedulerWithFortunaSecureRandom())
 			Fortuna.setPersonalDefaultScheduledExecutorService(this.serviceExecutor);
 		/*
@@ -346,8 +356,6 @@ class MadkitKernel extends Agent {
 		 * t.setPriority(threadPriorityForLifeExecutor); t.setDaemon(false); return t; }
 		 * });
 		 */
-		lifeExecutor.prestartAllCoreThreads();
-		lifeExecutor.allowCoreThreadTimeOut(true);
 
 		madkitConfig.getApprovedRandomType();
 		madkitConfig.getApprovedRandomTypeForKeys();
@@ -2200,7 +2208,7 @@ class MadkitKernel extends Agent {
 		}
 		for (int i = 0; i < cpuCoreNb; ++i) {
 			try {
-				result.addAll(new FutureWithSpecializedWait<>(serviceExecutor, lifeExecutor, ecs.take()).get());
+				result.addAll(ecs.take().get());
 			} catch (InterruptedException | ExecutionException e) {
 				e.printStackTrace();
 			}
@@ -2235,14 +2243,13 @@ class MadkitKernel extends Agent {
 			// holds for Integer.MAX_VALUE
 			ReturnCode returnCode;
 
-			FutureWithSpecializedWait<ReturnCode> future = new FutureWithSpecializedWait<>(serviceExecutor,
-					lifeExecutor, lifeExecutor.submit(new Callable<ReturnCode>() {
+			Future<ReturnCode> future = lifeExecutor.submit(new Callable<ReturnCode>() {
 						public ReturnCode call() {
 							return launchingAgent(agent, defaultGUI);
 
 						}
 
-					}));
+					});
 
 			returnCode = future.get(timeOutSeconds, TimeUnit.SECONDS);
 			if (returnCode == AGENT_CRASH || returnCode == ALREADY_LAUNCHED) {
@@ -2298,8 +2305,7 @@ class MadkitKernel extends Agent {
 		// AbstractAgent
 		if (!(agent instanceof Agent)) {
 			ReturnCode r = AGENT_CRASH;
-			final Future<ReturnCode> activationAttempt = new FutureWithSpecializedWait<>(serviceExecutor, lifeExecutor,
-					lifeExecutor.submit(new Callable<ReturnCode>() {
+			final Future<ReturnCode> activationAttempt = lifeExecutor.submit(new Callable<ReturnCode>() {
 						public ReturnCode call() {
 							/*
 							 * if (agent instanceof AgentFakeThread)
@@ -2309,7 +2315,7 @@ class MadkitKernel extends Agent {
 							return agent.activation();
 						}
 
-					}));
+					});
 			try {
 				r = activationAttempt.get();
 			} catch (ExecutionException | InterruptedException e) {
@@ -2347,7 +2353,7 @@ class MadkitKernel extends Agent {
 				// do that even if not started for cleaning properly
 				threadedAgents.add(a);
 			}
-			ae.setThreadFactory(a.isDaemon() ? daemonAgentThreadFactory : normalAgentThreadFactory);
+			//ae.setThreadFactory(a.isDaemon() ? daemonAgentThreadFactory : normalAgentThreadFactory);
 			if (!shuttedDown) {
 				return ae.start().get();
 			}
@@ -2372,20 +2378,25 @@ class MadkitKernel extends Agent {
 			return NOT_YET_LAUNCHED;
 		} else if (target.isKillingInProgress()) {
 			if (target instanceof Agent)
-				((Agent) target).getAgentExecutor().getEndProcess().cancel(true);
+				((Agent) target).getAgentExecutor().cancelEnd(true);
 			if (timeOutSeconds < Integer.MAX_VALUE) {
-				synchronized (target.state) {
-					long expirationTime = System.currentTimeMillis() + (((long) timeOutSeconds) * 1000L);
-					long delay = expirationTime - System.currentTimeMillis();
-					while (target.isKillingInProgress() && delay > 0) {
-						try {
-							target.state.wait(delay);
-						} catch (InterruptedException e) {
-							break;
+
+				final long expirationTime = System.currentTimeMillis() + (((long) timeOutSeconds) * 1000L);
+				long delay = expirationTime - System.currentTimeMillis();
+				try {
+					wait(this, new LockerCondition(target.state) {
+
+						@Override
+						public boolean isLocked() {
+
+							return target.isKillingInProgress();
 						}
-						delay = expirationTime - System.currentTimeMillis();
-					}
+					}, delay);
+				} catch (InterruptedException | TimeoutException ignored) {
+
 				}
+
+
 				if (target.isKillingInProgress())
 					zombieDetected(target.getState(), target);
 				else
@@ -2396,14 +2407,13 @@ class MadkitKernel extends Agent {
 			return ReturnCode.ALREADY_KILLED;
 		}
 
-		final FutureWithSpecializedWait<ReturnCode> killAttempt = new FutureWithSpecializedWait<>(serviceExecutor,
-				lifeExecutor, lifeExecutor.submit(new Callable<ReturnCode>() {
+		final Future<ReturnCode> killAttempt = lifeExecutor.submit(new Callable<ReturnCode>() {
 					@Override
 					public ReturnCode call() {
 
 						return killingAgent(requester, target, killing_type);
 					}
-				}));
+				});
 		try {
 			if (timeOutSeconds == 0)
 				return killAttempt.get(1, TimeUnit.MILLISECONDS);
@@ -2551,15 +2561,14 @@ class MadkitKernel extends Agent {
 
 
 	final ReturnCode startEndBehavior(final AbstractAgent target, boolean asDaemon, boolean callEnddingFunction) {
-        final ThreadPoolExecutor executor = asDaemon ? serviceExecutor : lifeExecutor;
+        final PoolExecutor executor = asDaemon ? serviceExecutor : lifeExecutor;
 		if (callEnddingFunction) {
-			final Future<Boolean> endAttempt = new FutureWithSpecializedWait<>(serviceExecutor, lifeExecutor,
-					executor.submit(new Callable<Boolean>() {
+			final Future<Boolean> endAttempt = executor.submit(new Callable<Boolean>() {
 						public Boolean call() {
 							return target.ending();
 						}
 
-					}));
+					});
 			try {
 				endAttempt.get();
 			} catch (InterruptedException e) {
@@ -2587,11 +2596,11 @@ class MadkitKernel extends Agent {
 		synchronized (target.state) {
 			if (target.state.get().equals(State.ENDING) || target.state.get().equals(State.ZOMBIE)
 					|| target.state.get().equals(State.WAIT_FOR_KILL))
-				target.getAgentExecutor().getEndProcess().cancel(true);
+				target.getAgentExecutor().cancelEnd(true);
 			target.state.set(State.ENDING);
 
-			target.getAgentExecutor().getLiveProcess().cancel(true);
-			target.getAgentExecutor().getActivate().cancel(true);
+			target.getAgentExecutor().cancelLive(true);
+			target.getAgentExecutor().cancelActivate(true);
 
 			try {
 				LockerCondition locker = new LockerCondition() {
@@ -3489,7 +3498,7 @@ class MadkitKernel extends Agent {
 	 * return res; }
 	 */
 
-	private ScheduledThreadPoolExecutor getDefaultScheduledExecutorService() {
+	private ScheduledPoolExecutor getDefaultScheduledExecutorService() {
 		return serviceExecutor;
 	}
 
@@ -3574,7 +3583,7 @@ class MadkitKernel extends Agent {
 
 	}
 
-	<V> V take(BlockingDeque<V> toTake) throws InterruptedException {
+	/*<V> V take(BlockingDeque<V> toTake) throws InterruptedException {
 		V res = serviceExecutor.takeToBlockingQueue(toTake);
 		if (res == null)
 			res = lifeExecutor.takeToBlockingQueue(toTake);
@@ -3583,14 +3592,82 @@ class MadkitKernel extends Agent {
 			return toTake.take();
 		else
 			return res;
-	}
+	}*/
 
 	void wait(AbstractAgent requester, LockerCondition locker) throws InterruptedException {
 		if (!serviceExecutor.wait(locker) && !lifeExecutor.wait(locker)) {
 			regularWait(requester, locker);
 		}
 	}
+	void wait(AbstractAgent requester, LockerCondition locker, long delayMillis) throws InterruptedException, TimeoutException {
+		if (!serviceExecutor.wait(locker, delayMillis, TimeUnit.MILLISECONDS) && !lifeExecutor.wait(locker, delayMillis, TimeUnit.MILLISECONDS)) {
+			regularWait(requester, locker, delayMillis);
+		}
+	}
+	void wait(AbstractAgent requester, LockerCondition locker, Lock personalLocker, Condition personalCondition, long delay, TimeUnit unit) throws InterruptedException, TimeoutException {
+		if (!serviceExecutor.wait(locker, personalLocker, personalCondition, delay, unit) && !lifeExecutor.wait(locker, personalLocker, personalCondition, delay, unit)) {
+			regularWait(requester, locker, personalLocker, personalCondition,  delay, unit);
+		}
+	}
+	void wait(AbstractAgent requester, LockerCondition locker, Lock personalLocker, Condition personalCondition) throws InterruptedException{
+		if (!serviceExecutor.wait(locker, personalLocker, personalCondition) && !lifeExecutor.wait(locker, personalLocker, personalCondition)) {
+			regularWait(requester, locker, personalLocker, personalCondition);
+		}
+	}
+	void regularWait(AbstractAgent requester, LockerCondition locker, Lock personalLocker, Condition personalCondition, long delay, TimeUnit unit) throws InterruptedException, TimeoutException {
+		long start=System.currentTimeMillis();
+		delay=unit.toNanos(delay);
 
+		personalLocker.lock();
+		try {
+			while (locker.isLocked() && !locker.isCanceled()) {
+				locker.beforeCycleLocking();
+				if (!personalCondition.await(delay, TimeUnit.NANOSECONDS))
+					delay=-1;
+				locker.afterCycleLocking();
+				long end=System.nanoTime();
+				delay-=end-start;
+				if (delay<0)
+					throw new TimeoutException();
+				start=end;
+			}
+		}
+		finally {
+			personalLocker.unlock();
+		}
+
+	}
+	void regularWait(AbstractAgent requester, LockerCondition locker, Lock personalLocker, Condition personalCondition) throws InterruptedException {
+		personalLocker.lock();
+		try {
+			while (locker.isLocked() && !locker.isCanceled()) {
+				locker.beforeCycleLocking();
+				personalCondition.await();
+				locker.afterCycleLocking();
+			}
+		}
+		finally {
+			personalLocker.unlock();
+		}
+
+	}
+	void regularWait(AbstractAgent requester, LockerCondition locker, long delayMillis) throws InterruptedException, TimeoutException {
+		long start=System.currentTimeMillis();
+
+		synchronized (locker.getLocker()) {
+			while (locker.isLocked() && !locker.isCanceled()) {
+				locker.beforeCycleLocking();
+				locker.getLocker().wait(delayMillis);
+				locker.afterCycleLocking();
+				long end=System.currentTimeMillis();
+				delayMillis-=end-start;
+				if (delayMillis<0)
+					throw new TimeoutException();
+				start=end;
+			}
+		}
+
+	}
 	void regularWait(AbstractAgent requester, LockerCondition locker) throws InterruptedException {
 		synchronized (locker.getLocker()) {
 			while (locker.isLocked() && !locker.isCanceled()) {
@@ -3602,8 +3679,9 @@ class MadkitKernel extends Agent {
 
 	}
 
+
 	void sleep(AgentFakeThread requester, long millis) throws InterruptedException {
-		if (!serviceExecutor.sleep(millis) && !lifeExecutor.sleep(millis)) {
+		if (!serviceExecutor.sleep(millis, TimeUnit.MILLISECONDS) && !lifeExecutor.sleep(millis, TimeUnit.MILLISECONDS)) {
 			/*
 			 * ArrayList<ThreadPoolExecutor> tpes=null;
 			 * 
@@ -3683,7 +3761,7 @@ class MadkitKernel extends Agent {
 	 * _task_service_executor_name), _task, ask_for_execution_confirmation); }
 	 */
 
-	private TaskID scheduleTask(final AbstractAgent agent, ScheduledThreadPoolExecutor executorService,
+	private TaskID scheduleTask(final AbstractAgent agent, ScheduledPoolExecutor executorService,
 			final Task<?> _task, final boolean ask_for_execution_confirmation) {
 		if (_task == null)
 			throw new NullPointerException("_task");
@@ -3729,15 +3807,13 @@ class MadkitKernel extends Agent {
 
 			ScheduledFuture<?> future;
 			if (_task.isRepetitive()) {
-				future = new ScheduledFutureWithSpecializedWait<>(serviceExecutor, lifeExecutor,
-						executorService.scheduleWithFixedDelay(runnable,
+				future = executorService.scheduleWithFixedDelay(runnable,
 								Math.max(0, _task.getTimeOfExecution() - System.currentTimeMillis()),
-								_task.getDurationBetweenEachRepetition(), TimeUnit.MILLISECONDS));
+								_task.getDurationBetweenEachRepetition(), TimeUnit.MILLISECONDS);
 			} else {
-				future = new ScheduledFutureWithSpecializedWait<>(serviceExecutor, lifeExecutor,
-						executorService.schedule(runnable,
+				future = executorService.schedule(runnable,
 								Math.max(0, _task.getTimeOfExecution() - System.currentTimeMillis()),
-								TimeUnit.MILLISECONDS));
+								TimeUnit.MILLISECONDS);
 			}
 			taskID.setFuture(future);
 			return taskID;

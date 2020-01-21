@@ -37,13 +37,13 @@
  */
 package com.distrimind.madkit.kernel;
 
-import com.distrimind.jdkrewrite.concurrent.LockerCondition;
 import com.distrimind.madkit.database.DifferedMessageTable;
 import com.distrimind.madkit.i18n.ErrorMessages;
 import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
 import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
+import com.distrimind.madkit.util.concurrent.LockerCondition;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.crypto.MessageDigestType;
@@ -54,7 +54,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.BlockingDeque;
 
 /**
  * @author Fabien Michel
@@ -534,10 +533,10 @@ class FakeKernel extends MadkitKernel {
 		throw buildKernelException(null);
 	}
 
-	@Override
+	/*@Override
 	<V> V take(BlockingDeque<V> toTake) {
 		throw buildKernelException(null);
-	}
+	}*/
 
 	@Override
 	List<AbstractAgent> createBucket(final String agentClass, int bucketSize, int cpuCoreNb) {

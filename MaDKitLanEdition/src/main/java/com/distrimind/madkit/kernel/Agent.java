@@ -161,7 +161,8 @@ public class Agent extends AbstractAgent {
 	}
 
 	final void suicide(SelfKillException e) {
-		getAgentExecutor().getLiveProcess().cancel(false);
+		assert agentExecutor != null;
+		agentExecutor.cancelLive(false);
 		/*
 		 * getAgentExecutor().getLiveProcess().cancel(false);
 		 * getAgentExecutor().getEndProcess().cancel(false); super.suicide(e);

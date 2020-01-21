@@ -46,6 +46,7 @@ import com.distrimind.madkit.kernel.network.Connection;
 import com.distrimind.madkit.kernel.network.NetworkEventListener;
 import com.distrimind.madkit.message.KernelMessage;
 import com.distrimind.madkit.testing.util.agent.ForEverAgent;
+import com.distrimind.madkit.util.concurrent.LockerCondition;
 import com.distrimind.ood.database.DatabaseFactory;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.Timer;
@@ -55,6 +56,7 @@ import org.junit.rules.TestName;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
@@ -112,21 +114,24 @@ public class JunitMadkit {
 		}
 	}
 
-	public ArrayList<Madkit> getHelperInstances(int nb) throws InterruptedException {
-		return getHelperInstances(nb, 10000);
+	public ArrayList<Madkit> getHelperInstances(AbstractAgent requester, int nb) throws InterruptedException {
+		return getHelperInstances(requester, nb, 10000);
 	}
 
-	public ArrayList<Madkit> getHelperInstances(int nb, long delay) throws InterruptedException {
-		Timer t = new Timer(true);
-		synchronized (helperInstances) {
-			while (helperInstances.size() != nb && t.getMili() < delay) {
-				long timeOut = delay - t.getMili();
-				if (timeOut > 0)
-					helperInstances.wait(timeOut);
-			}
-			Assert.assertEquals(nb, helperInstances.size());
-			return new ArrayList<>(helperInstances);
+	public ArrayList<Madkit> getHelperInstances(AbstractAgent requester, final int nb, long delay) throws InterruptedException {
+
+		try {
+			requester.wait(new LockerCondition(helperInstances) {
+				@Override
+				public boolean isLocked() {
+					return helperInstances.size() != nb;
+				}
+			}, delay);
+		} catch (TimeoutException ignored) {
+
 		}
+		Assert.assertEquals(nb, helperInstances.size());
+		return new ArrayList<>(helperInstances);
 	}
 
 	// static{
@@ -431,12 +436,15 @@ public class JunitMadkit {
 	public void launchThreadedMKNetworkInstance(final Level l, final Class<? extends AbstractAgent> agentClass,
 			final AbstractAgent agentToLaunch, final NetworkEventListener networkEventListener,
 			final KernelAddress kernelAddress) {
-		new Thread(new Runnable() {
+		Thread t=new Thread(new Runnable() {
 			@Override
 			public void run() {
+
 				launchCustomNetworkInstance(l, agentClass, agentToLaunch, networkEventListener, kernelAddress);
 			}
-		}).start();
+		});
+		t.setName("Madkit thread launcher");
+		t.start();
 	}
 
 	public KernelAddress getKernelAddress(Madkit m) {

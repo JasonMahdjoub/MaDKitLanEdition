@@ -323,9 +323,9 @@ public final class NetworkAgent extends AgentFakeThread {
 					proceedEnumMessage((EnumMessage<?>) m);
 				else if (m instanceof ObjectMessage)
 				{
-					if (((ObjectMessage) m).getContent() instanceof MadkitKernel.InternalDatabaseSynchronizerEvent)
+					if (((ObjectMessage<?>) m).getContent() instanceof MadkitKernel.InternalDatabaseSynchronizerEvent)
 					{
-						MadkitKernel.InternalDatabaseSynchronizerEvent e= (MadkitKernel.InternalDatabaseSynchronizerEvent)((ObjectMessage) m).getContent();
+						MadkitKernel.InternalDatabaseSynchronizerEvent e= (MadkitKernel.InternalDatabaseSynchronizerEvent)((ObjectMessage<?>) m).getContent();
 						boolean updateGroupAccess=false;
 
 						try {

@@ -68,7 +68,6 @@ import com.distrimind.madkit.kernel.Agent;
 import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.kernel.AgentNetworkID;
 import com.distrimind.madkit.kernel.Group;
-import com.distrimind.jdkrewrite.concurrent.LockerCondition;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.kernel.NetworkAgent;
 import com.distrimind.madkit.kernel.Task;
@@ -77,6 +76,7 @@ import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
 import com.distrimind.madkit.kernel.network.TransferAgent.TryDirectConnection;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
 import com.distrimind.madkit.message.ObjectMessage;
+import com.distrimind.madkit.util.concurrent.LockerCondition;
 import com.distrimind.util.Timer;
 
 /**
@@ -112,7 +112,7 @@ final class NIOAgent extends Agent {
 		}
 
 		public boolean isConcernedBy(NetworkInterface ni) {
-			for (Enumeration e = ni.getInetAddresses(); e.hasMoreElements();)
+			for (Enumeration<InetAddress> e = ni.getInetAddresses(); e.hasMoreElements();)
 				if (e.nextElement().equals(this.address.getAddress()))
 					return true;
 			return false;
@@ -1568,19 +1568,19 @@ final class NIOAgent extends Agent {
 						
 						@Override
 						public boolean isLocked() {
-							
-							NoBackData first=noBackDataToSend.getFirst();
+
+							NoBackData first=noBackDataToSend.peekFirst();
 							try
 							{
-								hasData.set(noBackDataToSend.size()>0);
-								validData.set(noBackDataToSend.size()>0 && first.isReady());
+								hasData.set(first!=null);
+								validData.set(first!=null && first.isReady());
 							}
 							catch(TransfertException e)
 							{
 								exception.set(e);
 								return false;
 							}
-							return exception.get()==null && hasData.get() && (!validData.get() || first.isCanceled() || agentSocket.getState().compareTo(AbstractAgent.State.ENDING)>=0);
+							return exception.get()==null && first!=null && (!validData.get() || first.isCanceled() || agentSocket.getState().compareTo(AbstractAgent.State.ENDING)>=0);
 						}
 
 						
@@ -2394,7 +2394,7 @@ final class NIOAgent extends Agent {
 		}
 
 		boolean isConcernedBy(NetworkInterface ni) {
-			for (Enumeration e=ni.getInetAddresses();e.hasMoreElements();)
+			for (Enumeration<InetAddress> e=ni.getInetAddresses();e.hasMoreElements();)
 				if (e.nextElement().equals(this.local_interface))
 					return true;
 			return false;

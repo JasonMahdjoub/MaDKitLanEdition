@@ -37,10 +37,10 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.jdkrewrite.concurrent.LockerCondition;
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.message.hook.HookMessage;
+import com.distrimind.madkit.util.concurrent.LockerCondition;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.io.MessageExternalizationException;
 import com.distrimind.util.io.RandomInputStream;

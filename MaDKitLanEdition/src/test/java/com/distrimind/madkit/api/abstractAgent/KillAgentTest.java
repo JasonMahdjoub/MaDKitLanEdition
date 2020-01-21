@@ -219,9 +219,9 @@ public class KillAgentTest extends JunitMadkit {
 			protected void activate() throws InterruptedException {
 				SelfKillAgent a = new SelfKillAgent(true, false, true);
 				assertEquals(SUCCESS, launchAgent(a));
-				synchronized (this) {
-					this.wait(500);
-				}
+
+				this.sleep(500);
+
 				assertAgentIsTerminated(a);
 			}
 		}, true);
