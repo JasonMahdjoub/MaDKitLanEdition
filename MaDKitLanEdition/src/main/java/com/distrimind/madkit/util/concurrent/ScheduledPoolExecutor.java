@@ -90,7 +90,7 @@ public class ScheduledPoolExecutor extends PoolExecutor implements ScheduledExec
 
 		@Override
 		public long getDelay(TimeUnit unit) {
-			return unit.convert(start-System.nanoTime(), TimeUnit.NANOSECONDS);
+			return TimeUnit.NANOSECONDS.convert(start-System.nanoTime(), unit);
 		}
 
 		@Override
@@ -117,15 +117,19 @@ public class ScheduledPoolExecutor extends PoolExecutor implements ScheduledExec
 			this.delay=unit.toNanos(delay);
 		}
 
+		@Override
 		boolean repeat()
 		{
+			if (isCancelled())
+				return false;
+			isFinished=false;
 			start=System.nanoTime()+delay;
 			return true;
 		}
 
 		@Override
 		public boolean isRepetitive() {
-			return true;
+			return !isCancelled();
 		}
 
 	}
@@ -138,8 +142,13 @@ public class ScheduledPoolExecutor extends PoolExecutor implements ScheduledExec
 			this.period=unit.toNanos(period);
 		}
 
+		@Override
 		boolean repeat()
 		{
+			if (isCancelled())
+				return false;
+
+			isFinished=false;
 			start+=period;
 			long c=System.nanoTime();
 			if (c>start)
@@ -148,7 +157,7 @@ public class ScheduledPoolExecutor extends PoolExecutor implements ScheduledExec
 		}
 		@Override
 		public boolean isRepetitive() {
-			return true;
+			return !isCancelled();
 		}
 
 	}

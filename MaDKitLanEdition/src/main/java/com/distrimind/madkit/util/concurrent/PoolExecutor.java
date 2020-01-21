@@ -259,7 +259,7 @@ public class PoolExecutor implements ExecutorService {
 		private final Lock flock;
 		private final Callable<T> callable;
 		private volatile boolean isCancelled=false;
-		private volatile boolean isFinished=false;
+		volatile boolean isFinished=false;
 		private volatile Thread thread;
 		private T res=null;
 		private Exception exception=null;
@@ -287,8 +287,17 @@ public class PoolExecutor implements ExecutorService {
 		@Override
 		public void run()
 		{
-			if (isCancelled)
+			if (isCancelled) {
+				flock.lock();
+				try{
+					this.thread = null;
+					waitForComplete.signalAll();
+				}
+				finally {
+					flock.unlock();
+				}
 				return;
+			}
 			this.thread = Thread.currentThread();
 			try {
 				res=callable.call();
@@ -306,15 +315,13 @@ public class PoolExecutor implements ExecutorService {
 			finally {
 				flock.unlock();
 			}
-
 		}
+
 		@Override
 		public boolean cancel(boolean mayInterruptIfRunning) {
 
 			flock.lock();
 			try{
-				if (isFinished)
-					return false;
 				if (isCancelled)
 					return true;
 				if (mayInterruptIfRunning) {
@@ -324,11 +331,11 @@ public class PoolExecutor implements ExecutorService {
 				}
 				isCancelled=true;
 				waitForComplete.signalAll();
+				return true;
 			}
 			finally {
 				flock.unlock();
 			}
-			return false;
 		}
 
 		@Override
@@ -926,7 +933,7 @@ public class PoolExecutor implements ExecutorService {
 				for (; ; ) {
 					Runnable task = null;
 					long timeout = keepAliveTime;
-					long start = 0;
+					long start = System.nanoTime();
 
 					lock.lock();
 					if (working)
@@ -935,13 +942,13 @@ public class PoolExecutor implements ExecutorService {
 						repeatUnsafe(toRepeat);
 						toRepeat = null;
 					}
-					if (!core)
-						start = System.nanoTime();
 					try {
 
 						while (!shutdownAsked && (task = pollTaskUnsafe()) == null) {
 							try {
-								long timeToWait = timeToWaitBeforeNewTaskScheduledInNanoSeconds();
+								long timeToWait = timeToWaitBeforeNewTaskScheduledInNanoSeconds()-System.nanoTime();
+								if (timeToWait<=0)
+									continue;
 								if (timeToWait != Long.MAX_VALUE && (core || timeout > timeToWait)) {
 									waitEventsCondition.await(timeToWait + 1, TimeUnit.NANOSECONDS);
 									if (!core) {

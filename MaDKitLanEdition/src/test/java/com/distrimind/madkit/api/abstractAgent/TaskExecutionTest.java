@@ -114,7 +114,9 @@ class TaskAgentTester extends AbstractAgent {
 		JunitMadkit.pause(this, 500);
 		Assert.assertEquals(5, taskExecutionNumber.get());
 		CT(id);
+		Assert.assertTrue(id.isCanceled());
 		JunitMadkit.pause(this, 1200);
+		Assert.assertTrue(id.isCanceled());
 		Assert.assertEquals(5, taskExecutionNumber.get());
 		for (int i = 0; i < 100; i++)
 			SC(new Task<>(callable), false);

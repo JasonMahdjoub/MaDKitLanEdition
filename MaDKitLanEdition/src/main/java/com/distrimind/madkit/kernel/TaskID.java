@@ -86,7 +86,7 @@ public class TaskID extends ConversationID {
 	 *         already completed normally; true otherwise
 	 */
 	public boolean cancelTask(boolean mayInterruptIfRunning) {
-		return future.cancel(true);
+		return future.cancel(mayInterruptIfRunning);
 	}
 
 	/**
