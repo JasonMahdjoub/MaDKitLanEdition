@@ -2169,7 +2169,7 @@ class MadkitKernel extends Agent {
 
 					@Override
 					AgentsJob createNewAgentJobWithList(List<AbstractAgent> l) {
-						return new AJ(l);
+						return new AJ2(l);
 					}
 
 					@Override

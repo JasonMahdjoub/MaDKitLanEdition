@@ -244,7 +244,7 @@ public class LaunchAgentBucketTest extends JunitMadkit {
 	public void returnSuccessWithName() {
 		launchTest(new AbstractAgent() {
 			@Override
-			protected void activate() {
+			protected void activate() throws InterruptedException {
 				List<AbstractAgent> l = launchAgentBucket(SimulatedAgent.class.getName(), size, new Role(GROUP, ROLE));
 				assertEquals(size, l.size());
 				assertEquals(size, getAgentsWithRole(GROUP, ROLE).size());

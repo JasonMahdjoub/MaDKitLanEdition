@@ -51,6 +51,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.distrimind.madkit.util.concurrent.CircularArrayList;
+import com.distrimind.madkit.util.concurrent.PoolExecutor;
 import com.distrimind.util.OS;
 import com.distrimind.util.OSVersion;
 import org.fourthline.cling.UpnpService;
@@ -152,8 +154,8 @@ class UpnpIGDAgent extends AgentFakeThread {
 	protected static volatile UpnpService upnpService = null;
 	protected static int pointedUpnpServiceNumber = 0;
 
-	final static ThreadPoolExecutor serviceExecutor = new ThreadPoolExecutor(1, Integer.MAX_VALUE, 1, TimeUnit.SECONDS,
-			new SynchronousQueue<Runnable>());
+	final static ThreadPoolExecutor serviceExecutor = new ThreadPoolExecutor(1, Integer.MAX_VALUE, 1, TimeUnit.SECONDS,new SynchronousQueue<Runnable>());
+	//final static PoolExecutor serviceExecutor = new PoolExecutor(4, 5, 1, TimeUnit.SECONDS,new CircularArrayList<Runnable>(16, true));
 
 	private final RegistryListener registeryListener = new RegistryListener();
 	private final HashMap<InetAddress, Router> upnp_igd_routers = new HashMap<>();
