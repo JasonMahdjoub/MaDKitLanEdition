@@ -1083,30 +1083,30 @@ public class PoolExecutor implements ExecutorService {
 					Future<?> task = null;
 
 					lock.lock();
-					if (working) {
-						--workingThreads;
-						working = false;
-					}
-
-					if (toRepeat!=null) {
-						repeatUnsafe(toRepeat);
-					}
 					try {
+						if (working) {
+							--workingThreads;
+							working = false;
+						}
+
+						if (toRepeat != null) {
+							repeatUnsafe(toRepeat);
+						}
+
 
 						restartTimeOutUnsafe();
 
 						while (!shutdownAsked && (task = pollTaskUnsafe()) == null) {
 							try {
-								long timeToWait = timeToWaitBeforeNewTaskScheduledInNanoSeconds()-System.nanoTime();
-								if (timeToWait<=0)
+								long timeToWait = timeToWaitBeforeNewTaskScheduledInNanoSeconds() - System.nanoTime();
+								if (timeToWait <= 0)
 									continue;
 
 								if (timeOut > timeToWait) {
 									waitEventsCondition.await(timeToWait + 1, TimeUnit.NANOSECONDS);
-								}
-								else {
-									if (!waitEventsCondition.await(timeOut+1, TimeUnit.NANOSECONDS)/* && !core*/)
-										timeOut=-1;
+								} else {
+									if (!waitEventsCondition.await(timeOut + 1, TimeUnit.NANOSECONDS)/* && !core*/)
+										timeOut = -1;
 								}
 								if (mustDieUnsafe())
 									return;
