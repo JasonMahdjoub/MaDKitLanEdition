@@ -404,6 +404,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @param lockerCondition wait until this locker condition enables the thread unlocking
 	 * @param timeOutMillis the delay before the wait is canceled
 	 * @throws InterruptedException if an interrupt signal occurs
+	 * @throws TimeoutException if the delay was exceeded
 	 */
 	public void wait(LockerCondition lockerCondition, long timeOutMillis) throws InterruptedException, TimeoutException {
 		getMadkitKernel().regularWait(this, lockerCondition, timeOutMillis);
@@ -2714,7 +2715,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * 
 	 * @param concerned_groups
 	 *            the concerned communities and groups
-	 *
+	 * @param distantAcceptedGroups the distant accepted groups
 	 * @return a data containing all the organization structure
 	 */
 	public Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> getOrganizationSnapShot(
