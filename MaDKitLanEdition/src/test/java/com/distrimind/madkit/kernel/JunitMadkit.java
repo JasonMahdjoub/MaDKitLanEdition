@@ -271,7 +271,7 @@ public class JunitMadkit {
 
 	public ScheduledPoolExecutor getScheduledPoolExecutor(AbstractAgent agent)
 	{
-		return agent.getMadkitKernel().getMadkitServiceExecutor();
+		return agent.getMadkitKernel().getMaDKitServiceExecutor();
 	}
 
 	public static KernelAddress getKernelAddressInstance() {

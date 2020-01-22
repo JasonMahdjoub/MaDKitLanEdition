@@ -233,7 +233,7 @@ public abstract class Activator<A extends AbstractAgent> extends Overlooker<A> {
 	 * @return an ExecutorService running task in parallel
 	 */
 	public ExecutorService getMadkitServiceExecutor() {
-		return madkit_kernel.get().getMadkitServiceExecutor();
+		return madkit_kernel.get().getMaDKitServiceExecutor();
 	}
 
 	/**

@@ -962,8 +962,8 @@ final class LoggedKernel extends MadkitKernel {
 	}
 
 	@Override
-	ScheduledPoolExecutor getMadkitServiceExecutor() {
-		return kernel.getMadkitServiceExecutor();
+	ScheduledPoolExecutor getMaDKitServiceExecutor() {
+		return kernel.getMaDKitServiceExecutor();
 	}
 
 	@Override

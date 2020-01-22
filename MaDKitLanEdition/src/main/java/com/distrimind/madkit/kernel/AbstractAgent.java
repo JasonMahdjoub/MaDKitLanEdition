@@ -4023,7 +4023,9 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	}
 
 	/**
-	 * Changes the priority of threads representing the task executor service.
+	 * Changes the priority of threads representing threads the MaDKit service executor.
+	 * It concerns agent fake threads, and threads used for tasks executions
+	 * It does not concerns agent's threads
 	 * <p>
 	 * First the <code>checkAccess</code> method of this thread is called with no
 	 * arguments. This may result in throwing a <code>SecurityException</code>.
@@ -4043,10 +4045,21 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @see Thread#MAX_PRIORITY
 	 * @see Thread#MIN_PRIORITY
 	 */
-	public void setTaskExecutorServicePriority(int newPriority) {
-		getMadkitKernel().setThreadPriotityForServiceExecutor(newPriority);
+	public void setThreadPriorityOfMaDKItServiceExecutor(int newPriority) {
+		getMadkitKernel().setThreadPriorityForServiceExecutor(newPriority);
 		// return getKernel().setTaskManagerExecutorPriority(this, _task_agent_name,
 		// newPriority);
+	}
+
+	/**
+	 * Gets the priority of threads representing threads the MaDKit service executor.
+	 * It concerns agent fake threads, and threads used for tasks executions
+	 * It does not concerns agent's threads
+	 * @return the priority of threads representing threads the MaDKit service executor
+	 */
+	public int getThreadPriorityOfMaDKItServiceExecutor()
+	{
+		return getMadkitKernel().threadPriorityForServiceExecutor;
 	}
 
 	/**

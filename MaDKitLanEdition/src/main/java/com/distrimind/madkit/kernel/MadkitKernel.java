@@ -154,7 +154,6 @@ class MadkitKernel extends Agent {
 	private ScheduledPoolExecutor serviceExecutor;
 
 	//private PoolExecutor lifeExecutor/* , lifeExecutorWithBlockQueue */;
-	protected volatile int threadPriorityForLifeExecutor = DEFAULT_THREAD_PRIORITY;
 	private final HashMap<Long, LockerCondition> agentsSendingNetworkMessage = new HashMap<>();
     private volatile int maximumGlobalUploadSpeedInBytesPerSecond;
     private volatile int maximumGlobalDownloadSpeedInBytesPerSecond;
@@ -162,17 +161,13 @@ class MadkitKernel extends Agent {
 	// final private HashMap<String, ScheduledThreadPoolExecutor>
 	// dedicatedServiceExecutors=new HashMap<>();
 
-	void setThreadPriotityForLifeExecutor(int _priority) {
-		threadPriorityForLifeExecutor = _priority;
-		//lifeExecutor.setThreadsPriority(_priority);
-	}
 
-	void setThreadPriotityForServiceExecutor(int _priority) {
+	void setThreadPriorityForServiceExecutor(int _priority) {
 		threadPriorityForServiceExecutor = _priority;
-		//serviceExecutor.setThreadsPriority(_priority);
+		serviceExecutor.setThreadsPriority(_priority);
 	}
 
-	ScheduledPoolExecutor getMadkitServiceExecutor() {
+	ScheduledPoolExecutor getMaDKitServiceExecutor() {
 		return serviceExecutor;
 	}
 

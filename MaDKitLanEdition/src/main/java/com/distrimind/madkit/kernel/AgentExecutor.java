@@ -43,7 +43,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
-import com.distrimind.madkit.util.concurrent.PoolExecutor;
 
 /**
  * @author Fabien Michel
@@ -92,7 +91,7 @@ final class AgentExecutor {
 
 	Future<ReturnCode> start()
 	{
-		List<Future<?>> list=myAgent.getMadkitKernel().getMadkitServiceExecutor().launchDedicatedThread(myAgent.isDaemon()?myAgent.getMadkitKernel().getDaemonAgentThreadFactory():myAgent.getMadkitKernel().getNormalAgentThreadFactory(),
+		List<Future<?>> list=myAgent.getMadkitKernel().getMaDKitServiceExecutor().launchDedicatedThread(myAgent.isDaemon()?myAgent.getMadkitKernel().getDaemonAgentThreadFactory():myAgent.getMadkitKernel().getNormalAgentThreadFactory(),
 				Arrays.asList(
 						new Callable<ReturnCode>()
 						{

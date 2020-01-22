@@ -237,7 +237,7 @@ public abstract class AgentFakeThread extends AbstractAgent {
 			schedule = true;
 		}
 		if (schedule) {
-			getMadkitKernel().getMadkitServiceExecutor().submit(new Callable<Void>() {
+			getMadkitKernel().getMaDKitServiceExecutor().submit(new Callable<Void>() {
 
 				@Override
 				public Void call() {
@@ -258,7 +258,7 @@ public abstract class AgentFakeThread extends AbstractAgent {
 								if (e.killing_type
 										.equals(KillingType.WAIT_AGENT_PURGE_ITS_MESSAGES_BOX_BEFORE_KILLING_IT)) {
 
-									getMadkitKernel().getMadkitServiceExecutor().execute(new Runnable() {
+									getMadkitKernel().getMaDKitServiceExecutor().execute(new Runnable() {
 										@Override
 										public void run() {
 											getKernel().killAgent(AgentFakeThread.this, AgentFakeThread.this,
@@ -305,32 +305,6 @@ public abstract class AgentFakeThread extends AbstractAgent {
 				}
 			});
 		}
-	}
-
-	/**
-	 * Changes the priority of threads representing the task executor service of
-	 * this agent.
-	 * <p>
-	 * First the <code>checkAccess</code> method of this thread is called with no
-	 * arguments. This may result in throwing a <code>SecurityException</code>.
-	 * <p>
-	 * Otherwise, the priority of this thread is set to the smaller of the specified
-	 * <code>newPriority</code> and the maximum permitted priority of the thread's
-	 * thread group.
-	 *
-	 * @param newPriority
-	 *            priority to set this thread to
-	 * @exception IllegalArgumentException
-	 *                If the priority is not in the range <code>MIN_PRIORITY</code>
-	 *                to <code>MAX_PRIORITY</code>.
-	 * @exception SecurityException
-	 *                if the current thread cannot modify this thread.
-	 * 
-	 * @see Thread#MAX_PRIORITY
-	 * @see Thread#MIN_PRIORITY
-	 */
-	public void setAgentsFakeThreadsPriority(int newPriority) {
-		getMadkitKernel().setThreadPriotityForLifeExecutor(newPriority);
 	}
 
 }
