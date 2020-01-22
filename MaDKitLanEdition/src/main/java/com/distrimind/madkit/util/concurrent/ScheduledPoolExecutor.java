@@ -87,10 +87,10 @@ public class ScheduledPoolExecutor extends PoolExecutor implements ScheduledExec
 			super(callable);
 			start=System.nanoTime()+unit.toNanos(initialDelay);
 		}
-		public SF(SF<T> o, long start) {
+		/*public SF(SF<T> o, long start) {
 			super(o);
 			this.start=start;
-		}
+		}*/
 
 		@Override
 		public long getDelay(TimeUnit unit) {
@@ -108,9 +108,6 @@ public class ScheduledPoolExecutor extends PoolExecutor implements ScheduledExec
 				return 0;
 		}
 
-		public boolean isRepetitive() {
-			return false;
-		}
 	}
 
 	private class DelayedSF<T> extends SF<T>
@@ -120,18 +117,19 @@ public class ScheduledPoolExecutor extends PoolExecutor implements ScheduledExec
 			super(callable, initialDelay, unit);
 			this.delay=unit.toNanos(delay);
 		}
-		public DelayedSF(DelayedSF<T> o) {
+		/*public DelayedSF(DelayedSF<T> o) {
 			super(o, System.nanoTime()+o.delay);
 			this.delay=o.delay;
-		}
+		}*/
 
 		@Override
-		DelayedSF<T> repeat()
+		boolean repeat()
 		{
 			if (isCancelled())
-				return null;
-
-			return new DelayedSF<>(this);
+				return false;
+			isFinished=false;
+			start=System.nanoTime()+delay;
+			return true;
 		}
 
 		@Override
@@ -148,17 +146,23 @@ public class ScheduledPoolExecutor extends PoolExecutor implements ScheduledExec
 			super(callable, initialDelay, unit);
 			this.period=unit.toNanos(period);
 		}
-		public RatedSF(RatedSF<T> o) {
+		/*public RatedSF(RatedSF<T> o) {
 			super(o, Math.min(o.start+o.period, System.nanoTime()));
 			this.period=o.period;
-		}
+		}*/
 
 		@Override
-		RatedSF<T> repeat()
+		boolean repeat()
 		{
 			if (isCancelled())
-				return null;
-			return new RatedSF<>(this);
+				return false;
+
+			isFinished=false;
+			start+=period;
+			long c=System.nanoTime();
+			if (c>start)
+				start=c;
+			return true;
 		}
 		@Override
 		public boolean isRepetitive() {

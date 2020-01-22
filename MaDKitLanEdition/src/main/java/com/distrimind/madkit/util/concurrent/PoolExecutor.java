@@ -327,13 +327,13 @@ public class PoolExecutor implements ExecutorService {
 			this.waitForComplete=waitForComplete;
 			this.started=false;
 		}
-		@SuppressWarnings("CopyConstructorMissesField")
-		protected Future(Future<T> o) {
+
+		/*protected Future(Future<T> o) {
 			this.callable=o.callable;
 			this.flock=o.flock;
 			this.waitForComplete=o.waitForComplete;
 			this.started=false;
-		}
+		}*/
 
 		boolean take()
 		{
@@ -427,8 +427,13 @@ public class PoolExecutor implements ExecutorService {
 			}
 		}
 
+		boolean isRepetitive()
+		{
+			return false;
+		}
+
 		public T get(long timeout, TimeUnit unit, boolean timeoutUsed) throws InterruptedException, ExecutionException, TimeoutException {
-			if (!timeoutUsed && take())
+			if (!timeoutUsed && !isRepetitive() && take())
 			{
 				if (isCancelled)
 					throw new CancellationException();
@@ -480,9 +485,9 @@ public class PoolExecutor implements ExecutorService {
 		public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
 			return get(timeout, unit, true);
 		}
-		ScheduledFuture<T> repeat()
+		boolean repeat()
 		{
-			return null;
+			return false;
 		}
 
 	}
@@ -955,14 +960,13 @@ public class PoolExecutor implements ExecutorService {
 	}
 
 
-	private Executor launchNewThreadUnsafe()
+	private void launchNewThreadUnsafe()
 	{
 		Executor executor=new Executor();
 		Thread t=threadFactory.newThread(executor);
 		executor.thread=t;
 		executors.put(t, executor);
 		t.start();
-		return executor;
 	}
 
 
@@ -1097,8 +1101,8 @@ public class PoolExecutor implements ExecutorService {
 					assert task != null;
 
 					task.run();
-
-					toRepeat=task.repeat();
+					if (task.repeat())
+						toRepeat=(ScheduledFuture<?>)task;
 				}
 			}
 			finally {
