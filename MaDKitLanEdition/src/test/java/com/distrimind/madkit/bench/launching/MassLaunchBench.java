@@ -189,7 +189,7 @@ public class MassLaunchBench extends JunitMadkit {
 					startTimer();
 					System.err.println("begin");
 					for (int i = 0; i < 1_000_000; i++) {
-						if (i%10000==0) {
+						if (i%50000==0) {
 							System.out.println("---------------------------");
 							System.out.println("Max number of threads " + getScheduledPoolExecutor(this).getMaximumNumberOfThreads());
 							System.out.println("Number of threads " + getScheduledPoolExecutor(this).getCurrentNumberOfExecutors());
