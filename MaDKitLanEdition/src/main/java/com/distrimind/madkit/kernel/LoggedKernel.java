@@ -933,7 +933,7 @@ final class LoggedKernel extends MadkitKernel {
 	}
 
 	@Override
-	void sleep(AgentFakeThread requester, long millis) throws InterruptedException {
+	void sleep(AbstractAgent requester, long millis) throws InterruptedException {
 		kernel.sleep(requester, millis);
 
 		if (requester.isFinestLogOn())

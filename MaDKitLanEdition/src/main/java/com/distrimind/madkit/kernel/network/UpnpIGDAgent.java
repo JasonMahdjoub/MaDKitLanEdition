@@ -935,7 +935,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 				if (--pointedUpnpServiceNumber == 0) {
 
 					try {
-						Thread.sleep(2000);
+						sleep(2000);
 					} catch (InterruptedException e) {
 						if (logger != null)
 							logger.severeLog("", e);

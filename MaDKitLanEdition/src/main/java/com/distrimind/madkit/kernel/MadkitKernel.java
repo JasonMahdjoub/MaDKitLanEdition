@@ -2454,9 +2454,9 @@ class MadkitKernel extends Agent {
 				});
 		try {
 			if (timeOutSeconds == 0)
-				return killAttempt.get(1, TimeUnit.MILLISECONDS);
+				return killAttempt.get(0, TimeUnit.MILLISECONDS);
 			else
-				return killAttempt.get(timeOutSeconds, TimeUnit.SECONDS);
+				return killAttempt.get();
 		} catch (InterruptedException e) {// requester has been killed or
 											// something
 			// requester.handleInterruptedException();
@@ -3710,7 +3710,7 @@ class MadkitKernel extends Agent {
 	}
 
 
-	void sleep(AgentFakeThread requester, long millis) throws InterruptedException {
+	void sleep(AbstractAgent requester, long millis) throws InterruptedException {
 		if (!serviceExecutor.sleep(millis, TimeUnit.MILLISECONDS) /*&& !lifeExecutor.sleep(millis, TimeUnit.MILLISECONDS)*/) {
 			/*
 			 * ArrayList<ThreadPoolExecutor> tpes=null;

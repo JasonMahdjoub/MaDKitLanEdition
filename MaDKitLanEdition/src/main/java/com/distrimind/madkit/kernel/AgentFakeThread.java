@@ -266,8 +266,8 @@ public abstract class AgentFakeThread extends AbstractAgent {
 										}
 									});
 								} else
-									getKernel().killAgent(AgentFakeThread.this, AgentFakeThread.this, e.timeOutSeconds,
-											e.killing_type);
+									getKernel().killAgent(AgentFakeThread.this, AgentFakeThread.this, e.timeOutSeconds,e.killing_type);
+
 							} catch (InterruptedException ignored) {
 
 							} catch (Throwable e) {

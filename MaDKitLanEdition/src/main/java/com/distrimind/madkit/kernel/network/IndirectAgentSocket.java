@@ -142,7 +142,7 @@ class IndirectAgentSocket extends AbstractAgentSocket {
 					lastReceivedDataUTC = System.currentTimeMillis();
 
 					if (waitingPongMessage) {
-						startDeconnectionProcess(ConnectionClosedReason.CONNECTION_LOST);
+						startDisconnectionProcess(ConnectionClosedReason.CONNECTION_LOST);
 					} else {
 						receiveMessage(new SendPingMessage());
 					}

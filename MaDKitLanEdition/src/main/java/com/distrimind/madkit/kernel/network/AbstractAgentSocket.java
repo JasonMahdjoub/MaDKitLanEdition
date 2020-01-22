@@ -443,7 +443,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			if (logger != null)
 				logger.severeLog(
 						"Start of " + this.getClass().getName() + " (" + this.distant_inet_address + ") FAILED !", e);
-			startDeconnectionProcess(ConnectionClosedReason.CONNECTION_ANOMALY);
+			startDisconnectionProcess(ConnectionClosedReason.CONNECTION_ANOMALY);
 		}
 	}
 
@@ -493,11 +493,11 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 
 	}
 
-	protected void startDeconnectionProcess(ConnectionClosedReason reason) {
-		this.startDeconnectionProcess(reason, null);
+	protected void startDisconnectionProcess(ConnectionClosedReason reason) {
+		this.startDisconnectionProcess(reason, null);
 	}
 
-	protected void startDeconnectionProcess(ConnectionClosedReason reason, ConnectionFinished last_message) {
+	protected void startDisconnectionProcess(ConnectionClosedReason reason, ConnectionFinished last_message) {
 		if (reason == ConnectionClosedReason.CONNECTION_ANOMALY)
 			isBanned = true;
 		if (state.compareTo(State.DISCONNECTION_IN_PROGRESS) >= 0)
@@ -732,9 +732,9 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			if (cc.type.equals(ConnectionStatusMessage.Type.DISCONNECT)) {
 				if (cc.connection_closed_reason.equals(ConnectionClosedReason.CONNECTION_ANOMALY)) {
 					if (!processExternalAnomaly(null, cc.getCandidateToBan()))
-						startDeconnectionProcess(cc.connection_closed_reason);
+						startDisconnectionProcess(cc.connection_closed_reason);
 				} else
-					startDeconnectionProcess(cc.connection_closed_reason);
+					startDisconnectionProcess(cc.connection_closed_reason);
 			}
 		} else if (_message instanceof ReceivedIndirectData) {
 			ReceivedIndirectData m = ((ReceivedIndirectData) _message);
@@ -933,7 +933,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					}
 
 				} else {
-					this.startDeconnectionProcess(ConnectionClosedReason.CONNECTION_ANOMALY);
+					this.startDisconnectionProcess(ConnectionClosedReason.CONNECTION_ANOMALY);
 				}
 			} else if (o.getClass() == InitiateTransferConnection.class) {
 				InitiateTransferConnection candidate = (InitiateTransferConnection) o;
@@ -1572,7 +1572,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					broadcastDataTowardEachIntermediatePeer(t2, true);
 				}
 
-				startDeconnectionProcess(ConnectionClosedReason.CONNECTION_LOST);
+				startDisconnectionProcess(ConnectionClosedReason.CONNECTION_LOST);
 			} else {
 				receiveTransferClosedSystemMessage(sender, t, d.getSender(), d.isPrioritary(), false);
 			}
@@ -2137,7 +2137,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 								}
 								if (cm != null) {
 									if (connection_closed_reason != null) {
-										startDeconnectionProcess(connection_closed_reason,
+										startDisconnectionProcess(connection_closed_reason,
 												send_data ? (ConnectionFinished) cm : null);
 									} else if (send_data) {
 										checkTransferBlockCheckerChangments();
@@ -2243,7 +2243,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 								con_close_reason = ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED;
 							}
 							if (con_close_reason != null)
-								startDeconnectionProcess(con_close_reason);
+								startDisconnectionProcess(con_close_reason);
 							else if (this_ask_connection && access_protocol.isNotifyAccessGroupChanges()) {
 								notifyNewAccessChangements();
 							}
@@ -2316,7 +2316,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 									distant_kernel_address, false),
 							LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 				} else if (obj.getClass() == TooMuchConnectionWithTheSamePeers.class) {
-					startDeconnectionProcess(ConnectionClosedReason.CONNECTION_LOST);
+					startDisconnectionProcess(ConnectionClosedReason.CONNECTION_LOST);
 				} else if (obj.getClass() == SecretMessage.class) {
 					if (logger != null && logger.isLoggable(Level.FINER))
 						logger.finer("Receiving secret message (distant_inet_address=" + distant_inet_address
@@ -2725,7 +2725,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				} catch (Exception e) {
 					if (logger != null)
 						logger.severeLog("Invalid accepted groups or no accepted groups by access data : ", e);
-					startDeconnectionProcess(ConnectionClosedReason.CONNECTION_ANOMALY);
+					startDisconnectionProcess(ConnectionClosedReason.CONNECTION_ANOMALY);
 				}
 				// notifyDistantKernelAgent();
 			}
@@ -2967,7 +2967,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					if ((r != null && r.expiration_time > System.currentTimeMillis())) {
 						MadkitKernelAccess.informHooks(this,
 								new IPBannedEvent(distant_inet_address.getAddress(), r.expiration_time));
-						startDeconnectionProcess(ConnectionClosedReason.CONNECTION_ANOMALY);
+						startDisconnectionProcess(ConnectionClosedReason.CONNECTION_ANOMALY);
 						return true;
 					}
 				} catch (DatabaseException e2) {
@@ -2975,7 +2975,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						logger.severeLog("Database exception", e2);
 				}
 			} else if (nbAnomalies >= getMadkitConfig().networkProperties.nbMaxAnomaliesBeforeTrigeringExpulsion) {
-				startDeconnectionProcess(ConnectionClosedReason.CONNECTION_ANOMALY);
+				startDisconnectionProcess(ConnectionClosedReason.CONNECTION_ANOMALY);
 				return true;
 			}
 		} catch (Exception e) {
@@ -3033,7 +3033,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		proceedEventualBan(candidate_to_ban);
 		
 		if (candidate_to_ban) {
-			startDeconnectionProcess(ConnectionClosedReason.CONNECTION_ANOMALY);
+			startDisconnectionProcess(ConnectionClosedReason.CONNECTION_ANOMALY);
 			return true;
 		}
 		

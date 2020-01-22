@@ -353,7 +353,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 			if (logger != null && logger.isLoggable(Level.FINEST))
 				logger.finest(Words.PAUSE + " " + millis + " ms.");
 
-			Thread.sleep(millis);
+			getMadkitKernel().sleep(this, millis);
 		}
 	}
 
