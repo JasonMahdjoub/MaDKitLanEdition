@@ -3257,7 +3257,6 @@ class MadkitKernel extends Agent {
 		if (getMadkitConfig().isUseMadkitSchedulerWithFortunaSecureRandom())
 			Fortuna.setPersonalDefaultScheduledExecutorService(null);
 		if (this.serviceExecutor!=null) {
-			//this.lifeExecutor.shutdownNow();
 			this.serviceExecutor.shutdownNow();
 			boolean valid=true;
 			try {
