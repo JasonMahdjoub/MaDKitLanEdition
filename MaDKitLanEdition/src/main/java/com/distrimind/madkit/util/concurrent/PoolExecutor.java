@@ -231,7 +231,7 @@ public class PoolExecutor implements ExecutorService {
 					return false;
 				long end=System.nanoTime();
 				timeout-=end-start;
-				if (timeout<0)
+				if (timeout<=0)
 					return false;
 				start=end;
 			}
@@ -433,7 +433,7 @@ public class PoolExecutor implements ExecutorService {
 		}
 
 		public T get(long timeout, TimeUnit unit, boolean timeoutUsed) throws InterruptedException, ExecutionException, TimeoutException {
-			if (!timeoutUsed && !isRepetitive() && take())
+			if (!timeoutUsed&& !isRepetitive() && take())
 			{
 				if (isCancelled)
 					throw new CancellationException();
@@ -444,23 +444,36 @@ public class PoolExecutor implements ExecutorService {
 				if (exception!=null)
 					throw new ExecutionException(exception);
 				return res;
-
 			}
 			else {
-				ExecutorWrapper executorWrapper = incrementMaxThreadNumberIfCurrentThreadPartOfPoolExecutor();
+				Executor executor=getExecutor(Thread.currentThread());
+				boolean toIncrement=executor!=null;
+
 				flock.lock();
 				try {
+					boolean candidateForTimeOut=false;
 					if (timeoutUsed) {
 						long start = System.nanoTime();
 						timeout = unit.toNanos(timeout);
-						while (!isCancelled && !isFinished) {
-							if (!this.waitForComplete.await(timeout, TimeUnit.NANOSECONDS))
-								throw new TimeoutException();
-							long end = System.nanoTime();
-							timeout -= end - start;
-							if (timeout < 0)
-								throw new TimeoutException();
-							start = end;
+						if (timeout<=0)
+							candidateForTimeOut=true;
+						while (!candidateForTimeOut && !isCancelled && !isFinished) {
+							if (toIncrement) {
+								toIncrement=false;
+								incrementMaxThreadNumber();
+							}
+							if (this.waitForComplete.await(timeout, TimeUnit.NANOSECONDS)) {
+								long end = System.nanoTime();
+								timeout -= end - start;
+								if (timeout <=0)
+									candidateForTimeOut=true;
+								else
+									start = end;
+
+							}
+							else{
+								candidateForTimeOut = true;
+							}
 
 						}
 					} else {
@@ -472,12 +485,14 @@ public class PoolExecutor implements ExecutorService {
 						throw new CancellationException();
 					if (exception != null)
 						throw new ExecutionException(exception);
-
-					return res;
+					if (!isFinished && candidateForTimeOut)
+						throw new TimeoutException();
+					else
+						return res;
 				} finally {
 					flock.unlock();
-					if (executorWrapper != null)
-						executorWrapper.decrementMaxThreadNumber();
+					if (!toIncrement && executor!=null)
+						decrementMaxThreadNumber();
 				}
 			}
 		}
@@ -624,7 +639,7 @@ public class PoolExecutor implements ExecutorService {
 					f.get(timeOut, TimeUnit.NANOSECONDS);
 					long end = System.nanoTime();
 					timeOut -= (end - start);
-					if (timeOut < 0)
+					if (timeOut <=0)
 						break;
 					start = end;
 				} catch (ExecutionException e) {
@@ -713,7 +728,7 @@ public class PoolExecutor implements ExecutorService {
 						throw new TimeoutException();
 					long end = System.nanoTime();
 					timeOut -= (end - start);
-					if (timeOut < 0)
+					if (timeOut <=0)
 						throw new TimeoutException();
 					start = end;
 				}
@@ -776,39 +791,37 @@ public class PoolExecutor implements ExecutorService {
 		return executors.get(thread);
 	}
 
-	private class ExecutorWrapper
-	{
-		public ExecutorWrapper() {
+
+	private void decrementMaxThreadNumber() {
+		lock.lock();
+		try
+		{
+			--pausedThreads;
 		}
-		private void decrementMaxThreadNumber() {
-			lock.lock();
-			try
-			{
-				--pausedThreads;
-			}
-			finally {
-				lock.unlock();
-			}
+		finally {
+			lock.unlock();
 		}
 	}
-
-	private ExecutorWrapper incrementMaxThreadNumberIfCurrentThreadPartOfPoolExecutor()
+	void launchChildIfNecessaryUnsafe()
+	{
+		if (!shutdownAsked)
+		{
+			if (needNewThreadUnsafe())
+				launchNewThreadUnsafe();
+			waitEventsCondition.signalAll();
+		}
+	}
+	private void incrementMaxThreadNumber()
 	{
 		lock.lock();
 		try
 		{
-			Executor executor=getExecutor(Thread.currentThread());
-			if (executor!=null)
-			{
-				if (pausedThreads <Integer.MAX_VALUE) {
-					++pausedThreads;
-					return executor.launchChildIfNecessaryUnsafe();
-				}
-				else
-					throw new OutOfMemoryError();
+			if (pausedThreads <Integer.MAX_VALUE) {
+				++pausedThreads;
+				launchChildIfNecessaryUnsafe();
 			}
 			else
-				return null;
+				throw new OutOfMemoryError();
 		}
 		finally {
 			lock.unlock();
@@ -818,13 +831,18 @@ public class PoolExecutor implements ExecutorService {
 
 
 	public boolean wait(LockerCondition locker) throws InterruptedException {
-		ExecutorWrapper executorWrapper=incrementMaxThreadNumberIfCurrentThreadPartOfPoolExecutor();
-		if (executorWrapper!=null) {
-
+		Executor executor=getExecutor(Thread.currentThread());
+		if (executor!=null) {
+			boolean toIncrement=true;
 
 			try {
 				synchronized (locker.getLocker()) {
 					while (locker.isLocked() && !locker.isCanceled()) {
+						if (toIncrement)
+						{
+							toIncrement=false;
+							incrementMaxThreadNumber();
+						}
 						locker.beforeCycleLocking();
 						locker.getLocker().wait();
 						locker.afterCycleLocking();
@@ -832,7 +850,8 @@ public class PoolExecutor implements ExecutorService {
 				}
 
 			} finally {
-				executorWrapper.decrementMaxThreadNumber();
+				if (!toIncrement)
+					decrementMaxThreadNumber();
 			}
 			return true;
 		} else {
@@ -840,27 +859,36 @@ public class PoolExecutor implements ExecutorService {
 		}
 	}
 	public boolean wait(LockerCondition locker, long delay,TimeUnit unit) throws InterruptedException, TimeoutException {
-		ExecutorWrapper executorWrapper=incrementMaxThreadNumberIfCurrentThreadPartOfPoolExecutor();
-		if (executorWrapper!=null) {
-
+		if (delay==0)
+			throw new TimeoutException();
+		Executor executor=getExecutor(Thread.currentThread());
+		if (executor!=null) {
+			boolean toIncrement=true;
 			long start=System.currentTimeMillis();
 			delay=unit.toMillis(delay);
 			try {
 				synchronized (locker.getLocker()) {
 					while (locker.isLocked() && !locker.isCanceled()) {
+						if (toIncrement)
+						{
+							toIncrement=false;
+							incrementMaxThreadNumber();
+						}
+
 						locker.beforeCycleLocking();
 						locker.getLocker().wait(delay);
 						locker.afterCycleLocking();
 						long end=System.currentTimeMillis();
 						delay-=end-start;
-						if (delay<0)
+						if (delay<=0)
 							throw new TimeoutException();
 						start=end;
 					}
 				}
 
 			} finally {
-				executorWrapper.decrementMaxThreadNumber();
+				if (!toIncrement)
+					decrementMaxThreadNumber();
 			}
 			return true;
 		} else {
@@ -868,14 +896,21 @@ public class PoolExecutor implements ExecutorService {
 		}
 	}
 	public boolean wait(LockerCondition locker, Lock personalLocker, Condition personalCondition) throws InterruptedException {
-		ExecutorWrapper executorWrapper=incrementMaxThreadNumberIfCurrentThreadPartOfPoolExecutor();
-		if (executorWrapper!=null) {
 
+		Executor executor=getExecutor(Thread.currentThread());
+		if (executor!=null) {
 
+			boolean toIncrement=true;
 			try {
 				personalLocker.lock();
 				try{
 					while (locker.isLocked() && !locker.isCanceled()) {
+						if (toIncrement)
+						{
+							toIncrement=false;
+							incrementMaxThreadNumber();
+						}
+
 						locker.beforeCycleLocking();
 						personalCondition.await();
 						locker.afterCycleLocking();
@@ -886,7 +921,8 @@ public class PoolExecutor implements ExecutorService {
 				}
 
 			} finally {
-				executorWrapper.decrementMaxThreadNumber();
+				if (!toIncrement)
+					decrementMaxThreadNumber();
 
 			}
 			return true;
@@ -896,9 +932,12 @@ public class PoolExecutor implements ExecutorService {
 	}
 
 	public boolean wait(LockerCondition locker, Lock personalLocker, Condition personalCondition, long delay, TimeUnit unit) throws InterruptedException, TimeoutException {
-		ExecutorWrapper executorWrapper=incrementMaxThreadNumberIfCurrentThreadPartOfPoolExecutor();
-		if (executorWrapper!=null) {
+		if (delay==0)
+			throw new TimeoutException();
 
+		Executor executor=getExecutor(Thread.currentThread());
+		if (executor!=null) {
+			boolean toIncrement=true;
 			long start=System.nanoTime();
 			delay=unit.toNanos(delay);
 
@@ -907,13 +946,19 @@ public class PoolExecutor implements ExecutorService {
 
 				try{
 					while (locker.isLocked() && !locker.isCanceled()) {
+						if (toIncrement)
+						{
+							toIncrement=false;
+							incrementMaxThreadNumber();
+						}
+
 						locker.beforeCycleLocking();
 						if (!personalCondition.await(delay, TimeUnit.NANOSECONDS))
 							delay=-1;
 						locker.afterCycleLocking();
 						long end=System.nanoTime();
 						delay-=end-start;
-						if (delay<0)
+						if (delay<=0)
 							throw new TimeoutException();
 						start=end;
 					}
@@ -923,7 +968,8 @@ public class PoolExecutor implements ExecutorService {
 				}
 
 			} finally {
-				executorWrapper.decrementMaxThreadNumber();
+				if (!toIncrement)
+					decrementMaxThreadNumber();
 
 			}
 			return true;
@@ -932,9 +978,11 @@ public class PoolExecutor implements ExecutorService {
 		}
 	}
 	public boolean sleep(long duration, TimeUnit unit) throws InterruptedException {
-		ExecutorWrapper executorWrapper=this.incrementMaxThreadNumberIfCurrentThreadPartOfPoolExecutor();
-		if (executorWrapper!=null) {
-
+		if (duration==0)
+			return true;
+		Executor executor=getExecutor(Thread.currentThread());
+		if (executor!=null) {
+			incrementMaxThreadNumber();
 			duration=unit.toMillis(duration);
 
 			try {
@@ -942,7 +990,7 @@ public class PoolExecutor implements ExecutorService {
 					Thread.sleep(duration);
 
 			} finally {
-				executorWrapper.decrementMaxThreadNumber();
+				decrementMaxThreadNumber();
 			}
 			return true;
 		} else {
@@ -1000,18 +1048,7 @@ public class PoolExecutor implements ExecutorService {
 		private long timeOut;
 		private long start;
 
-		Executor() {
-		}
-		ExecutorWrapper launchChildIfNecessaryUnsafe()
-		{
-			if (!shutdownAsked)
-			{
-				if (needNewThreadUnsafe())
-					launchNewThreadUnsafe();
-				waitEventsCondition.signalAll();
-			}
-			return new ExecutorWrapper();
-		}
+
 
 		private void restartTimeOutUnsafe()
 		{
@@ -1022,7 +1059,7 @@ public class PoolExecutor implements ExecutorService {
 		{
 			long end=System.nanoTime();
 			timeOut-=end-start;
-			if (timeOut<0) {
+			if (timeOut<=0) {
 				if (canKillNewThreadUnsafe())
 					return true;
 				else
