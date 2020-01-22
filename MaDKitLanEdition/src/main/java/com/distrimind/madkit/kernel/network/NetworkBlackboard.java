@@ -48,7 +48,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.Task;
 import com.distrimind.madkit.kernel.TaskID;
-import com.distrimind.madkit.util.concurrent.LockerCondition;
+import com.distrimind.util.concurrent.LockerCondition;
 
 /**
  * 
@@ -58,7 +58,7 @@ import com.distrimind.madkit.util.concurrent.LockerCondition;
  */
 class NetworkBlackboard {
 	final AtomicLong totalDataInQueueForAllDistantKernelAgent = new AtomicLong(0);
-	final AtomicBoolean transfertPausedForAllDistantKernelAgent = new AtomicBoolean(false);
+	final AtomicBoolean transferPausedForAllDistantKernelAgent = new AtomicBoolean(false);
 	DistantKernelAgent currentCandidateForPurge = null;
 	final ArrayList<DistantKernelAgent> candidatesForPurge = new ArrayList<>();
 
@@ -150,8 +150,8 @@ class NetworkBlackboard {
 			new Exception("" + totalDataInQueueForAllDistantKernelAgent.get()).printStackTrace();
 			return false;
 		}
-		if (transfertPausedForAllDistantKernelAgent.get()) {
-			new Exception("" + transfertPausedForAllDistantKernelAgent.get()).printStackTrace();
+		if (transferPausedForAllDistantKernelAgent.get()) {
+			new Exception("" + transferPausedForAllDistantKernelAgent.get()).printStackTrace();
 			return false;
 		}
 		if (currentCandidateForPurge != null) {

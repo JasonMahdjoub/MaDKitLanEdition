@@ -2,6 +2,7 @@
 
 	<test name="allTests" junit="true">
 		<classes>
+			<class name="com.distrimind.madkit.kernel.TestChainedBlockingQueue"/>
   			<class name="com.distrimind.madkit.boot.process.NetworkOnTest"/>
   			<class name="com.distrimind.madkit.api.abstractAgent.BroadcastMessageAndWaitForRepliesTest"/>
   			<class name="com.distrimind.madkit.kernel.OverlookerTest"/>

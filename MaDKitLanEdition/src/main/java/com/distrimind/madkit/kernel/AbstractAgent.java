@@ -75,9 +75,9 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import com.distrimind.madkit.database.DifferedMessageTable;
 import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
-import com.distrimind.madkit.util.concurrent.LockerCondition;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedValue;
+import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.io.RandomInputStream;
 import com.distrimind.util.io.SecureExternalizable;
 import org.w3c.dom.DOMException;

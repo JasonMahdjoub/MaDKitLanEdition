@@ -51,8 +51,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.distrimind.madkit.util.concurrent.CircularArrayList;
-import com.distrimind.madkit.util.concurrent.PoolExecutor;
 import com.distrimind.util.OS;
 import com.distrimind.util.OSVersion;
 import org.fourthline.cling.UpnpService;
@@ -480,7 +478,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 							upnpService.getControlPoint().execute(new GetStatusInfo(service) {
 
 								@Override
-								public void failure(@SuppressWarnings("rawtypes") ActionInvocation _invocation,
+								public void failure(ActionInvocation _invocation,
 										UpnpResponse _operation, String _defaultMsg) {
 									if (getLogger1() != null)
 										getLogger1().warning(_defaultMsg);
@@ -516,7 +514,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 				upnpService.getControlPoint().execute(new GetStatusInfo(service) {
 
 					@Override
-					public void failure(@SuppressWarnings("rawtypes") ActionInvocation _invocation,
+					public void failure(ActionInvocation _invocation,
 							UpnpResponse _operation, String _defaultMsg) {
 
 						if (getLogger1() != null)
@@ -593,7 +591,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 							upnpService.getControlPoint().execute(new GetExternalIP(service) {
 
 								@Override
-								public void failure(@SuppressWarnings("rawtypes") ActionInvocation _invocation,
+								public void failure(ActionInvocation _invocation,
 										UpnpResponse _operation, String _defaultMsg) {
 									if (getLogger1() != null)
 										getLogger1().warning(_defaultMsg);
@@ -635,7 +633,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 				upnpService.getControlPoint().execute(new GetExternalIP(service) {
 
 					@Override
-					public void failure(@SuppressWarnings("rawtypes") ActionInvocation _invocation,
+					public void failure(ActionInvocation _invocation,
 							UpnpResponse _operation, String _defaultMsg) {
 
 						if (getLogger1() != null)
@@ -690,7 +688,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 				upnpService.getControlPoint().execute(new PortMappingAdd(service, pm) {
 
 					@Override
-					public void success(@SuppressWarnings("rawtypes") ActionInvocation _invocation) {
+					public void success(ActionInvocation _invocation) {
 						synchronized (desired_mappings) {
 							desired_mappings.add(pm);
 						}
@@ -701,7 +699,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 					}
 
 					@Override
-					public void failure(@SuppressWarnings("rawtypes") ActionInvocation _invocation,
+					public void failure(ActionInvocation _invocation,
 							UpnpResponse _operation, String _defaultMsg) {
 						if (index.get() < m.getExternalPortsRange().length) {
 							pm.setExternalPort(
@@ -732,7 +730,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 						upnpService.getControlPoint().execute(new PortMappingDelete(service, pm) {
 
 							@Override
-							public void success(@SuppressWarnings("rawtypes") ActionInvocation _invocation) {
+							public void success(ActionInvocation _invocation) {
 								synchronized (desired_mappings) {
 									desired_mappings.remove(pm);
 								}
@@ -740,7 +738,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 							}
 
 							@Override
-							public void failure(@SuppressWarnings("rawtypes") ActionInvocation _invocation,
+							public void failure(ActionInvocation _invocation,
 									UpnpResponse _operation, String _defaultMsg) {
 								handleFailureMessage("Impossible to remove port mapping : " + _defaultMsg);
 							}
@@ -773,7 +771,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 					upnpService.getControlPoint().execute(new PortMappingDelete(service, pm) {
 
 						@Override
-						public void success(@SuppressWarnings("rawtypes") ActionInvocation _invocation) {
+						public void success(ActionInvocation _invocation) {
 							synchronized (desired_mappings) {
 								desired_mappings.remove(pm);
 							}
@@ -792,7 +790,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 						}
 
 						@Override
-						public void failure(@SuppressWarnings("rawtypes") ActionInvocation _invocation,
+						public void failure(ActionInvocation _invocation,
 								UpnpResponse _operation, String _defaultMsg) {
 							handleFailureMessage("Impossible to remove port mapping : " + _defaultMsg);
 							try

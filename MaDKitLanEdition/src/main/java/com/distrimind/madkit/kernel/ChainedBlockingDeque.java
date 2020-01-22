@@ -1,7 +1,7 @@
 package com.distrimind.madkit.kernel;
 
-import com.distrimind.madkit.util.concurrent.LockerCondition;
 import com.distrimind.util.Reference;
+import com.distrimind.util.concurrent.LockerCondition;
 
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
@@ -14,7 +14,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * @author Jason Mahdjoub
  * @version 1.0
- * @since Utils 4.8.0
+ * @since MaDKitLanEdition 2.1.6
  */
 public class ChainedBlockingDeque<T> extends AbstractQueue<T> implements BlockingQueue<T>, Deque<T> {
 

@@ -58,8 +58,8 @@ import com.distrimind.madkit.message.hook.DistantKernelAgentEventMessage;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.message.hook.NetworkGroupsAccessEvent;
 import com.distrimind.madkit.message.hook.NetworkLoginAccessEvent;
-import com.distrimind.madkit.util.concurrent.LockerCondition;
 import com.distrimind.util.IDGeneratorInt;
+import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.crypto.MessageDigestType;
 import com.distrimind.util.io.*;
@@ -492,7 +492,7 @@ class DistantKernelAgent extends AgentFakeThread {
 								+ distant_kernel_address + ") : " + exeededDataSize);
 					synchronized (networkBlacboard) {
 						if (exeededDataSize.isPaused()
-								&& networkBlacboard.transfertPausedForAllDistantKernelAgent.get()) {
+								&& networkBlacboard.transferPausedForAllDistantKernelAgent.get()) {
 							if (exeededDataSize.mustPurge()) {
 								exeededDataSize.setReadingsToPurge(this.current_short_readings);
 								globalExeceededDataQueueSize.set(exeededDataSize);
@@ -554,7 +554,7 @@ class DistantKernelAgent extends AgentFakeThread {
 
 							}
 						} else {
-							if (!networkBlacboard.transfertPausedForAllDistantKernelAgent.get()) {
+							if (!networkBlacboard.transferPausedForAllDistantKernelAgent.get()) {
 								if (taskForPurgeCheck != null) {
 									cancelTask(taskForPurgeCheck, true);
 									taskForPurgeCheck = null;
@@ -926,14 +926,14 @@ class DistantKernelAgent extends AgentFakeThread {
 					asker.cancelTask(asker.taskForPurgeCheck, true);
 					asker.taskForPurgeCheck = null;
 				}
-				if (networkBlacboard.transfertPausedForAllDistantKernelAgent.get())
+				if (networkBlacboard.transferPausedForAllDistantKernelAgent.get())
 					asker.globalExeceededDataQueueSize.set(new ExceededDataQueueSize(networkBlacboard, false, true));
 				else
 					asker.globalExeceededDataQueueSize.set(null);
 				if (networkBlacboard.currentCandidateForPurge == asker) {
 					networkBlacboard.currentCandidateForPurge = null;
 					if (!networkBlacboard.candidatesForPurge.isEmpty()) {
-						if (networkBlacboard.transfertPausedForAllDistantKernelAgent.get())
+						if (networkBlacboard.transferPausedForAllDistantKernelAgent.get())
 							networkBlacboard.currentCandidateForPurge = networkBlacboard.candidatesForPurge
 									.remove(networkBlacboard.candidatesForPurge.size() - 1);
 						else {
@@ -3018,7 +3018,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			if (!value && hasToPauseGlobalTransfers())
 				return;
 
-			if (networkBlacboard.transfertPausedForAllDistantKernelAgent.compareAndSet(!value, value)) {
+			if (networkBlacboard.transferPausedForAllDistantKernelAgent.compareAndSet(!value, value)) {
 				if (logger != null && logger.isLoggable(Level.FINEST))
 					logger.finest("Set global transfer paused (distantInterfacedKernelAddress=" + distant_kernel_address
 							+ ", pause=" + value + ")");

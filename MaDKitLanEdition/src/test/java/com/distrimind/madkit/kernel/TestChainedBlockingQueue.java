@@ -1,6 +1,4 @@
-package com.distrimind.madkit.util.concurrent;
-
-import com.distrimind.madkit.kernel.ChainedBlockingDeque;
+package com.distrimind.madkit.kernel;
 
 import java.util.Deque;
 

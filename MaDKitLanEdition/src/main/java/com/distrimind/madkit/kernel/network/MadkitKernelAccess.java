@@ -40,9 +40,8 @@ package com.distrimind.madkit.kernel.network;
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.message.hook.HookMessage;
-import com.distrimind.madkit.util.concurrent.LockerCondition;
-import com.distrimind.madkit.util.concurrent.PoolExecutor;
 import com.distrimind.util.IDGeneratorInt;
+import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.io.MessageExternalizationException;
 import com.distrimind.util.io.RandomInputStream;
 import com.distrimind.util.io.RandomOutputStream;
@@ -266,6 +265,7 @@ class MadkitKernelAccess {
 		}
 	}*/
 
+	@SuppressWarnings("SameParameterValue")
 	static void dataCorrupted(BigDataPropositionMessage m, long dataTransfered, MessageExternalizationException e) {
 		try {
 			invoke(m_big_data_data_corrupted, m, dataTransfered, e);

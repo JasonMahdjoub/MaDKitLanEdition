@@ -39,7 +39,7 @@
 package com.distrimind.madkit.kernel;
 
 import com.distrimind.madkit.exceptions.SelfKillException;
-import com.distrimind.madkit.util.concurrent.LockerCondition;
+import com.distrimind.util.concurrent.LockerCondition;
 
 import java.util.concurrent.Callable;
 
@@ -68,7 +68,7 @@ import java.util.concurrent.Callable;
  * progressively.
  * 
  * To change the priority of these threads, call the function
- * {@link #setAgentsFakeThreadsPriority(int)}.
+ * {@link #setThreadPriorityOfMaDKItServiceExecutor(int)} (int)}.
  * 
  * 
  * @author Jason Mahdjoub

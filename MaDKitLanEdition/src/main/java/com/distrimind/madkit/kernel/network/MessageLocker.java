@@ -43,7 +43,7 @@ import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.Message;
-import com.distrimind.madkit.util.concurrent.LockerCondition;
+import com.distrimind.util.concurrent.LockerCondition;
 
 /**
  * 

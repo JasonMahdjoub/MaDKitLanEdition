@@ -142,7 +142,7 @@ final public class Madkit {
 		Calendar c = Calendar.getInstance();
 		c.set(2015, Calendar.MAY, 22);
 		Calendar c2 = Calendar.getInstance();
-		c2.set(2019, Calendar.JANUARY, 10);
+		c2.set(2019, Calendar.JANUARY, 22);
 		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)2, (short)1, (short)6, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
 		try {
 
@@ -165,9 +165,11 @@ final public class Madkit {
 			VERSION.addDeveloper(new PersonDeveloper("Ferber", "Jacques", c.getTime()));
 
 			c = Calendar.getInstance();
-			c.set(2020, Calendar.JANUARY, 20);
+			c.set(2020, Calendar.JANUARY, 22);
 			Description d = new Description((short)2, (short)1, (short)6, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Rewrite thread executors and scheduler executors");
+			d.addItem("Update Utils to 4.8.0");
+			d.addItem("Update OOD to 2.3.15");
+			d.addItem("Rewrite agent thread executors and thread pool executors");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();

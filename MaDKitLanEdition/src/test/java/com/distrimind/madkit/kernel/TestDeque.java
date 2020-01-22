@@ -1,5 +1,6 @@
-package com.distrimind.madkit.util.concurrent;
+package com.distrimind.madkit.kernel;
 
+import com.distrimind.util.CircularArrayList;
 import org.junit.Test;
 
 import java.util.Deque;

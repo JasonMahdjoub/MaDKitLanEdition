@@ -76,8 +76,8 @@ import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
 import com.distrimind.madkit.kernel.network.TransferAgent.TryDirectConnection;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
 import com.distrimind.madkit.message.ObjectMessage;
-import com.distrimind.madkit.util.concurrent.LockerCondition;
 import com.distrimind.util.Timer;
+import com.distrimind.util.concurrent.LockerCondition;
 
 /**
  * Represent an server socket selector for {@link SocketChannel}, and
