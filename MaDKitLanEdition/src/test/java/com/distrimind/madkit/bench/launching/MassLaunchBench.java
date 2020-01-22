@@ -42,12 +42,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
+import com.distrimind.madkit.kernel.*;
 import org.junit.Test;
 
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
-import com.distrimind.madkit.kernel.MadkitClassLoader;
-import com.distrimind.madkit.kernel.Role;
 import com.distrimind.madkit.performance.MiniAgent;
 import com.distrimind.madkit.testing.util.agent.NormalAA;
 import com.distrimind.madkit.testing.util.agent.PongAgent;
@@ -184,7 +181,7 @@ public class MassLaunchBench extends JunitMadkit {
 		addMadkitArgs("--agentLogLevel", "OFF");
 		launchTest(new AbstractAgent() {
 			@Override
-			protected void activate() {
+			protected void activate() throws InterruptedException {
 				if (logger != null) {
 					logger.info("\n******************* STARTING MASS LAUNCH *******************\n");
 				}
@@ -192,8 +189,24 @@ public class MassLaunchBench extends JunitMadkit {
 					startTimer();
 					System.err.println("begin");
 					for (int i = 0; i < 1_000_000; i++) {
+						if (i%10000==0) {
+							System.out.println("---------------------------");
+							System.out.println("Max number of threads " + getScheduledPoolExecutor(this).getMaximumNumberOfThreads());
+							System.out.println("Number of threads " + getScheduledPoolExecutor(this).getCurrentNumberOfExecutors());
+							System.out.println("Number of working threads " + getScheduledPoolExecutor(this).getCurrentNumberOfWorkingThreads());
+							System.out.println("Number of suspended threads " + getScheduledPoolExecutor(this).getCurrentNumberOfSuspendedThreads());
+							System.out.println("Number of tasks " + getScheduledPoolExecutor(this).getCurrentNumberOfWaitingTasks());
+
+						}
 						launchAgent(new AbstractAgent(), 0);
 					}
+					sleep(5000);
+					System.out.println("---------------------------");
+					System.out.println("Max number of threads " + getScheduledPoolExecutor(this).getMaximumNumberOfThreads());
+					System.out.println("Number of threads " + getScheduledPoolExecutor(this).getCurrentNumberOfExecutors());
+					System.out.println("Number of working threads " + getScheduledPoolExecutor(this).getCurrentNumberOfWorkingThreads());
+					System.out.println("Number of suspended threads " + getScheduledPoolExecutor(this).getCurrentNumberOfSuspendedThreads());
+					System.out.println("Number of tasks " + getScheduledPoolExecutor(this).getCurrentNumberOfWaitingTasks());
 					stopTimer("done ");
 				}
 			}

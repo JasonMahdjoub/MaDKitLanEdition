@@ -64,20 +64,20 @@ public class ScheduledPoolExecutor extends PoolExecutor implements ScheduledExec
 		super(minimumPoolSize, maximumPoolSize, keepAliveTime, unit, threadFactory, handler);
 	}
 
-	public ScheduledPoolExecutor(int minimumPoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, Deque<Runnable> workQueue) {
-		super(minimumPoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
+	public ScheduledPoolExecutor(int minimumPoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, int queueBaseSize) {
+		super(minimumPoolSize, maximumPoolSize, keepAliveTime, unit, queueBaseSize);
 	}
 
-	public ScheduledPoolExecutor(int minimumPoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, Deque<Runnable> workQueue, ThreadFactory threadFactory) {
-		super(minimumPoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory);
+	public ScheduledPoolExecutor(int minimumPoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, int queueBaseSize, ThreadFactory threadFactory) {
+		super(minimumPoolSize, maximumPoolSize, keepAliveTime, unit, queueBaseSize, threadFactory);
 	}
 
-	public ScheduledPoolExecutor(int minimumPoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, Deque<Runnable> workQueue, HandlerForFailedExecution handler) {
-		super(minimumPoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, handler);
+	public ScheduledPoolExecutor(int minimumPoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, int queueBaseSize, HandlerForFailedExecution handler) {
+		super(minimumPoolSize, maximumPoolSize, keepAliveTime, unit, queueBaseSize, handler);
 	}
 
-	public ScheduledPoolExecutor(int minimumPoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, Deque<Runnable> workQueue, ThreadFactory threadFactory, HandlerForFailedExecution handler) {
-		super(minimumPoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler);
+	public ScheduledPoolExecutor(int minimumPoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, int queueBaseSize, ThreadFactory threadFactory, HandlerForFailedExecution handler) {
+		super(minimumPoolSize, maximumPoolSize, keepAliveTime, unit, queueBaseSize, threadFactory, handler);
 	}
 
 	private class SF<T> extends PoolExecutor.Future<T> implements ScheduledFuture<T>
@@ -86,6 +86,10 @@ public class ScheduledPoolExecutor extends PoolExecutor implements ScheduledExec
 		public SF(Callable<T> callable, long initialDelay, TimeUnit unit) {
 			super(callable);
 			start=System.nanoTime()+unit.toNanos(initialDelay);
+		}
+		public SF(SF<T> o, long start) {
+			super(o);
+			this.start=start;
 		}
 
 		@Override
@@ -116,15 +120,18 @@ public class ScheduledPoolExecutor extends PoolExecutor implements ScheduledExec
 			super(callable, initialDelay, unit);
 			this.delay=unit.toNanos(delay);
 		}
+		public DelayedSF(DelayedSF<T> o) {
+			super(o, System.nanoTime()+o.delay);
+			this.delay=o.delay;
+		}
 
 		@Override
-		boolean repeat()
+		DelayedSF<T> repeat()
 		{
 			if (isCancelled())
-				return false;
-			isFinished=false;
-			start=System.nanoTime()+delay;
-			return true;
+				return null;
+
+			return new DelayedSF<>(this);
 		}
 
 		@Override
@@ -141,19 +148,17 @@ public class ScheduledPoolExecutor extends PoolExecutor implements ScheduledExec
 			super(callable, initialDelay, unit);
 			this.period=unit.toNanos(period);
 		}
+		public RatedSF(RatedSF<T> o) {
+			super(o, Math.min(o.start+o.period, System.nanoTime()));
+			this.period=o.period;
+		}
 
 		@Override
-		boolean repeat()
+		RatedSF<T> repeat()
 		{
 			if (isCancelled())
-				return false;
-
-			isFinished=false;
-			start+=period;
-			long c=System.nanoTime();
-			if (c>start)
-				start=c;
-			return true;
+				return null;
+			return new RatedSF<>(this);
 		}
 		@Override
 		public boolean isRepetitive() {
@@ -167,7 +172,8 @@ public class ScheduledPoolExecutor extends PoolExecutor implements ScheduledExec
 	{
 		lock.lock();
 		try {
-			ArrayList<Runnable> l=new ArrayList<>(workQueue);
+			ArrayList<Runnable> l=new ArrayList<>(workQueue.size()+scheduledFutures.size());
+			l.addAll(workQueue);
 			l.addAll(scheduledFutures);
 			return l;
 		}
@@ -256,26 +262,22 @@ public class ScheduledPoolExecutor extends PoolExecutor implements ScheduledExec
 		}
 	}
 	@Override
-	Runnable pollTaskUnsafe() {
-		Runnable r=null;
+	Future<?> pollTaskUnsafe() {
+
 		if (pull) {
 			if (timeOfFirstOccurrenceInNanos <=System.nanoTime()) {
 				pull=false;
-				r= scheduledFutures.pollFirst();
+				Future<?> r= scheduledFutures.pollFirst();
 				assert r!=null;
 				if (scheduledFutures.size()==0)
 					timeOfFirstOccurrenceInNanos =Long.MAX_VALUE;
 				else
 					timeOfFirstOccurrenceInNanos =scheduledFutures.first().start;
+				return r;
 			}
 		}
-		if (r==null) {
-			pull = true;
-			r=workQueue.poll();
-			if (r==null)
-				waitEmptyWorkingQueue.signalAll();
-		}
-		return r;
+		pull = true;
+		return super.pollTaskUnsafe();
 	}
 
 	@Override

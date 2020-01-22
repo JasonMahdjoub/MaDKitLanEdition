@@ -332,15 +332,7 @@ class MadkitKernel extends Agent {
 					}
 				});
 		lifeExecutor.start();*/
-		this.serviceExecutor = /*new ScheduledPoolExecutor(2, Math.min(Runtime.getRuntime().availableProcessors(), 2), 4L, TimeUnit.SECONDS,
-				new ThreadFactory() {
-					public Thread newThread(Runnable r) {
-						final Thread t = new Thread(daemonAgentThreadFactory.getThreadGroup(), r);
-						t.setPriority(threadPriorityForServiceExecutor);
-						t.setDaemon(false);
-						return t;
-					}
-				});*/createSchedulerServiceExecutor(SYSTEM, threadPriorityForServiceExecutor, true,
+		this.serviceExecutor = createSchedulerServiceExecutor(SYSTEM, threadPriorityForServiceExecutor, false,
 				SYSTEM.getName(), Math.min(Runtime.getRuntime().availableProcessors(), 2), 4L,
 				null);
 		this.serviceExecutor.start();
@@ -3278,20 +3270,11 @@ class MadkitKernel extends Agent {
 					getLogger().warning("Life executor not terminated !");
 					valid = false;
 				}
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+			} catch (InterruptedException ignored) {
+				//e.printStackTrace();
 				valid=false;
 			}
 
-			try {
-				if (!this.serviceExecutor.awaitTermination(10, TimeUnit.SECONDS)) {
-					getLogger().warning("Service executor not terminated !");
-					valid = false;
-				}
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-				valid=false;
-			}
 			if (valid && logger!=null)
 				logger.finer("***** Service executors terminated ********\n");
 			//this.lifeExecutor = null;

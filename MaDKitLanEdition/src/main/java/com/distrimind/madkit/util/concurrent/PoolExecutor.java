@@ -53,7 +53,7 @@ public class PoolExecutor implements ExecutorService {
 
 	private final int minimumNumberOfThreads;
 	private final int maximumNumberOfThreads;
-	final Deque<Runnable> workQueue;
+	final Deque<Future<?>> workQueue;
 	private final long keepAliveTime;
 	private final ThreadFactory threadFactory;
 	private final HandlerForFailedExecution handler;
@@ -64,7 +64,7 @@ public class PoolExecutor implements ExecutorService {
 	final ReentrantLock lock=new ReentrantLock();
 	final Condition waitEventsCondition =lock.newCondition();
 	final Condition waitEmptyWorkingQueue=lock.newCondition();
-	private final ArrayList<Executor> executors=new ArrayList<>();
+	private final HashMap<Thread, Executor> executors=new HashMap<>();
 	private final HashMap<Thread, DedicatedRunnable> dedicatedThreads=new HashMap<>();
 
 
@@ -86,33 +86,31 @@ public class PoolExecutor implements ExecutorService {
 
 	public PoolExecutor(int minimumNumberOfThreads, int maximumNumberOfThreads, long keepAliveTime, TimeUnit unit,
 						ThreadFactory threadFactory, HandlerForFailedExecution handler) {
-		this(minimumNumberOfThreads, maximumNumberOfThreads, keepAliveTime, unit, new CircularArrayList<Runnable>(256, true), threadFactory, handler);
+		this(minimumNumberOfThreads, maximumNumberOfThreads, keepAliveTime, unit, 256, threadFactory, handler);
 	}
-	public PoolExecutor(int minimumNumberOfThreads, int maximumNumberOfThreads, long keepAliveTime, TimeUnit unit, Deque<Runnable> workQueue) {
-		this(minimumNumberOfThreads, maximumNumberOfThreads, keepAliveTime, unit, workQueue, Executors.defaultThreadFactory(),
+	public PoolExecutor(int minimumNumberOfThreads, int maximumNumberOfThreads, long keepAliveTime, TimeUnit unit, int queueBaseSize) {
+		this(minimumNumberOfThreads, maximumNumberOfThreads, keepAliveTime, unit, queueBaseSize, Executors.defaultThreadFactory(),
 				defaultHandler);
 	}
 
 	public PoolExecutor(int minimumNumberOfThreads, int maximumNumberOfThreads, long keepAliveTime, TimeUnit unit,
-						Deque<Runnable> workQueue, ThreadFactory threadFactory) {
-		this(minimumNumberOfThreads, maximumNumberOfThreads, keepAliveTime, unit, workQueue, threadFactory, defaultHandler);
+						int queueBaseSize, ThreadFactory threadFactory) {
+		this(minimumNumberOfThreads, maximumNumberOfThreads, keepAliveTime, unit, queueBaseSize, threadFactory, defaultHandler);
 	}
 
 
 	public PoolExecutor(int minimumNumberOfThreads, int maximumNumberOfThreads, long keepAliveTime, TimeUnit unit,
-						Deque<Runnable> workQueue, HandlerForFailedExecution handler) {
-		this(minimumNumberOfThreads, maximumNumberOfThreads, keepAliveTime, unit, workQueue, Executors.defaultThreadFactory(), handler);
+						int queueBaseSize, HandlerForFailedExecution handler) {
+		this(minimumNumberOfThreads, maximumNumberOfThreads, keepAliveTime, unit, queueBaseSize, Executors.defaultThreadFactory(), handler);
 	}
 
 	public PoolExecutor(int minimumNumberOfThreads, int maximumNumberOfThreads, long keepAliveTime, TimeUnit unit,
-						Deque<Runnable> workQueue, ThreadFactory threadFactory, HandlerForFailedExecution handler) {
+						int queueBaseSize, ThreadFactory threadFactory, HandlerForFailedExecution handler) {
 		if (minimumNumberOfThreads < 1 || maximumNumberOfThreads < 1 || maximumNumberOfThreads < minimumNumberOfThreads || keepAliveTime < 0)
 			throw new IllegalArgumentException();
-		if (workQueue == null || threadFactory == null || handler == null)
-			throw new NullPointerException();
 		this.minimumNumberOfThreads = minimumNumberOfThreads;
 		this.maximumNumberOfThreads = maximumNumberOfThreads;
-		this.workQueue = workQueue;
+		this.workQueue = new CircularArrayList<>(queueBaseSize, true);
 		this.keepAliveTime = unit.toNanos(keepAliveTime);
 		this.threadFactory = threadFactory;
 		this.handler = handler;
@@ -125,7 +123,7 @@ public class PoolExecutor implements ExecutorService {
 		try
 		{
 			for (int i = 0; i<this.minimumNumberOfThreads; i++)
-				launchNewThreadUnsafe(true);
+				launchNewThreadUnsafe();
 		}
 		finally {
 			lock.unlock();
@@ -197,7 +195,9 @@ public class PoolExecutor implements ExecutorService {
 	{
 		lock.lock();
 		try {
-			return new ArrayList<>(workQueue);
+			ArrayList<Runnable> r=new ArrayList<>(workQueue.size());
+			r.addAll(workQueue);
+			return r;
 		}
 		finally {
 			lock.unlock();
@@ -246,8 +246,49 @@ public class PoolExecutor implements ExecutorService {
 		lock.lock();
 		try
 		{
-			for (Executor e : executors)
-				e.thread.setPriority(priority);
+			for (Thread t : executors.keySet())
+				t.setPriority(priority);
+		}
+		finally {
+			lock.unlock();
+		}
+	}
+
+	public int getCurrentNumberOfExecutors() {
+		lock.lock();
+		try
+		{
+			return executors.size();
+		}
+		finally {
+			lock.unlock();
+		}
+	}
+	public int getCurrentNumberOfWaitingTasks() {
+		lock.lock();
+		try
+		{
+			return workQueue.size();
+		}
+		finally {
+			lock.unlock();
+		}
+	}
+	public int getCurrentNumberOfSuspendedThreads() {
+		lock.lock();
+		try
+		{
+			return pausedThreads;
+		}
+		finally {
+			lock.unlock();
+		}
+	}
+	public int getCurrentNumberOfWorkingThreads() {
+		lock.lock();
+		try
+		{
+			return workingThreads;
 		}
 		finally {
 			lock.unlock();
@@ -256,13 +297,14 @@ public class PoolExecutor implements ExecutorService {
 
 	class Future<T> implements java.util.concurrent.Future<T>, Runnable
 	{
+		private boolean started;
 		private final Lock flock;
 		private final Callable<T> callable;
 		private volatile boolean isCancelled=false;
 		volatile boolean isFinished=false;
 		private volatile Thread thread;
 		private T res=null;
-		private Exception exception=null;
+		private volatile Exception exception=null;
 		private final Condition waitForComplete;
 
 		protected Future(Callable<T> callable) {
@@ -283,7 +325,34 @@ public class PoolExecutor implements ExecutorService {
 			this.callable = callable;
 			this.flock = flock;
 			this.waitForComplete=waitForComplete;
+			this.started=false;
 		}
+		@SuppressWarnings("CopyConstructorMissesField")
+		protected Future(Future<T> o) {
+			this.callable=o.callable;
+			this.flock=o.flock;
+			this.waitForComplete=o.waitForComplete;
+			this.started=false;
+		}
+
+		boolean take()
+		{
+			flock.lock();
+			try {
+				if (started)
+					return false;
+				else
+				{
+					started=true;
+					return true;
+				}
+			}
+			finally {
+				flock.unlock();
+			}
+
+		}
+
 		@Override
 		public void run()
 		{
@@ -359,50 +428,61 @@ public class PoolExecutor implements ExecutorService {
 		}
 
 		public T get(long timeout, TimeUnit unit, boolean timeoutUsed) throws InterruptedException, ExecutionException, TimeoutException {
-			ExecutorWrapper executorWrapper=incrementMaxThreadNumberIfCurrentThreadPartOfPoolExecutor();
-			flock.lock();
-			try {
-				if (timeoutUsed) {
-					long start = System.nanoTime();
-					timeout = unit.toNanos(timeout);
-					while (!isCancelled && !isFinished) {
-						if (!this.waitForComplete.await(timeout, TimeUnit.NANOSECONDS))
-							throw new TimeoutException();
-						long end = System.nanoTime();
-						timeout -= end - start;
-						if (timeout < 0)
-							throw new TimeoutException();
-						start = end;
+			if (!timeoutUsed && take())
+			{
+				if (isCancelled)
+					throw new CancellationException();
 
-					}
-				}
-				else
-				{
-					while (!isCancelled && !isFinished)
-					{
-						waitForComplete.await();
-					}
-				}
+				run();
 				if (isCancelled)
 					throw new CancellationException();
 				if (exception!=null)
 					throw new ExecutionException(exception);
-
 				return res;
+
 			}
-			finally {
-				flock.unlock();
-				if (executorWrapper!=null)
-					executorWrapper.decrementMaxThreadNumber();
+			else {
+				ExecutorWrapper executorWrapper = incrementMaxThreadNumberIfCurrentThreadPartOfPoolExecutor();
+				flock.lock();
+				try {
+					if (timeoutUsed) {
+						long start = System.nanoTime();
+						timeout = unit.toNanos(timeout);
+						while (!isCancelled && !isFinished) {
+							if (!this.waitForComplete.await(timeout, TimeUnit.NANOSECONDS))
+								throw new TimeoutException();
+							long end = System.nanoTime();
+							timeout -= end - start;
+							if (timeout < 0)
+								throw new TimeoutException();
+							start = end;
+
+						}
+					} else {
+						while (!isCancelled && !isFinished) {
+							waitForComplete.await();
+						}
+					}
+					if (isCancelled)
+						throw new CancellationException();
+					if (exception != null)
+						throw new ExecutionException(exception);
+
+					return res;
+				} finally {
+					flock.unlock();
+					if (executorWrapper != null)
+						executorWrapper.decrementMaxThreadNumber();
+				}
 			}
 		}
 		@Override
 		public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
 			return get(timeout, unit, true);
 		}
-		boolean repeat()
+		ScheduledFuture<T> repeat()
 		{
-			return false;
+			return null;
 		}
 
 	}
@@ -447,7 +527,9 @@ public class PoolExecutor implements ExecutorService {
 		final ArrayList<java.util.concurrent.Future<?>> res=new ArrayList<>(tasks.size());
 		for (Callable<?> c : tasks)
 		{
-			res.add(new Future<>(c));
+			Future<?> f=new Future<>(c);
+			f.started=true;
+			res.add(f);
 		}
 		final Reference<Thread> ref=new Reference<>();
 		DedicatedRunnable dr;
@@ -652,7 +734,18 @@ public class PoolExecutor implements ExecutorService {
 			throw new RejectedExecutionException();
 		lock.lock();
 		try {
-			if (!workQueue.add(command))
+			Future<?> f;
+			if (command instanceof Future<?>)
+				f=(Future<?>)command;
+			else
+				f=new Future<>(new Callable<Void>() {
+					@Override
+					public Void call() {
+						command.run();
+						return null;
+					}
+				});
+			if (!workQueue.add(f))
 				throw new RejectedExecutionException();
 			waitEventsCondition.signalAll();
 		}
@@ -675,29 +768,18 @@ public class PoolExecutor implements ExecutorService {
 
 	private Executor getExecutor(Thread thread)
 	{
-		for (Executor e : executors)
-		{
-			if (Objects.equals(e.thread, thread))
-				return e;
-		}
-		return null;
+		return executors.get(thread);
 	}
 
 	private class ExecutorWrapper
 	{
-		final Executor executor;
-
-		public ExecutorWrapper(Executor executor) {
-			this.executor = executor;
+		public ExecutorWrapper() {
 		}
 		private void decrementMaxThreadNumber() {
 			lock.lock();
 			try
 			{
 				--pausedThreads;
-				if (executor!=null) {
-					executor.core = false;
-				}
 			}
 			finally {
 				lock.unlock();
@@ -864,23 +946,34 @@ public class PoolExecutor implements ExecutorService {
 	}
 	private boolean needNewThreadUnsafe()
 	{
-		assert workingThreads<=executors.size();
-		return executors.size()-pausedThreads< minimumNumberOfThreads || (executors.size()<maximumNumberOfThreads && workingThreads==executors.size() && areWorkingQueuesEmptyUnsafe());
+		int nonPausedThreads=executors.size()-pausedThreads;
+		return nonPausedThreads< minimumNumberOfThreads || (nonPausedThreads<maximumNumberOfThreads && workingThreads>=nonPausedThreads && areWorkingQueuesEmptyUnsafe());
 	}
-	private Executor launchNewThreadUnsafe(boolean core)
+	private boolean canKillNewThreadUnsafe()
 	{
-		Executor executor=new Executor(core);
+		return executors.size()-pausedThreads> minimumNumberOfThreads;
+	}
+
+
+	private Executor launchNewThreadUnsafe()
+	{
+		Executor executor=new Executor();
 		Thread t=threadFactory.newThread(executor);
 		executor.thread=t;
-		executors.add(executor);
+		executors.put(t, executor);
 		t.start();
 		return executor;
 	}
 
 
-	Runnable pollTaskUnsafe()
+	Future<?> pollTaskUnsafe()
 	{
-		Runnable t=workQueue.poll();
+		Future<?> t;
+		while ((t=workQueue.poll())!=null) {
+			if (t.take())
+				break;
+		}
+
 		if (workQueue.isEmpty())
 			waitEmptyWorkingQueue.signalAll();
 		return t;
@@ -899,123 +992,122 @@ public class PoolExecutor implements ExecutorService {
 	private class Executor implements Runnable
 	{
 		Thread thread;
-		private boolean core;
-		Executor(boolean core) {
-			this.core = core;
+		boolean working=false;
+		private long timeOut;
+		private long start;
+
+		Executor() {
 		}
 		ExecutorWrapper launchChildIfNecessaryUnsafe()
 		{
-			if (shutdownAsked)
-				return new ExecutorWrapper(null);
-			waitEventsCondition.signalAll();
-			if (!needNewThreadUnsafe())
+			if (!shutdownAsked)
 			{
-				for (Executor e : executors)
-				{
-					if (!e.core) {
-						e.core = true;
-
-						return new ExecutorWrapper(e);
-					}
-				}
+				if (needNewThreadUnsafe())
+					launchNewThreadUnsafe();
+				waitEventsCondition.signalAll();
 			}
-			return new ExecutorWrapper(launchNewThreadUnsafe(true));
+			return new ExecutorWrapper();
 		}
 
+		private void restartTimeOutUnsafe()
+		{
+			timeOut=keepAliveTime;
+			start=System.nanoTime();
+		}
+		private boolean mustDieUnsafe()
+		{
+			long end=System.nanoTime();
+			timeOut-=end-start;
+			if (timeOut<0) {
+				if (canKillNewThreadUnsafe())
+					return true;
+				else
+					start=System.nanoTime();
+			}
+			else {
+				start = end;
+			}
+			return false;
+
+		}
 
 
 		@Override
 		public void run() {
-			boolean working=false;
+
 			try {
 				ScheduledFuture<?> toRepeat=null;
 
 				for (; ; ) {
-					Runnable task = null;
-					long timeout = keepAliveTime;
-					long start = System.nanoTime();
+					Future<?> task = null;
 
 					lock.lock();
-					if (working)
+					if (working) {
 						--workingThreads;
+						working = false;
+					}
+
 					if (toRepeat!=null) {
 						repeatUnsafe(toRepeat);
-						toRepeat = null;
 					}
 					try {
+
+						restartTimeOutUnsafe();
 
 						while (!shutdownAsked && (task = pollTaskUnsafe()) == null) {
 							try {
 								long timeToWait = timeToWaitBeforeNewTaskScheduledInNanoSeconds()-System.nanoTime();
 								if (timeToWait<=0)
 									continue;
-								if (timeToWait != Long.MAX_VALUE && (core || timeout > timeToWait)) {
+
+								if (timeOut > timeToWait) {
 									waitEventsCondition.await(timeToWait + 1, TimeUnit.NANOSECONDS);
-									if (!core) {
-										long end = System.nanoTime();
-										timeout -= (System.nanoTime() - start);
-										if (timeout < 0 && !core)
-											return;
-										start = end;
-									}
 								}
 								else {
-									if (core) {
-										waitEventsCondition.await();
-									} else {
-
-										if (!waitEventsCondition.await(timeout, TimeUnit.NANOSECONDS) && !core)
-											return;
-										long end = System.nanoTime();
-										timeout -= (System.nanoTime() - start);
-										if (timeout < 0 && !core)
-											return;
-										start = end;
-
-									}
+									if (!waitEventsCondition.await(timeOut+1, TimeUnit.NANOSECONDS)/* && !core*/)
+										timeOut=-1;
 								}
+								if (mustDieUnsafe())
+									return;
 							} catch (InterruptedException ignored) {
-								return;
+								if (shutdownAsked)
+									return;
+								if (mustDieUnsafe())
+									return;
 							}
 						}
-
-						++workingThreads;
-						working=true;
+						if (!shutdownAsked) {
+							++workingThreads;
+							working = true;
+						}
 						while (needNewThreadUnsafe()) {
-							launchNewThreadUnsafe(false);
+							launchNewThreadUnsafe();
 						}
 						waitEventsCondition.signalAll();
 
 					} finally {
 						lock.unlock();
 					}
+
 					if (shutdownAsked) {
-						if (task instanceof Future) {
-							Future<?> f = (Future<?>) task;
-							f.cancel(false);
-						}
+						if (task!=null)
+							task.cancel(false);
 						return;
 					}
 					assert task != null;
 
 					task.run();
 
-					if (task instanceof Future) {
-
-						Future<?> f = (Future<?>) task;
-						if (f.repeat()) {
-							toRepeat=(ScheduledFuture<?>) f;
-						}
-
-					}
+					toRepeat=task.repeat();
 				}
 			}
 			finally {
 				lock.lock();
 				try {
-					if (working)
+					if (working) {
 						--workingThreads;
-					executors.remove(this);
+					}
+					executors.remove(this.thread);
 				}
 				finally {
 					lock.unlock();

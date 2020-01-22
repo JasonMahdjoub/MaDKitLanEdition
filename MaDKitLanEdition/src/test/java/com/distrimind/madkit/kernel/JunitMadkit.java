@@ -47,6 +47,7 @@ import com.distrimind.madkit.kernel.network.NetworkEventListener;
 import com.distrimind.madkit.message.KernelMessage;
 import com.distrimind.madkit.testing.util.agent.ForEverAgent;
 import com.distrimind.madkit.util.concurrent.LockerCondition;
+import com.distrimind.madkit.util.concurrent.ScheduledPoolExecutor;
 import com.distrimind.ood.database.DatabaseFactory;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.Timer;
@@ -266,6 +267,11 @@ public class JunitMadkit {
 			public void onMadkitPropertiesLoaded(MadkitProperties _properties) {
 			}
 		});
+	}
+
+	public ScheduledPoolExecutor getScheduledPoolExecutor(AbstractAgent agent)
+	{
+		return agent.getMadkitKernel().getMadkitServiceExecutor();
 	}
 
 	public static KernelAddress getKernelAddressInstance() {
