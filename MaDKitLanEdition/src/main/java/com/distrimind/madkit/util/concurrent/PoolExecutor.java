@@ -452,8 +452,16 @@ public class PoolExecutor implements ExecutorService {
 			}
 			else {
 				Executor executor=getExecutor(Thread.currentThread());
+				boolean candidateForTimeOut=false;
+				long start=0;
+				if (timeoutUsed) {
+					start=System.nanoTime();
+					timeout = unit.toNanos(timeout);
+					if (timeout <= 0)
+						candidateForTimeOut = true;
+				}
 				if (executor!=null) {
-					if (doesWait())
+					if (!candidateForTimeOut && doesWait())
 						incrementMaxThreadNumber();
 					else
 						executor=null;
@@ -461,12 +469,8 @@ public class PoolExecutor implements ExecutorService {
 
 				flock.lock();
 				try {
-					boolean candidateForTimeOut=false;
+
 					if (timeoutUsed) {
-						long start = System.nanoTime();
-						timeout = unit.toNanos(timeout);
-						if (timeout<=0)
-							candidateForTimeOut=true;
 						while (!candidateForTimeOut && doesWait()) {
 							if (this.waitForComplete.await(timeout, TimeUnit.NANOSECONDS)) {
 								long end = System.nanoTime();
