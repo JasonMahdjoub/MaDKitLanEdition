@@ -1568,10 +1568,12 @@ final class NIOAgent extends Agent {
 						
 						@Override
 						public boolean isLocked() {
-
+							//NoBackData first=noBackDataToSend.getFirst();
 							NoBackData first=noBackDataToSend.peekFirst();
 							try
 							{
+								/*hasData.set(noBackDataToSend.size()>0);
+								validData.set(noBackDataToSend.size()>0 && first.isReady());*/
 								hasData.set(first!=null);
 								validData.set(first!=null && first.isReady());
 							}
@@ -1580,6 +1582,7 @@ final class NIOAgent extends Agent {
 								exception.set(e);
 								return false;
 							}
+							//return exception.get()==null && hasData.get() && (!validData.get() || first.isCanceled() || agentSocket.getState().compareTo(AbstractAgent.State.ENDING)>=0);
 							return exception.get()==null && first!=null && (!validData.get() || first.isCanceled() || agentSocket.getState().compareTo(AbstractAgent.State.ENDING)>=0);
 						}
 

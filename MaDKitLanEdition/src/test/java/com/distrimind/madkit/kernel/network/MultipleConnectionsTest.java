@@ -353,8 +353,9 @@ public class MultipleConnectionsTest extends JunitMadkit {
 						Assert.assertFalse(isAgentsPresentInGroup(m, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, null, true, null));
 					}
 
-					sleep(800);
+
 					System.out.println("second round");
+					sleep(800);
 					// second round
 					index = 0;
 					for (Madkit m : getHelperInstances(this, 5)) {
