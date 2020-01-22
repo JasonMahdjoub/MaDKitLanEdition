@@ -305,6 +305,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 				ConversationID otherConversationID = otherStat == null ? null : m.getConversationID();
 				ok &= myTransferID != otherConversationID;
 				Assert.assertNotSame(m.toString()+" ; myTransferID="+myTransferID+" ; otherConversationID="+otherConversationID+" ; isLocal="+isLocal+" ; shortData="+sendShortData, myTransferID, otherConversationID);
+
 				if (accept) {
 
 					ok &= (inputStream == null || m.getTransferedDataLength() == inputStream.length())
