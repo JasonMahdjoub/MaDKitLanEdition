@@ -365,6 +365,7 @@ public class MultipleConnectionsTest extends JunitMadkit {
 					}
 					index = 0;
 					for (Madkit m : getHelperInstances(this, 5)) {
+
 						if (index++ == 0) {
 							checkConnectedKernelsNb(this, m, 4, timeOut);
 							checkConnectedIntancesNb(this, m, 8, timeOut);

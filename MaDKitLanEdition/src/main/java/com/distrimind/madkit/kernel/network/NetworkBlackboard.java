@@ -62,7 +62,7 @@ class NetworkBlackboard {
 	DistantKernelAgent currentCandidateForPurge = null;
 	final ArrayList<DistantKernelAgent> candidatesForPurge = new ArrayList<>();
 
-	private final HashMap<KernelAddress, KernelAddressInterfaced> distant_kernel_addresses = new HashMap<>();
+	//private final HashMap<KernelAddress, KernelAddressInterfaced> distant_kernel_addresses = new HashMap<>();
 	protected final HashMap<KernelAddress, LockerCondition> lockerForSimultaneousConnections = new HashMap<>();
 
 	void lockForSimultaneousConnections(DistantKernelAgent agent, KernelAddress kernelAddress)
@@ -127,9 +127,9 @@ class NetworkBlackboard {
 
 	}
 
-	void addDistantKernelAddressInterfaced(KernelAddressInterfaced kai) {
+	/*boolean addDistantKernelAddressInterfaced(KernelAddressInterfaced kai) {
 		synchronized (distant_kernel_addresses) {
-			distant_kernel_addresses.put(kai.getOriginalKernelAddress(), kai);
+			return distant_kernel_addresses.put(kai.getOriginalKernelAddress(), kai)==null;
 		}
 	}
 
@@ -143,7 +143,7 @@ class NetworkBlackboard {
 		synchronized (distant_kernel_addresses) {
 			return distant_kernel_addresses.get(originalKernelAddress);
 		}
-	}
+	}*/
 
 	boolean checkDistantKernelAgentCandidateForPurgeEmpty() {
 		if (totalDataInQueueForAllDistantKernelAgent.get() != 0) {
@@ -166,17 +166,17 @@ class NetworkBlackboard {
 
 	}
 
-	boolean checkDistantKernelAddressPurged() {
+	/*boolean checkDistantKernelAddressPurged() {
 		if (!distant_kernel_addresses.isEmpty()) {
 			new Exception("" + distant_kernel_addresses.size()).printStackTrace();
 			return false;
 		} else
 			return true;
 
-	}
+	}*/
 
 	boolean checkBlackboardEmpty() {
-		return checkDistantKernelAddressPurged() && checkDistantKernelAgentCandidateForPurgeEmpty();
+		return /*checkDistantKernelAddressPurged() &&*/ checkDistantKernelAgentCandidateForPurgeEmpty();
 	}
 
 	protected TaskID taskIDToRemoveDatatagramMessages = null;

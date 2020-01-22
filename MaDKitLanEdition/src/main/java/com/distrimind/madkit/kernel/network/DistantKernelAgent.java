@@ -137,8 +137,8 @@ class DistantKernelAgent extends AgentFakeThread {
 			}
 
 		}
-		if (distant_kernel_address != null && kernelAddressActivated)
-			networkBlacboard.removeDistantKernelAddressInterfaced(distant_kernel_address);
+		/*if (distant_kernel_address != null && kernelAddressActivated)
+			networkBlacboard.removeDistantKernelAddressInterfaced(distant_kernel_address);*/
 		if (stats != null && kernelAddressActivated)
 			getMadkitConfig().networkProperties.removeStatsBandwidth(distant_kernel_address);
 
@@ -1062,7 +1062,9 @@ class DistantKernelAgent extends AgentFakeThread {
 			updateSharedAcceptedGroups(true, true);
 			informHooksForLoginData();
 
-			networkBlacboard.addDistantKernelAddressInterfaced(distant_kernel_address);
+			/*if (!networkBlacboard.addDistantKernelAddressInterfaced(distant_kernel_address))
+				if (logger != null)
+					logger.severe("Distant kernel address already affected : "+distant_kernel_address);*/
 			potentialChangementsInGroups();
 			networkBlacboard.unlockSimultaneousConnections(distant_kernel_address);
 		} else {
@@ -2010,12 +2012,18 @@ class DistantKernelAgent extends AgentFakeThread {
 			if (obj==null)
 				return null;
 			if (obj.getClass() == KernelAddress.class) {
-				KernelAddressInterfaced kai = networkBlacboard.getKernelAddressInterfaced((KernelAddress) obj);
+				KernelAddress ka=(KernelAddress) obj;
+				if (distant_kernel_address!=null && ka.equals(distant_kernel_address.getOriginalKernelAddress()))
+					return distant_kernel_address;
+				else
+					return ka;
+
+				/*KernelAddressInterfaced kai = networkBlacboard.getKernelAddressInterfaced((KernelAddress) obj);
 				if (kai != null)
 					return kai;
 				else {
 					return obj;
-				}
+				}*/
 			} else if (obj instanceof ConversationID) {
 				/*if (obj.getClass() == BigDataTransferID.class) {
 					return MadkitKernelAccess.getBigDataTransferIDInstance(
