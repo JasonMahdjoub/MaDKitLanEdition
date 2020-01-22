@@ -432,6 +432,11 @@ public class PoolExecutor implements ExecutorService {
 			return false;
 		}
 
+		private boolean doesWait()
+		{
+			return !isCancelled && !isFinished;
+		}
+
 		public T get(long timeout, TimeUnit unit, boolean timeoutUsed) throws InterruptedException, ExecutionException, TimeoutException {
 			if (!timeoutUsed&& !isRepetitive() && take())
 			{
@@ -447,8 +452,12 @@ public class PoolExecutor implements ExecutorService {
 			}
 			else {
 				Executor executor=getExecutor(Thread.currentThread());
-				if (executor!=null)
-					incrementMaxThreadNumber();
+				if (executor!=null) {
+					if (doesWait())
+						incrementMaxThreadNumber();
+					else
+						executor=null;
+				}
 
 				flock.lock();
 				try {
@@ -458,7 +467,7 @@ public class PoolExecutor implements ExecutorService {
 						timeout = unit.toNanos(timeout);
 						if (timeout<=0)
 							candidateForTimeOut=true;
-						while (!candidateForTimeOut && !isCancelled && !isFinished) {
+						while (!candidateForTimeOut && doesWait()) {
 							if (this.waitForComplete.await(timeout, TimeUnit.NANOSECONDS)) {
 								long end = System.nanoTime();
 								timeout -= end - start;
@@ -474,7 +483,7 @@ public class PoolExecutor implements ExecutorService {
 
 						}
 					} else {
-						while (!isCancelled && !isFinished) {
+						while (doesWait()) {
 							waitForComplete.await();
 						}
 					}
