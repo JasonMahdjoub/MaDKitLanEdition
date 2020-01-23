@@ -2330,12 +2330,12 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						if (secretMessages != null) {
 							for (Map.Entry<AgentAddress, SecretMessage> entry : secretMessages.entrySet()) {
 								if (sm.equals(entry.getValue())) {
-
 									validateKernelAddress(entry.getKey());
 									break;
 								}
 							}
 						}
+
 					} else if (sm.getAgentSocketAddress().isFrom(this.getKernelAddress()))
 						sendMessageWithRole(sm.getAgentSocketAddress(), new ObjectMessage<>(sm),
 								LocalCommunity.Roles.SOCKET_AGENT_ROLE);

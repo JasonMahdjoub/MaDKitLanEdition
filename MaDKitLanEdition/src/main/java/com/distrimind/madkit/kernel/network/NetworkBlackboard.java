@@ -92,7 +92,7 @@ class NetworkBlackboard {
 							return false;
 						}
 						return locked && !alreadyLockedOneTime;
-							
+
 					}
 				}
 			};
