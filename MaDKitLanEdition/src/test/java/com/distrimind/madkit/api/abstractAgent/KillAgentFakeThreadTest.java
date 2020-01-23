@@ -316,6 +316,7 @@ public class KillAgentFakeThreadTest extends JunitMadkit {
 							ReturnCode r2 = killAgent(agt, (int) (Math.random() * 2));
 							assertTrue(SUCCESS == r2 || TIMEOUT == r2);
 						}
+						JunitMadkit.pause(This, 5000);
 					}
 				};
 				Thread t = new Thread(job);
@@ -359,7 +360,7 @@ public class KillAgentFakeThreadTest extends JunitMadkit {
 				SimpleAgentFakeThread a = new SimpleAgentFakeThread();
 				assertEquals(SUCCESS, launchAgent(a));
 				assertNotNull(a);
-				assertEquals(SUCCESS, killAgent(a, 1));
+				assertEquals(SUCCESS, killAgent(a, 2));
 				ReturnCode res = killAgent(a, 2);
 				assertSame(ALREADY_KILLED, res);
 				JunitMadkit.pause(this, 1500);
@@ -381,7 +382,7 @@ public class KillAgentFakeThreadTest extends JunitMadkit {
 				assertAgentIsTerminated(a);
 				SimpleAgentFakeThread b = (SimpleAgentFakeThread) launchAgent(SimpleAgentFakeThread.class.getName(),
 						10);
-				killAgent(b, 0);
+				killAgent(b, 1);
 				JunitMadkit.pause(this, 100);
 				assertAgentIsTerminated(b);
 			}

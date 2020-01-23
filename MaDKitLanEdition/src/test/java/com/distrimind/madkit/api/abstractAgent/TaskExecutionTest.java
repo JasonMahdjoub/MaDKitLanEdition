@@ -111,7 +111,7 @@ class TaskAgentTester extends AbstractAgent {
 		Assert.assertEquals(3, taskExecutionNumber.get());
 		JunitMadkit.pause(this, 500);
 		Assert.assertEquals(4, taskExecutionNumber.get());
-		JunitMadkit.pause(this, 500);
+		JunitMadkit.pause(this, 600);
 		Assert.assertEquals(5, taskExecutionNumber.get());
 		CT(id);
 		Assert.assertTrue(id.isCanceled());

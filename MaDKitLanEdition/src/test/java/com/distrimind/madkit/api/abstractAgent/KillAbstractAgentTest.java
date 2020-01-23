@@ -154,7 +154,7 @@ public class KillAbstractAgentTest extends JunitMadkit {
 				startTimer();
 				for (AbstractAgent a : list) {
 					// killAgent(a,0);
-					assertEquals(SUCCESS, killAgent(a, 1));
+					assertEquals(SUCCESS, killAgent(a, 10));
 				}
 				stopTimer("kill time ");
 			}
@@ -238,7 +238,7 @@ public class KillAbstractAgentTest extends JunitMadkit {
 				ReturnCode r = launchAgent(new SelfKillAA(true), 1);
 				assertTrue(r == SUCCESS || r == AGENT_CRASH);
 				AbstractAgent a = new SelfKillAA(false, true);
-				assertEquals(SUCCESS, launchAgent(a, 1));
+				assertEquals(SUCCESS, launchAgent(a, 2));
 				assertEquals(SUCCESS, killAgent(a, 1));
 			}
 		});

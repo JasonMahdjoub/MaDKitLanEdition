@@ -2452,7 +2452,10 @@ class MadkitKernel extends Agent {
 					}
 				});
 		try {
-			return killAttempt.get(timeOutSeconds, TimeUnit.MILLISECONDS);
+			if (timeOutSeconds==0)
+				return killAttempt.get(1, TimeUnit.MILLISECONDS);
+			else
+				return killAttempt.get(timeOutSeconds, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {// requester has been killed or
 											// something
 			// requester.handleInterruptedException();
@@ -2484,9 +2487,7 @@ class MadkitKernel extends Agent {
 			}
 			// this has to be done by a system thread : the job must be done
 			if (!target.getAlive().compareAndSet(true, false)) {
-
 				if (target.isKillingInProgress() || target.getState().equals(LIVING)) {
-
 					zombieDetected(target.getState(), target);
 					return ReturnCode.KILLING_ALREADY_IN_PROGRESS;
 				} else

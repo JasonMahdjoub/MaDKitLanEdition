@@ -1242,6 +1242,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 			if (isFinestLogOn())
 				logger.log(Level.FINEST, Influence.KILL_AGENT + " (" + timeOutSeconds + ")" + target.getName() + "...");
 			// if (alive.compareAndSet(true, false)) {
+			if (state.get().compareTo(ENDING)>=0)
+				return ReturnCode.KILLING_ALREADY_IN_PROGRESS;
 			if (alive.get()) {
 				throw new SelfKillException("" + timeOutSeconds, this, timeOutSeconds, KillingType.JUST_KILL_IT);
 			}
