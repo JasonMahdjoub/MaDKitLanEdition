@@ -107,6 +107,9 @@ public abstract class DoItDuringLifeCycleAgent extends Agent {
 				logger.info("Doing It in end!!");
 			doIt();
 		}
+		else
+		if (logger != null)
+			logger.info("Do not doing It in end!!");
 	}
 
 	public void doIt() throws InterruptedException {

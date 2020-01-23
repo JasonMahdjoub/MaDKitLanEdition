@@ -165,11 +165,11 @@ final public class Madkit {
 			VERSION.addDeveloper(new PersonDeveloper("Ferber", "Jacques", c.getTime()));
 
 			c = Calendar.getInstance();
-			c.set(2020, Calendar.JANUARY, 22);
+			c.set(2020, Calendar.JANUARY, 23);
 			Description d = new Description((short)2, (short)1, (short)6, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update Utils to 4.8.0");
-			d.addItem("Update OOD to 2.3.15");
-			d.addItem("Rewrite agent thread executors and thread pool executors");
+			d.addItem("Update Utils to 4.8.3");
+			d.addItem("Update OOD to 2.3.18");
+			d.addItem("Rewrite agent thread executors and thread pool executors.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();

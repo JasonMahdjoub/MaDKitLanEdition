@@ -2349,7 +2349,6 @@ class MadkitKernel extends Agent {
 							 * if (agent instanceof AgentFakeThread)
 							 * ((AgentFakeThread)agent).initiateTaskExecutor();
 							 */
-
 							return agent.activation();
 						}
 
@@ -2453,13 +2452,11 @@ class MadkitKernel extends Agent {
 					}
 				});
 		try {
-			if (timeOutSeconds == 0)
-				return killAttempt.get(0, TimeUnit.MILLISECONDS);
-			else
-				return killAttempt.get();
+			return killAttempt.get(timeOutSeconds, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {// requester has been killed or
 											// something
 			// requester.handleInterruptedException();
+
 			return TIMEOUT;
 		} catch (TimeoutException e) {
 			zombieDetected(State.ENDING, target);
@@ -2476,7 +2473,6 @@ class MadkitKernel extends Agent {
 			KillingType killing_type) {
 
 		target.waitUntilReadyForKill();
-
 		synchronized (target.state) {
 
 			if (killing_type.equals(KillingType.WAIT_AGENT_PURGE_ITS_MESSAGES_BOX_BEFORE_KILLING_IT)) {
@@ -2585,8 +2581,9 @@ class MadkitKernel extends Agent {
 				target.state.set(State.ZOMBIE);
 				target.state.get().setPreviousState(previous);
 				target.state.notifyAll();
-			} else
+			} else {
 				target.state.set(State.TERMINATED);
+			}
 			target.state.notifyAll();
 		}
 		if (zombie) {
@@ -2630,17 +2627,15 @@ class MadkitKernel extends Agent {
 	}
 
 	private ReturnCode killThreadedAgent(final Agent target) {
-
 		synchronized (target.state) {
 
 			if (target.state.get().equals(State.ENDING) || target.state.get().equals(State.ZOMBIE)
 					|| target.state.get().equals(State.WAIT_FOR_KILL))
 				target.getAgentExecutor().cancelEnd(true);
-			target.state.set(State.ENDING);
-
+			if (!target.state.get().equals(State.ZOMBIE))
+				target.state.set(State.ENDING);
 			target.getAgentExecutor().cancelLive(true);
 			target.getAgentExecutor().cancelActivate(true);
-
 			try {
 				LockerCondition locker = new LockerCondition() {
 
@@ -2649,6 +2644,7 @@ class MadkitKernel extends Agent {
 						return !target.state.get().equals(State.TERMINATED);
 					}
 				};
+
 				locker.setLocker(target.state);
 				this.wait(this, locker);
 			} catch (InterruptedException e) {

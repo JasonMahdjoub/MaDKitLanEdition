@@ -42,6 +42,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.logging.Level;
 
+import com.distrimind.madkit.kernel.Agent;
 import org.junit.Test;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
@@ -83,9 +84,11 @@ public class KillUnstoppableAgentTest extends JunitMadkit {
 			protected void activate() {
 				AbstractAgent unstopableAgent = new UnstopableAgent(true, true, false);
 				assertEquals(TIMEOUT, launchAgent(unstopableAgent, 1));
+
 				if (logger != null)
 					logger.info(unstopableAgent.getState().toString());
 				assertEquals(TIMEOUT, killAgent(unstopableAgent, 0));
+				//assertAgentIsZombie(unstopableAgent);
 				JunitMadkit.pause(this, 100);
 				assertAgentIsZombie(unstopableAgent);
 

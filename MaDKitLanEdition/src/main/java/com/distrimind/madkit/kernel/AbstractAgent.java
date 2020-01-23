@@ -499,7 +499,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	private void postActivate() {
 		synchronized (state) {
 			if (!state.compareAndSet(State.ACTIVATING, State.ACTIVATED))
-				throw new AssertionError("not init in activation");
+				throw new AssertionError("not init in activation : ");
 
 			state.notifyAll();
 		}
@@ -537,6 +537,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		try {
 			activationFirstStage();// the activated flag must be in the try
 			activate();
+
 			/*
 			 * if (this instanceof AgentFakeThread) { AgentFakeThread
 			 * This=(AgentFakeThread)this; for (Message m : This.messageBox)
@@ -561,7 +562,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 			validateDeathOnException(e, LIVING);
 		}
 
-		logMethod(false);
+		//logMethod(false);
+
 		return result;
 	}
 
@@ -1244,7 +1246,6 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 				throw new SelfKillException("" + timeOutSeconds, this, timeOutSeconds, KillingType.JUST_KILL_IT);
 			}
 		}
-
 		return getKernel().killAgent(this, target, timeOutSeconds, killing_type);
 	}
 
