@@ -39,10 +39,7 @@
 package com.distrimind.madkit.kernel;
 
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
-import static com.distrimind.madkit.kernel.AbstractAgent.State.ENDING;
-import static com.distrimind.madkit.kernel.AbstractAgent.State.INITIALIZING;
-import static com.distrimind.madkit.kernel.AbstractAgent.State.LIVING;
-import static com.distrimind.madkit.kernel.AbstractAgent.State.TERMINATED;
+import static com.distrimind.madkit.kernel.AbstractAgent.State.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -184,7 +181,7 @@ import com.distrimind.util.crypto.MessageDigestType;
 public class AbstractAgent implements Comparable<AbstractAgent> {
 
 	private final static transient AtomicLong agentCounter = new AtomicLong(
-			(long) (Math.random() * (double) Integer.MAX_VALUE));
+			(long) (Math.random() * ((double) Integer.MAX_VALUE)));
 
 	static final transient MadkitKernel FAKE_KERNEL = new FakeKernel();
 	private static final transient MadkitKernel TERMINATED_KERNEL = new TerminatedKernel();
@@ -192,7 +189,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	final AtomicReference<State> state = new AtomicReference<>(State.NOT_LAUNCHED);
 	transient MadkitKernel kernel = FAKE_KERNEL;
 
-	final private long agentID;
+	private long agentID;
 
 	private boolean hasGUI;
 	/**
@@ -203,6 +200,20 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	final ChainedBlockingDeque<Message> messageBox=new ChainedBlockingDeque<>(); // TODO lazy creation
 
 	private volatile ArrayList<Replies> conversations = null;
+
+	void setLivingButWaitingForMessages()
+	{
+		if (state.get()!=ZOMBIE)
+			state.set(LIVING_BUT_WAIT_FOR_KILL);
+		agentID=-Math.abs(agentID);
+	}
+
+	boolean isLivingButWaitingForMessages()
+	{
+		State s=state.get();
+		return agentID<0 && (s==ZOMBIE || s== LIVING_BUT_WAIT_FOR_KILL);
+	}
+
 
 	@SuppressWarnings("unchecked")
 	void addConversation(Replies replies) {
@@ -423,7 +434,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	@Override
 	final public int hashCode() {// TODO should be regenerated if agent are sent through the network in next
 									// releases
-		return (int) agentID;
+		return ((int)(agentID ^ (agentID >>> 32)));
 	}
 
 	/**
@@ -432,7 +443,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @return the agent ID
 	 */
 	public long getAgentID() {
-		return agentID;
+		return Math.abs(agentID);
 	}
 
 	/**
@@ -442,7 +453,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @return the agent's network identifier
 	 */
 	final public AgentNetworkID getNetworkID() {
-		return new AgentNetworkID(getKernelAddress(), agentID);
+		return new AgentNetworkID(getKernelAddress(), Math.abs(agentID));
 	}
 
 	final AtomicBoolean getAlive() {
@@ -574,7 +585,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	}
 
 	void suicide(SelfKillException e) {
-		getMadkitKernel().startEndBehavior(this, true, true);
+		getMadkitKernel().startEndBehavior(this, true);
 	}
 
 	/**
@@ -1281,7 +1292,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 */
 	public String getName() {
 		if (name == null)
-			name = getClass().getSimpleName() + "-" + agentID;
+			name = getClass().getSimpleName() + "-" + Math.abs(agentID);
 		return name;
 	}
 
@@ -1377,7 +1388,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 */
 	@Override
 	public int compareTo(final AbstractAgent other) {
-		long diff = agentID - other.agentID;
+		long diff = Math.abs(agentID) - Math.abs(other.agentID);
 		if (diff < 0)
 			return -1;
 		else if (diff > 0)
@@ -2837,8 +2848,6 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	public boolean hasGroup(Group group) {
 		try {
 			InternalGroup ig = getMadkitKernel().getGroup(group);
-			if (ig == null)
-				return false;
 
 			return ig.hasRoleWith(this);
 		} catch (CGRNotAvailable e) {
@@ -3309,73 +3318,73 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		/**
 		 * The agent has not been launched yet.
 		 */
-		NOT_LAUNCHED(null),
+		NOT_LAUNCHED(),
 
 		/**
 		 * The agent has been launched and is being registered by the kernel but it has
 		 * not started its {@link #activate()} method yet.
 		 */
-		INITIALIZING(NOT_LAUNCHED),
+		INITIALIZING(),
 
 		/**
 		 * 
 		 * The agent is processing its {@link #activate()} method.
 		 */
-		ACTIVATING(INITIALIZING),
+		ACTIVATING(),
 
 		/**
 		 * 
 		 * The agent is processing has been activated.
 		 */
-		ACTIVATED(ACTIVATING),
+		ACTIVATED(),
 
 		/**
 		 * The agent is processing has been initialized and activated.
 		 */
-		LIVING(ACTIVATED),
+		LIVING(),
 
 		/**
 		 * the agent has to read all its messages before being killed.
 		 */
-		WAIT_FOR_KILL(LIVING, INITIALIZING),
+		WAIT_FOR_KILL(INITIALIZING),
 
 		/**
 		 * Equivalent to LIVING, but the agent has to read all its messages before being
 		 * killed. No new message can be received with this state.
 		 */
-		LIVING_BUG_WAIT_FOR_KILL(LIVING, LIVING, WAIT_FOR_KILL),
+		LIVING_BUT_WAIT_FOR_KILL(LIVING, WAIT_FOR_KILL),
 
 		/**
 		 * The agent is processing its {@link AbstractAgent#end()} method.
 		 */
-		ENDING(LIVING),
+		ENDING(),
 
 		/**
 		 * The agent can't be killed and becomes a zombie process
 		 */
-		ZOMBIE(LIVING),
+		ZOMBIE(),
 
 		/**
 		 * The agent has finished its life cycle in the MaDKit platform.
 		 */
-		TERMINATED(ENDING);
+		TERMINATED();
 
 		private final State[] included_states;
 
-		private int previousState;
+		//private int previousState;
 
-		State(State previousState, State... _included_states) {
+		State(State... _included_states) {
 			included_states = _included_states;
-			this.previousState = previousState == null ? this.ordinal() : previousState.ordinal();
+			//this.previousState = previousState == null ? this.ordinal() : previousState.ordinal();
 		}
 
-		void setPreviousState(State s) {
+		/*void setPreviousState(State s) {
 			previousState = s.ordinal();
 		}
 
 		State getPreviousState() {
 			return State.values()[previousState];
-		}
+		}*/
 
 		final String lifeCycleMethod() {
 			switch (this) {
@@ -3383,7 +3392,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 				return "ACTIVATE";
 			case LIVING:
 				return "LIVE";
-			case LIVING_BUG_WAIT_FOR_KILL:
+			case LIVING_BUT_WAIT_FOR_KILL:
 				return "WAIT FOR KILL";
 			case TERMINATED:
 				return "TERMINATE";
@@ -5087,4 +5096,6 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	public void removeDistantDatabaseHostFromDatabaseSynchronizer(DecentralizedValue hostIdentifier, Package... packages) throws DatabaseException {
 		getMadkitKernel().removeDistantDatabaseHostFromDatabaseSynchronizer(this, hostIdentifier, packages);
 	}
+
+
 }

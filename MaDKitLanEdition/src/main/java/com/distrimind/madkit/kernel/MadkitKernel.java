@@ -2362,7 +2362,7 @@ class MadkitKernel extends Agent {
 				synchronized (agent.state) {
 					agent.state.notifyAll();
 				}
-				startEndBehavior(agent, false, false);
+				startEndBehavior(agent, false);
 			} else {
 				if (agent.isAlive()) {// ! self kill -> safe to make this here
 
@@ -2452,10 +2452,10 @@ class MadkitKernel extends Agent {
 					}
 				});
 		try {
-			if (timeOutSeconds==0)
+			/*if (timeOutSeconds==0)
 				return killAttempt.get(1, TimeUnit.MILLISECONDS);
-			else
-				return killAttempt.get(timeOutSeconds, TimeUnit.MILLISECONDS);
+			else*/
+			return killAttempt.get(timeOutSeconds, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {// requester has been killed or
 											// something
 			// requester.handleInterruptedException();
@@ -2477,12 +2477,11 @@ class MadkitKernel extends Agent {
 
 		target.waitUntilReadyForKill();
 		synchronized (target.state) {
-
-			if (killing_type.equals(KillingType.WAIT_AGENT_PURGE_ITS_MESSAGES_BOX_BEFORE_KILLING_IT)) {
+			if (killing_type.equals(KillingType.WAIT_AGENT_PURGE_ITS_MESSAGES_BOX_BEFORE_KILLING_IT) ) {
 				if (target instanceof Agent || target instanceof AgentFakeThread) {
 					if (target.state.get().include(State.WAIT_FOR_KILL))
 						return ReturnCode.KILLING_ALREADY_IN_PROGRESS;
-					target.state.set(State.LIVING_BUG_WAIT_FOR_KILL);
+					target.setLivingButWaitingForMessages();
 				}
 			}
 			// this has to be done by a system thread : the job must be done
@@ -2493,9 +2492,10 @@ class MadkitKernel extends Agent {
 				} else
 					return ALREADY_KILLED;
 			}
-			if (target.state.get() == State.LIVING_BUG_WAIT_FOR_KILL) {
+			if (isLivingButWaitingForMessages()) {
+
 				try {
-					if (target instanceof AgentFakeThread || target instanceof Agent) {
+					//if (target instanceof AgentFakeThread || target instanceof Agent) {
 						wait(this, new LockerCondition(target.state) {
 
 							@Override
@@ -2503,7 +2503,7 @@ class MadkitKernel extends Agent {
 								return !target.messageBox.isEmpty();
 							}
 						});
-					}
+					//}
 				} catch (InterruptedException e) {
 					bugReport(e);
 				}
@@ -2529,7 +2529,7 @@ class MadkitKernel extends Agent {
 			}
 
 			// stopAbstractAgentProcess(ACTIVATED, target);
-			rc = startEndBehavior(target, false, true);
+			rc = startEndBehavior(target, true);
 
 		}
 		return rc;
@@ -2580,7 +2580,7 @@ class MadkitKernel extends Agent {
 			if (previous != State.TERMINATED) {
 				zombie = true;
 				target.state.set(State.ZOMBIE);
-				target.state.get().setPreviousState(previous);
+				//target.state.get().setPreviousState(previous);
 				target.state.notifyAll();
 			} else {
 				target.state.set(State.TERMINATED);
@@ -2596,7 +2596,7 @@ class MadkitKernel extends Agent {
 	}
 
 
-	final ReturnCode startEndBehavior(final AbstractAgent target, boolean asDaemon, boolean callEnddingFunction) {
+	final ReturnCode startEndBehavior(final AbstractAgent target, boolean callEnddingFunction) {
         //final PoolExecutor executor = asDaemon ? serviceExecutor : lifeExecutor;
 		if (callEnddingFunction) {
 			final Future<Boolean> endAttempt = serviceExecutor.submit(new Callable<Boolean>() {
@@ -2900,7 +2900,8 @@ class MadkitKernel extends Agent {
 
 	boolean isCommunity(AbstractAgent requester, String community) {
 		try {
-			return getCommunity(community) != null;
+			getCommunity(community);
+			return true;
 		} catch (CGRNotAvailable e) {
 			return false;
 		}
@@ -2908,7 +2909,8 @@ class MadkitKernel extends Agent {
 
 	boolean isGroup(AbstractAgent requester, Group group) {
 		try {
-			return getGroup(group) != null;
+			getGroup(group);
+			return true;
 		} catch (CGRNotAvailable e) {
 			return false;
 		}
@@ -2916,7 +2918,8 @@ class MadkitKernel extends Agent {
 
 	boolean isRole(final AbstractAgent requester, Group group, String role) {
 		try {
-			return getRole(group, role) != null;
+			getRole(group, role);
+			return true;
 		} catch (CGRNotAvailable e) {
 			return false;
 		}
@@ -3031,9 +3034,9 @@ class MadkitKernel extends Agent {
 		try {
 			final InternalRole receiverRole = kernel.getRole(receiver.getGroup(), receiver.getRole());
 			receiver.setRoleObject(receiverRole);
-			if (receiverRole != null && sender!=null && receiverRole.getMyGroup().isDistributed()) {
+			if (sender != null && receiverRole.getMyGroup().isDistributed()) {
 				final InternalRole senderRole = kernel.getRole(sender.getGroup(), sender.getRole());
-				if (senderRole!=null && senderRole.getMyGroup().isDistributed()) {
+				if (senderRole.getMyGroup().isDistributed()) {
 				//if (injectRoleFromDistantPeer(sender.getGroup(), sender)) {
 					final AbstractAgent target = receiverRole.getAbstractAgentWithAddress(receiver);
 					if (target != null) {
@@ -3640,7 +3643,7 @@ class MadkitKernel extends Agent {
 			regularWait(requester, locker, personalLocker, personalCondition);
 		}
 	}
-	void regularWait(AbstractAgent requester, LockerCondition locker, Lock personalLocker, Condition personalCondition, long delay, TimeUnit unit) throws InterruptedException, TimeoutException {
+	void regularWait(@SuppressWarnings("unused") AbstractAgent requester, LockerCondition locker, Lock personalLocker, Condition personalCondition, long delay, TimeUnit unit) throws InterruptedException, TimeoutException {
 
 		long start=System.nanoTime();
 		delay=unit.toNanos(delay);
@@ -3664,7 +3667,7 @@ class MadkitKernel extends Agent {
 		}
 
 	}
-	void regularWait(AbstractAgent requester, LockerCondition locker, Lock personalLocker, Condition personalCondition) throws InterruptedException {
+	void regularWait(@SuppressWarnings("unused") AbstractAgent requester, LockerCondition locker, Lock personalLocker, Condition personalCondition) throws InterruptedException {
 		personalLocker.lock();
 		try {
 			while (locker.isLocked() && !locker.isCanceled()) {
@@ -3678,7 +3681,7 @@ class MadkitKernel extends Agent {
 		}
 
 	}
-	void regularWait(AbstractAgent requester, LockerCondition locker, long delayMillis) throws InterruptedException, TimeoutException {
+	void regularWait(@SuppressWarnings("unused") AbstractAgent requester, LockerCondition locker, long delayMillis) throws InterruptedException, TimeoutException {
 		long start=System.currentTimeMillis();
 
 		synchronized (locker.getLocker()) {
@@ -3708,17 +3711,7 @@ class MadkitKernel extends Agent {
 
 
 	void sleep(AbstractAgent requester, long millis) throws InterruptedException {
-		if (!serviceExecutor.sleep(millis, TimeUnit.MILLISECONDS) /*&& !lifeExecutor.sleep(millis, TimeUnit.MILLISECONDS)*/) {
-			/*
-			 * ArrayList<ThreadPoolExecutor> tpes=null;
-			 * 
-			 * synchronized(dedicatedServiceExecutors) { if
-			 * (dedicatedServiceExecutors.isEmpty()) { Thread.sleep(millis); return; }
-			 * tpes=new ArrayList<ThreadPoolExecutor>(dedicatedServiceExecutors.size());
-			 * tpes.addAll(dedicatedServiceExecutors.values()); }
-			 * 
-			 * for (ThreadPoolExecutor tpe : tpes) { if (tpe.sleep(millis)) return; }
-			 */
+		if (serviceExecutor==null || !serviceExecutor.sleep(millis, TimeUnit.MILLISECONDS) ) {
 			Thread.sleep(millis);
 		}
 	}

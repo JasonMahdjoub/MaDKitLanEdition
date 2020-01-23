@@ -172,8 +172,7 @@ public class Agent extends AbstractAgent {
 
 	boolean isWaitForMessagePurge() {
 		State s = state.get();
-		return s == State.LIVING_BUG_WAIT_FOR_KILL
-				|| (s == State.ZOMBIE && s.getPreviousState() == State.LIVING_BUG_WAIT_FOR_KILL);
+		return s == State.LIVING_BUT_WAIT_FOR_KILL || isLivingButWaitingForMessages();
 	}
 
 	@SuppressWarnings("UnusedReturnValue")

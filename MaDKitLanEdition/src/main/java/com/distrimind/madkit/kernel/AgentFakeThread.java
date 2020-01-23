@@ -224,8 +224,7 @@ public abstract class AgentFakeThread extends AbstractAgent {
 
 	boolean canContinueToManageMessages() {
 		State s = getState();
-		return s == State.LIVING || s == State.LIVING_BUG_WAIT_FOR_KILL
-				|| (s == State.ZOMBIE && s.getPreviousState() == State.LIVING_BUG_WAIT_FOR_KILL);
+		return s == State.LIVING || isLivingButWaitingForMessages();
 	}
 
 	void manageTaskMessage(boolean force) {
@@ -292,7 +291,7 @@ public abstract class AgentFakeThread extends AbstractAgent {
 								messageBox.getLocker().unlock();
 							}
 						}
-						if (state.get().equals(State.LIVING_BUG_WAIT_FOR_KILL)) {
+						if (state.get().equals(State.LIVING_BUT_WAIT_FOR_KILL)) {
 							synchronized (state) {
 								state.notify();
 							}

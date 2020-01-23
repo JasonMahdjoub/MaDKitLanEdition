@@ -412,7 +412,7 @@ public class KillAgentTest extends JunitMadkit {
 				Agent a = new NormalLife(false, true);
 				assertEquals(SUCCESS, launchAgent(a));
 				assertNotNull(a);
-				assertEquals(SUCCESS, killAgent(a, 1));
+				assertEquals(SUCCESS, killAgent(a, 2));
 				ReturnCode res = killAgent(a, 2);
 				assertSame(ALREADY_KILLED, res);
 				JunitMadkit.pause(this, 1500);
