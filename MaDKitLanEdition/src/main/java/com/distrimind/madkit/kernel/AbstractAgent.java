@@ -434,7 +434,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	@Override
 	final public int hashCode() {// TODO should be regenerated if agent are sent through the network in next
 									// releases
-		return ((int)(agentID ^ (agentID >>> 32)));
+		return ((int)(Math.abs(agentID) ^ (Math.abs(agentID) >>> 32)));
 	}
 
 	/**
