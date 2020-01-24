@@ -50,7 +50,6 @@ import com.distrimind.ood.database.DatabaseFactory;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.Timer;
 import com.distrimind.util.concurrent.LockerCondition;
-import com.distrimind.util.concurrent.PoolExecutor;
 import com.distrimind.util.concurrent.ScheduledPoolExecutor;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -158,7 +157,7 @@ public class JunitMadkit {
 		return launchTest(a, expected, gui, new MadkitEventListener() {
 
 			@Override
-			public void onMadkitPropertiesLoaded(MadkitProperties _properties) {
+			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
 
 			}
 		});
@@ -168,7 +167,7 @@ public class JunitMadkit {
 		return launchTest(a, expected, gui, new MadkitEventListener() {
 
 			@Override
-			public void onMadkitPropertiesLoaded(MadkitProperties _properties) {
+			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
 
 			}
 		}, postTest);
@@ -265,7 +264,7 @@ public class JunitMadkit {
 		return launchTest(a, new MadkitEventListener() {
 
 			@Override
-			public void onMadkitPropertiesLoaded(MadkitProperties _properties) {
+			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
 			}
 		});
 	}
@@ -287,7 +286,7 @@ public class JunitMadkit {
 		return launchTest(a, expected, false, new MadkitEventListener() {
 
 			@Override
-			public void onMadkitPropertiesLoaded(MadkitProperties _properties) {
+			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
 			}
 		});
 	}
@@ -618,14 +617,14 @@ public class JunitMadkit {
 		Madkit m = new Madkit(Madkit.generateDefaultMadkitConfig(), kernelAddress, new MadkitEventListener() {
 
 			@Override
-			public void onMadkitPropertiesLoaded(MadkitProperties _properties) {
+			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
 				_properties.networkProperties.network = true;
 				_properties.networkProperties.networkLogLevel = l;
 				_properties.launchAgents = new ArrayList<>();
 				_properties.launchAgents.add(new AgentToLaunch(agentTolaunch, false, 1));
 				_properties.kernelLogLevel = l;
 				_properties.networkProperties.upnpIGDEnabled = false;
-				networkEventListener.onMadkitPropertiesLoaded(_properties);
+				networkEventListener.onMaDKitPropertiesLoaded(_properties);
 
 			}
 		});

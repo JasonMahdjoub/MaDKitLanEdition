@@ -44,15 +44,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
+import com.distrimind.madkit.kernel.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
-import com.distrimind.madkit.kernel.Scheduler;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.kernel.AbstractAgent.State;
-import com.distrimind.madkit.kernel.Role;
 import com.distrimind.madkit.simulation.SimulationException;
 import com.distrimind.madkit.simulation.activator.GenericBehaviorActivator;
 import com.distrimind.madkit.testing.util.agent.FaultyAA;
@@ -85,7 +82,12 @@ public class LaunchAgentBucketWithRolesWithListTest extends JunitMadkit {
 			protected void activate() {
 				launchAgentBucket(FaultyAA.class.getName(), size, new Role(GROUP, ROLE));
 			}
-		});
+		}, ReturnCode.SUCCESS, false, new MadkitEventListener() {
+			@Override
+			public void onMaDKitPropertiesLoaded(MadkitProperties properties) {
+				properties.killAllNonThreadedAgentsDuringMaDKitClosing=false;
+			}
+		});;
 	}
 
 	@Test
@@ -111,7 +113,12 @@ public class LaunchAgentBucketWithRolesWithListTest extends JunitMadkit {
 				launchAgentBucket(FaultyAA.class.getName(), size, new Role(GROUP, ROLE));
 				JunitMadkit.noExceptionFailure();
 			}
-		}, ReturnCode.AGENT_CRASH);
+		}, ReturnCode.AGENT_CRASH, false, new MadkitEventListener() {
+			@Override
+			public void onMaDKitPropertiesLoaded(MadkitProperties properties) {
+				properties.killAllNonThreadedAgentsDuringMaDKitClosing=false;
+			}
+		});
 	}
 
 	@Test

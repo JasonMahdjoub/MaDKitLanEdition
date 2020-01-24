@@ -158,7 +158,7 @@ public class NetworkEventListener implements MadkitEventListener {
 	}
 
 	@Override
-	public void onMadkitPropertiesLoaded(MadkitProperties _properties) {
+	public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
 		if (globalDataAmountAcc != null)
 			_properties.networkProperties.maxSizeForUnreadShortDataFromAllConnections = globalDataAmountAcc;
 		if (localDataAmountAcc != null)
@@ -188,11 +188,11 @@ public class NetworkEventListener implements MadkitEventListener {
 			_properties.networkProperties.setAddressesForDirectConnectionToAttemptFromThisPeerToOtherPeers(connectionsToAttempt);
 
 		if (madkitEventListenerForConnectionProtocols != null)
-			madkitEventListenerForConnectionProtocols.onMadkitPropertiesLoaded(_properties);
+			madkitEventListenerForConnectionProtocols.onMaDKitPropertiesLoaded(_properties);
 		if (this.madkitEventListenerForAccessProtocols != null)
-			this.madkitEventListenerForAccessProtocols.onMadkitPropertiesLoaded(_properties);
+			this.madkitEventListenerForAccessProtocols.onMaDKitPropertiesLoaded(_properties);
 		if (this.madkitEventListenerForAccessData != null)
-			this.madkitEventListenerForAccessData.onMadkitPropertiesLoaded(_properties);
+			this.madkitEventListenerForAccessData.onMaDKitPropertiesLoaded(_properties);
 		_properties.networkProperties.maxBufferSize=maxBufferSize;
 	}
 

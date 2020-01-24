@@ -239,7 +239,7 @@ public class UPNPIDGTest extends JunitMadkit {
 		}, new MadkitEventListener() {
 
 			@Override
-			public void onMadkitPropertiesLoaded(MadkitProperties _properties) {
+			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
 				_properties.networkProperties.network = true;
 				_properties.networkProperties.upnpIGDEnabled = true;
 				_properties.madkitLogLevel = Level.INFO;

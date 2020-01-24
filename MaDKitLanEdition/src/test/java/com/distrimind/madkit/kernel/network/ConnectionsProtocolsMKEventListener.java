@@ -87,7 +87,7 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 	}
 
 	@Override
-	public void onMadkitPropertiesLoaded(MadkitProperties _properties) {
+	public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
 		if (this.connectionProtocolsProperties != null) {
 			for (ConnectionProtocolProperties<?> cpp : connectionProtocolsProperties) {
 				_properties.networkProperties.addConnectionProtocol(cpp);

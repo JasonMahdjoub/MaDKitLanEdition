@@ -56,7 +56,7 @@ public class AsynchronousMessageTests extends JunitMadkit{
 	private static final File databaseFile=new File("asynchronousDatabaseFile");
 	private static final MadkitEventListener madkitEventListener=new MadkitEventListener() {
 		@Override
-		public void onMadkitPropertiesLoaded(MadkitProperties properties) {
+		public void onMaDKitPropertiesLoaded(MadkitProperties properties) {
 			try {
 				properties.setDatabaseFactory(new EmbeddedH2DatabaseFactory(databaseFile));
 			} catch (DatabaseException e) {

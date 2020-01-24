@@ -103,6 +103,11 @@ public class MassLaunchBench extends JunitMadkit {
 				stopTimer("bucket launch time = ");
 				System.err.println("done\n\n");
 			}
+		}, AbstractAgent.ReturnCode.SUCCESS, false, new MadkitEventListener() {
+			@Override
+			public void onMaDKitPropertiesLoaded(MadkitProperties properties) {
+				properties.killAllNonThreadedAgentsDuringMaDKitClosing=false;
+			}
 		});
 	}
 
@@ -117,6 +122,11 @@ public class MassLaunchBench extends JunitMadkit {
 				stopTimer("bucket launch time = ");
 				System.err.println("done\n\n");
 				System.err.println(l.get(0).requestRole(GROUP, ROLE));
+			}
+		}, AbstractAgent.ReturnCode.SUCCESS, false, new MadkitEventListener() {
+			@Override
+			public void onMaDKitPropertiesLoaded(MadkitProperties properties) {
+				properties.killAllNonThreadedAgentsDuringMaDKitClosing=false;
 			}
 		});
 	}

@@ -89,7 +89,7 @@ public class NetworkSpeed extends JunitMadkit {
 		this.eventListener1 = new MadkitEventListener() {
 
 			@Override
-			public void onMadkitPropertiesLoaded(MadkitProperties _properties) {
+			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
 				AbstractAccessProtocolProperties app = new AccessProtocolWithP2PAgreementProperties();
 
 				try {
@@ -97,7 +97,7 @@ public class NetworkSpeed extends JunitMadkit {
 							new ConnectionsProtocolsMKEventListener(new UnsecuredConnectionProtocolProperties()),
 							new AccessProtocolPropertiesMKEventListener(app),
 							new AccessDataMKEventListener(AccessDataMKEventListener.getDefaultAccessData(defaultGroupAccess)), 5000,
-							null, InetAddress.getByName("0.0.0.0")).onMadkitPropertiesLoaded(_properties);
+							null, InetAddress.getByName("0.0.0.0")).onMaDKitPropertiesLoaded(_properties);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

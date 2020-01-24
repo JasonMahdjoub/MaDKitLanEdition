@@ -70,7 +70,7 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 	}
 
 	@Override
-	public void onMadkitPropertiesLoaded(MadkitProperties _properties) {
+	public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
 		if (accessData != null) {
 			for (AccessData ad : accessData)
 				_properties.networkProperties.addAccessData(ad);

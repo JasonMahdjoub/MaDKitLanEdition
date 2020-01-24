@@ -54,5 +54,5 @@ public interface MadkitEventListener {
 	 * @param properties
 	 *            the loaded Madkit properties
 	 */
-	void onMadkitPropertiesLoaded(MadkitProperties properties);
+	void onMaDKitPropertiesLoaded(MadkitProperties properties);
 }

@@ -118,6 +118,10 @@ public class MadkitProperties extends MultiFormatProperties {
 	 * address from which is derived the kernel address will be encrypted.
 	 */
 	public boolean isKernelAddressSecured = true;
+	/**
+	 * Kill all agents, and make then leaving theirs roles before closing MaDKit
+	 */
+	public boolean killAllNonThreadedAgentsDuringMaDKitClosing=true;
 
 	public boolean isKernelAddressSecured() {
 		return isKernelAddressSecured && networkProperties.network;

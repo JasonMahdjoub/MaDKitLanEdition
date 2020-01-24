@@ -45,17 +45,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 
+import com.distrimind.madkit.kernel.*;
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.distrimind.madkit.agr.Organization;
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.Agent;
-import com.distrimind.madkit.kernel.AgentAddress;
-import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.kernel.AbstractAgent.State;
-import com.distrimind.madkit.kernel.Role;
 import com.distrimind.madkit.testing.util.agent.SimulatedAgent;
 
 /**
@@ -120,7 +116,24 @@ public class LaunchAgentBucketTest extends JunitMadkit {
 			@Override
 			protected void activate() {
 				createGroup(GROUP);
-				Thread t = new Thread(new Runnable() {
+				launchAgent(new Agent() {
+					@Override
+					protected void activate() throws InterruptedException {
+						setLogLevel(Level.ALL);
+						pause(100);
+						requestRole(GROUP, ROLE);
+					}
+
+					@Override
+					protected void liveCycle() throws InterruptedException {
+						long start = System.currentTimeMillis();
+						pause(10000);
+						this.killAgent(this);
+
+					}
+				}, true);
+
+				/*Thread t = new Thread(new Runnable() {
 					@Override
 					public void run() {
 						launchAgent(new Agent() {
@@ -133,6 +146,7 @@ public class LaunchAgentBucketTest extends JunitMadkit {
 
 							@Override
 							protected void liveCycle() throws InterruptedException {
+								long start=System.currentTimeMillis();
 								pause(10000);
 								this.killAgent(this);
 
@@ -140,20 +154,25 @@ public class LaunchAgentBucketTest extends JunitMadkit {
 						}, true);
 					}
 				});
-				t.start();
+				t.start();*/
 				System.err.println("begin");
 				startTimer();
 				launchAgentBucket(AbstractAgent.class.getName(), 1000000, new Role(GROUP, ROLE));
-				try {
+				/*try {
 					t.join();
 				} catch (InterruptedException e) {
 					e.printStackTrace();
-				}
+				}*/
 				stopTimer("bucket launch time = ");
 				System.err.println("done\n\n");
 				requestRole(GROUP, ROLE);
 				setLogLevel(Level.OFF);
 				assertEquals(1000002, getAgentsWithRole(GROUP, ROLE, true).size());
+			}
+		}, ReturnCode.SUCCESS, false, new MadkitEventListener() {
+			@Override
+			public void onMaDKitPropertiesLoaded(MadkitProperties properties) {
+				properties.killAllNonThreadedAgentsDuringMaDKitClosing=false;
 			}
 		});
 	}

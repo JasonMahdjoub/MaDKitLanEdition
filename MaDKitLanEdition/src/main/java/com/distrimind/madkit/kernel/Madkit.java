@@ -734,7 +734,7 @@ final public class Madkit {
 		this(new MadkitEventListener() {
 
 			@Override
-			public void onMadkitPropertiesLoaded(MadkitProperties _properties) {
+			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
 
 			}
 		}, options);
@@ -809,7 +809,7 @@ final public class Madkit {
         this(madkitConfig, null, new MadkitEventListener() {
 
             @Override
-            public void onMadkitPropertiesLoaded(MadkitProperties _properties) {
+            public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
 
             }
         }, options);
@@ -854,7 +854,7 @@ final public class Madkit {
 			e.printStackTrace();
 		}
 
-		eventListener.onMadkitPropertiesLoaded(madkitConfig);
+		eventListener.onMaDKitPropertiesLoaded(madkitConfig);
 
 		I18nUtilities.setI18nDirectory(madkitConfig.i18nDirectory);
 		logger.finest(MadkitClassLoader.getLoader().toString());

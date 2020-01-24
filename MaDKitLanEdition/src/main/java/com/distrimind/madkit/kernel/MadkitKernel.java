@@ -3206,29 +3206,46 @@ class MadkitKernel extends Agent {
 
 	private void leaveAllGroupsOfAllAgents()
 	{
+		HashMap<AbstractAgent, AutoRequestedGroups> arg;
 		synchronized (auto_requested_groups) {
-			for (Map.Entry<AbstractAgent, AutoRequestedGroups> e : new HashMap<>(this.auto_requested_groups).entrySet()) {
-				AbstractAgent aa = e.getKey();
-				if (!(aa instanceof MadkitKernel) && aa.isAlive() && aa.getState().compareTo(State.WAIT_FOR_KILL) < 0)
-					killAgent(aa);
-			}
+			arg = new HashMap<>(this.auto_requested_groups);
 		}
+		for (Map.Entry<AbstractAgent, AutoRequestedGroups> e : arg.entrySet()) {
+			AbstractAgent aa = e.getKey();
+			if (!(aa instanceof MadkitKernel) && aa.isAlive() && aa.getState().compareTo(State.WAIT_FOR_KILL) < 0)
+				killAgent(aa);
+		}
+
+		ArrayList<Organization> orgs;
 		synchronized (organizations)
 		{
 			for (KernelAddress ka : new ArrayList<>(distantKernelAddresses))
 				removeDistantKernelAddressFromCGR(ka);
 			distantKernelAddresses.clear();
-			for (Organization o : new ArrayList<>(organizations.values()))
+			orgs=new ArrayList<>(organizations.values());
+		}
+
+
+		for (Organization o : orgs)
+		{
+			ArrayList<InternalGroup> groups;
+			synchronized (organizations)
 			{
-				for (InternalGroup g : new ArrayList<>(o.values()))
+				groups=new ArrayList<>(o.values());
+			}
+			for (InternalGroup g : groups)
+			{
+				ArrayList<InternalRole> roles;
+				synchronized (organizations)
 				{
-					for (InternalRole r : new ArrayList<>(g.values()))
+					roles=new ArrayList<>(g.values());
+				}
+				for (InternalRole r : roles)
+				{
+					for (AbstractAgent aa : r.getAgentsList())
 					{
-						for (AbstractAgent aa : r.getAgentsList())
-						{
-							if (!(aa instanceof MadkitKernel) && aa.isAlive() && aa.getState().compareTo(State.WAIT_FOR_KILL)<0)
-								killAgent(aa);
-						}
+						if (!(aa instanceof MadkitKernel) && aa.isAlive() && aa.getState().compareTo(State.WAIT_FOR_KILL)<0)
+							killAgent(aa);
 					}
 				}
 			}
@@ -3252,7 +3269,8 @@ class MadkitKernel extends Agent {
 			}
 
 		}
-		leaveAllGroupsOfAllAgents();
+		if (getMadkitConfig().killAllNonThreadedAgentsDuringMaDKitClosing)
+			leaveAllGroupsOfAllAgents();
 		if (getMadkitConfig().isUseMadkitSchedulerWithFortunaSecureRandom())
 			Fortuna.setPersonalDefaultScheduledExecutorService(null);
 		if (this.serviceExecutor!=null) {
@@ -3353,8 +3371,8 @@ class MadkitKernel extends Agent {
 
 
 	private void killAgents(boolean untilEmpty) throws InterruptedException {
-
-		leaveAllGroupsOfAllAgents();
+		if (getMadkitConfig().killAllNonThreadedAgentsDuringMaDKitClosing)
+			leaveAllGroupsOfAllAgents();
 
 		ArrayList<Agent> l;
 		synchronized (threadedAgents) {
@@ -3492,24 +3510,6 @@ class MadkitKernel extends Agent {
 		return roles;
 	}
 
-	// private AtomicReference<AgentAddress> default_task_agent=new
-	// AtomicReference<>();
-
-	/*
-	 * AgentAddress getDefaultTaskAgent(AbstractAgent requester) { AgentAddress
-	 * res=default_task_agent.get();
-	 * 
-	 * if (res==null) { synchronized(this) { res=default_task_agent.get(); if
-	 * (res==null) { ReturnCode r=launchAgent(this, new
-	 * TaskAgent(Task.DEFAULT_TASK_AGENT_NAME, Integer.MAX_VALUE,
-	 * DEFAULT_THREAD_PRIORITY),Integer.MAX_VALUE, false); if
-	 * (!r.equals(ReturnCode.SUCCESS)) { handleException(Influence.LAUNCH_AGENT, new
-	 * IllegalAccessError("Impossible to launch the default task agent. ReturnCode "
-	 * +r)); System.exit(-1); } res = getAgentWithRole(this,
-	 * Groups.TASK_AGENTS.getSubGroup(Task.DEFAULT_TASK_AGENT_NAME),
-	 * LocalCommunity.Roles.TASK_MANAGER_ROLE); default_task_agent.set(res); } } }
-	 * return res; }
-	 */
 
 	private ScheduledPoolExecutor getDefaultScheduledExecutorService() {
 		return serviceExecutor;
@@ -3529,19 +3529,7 @@ class MadkitKernel extends Agent {
 		}
 
 	}
-	/*void receivingPotentialCGRMessage(AbstractAgent requester, CGRSynchro m) {
 
-		if (m != null) {
-			LockerCondition curLock;
-			synchronized (agentsSendingNetworkMessage) {
-				curLock = agentsSendingNetworkMessage.remove(requester.getAgentID());
-				if (curLock != null)
-					curLock.cancelLock();
-
-			}
-		}
-
-	}*/
 
 	void waitMessageSent(AbstractAgent requester, LockerCondition locker) throws InterruptedException {
 		if (locker==null)
@@ -3680,51 +3668,6 @@ class MadkitKernel extends Agent {
 		}
 	}
 
-	/*
-	 * ScheduledThreadPoolExecutor killScheduledExecutorService(AbstractAgent
-	 * requester, String name) { synchronized(dedicatedServiceExecutors) {
-	 * ScheduledThreadPoolExecutor res=dedicatedServiceExecutors.remove(name); if
-	 * (res!=null) { res.shutdown(); } return res; } }
-	 */
-
-	/*
-	 * AgentAddress launchAndGetTaskAgent(AbstractAgent requester, String name, int
-	 * maximumPoolSize, int priority) { if (name==null) throw new
-	 * NullPointerException("name"); if (name.equals(Task.DEFAULT_TASK_AGENT_NAME))
-	 * return getDefaultTaskAgent(requester); AgentAddress aa=getAgentWithRole(this,
-	 * Groups.TASK_AGENTS.getSubGroup(name),
-	 * LocalCommunity.Roles.TASK_MANAGER_ROLE); if (aa==null) { ReturnCode
-	 * r=launchAgent(this, new TaskAgent(name, maximumPoolSize,
-	 * priority),Integer.MAX_VALUE, false); aa=getAgentWithRole(this,
-	 * Groups.TASK_AGENTS.getSubGroup(name),
-	 * LocalCommunity.Roles.TASK_MANAGER_ROLE); if (!r.equals(ReturnCode.SUCCESS) ||
-	 * aa==null) { handleException(Influence.LAUNCH_AGENT, new
-	 * IllegalAccessError("Impossible to launch the task maanger agent "
-	 * +name+". ReturnCode "+r)); System.exit(-1); } } return aa; }
-	 * 
-	 * boolean isTaskManagerAgentExisting(AbstractAgent requester, String name) { if
-	 * (name==null) throw new NullPointerException("name"); return
-	 * getAgentWithRole(requester, Groups.TASK_AGENTS.getSubGroup(name),
-	 * LocalCommunity.Roles.TASK_MANAGER_ROLE)!=null; }
-	 * 
-	 * ReturnCode launchTaskManagerAgent(AbstractAgent agent, String name, int
-	 * thread_number, int priority) { if (name==null) throw new
-	 * NullPointerException("name"); if (name.equals(Task.DEFAULT_TASK_AGENT_NAME))
-	 * return ReturnCode.ALREADY_LAUNCHED; AgentAddress aa = getAgentWithRole(agent,
-	 * Groups.TASK_AGENTS.getSubGroup(name),
-	 * LocalCommunity.Roles.TASK_MANAGER_ROLE); if (aa!=null) { return
-	 * ReturnCode.ALREADY_LAUNCHED; } return launchAgent(agent, new TaskAgent(name,
-	 * thread_number, priority),Integer.MAX_VALUE, false); }
-	 * 
-	 * ReturnCode killTaskManagerAgent(AbstractAgent agent, String name) { if
-	 * (name==null) throw new NullPointerException("name"); if
-	 * (name.equals(Task.DEFAULT_TASK_AGENT_NAME)) return ReturnCode.IGNORED;
-	 * AgentAddress aa = getAgentWithRole(agent,
-	 * Groups.TASK_AGENTS.getSubGroup(name),
-	 * LocalCommunity.Roles.TASK_MANAGER_ROLE); if (aa==null) return
-	 * ReturnCode.INVALID_AGENT_ADDRESS; return killAgent(agent, aa.getAgent(),
-	 * Integer.MAX_VALUE, KillingType.JUST_KILL_IT); }
-	 */
 
 	TaskID scheduleTask(AbstractAgent agent, Task<?> _task, boolean ask_for_execution_confirmation) {
 		if (_task == null)
@@ -3733,17 +3676,7 @@ class MadkitKernel extends Agent {
 			throw new NullPointerException("agent");
 		return scheduleTask(agent, getDefaultScheduledExecutorService(), _task, ask_for_execution_confirmation);
 	}
-	/*
-	 * TaskID scheduleTask(AbstractAgent agent, String _task_service_executor_name,
-	 * Task<?> _task, boolean ask_for_execution_confirmation) { if (_task==null)
-	 * throw new NullPointerException("_task"); if (agent==null) throw new
-	 * NullPointerException("agent"); if (_task_service_executor_name==null) throw
-	 * new NullPointerException("_task_service_executor_name"); if
-	 * (_task_service_executor_name.isEmpty()) throw new
-	 * IllegalArgumentException("Empty task service executer name"); return
-	 * scheduleTask(agent, launchAndOrGetScheduledExecutorService(agent,
-	 * _task_service_executor_name), _task, ask_for_execution_confirmation); }
-	 */
+
 
 	private TaskID scheduleTask(final AbstractAgent agent, ScheduledPoolExecutor executorService,
 			final Task<?> _task, final boolean ask_for_execution_confirmation) {

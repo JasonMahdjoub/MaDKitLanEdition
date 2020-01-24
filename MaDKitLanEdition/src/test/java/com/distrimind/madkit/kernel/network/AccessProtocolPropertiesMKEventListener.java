@@ -64,7 +64,7 @@ public class AccessProtocolPropertiesMKEventListener implements MadkitEventListe
 	}
 
 	@Override
-	public void onMadkitPropertiesLoaded(MadkitProperties _properties) {
+	public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
 		if (accessProtocolProperties != null) {
 			for (AbstractAccessProtocolProperties app : accessProtocolProperties)
 				_properties.networkProperties.addAccessProtocolProperties(app);

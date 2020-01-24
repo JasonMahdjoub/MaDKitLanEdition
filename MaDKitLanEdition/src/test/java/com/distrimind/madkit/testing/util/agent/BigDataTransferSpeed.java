@@ -88,8 +88,8 @@ public class BigDataTransferSpeed extends JunitMadkit {
                 InetAddress.getByName("0.0.0.0")) {
 
             @Override
-            public void onMadkitPropertiesLoaded(MadkitProperties _properties) {
-                super.onMadkitPropertiesLoaded(_properties);
+            public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
+                super.onMaDKitPropertiesLoaded(_properties);
                 _properties.networkProperties.networkLogLevel = Level.INFO;
                 _properties.networkProperties.maxBufferSize=Short.MAX_VALUE*2;
                 _properties.networkProperties.maximumGlobalDownloadSpeedInBytesPerSecond=downloadLimitInBytesPerSecond;
@@ -138,8 +138,8 @@ public class BigDataTransferSpeed extends JunitMadkit {
 				InetAddress.getByName("0.0.0.0")) {
 
 			@Override
-			public void onMadkitPropertiesLoaded(MadkitProperties _properties) {
-			    super.onMadkitPropertiesLoaded(_properties);
+			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
+			    super.onMaDKitPropertiesLoaded(_properties);
                 _properties.networkProperties.networkLogLevel = Level.INFO;
                 _properties.networkProperties.maxBufferSize=Short.MAX_VALUE*2;
 
