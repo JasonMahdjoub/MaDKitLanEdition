@@ -105,7 +105,7 @@ final class AgentExecutor {
 									live.cancel(false);
 									if (end.isCancelled())// TO was 0 in the MK
 										synchronized (myAgent.state) {
-											myAgent.state.notify();
+											myAgent.state.notifyAll();
 										}
 								}
 								return r;
@@ -116,13 +116,12 @@ final class AgentExecutor {
 
 							@Override
 							public Void call() {
-								myAgent.myThread = Thread.currentThread();
 								if (myAgent.getAlive().get()) {
 									myAgent.living();
 								}
 								if (end.isCancelled()) {// it is a kill with to == 0
 									synchronized (myAgent.state) {
-										myAgent.state.notify();
+										myAgent.state.notifyAll();
 									}
 								}
 								return null;
@@ -133,11 +132,10 @@ final class AgentExecutor {
 
 							@Override
 							public Void call() {
-								myAgent.myThread = Thread.currentThread();
 								myAgent.ending();
 
 								synchronized (myAgent.state) {
-									myAgent.state.notify();
+									myAgent.state.notifyAll();
 								}
 
 								return null;

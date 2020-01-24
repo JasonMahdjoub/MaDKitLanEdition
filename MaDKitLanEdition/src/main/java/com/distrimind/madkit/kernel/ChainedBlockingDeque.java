@@ -200,7 +200,7 @@ public class ChainedBlockingDeque<T> extends AbstractQueue<T> implements Blockin
 			return res.get();
 		}
 		else {
-			long start=System.currentTimeMillis();
+			long start=System.nanoTime();
 			time=unit.toNanos(time);
 
 			lock.lock();
@@ -211,7 +211,7 @@ public class ChainedBlockingDeque<T> extends AbstractQueue<T> implements Blockin
 
 					long end=System.nanoTime();
 					time-=end-start;
-					if (time<0)
+					if (time<=0)
 						return null;
 					start=end;
 				}

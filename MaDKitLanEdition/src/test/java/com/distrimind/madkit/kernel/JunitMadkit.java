@@ -747,7 +747,7 @@ public class JunitMadkit {
 				pause(agent, 1000);
 			}
 		} while (t.getMili() < timeout && m.getKernel().getState()!= TERMINATED);
-		assertSame(m.getKernel().getState(), TERMINATED);
+		assertSame(TERMINATED, m.getKernel().getState());
 	}
 
 	public void checkEmptyConversationIDTraces(AbstractAgent agent, Madkit m, long timeout) {

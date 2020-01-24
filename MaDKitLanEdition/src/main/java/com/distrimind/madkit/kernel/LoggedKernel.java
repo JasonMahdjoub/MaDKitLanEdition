@@ -465,6 +465,11 @@ final class LoggedKernel extends MadkitKernel {
 	}
 
 	@Override
+	void removeThreadedAgent(Agent myAgent) {
+		kernel.removeThreadedAgent(myAgent);
+	}
+
+	@Override
 	boolean isCommunity(AbstractAgent requester, String community) {
 		final boolean fact = kernel.isCommunity(requester, community);
 		if (requester.isFinestLogOn())

@@ -184,21 +184,31 @@ public class Agent extends AbstractAgent {
 			try {
 				try {
 					preLiveCycle();
-					while (isAlive() || isWaitForMessagePurge()) {
+					boolean waitForMessagePurge=false;
+					while (isAlive() || waitForMessagePurge) {
 						try {
 							liveCycle();
 						} catch (InterruptedException e) {
 							if (!isWaitForMessagePurge())
 								throw e;
 						}
-						synchronized (state) {
+						if (waitForMessagePurge=isWaitForMessagePurge()) {
+							if (messageBox.isEmpty()) {
+								synchronized (state)
+								{
+									state.notify();
+								}
+								break;
+							}
+						}
+						/*synchronized (state) {
 							if (isWaitForMessagePurge()) {
 								if (messageBox.isEmpty()) {
 									state.notifyAll();
 									break;
 								}
 							}
-						}
+						}*/
 					}
 				} catch (InterruptedException ignored) {
 				}

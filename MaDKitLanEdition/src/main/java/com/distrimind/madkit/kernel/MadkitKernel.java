@@ -2265,6 +2265,9 @@ class MadkitKernel extends Agent {
 	ReturnCode launchAgent(final AbstractAgent requester, final AbstractAgent agent, final int timeOutSeconds,
 			final boolean defaultGUI) {
 
+		long timeOutNano=getTimeOutNanoFromSeconds(timeOutSeconds);
+
+
 		try {
 			if (requester == null)
 				throw new NullPointerException("requester");
@@ -2289,7 +2292,7 @@ class MadkitKernel extends Agent {
 
 					});
 
-			returnCode = future.get(timeOutSeconds, TimeUnit.SECONDS);
+			returnCode = future.get(timeOutNano, TimeUnit.NANOSECONDS);
 			if (returnCode == AGENT_CRASH || returnCode == ALREADY_LAUNCHED) {
 				Exception e = new MadkitWarning(returnCode);
 				requester.getLogger().severeLog(Influence.LAUNCH_AGENT.failedString(), e);
@@ -2407,9 +2410,15 @@ class MadkitKernel extends Agent {
 		}
 		return TIMEOUT;
 	}
+	public static long getTimeOutNanoFromSeconds(int timeOutSeconds)
+	{
+		return timeOutSeconds==Integer.MAX_VALUE?Long.MAX_VALUE:TimeUnit.SECONDS.toNanos(timeOutSeconds);
+	}
 
 	ReturnCode killAgent(final AbstractAgent requester, final AbstractAgent target, final int timeOutSeconds,
 			final KillingType killing_type) {
+
+		long timeOutNano=getTimeOutNanoFromSeconds(timeOutSeconds);
 
 		if (target.getState().compareTo(ACTIVATING) < 0) {
 			return NOT_YET_LAUNCHED;
@@ -2454,8 +2463,10 @@ class MadkitKernel extends Agent {
 		try {
 			if (timeOutSeconds<=0)
 				return killAttempt.get(1, TimeUnit.MILLISECONDS);
-			else
-				return killAttempt.get(timeOutSeconds, TimeUnit.SECONDS);
+			else {
+
+				return killAttempt.get(timeOutNano, TimeUnit.NANOSECONDS);
+			}
 		} catch (InterruptedException e) {// requester has been killed or
 											// something
 			// requester.handleInterruptedException();
@@ -2616,7 +2627,7 @@ class MadkitKernel extends Agent {
 				bugReport("Killing task failed on " + target, e);
 			}
 		}
-		if (!(target instanceof Agent && ((Agent) target).myThread != null)) {
+		if (!(target instanceof Agent)) {
 			target.terminate();
 		}
 		return SUCCESS;
@@ -2657,21 +2668,7 @@ class MadkitKernel extends Agent {
 		}
 		return ReturnCode.SUCCESS;
 
-		/*
-		 * final AgentExecutor ae = target.getAgentExecutor(); final Future<?> end = ae
-		 * .getEndProcess(); if (timeOutSeconds == 0) { end.cancel(false); }
-		 * ae.getLiveProcess().cancel(false); ae.getActivate().cancel(false);
-		 * Thread.yield(); target.myThread.setPriority(Thread.MIN_PRIORITY); ReturnCode
-		 * result = SUCCESS; if (!stopAgentProcess(ACTIVATED, target, target.myThread))
-		 * { stopAgentProcess(State.LIVING, target, target.myThread); } if
-		 * (timeOutSeconds != 0) { try { end.get(timeOutSeconds, TimeUnit.SECONDS); }
-		 * catch (InterruptedException | CancellationException e) { e.printStackTrace();
-		 * } catch (ExecutionException e) { bugReport("kill task failed on " + target,
-		 * e); } catch (TimeoutException e) { result = TIMEOUT; } }
-		 * stopAgentProcess(State.ENDING, target, target.myThread); try {
-		 * ae.awaitTermination(Integer.MAX_VALUE, TimeUnit.SECONDS); } catch
-		 * (InterruptedException e) { bugReport(e); } return result;
-		 */
+
 	}
 
 	// /////////////////////////////////////////////////////////////////////////
@@ -3213,7 +3210,7 @@ class MadkitKernel extends Agent {
 			for (Map.Entry<AbstractAgent, AutoRequestedGroups> e : new HashMap<>(this.auto_requested_groups).entrySet()) {
 				AbstractAgent aa = e.getKey();
 				if (!(aa instanceof MadkitKernel) && aa.isAlive() && aa.getState().compareTo(State.WAIT_FOR_KILL) < 0)
-					killAgent(aa, 0);
+					killAgent(aa);
 			}
 		}
 		synchronized (organizations)
@@ -3230,13 +3227,12 @@ class MadkitKernel extends Agent {
 						for (AbstractAgent aa : r.getAgentsList())
 						{
 							if (!(aa instanceof MadkitKernel) && aa.isAlive() && aa.getState().compareTo(State.WAIT_FOR_KILL)<0)
-								killAgent(aa, 0);
+								killAgent(aa);
 						}
 					}
 				}
 			}
 		}
-
 	}
 
 	@Override
@@ -3319,7 +3315,6 @@ class MadkitKernel extends Agent {
 			logger.finer("***** SHUTING DOWN MADKIT ********\n");
 		killAgents(true);
 		killAgent(this);
-
 		//generator_id_transfert = null;
 		//global_interfaced_ids = null;
 
@@ -3356,19 +3351,6 @@ class MadkitKernel extends Agent {
 			logger.severe("Network is disabled into the madkit properties. Impossible to launch it.");
 	}
 
-	// BAD IDEA AS IT ALLOWS CONFIG AGENT ZOMBIES TO RUN
-	// /**
-	// * This allows to not have dirty stack traces when ending and config agents
-	// are not all launched
-	// *
-	// * @see madkit.kernel.AbstractAgent#terminate()
-	// */
-	// @Override
-	// final void terminate() {
-	// if (logger != null) {
-	// logger.finer("** TERMINATED **");
-	// }
-	// }
 
 	private void killAgents(boolean untilEmpty) throws InterruptedException {
 
@@ -3455,7 +3437,9 @@ class MadkitKernel extends Agent {
 
 	void removeThreadedAgent(Agent myAgent) {
 		synchronized (threadedAgents) {
-			threadedAgents.remove(myAgent);
+			if (!threadedAgents.remove(myAgent) && logger!=null)
+				logger.warning("Threaded agent not found during removing");
+
 			if (logger != null && logger.isLoggable(Level.FINEST))
 				logger.finest(threadedAgents.toString());
 		}
@@ -3531,27 +3515,7 @@ class MadkitKernel extends Agent {
 		return serviceExecutor;
 	}
 
-	/*
-	 * ScheduledThreadPoolExecutor
-	 * launchAndOrGetScheduledExecutorService(AbstractAgent requester, String name,
-	 * int minimumPoolSize, int priority, long timeOutSeconds) { if
-	 * (name.equals(Task.DEFAULT_TASK_EXECUTOR_NAME)) return
-	 * getDefaultScheduledExecutorService(); synchronized(dedicatedServiceExecutors)
-	 * { ScheduledThreadPoolExecutor res=dedicatedServiceExecutors.get(name); if
-	 * (res==null) {
-	 * dedicatedServiceExecutors.put(name,res=createSchedulerServiceExecutor(false,
-	 * "Task dedicated thread (+"+name+")", priority, minimumPoolSize,
-	 * timeOutSeconds, null)); } return res; }
-	 * 
-	 * } ScheduledThreadPoolExecutor
-	 * launchAndOrGetScheduledExecutorService(AbstractAgent requester, String name)
-	 * { return launchAndOrGetScheduledExecutorService(requester, name, 2,
-	 * DEFAULT_THREAD_PRIORITY, -1); } ScheduledThreadPoolExecutor
-	 * getScheduledExecutorService(AbstractAgent requester, String name) { if
-	 * (name.equals(Task.DEFAULT_TASK_EXECUTOR_NAME)) return
-	 * getDefaultScheduledExecutorService(); synchronized(dedicatedServiceExecutors)
-	 * { return dedicatedServiceExecutors.get(name); } }
-	 */
+
 	void receivingPotentialNetworkMessage(AbstractAgent requester, LocalLanMessage m) {
 
 		if (m != null) {
