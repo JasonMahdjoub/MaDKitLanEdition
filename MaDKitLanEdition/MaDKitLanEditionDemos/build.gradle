@@ -52,7 +52,7 @@ repositories {
 
 
 dependencies {
-     implementation(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.1.5-Stable')
+     implementation(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.1.6-Stable')
     
      
 }
