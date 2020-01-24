@@ -136,7 +136,7 @@ public class KillingWorkingThreadedAgentsTest extends JunitMadkit {
 				assertEquals(SUCCESS, launchAgent(a));
 				JunitMadkit.pause(this, 200);
 				killAgent(a, 0);
-				JunitMadkit.pause(this, 3200);
+				JunitMadkit.pause(this, 10000);
 				assertAgentIsTerminated(a);
 			}
 		});
@@ -153,7 +153,7 @@ public class KillingWorkingThreadedAgentsTest extends JunitMadkit {
 				a = new WorkingAgent(true, false, false);
 				ReturnCode r = launchAgent(a, 1);
 				assertTrue(TIMEOUT == r || r == SUCCESS);
-				killAgent(a, 2);
+				killAgent(a, 30);
 				assertAgentIsTerminated(a);
 				a = new WorkingAgent(true, true, false);
 				r = launchAgent(a, 1);

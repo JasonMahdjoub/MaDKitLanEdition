@@ -167,9 +167,10 @@ final public class Madkit {
 			c = Calendar.getInstance();
 			c.set(2020, Calendar.JANUARY, 23);
 			Description d = new Description((short)2, (short)1, (short)6, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update Utils to 4.8.3");
-			d.addItem("Update OOD to 2.3.18");
+			d.addItem("Update Utils to 4.8.5");
+			d.addItem("Update OOD to 2.3.20");
 			d.addItem("Rewrite agent thread executors and thread pool executors.");
+			d.addItem("Fiw issue when purging messages of a killed agent.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();

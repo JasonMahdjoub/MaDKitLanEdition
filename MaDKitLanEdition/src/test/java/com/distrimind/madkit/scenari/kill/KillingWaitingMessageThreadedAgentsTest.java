@@ -92,7 +92,7 @@ public class KillingWaitingMessageThreadedAgentsTest extends JunitMadkit {
 				setLogLevel(Level.ALL);
 				WaitingMessageAgent a = new WaitingMessageAgent(true, false, false);
 				assertEquals(TIMEOUT, launchAgent(a, 1));
-				assertEquals(ReturnCode.SUCCESS, killAgent(a, 1));
+				assertEquals(ReturnCode.SUCCESS, killAgent(a, 30));
 				assertAgentIsTerminated(a);
 			}
 		}, true);

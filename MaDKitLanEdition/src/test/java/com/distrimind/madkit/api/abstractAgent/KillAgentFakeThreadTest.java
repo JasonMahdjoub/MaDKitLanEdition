@@ -87,7 +87,14 @@ public class KillAgentFakeThreadTest extends JunitMadkit {
 		@Override
 		protected void liveByStep(Message m) throws InterruptedException {
 			if (numberOfReadMessages.getAndIncrement() == 0) {
-				sleep(1500);
+				try {
+					sleep(1500);
+				}
+				catch (InterruptedException e)
+				{
+					e.printStackTrace();
+				}
+
 			}
 		}
 	};
@@ -117,7 +124,7 @@ public class KillAgentFakeThreadTest extends JunitMadkit {
 				Assert.assertEquals(ReturnCode.SUCCESS, sendMessage(aa, new Message()));
 				assertEquals(ReturnCode.TIMEOUT,
 						killAgent(target2, 0, KillingType.WAIT_AGENT_PURGE_ITS_MESSAGES_BOX_BEFORE_KILLING_IT));
-				JunitMadkit.pause(this, 500);
+				JunitMadkit.pause(this, 200);
 				Assert.assertEquals(State.ZOMBIE, target2.getState());
 				Assert.assertNotEquals(ReturnCode.SUCCESS, sendMessage(aa, new Message()));
 				Assert.assertEquals(1, numberOfReadMessages.get());

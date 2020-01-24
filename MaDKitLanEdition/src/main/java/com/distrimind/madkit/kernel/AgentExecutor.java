@@ -150,6 +150,7 @@ final class AgentExecutor {
 							public Void call() {
 								if (!(myAgent.getKernel() instanceof FakeKernel)) {
 									try {
+
 										MadkitKernel k = myAgent.getMadkitKernel();
 										myAgent.terminate();
 										k.removeThreadedAgent(myAgent);

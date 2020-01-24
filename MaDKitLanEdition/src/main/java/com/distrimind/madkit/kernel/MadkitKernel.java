@@ -2452,10 +2452,10 @@ class MadkitKernel extends Agent {
 					}
 				});
 		try {
-			/*if (timeOutSeconds==0)
+			if (timeOutSeconds<=0)
 				return killAttempt.get(1, TimeUnit.MILLISECONDS);
-			else*/
-			return killAttempt.get(timeOutSeconds, TimeUnit.MILLISECONDS);
+			else
+				return killAttempt.get(timeOutSeconds, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {// requester has been killed or
 											// something
 			// requester.handleInterruptedException();
@@ -2474,7 +2474,6 @@ class MadkitKernel extends Agent {
 
 	protected final ReturnCode killingAgent(final AbstractAgent requester, final AbstractAgent target,
 			KillingType killing_type) {
-
 		target.waitUntilReadyForKill();
 		synchronized (target.state) {
 			if (killing_type.equals(KillingType.WAIT_AGENT_PURGE_ITS_MESSAGES_BOX_BEFORE_KILLING_IT) ) {
@@ -2492,7 +2491,7 @@ class MadkitKernel extends Agent {
 				} else
 					return ALREADY_KILLED;
 			}
-			if (isLivingButWaitingForMessages()) {
+			if (target.isLivingButWaitingForMessages()) {
 
 				try {
 					//if (target instanceof AgentFakeThread || target instanceof Agent) {
@@ -2513,9 +2512,13 @@ class MadkitKernel extends Agent {
 		releaseHookEvents(target);
 
 		ReturnCode rc;
-		if (target instanceof Agent && ((Agent) target).myThread != null) {
+		if (target instanceof Agent) {
 			// extends Agent and not launched in bucket mode
-			rc = killThreadedAgent((Agent) target);// TODO check
+			if (((Agent) target).myThread != null) {
+				rc = killThreadedAgent((Agent) target);// TODO check
+			}
+			else
+				return KILLING_ALREADY_IN_PROGRESS;
 		} else {
 			try {
 				requester.wait(new LockerCondition(target.state) {
@@ -3210,7 +3213,7 @@ class MadkitKernel extends Agent {
 			for (Map.Entry<AbstractAgent, AutoRequestedGroups> e : new HashMap<>(this.auto_requested_groups).entrySet()) {
 				AbstractAgent aa = e.getKey();
 				if (!(aa instanceof MadkitKernel) && aa.isAlive() && aa.getState().compareTo(State.WAIT_FOR_KILL) < 0)
-					killAgent(aa);
+					killAgent(aa, 0);
 			}
 		}
 		synchronized (organizations)
@@ -3227,7 +3230,7 @@ class MadkitKernel extends Agent {
 						for (AbstractAgent aa : r.getAgentsList())
 						{
 							if (!(aa instanceof MadkitKernel) && aa.isAlive() && aa.getState().compareTo(State.WAIT_FOR_KILL)<0)
-								killAgent(aa);
+								killAgent(aa, 0);
 						}
 					}
 				}
@@ -3239,7 +3242,7 @@ class MadkitKernel extends Agent {
 	@Override
 	void terminate() {
 		// AgentLogger.closeLoggersFrom(kernelAddress);
-		super.terminate();
+		super.terminate(false);
 		AgentLogger.removeLoggers(this);
 		AgentStatusPanel.remove(kernelAddress);
 		AgentLogLevelMenu.remove(kernelAddress);
@@ -3264,14 +3267,13 @@ class MadkitKernel extends Agent {
 					getLogger().warning("Life executor not terminated !");
 					valid = false;
 				}
-			} catch (InterruptedException ignored) {
-				//e.printStackTrace();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 				valid=false;
 			}
 
 			if (valid && logger!=null)
 				logger.finer("***** Service executors terminated ********\n");
-			//this.lifeExecutor = null;
 			this.serviceExecutor = null;
 		}
 		try {
@@ -3295,6 +3297,10 @@ class MadkitKernel extends Agent {
 			organizations.clear();
 		}*/
 		operatingOverlookers.clear();
+		synchronized (state) {
+			state.set(TERMINATED);
+			state.notify();
+		}
 	}
 
 	protected void exit() throws InterruptedException {
@@ -3302,7 +3308,6 @@ class MadkitKernel extends Agent {
 			return;
 		shuttedDown = true;
 		sendNetworkKernelMessageWithRole(new KernelMessage(KernelAction.EXIT));
-
 		broadcastMessageWithRole(MadkitKernel.this, Groups.GUI,
 				Roles.GUI, new KernelMessage(KernelAction.EXIT), null,
 				false);
@@ -3369,14 +3374,9 @@ class MadkitKernel extends Agent {
 
 		leaveAllGroupsOfAllAgents();
 
-		//kill threaded agents
-		threadedAgents.remove(this);
-		// Do not do what follows because it throws interruption on awt threads !
-		// //TODO why ?
-		// if(untilEmpty)
-		// normalAgentThreadFactory.getThreadGroup().interrupt();
 		ArrayList<Agent> l;
 		synchronized (threadedAgents) {
+			threadedAgents.remove(this);
 			l = new ArrayList<>(threadedAgents);
 		}
 		do {
@@ -4131,11 +4131,6 @@ class MadkitKernel extends Agent {
 							groups_to_leave.add(g);
 					}
 				}
-				/*
-				 * for (String s : kernel.getExistingCommunities()) { for (Group g :
-				 * kernel.getGroupsOf(agent, s)) { System.out.println("cancel "+g);
-				 * groups_to_request.remove(g); //groups_to_leave.remove(g); } }
-				 */
 
 				groups.set(gps);
 				// apply changes

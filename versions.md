@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-2.1.6 Stable (Build: 561) (from 22/05/2015 to 22/01/2019)
+2.1.6 Stable (Build: 586) (from 22/05/2015 to 22/01/2019)
 
 # Creator(s):
 Jason MAHDJOUB
@@ -15,9 +15,10 @@ Jacques FERBER (Entred in the team at 01/02/1997)
 
 
 ### 2.1.6 Stable (23/01/2020)
-* Update Utils to 4.8.3
-* Update OOD to 2.3.18
+* Update Utils to 4.8.5
+* Update OOD to 2.3.20
 * Rewrite agent thread executors and thread pool executors.
+* Fiw issue when purging messages of a killed agent.
 
 
 ### 2.1.5 Stable (10/01/2020)

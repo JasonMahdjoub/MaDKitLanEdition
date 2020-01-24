@@ -129,8 +129,9 @@ public class KillAgentTest extends JunitMadkit {
 		protected void liveCycle() throws InterruptedException {
 			super.activate();
 			waitNextMessage(2000);
-			if (numberOfReadMessages.incrementAndGet() == 1)
-				pause(1000);
+			if (numberOfReadMessages.incrementAndGet() == 1) {
+				pause(2000);
+			}
 		}
 	};
 

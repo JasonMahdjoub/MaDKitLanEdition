@@ -50,6 +50,7 @@ import com.distrimind.ood.database.DatabaseFactory;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.Timer;
 import com.distrimind.util.concurrent.LockerCondition;
+import com.distrimind.util.concurrent.PoolExecutor;
 import com.distrimind.util.concurrent.ScheduledPoolExecutor;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -741,10 +742,12 @@ public class JunitMadkit {
 		Timer t = new Timer(true);
 
 		do {
-			if (t.getMili() < timeout && m.getKernel().isAlive())
+			if (t.getMili() < timeout && m.getKernel().getState()!= TERMINATED) {
+				System.out.println(m+" : state="+m.getKernel().getState());
 				pause(agent, 1000);
-		} while (t.getMili() < timeout && m.getKernel().isAlive());
-		assertFalse(m.getKernel().isAlive());
+			}
+		} while (t.getMili() < timeout && m.getKernel().getState()!= TERMINATED);
+		assertSame(m.getKernel().getState(), TERMINATED);
 	}
 
 	public void checkEmptyConversationIDTraces(AbstractAgent agent, Madkit m, long timeout) {

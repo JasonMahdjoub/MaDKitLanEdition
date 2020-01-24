@@ -673,6 +673,9 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 */
 	// not final because of Scheduler and Watcher
 	void terminate() {
+		terminate(true);
+	}
+	void terminate(boolean changeState) {
 		for (Message m : messageBox) {
 			if (m.needReply())
 				sendReplyEmpty(m);
@@ -710,9 +713,11 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 			AgentLogLevelMenu.remove(this);
 			AgentStatusPanel.remove(this);
 		}
-		synchronized (state) {
-			state.set(TERMINATED);
-			state.notify();
+		if (changeState) {
+			synchronized (state) {
+				state.set(TERMINATED);
+				state.notifyAll();
+			}
 		}
 		if (kernel.isHooked())
 			kernel.informHooks(AgentActionEvent.AGENT_TERMINATED, this);
