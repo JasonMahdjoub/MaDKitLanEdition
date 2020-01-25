@@ -1596,7 +1596,7 @@ final class NIOAgent extends Agent {
 				return false;
 			}
 		}
-		private boolean isTransferTypeChangementPossible() throws TransfertException {
+		private boolean isTransferTypeChangmentPossible() throws TransfertException {
 			AbstractData data = null;
 			switch (dataTransferType) {
 			case SHORT_DATA:
@@ -1627,7 +1627,7 @@ final class NIOAgent extends Agent {
 		}
 
 		private boolean checkValidTransferType() throws TransfertException {
-				boolean changement = isTransferTypeChangementPossible();
+				boolean changement = isTransferTypeChangmentPossible();
 				if (!changement)
 					return true;
 				boolean valid_data=hasDataToSend();
@@ -1900,6 +1900,8 @@ final class NIOAgent extends Agent {
 								receivedData(key, bb, bb.capacity());
 							}
 						} else {
+							if (logger != null && logger.isLoggable(Level.INFO))
+								logger.info("Incompatible versions : " + dm);
 							firstReceivedData = null;
 							closeConnection(ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED);
 							key.cancel();

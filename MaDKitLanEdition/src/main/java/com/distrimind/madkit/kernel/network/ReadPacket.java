@@ -181,8 +181,9 @@ final class ReadPacket {
 				SubBlock subBlock=_part.getSubBlock();
 				byte[] bytes = subBlock.getBytes();
 				
-				if (messageDigest != null)
+				if (messageDigest != null) {
 					messageDigest.update(bytes, subBlock.getOffset(), offset);
+				}
 
 				offset+=subBlock.getOffset();
 				if (currentPacketDataSize > 0) {
@@ -224,8 +225,9 @@ final class ReadPacket {
 						}
 					}
 				}
-				if (current_pos > data_length_with_message_digest)
+				if (current_pos > data_length_with_message_digest) {
 					throw new PacketException("Invalid data coherence !");
+				}
 			}
 		} catch (PacketException e) {
 			if (!isTemporaryInvalid())
@@ -336,7 +338,7 @@ final class ReadPacket {
 				byte[] tabRes = new byte[subBlock.getSize()-1];
 				byte[] tab = subBlock.getBytes();
 				int cursor = subBlock.getOffset()+1;
-				int shiftTabLength=cursor+subBlock.getSize();
+				int shiftTabLength=subBlock.getOffset()+subBlock.getSize();
 				int tabResCursor = 0;
 				while (cursor < shiftTabLength) {
 					byte nbrand = WritePacket.decodeLocalNumberRandomVal(tab[cursor++]);

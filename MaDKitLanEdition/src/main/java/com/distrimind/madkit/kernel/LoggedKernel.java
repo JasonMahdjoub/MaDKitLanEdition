@@ -83,6 +83,10 @@ final class LoggedKernel extends MadkitKernel {
 		return kernel.getLogger();
 	}
 
+	@Override
+	public KernelAddress getKernelAddress() {
+		return kernel.getKernelAddress();
+	}
 
 	@Override
 	ReturnCode createGroup(AbstractAgent requester, Group group, Object passKey, boolean manually_created) {

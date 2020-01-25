@@ -516,7 +516,7 @@ public final class WritePacket {
 			short random_values_size;
 			if (max_random_values_size >= min)
 				random_values_size = (short)(min + rand.nextInt(
-						Math.min(getMaximumGlobalRandomValues(max_buffer_size), max_random_values_size) - min ));
+						Math.min(getMaximumGlobalRandomValues(max_buffer_size), max_random_values_size) - min +1));
 			else
 				random_values_size = min;
 			random_values_size_remaining = random_values_size;
