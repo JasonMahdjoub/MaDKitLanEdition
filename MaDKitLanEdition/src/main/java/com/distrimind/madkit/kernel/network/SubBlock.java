@@ -45,8 +45,8 @@ package com.distrimind.madkit.kernel.network;
  */
 public class SubBlock {
 	private final byte[] block;
-	private final int offset;
-	private final int size;
+	private int offset;
+	private int size;
 	
 	public SubBlock(Block _block) {
 		block = _block.getBytes();
@@ -68,6 +68,13 @@ public class SubBlock {
 		block = _block;
 		offset = _offset;
 		size = _size;
+	}
+
+	void setOffsetAndSize(int offset, int size)
+	{
+		this.offset=offset;
+		this.size=size;
+
 	}
 
 	public byte[] getBytes() {

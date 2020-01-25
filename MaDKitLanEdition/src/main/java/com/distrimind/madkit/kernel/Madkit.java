@@ -142,8 +142,8 @@ final public class Madkit {
 		Calendar c = Calendar.getInstance();
 		c.set(2015, Calendar.MAY, 22);
 		Calendar c2 = Calendar.getInstance();
-		c2.set(2019, Calendar.JANUARY, 22);
-		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)2, (short)1, (short)6, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
+		c2.set(2019, Calendar.JANUARY, 25);
+		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)2, (short)1, (short)7, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
 		try {
 
 			InputStream is = Madkit.class.getResourceAsStream("build.txt");
@@ -165,8 +165,14 @@ final public class Madkit {
 			VERSION.addDeveloper(new PersonDeveloper("Ferber", "Jacques", c.getTime()));
 
 			c = Calendar.getInstance();
-			c.set(2020, Calendar.JANUARY, 23);
-			Description d = new Description((short)2, (short)1, (short)6, Version.Type.Stable, (short)1, c.getTime());
+			c.set(2020, Calendar.JANUARY, 25);
+			Description d = new Description((short)2, (short)1, (short)7, Version.Type.Stable, (short)1, c.getTime());
+			d.addItem("Generate random messages only if messages are lower than network block size");
+			VERSION.addDescription(d);
+
+			c = Calendar.getInstance();
+			c.set(2020, Calendar.JANUARY, 24);
+			d = new Description((short)2, (short)1, (short)6, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Update Utils to 4.8.5");
 			d.addItem("Update OOD to 2.3.20");
 			d.addItem("Rewrite agent thread executors and thread pool executors.");

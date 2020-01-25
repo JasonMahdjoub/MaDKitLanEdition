@@ -787,7 +787,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			MadkitKernelAccess.setIDPacket(bgpm, id);
 			WritePacket packet = new WritePacket(PacketPartHead.TYPE_PACKET, id,
 					getMadkitConfig().networkProperties.maxBufferSize,
-					getMadkitConfig().networkProperties.maxRandomPacketValues, random, inputStream,
+					bgpm.bigDataExcludedFromEncryption()?0:getMadkitConfig().networkProperties.maxRandomPacketValues, random, inputStream,
 					bgpm.getStartStreamPosition(), bgpm.getTransferLength(), true, bgpm.getMessageDigestType());
 			BigPacketData packetData = new BigPacketData(choosenSocket.getAgentAddress(), packet, bgpm.getReceiver(),
 					bgpm.getSender(), bgpm.getConversationID(), bgpm.getStatistics(), bgpm.bigDataExcludedFromEncryption());
@@ -1937,7 +1937,7 @@ class DistantKernelAgent extends AgentFakeThread {
 
 			WritePacket packet = new WritePacket(PacketPartHead.TYPE_PACKET, getNewPacketID(),
 					getMadkitConfig().networkProperties.maxBufferSize,
-					getMadkitConfig().networkProperties.maxRandomPacketValues, random,
+					_data.excludedFromEncryption()?0:getMadkitConfig().networkProperties.maxRandomPacketValues, random,
 					new RandomByteArrayInputStream(baos.getBytes()));
 			if (logger != null && logger.isLoggable(Level.FINEST))
 				logger.finest("Sending data (distantInterfacedKernelAddress=" + distant_kernel_address + ", packetID="

@@ -266,7 +266,7 @@ public class SubBlocksStructure {
 
 	public static int getAbsoluteMaximumBlockSize(ConnectionProtocol<?> connection_protocol, int max_buffer_size, short random_values_size)
 			throws NIOException {
-		int size = PacketPartHead.getMaxOutputSize(max_buffer_size, PacketPartHead.getHeadSize(true), random_values_size);
+		int size = PacketPartHead.getMaxOutputSize(max_buffer_size, PacketPartHead.getHeadSize(true), connection_protocol.isCrypted()?random_values_size:0);
 
 		for (Iterator<ConnectionProtocol<?>> it = connection_protocol.reverseIterator(); it.hasNext();) {
 			ConnectionProtocol<?> cp = it.next();

@@ -56,7 +56,7 @@ public final class PacketPart {
 
 	public PacketPart(SubBlock subBlock, int max_buffer_size, short random_values_size) throws PacketException {
 		this.subBlock = ReadPacket
-				.getByteTabInputStream(subBlock, WritePacket.getRandomValueSize(max_buffer_size, random_values_size))
+				.getByteTabInputStream(subBlock)
 				.getSubBlock();
 		head = new PacketPartHead(this.subBlock);
 		isReadyToSend = false;

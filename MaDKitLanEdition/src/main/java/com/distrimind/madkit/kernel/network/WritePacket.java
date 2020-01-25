@@ -244,15 +244,16 @@ public final class WritePacket {
 				return null;
 			boolean first_packet = (current_pos.get() == start_position);
 			int headSize = PacketPartHead.getHeadSize(first_packet);
+			long dataSizeRemaining=data_length - (current_pos.get() - start_position);
 			AbstractByteTabOutputStream res = getByteTabOutputStream(conProto,
 					data_length + start_position <= current_pos.get() ? null : messageDigest, max_buffer_size, headSize,
-					data_length_with_message_digest - (current_pos.get() - start_position), random_values_size, random);
+					data_length_with_message_digest - (current_pos.get() - start_position), (conProto.isCrypted() && dataSizeRemaining<max_buffer_size)?random_values_size:0, random);
 			boolean last_packet = (current_pos.get()
 					+ res.getRealDataSizeWithoutPacketHeadSize()) == (data_length_with_message_digest + start_position);
 			PacketPartHead pph = setHeadPart(last_packet, res);
 
 			int currentPacketDataSize = (int) Math.max(
-					Math.min(res.getRealDataSizeWithoutPacketHeadSize(), data_length - (current_pos.get() - start_position)),
+					Math.min(res.getRealDataSizeWithoutPacketHeadSize(),dataSizeRemaining ),
 					0);
 
 			// byte[] res=new byte[PacketPartHead.getHeadSize(first_packet)+size];
@@ -294,8 +295,8 @@ public final class WritePacket {
 			if (current_pos.get() == data_length_with_message_digest + start_position) {
 				finished = true;
 			}
-			res.finilizeTab();
-			int totalDataLength = res.getWritedData() - headSize;
+			res.finalizeTab();
+			int totalDataLength = res.getWrittenData() - headSize;
 			if (totalDataLength != res.getRealDataSizeWithoutPacketHeadSize())
 				throw new IllegalAccessError("The length returned by the input stream (" + totalDataLength
 						+ ") does not corresponds to the effective contained data ("
@@ -333,7 +334,7 @@ public final class WritePacket {
 
 		abstract int writeData(RandomInputStream is, int size) throws IOException;
 
-		abstract void finilizeTab();
+		abstract void finalizeTab();
 
 		//abstract byte[] getBytesArray();
 		abstract SubBlock getSubBlock();
@@ -367,7 +368,7 @@ public final class WritePacket {
 		}*/
 
 		private static final byte[] tmpByteTab=new byte[24];
-		
+
 		void writeHead(byte type, WritePacket wp)
 		{
 			synchronized(tmpByteTab)
@@ -389,7 +390,7 @@ public final class WritePacket {
 			messageDigest = null;
 		}
 
-		abstract int getWritedData();
+		abstract int getWrittenData();
 
 	}
 
@@ -421,19 +422,22 @@ public final class WritePacket {
 			 * byte[size];
 			 */
 			realDataSize_WithoutHead = (int)Math.min(_data_remaining, max_buffer_size);
-			int size = packet_head_size + realDataSize_WithoutHead;
+			int size = packet_head_size + realDataSize_WithoutHead+1;
 			subBlock=connectionProtocol.initSubBlock(size);
 			//tab = new byte[size];
 			tab=subBlock.getBytes();
 			cursor = subBlock.getOffset();
+			tab[cursor++]=0;
 		}
 		static int getMaxOutputSize(int max_buffer_size, int packet_head_size)
 		{
-			return max_buffer_size+packet_head_size;
+			return max_buffer_size+packet_head_size+1;
 		}
+
+
 		@Override
-		int getWritedData() {
-			return cursor-subBlock.getOffset();
+		int getWrittenData() {
+			return cursor-subBlock.getOffset()-1;
 		}
 
 		/*@Override
@@ -465,7 +469,7 @@ public final class WritePacket {
 		}
 
 		@Override
-		void finilizeTab() {
+		void finalizeTab() {
 		}
 
 		/*@Override
@@ -488,6 +492,8 @@ public final class WritePacket {
 		int getRealDataSizeWithoutPacketHeadSize() {
 			return realDataSize_WithoutHead;
 		}
+
+
 	}
 
 	protected static class ByteTabOutputStreamWithRandomValues extends AbstractByteTabOutputStream {
@@ -510,7 +516,7 @@ public final class WritePacket {
 			short random_values_size;
 			if (max_random_values_size >= min)
 				random_values_size = (short)(min + rand.nextInt(
-						Math.min(getMaximumGlobalRandomValues(max_buffer_size), max_random_values_size) - min + 1));
+						Math.min(getMaximumGlobalRandomValues(max_buffer_size), max_random_values_size) - min ));
 			else
 				random_values_size = min;
 			random_values_size_remaining = random_values_size;
@@ -529,16 +535,17 @@ public final class WritePacket {
 			cursor = subBlock.getOffset();
 			nextRandValuePos = cursor;
 			shiftedTabLength=subBlock.getOffset()+subBlock.getSize();
+			tab[cursor++]=1;
 		}
 		
 		static int getMaxOutputSize(int max_buffer_size, short max_random_values_size, int packet_head_size)
 		{
-			return max_buffer_size+Math.min(getMaximumGlobalRandomValues(max_buffer_size), max_random_values_size)+packet_head_size;
+			return max_buffer_size+Math.min(getMaximumGlobalRandomValues(max_buffer_size), max_random_values_size)+packet_head_size+1;
 		}
 
 		@Override
-		int getWritedData() {
-			return cursor - randamValuesWrited - subBlock.getOffset();
+		int getWrittenData() {
+			return cursor - randamValuesWrited - subBlock.getOffset()-1;
 		}
 
 		/*@Override
@@ -627,7 +634,7 @@ public final class WritePacket {
 		}
 
 		@Override
-		void finilizeTab() {
+		void finalizeTab() {
 			byte[] b = new byte[shiftedTabLength - cursor];
 			random.nextBytes(b);
 			System.arraycopy(b, 0, tab, cursor, b.length);

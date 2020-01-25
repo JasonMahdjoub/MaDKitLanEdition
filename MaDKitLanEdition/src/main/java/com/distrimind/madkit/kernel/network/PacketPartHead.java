@@ -57,7 +57,7 @@ public final class PacketPartHead {
 	static final byte TYPE_PACKET_LAST = 0b1001;
 
 	private static String getTypePacket(byte type) {
-		String res = "UNKONW";
+		String res = "UNKNOWN";
 		if ((type & TYPE_PACKET) == TYPE_PACKET)
 			res = "PACKET";
 		if ((type & TYPE_PACKET_HEAD) == TYPE_PACKET_HEAD)

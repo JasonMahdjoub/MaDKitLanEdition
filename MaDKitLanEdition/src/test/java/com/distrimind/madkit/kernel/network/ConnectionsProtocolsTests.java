@@ -895,7 +895,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 			NIOException, NoSuchAlgorithmException, NoSuchProviderException {
 		ArrayList<Block> res = new ArrayList<>();
 		WritePacket wp = new WritePacket(PacketPartHead.TYPE_PACKET, idPacket, np.maxBufferSize,
-				np.maxRandomPacketValues, rand, new RandomByteArrayInputStream(message), MessageDigestType.BC_FIPS_SHA3_512);
+				excludeFromEncryption?0:np.maxRandomPacketValues, rand, new RandomByteArrayInputStream(message), MessageDigestType.BC_FIPS_SHA3_512);
 		Assert.assertEquals(idPacket, wp.getID());
 		while (!wp.isFinished()) {
 			if (tbc!=null)

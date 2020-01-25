@@ -293,8 +293,8 @@ final class ReadPacket {
 		//abstract int getRealDataSize();
 	}
 
-	static AbstractByteTabInputStream getByteTabInputStream(SubBlock subBlock, short random_values_size) {
-		if (random_values_size == 0)
+	static AbstractByteTabInputStream getByteTabInputStream(SubBlock subBlock) {
+		if (subBlock.getBytes()[subBlock.getOffset()]==0)
 			return new ByteTabInputStream(subBlock);
 		else
 			return new ByteTabInputStreamWithRandomValues(subBlock);
@@ -305,11 +305,13 @@ final class ReadPacket {
 
 		ByteTabInputStream(SubBlock subBlock) {
 			this.subBlock = subBlock;
+			subBlock.setOffsetAndSize(subBlock.getOffset()+1, subBlock.getSize()-1);
 		}
 
 		@Override
 		SubBlock getSubBlock()
 		{
+			//return new SubBlock(subBlock.getBytes(), subBlock.getOffset()+1, subBlock.getSize()-1);
 			return subBlock;
 		}
 
@@ -331,10 +333,10 @@ final class ReadPacket {
 		@Override
 		SubBlock getSubBlock() {
 			if (subBlockRes == null) {
-				byte[] tabRes = new byte[subBlock.getSize()];
+				byte[] tabRes = new byte[subBlock.getSize()-1];
 				byte[] tab = subBlock.getBytes();
-				int cursor = subBlock.getOffset();
-				int shiftTabLength=subBlock.getOffset()+subBlock.getSize();
+				int cursor = subBlock.getOffset()+1;
+				int shiftTabLength=cursor+subBlock.getSize();
 				int tabResCursor = 0;
 				while (cursor < shiftTabLength) {
 					byte nbrand = WritePacket.decodeLocalNumberRandomVal(tab[cursor++]);
