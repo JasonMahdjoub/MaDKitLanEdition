@@ -10,6 +10,7 @@
 apply plugin: 'java'
 apply plugin: 'application'
 apply plugin: 'eclipse'
+apply plugin: 'idea'
 apply plugin: 'maven-publish'
 
 Properties props = new Properties()
