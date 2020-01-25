@@ -296,8 +296,10 @@ final class ReadPacket {
 	}
 
 	static AbstractByteTabInputStream getByteTabInputStream(SubBlock subBlock) {
-		if (subBlock.getBytes()[subBlock.getOffset()]==0)
+
+		if (subBlock.getBytes()[subBlock.getOffset()]==0) {
 			return new ByteTabInputStream(subBlock);
+		}
 		else
 			return new ByteTabInputStreamWithRandomValues(subBlock);
 	}
@@ -306,6 +308,7 @@ final class ReadPacket {
 		private final SubBlock subBlock;
 
 		ByteTabInputStream(SubBlock subBlock) {
+			//this.subBlock=new SubBlock(subBlock.getBytes(), subBlock.getOffset()+1, subBlock.getSize()-1);
 			this.subBlock = subBlock;
 			subBlock.setOffsetAndSize(subBlock.getOffset()+1, subBlock.getSize()-1);
 		}
@@ -313,7 +316,6 @@ final class ReadPacket {
 		@Override
 		SubBlock getSubBlock()
 		{
-			//return new SubBlock(subBlock.getBytes(), subBlock.getOffset()+1, subBlock.getSize()-1);
 			return subBlock;
 		}
 

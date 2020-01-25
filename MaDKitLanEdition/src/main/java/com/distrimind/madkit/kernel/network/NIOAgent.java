@@ -1901,7 +1901,7 @@ final class NIOAgent extends Agent {
 							}
 						} else {
 							if (logger != null && logger.isLoggable(Level.INFO))
-								logger.info("Incompatible versions : " + dm);
+								logger.info("Incompatible peers" );
 							firstReceivedData = null;
 							closeConnection(ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED);
 							key.cancel();

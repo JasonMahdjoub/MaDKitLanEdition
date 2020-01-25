@@ -123,7 +123,7 @@ public final class WritePacket {
 		id_packet = _id_packet;
 		current_pos.set(start_position=_start_position);
 		max_buffer_size = _max_buffer_size;
-		this.random_values_size = getRandomValueSize(max_buffer_size, random_values_size);
+		this.random_values_size =random_values_size;
 
 		if (this.random_values_size == 0)
 			random = null;
@@ -147,7 +147,7 @@ public final class WritePacket {
 		transfert_as_big_data = _transfert_as_big_data;
 	}
 
-	static short getRandomValueSize(int max_buffer_size, short random_values_size) {
+	/*static short getRandomValueSize(int max_buffer_size, short random_values_size) {
 		if (random_values_size > getMiniRandomValueSize()) {
 			if (random_values_size < getMaximumGlobalRandomValues(max_buffer_size))
 				return random_values_size;
@@ -155,7 +155,7 @@ public final class WritePacket {
 				return getMaximumGlobalRandomValues(max_buffer_size);
 		} else
 			return 0;
-	}
+	}*/
 
 	static protected short getMiniRandomValueSize() {
 		return 3;
@@ -422,8 +422,7 @@ public final class WritePacket {
 			 * byte[size];
 			 */
 			realDataSize_WithoutHead = (int)Math.min(_data_remaining, max_buffer_size);
-			int size = packet_head_size + realDataSize_WithoutHead+1;
-			subBlock=connectionProtocol.initSubBlock(size);
+			subBlock=connectionProtocol.initSubBlock(packet_head_size + realDataSize_WithoutHead+1);
 			//tab = new byte[size];
 			tab=subBlock.getBytes();
 			cursor = subBlock.getOffset();
@@ -528,12 +527,12 @@ public final class WritePacket {
 			 * packet_head_size); data_size=(short)(tab.length-this.random_values_size);
 			 */
 			int size = (int) (Math.min(_data_remaining, max_buffer_size));
-			subBlock=conProto.initSubBlock(size + packet_head_size + random_values_size);
+			subBlock=conProto.initSubBlock(size + packet_head_size + random_values_size+1);
 			//tab = new byte[size + packet_head_size + this.random_values_size];
 			tab=subBlock.getBytes();
 			realDataSize_WithoutHead = size;
 			cursor = subBlock.getOffset();
-			nextRandValuePos = cursor;
+			nextRandValuePos = cursor+1;
 			shiftedTabLength=subBlock.getOffset()+subBlock.getSize();
 			tab[cursor++]=1;
 		}
