@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-2.1.6 Stable (Build: 590) (from 22/05/2015 to 22/01/2019)
+2.1.7 Stable (Build: 598) (from 22/05/2015 to 25/01/2019)
 
 # Creator(s):
 Jason MAHDJOUB
@@ -14,7 +14,11 @@ Jacques FERBER (Entred in the team at 01/02/1997)
 # Modifications:
 
 
-### 2.1.6 Stable (23/01/2020)
+### 2.1.7 Stable (25/01/2020)
+* Generate random messages only if messages are lower than network block size
+
+
+### 2.1.6 Stable (24/01/2020)
 * Update Utils to 4.8.5
 * Update OOD to 2.3.20
 * Rewrite agent thread executors and thread pool executors.

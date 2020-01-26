@@ -64,8 +64,12 @@ public class BeeScheduler extends Scheduler {
 			try {
 				boolean mutiCore = ((ObjectMessage<Boolean>) m).getContent();
 				if (mutiCore) {
+					if (logger!=null)
+						logger.info("Enabling multi-core");
 					bees.useMulticore(Runtime.getRuntime().availableProcessors());
 				} else {
+					if (logger!=null)
+						logger.info("Disabling multi-core");
 					bees.useMulticore(1);
 				}
 			} catch (ClassCastException e) {
