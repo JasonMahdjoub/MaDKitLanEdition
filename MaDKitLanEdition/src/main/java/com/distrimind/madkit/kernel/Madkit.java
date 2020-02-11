@@ -143,7 +143,7 @@ final public class Madkit {
 		c.set(2015, Calendar.MAY, 22);
 		Calendar c2 = Calendar.getInstance();
 		c2.set(2019, Calendar.FEBRUARY, 11);
-		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)2, (short)2, (short)0, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
+		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)2, (short)1, (short)8, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
 		try {
 
 			InputStream is = Madkit.class.getResourceAsStream("build.txt");
