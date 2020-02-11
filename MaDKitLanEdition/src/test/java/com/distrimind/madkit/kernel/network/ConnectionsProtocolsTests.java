@@ -51,6 +51,7 @@ import com.distrimind.madkit.kernel.network.connection.unsecured.CheckSumConnect
 import com.distrimind.madkit.kernel.network.connection.unsecured.UnsecuredConnectionProtocolProperties;
 import com.distrimind.ood.database.DatabaseConfiguration;
 import com.distrimind.ood.database.EmbeddedH2DatabaseWrapper;
+import com.distrimind.ood.database.InMemoryEmbeddedH2DatabaseFactory;
 import com.distrimind.util.crypto.*;
 import com.distrimind.util.io.*;
 import org.junit.AfterClass;
@@ -94,8 +95,8 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 				EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(dbasker);
 			if (dbreceiver.exists())
 				EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(dbreceiver);
-			asker = new EmbeddedH2DatabaseWrapper(dbasker);
-			receiver = new EmbeddedH2DatabaseWrapper(dbreceiver);
+			asker = new InMemoryEmbeddedH2DatabaseFactory(dbasker.getName()).getDatabaseWrapperSingleton();
+			receiver = new InMemoryEmbeddedH2DatabaseFactory(dbreceiver.getName()).getDatabaseWrapperSingleton();
 			asker.loadDatabase(new DatabaseConfiguration(KeysPairs.class.getPackage()), true);
 			receiver.loadDatabase(new DatabaseConfiguration(KeysPairs.class.getPackage()), true);
 		} catch (Exception e) {
@@ -215,7 +216,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		res.add(o);
 
 		o = new ConnectionProtocolProperties<?>[2];
-		AbstractKeyPair keyPairForSignature=new HybridASymmetricAuthenticatedSignatureType(ASymmetricAuthenticatedSignatureType.BC_Ed25519, ASymmetricAuthenticatedSignatureType.BCPQC_SPHINCS256_SHA3_512).generateKeyPair(rand);
+		AbstractKeyPair<?, ?> keyPairForSignature=new HybridASymmetricAuthenticatedSignatureType(ASymmetricAuthenticatedSignatureType.BC_Ed25519, ASymmetricAuthenticatedSignatureType.BCPQC_SPHINCS256_SHA3_512).generateKeyPair(rand);
 		p2pp_ecdh = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.AES_GCM;
 		p2pp_ecdh.keyAgreementType=KeyAgreementType.BC_XDH_X448_WITH_SHA512CKDF;
@@ -574,6 +575,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 			try {
 				do {
 					byte[] message = serialize(masker);
+					assert masker != null;
 					boolean excludeFromEncryption=masker.excludedFromEncryption();
 					masker = (ConnectionMessage) unserialize(getMessage(message,
 							getBytesToSend(getBlocks(message,excludeFromEncryption, this.cpasker, npasker, 2, -1, null)), this.cpreceiver,
@@ -718,6 +720,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 					masker = new UnknowConnectionMessage();
 				}
 				byte[] message = serialize(masker);
+				assert masker != null;
 				boolean excludeFromEncryption=masker.excludedFromEncryption();
 				masker = (ConnectionMessage) unserialize(
 						getMessage(message, getBytesToSend(getBlocks(message,excludeFromEncryption, this.cpasker, npasker, 2, -1, null)),
@@ -808,6 +811,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 					masker.corrupt();
 				}
 				byte[] message = serialize(masker);
+				assert masker != null;
 				boolean excludeFromEncryption=masker.excludedFromEncryption();
 
 				masker = (ConnectionMessage) unserialize(

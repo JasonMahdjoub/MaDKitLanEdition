@@ -45,8 +45,8 @@ import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.AccessDataMKEventListener;
 import com.distrimind.madkit.kernel.network.ConnectionsProtocolsTests;
 import com.distrimind.ood.database.DatabaseConfiguration;
-import com.distrimind.ood.database.EmbeddedH2DatabaseFactory;
 import com.distrimind.ood.database.EmbeddedH2DatabaseWrapper;
+import com.distrimind.ood.database.InMemoryEmbeddedH2DatabaseFactory;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.crypto.P2PLoginAgreementType;
 import com.distrimind.util.io.SecuredObjectInputStream;
@@ -502,8 +502,8 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 			initialIdentifierPassordsReceiver.addAll(identifierPassordsReceiver);
 		}
 		if (databaseEnabled) {
-			mpasker.setDatabaseFactory(new EmbeddedH2DatabaseFactory(dbfileasker));
-			mpreceiver.setDatabaseFactory(new EmbeddedH2DatabaseFactory(dbfilereceiver));
+			mpasker.setDatabaseFactory(new InMemoryEmbeddedH2DatabaseFactory(dbfileasker.getName()));
+			mpreceiver.setDatabaseFactory(new InMemoryEmbeddedH2DatabaseFactory(dbfilereceiver.getName()));
 		}
 		//System.out.println(accessProtocolProperties.getClass());
 	}
@@ -517,9 +517,9 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 				EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(dbfileasker);
 			if (dbfilereceiver.exists())
 				EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(dbfilereceiver);
-			JunitMadkit.setDatabaseFactory(mpasker, new EmbeddedH2DatabaseFactory(dbfileasker));
+			JunitMadkit.setDatabaseFactory(mpasker, new InMemoryEmbeddedH2DatabaseFactory(dbfileasker.getName()));
 			mpasker.getDatabaseWrapper().loadDatabase(new DatabaseConfiguration(KeysPairs.class.getPackage()), true);
-			JunitMadkit.setDatabaseFactory(mpreceiver, new EmbeddedH2DatabaseFactory(dbfilereceiver));
+			JunitMadkit.setDatabaseFactory(mpreceiver, new InMemoryEmbeddedH2DatabaseFactory(dbfilereceiver.getName()));
 			mpreceiver.getDatabaseWrapper().loadDatabase(new DatabaseConfiguration(KeysPairs.class.getPackage()), true);
 		}
 	}

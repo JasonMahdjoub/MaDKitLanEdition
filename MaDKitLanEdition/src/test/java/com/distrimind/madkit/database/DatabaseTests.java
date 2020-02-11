@@ -41,6 +41,7 @@ import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.ood.database.DatabaseConfiguration;
 import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.ood.database.EmbeddedH2DatabaseWrapper;
+import com.distrimind.ood.database.InMemoryEmbeddedH2DatabaseFactory;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.crypto.ASymmetricEncryptionType;
 import com.distrimind.util.crypto.ASymmetricKeyPair;
@@ -70,7 +71,7 @@ public class DatabaseTests {
 	@BeforeClass
 	public static void loadDatabase() throws IllegalArgumentException, DatabaseException {
 		closeAndDeleleteDatabase();
-		databaseWrapper = new EmbeddedH2DatabaseWrapper(databaseFile);
+		databaseWrapper = new InMemoryEmbeddedH2DatabaseFactory(databaseFile.getName()).getDatabaseWrapperSingleton();
 		databaseWrapper.loadDatabase(new DatabaseConfiguration(KeysPairs.class.getPackage()), true);
 		ipbanned = databaseWrapper.getTableInstance(IPBanned.class);
 		ipbanstat = databaseWrapper.getTableInstance(IPBanStat.class);

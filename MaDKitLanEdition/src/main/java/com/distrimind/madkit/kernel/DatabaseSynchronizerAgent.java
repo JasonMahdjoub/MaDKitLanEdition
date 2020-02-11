@@ -578,7 +578,6 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 							updateGroupAccess(this);
 
 						} else {
-							System.out.println("here2");
 							askForHookAddingAndSynchronizeDatabase(group, hostIdentifier, conflictualRecordsReplacedByDistantRecords, packages);
 						}
 					}

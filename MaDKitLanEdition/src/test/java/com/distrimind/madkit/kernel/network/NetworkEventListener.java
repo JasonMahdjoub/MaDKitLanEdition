@@ -41,7 +41,7 @@ import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.kernel.MadkitEventListener;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.connection.access.HostIdentifier;
-import com.distrimind.ood.database.EmbeddedH2DatabaseFactory;
+import com.distrimind.ood.database.InMemoryEmbeddedH2DatabaseFactory;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 
 import java.io.File;
@@ -171,7 +171,7 @@ public class NetworkEventListener implements MadkitEventListener {
 		_properties.networkProperties.autoConnectWithLocalSitePeers = autoConnectWithLocalSitePeers;
 		try {
 			if (databaseFile != null)
-				_properties.setDatabaseFactory(new EmbeddedH2DatabaseFactory(databaseFile));
+				_properties.setDatabaseFactory(new InMemoryEmbeddedH2DatabaseFactory(databaseFile.getName()));
 		} catch (DatabaseException e) {
 			e.printStackTrace();
 		}

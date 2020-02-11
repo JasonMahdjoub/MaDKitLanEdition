@@ -36,8 +36,8 @@ knowledge of the CeCILL-C license and that you accept its terms.
  */
 
 import com.distrimind.madkit.message.StringMessage;
-import com.distrimind.ood.database.EmbeddedH2DatabaseFactory;
 import com.distrimind.ood.database.EmbeddedH2DatabaseWrapper;
+import com.distrimind.ood.database.InMemoryEmbeddedH2DatabaseFactory;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -58,7 +58,7 @@ public class AsynchronousMessageTests extends JunitMadkit{
 		@Override
 		public void onMaDKitPropertiesLoaded(MadkitProperties properties) {
 			try {
-				properties.setDatabaseFactory(new EmbeddedH2DatabaseFactory(databaseFile));
+				properties.setDatabaseFactory(new InMemoryEmbeddedH2DatabaseFactory(databaseFile.getName()));
 			} catch (DatabaseException e) {
 				e.printStackTrace();
 			}
