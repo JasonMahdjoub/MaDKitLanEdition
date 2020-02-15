@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-2.1.9 Stable (Build: 614) (from 22/05/2015 to 13/02/2019)
+2.1.10 Stable (Build: 623) (from 22/05/2015 to 13/02/2019)
 
 # Creator(s):
 Jason MAHDJOUB
@@ -14,9 +14,9 @@ Jacques FERBER (Entred in the team at 01/02/1997)
 # Modifications:
 
 
-### 2.1.9 Stable (13/02/2020)
-* Update Utils to 4.10.0
-* Update OOD to 2.4.1
+### 2.1.10 Stable (15/02/2020)
+* Update Utils to 4.10.1
+* Update OOD to 2.4.2
 
 
 ### 2.1.8 Stable (11/02/2020)
