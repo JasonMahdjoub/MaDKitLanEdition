@@ -65,14 +65,9 @@ import com.distrimind.madkit.kernel.network.connection.access.Identifier;
 import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
 import com.distrimind.madkit.message.*;
 import com.distrimind.madkit.message.hook.HookMessage;
-import com.distrimind.ood.database.DatabaseEventType;
-import com.distrimind.ood.database.DatabaseWrapper;
-import com.distrimind.ood.database.HookAddRequest;
-import com.distrimind.ood.database.TransactionIsolation;
 import com.distrimind.util.OS;
 import com.distrimind.util.OSVersion;
 import com.distrimind.util.ReflectionTools;
-import com.distrimind.util.crypto.*;
 import com.distrimind.util.io.SecureExternalizableWithoutInnerSizeControl;
 import com.distrimind.util.io.SerializationTools;
 import com.distrimind.util.properties.PropertiesParseException;
@@ -142,8 +137,8 @@ final public class Madkit {
 		Calendar c = Calendar.getInstance();
 		c.set(2015, Calendar.MAY, 22);
 		Calendar c2 = Calendar.getInstance();
-		c2.set(2019, Calendar.FEBRUARY, 13);
-		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)2, (short)1, (short)10, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
+		c2.set(2019, Calendar.MARCH, 30);
+		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)2, (short)2, (short)0, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
 		try {
 
 			InputStream is = Madkit.class.getResourceAsStream("build.txt");
@@ -165,8 +160,16 @@ final public class Madkit {
 			VERSION.addDeveloper(new PersonDeveloper("Ferber", "Jacques", c.getTime()));
 
 			c = Calendar.getInstance();
+			c.set(2020, Calendar.MARCH, 30);
+			Description d = new Description((short)2, (short)2, (short)0, Version.Type.Stable, (short)1, c.getTime());
+			d.addItem("Update Utils to 4.15.12");
+			d.addItem("Update OOD to 3.0.0");
+			d.addItem("Make Utils and OOD compatible with Android");
+			VERSION.addDescription(d);
+
+			c = Calendar.getInstance();
 			c.set(2020, Calendar.FEBRUARY, 15);
-			Description d = new Description((short)2, (short)1, (short)10, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)2, (short)1, (short)10, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Update Utils to 4.10.1");
 			d.addItem("Update OOD to 2.4.2");
 			VERSION.addDescription(d);
@@ -1135,35 +1138,16 @@ final public class Madkit {
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.WrappedCloudIdentifier"),
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.CloudIdentifiersPropositionMessage"),
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.JPakeMessageForAuthenticationOfCloudIdentifiers"),
-					DatabaseWrapper.DatabaseEventsToSynchronize.class,
-					DatabaseWrapper.DatabaseTransactionsIdentifiersToSynchronize.class,
-					HookAddRequest.class,
-					DatabaseWrapper.LastIDCorrection.class,
-					DatabaseWrapper.TransactionConfirmationEvents.class,
 					ListGroupsRoles.class, GroupsRoles.class));
 			for (Class<?> c : classes)
 				assert !Modifier.isAbstract(c.getModifiers()):""+c;
+
 			//noinspection unchecked
 			ArrayList<Class<? extends Enum<?>>> enums = new ArrayList<>(new HashSet<>(Arrays.asList(
 					AbstractAgent.ReturnCode.class,
 					AbstractAgent.State.class,
 					(Class<? extends Enum<?>>) Class.forName("com.distrimind.madkit.kernel.CGRSynchro$Code"),
 					ConnectionProtocol.ConnectionState.class,
-					MessageDigestType.class,
-					SecureRandomType.class,
-					SymmetricEncryptionType.class,
-					SymmetricAuthentifiedSignatureType.class,
-					ASymmetricEncryptionType.class,
-					ASymmetricAuthenticatedSignatureType.class,
-					KeyAgreementType.class,
-					PasswordHashType.class,
-					SymmetricKeyWrapperType.class,
-					ASymmetricKeyWrapperType.class,
-					ASymmetricLoginAgreementType.class,
-					CodeProvider.class,
-					EllipticCurveDiffieHellmanType.class,
-					P2PLoginAgreementType.class,
-					PasswordBasedKeyGenerationType.class,
 					Version.Type.class,
 					AgentAction.class,
 					GUIManagerAction.class,
@@ -1179,13 +1163,12 @@ final public class Madkit {
 					ConnectionProtocol.ConnectionClosedReason.class,
 					OS.class,
 					OSVersion.class,
-					DatabaseEventType.class,
-					TransactionIsolation.class,
 					HookMessage.AgentActionEvent.class,
 					EncryptionRestriction.class,
 					Identifier.AuthenticationMethod.class
 			)));
-			SerializationTools.setPredefinedClasses(classes, enums);
+
+			SerializationTools.addPredefinedClasses(classes, enums);
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 			System.exit(-1);
