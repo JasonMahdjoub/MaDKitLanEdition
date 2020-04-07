@@ -44,6 +44,7 @@ import com.distrimind.madkit.message.hook.HookMessage;
 import com.distrimind.madkit.message.hook.OrganizationEvent;
 import com.distrimind.ood.database.*;
 import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.ood.database.messages.DatabaseEventToSend;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.io.RandomFileOutputStream;
 import com.distrimind.util.io.RandomInputStream;
