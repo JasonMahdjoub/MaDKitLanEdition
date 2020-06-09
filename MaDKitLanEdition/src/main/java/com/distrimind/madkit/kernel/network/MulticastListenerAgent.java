@@ -64,7 +64,7 @@ final class MulticastListenerAgent extends AgentFakeThread {
 	private final InetAddress networkInterfaceAddress;
 	private InetAddress groupIPAddress;
 	private long localOnlineTime;
-	private NetworkBlackboard networkBlackboard;
+	private NetworkBoard networkBoard;
 	static final long durationBeforeRemovingMulticastMessages = 2000;
 
 	MulticastListenerAgent(NetworkInterface networkInterface, InetAddress networkInterfaceAddress) {
@@ -92,8 +92,8 @@ final class MulticastListenerAgent extends AgentFakeThread {
 					+ "...");
 
 		this.requestRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.MULTICAST_LISTENER_ROLE);
-		networkBlackboard = (NetworkBlackboard) getBlackboard(LocalCommunity.Groups.NETWORK,
-				LocalCommunity.BlackBoards.NETWORK_BLACKBOARD);
+		networkBoard = (NetworkBoard) getBoard(LocalCommunity.Groups.NETWORK,
+				LocalCommunity.Boards.NETWORK_BOARD);
 
 		if (networkInterfaceAddress instanceof Inet4Address) {
 			groupIPAddress = getMadkitConfig().networkProperties.IPV4MulticastGroupForPeerDiscovery;
@@ -144,7 +144,7 @@ final class MulticastListenerAgent extends AgentFakeThread {
 								ni = null;
 						}
 						if (ni == null) {
-							if (networkBlackboard.addMessage(this, m)) {
+							if (networkBoard.addMessage(this, m)) {
 								if (logger != null && logger.isLoggable(Level.FINER))
 									logger.finer("Compatible message received : " + _message);
 

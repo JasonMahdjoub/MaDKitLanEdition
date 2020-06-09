@@ -362,7 +362,7 @@ public class LocalCommunity implements Organization {// TODO check groups protec
 		/**
 		 * Role taken by socket agents
 		 */
-		public static final String MASTER_SOCKET_AGENT_ROLE = "~~MASTER_SOCKET_AGENT_KERNEL";
+		public static final String MAIN_SOCKET_AGENT_ROLE = "~~MAIN_SOCKET_AGENT_KERNEL";
 
 		/**
 		 * Role taken by transfer agents
@@ -391,7 +391,7 @@ public class LocalCommunity implements Organization {// TODO check groups protec
 
 	}
 
-	public static class BlackBoards {
-		public static final String NETWORK_BLACKBOARD = "~~NETWORK_BLACKBOARD";
+	public static class Boards {
+		public static final String NETWORK_BOARD = "~~NETWORK_BOARD";
 	}
 }

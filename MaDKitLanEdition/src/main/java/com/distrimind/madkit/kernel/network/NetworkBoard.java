@@ -56,7 +56,7 @@ import com.distrimind.util.concurrent.LockerCondition;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-class NetworkBlackboard {
+class NetworkBoard {
 	final AtomicLong totalDataInQueueForAllDistantKernelAgent = new AtomicLong(0);
 	final AtomicBoolean transferPausedForAllDistantKernelAgent = new AtomicBoolean(false);
 	DistantKernelAgent currentCandidateForPurge = null;
@@ -175,7 +175,7 @@ class NetworkBlackboard {
 
 	}*/
 
-	boolean checkBlackboardEmpty() {
+	boolean checkBoardEmpty() {
 		return /*checkDistantKernelAddressPurged() &&*/ checkDistantKernelAgentCandidateForPurgeEmpty();
 	}
 

@@ -976,11 +976,11 @@ final class LoggedKernel extends MadkitKernel {
 	}
 
 	@Override
-	Object weakSetBlackboard(AbstractAgent requester, Group group, String name, Object data) {
-		Object res = kernel.weakSetBlackboard(requester, group, name, data);
+	Object weakSetBoard(AbstractAgent requester, Group group, String name, Object data) {
+		Object res = kernel.weakSetBoard(requester, group, name, data);
 
 		if (requester.isFinestLogOn())
-			requester.logger.log(Level.FINEST, "weakSetBlackboard (Requester=" + requester + ", group=" + group
+			requester.logger.log(Level.FINEST, "weakSetBoard (Requester=" + requester + ", group=" + group
 					+ ", name=" + name + ", data=" + data + ", res=" + res + ")");
 
 		return res;
@@ -988,11 +988,11 @@ final class LoggedKernel extends MadkitKernel {
 	}
 
 	@Override
-	Object setBlackboard(AbstractAgent requester, Group group, String name, Object data) {
-		Object res = kernel.setBlackboard(requester, group, name, data);
+	Object setBoard(AbstractAgent requester, Group group, String name, Object data) {
+		Object res = kernel.setBoard(requester, group, name, data);
 
 		if (requester.isFinestLogOn())
-			requester.logger.log(Level.FINEST, "setBlackboard (Requester=" + requester + ", group=" + group + ", name="
+			requester.logger.log(Level.FINEST, "setBoard (Requester=" + requester + ", group=" + group + ", name="
 					+ name + ", data=" + data + ", res=" + res + ")");
 
 		return res;
@@ -1000,22 +1000,22 @@ final class LoggedKernel extends MadkitKernel {
 	}
 
 	@Override
-	Object getBlackboard(AbstractAgent requester, Group group, String name) {
-		Object res = kernel.getBlackboard(requester, group, name);
+	Object getBoard(AbstractAgent requester, Group group, String name) {
+		Object res = kernel.getBoard(requester, group, name);
 
 		if (requester.isFinestLogOn())
-			requester.logger.log(Level.FINEST, "getBlackboard (Requester=" + requester + ", group=" + group + ", name="
+			requester.logger.log(Level.FINEST, "getBoard (Requester=" + requester + ", group=" + group + ", name="
 					+ name + ", res=" + res + ")");
 
 		return res;
 	}
 
 	@Override
-	Object removeBlackboard(AbstractAgent requester, Group group, String name) {
-		Object res = kernel.removeBlackboard(requester, group, name);
+	Object removeBoard(AbstractAgent requester, Group group, String name) {
+		Object res = kernel.removeBoard(requester, group, name);
 
 		if (requester.isFinestLogOn())
-			requester.logger.log(Level.FINEST, "removeBlackboard (Requester=" + requester + ", group=" + group
+			requester.logger.log(Level.FINEST, "removeBoard (Requester=" + requester + ", group=" + group
 					+ ", name=" + name + ", res=" + res + ")");
 
 		return res;

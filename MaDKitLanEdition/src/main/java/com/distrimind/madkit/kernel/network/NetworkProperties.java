@@ -100,11 +100,11 @@ public class NetworkProperties extends MultiFormatProperties {
 		globalStatBandwith.putBytesDownloadedInRealBytes(DEFAULT_STAT_PER_512KB_SEGMENTS,
 				globalTransferSpeedStatPer512SegmentsForDownload);*/
 		try {
-			whiteInetAddressesList = new ArrayList<>();
-			whiteInetAddressesList.add(InetAddress.getByName("0.0.0.0"));
-			whiteInetAddressesList.add(InetAddress.getByName("127.0.0.1"));
-			whiteInetAddressesList.add(InetAddress.getByName("::1"));
-			whiteInetAddressesList.add(InetAddress.getByName("localhost"));
+			allowInetAddressesList = new ArrayList<>();
+			allowInetAddressesList.add(InetAddress.getByName("0.0.0.0"));
+			allowInetAddressesList.add(InetAddress.getByName("127.0.0.1"));
+			allowInetAddressesList.add(InetAddress.getByName("::1"));
+			allowInetAddressesList.add(InetAddress.getByName("localhost"));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -1355,82 +1355,82 @@ public class NetworkProperties extends MultiFormatProperties {
 		return this.transferTriggers;
 	}
 
-	private ArrayList<InetAddress> whiteInetAddressesList;
+	private ArrayList<InetAddress> allowInetAddressesList;
 
 	/**
-	 * Gets addresses that cannot be blacklisted.
+	 * Gets addresses that cannot be denied.
 	 * 
-	 * @return addresses that cannot be blacklisted.
+	 * @return addresses that cannot be denied.
 	 */
-	public ArrayList<InetAddress> getWhiteInetAddressesList() {
+	public ArrayList<InetAddress> getAllowInetAddressesList() {
 
 		synchronized (this) {
-			return new ArrayList<>(whiteInetAddressesList);
+			return new ArrayList<>(allowInetAddressesList);
 		}
 	}
 
 	/**
-	 * Add an address that cannot be blacklisted
+	 * Add an address that cannot be denied
 	 * 
 	 * @param ia
 	 *            the address
 	 */
-	public void addWhiteInetAddress(InetAddress ia) {
+	public void addAllowInetAddress(InetAddress ia) {
 		if (ia == null)
 			throw new NullPointerException("ia");
 		synchronized (this) {
-			whiteInetAddressesList.add(ia);
+			allowInetAddressesList.add(ia);
 		}
 	}
 
 	/**
-	 * Add addresses that cannot be blacklisted
+	 * Add addresses that cannot be denied
 	 * 
 	 * @param ias
 	 *            the addresses
 	 */
-	public void addWhiteInetAddresses(Collection<InetAddress> ias) {
+	public void addAllowInetAddresses(Collection<InetAddress> ias) {
 		if (ias == null)
 			throw new NullPointerException("ias");
 		synchronized (this) {
 
 
 			for (InetAddress ia : ias)
-				addWhiteInetAddress(ia);
+				addAllowInetAddress(ia);
 		}
 	}
 
 	/**
-	 * Remove address that cannot be blacklisted
+	 * Remove address that cannot be denied
 	 * 
 	 * @param ia
 	 *            the address
 	 */
-	public void removeWhiteInetAddress(InetAddress ia) {
+	public void removeAllowInetAddress(InetAddress ia) {
 		synchronized (this) {
-			whiteInetAddressesList.remove(ia);
+			allowInetAddressesList.remove(ia);
 		}
 	}
 
 	/**
-	 * Remove addresses that cannot be blacklisted
+	 * Remove addresses that cannot be denied
 	 * 
 	 * @param ias
 	 *            the addresses
 	 */
-	public void removeWhiteInetAddresses(Collection<InetAddress> ias) {
+	public void removeAllowInetAddresses(Collection<InetAddress> ias) {
 		synchronized (this) {
-			whiteInetAddressesList.removeAll(ias);
+			allowInetAddressesList.removeAll(ias);
 		}
 	}
 
 	/**
-	 * Clean addresses that cannot be blacklisted
+	 * Clean addresses that cannot be denied
 	 * 
 	 */
-	public void cleanWhiteInetAddresses() {
+	public void cleanAllowInetAddresses() {
 		synchronized (this) {
-			whiteInetAddressesList.clear();
+			allowInetAddressesList.clear();
 		}
 	}
 	
@@ -1462,31 +1462,31 @@ public class NetworkProperties extends MultiFormatProperties {
 	
 	
 	
-	private ArrayList<String> whiteListRegexIncludingClassesForDeserialization=new ArrayList<>();
-	private ArrayList<Pattern> whiteListPatternIncludingClassesForDeserialization=null;
-	private ArrayList<Class<?>> whiteListIncludingClassesForDeserialization=new ArrayList<>();
-	private ArrayList<String> blackListRegexExcludingClassesForDeserialization=new ArrayList<>();
-	private ArrayList<Pattern> blackListPatternExcludingClassesForDeserialization=new ArrayList<>();
-	private ArrayList<Class<?>> blackListExcludingClassesForDeserialization=new ArrayList<>();
+	private ArrayList<String> allowListRegexIncludingClassesForDeserialization =new ArrayList<>();
+	private ArrayList<Pattern> allowListPatternIncludingClassesForDeserialization =null;
+	private ArrayList<Class<?>> allowListIncludingClassesForDeserialization =new ArrayList<>();
+	private ArrayList<String> denyListRegexExcludingClassesForDeserialization =new ArrayList<>();
+	private ArrayList<Pattern> denyListPatternExcludingClassesForDeserialization =new ArrayList<>();
+	private ArrayList<Class<?>> denyListExcludingClassesForDeserialization =new ArrayList<>();
 	
 	private void loadPatternsForAcceptedAndDeniedClasses()
 	{
-		if (whiteListPatternIncludingClassesForDeserialization==null)
+		if (allowListPatternIncludingClassesForDeserialization ==null)
 		{
-			whiteListPatternIncludingClassesForDeserialization=new ArrayList<>();
-			for (String s : whiteListRegexIncludingClassesForDeserialization)
+			allowListPatternIncludingClassesForDeserialization =new ArrayList<>();
+			for (String s : allowListRegexIncludingClassesForDeserialization)
 			{
 				Pattern p=Pattern.compile(s);
-				whiteListPatternIncludingClassesForDeserialization.add(p);
+				allowListPatternIncludingClassesForDeserialization.add(p);
 			}
 		}
-		if (blackListPatternExcludingClassesForDeserialization==null)
+		if (denyListPatternExcludingClassesForDeserialization ==null)
 		{
-			blackListPatternExcludingClassesForDeserialization=new ArrayList<>();
-			for (String s : blackListRegexExcludingClassesForDeserialization)
+			denyListPatternExcludingClassesForDeserialization =new ArrayList<>();
+			for (String s : denyListRegexExcludingClassesForDeserialization)
 			{
 				Pattern p=Pattern.compile(s);
-				blackListPatternExcludingClassesForDeserialization.add(p);
+				denyListPatternExcludingClassesForDeserialization.add(p);
 			}
 		}
 	}
@@ -1495,39 +1495,39 @@ public class NetworkProperties extends MultiFormatProperties {
 	{
 		if (pattern==null)
 			throw new NullPointerException();
-		whiteListRegexIncludingClassesForDeserialization.add(pattern);
+		allowListRegexIncludingClassesForDeserialization.add(pattern);
 		Pattern p=Pattern.compile(pattern);
-		whiteListPatternIncludingClassesForDeserialization.add(p);
+		allowListPatternIncludingClassesForDeserialization.add(p);
 	}
 	public void addDeniedSerializedClassWithRegex(String pattern)
 	{
 		if (pattern==null)
 			throw new NullPointerException();
-		blackListRegexExcludingClassesForDeserialization.add(pattern);
+		denyListRegexExcludingClassesForDeserialization.add(pattern);
 		Pattern p=Pattern.compile(pattern);
-		blackListPatternExcludingClassesForDeserialization.add(p);
+		denyListPatternExcludingClassesForDeserialization.add(p);
 	}
 	public void addAcceptedSerializedClass(Class<?> c)
 	{
 		if (c==null)
 			throw new NullPointerException();
-		whiteListIncludingClassesForDeserialization.add(c);
+		allowListIncludingClassesForDeserialization.add(c);
 	}
 	public void addDeniedSerializedClass(Class<?> c)
 	{
 		if (c==null)
 			throw new NullPointerException();
-		blackListExcludingClassesForDeserialization.add(c);
+		denyListExcludingClassesForDeserialization.add(c);
 	}
 	
 	public void clearAcceptedAndDeniedSerializedClasses()
 	{
-		whiteListRegexIncludingClassesForDeserialization.clear();
-		whiteListPatternIncludingClassesForDeserialization=null;
-		blackListRegexExcludingClassesForDeserialization.clear();
-		blackListPatternExcludingClassesForDeserialization=null;
-		whiteListIncludingClassesForDeserialization.clear();
-		blackListExcludingClassesForDeserialization.clear();		
+		allowListRegexIncludingClassesForDeserialization.clear();
+		allowListPatternIncludingClassesForDeserialization =null;
+		denyListRegexExcludingClassesForDeserialization.clear();
+		denyListPatternExcludingClassesForDeserialization =null;
+		allowListIncludingClassesForDeserialization.clear();
+		denyListExcludingClassesForDeserialization.clear();
 		loadPatternsForAcceptedAndDeniedClasses();
 	}
 	
@@ -1535,9 +1535,9 @@ public class NetworkProperties extends MultiFormatProperties {
 	{
 		if (isDeniedClassForSerializationUsingPatterns(className))
 			return false;
-		if (whiteListPatternIncludingClassesForDeserialization.isEmpty())
+		if (allowListPatternIncludingClassesForDeserialization.isEmpty())
 			return true;
-		for (Pattern p : whiteListPatternIncludingClassesForDeserialization)
+		for (Pattern p : allowListPatternIncludingClassesForDeserialization)
 		{
 			if (p.matcher(className).matches())
 				return true;
@@ -1547,7 +1547,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	
 	public boolean isDeniedClassForSerializationUsingPatterns(String className)
 	{
-		for (Pattern p : blackListPatternExcludingClassesForDeserialization)
+		for (Pattern p : denyListPatternExcludingClassesForDeserialization)
 		{
 			if (p.matcher(className).matches())
 				return true;
@@ -1556,13 +1556,13 @@ public class NetworkProperties extends MultiFormatProperties {
 		
 	}
 	
-	public boolean isAcceptedClassForSerializationUsingWhiteClassList(Class<?> clazz)
+	public boolean isAcceptedClassForSerializationUsingAllowClassList(Class<?> clazz)
 	{
-		if (isDeniedClassForSerializationUsingBlackClassList(clazz))
+		if (isDeniedClassForSerializationUsingDenyClassList(clazz))
 			return false;
-		if (whiteListIncludingClassesForDeserialization.isEmpty())
+		if (allowListIncludingClassesForDeserialization.isEmpty())
 			return true;
-		for (Class<?> c : whiteListIncludingClassesForDeserialization)
+		for (Class<?> c : allowListIncludingClassesForDeserialization)
 		{
 			if (c.isAssignableFrom(clazz))
 				return true;
@@ -1571,9 +1571,9 @@ public class NetworkProperties extends MultiFormatProperties {
 		
 	}
 	
-	public boolean isDeniedClassForSerializationUsingBlackClassList(Class<?> clazz)
+	public boolean isDeniedClassForSerializationUsingDenyClassList(Class<?> clazz)
 	{
-		for (Class<?> c : blackListExcludingClassesForDeserialization)
+		for (Class<?> c : denyListExcludingClassesForDeserialization)
 		{
 			if (c.isAssignableFrom(clazz))
 				return true;
@@ -1585,15 +1585,15 @@ public class NetworkProperties extends MultiFormatProperties {
 	@Override
 	public void loadXML(Document document) throws PropertiesParseException {
 		super.loadXML(document);
-		whiteListPatternIncludingClassesForDeserialization=null;
-		blackListPatternExcludingClassesForDeserialization=null;
+		allowListPatternIncludingClassesForDeserialization =null;
+		denyListPatternExcludingClassesForDeserialization =null;
 		loadPatternsForAcceptedAndDeniedClasses();
 	}
 	@Override
 	public void loadFromProperties(Properties properties) throws IllegalArgumentException {
 		super.loadFromProperties(properties);
-		whiteListPatternIncludingClassesForDeserialization=null;
-		blackListPatternExcludingClassesForDeserialization=null;
+		allowListPatternIncludingClassesForDeserialization =null;
+		denyListPatternExcludingClassesForDeserialization =null;
 		loadPatternsForAcceptedAndDeniedClasses();
 	}
 

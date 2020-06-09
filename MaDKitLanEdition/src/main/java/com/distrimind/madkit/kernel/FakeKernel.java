@@ -494,22 +494,22 @@ class FakeKernel extends MadkitKernel {
 	}
 
 	@Override
-	Object weakSetBlackboard(AbstractAgent requester, Group group, String name, Object data) {
+	Object weakSetBoard(AbstractAgent requester, Group group, String name, Object data) {
 		throw buildKernelException(requester);
 	}
 
 	@Override
-	Object setBlackboard(AbstractAgent requester, Group group, String name, Object data) {
+	Object setBoard(AbstractAgent requester, Group group, String name, Object data) {
 		throw buildKernelException(requester);
 	}
 
 	@Override
-	Object getBlackboard(AbstractAgent requester, Group group, String name) {
+	Object getBoard(AbstractAgent requester, Group group, String name) {
 		throw buildKernelException(requester);
 	}
 
 	@Override
-	Object removeBlackboard(AbstractAgent requester, Group group, String name) {
+	Object removeBoard(AbstractAgent requester, Group group, String name) {
 		throw buildKernelException(requester);
 	}
 

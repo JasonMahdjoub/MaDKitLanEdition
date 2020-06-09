@@ -100,8 +100,8 @@ public final class NetworkAgent extends AgentFakeThread {
 		 */
 
 		// build servers
-		weakSetBlackboard(LocalCommunity.Groups.NETWORK, LocalCommunity.BlackBoards.NETWORK_BLACKBOARD,
-				MadkitNetworkAccess.getNetworkBlackboard());
+		weakSetBoard(LocalCommunity.Groups.NETWORK, LocalCommunity.Boards.NETWORK_BOARD,
+				MadkitNetworkAccess.getNetworkBoard());
 		if (getMadkitConfig().networkProperties.network)
 			launchNetwork();
 
@@ -184,7 +184,7 @@ public final class NetworkAgent extends AgentFakeThread {
 	@Override
 	protected void end() {
 		stopNetwork();
-		removeBlackboard(LocalCommunity.Groups.NETWORK, LocalCommunity.BlackBoards.NETWORK_BLACKBOARD);
+		removeBoard(LocalCommunity.Groups.NETWORK, LocalCommunity.Boards.NETWORK_BOARD);
 		if (logger != null && logger.isLoggable(Level.FINE))
 			logger.fine("NetworkAgent in " + getKernelAddress() + " KILLED !");
 	}

@@ -414,7 +414,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						+ LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 
 			if (!this.requestRole(LocalCommunity.Groups.getAgentSocketGroup(getAgentID()),
-					LocalCommunity.Roles.MASTER_SOCKET_AGENT_ROLE).equals(ReturnCode.SUCCESS) && logger != null)
+					LocalCommunity.Roles.MAIN_SOCKET_AGENT_ROLE).equals(ReturnCode.SUCCESS) && logger != null)
 				logger.severe("Cannot request group " + LocalCommunity.Groups.getAgentSocketGroup(getAgentID())
 						+ " and role " + LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 
@@ -479,8 +479,8 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		/*if (currentLockUsedToValidateDistantKernelAddress!=null)
 			currentLockUsedToValidateDistantKernelAddress.cancelLock();
 		currentLockUsedToValidateDistantKernelAddress=null;*/
-		NetworkBlackboard nbb=((NetworkBlackboard) getBlackboard(LocalCommunity.Groups.NETWORK,
-				LocalCommunity.BlackBoards.NETWORK_BLACKBOARD));
+		NetworkBoard nbb=((NetworkBoard) getBoard(LocalCommunity.Groups.NETWORK,
+				LocalCommunity.Boards.NETWORK_BOARD));
 		if (nbb!=null)
 			nbb.unlockSimultaneousConnections(distant_kernel_address);
 
@@ -593,7 +593,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 								reason == ConnectionClosedReason.CONNECTION_ANOMALY ? reason
 										: ConnectionClosedReason.CONNECTION_LOST,
 								_data_not_sent, bigDataNotSent, dataToTransferNotSent),
-						LocalCommunity.Roles.MASTER_SOCKET_AGENT_ROLE);
+						LocalCommunity.Roles.MAIN_SOCKET_AGENT_ROLE);
 			transfer_ids.closeAllTransferID(false);
 			transfer_ids_to_finalize.closeAllTransferID(false);
 
@@ -2578,8 +2578,8 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				 * ObjectMessage<>(this.distantConnectionInfo),
 				 * LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 				 */
-				/*((NetworkBlackboard) getBlackboard(LocalCommunity.Groups.NETWORK,
-						LocalCommunity.BlackBoards.NETWORK_BLACKBOARD))
+				/*((NetworkBoard) getBoard(LocalCommunity.Groups.NETWORK,
+						LocalCommunity.Boards.NETWORK_BOARD))
 								.unlockSimultaneousConnections(distant_kernel_address);*/
 			}
 		}
@@ -2963,7 +2963,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 									getMadkitConfig().networkProperties.nbMaxBans,
 									getMadkitConfig().networkProperties.expulsionStatisticDuration,
 									getMadkitConfig().networkProperties.banishmentStatisticDuration,
-									getMadkitConfig().networkProperties.getWhiteInetAddressesList());
+									getMadkitConfig().networkProperties.getAllowInetAddressesList());
 					if ((r != null && r.expiration_time > System.currentTimeMillis())) {
 						MadkitKernelAccess.informHooks(this,
 								new IPBannedEvent(distant_inet_address.getAddress(), r.expiration_time));
@@ -3002,7 +3002,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 								getMadkitConfig().networkProperties.nbMaxBans,
 								getMadkitConfig().networkProperties.expulsionStatisticDuration,
 								getMadkitConfig().networkProperties.banishmentStatisticDuration,
-								getMadkitConfig().networkProperties.getWhiteInetAddressesList());
+								getMadkitConfig().networkProperties.getAllowInetAddressesList());
 				if ((r != null && r.expiration_time > System.currentTimeMillis()) || candidate_to_ban) {
 					if (r != null && r.expiration_time > System.currentTimeMillis()) {
 						MadkitKernelAccess.informHooks(this,

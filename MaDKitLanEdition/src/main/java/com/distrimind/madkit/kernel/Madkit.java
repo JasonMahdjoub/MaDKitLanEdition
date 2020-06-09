@@ -443,7 +443,7 @@ final public class Madkit {
 			d.addItem("Fix security issue : when data is sent without being writed (default memory state), fill it with zeros.");
 			d.addItem("Fix security issue : sign symmetric encryption key into client/server connection protocol.");
 			d.addItem("Fix security issue : with P2P key agreements, generate signature and encryption keys with two steps (instead of one), in order to sign the exchanged symmetric encryption key.");
-			d.addItem("Fix security issue : class serialization are now filtered with white list and black list. Classes that are not into white list must implement the interference 'SerializableAndSizable'. Messages sent to the network must implement the interface NetworkMessage.");
+			d.addItem("Fix security issue : class serialization are now filtered with allow list and deny list. Classes that are not into deny list must implement the interference 'SerializableAndSizable'. Messages sent to the network must implement the interface NetworkMessage.");
 			d.addItem("Optimization : use externalization process instead of deserialization process during lan transfer.");
 			d.addItem("Fix security issue : classes externalization processes control now the allocated memory during de-externalization phase.");
 			d.addItem("Security enhancement : initialisation vectors used with encryption has now a secret part composed of counter that is increased at each data exchange.");
@@ -589,7 +589,7 @@ final public class Madkit {
 			d.addItem("Solving a memory leak problem with TransferAgent (not killed)");
 			d.addItem("Solving problem when deny BigDataProposition and kill agent just after");
 			d.addItem("Indirect connection send now ping message");
-			d.addItem("Adding white list for InetAddresses in network properties");
+			d.addItem("Adding allow list for InetAddresses in network properties");
 			d.addItem("Correcting problems of internal group/role references/dereferences");
 			VERSION.addDescription(d);
 

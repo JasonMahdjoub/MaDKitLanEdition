@@ -74,7 +74,7 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 
 	private final boolean distributed;
 	private final boolean manually_created;
-	private final Map<String, Object> blackboard = new HashMap<>();
+	private final Map<String, Object> board = new HashMap<>();
 
 	InternalGroup(Group _group, AbstractAgent creator, Organization organization, boolean manually_created) {
 		if (_group.isUsedSubGroups())
@@ -466,13 +466,13 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 		communityObject.removeGroup(group);
 	}
 
-	final Object weakSetBlackboard(AbstractAgent requester, String name, Object data) throws CGRNotAvailable {
+	final Object weakSetBoard(AbstractAgent requester, String name, Object data) throws CGRNotAvailable {
 		if (!isIn(requester))
 			throw new CGRNotAvailable(NOT_IN_GROUP);
-		synchronized (blackboard) {
-			Object res = blackboard.get(name);
+		synchronized (board) {
+			Object res = board.get(name);
 			if (res == null) {
-				blackboard.put(name, data);
+				board.put(name, data);
 				return data;
 			} else
 				return res;
@@ -480,27 +480,27 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 		}
 	}
 
-	final Object setBlackboard(AbstractAgent requester, String name, Object data) throws CGRNotAvailable {
+	final Object setBoard(AbstractAgent requester, String name, Object data) throws CGRNotAvailable {
 		if (!isIn(requester))
 			throw new CGRNotAvailable(NOT_IN_GROUP);
-		synchronized (blackboard) {
-			return blackboard.put(name, data);
+		synchronized (board) {
+			return board.put(name, data);
 		}
 	}
 
-	final Object getBlackboard(AbstractAgent requester, String name) throws CGRNotAvailable {
+	final Object getBoard(AbstractAgent requester, String name) throws CGRNotAvailable {
 		if (!isIn(requester))
 			throw new CGRNotAvailable(NOT_IN_GROUP);
-		synchronized (blackboard) {
-			return blackboard.get(name);
+		synchronized (board) {
+			return board.get(name);
 		}
 	}
 
-	final Object removeBlackboard(AbstractAgent requester, String name) throws CGRNotAvailable {
+	final Object removeBoard(AbstractAgent requester, String name) throws CGRNotAvailable {
 		if (!isIn(requester))
 			throw new CGRNotAvailable(NOT_IN_GROUP);
-		synchronized (blackboard) {
-			return blackboard.remove(name);
+		synchronized (board) {
+			return board.remove(name);
 		}
 	}
 

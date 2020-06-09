@@ -21,7 +21,7 @@ public class NetworkPropertiesTests {
 		Assert.assertTrue(np.isDeniedClassForSerializationUsingPatterns("com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl"));
 		Assert.assertFalse(np.isDeniedClassForSerializationUsingPatterns("com.distrimind.madkit.kernel.Madkit"));
 		
-		Assert.assertFalse(np.isDeniedClassForSerializationUsingBlackClassList(KernelAddress.class));
+		Assert.assertFalse(np.isDeniedClassForSerializationUsingDenyClassList(KernelAddress.class));
 
 		Assert.assertFalse(np.isAcceptedClassForSerializationUsingPatterns("org.apache.commons.collections.functors.InvokerTransformer"));
 		Assert.assertFalse(np.isAcceptedClassForSerializationUsingPatterns("org.apache.commons.collections.functors.InstantiateTransformer"));
@@ -33,9 +33,9 @@ public class NetworkPropertiesTests {
 		Assert.assertFalse(np.isAcceptedClassForSerializationUsingPatterns("com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl"));
 		Assert.assertTrue(np.isAcceptedClassForSerializationUsingPatterns("com.distrimind.madkit.kernel.Madkit"));
 		
-		Assert.assertTrue(np.isAcceptedClassForSerializationUsingWhiteClassList(Long.class));
-		Assert.assertTrue(np.isAcceptedClassForSerializationUsingWhiteClassList(KernelAddress.class));
-		Assert.assertFalse(np.isAcceptedClassForSerializationUsingWhiteClassList(NetworkPropertiesTests.class));
+		Assert.assertTrue(np.isAcceptedClassForSerializationUsingAllowClassList(Long.class));
+		Assert.assertTrue(np.isAcceptedClassForSerializationUsingAllowClassList(KernelAddress.class));
+		Assert.assertFalse(np.isAcceptedClassForSerializationUsingAllowClassList(NetworkPropertiesTests.class));
 	
 	}
 

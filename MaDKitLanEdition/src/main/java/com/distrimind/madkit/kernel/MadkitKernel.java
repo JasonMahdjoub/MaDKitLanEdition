@@ -4080,52 +4080,52 @@ class MadkitKernel extends Agent {
 		}
 	}
 
-	Object weakSetBlackboard(AbstractAgent requester, Group group, String name, Object data) {
+	Object weakSetBoard(AbstractAgent requester, Group group, String name, Object data) {
 		try {
-			return getGroup(group).weakSetBlackboard(requester, name, data);
+			return getGroup(group).weakSetBoard(requester, name, data);
 		} catch (CGRNotAvailable e) {
 			if (requester.isWarningOn())
-				requester.logger.warning("weakSetBlackboard exception : " + e.getCode());
+				requester.logger.warning("weakSetBoard exception : " + e.getCode());
 			e.printStackTrace();
 		}
 		return null;
 	}
 
-	Object setBlackboard(AbstractAgent requester, Group group, String name, Object data) {
+	Object setBoard(AbstractAgent requester, Group group, String name, Object data) {
 		try {
-			return getGroup(group).setBlackboard(requester, name, data);
+			return getGroup(group).setBoard(requester, name, data);
 		} catch (CGRNotAvailable e) {
 			if (requester.isWarningOn())
-				requester.logger.warning("weakSetBlackboard exception : " + e.getCode());
+				requester.logger.warning("weakSetBoard exception : " + e.getCode());
 			e.printStackTrace();
 		}
 		return null;
 	}
 
-	Object getBlackboard(AbstractAgent requester, Group group, String name) {
+	Object getBoard(AbstractAgent requester, Group group, String name) {
 		try {
-			return getGroup(group).getBlackboard(requester, name);
+			return getGroup(group).getBoard(requester, name);
 		} catch (CGRNotAvailable ignored) {
 		}
 		return null;
 	}
 
-	Object removeBlackboard(AbstractAgent requester, Group group, String name) {
+	Object removeBoard(AbstractAgent requester, Group group, String name) {
 		try {
-			return getGroup(group).removeBlackboard(requester, name);
+			return getGroup(group).removeBoard(requester, name);
 		} catch (CGRNotAvailable e) {
 			if (requester.isWarningOn())
-				requester.logger.warning("weakSetBlackboard exception : " + e.getCode());
+				requester.logger.warning("weakSetBoard exception : " + e.getCode());
 			e.printStackTrace();
 		}
 		return null;
 	}
 
 	boolean checkMemoryLeakAfterNetworkStopped() {
-		Object b = getBlackboard(LocalCommunity.Groups.NETWORK, LocalCommunity.BlackBoards.NETWORK_BLACKBOARD);
+		Object b = getBoard(LocalCommunity.Groups.NETWORK, LocalCommunity.Boards.NETWORK_BOARD);
 		if (b == null)
 			return true;
-		return MadkitNetworkAccess.checkNetworkBlackboardEmpty(b);
+		return MadkitNetworkAccess.checkNetworkBoardEmpty(b);
 	}
 
 	int numberOfValidGeneratedID() {

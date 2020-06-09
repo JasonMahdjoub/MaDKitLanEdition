@@ -47,8 +47,8 @@ madkitVersion:
                 protocol.', 'Fix security issue : with P2P key agreements, generate
                 signature and encryptions keys with two steps (instead of one), in
                 order to sign the exchanged symmetric encryption key.', 'Fix security
-                issue : class serialization are now filtered with white list and black
-                list. Classes that are not into white list must implement the interfance
+                issue : class serialization are now filtered with allow list and deny
+                list. Classes that are not into allow list must implement the interfance
                 ''SerializableAndSizable''. Messages sent to the network must implement
                 the interface NetworkMessage.', 'Optimization : use externalization
                 process instead of desialization process during lan transfer.', 'Fix
@@ -219,7 +219,7 @@ madkitVersion:
                 connections, Solving a memory leak problem with ConversationID, Solving
                 a memory leak problem with TransferAgent (not killed), Solbing problem
                 when deny BigDataProposition and kill agent just after, Indirect connection
-                send now ping message, Adding white list for inet addresses in network
+                send now ping message, Adding allow list for inet addresses in network
                 properties, Correcting problems of internal group/role references/dereferences]
         m_major: 1
         m_minor: 0
@@ -305,8 +305,8 @@ networkProperties:
     banishmentDuration: 43200000
     banishmentStatisticDuration: 1728000000
     bigDataStatDurationMean: 1000
-    blackListExcludingClassesForDeserialization: []
-    blackListPatternExcludingClassesForDeserialization:
+    denyListExcludingClassesForDeserialization: []
+    denyListPatternExcludingClassesForDeserialization:
     - {flags: 0, pattern: ^org\.apache\.commons\.collections\.functors\.InvokerTransformer$}
     - {flags: 0, pattern: ^org\.apache\.commons\.collections\.functors\.InstantiateTransformer$}
     - {flags: 0, pattern: ^org\.apache\.commons\.collections4\.functors\.InvokerTransformer$}
@@ -315,7 +315,7 @@ networkProperties:
     - {flags: 0, pattern: ^org\.codehaus\.groovy\.runtime\.MethodClosure$}
     - {flags: 0, pattern: ^org\.springframework\.beans\.factory\.ObjectFactory$}
     - {flags: 0, pattern: ^com\.sun\.org\.apache\.xalan\.internal\.xsltc\.trax\.TemplatesImpl$}
-    blackListRegexExcludingClassesForDeserialization: [^org\.apache\.commons\.collections\.functors\.InvokerTransformer$,
+    denyListRegexExcludingClassesForDeserialization: [^org\.apache\.commons\.collections\.functors\.InvokerTransformer$,
         ^org\.apache\.commons\.collections\.functors\.InstantiateTransformer$, ^org\.apache\.commons\.collections4\.functors\.InvokerTransformer$,
         ^org\.apache\.commons\.collections4\.functors\.InstantiateTransformer$, ^org\.codehaus\.groovy\.runtime\.ConvertedClosure$,
         ^org\.codehaus\.groovy\.runtime\.MethodClosure$, ^org\.springframework\.beans\.factory\.ObjectFactory$,
@@ -452,14 +452,14 @@ networkProperties:
     upnpIGDEnabled: false
     upnpMulticastIDGPort: 1901
     upnpStreamIDGPort: 0
-    whiteInetAddressesList: [!!ip '0.0.0.0', !!ip '127.0.0.1', !!ip '0:0:0:0:0:0:0:1',
+    allowInetAddressesList: [!!ip '0.0.0.0', !!ip '127.0.0.1', !!ip '0:0:0:0:0:0:0:1',
         !!ip '127.0.0.1']
-    whiteListIncludingClassesForDeserialization: [!!class 'java.lang.Number', !!class 'com.distrimind.madkit.util.ExternalizableAndSizable',
+    allowListIncludingClassesForDeserialization: [!!class 'java.lang.Number', !!class 'com.distrimind.madkit.util.ExternalizableAndSizable',
         !!class 'java.util.Date', !!class 'com.distrimind.madkit.kernel.network.SystemMessage']
-    whiteListPatternIncludingClassesForDeserialization:
+    allowListPatternIncludingClassesForDeserialization:
     - {flags: 0, pattern: ^java.*}
     - {flags: 0, pattern: ^com\.distrimind.*}
-    whiteListRegexIncludingClassesForDeserialization: [^java.*, ^com\.distrimind.*]
+    allowListRegexIncludingClassesForDeserialization: [^java.*, ^com\.distrimind.*]
 noAgentConsoleLog: false
 noMadkitConsoleLog: false
 noOrgConsolLog: false

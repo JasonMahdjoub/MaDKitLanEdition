@@ -182,20 +182,20 @@ public final class IPBanStat extends Table<IPBanStat.Record> {
 			final long expulsion_duration, final short expulsion_hit_limit, final short expulsion_limit,
 			final long ban_duration, final short ban_hit_limit, final short ban_limit,
 			final long stat_duration_for_expulsion, final long stat_duration_for_banishments,
-			Collection<InetAddress> whiteInetAddressesList) throws DatabaseException {
+			Collection<InetAddress> allowInetAddressesList) throws DatabaseException {
 		return this.processExpulsion((short) 1, add, candidate_to_ban, expulsion_duration, expulsion_hit_limit,
 				expulsion_limit, ban_duration, ban_hit_limit, ban_limit, stat_duration_for_expulsion,
-				stat_duration_for_banishments, whiteInetAddressesList);
+				stat_duration_for_banishments, allowInetAddressesList);
 	}
 
 	public IPBanned.Record processExpulsion(final short nbAno, final InetAddress add, final boolean candidateToBan,
 			final long expulsion_duration, final short expulsion_hit_limit, final short expulsion_limit,
 			final long ban_duration, final short ban_hit_limit, final short ban_limit,
 			final long stat_duration_for_expulsion, final long stat_duration_for_banishments,
-			Collection<InetAddress> whiteInetAddressesList) throws DatabaseException {
+			Collection<InetAddress> allowInetAddressesList) throws DatabaseException {
 		if (nbAno <= 0)
 			return null;
-		if (whiteInetAddressesList.contains(add))
+		if (allowInetAddressesList.contains(add))
 			return null;
 		try {
 			return this.getDatabaseWrapper().runSynchronizedTransaction(new SynchronizedTransaction<IPBanned.Record>() {
@@ -348,10 +348,10 @@ public final class IPBanStat extends Table<IPBanStat.Record> {
 
 	}
 
-	public boolean isBannedOrExpulsed(final InetAddress inet_address, Collection<InetAddress> whiteInetAddressesList)
+	public boolean isBannedOrExpulsed(final InetAddress inet_address, Collection<InetAddress> allowInetAddressesList)
 			throws DatabaseException {
 		try {
-			if (whiteInetAddressesList.contains(inet_address))
+			if (allowInetAddressesList.contains(inet_address))
 				return false;
 			return getDatabaseWrapper().runSynchronizedTransaction(new SynchronizedTransaction<Boolean>() {
 

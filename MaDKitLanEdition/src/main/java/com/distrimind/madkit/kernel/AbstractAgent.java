@@ -2905,7 +2905,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * parameter which has been used to launch the kernel the agent is running on.
 	 * If the agent has not been launched yet, the Properties returned is the
 	 * default MaDKit configuration. It can be programmatically modified to launch a
-	 * new session with different parameters. It can also be used as a black board
+	 * new session with different parameters. It can also be used as a board
 	 * shared by all the agents of a kernel by adding new user defined properties at
 	 * run time or via the command line. 
 	 * 
@@ -4947,69 +4947,69 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	}
 
 	/**
-	 * Store a reference of the given blackboard into a given group. If a blackboard
-	 * with the same name has already be set, do not memorize the given blackboard
+	 * Store a reference of the given board into a given group. If a board
+	 * with the same name has already be set, do not memorize the given board
 	 * as argument. All agents into this group will be able to access to the same
-	 * blackboard.
+	 * board.
 	 * 
 	 * @param group
 	 *            the group
-	 * @param blackboardName
-	 *            the black board name
-	 * @param blackboard
-	 *            the blackboard.
-	 * @return If a black existed previously, return the previous blackboard. Else
-	 *         return the saved blackboard. Return null if this agent is not present
+	 * @param boardName
+	 *            the board name
+	 * @param board
+	 *            the board.
+	 * @return If a board existed previously, return the previous board. Else
+	 *         return the saved board. Return null if this agent is not present
 	 *         into the given group.
 	 */
-	public Object weakSetBlackboard(Group group, String blackboardName, Object blackboard) {
-		return getMadkitKernel().weakSetBlackboard(this, group, blackboardName, blackboard);
+	public Object weakSetBoard(Group group, String boardName, Object board) {
+		return getMadkitKernel().weakSetBoard(this, group, boardName, board);
 	}
 
 	/**
-	 * Store a reference of the given blackboard into a given group. If a blackboard
+	 * Store a reference of the given board into a given group. If a board
 	 * with the same name has already be set, replace it. All agents into this group
-	 * will be able to access to the same blackboard.
+	 * will be able to access to the same board.
 	 * 
 	 * @param group
 	 *            the group
-	 * @param blackboardName
-	 *            the black board name
-	 * @param blackboard
-	 *            the blackboard.
-	 * @return return the previous set blackboard. Return null if this agent is not
+	 * @param boardName
+	 *            the board name
+	 * @param board
+	 *            the board.
+	 * @return return the previous set board. Return null if this agent is not
 	 *         present into the given group.
 	 */
-	public Object setBlackboard(Group group, String blackboardName, Object blackboard) {
-		return getMadkitKernel().setBlackboard(this, group, blackboardName, blackboard);
+	public Object setBoard(Group group, String boardName, Object board) {
+		return getMadkitKernel().setBoard(this, group, boardName, board);
 	}
 
 	/**
-	 * Get the referenced blackboard into a given group, and with a given name.
+	 * Get the referenced board into a given group, and with a given name.
 	 * 
 	 * @param group
 	 *            the group
-	 * @param blackboardName
-	 *            the black board name
-	 * @return the referenced blackboard, or null if no blackboard exists. Return
+	 * @param boardName
+	 *            the board name
+	 * @return the referenced board, or null if no board exists. Return
 	 *         null if this agent is not present into the given group.
 	 */
-	public Object getBlackboard(Group group, String blackboardName) {
-		return getMadkitKernel().getBlackboard(this, group, blackboardName);
+	public Object getBoard(Group group, String boardName) {
+		return getMadkitKernel().getBoard(this, group, boardName);
 	}
 
 	/**
-	 * Remove the referenced blackboard into a given group, and with a given name.
+	 * Remove the referenced board into a given group, and with a given name.
 	 * 
 	 * @param group
 	 *            the group
-	 * @param blackboardName
-	 *            the black board name
-	 * @return the previous referenced blackboard, or null if no blackboard exists.
+	 * @param boardName
+	 *            the board name
+	 * @return the previous referenced board, or null if no board exists.
 	 *         Return null if this agent is not present into the given group.
 	 */
-	public Object removeBlackboard(Group group, String blackboardName) {
-		return getMadkitKernel().removeBlackboard(this, group, blackboardName);
+	public Object removeBoard(Group group, String boardName) {
+		return getMadkitKernel().removeBoard(this, group, boardName);
 	}
 
 

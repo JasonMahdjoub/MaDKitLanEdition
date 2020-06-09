@@ -110,7 +110,7 @@ class DistantKernelAgent extends AgentFakeThread {
 	private final AtomicBoolean transfertPaused = new AtomicBoolean(false);
 	final AtomicReference<ExceededDataQueueSize> globalExeceededDataQueueSize = new AtomicReference<>(null);
 	private HashMap<Integer, BigPacketData> packetsDataInQueue = new HashMap<>();
-	NetworkBlackboard networkBlacboard = null;
+	NetworkBoard networkBlacboard = null;
 	protected TaskID taskForPurgeCheck = null;
 	private ArrayList<ObjectMessage<SecretMessage>> differedSecretMessages = null;
 	private boolean lockSocketUntilCGRSynchroIsSent=false;
@@ -838,15 +838,15 @@ class DistantKernelAgent extends AgentFakeThread {
 		private final boolean paused;
 		private final boolean purge;
 		private HashMap<Integer, SerializedReading> readingToPurge = null;
-		protected final NetworkBlackboard networkBlacboard;
+		protected final NetworkBoard networkBlacboard;
 		protected final boolean hasOtherCandidates;
 
-		ExceededDataQueueSize(NetworkBlackboard networkBlacboard, boolean hasOtherCandidates, boolean paused) {
+		ExceededDataQueueSize(NetworkBoard networkBlacboard, boolean hasOtherCandidates, boolean paused) {
 			this(networkBlacboard, hasOtherCandidates, paused, false);
 		}
 
-		ExceededDataQueueSize(NetworkBlackboard networkBlacboard, boolean hasOtherCandidates, boolean paused,
-				boolean purge) {
+		ExceededDataQueueSize(NetworkBoard networkBlacboard, boolean hasOtherCandidates, boolean paused,
+							  boolean purge) {
 			this.networkBlacboard = networkBlacboard;
 			this.paused = paused;
 			this.purge = purge;
@@ -1332,8 +1332,8 @@ class DistantKernelAgent extends AgentFakeThread {
 
 		this.requestRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 
-		networkBlacboard = (NetworkBlackboard) getBlackboard(LocalCommunity.Groups.NETWORK,
-				LocalCommunity.BlackBoards.NETWORK_BLACKBOARD);
+		networkBlacboard = (NetworkBoard) getBoard(LocalCommunity.Groups.NETWORK,
+				LocalCommunity.Boards.NETWORK_BOARD);
 		// this.requestRole(LocalCommunity.Groups.getDistantKernelAgentGroup(hashCode()),
 		// LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 		try {
@@ -1969,7 +1969,7 @@ class DistantKernelAgent extends AgentFakeThread {
 					Class<?> c=Class.forName(clazz, true, MadkitClassLoader.getSystemClassLoader());
 					if (c==null)
 						throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, new ClassNotFoundException(clazz));
-					if (np.isAcceptedClassForSerializationUsingWhiteClassList(c))
+					if (np.isAcceptedClassForSerializationUsingAllowClassList(c))
 					{
 						return c;
 					}
