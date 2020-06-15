@@ -46,8 +46,8 @@ import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
 
 import java.io.IOException;
-import java.security.*;
-import java.security.spec.InvalidKeySpecException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 
 /**
  * @author Jason Mahdjoub
@@ -62,7 +62,7 @@ class ServerSignatureMessage extends ConnectionMessage {
 		signature=null;
 	}
 
-	ServerSignatureMessage(byte[] messageToSign, AbstractKeyPair keyPair) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, SignatureException, InvalidKeyException, IOException {
+	ServerSignatureMessage(byte[] messageToSign, AbstractKeyPair keyPair) throws NoSuchProviderException, NoSuchAlgorithmException, IOException {
 		ASymmetricAuthenticatedSignerAlgorithm signer=new ASymmetricAuthenticatedSignerAlgorithm(keyPair.getASymmetricPrivateKey());
 		signature=signer.sign(messageToSign);
 	}

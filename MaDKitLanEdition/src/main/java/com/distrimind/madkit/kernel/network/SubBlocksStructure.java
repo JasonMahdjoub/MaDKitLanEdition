@@ -91,10 +91,10 @@ public class SubBlocksStructure {
 					 * +sbp+" returns a block modulus lower than 1: "+sbp.getSizeBlockModulus());
 					 */
 
-					int headSize = sbp.getSizeHead();
+					int headSize = sbp.getHeadSize();
 					if (headSize < 0)
 						throw new BlockParserException(
-								"The parser " + sbp + " returns a head size lower than 0: " + sbp.getSizeHead());
+								"The parser " + sbp + " returns a head size lower than 0: " + sbp.getHeadSize());
 
 					int outputSize = sbp.getBodyOutputSizeForEncryption(size);
 					if (outputSize < 0)
@@ -165,10 +165,10 @@ public class SubBlocksStructure {
 				 * if (sbp.getSizeBlockModulus()<1) throw new BlockParserException("The parser "
 				 * +sbp+" returns a block modulus lower than 1: "+sbp.getSizeBlockModulus());
 				 */
-				sizeHead = sbp.getSizeHead();
+				sizeHead = sbp.getHeadSize();
 				if (sizeHead < 0)
 					throw new BlockParserException(
-							"The parser " + sbp + " returns a head size lower than 0: " + sbp.getSizeHead());
+							"The parser " + sbp + " returns a head size lower than 0: " + sbp.getHeadSize());
 
 				/*
 				 * int s=size-sbp.getSizeHead(); s=s-s%sbp.getSizeBlockModulus();

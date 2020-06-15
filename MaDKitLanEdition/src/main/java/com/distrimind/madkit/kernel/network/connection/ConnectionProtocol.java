@@ -53,7 +53,6 @@ import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -74,34 +73,6 @@ import java.util.NoSuchElementException;
  */
 public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> implements Iterable<ConnectionProtocol<?>> {
 
-	public static class ByteArrayOutputStream extends OutputStream
-	{
-		private final byte[] tab;
-		private final int indexStart;
-		private int index;
-		
-		public ByteArrayOutputStream(byte [] tab, int indexStart)
-		{
-			this.tab=tab;
-			this.index=this.indexStart=indexStart;
-		}
-		
-		public int getSize()
-		{
-			return index-indexStart;
-		}
-
-		@Override
-		public void write(int b) {
-			tab[index++]=(byte)b;
-		}
-		@Override
-		public void write(byte[] b, int off, int len) {
-			System.arraycopy(b, off, tab, index, len);
-			index+=len;
-		}
-		
-	}
 	
 	public enum ConnectionClosedReason {
 		/**

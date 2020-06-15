@@ -189,7 +189,7 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
             try {
                 needToRefreshTransferBlockChecker=false;
                 return new ConnectionProtocol.NullBlockChecker(subBlockChercker, this.isCrypted(),
-                        (short) parser.getSizeHead());
+                        (short) parser.getHeadSize());
             } catch (Exception e) {
                 needToRefreshTransferBlockChecker = true;
                 throw new ConnectionException(e);
@@ -245,11 +245,11 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
         }
 
         @Override
-        public int getSizeHead() throws BlockParserException {
+        public int getHeadSize() throws BlockParserException {
             if (selectedConnectionProtocol==null || stateJustChanged)
                 return 0;
             else
-                return selectedConnectionProtocol.getParser().getSizeHead();
+                return selectedConnectionProtocol.getParser().getHeadSize();
         }
 
 
@@ -284,19 +284,19 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
                     _block.getSize() - getSizeHead()), true, false);
         }*/
         @Override
-        public SubBlockInfo checkIncomingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+        public SubBlockInfo checkIncomingPointToPointTransferredBlock(SubBlock _block) throws BlockParserException {
             /*if (selectedConnectionProtocol==null)
                 return checkEntrantPointToPointTransferedBlockWithNoEncryptin(_block);
             else*/
-                return selectedConnectionProtocol.getParser().checkIncomingPointToPointTransferedBlock(_block);
+                return selectedConnectionProtocol.getParser().checkIncomingPointToPointTransferredBlock(_block);
         }
 
         @Override
-        public SubBlock signIfPossibleOutgoingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+        public SubBlock signIfPossibleOutgoingPointToPointTransferredBlock(SubBlock _block) throws BlockParserException {
             /*if (selectedConnectionProtocol==null || stateJustChanged)
                 return signIfPossibleOutgoingPointToPointTransferedBlockWithNoEncryption(_block);
             else*/
-                return selectedConnectionProtocol.getParser().signIfPossibleOutgoingPointToPointTransferedBlock(_block);
+                return selectedConnectionProtocol.getParser().signIfPossibleOutgoingPointToPointTransferredBlock(_block);
 
         }
     }

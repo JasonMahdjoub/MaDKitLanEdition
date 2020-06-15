@@ -154,7 +154,7 @@ public class UnsecuredConnectionProtocol extends ConnectionProtocol<UnsecuredCon
 		}
 
 		@Override
-		public int getSizeHead() {
+		public int getHeadSize() {
 			return 0;
 		}
 
@@ -170,12 +170,12 @@ public class UnsecuredConnectionProtocol extends ConnectionProtocol<UnsecuredCon
 
 
 		@Override
-		public SubBlockInfo checkIncomingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+		public SubBlockInfo checkIncomingPointToPointTransferredBlock(SubBlock _block) throws BlockParserException {
 			return new SubBlockInfo(_block, true, false);
 		}
 
 		@Override
-		public SubBlock signIfPossibleOutgoingPointToPointTransferedBlock(SubBlock _block) {
+		public SubBlock signIfPossibleOutgoingPointToPointTransferredBlock(SubBlock _block) {
 			return _block;
 		}
 

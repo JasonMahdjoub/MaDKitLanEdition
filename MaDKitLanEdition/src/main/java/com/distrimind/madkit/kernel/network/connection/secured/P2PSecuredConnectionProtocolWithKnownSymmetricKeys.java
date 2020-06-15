@@ -257,7 +257,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 	protected TransferedBlockChecker getTransferedBlockChecker(TransferedBlockChecker subBlockChercker) throws ConnectionException {
 		try {
 			blockCheckerChanged = false;
-			return new ConnectionProtocol.NullBlockChecker(subBlockChercker, this.isCrypted(), (short) parser.getSizeHead());
+			return new ConnectionProtocol.NullBlockChecker(subBlockChercker, this.isCrypted(), (short) parser.getHeadSize());
 
 			/*if (secret_key_for_signature == null || current_step.compareTo(Step.WAITING_FOR_CONNECTION_CONFIRMATION) <= 0) {
 				currentBlockCheckerIsNull = true;
@@ -303,17 +303,17 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 			throw new BlockParserException("Unexpected exception");
 		}
 		public SubBlockInfo getSubBlockWithNoEncryption(SubBlock _block) throws BlockParserException {
-			return new SubBlockInfo(new SubBlock(_block.getBytes(), _block.getOffset() + getSizeHead(),
-					getBodyOutputSizeForDecryption(_block.getSize() - getSizeHead())), true, false);
+			return new SubBlockInfo(new SubBlock(_block.getBytes(), _block.getOffset() + getHeadSize(),
+					getBodyOutputSizeForDecryption(_block.getSize() - getHeadSize())), true, false);
 		}
 		public SubBlockInfo getSubBlockWithEncryption(SubBlock _block, boolean enabledEncryption) throws BlockParserException {
-			int off=_block.getOffset() + getSizeHead();
+			int off=_block.getOffset() + getHeadSize();
 			int offr=_block.getOffset()+_block.getSize();
 			boolean excludedFromEncryption=_block.getBytes()[offr-1]==1;
 			if (excludedFromEncryption || !enabledEncryption)
 			{
 				int s= Block.getShortInt(_block.getBytes(), offr-4);
-				if (s>Block.BLOCK_SIZE_LIMIT || s>_block.getSize()-getSizeHead()-4 || s<PacketPartHead.getHeadSize(false))
+				if (s>Block.BLOCK_SIZE_LIMIT || s>_block.getSize()- getHeadSize()-4 || s<PacketPartHead.getHeadSize(false))
 					throw new BlockParserException("s="+s);
 				try{
 
@@ -327,20 +327,20 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 						signatureChecker.update(packetCounter.getMySignatureCounter());
 					}
 					signatureChecker.update(_block.getBytes(),
-							off, _block.getSize() - getSizeHead());
+							off, _block.getSize() - getHeadSize());
 					boolean check = signatureChecker.verify();
 
 					return new SubBlockInfo(res, check, !check);
 				} catch (Exception e) {
 
 					SubBlock res = new SubBlock(_block.getBytes(), off,
-							getBodyOutputSizeForDecryption(_block.getSize() - getSizeHead()));
+							getBodyOutputSizeForDecryption(_block.getSize() - getHeadSize()));
 					return new SubBlockInfo(res, false, true);
 				}
 			}
 			else
 			{
-				int s=_block.getSize() - getSizeHead()-4;
+				int s=_block.getSize() - getHeadSize()-4;
 
 				try (ByteArrayInputStream bais = new ByteArrayInputStream(_block.getBytes(),
 						off, s)) {
@@ -360,7 +360,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 							signatureChecker.update(packetCounter.getMySignatureCounter());
 						}
 						signatureChecker.update(_block.getBytes(),
-								off, _block.getSize() - getSizeHead());
+								off, _block.getSize() - getHeadSize());
 						check = signatureChecker.verify();
 					}
 					SubBlock res;
@@ -381,8 +381,8 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 					}
 					return new SubBlockInfo(res, check, !check);
 				} catch (Exception e) {
-					SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getSizeHead(),
-							getBodyOutputSizeForDecryption(_block.getSize() - getSizeHead()));
+					SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getHeadSize(),
+							getBodyOutputSizeForDecryption(_block.getSize() - getHeadSize()));
 					return new SubBlockInfo(res, false, true);
 				}
 			}
@@ -422,11 +422,11 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 		{
 			final int outputSize = getBodyOutputSizeForEncryption(_block.getSize());
 
-			int s=outputSize + getSizeHead();
+			int s=outputSize + getHeadSize();
 
 			if (excludeFromEncryption)
 			{
-				final SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() - getSizeHead(),s);
+				final SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() - getHeadSize(),s);
 				int off=_block.getSize()+_block.getOffset();
 				byte[] tab=res.getBytes();
 				Arrays.fill(tab, off, outputSize+_block.getOffset()-4, (byte)0);
@@ -448,7 +448,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 			}
 			else
 			{
-				final SubBlock res = new SubBlock(new byte[_block.getBytes().length], _block.getOffset() - getSizeHead(),s);
+				final SubBlock res = new SubBlock(new byte[_block.getBytes().length], _block.getOffset() - getHeadSize(),s);
 
 				res.getBytes()[res.getOffset()+res.getSize()-1]=0;
 
@@ -478,7 +478,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 
 		}
 		@Override
-		public int getSizeHead() {
+		public int getHeadSize() {
 			return P2PSecuredConnectionProtocolWithKnownSymmetricKeys.this.signature_size_bytes;
 		}
 
@@ -530,13 +530,13 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 			return size;
 		}
 		public SubBlockInfo checkEntrantPointToPointTransferedBlockWithNoEncryptin(SubBlock _block) throws BlockParserException {
-			return new SubBlockInfo(new SubBlock(_block.getBytes(), _block.getOffset() + getSizeHead(),
-					_block.getSize() - getSizeHead()), true, false);
+			return new SubBlockInfo(new SubBlock(_block.getBytes(), _block.getOffset() + getHeadSize(),
+					_block.getSize() - getHeadSize()), true, false);
 		}
 
 		public SubBlockInfo checkEntrantPointToPointTransferedBlockWithEncryption(SubBlock _block) throws BlockParserException {
-			SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getSizeHead(),
-					_block.getSize() - getSizeHead());
+			SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getHeadSize(),
+					_block.getSize() - getHeadSize());
 			try {
 				boolean check = signatureChecker
 						.verify(_block.getBytes(), res.getOffset(), res.getSize(), _block.getBytes(),
@@ -549,7 +549,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 
 		}
 		@Override
-		public SubBlockInfo checkIncomingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+		public SubBlockInfo checkIncomingPointToPointTransferredBlock(SubBlock _block) throws BlockParserException {
 			switch (status) {
 				case NOT_CONNECTED:
 
@@ -564,8 +564,8 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 		}
 		private SubBlock signIfPossibleSortantPointToPointTransferedBlockWithNoEncryption(SubBlock _block)
 		{
-			SubBlock res= new SubBlock(_block.getBytes(), _block.getOffset() - getSizeHead(),
-					_block.getSize() + getSizeHead());
+			SubBlock res= new SubBlock(_block.getBytes(), _block.getOffset() - getHeadSize(),
+					_block.getSize() + getHeadSize());
 			byte[] tab=res.getBytes();
 			for (int i=res.getOffset();i<_block.getOffset();i++)
 				tab[i]=0;
@@ -574,15 +574,15 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 		}
 		private SubBlock signIfPossibleSortantPointToPointTransferedBlockWithEncryption(SubBlock _block) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, InvalidKeySpecException, ShortBufferException, InvalidAlgorithmParameterException, IllegalStateException, IOException
 		{
-			SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() - getSizeHead(),
-					_block.getSize() + getSizeHead());
+			SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() - getHeadSize(),
+					_block.getSize() + getHeadSize());
 
 			signer.sign(_block.getBytes(), _block.getOffset(), _block.getSize(),
 					res.getBytes(), res.getOffset(), signature_size_bytes);
 			return res;
 		}
 		@Override
-		public SubBlock signIfPossibleOutgoingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+		public SubBlock signIfPossibleOutgoingPointToPointTransferredBlock(SubBlock _block) throws BlockParserException {
 			try {
 				switch (status) {
 					case NOT_CONNECTED:
@@ -623,8 +623,8 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 		@Override
 		public SubBlockInfo getSubBlockWithEncryption(SubBlock _block, boolean enabledEncryption) throws BlockParserException {
 			try {
-				SubBlock res=new SubBlock(_block.getBytes(), _block.getOffset() + getSizeHead(),
-						getBodyOutputSizeForDecryption(_block.getSize() - getSizeHead()));
+				SubBlock res=new SubBlock(_block.getBytes(), _block.getOffset() + getHeadSize(),
+						getBodyOutputSizeForDecryption(_block.getSize() - getHeadSize()));
 				signatureChecker.init(_block.getBytes(),
 						_block.getOffset(), signature_size_bytes);
 				if (getPacketCounter().isLocalActivated())
@@ -638,8 +638,8 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 
 				return new SubBlockInfo(res, check, !check);
 			} catch (Exception e) {
-				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getSizeHead(),
-						getBodyOutputSizeForDecryption(_block.getSize() - getSizeHead()));
+				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getHeadSize(),
+						getBodyOutputSizeForDecryption(_block.getSize() - getHeadSize()));
 				return new SubBlockInfo(res, false, true);
 			}
 		}
@@ -648,8 +648,8 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 		public SubBlock getParentBlockWithEncryption(SubBlock _block, boolean excludeFromEncryption) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, InvalidKeySpecException, ShortBufferException, IllegalStateException
 		{
 			int outputSize=getBodyOutputSizeForEncryption(_block.getSize());
-			SubBlock res= new SubBlock(_block.getBytes(), _block.getOffset() - getSizeHead(),
-					outputSize + getSizeHead());
+			SubBlock res= new SubBlock(_block.getBytes(), _block.getOffset() - getHeadSize(),
+					outputSize + getHeadSize());
 			int off=_block.getSize()+_block.getOffset();
 			byte[] tab=res.getBytes();
 			Arrays.fill(tab, off, outputSize+_block.getOffset(), (byte)0);

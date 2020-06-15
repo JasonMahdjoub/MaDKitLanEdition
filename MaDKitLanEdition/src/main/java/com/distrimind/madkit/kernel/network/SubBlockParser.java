@@ -56,8 +56,8 @@ public abstract class SubBlockParser {
 
 	protected final SubBlock getParentBlockWithNoTreatments(SubBlock _block) throws BlockParserException {
 		int outputSize=getBodyOutputSizeForEncryption(_block.getSize());
-		SubBlock res= new SubBlock(_block.getBytes(), _block.getOffset() - getSizeHead(),
-				outputSize + getSizeHead());
+		SubBlock res= new SubBlock(_block.getBytes(), _block.getOffset() - getHeadSize(),
+				outputSize + getHeadSize());
 		int off=_block.getSize()+_block.getOffset();
 		byte[] tab=res.getBytes();
 		Arrays.fill(tab, off, outputSize+_block.getOffset(), (byte)0);
@@ -65,7 +65,7 @@ public abstract class SubBlockParser {
 		return res;
 	}
 
-	public abstract int getSizeHead() throws BlockParserException;
+	public abstract int getHeadSize() throws BlockParserException;
 
 	// public int getSizeBlockModulus() throws BlockParserExcetion;
 	public abstract int getBodyOutputSizeForEncryption(int size) throws BlockParserException;
@@ -73,7 +73,7 @@ public abstract class SubBlockParser {
 
 	public abstract int getBodyOutputSizeForDecryption(int size) throws BlockParserException;
 	
-	public abstract SubBlockInfo checkIncomingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException;
+	public abstract SubBlockInfo checkIncomingPointToPointTransferredBlock(SubBlock _block) throws BlockParserException;
 	
-	public abstract SubBlock signIfPossibleOutgoingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException;
+	public abstract SubBlock signIfPossibleOutgoingPointToPointTransferredBlock(SubBlock _block) throws BlockParserException;
 }

@@ -355,21 +355,21 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 					int identifier = Bits.getInt(_block.getBytes(), _block.getOffset());
 					initMyKeyPair(identifier);
 				}
-				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getSizeHead(),
-						getBodyOutputSizeForDecryption(_block.getSize() - getSizeHead()));
+				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getHeadSize(),
+						getBodyOutputSizeForDecryption(_block.getSize() - getHeadSize()));
 				setFirstMessageReceived();
 				
 				return new SubBlockInfo(res, true, false);
 			}
 			case WAITING_FOR_CONNECTION_CONFIRMATION:
 			case CONNECTED: {
-				int off=_block.getOffset() + getSizeHead();
+				int off=_block.getOffset() + getHeadSize();
 				int offr=_block.getOffset()+_block.getSize();
 				boolean excludedFromEncryption=_block.getBytes()[offr-1]==1;
 				if (excludedFromEncryption)
 				{
 					int s=Block.getShortInt(_block.getBytes(), offr-4);
-					if (s>Block.BLOCK_SIZE_LIMIT || s>_block.getSize()-getSizeHead()-4  || s<PacketPartHead.getHeadSize(false))
+					if (s>Block.BLOCK_SIZE_LIMIT || s>_block.getSize()- getHeadSize()-4  || s<PacketPartHead.getHeadSize(false))
 						throw new BlockParserException();
 					try{
 						
@@ -382,7 +382,7 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 							signatureChecker.update(packetCounter.getMySignatureCounter());
 						}
 						signatureChecker.update(_block.getBytes(),
-								off, _block.getSize() - getSizeHead());
+								off, _block.getSize() - getHeadSize());
 						boolean check = signatureChecker.verify();
 						
 					
@@ -391,13 +391,13 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 					} catch (Exception e) {
 
 						SubBlock res = new SubBlock(_block.getBytes(), off,
-								getBodyOutputSizeForDecryption(_block.getSize() - getSizeHead()));
+								getBodyOutputSizeForDecryption(_block.getSize() - getHeadSize()));
 						return new SubBlockInfo(res, false, true);
 					}
 				}
 				else
 				{
-					int s=_block.getSize() - getSizeHead()-4;
+					int s=_block.getSize() - getHeadSize()-4;
 					
 					try (ByteArrayInputStream bais = new ByteArrayInputStream(_block.getBytes(),
 							off, s)) {
@@ -417,7 +417,7 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 								signatureChecker.update(packetCounter.getMySignatureCounter());
 							}
 							signatureChecker.update(_block.getBytes(),
-									off, _block.getSize() - getSizeHead());
+									off, _block.getSize() - getHeadSize());
 							check = signatureChecker.verify();
 						}
 						SubBlock res;
@@ -439,8 +439,8 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 						}
 						return new SubBlockInfo(res, check, !check);
 					} catch (Exception e) {
-						SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getSizeHead(),
-								getBodyOutputSizeForDecryption(_block.getSize() - getSizeHead()));
+						SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getHeadSize(),
+								getBodyOutputSizeForDecryption(_block.getSize() - getHeadSize()));
 						return new SubBlockInfo(res, false, true);
 					}
 				}
@@ -457,8 +457,8 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 				case NOT_CONNECTED:
 				{
 					
-					SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() - getSizeHead(),
-							outputSize + getSizeHead());
+					SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() - getHeadSize(),
+							outputSize + getHeadSize());
 					
 					
 					int off=_block.getSize()+_block.getOffset();
@@ -469,10 +469,10 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 				}
 				case WAITING_FOR_CONNECTION_CONFIRMATION:
 				case CONNECTED: {
-					int s=outputSize + getSizeHead();
+					int s=outputSize + getHeadSize();
 					if (excludeFromEncryption)
 					{
-						final SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() - getSizeHead(),s);
+						final SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() - getHeadSize(),s);
 						int off=_block.getSize()+_block.getOffset();
 						byte[] tab=res.getBytes();
 						Arrays.fill(tab, off, outputSize+_block.getOffset()-4, (byte)0);
@@ -495,7 +495,7 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 					}
 					else
 					{
-						final SubBlock res = new SubBlock(new byte[_block.getBytes().length], _block.getOffset() - getSizeHead(),s);
+						final SubBlock res = new SubBlock(new byte[_block.getBytes().length], _block.getOffset() - getHeadSize(),s);
 						
 						res.getBytes()[res.getOffset()+res.getSize()-1]=0;
 						if (packetCounter.isDistantActivated())
@@ -530,7 +530,7 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 		}
 
 		@Override
-		public int getSizeHead() {
+		public int getHeadSize() {
 			//return signature_size;
 			if (isProfileInitialized())
 				return signature_size_bytes;
@@ -539,9 +539,9 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 		}
 
 		@Override
-		public SubBlockInfo checkIncomingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
-			SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getSizeHead(),
-					_block.getSize() - getSizeHead());
+		public SubBlockInfo checkIncomingPointToPointTransferredBlock(SubBlock _block) throws BlockParserException {
+			SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getHeadSize(),
+					_block.getSize() - getHeadSize());
 			switch (current_step) {
 			
 			case NOT_CONNECTED: {
@@ -564,10 +564,10 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 		}
 
 		@Override
-		public SubBlock signIfPossibleOutgoingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+		public SubBlock signIfPossibleOutgoingPointToPointTransferredBlock(SubBlock _block) throws BlockParserException {
 			try {
-				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() - getSizeHead(),
-						_block.getSize() + getSizeHead());
+				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() - getHeadSize(),
+						_block.getSize() + getHeadSize());
 
 				switch (current_step) {
 				case NOT_CONNECTED:
@@ -580,7 +580,7 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 				case WAITING_FOR_CONNECTION_CONFIRMATION:
 				case CONNECTED: {
 					signer.sign(_block.getBytes(), _block.getOffset(), _block.getSize(), res.getBytes(), res.getOffset(),
-							getSizeHead());
+							getHeadSize());
 					return res;
 				}
 				}
@@ -614,15 +614,15 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 					int identifier = Bits.getInt(_block.getBytes(), _block.getOffset());
 					initMyKeyPair(identifier);
 				}
-				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getSizeHead(),
-						getBodyOutputSizeForDecryption(_block.getSize() - getSizeHead()));
+				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getHeadSize(),
+						getBodyOutputSizeForDecryption(_block.getSize() - getHeadSize()));
 				setFirstMessageReceived();				
 				return new SubBlockInfo(res, true, false);
 			}
 			case WAITING_FOR_CONNECTION_CONFIRMATION:
 			case CONNECTED: {
-				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getSizeHead(),
-						getBodyOutputSizeForDecryption(_block.getSize() - getSizeHead()));
+				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getHeadSize(),
+						getBodyOutputSizeForDecryption(_block.getSize() - getHeadSize()));
 				try {
 					signatureChecker.init(_block.getBytes(),
 							_block.getOffset(), signature_size_bytes);
@@ -631,7 +631,7 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 						
 						signatureChecker.update(packetCounter.getMySignatureCounter());
 					}
-					signatureChecker.update(res.getBytes(), res.getOffset(), _block.getSize() - getSizeHead());
+					signatureChecker.update(res.getBytes(), res.getOffset(), _block.getSize() - getHeadSize());
 					boolean check = signatureChecker.verify();
 					return new SubBlockInfo(res, check, !check);
 				} catch (SignatureException | InvalidKeyException | NoSuchAlgorithmException
@@ -652,8 +652,8 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 		public SubBlock getParentBlock(SubBlock _block, boolean excludeFromEncryption) throws BlockParserException {
 			try {
 				int output=getBodyOutputSizeForEncryption(_block.getSize());
-				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() - getSizeHead(),
-						output + getSizeHead());
+				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() - getHeadSize(),
+						output + getHeadSize());
 				int off=_block.getSize()+_block.getOffset();
 				byte[] tab=res.getBytes();
 				Arrays.fill(tab, off, output+_block.getOffset(), (byte)0);
@@ -681,7 +681,7 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 		}
 
 		@Override
-		public int getSizeHead() {
+		public int getHeadSize() {
 			//return signature_size;
 			if (isProfileInitialized())
 				return signature_size_bytes;
@@ -696,9 +696,9 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 
 
 		@Override
-		public SubBlockInfo checkIncomingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
-			SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getSizeHead(),
-					_block.getSize() - getSizeHead());
+		public SubBlockInfo checkIncomingPointToPointTransferredBlock(SubBlock _block) throws BlockParserException {
+			SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getHeadSize(),
+					_block.getSize() - getHeadSize());
 			switch (current_step) {
 			
 			case NOT_CONNECTED: {
@@ -721,12 +721,12 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 		}
 
 		@Override
-		public SubBlock signIfPossibleOutgoingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+		public SubBlock signIfPossibleOutgoingPointToPointTransferredBlock(SubBlock _block) throws BlockParserException {
 			try {
-				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() - getSizeHead(),
-						_block.getSize() + getSizeHead());
+				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() - getHeadSize(),
+						_block.getSize() + getHeadSize());
 				signer.sign(_block.getBytes(), _block.getOffset(), _block.getSize(), res.getBytes(), res.getOffset(),
-						getSizeHead());
+						getHeadSize());
 				return res;
 			} catch (Exception e) {
 				throw new BlockParserException(e);
@@ -751,7 +751,7 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 		try {
 			needToRefreshTransferBlockChecker=false;
 			return new ConnectionProtocol.NullBlockChecker(subBlockChercker, this.isCrypted(),
-					(short) parser.getSizeHead());
+					(short) parser.getHeadSize());
 		} catch (Exception e) {
 			needToRefreshTransferBlockChecker = true;
 			throw new ConnectionException(e);
