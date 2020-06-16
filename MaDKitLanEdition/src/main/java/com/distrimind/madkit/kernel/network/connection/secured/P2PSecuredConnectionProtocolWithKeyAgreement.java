@@ -105,11 +105,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 		try {
 			approvedRandom=mkProperties.getApprovedSecureRandom();
 			approvedRandomForKeys=mkProperties.getApprovedSecureRandomForKeys();
-		} catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-			throw new ConnectionException(e);
-		}
-		
-		try {
+
 			encoderWithEncryption=new EncryptionSignatureHashEncoder();
 			encoderWithoutEncryption=new EncryptionSignatureHashEncoder();
 			decoderWithEncryption=new EncryptionSignatureHashDecoder();
@@ -122,7 +118,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 			}
 			encoderWithEncryption.connectWithDecoder(decoderWithEncryption);
 			encoderWithoutEncryption.connectWithDecoder(decoderWithoutEncryption);
-		} catch (IOException e) {
+		} catch (IOException | NoSuchAlgorithmException | NoSuchProviderException e) {
 			throw new ConnectionException(e);
 		}
 		this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, hproperties.enableEncryption, true);
@@ -937,11 +933,6 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 
 		}
 
-
-		@Override
-		public int getHeadSize() {
-			return EncryptionSignatureHashEncoder.headSize;
-		}
 
 		@Override
 		protected SubBlockInfo getEncryptedSubBlock(SubBlock _block, boolean enabledEncryption) throws BlockParserException {

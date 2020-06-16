@@ -296,9 +296,9 @@ public class MadkitProperties extends MultiFormatProperties {
 	 */
 	public Level warningLogLevel = Level.FINE;
 
-	private DatabaseFactory databaseFactory;
+	private DatabaseFactory<?> databaseFactory;
 
-	public void setDatabaseFactory(DatabaseFactory df) throws DatabaseException {
+	public void setDatabaseFactory(DatabaseFactory<?> df) throws DatabaseException {
 		if (databaseFactory != null && databaseFactory != df
 				&& !databaseFactory.getDatabaseWrapperSingleton().isClosed())
 			databaseFactory.getDatabaseWrapperSingleton().close();
@@ -500,7 +500,7 @@ public class MadkitProperties extends MultiFormatProperties {
 
 	public MadkitProperties() {
 		super(new MultiFormatPropertiesObjectParser());
-		this.minimumMadkitVersion=new Version(madkitVersion.getProgramName(), madkitVersion.getShortProgramName(), (short)2, (short)1, (short)7, Version.Type.Stable, (short)1, madkitVersion.getProjectStartDate(), madkitVersion.getProjectEndDate());
+		this.minimumMadkitVersion=new Version(madkitVersion.getProgramName(), madkitVersion.getShortProgramName(), (short)2, (short)2, (short)0, Version.Type.Stable, (short)1, madkitVersion.getProjectStartDate(), madkitVersion.getProjectEndDate());
 		this.minimumMadkitVersion.setBuildNumber(100);
 		try {
 			madkitWeb = new URL("https://github.com/JazZ51/MaDKitLanEdition");

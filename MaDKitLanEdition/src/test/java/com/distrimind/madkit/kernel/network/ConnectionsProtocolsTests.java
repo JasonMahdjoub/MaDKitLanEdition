@@ -163,12 +163,12 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 
 		ConnectionProtocolProperties<?>[] o = new ConnectionProtocolProperties<?>[2];
 		P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties p2pp = new P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties();
-		p2pp.aSymetricKeySize = 2048;
+		p2pp.aSymmetricKeySize = 2048;
 		p2pp.symmetricEncryptionType = SymmetricEncryptionType.AES_GCM;
 		p2pp.enableEncryption=true;
 		o[0] = p2pp;
 		p2pp = new P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties();
-		p2pp.aSymetricKeySize = 2048;
+		p2pp.aSymmetricKeySize = 2048;
 		p2pp.enableEncryption=true;
 		p2pp.symmetricEncryptionType = SymmetricEncryptionType.AES_GCM;
 		o[1] = p2pp;
@@ -176,12 +176,12 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		
 		o = new ConnectionProtocolProperties<?>[2];
 		p2pp = new P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties();
-		p2pp.aSymetricKeySize = 2048;
+		p2pp.aSymmetricKeySize = 2048;
 		p2pp.symmetricEncryptionType = SymmetricEncryptionType.AES_CBC_PKCS5Padding;
 		p2pp.enableEncryption=true;
 		o[0] = p2pp;
 		p2pp = new P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties();
-		p2pp.aSymetricKeySize = 2048;
+		p2pp.aSymmetricKeySize = 2048;
 		p2pp.symmetricEncryptionType = SymmetricEncryptionType.AES_CBC_PKCS5Padding;
 		p2pp.enableEncryption=true;
 		o[1] = p2pp;
@@ -191,12 +191,12 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 
 		o = new ConnectionProtocolProperties<?>[2];
 		p2pp = new P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties();
-		p2pp.aSymetricKeySize = 2048;
+		p2pp.aSymmetricKeySize = 2048;
 		p2pp.enableEncryption = false;
 		p2pp.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
 		o[0] = p2pp;
 		p2pp = new P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties();
-		p2pp.aSymetricKeySize = 2048;
+		p2pp.aSymmetricKeySize = 2048;
 		p2pp.enableEncryption = false;
 		p2pp.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
 		o[1] = p2pp;

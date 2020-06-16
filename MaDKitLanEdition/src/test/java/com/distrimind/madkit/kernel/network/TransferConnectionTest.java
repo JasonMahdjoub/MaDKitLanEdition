@@ -190,8 +190,8 @@ public class TransferConnectionTest extends JunitMadkit {
 		} else if (cpp.getClass() == P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties.class) {
 			P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties sold = (P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties) cpp;
 			P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties s = new P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties();
-			s.aSymetricEncryptionType = sold.aSymetricEncryptionType;
-			s.aSymetricKeySize = sold.aSymetricKeySize;
+			s.aSymmetricEncryptionType = sold.aSymmetricEncryptionType;
+			s.aSymmetricKeySize = sold.aSymmetricKeySize;
 			s.aSymmetricKeyExpirationMs = sold.aSymmetricKeyExpirationMs;
 			s.enableEncryption = sold.enableEncryption;
 			s.isServer = sold.isServer;
