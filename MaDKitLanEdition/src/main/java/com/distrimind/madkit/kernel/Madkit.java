@@ -137,7 +137,7 @@ final public class Madkit {
 		Calendar c = Calendar.getInstance();
 		c.set(2015, Calendar.MAY, 22);
 		Calendar c2 = Calendar.getInstance();
-		c2.set(2019, Calendar.MARCH, 30);
+		c2.set(2019, Calendar.JUNE, 16);
 		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)2, (short)2, (short)0, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
 		try {
 
@@ -160,11 +160,12 @@ final public class Madkit {
 			VERSION.addDeveloper(new PersonDeveloper("Ferber", "Jacques", c.getTime()));
 
 			c = Calendar.getInstance();
-			c.set(2020, Calendar.MARCH, 30);
+			c.set(2020, Calendar.JUNE, 16);
 			Description d = new Description((short)2, (short)2, (short)0, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update Utils to 4.15.12");
-			d.addItem("Update OOD to 3.0.0");
+			d.addItem("Update Utils to 5.5.0 Stable");
+			d.addItem("Update OOD to 3.0.0 Stable");
 			d.addItem("Make Utils and OOD compatible with Android");
+			d.addItem("Reimplement connection protocol using new Utils classes");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();

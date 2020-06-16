@@ -42,6 +42,7 @@ import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
 import com.distrimind.util.crypto.*;
+import com.distrimind.util.sizeof.ObjectSizer;
 
 /**
  * 
@@ -114,9 +115,9 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 				throw new NullPointerException("publicKey");
 			int s;
 			if (publicKeyForEncryption instanceof HybridASymmetricPublicKey) {
-				if (((HybridASymmetricPublicKey)publicKeyForEncryption).getNonPQCPublicKey().getEncryptionAlgorithmType()==null)
+				if (publicKeyForEncryption.getNonPQCPublicKey().getEncryptionAlgorithmType()==null)
 					throw new IllegalArgumentException();
-				s = ((HybridASymmetricPublicKey) publicKeyForEncryption).getNonPQCPublicKey().getKeySizeBits();
+				s = publicKeyForEncryption.getNonPQCPublicKey().getKeySizeBits();
 
 			}
 			else {
@@ -132,7 +133,7 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 			this.publicKeyForEncryption = publicKeyForEncryption;
 			this.signatureType = signatureType;
 			keyIdentifier = identifier;
-			this.maxAlgo=null;
+			this.maximumBodyOutputSizeComputer=null;
 			this.maxSizeHead=null;
 			if (symmetricEncryptionType != null) {
 				this.symmetricEncryptionType = symmetricEncryptionType;
@@ -265,10 +266,10 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 			throw new ConnectionException("The public key must defined");
 		int s;
 		if (publicKeyForEncryption instanceof HybridASymmetricPublicKey) {
-			if (((HybridASymmetricPublicKey)publicKeyForEncryption).getNonPQCPublicKey().getEncryptionAlgorithmType()==null)
+			if (publicKeyForEncryption.getNonPQCPublicKey().getEncryptionAlgorithmType()==null)
 				throw new IllegalArgumentException();
 
-			s = ((HybridASymmetricPublicKey) publicKey).getNonPQCPublicKey().getKeySizeBits();
+			s = publicKey.getNonPQCPublicKey().getKeySizeBits();
 		}
 		else
 		{
@@ -315,31 +316,23 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	public boolean isEncrypted() {
 		return enableEncryption;
 	}
-	private transient SymmetricEncryptionAlgorithm maxAlgo=null;
+	private transient MaximumBodyOutputSizeComputer maximumBodyOutputSizeComputer=null;
 
 	@Override
 	public int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException {
-		if (!isEncrypted())
-			return size;
-		else
-		{
-
-			try {
-				if (maxAlgo==null)
-					maxAlgo=new SymmetricEncryptionAlgorithm(SecureRandomType.DEFAULT.getSingleton(null), symmetricEncryptionType.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), getSymmetricKeySizeBits()).generateKey());
-				return maxAlgo.getOutputSizeForEncryption(size)+4;
-			} catch (Exception e) {
-				throw new BlockParserException(e);
-			}
-
-		}
+		if (maximumBodyOutputSizeComputer==null)
+			maximumBodyOutputSizeComputer=new MaximumBodyOutputSizeComputer(isEncrypted(), symmetricEncryptionType, getSymmetricKeySizeBits(), getSignatureType(), messageDigestType);
+		return maximumBodyOutputSizeComputer.getMaximumBodyOutputSizeForEncryption(size);
 	}
-    private transient Integer maxSizeHead=null;
+
+	private transient Integer maxSizeHead=null;
 
     @Override
     public int getMaximumSizeHead() {
         if (maxSizeHead==null)
-            maxSizeHead=signatureType.getSignatureSizeInBits()/8;
+		{
+            maxSizeHead=Math.max(ObjectSizer.sizeOf(getEncryptionProfileIndentifier()), EncryptionSignatureHashEncoder.headSize);
+		}
         return maxSizeHead;
     }
 

@@ -439,24 +439,13 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 		return enableEncryption;
 	}
 
-	private transient EncryptionSignatureHashEncoder maxEncoder=null;
+	private transient MaximumBodyOutputSizeComputer maximumBodyOutputSizeComputer=null;
 
 	@Override
 	public int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException {
-		try {
-			if (maxEncoder==null) {
-				maxEncoder = new EncryptionSignatureHashEncoder()
-						.withSymmetricSecretKeyForSignature(symmetricSignatureType.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), symmetricKeySizeBits).generateKey());
-				if (messageDigestType != null)
-					maxEncoder.withMessageDigestType(messageDigestType);
-				if (isEncrypted())
-					maxEncoder.withSymmetricSecretKeyForEncryption(SecureRandomType.DEFAULT.getSingleton(null), symmetricEncryptionType.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), symmetricKeySizeBits).generateKey());
-			}
-			return (int)maxEncoder.getMaximumOutputLength(size);
-
-		} catch (NoSuchAlgorithmException | NoSuchProviderException | IOException e) {
-			throw new BlockParserException(e);
-		}
+		if (maximumBodyOutputSizeComputer==null)
+			maximumBodyOutputSizeComputer=new MaximumBodyOutputSizeComputer(isEncrypted(), symmetricEncryptionType, symmetricKeySizeBits, symmetricSignatureType, messageDigestType);
+		return maximumBodyOutputSizeComputer.getMaximumBodyOutputSizeForEncryption(size);
 	}
 
     @Override
