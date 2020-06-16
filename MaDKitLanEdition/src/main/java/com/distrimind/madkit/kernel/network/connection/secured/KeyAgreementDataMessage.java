@@ -49,7 +49,7 @@ import java.io.IOException;
  * @author Jason Mahdjoub
  * @version 1.2
  * @since MadkitLanEdition 1.0
- * @see ServerSecuredConnectionProtocolWithKnwonPublicKey
+ * @see ServerSecuredConnectionProtocolWithKnownPublicKey
  */
 public class KeyAgreementDataMessage extends ConnectionMessage {
 

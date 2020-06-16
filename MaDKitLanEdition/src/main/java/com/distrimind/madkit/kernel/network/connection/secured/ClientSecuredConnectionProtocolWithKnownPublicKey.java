@@ -66,7 +66,7 @@ import java.util.Arrays;
  * @author Jason Mahdjoub
  * @version 1.2
  * @since MadkitLanEdition 1.0
- * @see ServerSecuredConnectionProtocolWithKnwonPublicKey
+ * @see ServerSecuredConnectionProtocolWithKnownPublicKey
  */
 public class ClientSecuredConnectionProtocolWithKnownPublicKey
 		extends ConnectionProtocol<ClientSecuredConnectionProtocolWithKnownPublicKey> {
@@ -352,7 +352,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 							outputSize + getHeadSize());
 					if (!firstMessageSent)
 					{
-						Bits.putInt(res.getBytes(), res.getOffset(), hproperties.getEncryptionProfileIndentifier());
+						Bits.putInt(res.getBytes(), res.getOffset(), hproperties.getEncryptionProfileIdentifier());
 						setFirstMessageSent();
 					}
 					int off=_block.getSize()+_block.getOffset();
@@ -376,7 +376,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 			if (firstMessageSent)
 				return EncryptionSignatureHashEncoder.headSize;
 			else {
-				return ObjectSizer.sizeOf(hproperties.getEncryptionProfileIndentifier());
+				return ObjectSizer.sizeOf(hproperties.getEncryptionProfileIdentifier());
 			}
 		}
 

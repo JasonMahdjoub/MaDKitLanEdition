@@ -321,11 +321,11 @@ public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolPr
 
     private transient Integer maxHeadSize=null;
     @Override
-    public int getMaximumSizeHead() throws BlockParserException {
+    public int getMaximumHeadSize() throws BlockParserException {
         if (maxHeadSize==null) {
             int res = 0;
             for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties.values())
-                res = Math.max(cpp.getMaximumSizeHead(), res);
+                res = Math.max(cpp.getMaximumHeadSize(), res);
             maxHeadSize=res;
         }
         return maxHeadSize;

@@ -111,7 +111,7 @@ public class UnsecuredConnectionProtocolProperties extends ConnectionProtocolPro
 	}
 
 	@Override
-	public int getMaximumSizeHead() {
+	public int getMaximumHeadSize() {
 		return 0;
 	}
 

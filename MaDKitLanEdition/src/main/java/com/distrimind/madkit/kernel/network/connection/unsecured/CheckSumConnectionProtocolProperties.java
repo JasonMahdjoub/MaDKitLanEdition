@@ -106,7 +106,7 @@ public class CheckSumConnectionProtocolProperties extends ConnectionProtocolProp
 	}
 
 	@Override
-	public int getMaximumSizeHead() {
+	public int getMaximumHeadSize() {
 		return messageDigestType.getDigestLengthInBits()/8;
 	}
 

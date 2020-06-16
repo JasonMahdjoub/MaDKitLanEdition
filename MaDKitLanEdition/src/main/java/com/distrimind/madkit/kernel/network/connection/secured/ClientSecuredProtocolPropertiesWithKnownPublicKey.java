@@ -83,11 +83,11 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	 * @param keyWrapper
 	 *            the key wrapper type
 	 */
-	public void setEncryptionProfile(int identifier, IASymmetricPublicKey publicKeyForEncryption, SymmetricEncryptionType symmetricEncryptionType, ASymmetricKeyWrapperType keyWrapper) {
+	public void setEncryptionProfile(int identifier, IASymmetricPublicKey publicKeyForEncryption, SymmetricEncryptionType symmetricEncryptionType, ASymmetricKeyWrapperType keyWrapper, MessageDigestType messageDigestType) {
 		assert symmetricEncryptionType != null;
 		this.setEncryptionProfile(identifier, publicKeyForEncryption, symmetricEncryptionType,
-				symmetricEncryptionType.getDefaultKeySizeBits(), keyWrapper, symmetricEncryptionType.getDefaultSignatureAlgorithm()
-						);
+				symmetricEncryptionType.getDefaultKeySizeBits(), keyWrapper, symmetricEncryptionType.getDefaultSignatureAlgorithm(),
+				messageDigestType);
 	}
 
 	/**
@@ -109,7 +109,7 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	 *            the signature type (if null, use default signature type)
 	 */
 	public void setEncryptionProfile(int identifier, IASymmetricPublicKey publicKeyForEncryption, SymmetricEncryptionType symmetricEncryptionType,
-			short symmetricKeySizeBits, ASymmetricKeyWrapperType keyWrapper, SymmetricAuthentifiedSignatureType signatureType) {
+			short symmetricKeySizeBits, ASymmetricKeyWrapperType keyWrapper, SymmetricAuthentifiedSignatureType signatureType, MessageDigestType messageDigestType) {
 		synchronized (this) {
 			if (publicKeyForEncryption == null)
 				throw new NullPointerException("publicKey");
@@ -146,6 +146,7 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 				this.keyWrapper = ASymmetricKeyWrapperType.DEFAULT;
 			else
 				this.keyWrapper = keyWrapper;
+			this.messageDigestType=messageDigestType;
 		}
 	}
 
@@ -164,7 +165,7 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 					serverProperties.getDefaultSymmetricEncryptionType(),
 					serverProperties.getDefaultSymmetricEncryptionKeySizeBits(),
 					serverProperties.getDefaultKeyWrapper(),
-					serverProperties.getDefaultSignatureType());
+					serverProperties.getDefaultSignatureType(), serverProperties.getDefaultMessageDigestType());
 		}
 	}
 
@@ -194,7 +195,7 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	 * 
 	 * @return the encryption profile attached to this connection protocol
 	 */
-	public int getEncryptionProfileIndentifier() {
+	public int getEncryptionProfileIdentifier() {
 		return keyIdentifier;
 	}
 
@@ -328,10 +329,10 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	private transient Integer maxSizeHead=null;
 
     @Override
-    public int getMaximumSizeHead() {
+    public int getMaximumHeadSize() {
         if (maxSizeHead==null)
 		{
-            maxSizeHead=Math.max(ObjectSizer.sizeOf(getEncryptionProfileIndentifier()), EncryptionSignatureHashEncoder.headSize);
+            maxSizeHead=Math.max(ObjectSizer.sizeOf(getEncryptionProfileIdentifier()), EncryptionSignatureHashEncoder.headSize);
 		}
         return maxSizeHead;
     }

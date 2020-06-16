@@ -488,7 +488,7 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 
 
 	public int getMaximumSizeHead() throws BlockParserException {
-		return connection_protocol_properties.getMaximumSizeHead();
+		return connection_protocol_properties.getMaximumHeadSize();
 	}
 
 	/**

@@ -171,7 +171,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties ex
     private transient volatile Integer maxHeadSize=null;
     @SuppressWarnings("deprecation")
     @Override
-    public int getMaximumSizeHead() {
+    public int getMaximumHeadSize() {
         if (maxHeadSize==null) {
 
             maxHeadSize = signatureType.getSignatureSizeBytes(aSymetricKeySize);

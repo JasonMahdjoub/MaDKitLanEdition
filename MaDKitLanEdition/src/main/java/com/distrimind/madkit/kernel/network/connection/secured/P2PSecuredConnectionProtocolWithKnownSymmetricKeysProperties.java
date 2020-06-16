@@ -261,7 +261,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties extend
 
 	private transient volatile Integer maxHeadSize=null;
 	@Override
-	public int getMaximumSizeHead() throws BlockParserException {
+	public int getMaximumHeadSize() throws BlockParserException {
 		if (maxHeadSize==null)
 		{
 			try {

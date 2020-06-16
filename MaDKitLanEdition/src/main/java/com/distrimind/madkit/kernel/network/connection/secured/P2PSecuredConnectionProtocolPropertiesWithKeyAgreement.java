@@ -449,7 +449,7 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	}
 
     @Override
-    public int getMaximumSizeHead() {
+    public int getMaximumHeadSize() {
     	return EncryptionSignatureHashEncoder.headSize;
     }
 

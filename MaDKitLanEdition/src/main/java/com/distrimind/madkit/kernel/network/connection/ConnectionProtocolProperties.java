@@ -270,5 +270,5 @@ public abstract class ConnectionProtocolProperties<CP extends ConnectionProtocol
      * @return the maximum packet head size
      * @throws BlockParserException if a problem occurs
      */
-    public abstract int getMaximumSizeHead() throws BlockParserException;
+    public abstract int getMaximumHeadSize() throws BlockParserException;
 }

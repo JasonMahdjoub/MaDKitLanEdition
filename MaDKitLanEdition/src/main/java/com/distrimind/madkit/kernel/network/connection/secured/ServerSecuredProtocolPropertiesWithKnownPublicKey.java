@@ -42,8 +42,9 @@ import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
 import com.distrimind.util.crypto.*;
+import com.distrimind.util.sizeof.ObjectSizer;
 
-import java.security.InvalidAlgorithmParameterException;
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.ArrayList;
@@ -58,8 +59,9 @@ import java.util.Map;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
+@SuppressWarnings("FieldMayBeFinal")
 public class ServerSecuredProtocolPropertiesWithKnownPublicKey
-		extends ConnectionProtocolProperties<ServerSecuredConnectionProtocolWithKnwonPublicKey> {
+		extends ConnectionProtocolProperties<ServerSecuredConnectionProtocolWithKnownPublicKey> {
 
 	/**
 	 * 
@@ -67,7 +69,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	private static final long serialVersionUID = -4979144000199527880L;
 
 	public ServerSecuredProtocolPropertiesWithKnownPublicKey() {
-		super(ServerSecuredConnectionProtocolWithKnwonPublicKey.class);
+		super(ServerSecuredConnectionProtocolWithKnownPublicKey.class);
 	}
 
 	/**
@@ -81,14 +83,16 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	 *            the symmetric encryption type (if null, use default encryption
 	 *            type)
 	 * @param keyWrapper the key wrapper type
+	 * @param messageDigestType
+	 * 			  the message digest type. If null, message will still be checked through signature, but errors will be considered as security attacks and not as network error
 	 * @return the encryption profile identifier
 	 * @throws NoSuchAlgorithmException if the encryption algorithm was not found
-	 * @throws InvalidAlgorithmParameterException if the encryption algorithm parameter was not valid
+	 * @throws IOException if the encryption algorithm parameter was not valid
 	 * @throws NoSuchProviderException if the encryption algorithm provider was not found 
 	 */
 	public int generateAndAddEncryptionProfile(AbstractSecureRandom random, ASymmetricEncryptionType as_type,
-			SymmetricEncryptionType s_type, ASymmetricKeyWrapperType keyWrapper) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
-		return addEncryptionProfile(as_type.getKeyPairGenerator(random).generateKeyPair(), s_type, s_type.getDefaultKeySizeBits(), keyWrapper, null);
+			SymmetricEncryptionType s_type, ASymmetricKeyWrapperType keyWrapper, MessageDigestType messageDigestType) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
+		return addEncryptionProfile(as_type.getKeyPairGenerator(random).generateKeyPair(), s_type, s_type.getDefaultKeySizeBits(), keyWrapper, null, messageDigestType);
 	}
 
 	/**
@@ -102,14 +106,16 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	 *            the symmetric encryption type (if null, use default encryption
 	 *            type)
 	 * @param keyWrapper the key wrapper type
+	 * @param messageDigestType
+	 * 			  the message digest type. If null, message will still be checked through signature, but errors will be considered as security attacks and not as network error
 	 * @return the encryption profile identifier
 	 * @throws NoSuchAlgorithmException if the encryption algorithm was not found
-	 * @throws InvalidAlgorithmParameterException if the encryption algorithm parameter was not valid
+	 * @throws IOException if the encryption algorithm parameter was not valid
 	 * @throws NoSuchProviderException if the encryption algorithm provider was not found
 	 */
 	public int generateAndAddEncryptionProfile(AbstractSecureRandom random, HybridASymmetricEncryptionType as_type,
-											   SymmetricEncryptionType s_type, ASymmetricKeyWrapperType keyWrapper) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
-		return addEncryptionProfile(as_type.generateKeyPair(random), s_type, s_type.getDefaultKeySizeBits(), keyWrapper, null);
+											   SymmetricEncryptionType s_type, ASymmetricKeyWrapperType keyWrapper, MessageDigestType messageDigestType) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
+		return addEncryptionProfile(as_type.generateKeyPair(random), s_type, s_type.getDefaultKeySizeBits(), keyWrapper, null, messageDigestType);
 	}
 
 	/**
@@ -131,17 +137,19 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	 *            the signature type (if null, use default signature type)
 	 * @param keyWrapper the key wrapper type
 	 * @param signatureType the signature type
+	 * @param messageDigestType
+	 * 			  the message digest type. If null, message will still be checked through signature, but errors will be considered as security attacks and not as network error
 	 * @return the encryption profile identifier
 	 * @throws NoSuchAlgorithmException if the encryption algorithm was not found
-	 * @throws InvalidAlgorithmParameterException if the encryption algorithm parameter was not valid
+	 * @throws IOException if the encryption algorithm parameter was not valid
 	 * @throws NoSuchProviderException if the encryption algorithm provider was not found
 	 */
 	public int generateAndAddEncryptionProfile(AbstractSecureRandom random, ASymmetricEncryptionType as_type,
 			long expirationTimeUTC, int asymmetricKeySizeBits,
-			SymmetricEncryptionType s_type, short symmetricKeySizeBits, ASymmetricKeyWrapperType keyWrapper, SymmetricAuthentifiedSignatureType signatureType) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+			SymmetricEncryptionType s_type, short symmetricKeySizeBits, ASymmetricKeyWrapperType keyWrapper, SymmetricAuthentifiedSignatureType signatureType, MessageDigestType messageDigestType) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
 		return addEncryptionProfile(
 				as_type.getKeyPairGenerator(random, asymmetricKeySizeBits, expirationTimeUTC).generateKeyPair(),
-				s_type, symmetricKeySizeBits, keyWrapper, signatureType);
+				s_type, symmetricKeySizeBits, keyWrapper, signatureType, messageDigestType);
 	}
 
 	/**
@@ -153,10 +161,12 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	 *            the symmetric encryption type (if null, use default encryption
 	 *            type)
 	 * @param keyWrapper the key wrapper type
+	 * @param messageDigestType
+	 * 			  the message digest type. If null, message will still be checked through signature, but errors will be considered as security attacks and not as network error
 	 * @return the encryption profile identifier
 	 */
-	public int addEncryptionProfile(AbstractKeyPair keyPairForEncryption, SymmetricEncryptionType symmetricEncryptionType, ASymmetricKeyWrapperType keyWrapper) {
-		return this.addEncryptionProfile(generateNewKeyPairIdentifier(), keyPairForEncryption, symmetricEncryptionType, keyWrapper);
+	public int addEncryptionProfile(AbstractKeyPair<?, ?> keyPairForEncryption, SymmetricEncryptionType symmetricEncryptionType, ASymmetricKeyWrapperType keyWrapper, MessageDigestType messageDigestType) {
+		return this.addEncryptionProfile(generateNewKeyPairIdentifier(), keyPairForEncryption, symmetricEncryptionType, keyWrapper, messageDigestType);
 
 	}
 	/**
@@ -169,11 +179,13 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	 *            the symmetric encryption type (if null, use default encryption
 	 *            type)
 	 * @param keyWrapper the key wrapper type
+	 * @param messageDigestType
+	 * 			  the message digest type. If null, message will still be checked through signature, but errors will be considered as security attacks and not as network error
 	 * @return the encryption profile identifier
 	 */
-	public int addEncryptionProfile(int profileIdentifier, AbstractKeyPair keyPairForEncryption, SymmetricEncryptionType symmetricEncryptionType, ASymmetricKeyWrapperType keyWrapper) {
+	public int addEncryptionProfile(int profileIdentifier, AbstractKeyPair<?, ?> keyPairForEncryption, SymmetricEncryptionType symmetricEncryptionType, ASymmetricKeyWrapperType keyWrapper, MessageDigestType messageDigestType) {
 		return this.addEncryptionProfile(profileIdentifier, keyPairForEncryption, symmetricEncryptionType,
-				symmetricEncryptionType == null ? (short) -1 : symmetricEncryptionType.getDefaultKeySizeBits(), keyWrapper, null);
+				symmetricEncryptionType == null ? (short) -1 : symmetricEncryptionType.getDefaultKeySizeBits(), keyWrapper, null, messageDigestType);
 	}
 
 	/**
@@ -190,11 +202,13 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	 * @param keyWrapper the key wrapper type
 	 * @param signatureType
 	 *            the signature type (if null, use default signature type)
+	 * @param messageDigestType
+	 * 			  the message digest type. If null, message will still be checked through signature, but errors will be considered as security attacks and not as network error
 	 * @return the encryption profile identifier
 	 */
-	public int addEncryptionProfile(AbstractKeyPair keyPairForEncryption,
-									SymmetricEncryptionType symmetricEncryptionType, short symmetricKeySizeBits, ASymmetricKeyWrapperType keyWrapper, SymmetricAuthentifiedSignatureType signatureType) {
-		return addEncryptionProfile(generateNewKeyPairIdentifier(), keyPairForEncryption, symmetricEncryptionType, symmetricKeySizeBits, keyWrapper, signatureType);
+	public int addEncryptionProfile(AbstractKeyPair<?, ?> keyPairForEncryption,
+									SymmetricEncryptionType symmetricEncryptionType, short symmetricKeySizeBits, ASymmetricKeyWrapperType keyWrapper, SymmetricAuthentifiedSignatureType signatureType, MessageDigestType messageDigestType) {
+		return addEncryptionProfile(generateNewKeyPairIdentifier(), keyPairForEncryption, symmetricEncryptionType, symmetricKeySizeBits, keyWrapper, signatureType, messageDigestType);
 	}
 	/**
 	 * Add an encryption profile with a new key pair, etc.
@@ -210,10 +224,12 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	 * @param keyWrapper the key wrapper type
 	 * @param signatureType
 	 *            the signature type (if null, use default signature type)
+	 * @param messageDigestType
+	 * 			  the message digest type. If null, message will still be checked through signature, but errors will be considered as security attacks and not as network error
 	 * @return the encryption profile identifier
 	 */
-	public int addEncryptionProfile(int profileIdentifier, AbstractKeyPair keyPairForEncryption,
-			SymmetricEncryptionType symmetricEncryptionType, short symmetricKeySizeBits, ASymmetricKeyWrapperType keyWrapper, SymmetricAuthentifiedSignatureType signatureType) {
+	public int addEncryptionProfile(int profileIdentifier, AbstractKeyPair<?, ?> keyPairForEncryption,
+			SymmetricEncryptionType symmetricEncryptionType, short symmetricKeySizeBits, ASymmetricKeyWrapperType keyWrapper, SymmetricAuthentifiedSignatureType signatureType, MessageDigestType messageDigestType) {
 		if (keyPairForEncryption == null)
 			throw new NullPointerException("keyPairForEncryption");
 		if (keyPairsForEncryption.containsKey(profileIdentifier))
@@ -246,8 +262,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 		if (keyWrapper==null)
 			keyWrapper=ASymmetricKeyWrapperType.DEFAULT;
 		keyWrappers.put(profileIdentifier, keyWrapper);
-			
-		
+		messageDigestTypes.put(profileIdentifier, messageDigestType);
 		return profileIdentifier;
 	}
 
@@ -260,8 +275,13 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	 * @return the key pair attached to this connection protocol and the given
 	 *         profile identifier
 	 */
-	public AbstractKeyPair getKeyPairForEncryption(int profileIdentifier) {
+	public AbstractKeyPair<?, ?> getKeyPairForEncryption(int profileIdentifier) {
 		return keyPairsForEncryption.get(profileIdentifier);
+	}
+
+	public MessageDigestType getMessageDigestType(int profileIdentifier)
+	{
+		return messageDigestTypes.get(profileIdentifier);
 	}
 
 	/**
@@ -274,7 +294,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	    Boolean valid=validProfiles.get(profileIdentifier);
 	    if (valid==null || !valid)
 	        return false;
-		AbstractKeyPair kp=keyPairsForEncryption.get(profileIdentifier);
+		AbstractKeyPair<?, ?> kp=keyPairsForEncryption.get(profileIdentifier);
 		if (kp!=null && kp.getTimeExpirationUTC()>System.currentTimeMillis())
 		{
 			if (encryptionRestriction==EncryptionRestriction.NO_RESTRICTION)
@@ -363,6 +383,16 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	public short getSymmetricEncryptionKeySizeBits(int profileIdentifier) {
 		return symmetricEncryptionKeySizeBits.get(profileIdentifier);
 	}
+	/**
+	 * Gets the default message digest attached to this connection protocol and its
+	 * default profile
+	 *
+	 * @return the default message digest attached to this connection protocol and its
+	 * 	 default profile
+	 */
+	public MessageDigestType getDefaultMessageDigestType() {
+		return messageDigestTypes.get(lastIdentifier);
+	}
 
 	/**
 	 * Gets the default key pair (for encryption) attached to this connection protocol and its
@@ -371,7 +401,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	 * @return the default key pair attached to this connection protocol and its
 	 *         default profile
 	 */
-	public AbstractKeyPair getDefaultKeyPairForEncryption() {
+	public AbstractKeyPair<?, ?> getDefaultKeyPairForEncryption() {
 		return keyPairsForEncryption.get(lastIdentifier);
 	}
 
@@ -453,7 +483,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	/**
 	 * The used key pairs for encryption
 	 */
-	private Map<Integer, AbstractKeyPair> keyPairsForEncryption = new HashMap<>();
+	private Map<Integer, AbstractKeyPair<?, ?>> keyPairsForEncryption = new HashMap<>();
 
 	/**
 	 * The used signatures
@@ -464,6 +494,11 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	 * The used key wrappers
 	 */
 	private Map<Integer, ASymmetricKeyWrapperType> keyWrappers = new HashMap<>();
+
+	/**
+	 * The used message digest types
+	 */
+	private Map<Integer, MessageDigestType> messageDigestTypes = new HashMap<>();
 	
 	private int lastIdentifier = 0;
 
@@ -492,14 +527,14 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 
 
 
-	private boolean checkKeyPairs(Map<Integer, AbstractKeyPair> keyPairs) throws ConnectionException
+	private boolean checkKeyPairs(Map<Integer, AbstractKeyPair<?, ?>> keyPairs) throws ConnectionException
 	{
 		if (keyPairs == null)
 			throw new ConnectionException("The key pairs must defined");
 		if (keyPairs.isEmpty())
 			throw new ConnectionException("The key pairs must defined");
 		boolean valid = false;
-		for (Map.Entry<Integer, AbstractKeyPair> e : keyPairs.entrySet()) {
+		for (Map.Entry<Integer, AbstractKeyPair<?, ?>> e : keyPairs.entrySet()) {
 			if (e.getValue() == null)
 				throw new NullPointerException();
 			Boolean vp=validProfiles.get(e.getKey());
@@ -534,7 +569,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 				throw new NullPointerException(
 						"No symmetric encryption key size bits found for identifier " + e.getKey());
 		}
-		AbstractKeyPair akp=keyPairs.get(this.lastIdentifier);
+		AbstractKeyPair<?, ?> akp=keyPairs.get(this.lastIdentifier);
 		int s;
 		if (akp instanceof HybridASymmetricKeyPair)
 			s= akp.getNonPQCKeyPair().getKeySizeBits();
@@ -587,7 +622,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	public boolean canBeServer() {
 		return true;
 	}
-	private transient List<SymmetricEncryptionAlgorithm> maxAlgos=null;
+	private transient List<MaximumBodyOutputSizeComputer> maxAlgos=null;
 	@Override
 	public int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException
 	{
@@ -596,21 +631,26 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 		try {
 			int res=0;
 			if (maxAlgos==null) {
-				List<SymmetricEncryptionAlgorithm> maxAlgos=new ArrayList<>(this.symmetricEncryptionTypes.size());
-				for (Map.Entry<Integer, SymmetricEncryptionType> e : this.symmetricEncryptionTypes.entrySet()) {
-					maxAlgos.add(new SymmetricEncryptionAlgorithm(SecureRandomType.DEFAULT.getInstance(null), e.getValue().getKeyGenerator(SecureRandomType.DEFAULT.getInstance(null), this.symmetricEncryptionKeySizeBits.get(e.getKey())).generateKey()));
+				List<MaximumBodyOutputSizeComputer> maxAlgos=new ArrayList<>(this.symmetricEncryptionTypes.size());
+				for (Map.Entry<Integer, Boolean> e : this.validProfiles.entrySet()) {
+					if (!e.getValue())
+						continue;
+					int profile=e.getKey();
+					SymmetricEncryptionType encryptionType=symmetricEncryptionTypes.get(profile);
+					if (enableEncryption && encryptionType==null)
+						continue;
+					maxAlgos.add(new MaximumBodyOutputSizeComputer(enableEncryption, encryptionType, symmetricEncryptionKeySizeBits.get(profile), signatures.get(profile), messageDigestTypes.get(profile)));
 				}
                 this.maxAlgos=maxAlgos;
 			}
-			for (SymmetricEncryptionAlgorithm maxAlgo : maxAlgos)
+			for (MaximumBodyOutputSizeComputer maxAlgo : maxAlgos)
 			{
-				int v=maxAlgo.getOutputSizeForEncryption(size)+4;
-				if (v>=res)
+				int v=maxAlgo.getMaximumBodyOutputSizeForEncryption(size);
+				if (v>res)
 				{
 					res=v;
 				}
 			}
-
 			return res;
 		} catch (Exception e) {
 			throw new BlockParserException(e);
@@ -620,9 +660,10 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	private transient Integer maxSizeHead=null;
 
     @Override
-    public int getMaximumSizeHead() {
-        if (maxSizeHead==null)
-            maxSizeHead=getMaximumSignatureSizeBits()/8;
+    public int getMaximumHeadSize() {
+        if (maxSizeHead==null) {
+			maxSizeHead=Math.max(ObjectSizer.sizeOf(getLastEncryptionProfileIdentifier()), EncryptionSignatureHashEncoder.headSize);
+		}
         return maxSizeHead;
     }
 
