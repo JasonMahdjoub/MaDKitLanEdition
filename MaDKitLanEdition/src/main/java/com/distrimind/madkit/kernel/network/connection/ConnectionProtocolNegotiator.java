@@ -183,7 +183,7 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
     }
 
     @Override
-    protected TransferedBlockChecker getTransferedBlockChecker(TransferedBlockChecker subBlockChercker) throws ConnectionException {
+    protected TransferedBlockChecker getTransferredBlockChecker(TransferedBlockChecker subBlockChercker) throws ConnectionException {
 
         if (stateJustChanged || selectedConnectionProtocol==null) {
             try {
@@ -196,7 +196,7 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
             }
         }
         else
-            return selectedConnectionProtocol.getTransferedBlockChecker(subBlockChercker);
+            return selectedConnectionProtocol.getTransferredBlockChecker(subBlockChercker);
     }
 
     @Override

@@ -553,12 +553,12 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 		return new ReverseIt(from_it);
 	}
 
-	public TransferedBlockChecker getTransferedBlockChecker() throws ConnectionException {
-		return getTransferedBlockChecker(
-				(subProtocol == null || this.isCrypted()) ? null : subProtocol.getTransferedBlockChecker());
+	public TransferedBlockChecker getTransferredBlockChecker() throws ConnectionException {
+		return getTransferredBlockChecker(
+				(subProtocol == null || this.isCrypted()) ? null : subProtocol.getTransferredBlockChecker());
 	}
 
-	protected abstract TransferedBlockChecker getTransferedBlockChecker(TransferedBlockChecker subBlockChercker)
+	protected abstract TransferedBlockChecker getTransferredBlockChecker(TransferedBlockChecker subBlockChercker)
 			throws ConnectionException;
 
 	public boolean isTransferBlockCheckerChanged() {

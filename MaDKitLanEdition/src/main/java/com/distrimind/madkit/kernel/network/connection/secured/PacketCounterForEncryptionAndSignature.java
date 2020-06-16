@@ -50,7 +50,7 @@ import com.distrimind.util.crypto.AbstractSecureRandom;
  * @since MadkitLanEdition 1.7
  *
  */
-class PacketCounterForEncryptionAndSignature implements PacketCounter {
+public class PacketCounterForEncryptionAndSignature implements PacketCounter {
 	private final byte[] myEncryptionCounter;
 	private final byte[] mySignatureCounter;
 	private byte[] otherEncryptionCounter;

@@ -514,7 +514,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 					+ cpasker.getSubProtocol().isCrypted() + ")");
 		/*this.cpasker.setCounterSelector(new CounterSelector(this.cpasker));
 		this.cpreceiver.setCounterSelector(new CounterSelector(this.cpreceiver));*/
-		TransferedBlockChecker 	tbcasker = this.cpasker.getTransferedBlockChecker();
+		TransferedBlockChecker 	tbcasker = this.cpasker.getTransferredBlockChecker();
 		if (tbcasker.isCompletelyInoperant())
 		{
 			tbcasker=new PointToPointTransferedBlockChecker();
@@ -526,7 +526,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 			tbcasker = (TransferedBlockChecker) unserialize(serialize(tbcasker));
 		}
 
-		TransferedBlockChecker tbreceiver = this.cpreceiver.getTransferedBlockChecker();
+		TransferedBlockChecker tbreceiver = this.cpreceiver.getTransferredBlockChecker();
 		if (tbreceiver.isCompletelyInoperant())
 		{
 			tbreceiver=new PointToPointTransferedBlockChecker();
@@ -556,7 +556,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 
 			if (this.cpasker.isTransferBlockCheckerChanged())
 			{
-				tbcasker = this.cpasker.getTransferedBlockChecker();
+				tbcasker = this.cpasker.getTransferredBlockChecker();
 				if (tbcasker.isCompletelyInoperant())
 				{
 					tbcasker=new PointToPointTransferedBlockChecker();
@@ -585,7 +585,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 					mreceiver = cpreceiver.setAndGetNextMessage(masker);
 					if (this.cpreceiver.isTransferBlockCheckerChanged())
 					{
-						tbreceiver = this.cpreceiver.getTransferedBlockChecker();
+						tbreceiver = this.cpreceiver.getTransferredBlockChecker();
 						if (tbreceiver.isCompletelyInoperant())
 						{
 							tbreceiver=new PointToPointTransferedBlockChecker();
@@ -622,7 +622,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 					masker = cpasker.setAndGetNextMessage(mreceiver);
 					if (this.cpasker.isTransferBlockCheckerChanged())
 					{
-						tbcasker = this.cpasker.getTransferedBlockChecker();
+						tbcasker = this.cpasker.getTransferredBlockChecker();
 						if (tbcasker.isCompletelyInoperant())
 						{
 							tbcasker=new PointToPointTransferedBlockChecker();

@@ -137,7 +137,7 @@ public class UnsecuredConnectionProtocol extends ConnectionProtocol<UnsecuredCon
 	}
 
 	@Override
-	public TransferedBlockChecker getTransferedBlockChecker(TransferedBlockChecker subBlockChercker) {
+	public TransferedBlockChecker getTransferredBlockChecker(TransferedBlockChecker subBlockChercker) {
 		return new BlockChecker(subBlockChercker);
 	}
 

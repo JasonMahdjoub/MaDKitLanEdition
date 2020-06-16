@@ -145,7 +145,7 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 	}
 
 	@Override
-	public TransferedBlockChecker getTransferedBlockChecker(TransferedBlockChecker subBlockChercker)
+	public TransferedBlockChecker getTransferredBlockChecker(TransferedBlockChecker subBlockChercker)
 			throws ConnectionException {
 		return new BlockChecker(subBlockChercker, messageDigestType);
 	}

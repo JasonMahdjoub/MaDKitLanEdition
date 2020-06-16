@@ -37,9 +37,15 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import com.distrimind.madkit.exceptions.BlockParserException;
+import com.distrimind.madkit.exceptions.ConnectionException;
+import com.distrimind.madkit.kernel.network.connection.secured.PacketCounterForEncryptionAndSignature;
+import com.distrimind.util.crypto.EncryptionSignatureHashDecoder;
+import com.distrimind.util.crypto.EncryptionSignatureHashEncoder;
+import com.distrimind.util.io.*;
 
 /**
  * 
@@ -69,6 +75,10 @@ public abstract class SubBlockParser {
 
 	// public int getSizeBlockModulus() throws BlockParserExcetion;
 	public abstract int getBodyOutputSizeForEncryption(int size) throws BlockParserException;
+	public int getBodyOutputSizeForSignature(int size) throws BlockParserException
+	{
+		return getBodyOutputSizeForEncryption(size);
+	}
 
 
 	public abstract int getBodyOutputSizeForDecryption(int size) throws BlockParserException;
@@ -76,4 +86,159 @@ public abstract class SubBlockParser {
 	public abstract SubBlockInfo checkIncomingPointToPointTransferredBlock(SubBlock _block) throws BlockParserException;
 	
 	public abstract SubBlock signIfPossibleOutgoingPointToPointTransferredBlock(SubBlock _block) throws BlockParserException;
+
+	private static final byte[] emptyTab=new byte[0];
+	private final RandomByteArrayInputStream rbis;
+	private final LimitedRandomInputStream lrim;
+	private final RandomByteArrayOutputStream rout;
+	private final LimitedRandomOutputStream lrout;
+	private final EncryptionSignatureHashDecoder decoderWithEncryption;
+	private final EncryptionSignatureHashDecoder decoderWithoutEncryption;
+	private final EncryptionSignatureHashEncoder encoderWithEncryption;
+	private final EncryptionSignatureHashEncoder encoderWithoutEncryption;
+	private final PacketCounterForEncryptionAndSignature packetCounter;
+
+	public SubBlockParser(EncryptionSignatureHashDecoder decoderWithEncryption, EncryptionSignatureHashDecoder decoderWithoutEncryption, EncryptionSignatureHashEncoder encoderWithEncryption, EncryptionSignatureHashEncoder encoderWithoutEncryption, PacketCounterForEncryptionAndSignature packetCounter) throws ConnectionException {
+		this.rbis = new RandomByteArrayInputStream(emptyTab);
+		this.rout = new RandomByteArrayOutputStream();
+		try {
+			this.lrim=new LimitedRandomInputStream(rbis, 0 );
+			this.lrout=new LimitedRandomOutputStream(rout, 0);
+		} catch (IOException e) {
+			throw new ConnectionException(e);
+		}
+		this.decoderWithEncryption = decoderWithEncryption;
+		this.decoderWithoutEncryption = decoderWithoutEncryption;
+		this.encoderWithEncryption = encoderWithEncryption;
+		this.encoderWithoutEncryption = encoderWithoutEncryption;
+		this.packetCounter = packetCounter;
+	}
+
+	protected SubBlockInfo getEncryptedSubBlock(SubBlock _block, boolean enabledEncryption) throws BlockParserException {
+		try {
+			try {
+				rbis.init(_block.getBytes());
+				lrim.init(rbis, _block.getOffset(), _block.getSize());
+				EncryptionSignatureHashDecoder decoder;
+				if (enabledEncryption) {
+					decoder = decoderWithEncryption;
+					if (packetCounter.isLocalActivated()) {
+						decoder.withExternalCounter(packetCounter.getMyEncryptionCounter());
+					}
+				} else
+					decoder = decoderWithoutEncryption;
+				decoder.withRandomInputStream(rbis);
+				if (packetCounter.isLocalActivated()) {
+					decoder.withAssociatedData(packetCounter.getMySignatureCounter());
+				}
+
+				if (decoder.isEncrypted()) {
+					byte[] tab = new byte[_block.getBytes().length];
+					try {
+						rout.init(tab);
+						lrout.init(rout, _block.getOffset(), _block.getSize());
+						int dl = (int) decoder.decodeAndCheckHashAndSignaturesIfNecessary(lrout);
+						return new SubBlockInfo(new SubBlock(tab, _block.getOffset() + EncryptionSignatureHashEncoder.headSize, dl), true, false);
+					} finally {
+						rout.init(emptyTab);
+						lrout.init(rout, 0);
+					}
+				} else {
+					Integrity integrity = decoder.checkHashAndSignature();
+					int dl = (int) decoder.getDataSizeInBytesAfterDecryption();
+					return new SubBlockInfo(new SubBlock(_block.getBytes(), _block.getOffset() + EncryptionSignatureHashEncoder.headSize, dl), integrity == Integrity.OK, integrity == Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+				}
+			}
+			finally {
+				rbis.init(emptyTab);
+				lrim.init(rbis, 0);
+			}
+		} catch (Exception e) {
+			try {
+				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset(),
+						(int)decoderWithEncryption.getMaximumOutputLength(_block.getSize()));
+				return new SubBlockInfo(res, false, e instanceof MessageExternalizationException && ((MessageExternalizationException) e).getIntegrity()==Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			} catch (IOException ioException) {
+				throw new BlockParserException(e);
+			}
+		}
+	}
+
+	protected SubBlock getEncryptedParentBlock(final SubBlock _block, boolean excludeFromEncryption) throws BlockParserException {
+		try {
+			EncryptionSignatureHashEncoder encoder;
+			if (excludeFromEncryption) {
+				encoder = encoderWithoutEncryption;
+			} else {
+				encoder = encoderWithEncryption;
+				if (packetCounter.isDistantActivated())
+					encoder.withExternalCounter(packetCounter.getOtherEncryptionCounter());
+			}
+			if (packetCounter.isDistantActivated())
+				encoder.withAssociatedData(packetCounter.getOtherSignatureCounter());
+			if (excludeFromEncryption) {
+				encoder.encodeWithSameInputAndOutputStreamSource(_block.getBytes(), _block.getOffset(), _block.getSize());
+				return new SubBlock(_block.getBytes(), _block.getOffset() - EncryptionSignatureHashEncoder.headSize, (int) encoder.getMaximumOutputLength(_block.getSize()));
+			} else {
+				SubBlock res = new SubBlock(new byte[_block.getSize()], _block.getOffset() - EncryptionSignatureHashEncoder.headSize, (int) encoder.getMaximumOutputLength(_block.getSize()));
+				encoder.encode(_block.getBytes(), _block.getOffset(), _block.getSize(), res.getBytes(), res.getOffset(), res.getSize());
+				return res;
+			}
+		}
+		catch (Exception e)
+		{
+			throw new BlockParserException(e);
+		}
+	}
+
+	protected SubBlock falseSignIfPossibleOutgoingPointToPointTransferredBlockWithoutEncoder(SubBlock _block) throws BlockParserException {
+		SubBlock res= new SubBlock(_block.getBytes(), _block.getOffset() - getHeadSize(),
+				_block.getSize() + getHeadSize());
+		byte[] tab=res.getBytes();
+		for (int i=res.getOffset();i<_block.getOffset();i++)
+			tab[i]=0;
+		return res;
+
+	}
+	protected SubBlock signOutgoingPointToPointTransferredBlockWithEncoder(SubBlock _block) throws BlockParserException
+	{
+		try {
+			encoderWithoutEncryption.encodeWithSameInputAndOutputStreamSource(_block.getBytes(), _block.getOffset(), _block.getSize());
+			return new SubBlock(_block.getBytes(), _block.getOffset() - EncryptionSignatureHashEncoder.headSize, (int) encoderWithoutEncryption.getMaximumOutputLength(_block.getSize()));
+		}
+		catch(Exception e)
+		{
+			throw new BlockParserException(e);
+		}
+	}
+	protected SubBlockInfo falseCheckEntrantPointToPointTransferredBlockWithoutDecoder(SubBlock _block) throws BlockParserException {
+		return new SubBlockInfo(new SubBlock(_block.getBytes(), _block.getOffset() + getHeadSize(),
+				_block.getSize() - getHeadSize()), true, false);
+	}
+
+	protected SubBlockInfo checkEntrantPointToPointTransferredBlockWithDecoder(SubBlock _block) throws BlockParserException {
+
+		try {
+			try {
+				rbis.init(_block.getBytes());
+				lrim.init(rbis, _block.getOffset(), _block.getSize());
+
+				Integrity integrity = decoderWithoutEncryption
+						.withRandomInputStream(lrim)
+						.checkHashAndSignature();
+				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getHeadSize(),
+						(int)decoderWithoutEncryption.getDataSizeInBytesBeforeDecryption());
+
+				return new SubBlockInfo(res, integrity==Integrity.OK, integrity==Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			}
+			finally {
+				rbis.init(emptyTab);
+				lrim.init(rbis, 0);
+			}
+		} catch (Exception e) {
+			return new SubBlockInfo(new SubBlock(_block.getBytes(), _block.getOffset()+ getHeadSize(), _block.getSize()- getHeadSize()),
+					false, e instanceof MessageExternalizationException && ((MessageExternalizationException) e).getIntegrity()==Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+		}
+
+	}
 }

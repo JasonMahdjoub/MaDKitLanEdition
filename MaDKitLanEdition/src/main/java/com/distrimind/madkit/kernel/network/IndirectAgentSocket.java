@@ -264,7 +264,7 @@ class IndirectAgentSocket extends AbstractAgentSocket {
 			if (logger != null && logger.isLoggable(Level.FINER))
 				logger.finer("Update and broacast transfer block checker");
 
-			TransferedBlockChecker tbc=this.connection_protocol.getTransferedBlockChecker();
+			TransferedBlockChecker tbc=this.connection_protocol.getTransferredBlockChecker();
 			if (tbc.isCompletelyInoperant() && getMadkitConfig().networkProperties.canUsePointToPointTransferedBlockChecker)
 			{
 				tbc=new PointToPointTransferedBlockChecker();

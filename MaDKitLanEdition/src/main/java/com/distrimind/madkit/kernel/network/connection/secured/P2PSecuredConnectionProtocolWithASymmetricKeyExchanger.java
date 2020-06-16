@@ -953,7 +953,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 	}
 
 	@Override
-	protected TransferedBlockChecker getTransferedBlockChecker(TransferedBlockChecker subBlockChercker)
+	protected TransferedBlockChecker getTransferredBlockChecker(TransferedBlockChecker subBlockChercker)
 			throws ConnectionException {
 		try {
 			blockCheckerChanged = false;

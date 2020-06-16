@@ -746,7 +746,7 @@ public class ServerSecuredConnectionProtocolWithKnwonPublicKey
 	}
 
 	@Override
-	protected TransferedBlockChecker getTransferedBlockChecker(TransferedBlockChecker subBlockChercker)
+	protected TransferedBlockChecker getTransferredBlockChecker(TransferedBlockChecker subBlockChercker)
 			throws ConnectionException {
 		try {
 			needToRefreshTransferBlockChecker=false;

@@ -254,7 +254,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 	}
 
 	@Override
-	protected TransferedBlockChecker getTransferedBlockChecker(TransferedBlockChecker subBlockChercker) throws ConnectionException {
+	protected TransferedBlockChecker getTransferredBlockChecker(TransferedBlockChecker subBlockChercker) throws ConnectionException {
 		try {
 			blockCheckerChanged = false;
 			return new ConnectionProtocol.NullBlockChecker(subBlockChercker, this.isCrypted(), (short) parser.getHeadSize());

@@ -102,7 +102,7 @@ public class PointToPointTransferedBlockChecker extends TransferedBlockChecker {
 		int size=_block.getSize();
 		for (ConnectionProtocol<?> cp : cpOutput){
 			totalOutputHeadSize += cp.getParser().getHeadSize();
-			totalOutputSize+=size=cp.getParser().getBodyOutputSizeForEncryption(size);
+			totalOutputSize+=size=cp.getParser().getBodyOutputSizeForSignature(size);
 		}
 		for (ConnectionProtocol<?> cp : cpOutput) {
 			totalOutputHeadSize += cp.getParser().getHeadSize();

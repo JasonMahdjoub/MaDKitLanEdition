@@ -223,6 +223,11 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	private IASymmetricPublicKey publicKeyForEncryption;
 
 	/**
+	 * Message digest type used to check message validity
+	 */
+	public MessageDigestType messageDigestType=MessageDigestType.SHA2_256;
+
+	/**
 	 * key identifier
 	 */
 	private int keyIdentifier = 0;
