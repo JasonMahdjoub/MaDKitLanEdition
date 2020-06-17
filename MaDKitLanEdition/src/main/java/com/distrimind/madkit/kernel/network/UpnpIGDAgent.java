@@ -1030,7 +1030,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 
 						task = new Task<>(new Callable<Object>() {
                             long oldTime=System.currentTimeMillis()+(old_delay!=-1?old_delay:0);
-                            long maxDelayBeforeDetectingOSWakeUp=min_delay*2;//Math.min(min_delay*2, getMadkitConfig().networkProperties.connectionTimeOut);
+                            final long maxDelayBeforeDetectingOSWakeUp=min_delay*2;//Math.min(min_delay*2, getMadkitConfig().networkProperties.connectionTimeOut);
 							@Override
 							public Object call() {
 
@@ -1500,7 +1500,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 
 	public static abstract class RepetitiveRouterRequest extends AbstractRouterMessage {
 
-		private long delay;
+		private final long delay;
 
 		protected RepetitiveRouterRequest(InetAddress _concerned_router, long _delay_between_each_check) {
 			super(_concerned_router);

@@ -59,7 +59,7 @@ final class ReadPacket {
 		VALID, TEMPORARY_INVALID, INVALID
 	}
 
-	private AbstractMessageDigest messageDigest;
+	private final AbstractMessageDigest messageDigest;
 	private final byte[] digestResult;
 	private final byte[] digestResultTransmitted;
 	private int digestResultPos = -1;

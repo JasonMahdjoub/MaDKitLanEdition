@@ -57,7 +57,7 @@ import java.net.InetSocketAddress;
 public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionProtocolNegotiator> {
     private Status status=Status.DISCONNECTED;
     private final ConnectionProtocolNegotiatorProperties nproperties;
-    private Parser parser;
+    private final Parser parser;
     private ConnectionProtocol<?> selectedConnectionProtocol;
     private boolean needToRefreshTransferBlockChecker=true;
     private final MadkitProperties mkProperties;
@@ -219,6 +219,9 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
 
     private class Parser extends SubBlockParser
     {
+        public Parser() throws ConnectionException {
+            super(null, null, null, null, null);
+        }
 
         @Override
         public SubBlockInfo getSubBlock(SubBlock _block) throws BlockParserException {

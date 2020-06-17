@@ -50,7 +50,7 @@ import com.distrimind.madkit.exceptions.PacketException;
 public final class PacketPart {
 
 	//private byte[] bytes;
-	private SubBlock subBlock;
+	private final SubBlock subBlock;
 	private final PacketPartHead head;
 	private final boolean isReadyToSend;
 

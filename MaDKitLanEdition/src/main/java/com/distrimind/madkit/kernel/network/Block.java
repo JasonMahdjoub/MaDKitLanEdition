@@ -173,7 +173,7 @@ public final class Block {
 	}
 	
 	
-	Block(int block_size) throws PacketException {
+	/*Block(int block_size) throws PacketException {
 		this.size=block_size;
 		if (block_size > BLOCK_SIZE_LIMIT)
 			throw new PacketException(
@@ -183,7 +183,7 @@ public final class Block {
 					"block_size must be greater than getHeadSize() and lower or equal than getMaximumBlockSize()");
 		block = new byte[block_size];
 		transfert_type = -1;
-	}
+	}*/
 	
 	
 	

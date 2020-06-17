@@ -37,6 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -101,16 +102,14 @@ public class TransferSpeedStat {
 	}
 
 	private void reset() {
-		for (int i = 0; i < stats.length; i++)
-			stats[i] = 0.0f;
+		Arrays.fill(stats, 0.0f);
 		bytes_for_current_cycle = 0;
 		bytes_per_second = 0.0;
 		timeElapsed.set(new Timer(true));
 	}
 
 	private void reset(float _first_value) {
-		for (int i = 0; i < stats.length; i++)
-			stats[i] = _first_value;
+		Arrays.fill(stats, _first_value);
 		bytes_per_second = _first_value;
 		bytes_for_current_cycle = 0;
 		timeElapsed.set(new Timer(true));

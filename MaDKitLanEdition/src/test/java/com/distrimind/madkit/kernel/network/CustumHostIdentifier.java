@@ -111,7 +111,7 @@ public class CustumHostIdentifier extends HostIdentifier {
 	}
 
 	@Override
-	public AbstractKeyPair getAuthenticationKeyPair() {
+	public AbstractKeyPair<?, ?> getAuthenticationKeyPair() {
 		return null;
 	}
 

@@ -49,7 +49,6 @@ import com.distrimind.util.io.RandomFileInputStream;
 import com.distrimind.util.io.RandomInputStream;
 
 import java.io.IOException;
-import java.security.DigestException;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -61,13 +60,13 @@ import java.util.concurrent.atomic.AtomicLong;
  * @see ReadPacket
  */
 public final class WritePacket {
-	private AbstractMessageDigest messageDigest;
+	private final AbstractMessageDigest messageDigest;
 	private final byte[] digestResult;
 	private int digestResultPos = -1;
 	protected final RandomInputStream input_stream;
 	private final int id_packet;
 	private final long start_position;
-	private AtomicLong current_pos = new AtomicLong(0);
+	private final AtomicLong current_pos = new AtomicLong(0);
 	protected final int max_buffer_size;
 	private final long data_length;
 	private final long data_length_with_message_digest;
@@ -316,7 +315,7 @@ public final class WritePacket {
 			}
 
 			return new PacketPart(res.getSubBlock(), pph);
-		} catch (IOException | IllegalAccessError | DigestException e) {
+		} catch (IOException | IllegalAccessError  e) {
 			throw new PacketException(e);
 		}
 	}

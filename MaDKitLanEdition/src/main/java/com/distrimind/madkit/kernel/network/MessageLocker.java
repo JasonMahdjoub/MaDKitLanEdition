@@ -102,7 +102,7 @@ public final class MessageLocker extends LockerCondition {
 		}
 	}
 
-	void unlock(KernelAddress ka, DataTransfertResult report) throws MadkitException {
+	void unlock(KernelAddress ka, DataTransferResult report) throws MadkitException {
 		synchronized (getLocker()) {
 			--lock_number;
 

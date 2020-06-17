@@ -37,7 +37,11 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.Serializable;
+import com.distrimind.util.io.SecureExternalizable;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
+
+import java.io.IOException;
 
 /**
  * Represent a data transfer report
@@ -46,11 +50,7 @@ import java.io.Serializable;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-public class DataTransfertResult implements Serializable {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -8100383752574021348L;
+public class DataTransferResult implements SecureExternalizable {
 
 	/**
 	 * Represents the data size (in bytes) from the source
@@ -67,10 +67,30 @@ public class DataTransfertResult implements Serializable {
 	 */
 	private long data_sent_size;
 
-	DataTransfertResult(long _data_input_size, long _data_to_send_size, long _data_sent_size) {
+	DataTransferResult(long _data_input_size, long _data_to_send_size, long _data_sent_size) {
 		data_input_size = _data_input_size;
 		data_to_send_size = _data_to_send_size;
 		data_sent_size = _data_sent_size;
+	}
+	@Override
+	public int getInternalSerializedSize() {
+		return 24;
+	}
+
+	@Override
+	public void writeExternal(SecuredObjectOutputStream out) throws IOException {
+		out.writeLong(data_input_size);
+		out.writeLong(data_to_send_size);
+		out.writeLong(data_sent_size);
+
+	}
+
+	@Override
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+		data_input_size=in.readLong();
+		data_to_send_size=in.readLong();
+		data_sent_size=in.readLong();
+
 	}
 
 	/**

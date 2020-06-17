@@ -54,7 +54,7 @@ import java.io.IOException;
  */
 @SuppressWarnings({"unused"})
 public class CustomCloudIdentifierWithPublicKey extends CloudIdentifier {
-    private AbstractKeyPair keyPair;
+    private AbstractKeyPair<?, ?> keyPair;
     private IASymmetricPublicKey publicKey;
     private byte[] salt;
     private boolean anonymous;
@@ -64,7 +64,7 @@ public class CustomCloudIdentifierWithPublicKey extends CloudIdentifier {
 
     }
 
-    public CustomCloudIdentifierWithPublicKey(AbstractKeyPair keyPair, byte[] salt, boolean anonymous) {
+    public CustomCloudIdentifierWithPublicKey(AbstractKeyPair<?, ?> keyPair, byte[] salt, boolean anonymous) {
         assert keyPair!=null;
         this.keyPair = keyPair;
         this.publicKey=keyPair.getASymmetricPublicKey();
@@ -142,7 +142,7 @@ public class CustomCloudIdentifierWithPublicKey extends CloudIdentifier {
     }
 
     @Override
-    public AbstractKeyPair getAuthenticationKeyPair() {
+    public AbstractKeyPair<?, ?> getAuthenticationKeyPair() {
         return keyPair;
     }
 }

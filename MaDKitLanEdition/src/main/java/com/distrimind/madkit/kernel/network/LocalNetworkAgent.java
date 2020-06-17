@@ -82,7 +82,7 @@ class LocalNetworkAgent extends AgentFakeThread {
 	private final ArrayList<BindInetSocketAddressMessage> socket_binds = new ArrayList<>();
 	protected volatile ArrayList<BindInetSocketAddressMessage> effective_socket_binds = new ArrayList<>();
 	private boolean upnpIGDEnabled = false;
-	private HashMap<InetAddress, Router> routers = new HashMap<>();
+	private final HashMap<InetAddress, Router> routers = new HashMap<>();
 	private final Stack<AskForConnectionMessage> standby_connections = new Stack<>();
 	private final ArrayList<ConnectionStatusMessage> effective_connections = new ArrayList<>();
 	private final ArrayList<AskForConnectionMessage> connections_to_differ =new ArrayList<>();

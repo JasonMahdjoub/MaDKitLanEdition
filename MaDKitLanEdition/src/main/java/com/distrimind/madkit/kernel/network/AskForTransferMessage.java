@@ -62,11 +62,11 @@ import java.net.InetSocketAddress;
 public class AskForTransferMessage extends Message {
 
 	private final Type type;
-	private InetSocketAddress inetSocketAddress1;
-	private InetSocketAddress inetSocketAddress2;
-	private KernelAddress kernelAddress1;
-	private KernelAddress kernelAddress2;
-	private SecureExternalizable attachedData;
+	private final InetSocketAddress inetSocketAddress1;
+	private final InetSocketAddress inetSocketAddress2;
+	private final KernelAddress kernelAddress1;
+	private final KernelAddress kernelAddress2;
+	private final SecureExternalizable attachedData;
 
 	/**
 	 * Ask for a transfer connection between two inet socket addresses

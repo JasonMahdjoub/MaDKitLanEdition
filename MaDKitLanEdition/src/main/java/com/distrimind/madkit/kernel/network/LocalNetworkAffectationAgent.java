@@ -70,8 +70,8 @@ class LocalNetworkAffectationAgent extends AgentFakeThread {
 	// ArrayList<>();
 	private ArrayList<LocalNetworkAgent> local_network_agents = new ArrayList<>();
 
-	private ArrayList<InetSocketAddress> port_binds = new ArrayList<>();
-	private ArrayList<AskForConnectionMessage> askedConnections = new ArrayList<>();
+	private final ArrayList<InetSocketAddress> port_binds = new ArrayList<>();
+	private final ArrayList<AskForConnectionMessage> askedConnections = new ArrayList<>();
 	private boolean networkStoped = false;
 
 	@SuppressWarnings("unused")

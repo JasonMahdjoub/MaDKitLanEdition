@@ -72,7 +72,7 @@ import java.util.regex.Pattern;
  * @version 1.2
  * 
  */
-@SuppressWarnings("UnusedReturnValue")
+@SuppressWarnings({"UnusedReturnValue", "FieldMayBeFinal"})
 public class NetworkProperties extends MultiFormatProperties {
 	/**
 	 * 

@@ -45,11 +45,11 @@ import com.distrimind.ood.database.InMemoryEmbeddedH2DatabaseFactory;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.ArrayList;
@@ -224,7 +224,7 @@ public class NetworkEventListener implements MadkitEventListener {
 			boolean bindDoubleInetAddress, boolean network, boolean upnpIGDEnabled, boolean databaseEnabled,
 			final boolean canTakeLoginInitiative, boolean includeP2PConnectionPossibilityForClients,
 			final Runnable invalidPassord,final Runnable invalidCloudIdentifier, int clientNumber, int... loginIndexes)
-			throws UnknownHostException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, ConnectionException {
+			throws NoSuchAlgorithmException, NoSuchProviderException, IOException, ConnectionException {
 		ArrayList<Object[]> res = new ArrayList<>();
 
 		for (ConnectionsProtocolsMKEventListener cp : ConnectionsProtocolsMKEventListener

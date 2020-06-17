@@ -43,7 +43,6 @@ import com.distrimind.util.io.SecuredObjectOutputStream;
 import com.distrimind.util.io.SerializationTools;
 
 import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 
@@ -54,7 +53,7 @@ import java.security.NoSuchProviderException;
  */
 public class CustomAutoSignedHostIdentifier extends HostIdentifier {
 
-	private AbstractKeyPair keyPair;
+	private AbstractKeyPair<?, ?> keyPair;
 	private IASymmetricPublicKey publicKey;
 
 	@SuppressWarnings("unused")
@@ -77,11 +76,11 @@ public class CustomAutoSignedHostIdentifier extends HostIdentifier {
 		oos.writeObject(publicKey, false);
 	}
 
-	CustomAutoSignedHostIdentifier(AbstractSecureRandom random, ASymmetricAuthenticatedSignatureType type) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
+	CustomAutoSignedHostIdentifier(AbstractSecureRandom random, ASymmetricAuthenticatedSignatureType type) throws IOException, NoSuchAlgorithmException, NoSuchProviderException {
 		keyPair=type.getKeyPairGenerator(random).generateKeyPair();
 		publicKey=keyPair.getASymmetricPublicKey();
 	}
-	CustomAutoSignedHostIdentifier(AbstractSecureRandom random, ASymmetricAuthenticatedSignatureType type, ASymmetricAuthenticatedSignatureType typePQC) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
+	CustomAutoSignedHostIdentifier(AbstractSecureRandom random, ASymmetricAuthenticatedSignatureType type, ASymmetricAuthenticatedSignatureType typePQC) throws IOException, NoSuchAlgorithmException, NoSuchProviderException {
 		keyPair=new HybridASymmetricAuthenticatedSignatureType(type, typePQC).generateKeyPair(random);
 		publicKey=keyPair.getASymmetricPublicKey();
 	}
@@ -118,7 +117,7 @@ public class CustomAutoSignedHostIdentifier extends HostIdentifier {
 	}
 
 	@Override
-	public AbstractKeyPair getAuthenticationKeyPair() {
+	public AbstractKeyPair<?, ?> getAuthenticationKeyPair() {
 		return keyPair;
 	}
 

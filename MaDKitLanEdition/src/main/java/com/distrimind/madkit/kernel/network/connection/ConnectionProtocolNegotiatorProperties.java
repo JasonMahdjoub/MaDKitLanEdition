@@ -57,6 +57,7 @@ import java.util.Objects;
  * @since MadkitLanEdition 1.8
  *
  */
+@SuppressWarnings("FieldMayBeFinal")
 public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolProperties<ConnectionProtocolNegotiator>
 {
     public static final short MAXIMUM_NUMBER_OF_CONNECTION_PROTOCOLS=500;

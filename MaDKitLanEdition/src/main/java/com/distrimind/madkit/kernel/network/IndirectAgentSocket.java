@@ -72,8 +72,8 @@ class IndirectAgentSocket extends AbstractAgentSocket {
 	private final AgentAddress agentSocketRequester;
 	private final KernelAddress distant_kernel_address_requester;
 	private final int numberOfIntermediatePeers;
-	private StatsBandwidth statRequester;
-	private KernelAddress kernelAddressDestinationForSystemBroadcast;
+	private final StatsBandwidth statRequester;
+	private final KernelAddress kernelAddressDestinationForSystemBroadcast;
 	private final InetSocketAddress distantInetSocketAddressRoot;
 	private final AgentNetworkID socketIDRoot;
 	private TaskID pingTaskID;

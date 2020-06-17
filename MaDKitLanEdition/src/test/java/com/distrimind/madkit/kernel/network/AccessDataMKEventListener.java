@@ -89,14 +89,14 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 			AbstractSecureRandom random = SecureRandomType.DEFAULT.getSingleton(null);
 			for (int i = 0; i < CLOUD_ID_NUMBER; i++) {
 				if (i % 2 == 1)
-					cloudIdentifiers[i] = new CustomCloudIdentifierWithPublicKey(ASymmetricAuthenticatedSignatureType.BC_Ed448.getKeyPairGenerator(random,-1, Long.MAX_VALUE).generateKeyPair(),SALT, i%4==1);
+					cloudIdentifiers[i] = new CustomCloudIdentifierWithPublicKey(ASymmetricAuthenticatedSignatureType.BC_FIPS_Ed448.getKeyPairGenerator(random,-1, Long.MAX_VALUE).generateKeyPair(),SALT, i%4==1);
 				else
 					cloudIdentifiers[i] = new CustumCloudIdentifier("cloud" + i, SALT, i%4==0);
 			}
 			cloudIdentifiers[CLOUD_ID_NUMBER] = new CustomCloudIdentifierWithPublicKey(ASymmetricAuthenticatedSignatureType.BCPQC_SPHINCS256_SHA3_512.getKeyPairGenerator(random, -1, Long.MAX_VALUE).generateKeyPair(),SALT, true);
 			cloudIdentifiers[CLOUD_ID_NUMBER+1] = new CustomCloudIdentifierWithPublicKey(ASymmetricAuthenticatedSignatureType.BCPQC_SPHINCS256_SHA3_512.getKeyPairGenerator(random, -1, Long.MAX_VALUE).generateKeyPair(),SALT, false);
-			cloudIdentifiers[CLOUD_ID_NUMBER+2] = new CustomCloudIdentifierWithPublicKey(new HybridASymmetricAuthenticatedSignatureType(ASymmetricAuthenticatedSignatureType.BC_Ed448, ASymmetricAuthenticatedSignatureType.BCPQC_SPHINCS256_SHA3_512).generateKeyPair(random, -1, Long.MAX_VALUE),SALT, true);
-			cloudIdentifiers[CLOUD_ID_NUMBER+3] = new CustomCloudIdentifierWithPublicKey(new HybridASymmetricAuthenticatedSignatureType(ASymmetricAuthenticatedSignatureType.BC_Ed448, ASymmetricAuthenticatedSignatureType.BCPQC_SPHINCS256_SHA3_512).generateKeyPair(random, -1, Long.MAX_VALUE),SALT, false);
+			cloudIdentifiers[CLOUD_ID_NUMBER+2] = new CustomCloudIdentifierWithPublicKey(new HybridASymmetricAuthenticatedSignatureType(ASymmetricAuthenticatedSignatureType.BC_FIPS_Ed448, ASymmetricAuthenticatedSignatureType.BCPQC_SPHINCS256_SHA3_512).generateKeyPair(random, -1, Long.MAX_VALUE),SALT, true);
+			cloudIdentifiers[CLOUD_ID_NUMBER+3] = new CustomCloudIdentifierWithPublicKey(new HybridASymmetricAuthenticatedSignatureType(ASymmetricAuthenticatedSignatureType.BC_FIPS_Ed448, ASymmetricAuthenticatedSignatureType.BCPQC_SPHINCS256_SHA3_512).generateKeyPair(random, -1, Long.MAX_VALUE),SALT, false);
 		}
 		catch(Exception e)
 		{
@@ -112,10 +112,10 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 		AbstractSecureRandom random;
 		try {
 			random = SecureRandomType.DEFAULT.getSingleton(null);
-			autoSignedHostIdentifiers[0]=new CustomAutoSignedHostIdentifier(random, ASymmetricAuthenticatedSignatureType.BC_Ed25519);
-			autoSignedHostIdentifiers[1]=new CustomAutoSignedHostIdentifier(random, ASymmetricAuthenticatedSignatureType.BC_Ed25519);
-			autoSignedHostIdentifiers[2]=new CustomAutoSignedHostIdentifier(random, ASymmetricAuthenticatedSignatureType.BC_Ed25519, ASymmetricAuthenticatedSignatureType.BCPQC_SPHINCS256_SHA3_512);
-			autoSignedHostIdentifiers[3]=new CustomAutoSignedHostIdentifier(random, ASymmetricAuthenticatedSignatureType.BC_Ed25519, ASymmetricAuthenticatedSignatureType.BCPQC_SPHINCS256_SHA3_512);
+			autoSignedHostIdentifiers[0]=new CustomAutoSignedHostIdentifier(random, ASymmetricAuthenticatedSignatureType.BC_FIPS_Ed25519);
+			autoSignedHostIdentifiers[1]=new CustomAutoSignedHostIdentifier(random, ASymmetricAuthenticatedSignatureType.BC_FIPS_Ed25519);
+			autoSignedHostIdentifiers[2]=new CustomAutoSignedHostIdentifier(random, ASymmetricAuthenticatedSignatureType.BC_FIPS_Ed25519, ASymmetricAuthenticatedSignatureType.BCPQC_SPHINCS256_SHA3_512);
+			autoSignedHostIdentifiers[3]=new CustomAutoSignedHostIdentifier(random, ASymmetricAuthenticatedSignatureType.BC_FIPS_Ed25519, ASymmetricAuthenticatedSignatureType.BCPQC_SPHINCS256_SHA3_512);
 		} catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
 			e.printStackTrace();
 			System.exit(-1);

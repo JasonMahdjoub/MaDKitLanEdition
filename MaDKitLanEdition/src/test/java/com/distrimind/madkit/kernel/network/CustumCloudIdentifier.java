@@ -137,7 +137,7 @@ public class CustumCloudIdentifier extends CloudIdentifier {
 	}
 
 	@Override
-	public AbstractKeyPair getAuthenticationKeyPair() {
+	public AbstractKeyPair<?, ?> getAuthenticationKeyPair() {
 		return null;
 	}
 }

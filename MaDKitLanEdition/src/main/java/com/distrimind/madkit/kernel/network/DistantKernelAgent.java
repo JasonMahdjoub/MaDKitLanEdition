@@ -109,7 +109,7 @@ class DistantKernelAgent extends AgentFakeThread {
 
 	private final AtomicBoolean transfertPaused = new AtomicBoolean(false);
 	final AtomicReference<ExceededDataQueueSize> globalExeceededDataQueueSize = new AtomicReference<>(null);
-	private HashMap<Integer, BigPacketData> packetsDataInQueue = new HashMap<>();
+	private final HashMap<Integer, BigPacketData> packetsDataInQueue = new HashMap<>();
 	NetworkBoard networkBlacboard = null;
 	protected TaskID taskForPurgeCheck = null;
 	private ArrayList<ObjectMessage<SecretMessage>> differedSecretMessages = null;
@@ -1967,8 +1967,7 @@ class DistantKernelAgent extends AgentFakeThread {
 				if (np.isAcceptedClassForSerializationUsingPatterns(clazz))
 				{
 					Class<?> c=Class.forName(clazz, true, MadkitClassLoader.getSystemClassLoader());
-					if (c==null)
-						throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN, new ClassNotFoundException(clazz));
+
 					if (np.isAcceptedClassForSerializationUsingAllowClassList(c))
 					{
 						return c;
@@ -2455,7 +2454,7 @@ class DistantKernelAgent extends AgentFakeThread {
 						long sendLength = packet.getReadDataLengthIncludingHash();
 						if (currentByteBuffer != null)
 							sendLength -= currentByteBuffer.remaining();
-						messageLocker.unlock(distant_kernel_address, new DataTransfertResult(
+						messageLocker.unlock(distant_kernel_address, new DataTransferResult(
 								packet.getInputStream().length(), packet.getReadDataLength(), sendLength));
 						
 					}
@@ -2476,8 +2475,8 @@ class DistantKernelAgent extends AgentFakeThread {
 
 	class BigPacketData extends AbstractPacketData {
 		private final AgentAddress asker;
-		private ConversationID conversationID;
-		private long timeUTC;
+		private final ConversationID conversationID;
+		private final long timeUTC;
 
 		protected BigPacketData(AgentAddress _firstAgentSocketSender, WritePacket _packet, AgentAddress _agentReceiver,
 				AgentAddress asker, ConversationID conversationID, RealTimeTransfertStat stat, boolean excludedFromEncryption) {
@@ -2645,7 +2644,7 @@ class DistantKernelAgent extends AgentFakeThread {
 	}
 
 	private class BigDataReading extends Reading {
-		private int identifier;
+		private final int identifier;
 		private final BigDataPropositionMessage originalMessage;
 		private final RealTimeTransfertStat stat;
 		private int data = 0;

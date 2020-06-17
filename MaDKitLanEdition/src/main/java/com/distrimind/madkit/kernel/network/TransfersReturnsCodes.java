@@ -56,7 +56,7 @@ import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
  */
 public class TransfersReturnsCodes {
 	private final HashMap<KernelAddress, ReturnCode> returns_code;
-	private final HashMap<KernelAddress, DataTransfertResult> data_transfert_results;
+	private final HashMap<KernelAddress, DataTransferResult> data_transfert_results;
 	// private final KernelAddress default_kernel_address;
 
 	TransfersReturnsCodes() {
@@ -64,7 +64,7 @@ public class TransfersReturnsCodes {
 		data_transfert_results = new HashMap<>();
 	}
 
-	void putResult(KernelAddress ka, ReturnCode returnCode, DataTransfertResult stats) {
+	void putResult(KernelAddress ka, ReturnCode returnCode, DataTransferResult stats) {
 		if (ka == null)
 			throw new NullPointerException("ka");
 		if (returnCode == null)
@@ -96,7 +96,7 @@ public class TransfersReturnsCodes {
 	 *            the distant kernel address located into the network
 	 * @return the result of the LAN transfer.
 	 */
-	public DataTransfertResult getDataTransfertResult(KernelAddress ka) {
+	public DataTransferResult getDataTransfertResult(KernelAddress ka) {
 		if (ka == null)
 			throw new NullPointerException("ka");
 		return data_transfert_results.get(ka);

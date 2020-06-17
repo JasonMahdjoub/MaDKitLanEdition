@@ -104,7 +104,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 	/*
 	 * private byte buffer[]=null; private int cursor_buffer=0;
 	 */
-	private DataSocketSynchronizer dataSynchronizer = new DataSocketSynchronizer();
+	private final DataSocketSynchronizer dataSynchronizer = new DataSocketSynchronizer();
 	final AtomicBoolean distantKernelAddressValidated = new AtomicBoolean(false);
 	private boolean distant_kernel_agent_activated = false;
 	private AgentAddress distant_socket_agent_address = null;
@@ -112,7 +112,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 	//private CounterSelector counterSelector;
 	//private LCForValidatingKA currentLockUsedToValidateDistantKernelAddress=null;
 
-	private DataSocketSynchronizer.SocketAgentInterface dataSynchronized = new DataSocketSynchronizer.SocketAgentInterface() {
+	private final DataSocketSynchronizer.SocketAgentInterface dataSynchronized = new DataSocketSynchronizer.SocketAgentInterface() {
 
 		@Override
 		public void receivedBlock(final Block block)
@@ -130,7 +130,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						idt = routesData(block);
 					}
 					catch(RouterException e)
-					{ 
+					{
 						if (firstTime)
 						{
 							final Block f=block;
@@ -145,13 +145,12 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 									return null;
 								}
 							}, System.currentTimeMillis()+400));
-							return;
 						}
 						else
 						{
 							processInvalidBlock(e, null, false);
-							return;
 						}
+						return;
 					}
 					if (idt == null)
 						receiveData(block);
@@ -3059,7 +3058,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 	static protected abstract class BlockData extends AbstractData {
 		private final IDTransfer id_transfert;
 		private ByteBuffer buffer;
-		private Block block;
+		private final Block block;
 		
 
 		BlockData(boolean priority, Block _block, IDTransfer id) {

@@ -51,7 +51,7 @@ import com.distrimind.madkit.kernel.network.connection.unsecured.UnsecuredConnec
 import com.distrimind.util.crypto.*;
 import org.junit.Assert;
 
-import java.security.InvalidAlgorithmParameterException;
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.ArrayList;
@@ -125,13 +125,13 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 	private static int encryptionProfileIdentifier = -1;
 	private static SymmetricSecretKey secretKeyForEncryption=null, secretKeyForSignature=null;
 
-	public static ASymmetricKeyPair getKeyPairForEncryption() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+	public static ASymmetricKeyPair getKeyPairForEncryption() throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
 		if (keyPairForEncryption == null)
 			keyPairForEncryption = ASymmetricEncryptionType.DEFAULT
 					.getKeyPairGenerator(SecureRandomType.DEFAULT.getSingleton(null), keyPairSize).generateKeyPair();
 		return keyPairForEncryption;
 	}
-	public static ASymmetricKeyPair getKeyPairForSignature() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+	public static ASymmetricKeyPair getKeyPairForSignature() throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
 		if (keyPairForSignature == null)
 			keyPairForSignature = ASymmetricEncryptionType.DEFAULT
 					.getKeyPairGenerator(SecureRandomType.DEFAULT.getSingleton(null), keyPairSize).generateKeyPair();
@@ -140,13 +140,13 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 
 	public static ArrayList<ConnectionsProtocolsMKEventListener> getConnectionsProtocolsMKEventListenerForServerConnection(
 			boolean includeP2PConnectionPossibilityForClients)
-			throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, ConnectionException {
+			throws NoSuchAlgorithmException, NoSuchProviderException, IOException, ConnectionException {
 		ArrayList<ConnectionsProtocolsMKEventListener> res = new ArrayList<>();
 		res.add(new ConnectionsProtocolsMKEventListener(new UnsecuredConnectionProtocolProperties()));
 
 		ServerSecuredProtocolPropertiesWithKnownPublicKey s = new ServerSecuredProtocolPropertiesWithKnownPublicKey();
 
-		encryptionProfileIdentifier = s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.DEFAULT, ASymmetricKeyWrapperType.DEFAULT);
+		encryptionProfileIdentifier = s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.DEFAULT, ASymmetricKeyWrapperType.DEFAULT, MessageDigestType.DEFAULT);
 		if (includeP2PConnectionPossibilityForClients) {
 			P2PSecuredConnectionProtocolPropertiesWithKeyAgreement p2p = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 			p2p.isServer = true;
@@ -156,7 +156,7 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 
 		ConnectionProtocolProperties<?> cpp = new UnsecuredConnectionProtocolProperties();
 		s = new ServerSecuredProtocolPropertiesWithKnownPublicKey();
-		Assert.assertEquals(s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.DEFAULT, ASymmetricKeyWrapperType.DEFAULT), encryptionProfileIdentifier);
+		Assert.assertEquals(s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.DEFAULT, ASymmetricKeyWrapperType.DEFAULT, MessageDigestType.DEFAULT), encryptionProfileIdentifier);
 		cpp.subProtocolProperties = s;
 		if (includeP2PConnectionPossibilityForClients) {
 			ConnectionProtocolProperties<?> cpp2 = new UnsecuredConnectionProtocolProperties();
@@ -183,10 +183,10 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 
 		ConnectionProtocolNegotiatorProperties cpnp=new ConnectionProtocolNegotiatorProperties();
 		s=new ServerSecuredProtocolPropertiesWithKnownPublicKey();
-		Assert.assertEquals(s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.AES_CTR, ASymmetricKeyWrapperType.BC_FIPS_RSA_OAEP_WITH_SHA3_384), encryptionProfileIdentifier);
+		Assert.assertEquals(s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.AES_CTR, ASymmetricKeyWrapperType.BC_FIPS_RSA_OAEP_WITH_SHA3_384, MessageDigestType.DEFAULT), encryptionProfileIdentifier);
 		cpnp.addConnectionProtocol(s, 0);
 		s=new ServerSecuredProtocolPropertiesWithKnownPublicKey();
-		Assert.assertEquals(s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.AES_GCM, ASymmetricKeyWrapperType.BC_FIPS_RSA_OAEP_WITH_PARAMETERS_SHA3_512), encryptionProfileIdentifier);
+		Assert.assertEquals(s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.AES_GCM, ASymmetricKeyWrapperType.BC_FIPS_RSA_OAEP_WITH_PARAMETERS_SHA3_512, MessageDigestType.DEFAULT), encryptionProfileIdentifier);
 		cpnp.addConnectionProtocol(s, 1);
 
 		if (includeP2PConnectionPossibilityForClients) {
@@ -210,14 +210,14 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 
 	public static ArrayList<ConnectionsProtocolsMKEventListener> getConnectionsProtocolsMKEventListenerForClientConnection(
 			boolean includeP2PConnectionPossibilityForClients)
-			throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, ConnectionException {
+			throws NoSuchAlgorithmException, NoSuchProviderException, IOException, ConnectionException {
 		ArrayList<ConnectionsProtocolsMKEventListener> res = new ArrayList<>();
 		UnsecuredConnectionProtocolProperties u = new UnsecuredConnectionProtocolProperties();
 		u.isServer = false;
 		res.add(new ConnectionsProtocolsMKEventListener(u));
 
 		ClientSecuredProtocolPropertiesWithKnownPublicKey c = new ClientSecuredProtocolPropertiesWithKnownPublicKey();
-		c.setEncryptionProfile(encryptionProfileIdentifier, getKeyPairForSignature().getASymmetricPublicKey(), SymmetricEncryptionType.DEFAULT,ASymmetricKeyWrapperType.DEFAULT);
+		c.setEncryptionProfile(encryptionProfileIdentifier, getKeyPairForSignature().getASymmetricPublicKey(), SymmetricEncryptionType.DEFAULT,ASymmetricKeyWrapperType.DEFAULT, MessageDigestType.DEFAULT);
 		if (includeP2PConnectionPossibilityForClients) {
 			P2PSecuredConnectionProtocolPropertiesWithKeyAgreement p2p = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 			p2p.isServer = false;
@@ -228,7 +228,7 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 		ConnectionProtocolProperties<?> cpp = u = new UnsecuredConnectionProtocolProperties();
 		u.isServer = false;
 		c = new ClientSecuredProtocolPropertiesWithKnownPublicKey();
-		c.setEncryptionProfile(encryptionProfileIdentifier, getKeyPairForSignature().getASymmetricPublicKey(), SymmetricEncryptionType.DEFAULT,ASymmetricKeyWrapperType.DEFAULT);
+		c.setEncryptionProfile(encryptionProfileIdentifier, getKeyPairForSignature().getASymmetricPublicKey(), SymmetricEncryptionType.DEFAULT,ASymmetricKeyWrapperType.DEFAULT, MessageDigestType.DEFAULT);
 		cpp.subProtocolProperties = c;
 		if (includeP2PConnectionPossibilityForClients) {
 			UnsecuredConnectionProtocolProperties cpp2 = new UnsecuredConnectionProtocolProperties();
@@ -257,10 +257,10 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 
 		ConnectionProtocolNegotiatorProperties cpnp=new ConnectionProtocolNegotiatorProperties();
 		c=new ClientSecuredProtocolPropertiesWithKnownPublicKey();
-		c.setEncryptionProfile(encryptionProfileIdentifier, getKeyPairForSignature().getASymmetricPublicKey(), SymmetricEncryptionType.AES_CTR,ASymmetricKeyWrapperType.BC_FIPS_RSA_OAEP_WITH_SHA3_384);
+		c.setEncryptionProfile(encryptionProfileIdentifier, getKeyPairForSignature().getASymmetricPublicKey(), SymmetricEncryptionType.AES_CTR,ASymmetricKeyWrapperType.BC_FIPS_RSA_OAEP_WITH_SHA3_384, MessageDigestType.DEFAULT);
 		cpnp.addConnectionProtocol(c, 0);
 		c=new ClientSecuredProtocolPropertiesWithKnownPublicKey();
-		c.setEncryptionProfile(encryptionProfileIdentifier, getKeyPairForSignature().getASymmetricPublicKey(), SymmetricEncryptionType.AES_GCM,ASymmetricKeyWrapperType.BC_FIPS_RSA_OAEP_WITH_PARAMETERS_SHA3_512);
+		c.setEncryptionProfile(encryptionProfileIdentifier, getKeyPairForSignature().getASymmetricPublicKey(), SymmetricEncryptionType.AES_GCM,ASymmetricKeyWrapperType.BC_FIPS_RSA_OAEP_WITH_PARAMETERS_SHA3_512, MessageDigestType.DEFAULT);
 		cpnp.addConnectionProtocol(c, 1);
 
 		if (includeP2PConnectionPossibilityForClients) {

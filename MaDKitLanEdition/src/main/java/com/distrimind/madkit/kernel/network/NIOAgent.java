@@ -1165,8 +1165,8 @@ final class NIOAgent extends Agent {
 
 	private class NoBackData 
 	{
-		private PersonalSocket personalSocket;
-		private AbstractData data;
+		private final PersonalSocket personalSocket;
+		private final AbstractData data;
 		private volatile ByteBuffer buffer;
 		private TransfertException pendingExcetion=null;
 		private IDTransfer idTransfer=null;
@@ -1289,7 +1289,7 @@ final class NIOAgent extends Agent {
 		protected LinkedList<AbstractData> shortDataToSend = new LinkedList<>();
 		protected ArrayList<AbstractData> bigDataToSend = new ArrayList<>();
 		protected LinkedList<AbstractData> dataToTransfer = new LinkedList<>();
-		private LinkedList<NoBackData> noBackDataToSend=new LinkedList<>();
+		private final LinkedList<NoBackData> noBackDataToSend=new LinkedList<>();
 		// private LinkedList<FileData> bigDataWaiting=new LinkedList<>();
 		private DataTransferType dataTransferType = DataTransferType.SHORT_DATA;
 		protected int bigDataToSendIndex = 0;
