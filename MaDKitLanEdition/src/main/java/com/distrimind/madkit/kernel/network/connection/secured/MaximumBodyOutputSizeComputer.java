@@ -57,18 +57,31 @@ class MaximumBodyOutputSizeComputer {
 		} catch (NoSuchAlgorithmException | NoSuchProviderException | IOException e) {
 			throw new BlockParserException(e);
 		}
-
-
 	}
-	private MaximumBodyOutputSizeComputer(boolean encryptionEnabled, SymmetricEncryptionType symmetricEncryptionType, short symmetricKeySizeBits, MessageDigestType messageDigestType) throws BlockParserException {
+	MaximumBodyOutputSizeComputer(boolean encryptionEnabled, SymmetricSecretKey symmetricSecretKeyForEncryption, SymmetricSecretKey symmetricSecretKeyForSignature, MessageDigestType messageDigestType) throws BlockParserException {
 		try {
 			maxEncoder = new EncryptionSignatureHashEncoder();
-
+			init(encryptionEnabled, encryptionEnabled?symmetricSecretKeyForEncryption:null, messageDigestType);
+			maxEncoder.withSymmetricSecretKeyForSignature(symmetricSecretKeyForSignature);
+		} catch (IOException e) {
+			throw new BlockParserException(e);
+		}
+	}
+	private void init(boolean encryptionEnabled, SymmetricSecretKey symmetricSecretKeyForEncryption, MessageDigestType messageDigestType) throws BlockParserException {
+		try {
+			if (encryptionEnabled)
+				maxEncoder.withSymmetricSecretKeyForEncryption(SecureRandomType.DEFAULT.getSingleton(null), symmetricSecretKeyForEncryption);
 			if (messageDigestType != null)
 				maxEncoder.withMessageDigestType(messageDigestType);
-			if (encryptionEnabled)
-				maxEncoder.withSymmetricSecretKeyForEncryption(SecureRandomType.DEFAULT.getSingleton(null), symmetricEncryptionType.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), symmetricKeySizeBits).generateKey());
 
+		} catch (NoSuchAlgorithmException | NoSuchProviderException | IOException e) {
+			throw new BlockParserException(e);
+		}
+	}
+	private MaximumBodyOutputSizeComputer(boolean encryptionEnabled, SymmetricEncryptionType symmetricEncryptionType, short symmetricKeySizeBits, MessageDigestType messageDigestType) throws BlockParserException{
+		try {
+			maxEncoder = new EncryptionSignatureHashEncoder();
+			init(encryptionEnabled, encryptionEnabled?symmetricEncryptionType.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), symmetricKeySizeBits).generateKey():null, messageDigestType);
 		} catch (NoSuchAlgorithmException | NoSuchProviderException | IOException e) {
 			throw new BlockParserException(e);
 		}
@@ -86,7 +99,7 @@ class MaximumBodyOutputSizeComputer {
 
 	int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException {
 		try {
-			return (int)maxEncoder.getMaximumOutputLength(size);
+			return (int)maxEncoder.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
 		} catch (IOException e) {
 			throw new BlockParserException(e);
 		}
