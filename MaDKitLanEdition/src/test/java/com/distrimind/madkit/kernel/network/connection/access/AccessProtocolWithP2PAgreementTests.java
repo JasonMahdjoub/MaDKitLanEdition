@@ -45,7 +45,6 @@ import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.AccessDataMKEventListener;
 import com.distrimind.madkit.kernel.network.ConnectionsProtocolsTests;
 import com.distrimind.ood.database.DatabaseConfiguration;
-import com.distrimind.ood.database.EmbeddedH2DatabaseWrapper;
 import com.distrimind.ood.database.InMemoryEmbeddedH2DatabaseFactory;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.crypto.P2PLoginAgreementType;
@@ -514,9 +513,9 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 			mpasker.getDatabaseWrapper().close();
 			mpreceiver.getDatabaseWrapper().close();
 			if (dbfileasker.exists())
-				EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(dbfileasker);
+				mpasker.getDatabaseWrapper().deleteDatabaseFiles();
 			if (dbfilereceiver.exists())
-				EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(dbfilereceiver);
+				mpreceiver.getDatabaseWrapper().deleteDatabaseFiles();
 			JunitMadkit.setDatabaseFactory(mpasker, new InMemoryEmbeddedH2DatabaseFactory(dbfileasker.getName()));
 			mpasker.getDatabaseWrapper().loadDatabase(new DatabaseConfiguration(KeysPairs.class.getPackage()), true);
 			JunitMadkit.setDatabaseFactory(mpreceiver, new InMemoryEmbeddedH2DatabaseFactory(dbfilereceiver.getName()));
@@ -530,9 +529,9 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 			mpasker.getDatabaseWrapper().close();
 			mpreceiver.getDatabaseWrapper().close();
 			if (dbfileasker.exists())
-				EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(dbfileasker);
+				mpasker.getDatabaseWrapper().deleteDatabaseFiles();
 			if (dbfilereceiver.exists())
-				EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(dbfilereceiver);
+				mpreceiver.getDatabaseWrapper().deleteDatabaseFiles();
 		}
 
 	}

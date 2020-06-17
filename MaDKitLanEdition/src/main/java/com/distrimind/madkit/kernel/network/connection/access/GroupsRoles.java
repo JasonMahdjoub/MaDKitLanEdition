@@ -333,8 +333,8 @@ public class GroupsRoles implements Cloneable, SecureExternalizable {
 
 	public static class RoleID
 	{
-		private byte[] id;
-		private int hashCode;
+		private final byte[] id;
+		private final int hashCode;
 
 		private RoleID(byte[] id) {
 			if (id==null)

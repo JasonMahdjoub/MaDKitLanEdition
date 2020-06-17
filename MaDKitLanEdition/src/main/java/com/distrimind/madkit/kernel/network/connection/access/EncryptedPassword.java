@@ -112,21 +112,11 @@ public class EncryptedPassword extends PasswordKey implements SecureExternalizab
 	 *            the cipher
 	 * @return true if the given password corresponds to the current encrypted
 	 *         password, considering the given cipher.
-	 * @throws InvalidKeyException
-	 *             if a problem occurs
-	 * @throws IllegalAccessException
-	 *             if a problem occurs
 	 * @throws IOException
 	 *             if a problem occurs
-	 * @throws BadPaddingException if a problem occurs
-	 * @throws IllegalBlockSizeException if a problem occurs
-	 * @throws InvalidKeySpecException if a problem occurs
-	 * @throws NoSuchAlgorithmException if a problem occurs
-	 * @throws NoSuchProviderException if a problem occurs
 	 */
 	public boolean verifyWithLocalPassword(PasswordKey originalPassword, P2PASymmetricSecretMessageExchanger cipher)
-			throws InvalidKeyException, IllegalAccessException, IOException, IllegalBlockSizeException,
-			BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
+			throws IOException {
 		if (originalPassword == null)
 			throw new NullPointerException("originalPassword");
 		if (cipher == null)

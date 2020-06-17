@@ -48,7 +48,7 @@ import com.distrimind.util.sizeof.ObjectSizer;
  * 
  * 
  * @author Jason Mahdjoub
- * @version 1.1
+ * @version 2.0
  * @since MadkitLanEdition 1.0
  */
 public class ClientSecuredProtocolPropertiesWithKnownPublicKey

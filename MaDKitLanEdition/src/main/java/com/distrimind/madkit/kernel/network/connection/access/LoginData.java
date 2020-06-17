@@ -43,9 +43,8 @@ import com.distrimind.util.crypto.AbstractMessageDigest;
 import com.distrimind.util.crypto.IASymmetricPublicKey;
 
 import java.io.IOException;
-import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.InvalidParameterSpecException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -200,7 +199,7 @@ public abstract class LoginData extends AccessData {
 			}
 			else
 				return res;
-		} catch (InvalidKeyException | NoSuchAlgorithmException | IOException | InvalidParameterSpecException | SignatureException | NoSuchProviderException | InvalidAlgorithmParameterException | InvalidKeySpecException e) {
+		} catch (NoSuchAlgorithmException | IOException | NoSuchProviderException  e) {
 			e.printStackTrace();
 			return null;
 		}

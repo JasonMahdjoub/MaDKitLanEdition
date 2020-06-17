@@ -44,12 +44,9 @@ import com.distrimind.util.io.MessageExternalizationException;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
 
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
-import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.InvalidParameterSpecException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 
 /**
  * 
@@ -102,9 +99,8 @@ class AskClientServerConnection extends AskConnection {
 	
 	
 	AskClientServerConnection(AbstractSecureRandom random, ASymmetricKeyWrapperType keyWrapper, SymmetricSecretKey encryptionSecretKey,SymmetricSecretKey signatureSecretKey,			
-			IASymmetricPublicKey distantPublicKeyForEncryption) throws InvalidKeyException, InvalidAlgorithmParameterException,
-			IllegalBlockSizeException, IOException, IllegalStateException,
-			NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException, NoSuchPaddingException, SignatureException {
+			IASymmetricPublicKey distantPublicKeyForEncryption) throws IOException, IllegalStateException,
+			NoSuchAlgorithmException, NoSuchProviderException {
 		super(false);
 		if (keyWrapper == null)
 			throw new NullPointerException("symmetricAlgo");
@@ -127,9 +123,7 @@ class AskClientServerConnection extends AskConnection {
 		//this.distantPublicKeyForEncryptionEncoded = asymmetricAlgo.encode(distantPublicKeyForEncryption.encode());
 	}
 	AskClientServerConnection(AbstractSecureRandom random, ASymmetricKeyWrapperType keyWrapper, SymmetricSecretKey signatureSecretKey,			
-			IASymmetricPublicKey distantPublicKeyForEncryption) throws InvalidKeyException, InvalidAlgorithmParameterException,
-			IllegalBlockSizeException, IOException, IllegalStateException,
-			NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException, NoSuchPaddingException {
+			IASymmetricPublicKey distantPublicKeyForEncryption) throws IOException, IllegalStateException {
 		super(false);
 		if (keyWrapper == null)
 			throw new NullPointerException("symmetricAlgo");
@@ -166,9 +160,8 @@ class AskClientServerConnection extends AskConnection {
 				checker.update(this.secretKeyForEncryption);
 			checker.update(this.randomBytes);
 			return checker.verify();
-		} catch (InvalidKeyException | SignatureException | NoSuchAlgorithmException | InvalidKeySpecException
-				| IllegalStateException | NoSuchProviderException
-				| InvalidAlgorithmParameterException | InvalidParameterSpecException | IOException e) {
+		} catch (NoSuchAlgorithmException | IllegalStateException | NoSuchProviderException
+				|  IOException e) {
 			return false;
 		}
 	}

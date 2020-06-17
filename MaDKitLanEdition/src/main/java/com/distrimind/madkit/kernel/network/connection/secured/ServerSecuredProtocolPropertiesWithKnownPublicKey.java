@@ -56,7 +56,7 @@ import java.util.Map;
  * 
  * 
  * @author Jason Mahdjoub
- * @version 1.1
+ * @version 2.0
  * @since MadkitLanEdition 1.0
  */
 @SuppressWarnings("FieldMayBeFinal")

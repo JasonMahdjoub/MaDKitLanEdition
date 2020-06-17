@@ -57,7 +57,7 @@ import java.security.NoSuchProviderException;
 /**
  * Does not support forward secrecy
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 2.0
  * @since MaDKitLanEdition 1.10.0
  */
 public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends ConnectionProtocol<P2PSecuredConnectionProtocolWithKnownSymmetricKeys> {

@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import java.security.DigestException;
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.Random;
@@ -59,8 +59,7 @@ import com.distrimind.util.crypto.SecureRandomType;
  */
 public class IdentifierAnonymizationTest {
 	@Test
-	public void testEncryptedJPakeIdentifier() throws DigestException, NoSuchAlgorithmException, NoSuchProviderException
-	{
+	public void testEncryptedJPakeIdentifier() throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
 
 		for (int i=0;i<100;i++)
 		{
@@ -79,17 +78,14 @@ public class IdentifierAnonymizationTest {
 		}		
 	}
 	@Test
-	public void testEncryptedJPakeIdentifierWithInterfacedOriginalKernel() throws DigestException, NoSuchAlgorithmException, NoSuchProviderException
-	{
+	public void testEncryptedJPakeIdentifierWithInterfacedOriginalKernel() throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
 		testEncryptedJPakeIdentifierWithInterfaced(true);
 	}
 	@Test
-	public void testEncryptedJPakeIdentifierWithInterfacedNonOriginalKernel() throws DigestException, NoSuchAlgorithmException, NoSuchProviderException
-	{
+	public void testEncryptedJPakeIdentifierWithInterfacedNonOriginalKernel() throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
 		testEncryptedJPakeIdentifierWithInterfaced(false);
 	}
-	public void testEncryptedJPakeIdentifierWithInterfaced(boolean keepOriginal) throws DigestException, NoSuchAlgorithmException, NoSuchProviderException
-	{
+	public void testEncryptedJPakeIdentifierWithInterfaced(boolean keepOriginal) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
 		for (int i=0;i<100;i++)
 		{
 			AbstractMessageDigest messageDigest=MessageDigestType.DEFAULT.getMessageDigestInstance();

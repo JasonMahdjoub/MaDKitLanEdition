@@ -62,7 +62,7 @@ public abstract class AbstractAccessProtocol {
 	protected final MadkitProperties properties;
 
 
-	private AtomicReference<ListGroupsRoles> groups_access = new AtomicReference<>();
+	private final AtomicReference<ListGroupsRoles> groups_access = new AtomicReference<>();
 	private boolean other_can_takes_initiative;
 
 	private Set<CloudIdentifier> cloudIdentifiers = null;
@@ -74,7 +74,7 @@ public abstract class AbstractAccessProtocol {
 	// private final InetSocketAddress local_interface_address;
 	private KernelAddress kernel_address = null;
 	
-	private LinkedList<AccessMessage> differedAccessMessages = new LinkedList<>();
+	private final LinkedList<AccessMessage> differedAccessMessages = new LinkedList<>();
 	private boolean accessFinalizedMessageReceived = false;
 	private boolean thisAskForConnection;
 
@@ -202,7 +202,7 @@ public abstract class AbstractAccessProtocol {
 
 	//private KernelAddress distant_kernel_address;
 	private ArrayList<PairOfIdentifiers> last_accepted_identifiers = new ArrayList<>();
-	private ArrayList<PairOfIdentifiers> all_accepted_identifiers = new ArrayList<>();
+	private final ArrayList<PairOfIdentifiers> all_accepted_identifiers = new ArrayList<>();
 	private ArrayList<Identifier> last_denied_identifiers_from_other = new ArrayList<>();
 	private ArrayList<Identifier> last_denied_identifiers_to_other = new ArrayList<>();
 	private ArrayList<CloudIdentifier> last_denied_cloud_to_other = new ArrayList<>();

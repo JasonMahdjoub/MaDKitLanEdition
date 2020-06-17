@@ -58,7 +58,7 @@ import java.security.NoSuchProviderException;
  * Support forward secrecy
  * 
  * @author Jason Mahdjoub
- * @version 2.1
+ * @version 2.0
  * @since MadkitLanEdition 1.7
  */
 public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProtocol<P2PSecuredConnectionProtocolWithKeyAgreement> {

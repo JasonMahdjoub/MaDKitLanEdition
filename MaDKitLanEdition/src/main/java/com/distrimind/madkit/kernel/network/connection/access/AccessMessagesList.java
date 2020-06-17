@@ -51,7 +51,7 @@ import java.io.IOException;
  * @since MadkitLanEdition 1.0
  */
 public class AccessMessagesList extends AccessMessage {
-	private AccessMessage[] messages;
+	private final AccessMessage[] messages;
 	
 	AccessMessagesList(AccessMessage ...messages)
 	{

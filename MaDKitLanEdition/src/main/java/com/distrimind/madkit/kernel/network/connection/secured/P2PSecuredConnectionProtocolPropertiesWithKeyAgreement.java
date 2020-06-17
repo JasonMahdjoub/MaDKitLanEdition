@@ -53,7 +53,7 @@ import java.util.Map;
  * 
  * 
  * @author Jason Mahdjoub
- * @version 2.0
+ * @version 3.0
  * @since MadkitLanEdition 1.7
  */
 public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends ConnectionProtocolProperties<P2PSecuredConnectionProtocolWithKeyAgreement> {

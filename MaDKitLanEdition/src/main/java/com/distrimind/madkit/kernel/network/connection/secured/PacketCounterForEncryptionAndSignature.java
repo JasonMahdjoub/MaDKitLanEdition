@@ -46,7 +46,7 @@ import com.distrimind.util.crypto.AbstractSecureRandom;
  * 
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 2.0
  * @since MadkitLanEdition 1.7
  *
  */
@@ -57,8 +57,8 @@ public class PacketCounterForEncryptionAndSignature implements PacketCounter {
 	private byte[] otherSignatureCounter;
 	/*private byte[] myNextEncryptionCounter;
 	private byte[] myNextSignatureCounter;*/
-	private static short ENCRYPTION_COUNTER_SIZE_BYTES=2;
-	private static short SIGNATURE_COUNTER_SIZE_BYTES=16;
+	private static final short ENCRYPTION_COUNTER_SIZE_BYTES=2;
+	private static final short SIGNATURE_COUNTER_SIZE_BYTES=16;
 	//private boolean nextMyCounterSelected=false;
 	private boolean distantActivated=false;
 	private boolean localActivated=false;

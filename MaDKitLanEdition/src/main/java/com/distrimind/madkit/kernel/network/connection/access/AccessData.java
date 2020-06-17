@@ -37,10 +37,9 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import java.net.InetAddress;
-
-import com.distrimind.madkit.kernel.AbstractGroup;
 import com.distrimind.madkit.kernel.network.InetAddressFilters;
+
+import java.net.InetAddress;
 
 /**
  * Represents data enabling to gives default right access
@@ -51,7 +50,7 @@ import com.distrimind.madkit.kernel.network.InetAddressFilters;
  * @version 1.0
  */
 public abstract class AccessData {
-	private InetAddressFilters filters = new InetAddressFilters();
+	private final InetAddressFilters filters = new InetAddressFilters();
 
 	public InetAddressFilters getFilters() {
 		return filters;

@@ -62,7 +62,7 @@ class ServerSignatureMessage extends ConnectionMessage {
 		signature=null;
 	}
 
-	ServerSignatureMessage(byte[] messageToSign, AbstractKeyPair keyPair) throws NoSuchProviderException, NoSuchAlgorithmException, IOException {
+	ServerSignatureMessage(byte[] messageToSign, AbstractKeyPair<?,?> keyPair) throws NoSuchProviderException, NoSuchAlgorithmException, IOException {
 		ASymmetricAuthenticatedSignerAlgorithm signer=new ASymmetricAuthenticatedSignerAlgorithm(keyPair.getASymmetricPrivateKey());
 		signature=signer.sign(messageToSign);
 	}
@@ -76,7 +76,7 @@ class ServerSignatureMessage extends ConnectionMessage {
 		{
 			if (signature==null)
 				return false;
-			ASymmetricAuthenticatedSignatureCheckerAlgorithm checker= null;
+			ASymmetricAuthenticatedSignatureCheckerAlgorithm checker;
 			try {
 				checker = new ASymmetricAuthenticatedSignatureCheckerAlgorithm(publicKey);
 				return checker.verify(message, signature);

@@ -43,10 +43,8 @@ import com.distrimind.util.DecentralizedIDGenerator;
 import com.distrimind.util.crypto.*;
 import com.distrimind.util.io.*;
 
-import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
 import java.security.*;
-import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 
 /**
@@ -120,7 +118,7 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 	}*/
 	CloudIdentifiersPropositionMessage(AbstractSecureRandom random, AbstractMessageDigest messageDigest,
 											  boolean permitAnonymousIdentifiers, short nbAnomalies, byte[] distantGeneratedSalt,
-									   Collection<CloudIdentifier> _id_pws, EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties) throws DigestException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidKeyException, InvalidKeySpecException {
+									   Collection<CloudIdentifier> _id_pws, EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties) throws NoSuchAlgorithmException, IOException,NoSuchProviderException {
 		identifiers = new WrappedCloudIdentifier[_id_pws.size()];
 		int index = 0;
 		for (CloudIdentifier ip : _id_pws) {
@@ -234,7 +232,7 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 																					 byte[] distantGeneratedSalt,
 																					 byte[] localGeneratedSalt,
 																					 EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties)
-			throws AccessException, InvalidAlgorithmParameterException, InvalidKeySpecException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidKeyException, DigestException {
+			throws AccessException, NoSuchAlgorithmException, IOException, NoSuchProviderException {
 		HashSet<CloudIdentifier> validID=new HashSet<>();
 		getValidDecodedCloudIdentifiers(loginData, messageDigest, localGeneratedSalt, validID, encryptionRestriction, accessProtocolProperties);
 		for (CloudIdentifier ci : validID)
@@ -302,7 +300,7 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 								  final AbstractSecureRandom random, MessageDigestType messageDigestType,
 								  PasswordHashType passwordHashType, ASymmetricPublicKey myPublicKey, byte[] localGeneratedSalt,
 								  EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties)
-			throws InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException, AccessException {
+			throws NoSuchAlgorithmException, NoSuchProviderException, AccessException, IOException {
 
 		if (distantCloudID==null)
 			return 1;

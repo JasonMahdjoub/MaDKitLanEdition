@@ -116,7 +116,7 @@ public abstract class HostIdentifier implements SecureExternalizable {
 		return new DefaultHostIdentifier(bytes, off, len);
 	}
 
-	private static final NullHostIdentifier nullHostIdentifierSingleton=new NullHostIdentifier();
+
 	public static class NullHostIdentifier extends HostIdentifier
 	{
 		private NullHostIdentifier()
@@ -125,7 +125,7 @@ public abstract class HostIdentifier implements SecureExternalizable {
 		}
 		@Override
 		public boolean equals(Object _object) {
-			return _object==this || _object instanceof NullHostIdentifier;
+			return _object instanceof NullHostIdentifier;
 		}
 
 		@Override
@@ -171,10 +171,11 @@ public abstract class HostIdentifier implements SecureExternalizable {
 		}
 
 		@Override
-		public AbstractKeyPair getAuthenticationKeyPair() {
+		public AbstractKeyPair<?, ?> getAuthenticationKeyPair() {
 			return null;
 		}
 	}
+	private static final NullHostIdentifier nullHostIdentifierSingleton=new NullHostIdentifier();
 
 	public static NullHostIdentifier getNullHostIdentifierSingleton() {
 		return nullHostIdentifierSingleton;
@@ -255,7 +256,7 @@ public abstract class HostIdentifier implements SecureExternalizable {
 		}
 
 		@Override
-		public AbstractKeyPair getAuthenticationKeyPair() {
+		public AbstractKeyPair<?,?> getAuthenticationKeyPair() {
 			return null;
 		}
 	}
@@ -265,7 +266,7 @@ public abstract class HostIdentifier implements SecureExternalizable {
 
 
 
-	public abstract AbstractKeyPair getAuthenticationKeyPair();
+	public abstract AbstractKeyPair<?, ?> getAuthenticationKeyPair();
 
 	public abstract boolean isAuthenticatedByPublicKey();
 

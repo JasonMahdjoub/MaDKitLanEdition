@@ -43,8 +43,6 @@ import com.distrimind.util.io.SerializationTools;
 
 import java.io.IOException;
 import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.InvalidParameterSpecException;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -84,7 +82,7 @@ final class WrappedCloudIdentifier extends CloudIdentifier {
 	{
 
 	}
-	WrappedCloudIdentifier(boolean anonymize, CloudIdentifier cloudIdentifier, AbstractSecureRandom random, AbstractMessageDigest messageDigest, byte[] distantGeneratedSalt, EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties) throws DigestException, InvalidKeyException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeySpecException {
+	WrappedCloudIdentifier(boolean anonymize, CloudIdentifier cloudIdentifier, AbstractSecureRandom random, AbstractMessageDigest messageDigest, byte[] distantGeneratedSalt, EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties) throws NoSuchAlgorithmException, IOException, NoSuchProviderException {
 
 		if (cloudIdentifier == null)
 			throw new NullPointerException("cloudIdentifier");
@@ -162,7 +160,7 @@ final class WrappedCloudIdentifier extends CloudIdentifier {
 	}
 
 	@Override
-	public AbstractKeyPair getAuthenticationKeyPair() {
+	public AbstractKeyPair<?,?> getAuthenticationKeyPair() {
 		return cloudIdentifier.getAuthenticationKeyPair();
 	}
 
@@ -192,7 +190,7 @@ final class WrappedCloudIdentifier extends CloudIdentifier {
 
 	boolean checkSignature(CloudIdentifier originalCloudIdentifier,
 												  AbstractMessageDigest messageDigest, byte[] localGeneratedSalt) throws
-			InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidParameterSpecException, SignatureException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeySpecException {
+			NoSuchAlgorithmException, IOException, NoSuchProviderException {
 		if (originalCloudIdentifier.getAuthenticationMethod().isAuthenticatedByPublicKey())
 		{
 			if (cloudIdentifier instanceof EncryptedCloudIdentifier)

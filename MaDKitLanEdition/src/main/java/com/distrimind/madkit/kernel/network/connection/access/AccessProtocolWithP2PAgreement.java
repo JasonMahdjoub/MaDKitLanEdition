@@ -43,9 +43,8 @@ import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.crypto.*;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.security.DigestException;
-import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.*;
@@ -87,7 +86,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 	private int suspendMaxSteps;
 	private ASymmetricKeyPair myKeyPair = null;
 
-	private void initKeyPair() throws NoSuchAlgorithmException, DatabaseException, NoSuchProviderException, InvalidAlgorithmParameterException {
+	private void initKeyPair() throws NoSuchAlgorithmException, DatabaseException, NoSuchProviderException, IOException {
 		if (myKeyPair == null || myKeyPair.getTimeExpirationUTC()<System.currentTimeMillis()) {
 			if (properties.getDatabaseWrapper() == null)
 				myKeyPair = access_protocol_properties.aSymetricEncryptionType
@@ -181,7 +180,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 				access_protocol_properties.p2pLoginAgreementType== P2PLoginAgreementType.ASYMMETRIC_SECRET_MESSAGE_EXCHANGER_AND_AGREEMENT_WITH_SYMMETRIC_SIGNATURE) {
 			try {
 				initKeyPair();
-			} catch (NoSuchAlgorithmException | DatabaseException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
+			} catch (NoSuchAlgorithmException | DatabaseException | NoSuchProviderException | IOException e) {
 				e.printStackTrace();
 			}
 		}
@@ -648,8 +647,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 	}
 
 	
-	static byte[] anonymizeIdentifier(byte[] identifier, AbstractSecureRandom random, AbstractMessageDigest messageDigest, byte[] distantGeneratedSalt) throws DigestException
-	{
+	static byte[] anonymizeIdentifier(byte[] identifier, AbstractSecureRandom random, AbstractMessageDigest messageDigest, byte[] distantGeneratedSalt) throws IOException {
 		if (random==null)
 			throw new NullPointerException();
 		if (messageDigest==null)
@@ -663,8 +661,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 		return anonymizeIdentifier(identifier, ivParameter, messageDigest, distantGeneratedSalt);
 	}
 	
-	private static byte[] anonymizeIdentifier(byte[] identifier, byte[] ivParameter, AbstractMessageDigest messageDigest, byte[] generatedSalt) throws DigestException
-	{
+	private static byte[] anonymizeIdentifier(byte[] identifier, byte[] ivParameter, AbstractMessageDigest messageDigest, byte[] generatedSalt) throws IOException {
 		if (identifier==null)
 			throw new NullPointerException();
 		if (identifier.length==0)
@@ -706,8 +703,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 		return res;
 	}
 
-	static boolean compareAnonymizedIdentifier(byte[] identifier, byte[] anonymizedIdentifier, AbstractMessageDigest messageDigest, byte[] localGeneratedSalt) throws DigestException
-	{
+	static boolean compareAnonymizedIdentifier(byte[] identifier, byte[] anonymizedIdentifier, AbstractMessageDigest messageDigest, byte[] localGeneratedSalt) throws IOException {
 		if (anonymizedIdentifier==null || anonymizedIdentifier.length<messageDigest.getDigestLength()*2)
 			return false;
 		byte[] expectedAnonymizedIdentifier= anonymizeIdentifier(identifier, anonymizedIdentifier, messageDigest, localGeneratedSalt);

@@ -37,20 +37,17 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-
-import com.distrimind.madkit.kernel.network.EncryptionRestriction;
-import com.distrimind.util.crypto.AbstractKeyPair;
-import com.distrimind.util.crypto.SymmetricSecretKey;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-
 import com.distrimind.madkit.kernel.MadkitProperties;
+import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 import com.distrimind.madkit.kernel.network.InetAddressFilters;
 import com.distrimind.madkit.util.MultiFormatPropertiesObjectParser;
 import com.distrimind.madkit.util.XMLUtilities;
 import com.distrimind.util.properties.MultiFormatProperties;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 
 /**
  * Represents properties of a specific connection protocol
