@@ -142,7 +142,9 @@ public class UnsecuredConnectionProtocol extends ConnectionProtocol<UnsecuredCon
 	}
 
 	static class Parser extends SubBlockParser {
-
+		public Parser() throws ConnectionException {
+			super(null, null, null, null, null);
+		}
 		@Override
 		public SubBlockInfo getSubBlock(SubBlock _block) throws BlockParserException {
 			return new SubBlockInfo(_block, true, false);

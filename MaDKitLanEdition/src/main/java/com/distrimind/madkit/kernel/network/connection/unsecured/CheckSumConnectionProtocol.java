@@ -152,6 +152,10 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 
 	class Parser extends SubBlockParser {
 
+		public Parser() throws ConnectionException {
+			super(null, null, null, null, null);
+		}
+
 		@Override
 		public SubBlockInfo getSubBlock(SubBlock _block) throws BlockParserException {
 			int sizeHead = getHeadSize();
