@@ -195,7 +195,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 		{
 			reinitSymmetricAlgorithm=false;
 			encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.mySecretKeyForEncryption, (byte)packetCounter.getMyEncryptionCounter().length);
-			decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.mySecretKeyForEncryption, (byte)packetCounter.getMyEncryptionCounter().length);
+			decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.mySecretKeyForEncryption, (byte)packetCounter.getMyEncryptionCounter().length);
 		}
 	}
 	boolean isProfileInitialized()
@@ -218,7 +218,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 			{
 				mySecretKeyForEncryption=keyWrapper.unwrapKey(myKeyPairForEncryption.getASymmetricPrivateKey(), askMessage.getSecretKeyForEncryption());
 				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, mySecretKeyForEncryption);
-				decoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, mySecretKeyForEncryption);
+				decoderWithEncryption.withSymmetricSecretKeyForEncryption(mySecretKeyForEncryption);
 			}
 			else {
 				mySecretKeyForEncryption = null;

@@ -142,7 +142,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 		{
 			reinitSymmetricAlgorithm=false;
 			encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.mySecretKeyForEncryption, (byte)packetCounter.getMyEncryptionCounter().length);
-			decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.mySecretKeyForEncryption, (byte)packetCounter.getMyEncryptionCounter().length);
+			decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.mySecretKeyForEncryption, (byte)packetCounter.getMyEncryptionCounter().length);
 		}
 	}
 	private void generateSecretKey() throws ConnectionException {
@@ -152,7 +152,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 			{
 				mySecretKeyForEncryption=hproperties.getSymmetricEncryptionType().getKeyGenerator(approvedRandomForKeys, hproperties.getSymmetricKeySizeBits()).generateKey();
 				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, mySecretKeyForEncryption);
-				decoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, mySecretKeyForEncryption);
+				decoderWithEncryption.withSymmetricSecretKeyForEncryption(mySecretKeyForEncryption);
 			}
 			else {
 				mySecretKeyForEncryption = null;

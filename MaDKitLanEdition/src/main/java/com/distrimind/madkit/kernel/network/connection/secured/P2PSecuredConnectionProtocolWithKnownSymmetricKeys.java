@@ -123,7 +123,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 			decoderWithEncryption.withSymmetricSecretKeyForSignature(secretKeyForSignature);
 			if (properties.enableEncryption) {
 				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secretKeyForEncryption);
-				decoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secretKeyForEncryption);
+				decoderWithEncryption.withSymmetricSecretKeyForEncryption(secretKeyForEncryption);
 			} else {
 				encoderWithEncryption.withoutSymmetricEncryption();
 				decoderWithEncryption.withoutSymmetricEncryption();
@@ -143,7 +143,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 			if (properties.enableEncryption && reinitSymmetricAlgorithm) {
 				reinitSymmetricAlgorithm = false;
 				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secretKeyForEncryption);
-				decoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secretKeyForEncryption);
+				decoderWithEncryption.withSymmetricSecretKeyForEncryption(secretKeyForEncryption);
 			}
 		}
 		catch (IOException e)

@@ -44,7 +44,7 @@ import com.distrimind.madkit.message.hook.HookMessage;
 import com.distrimind.madkit.message.hook.OrganizationEvent;
 import com.distrimind.ood.database.*;
 import com.distrimind.ood.database.exceptions.DatabaseException;
-import com.distrimind.ood.database.messages.DatabaseEventToSend;
+import com.distrimind.ood.database.messages.P2PBigDatabaseEventToSend;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.io.RandomFileOutputStream;
 import com.distrimind.util.io.RandomInputStream;
@@ -83,11 +83,11 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 	private static class BigDataMetaData
 	{
-		BigDatabaseEventToSend eventToSend;
+		P2PBigDatabaseEventToSend eventToSend;
 		RandomOutputStream randomOutputStream;
 		File concernedFile;
 
-		BigDataMetaData(BigDatabaseEventToSend eventToSend, RandomOutputStream randomOutputStream, File concernedFile) {
+		BigDataMetaData(P2PBigDatabaseEventToSend eventToSend, RandomOutputStream randomOutputStream, File concernedFile) {
 			this.eventToSend = eventToSend;
 			this.randomOutputStream = randomOutputStream;
 			this.concernedFile = concernedFile;
@@ -316,17 +316,17 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 				return ;
 			while ((e=synchronizer.nextEvent())!=null)
 			{
-				if (e instanceof DatabaseEventToSend)
+				if (e instanceof DBEventToSend)
 				{
-					DatabaseEventToSend es=(DatabaseEventToSend)e;
+					DBEventToSend es=(DBEventToSend)e;
 					try {
 						DecentralizedValue dest=es.getHostDestination();
 						if (logger!=null && logger.isLoggable(Level.FINEST))
 							logger.finest("Send event "+es.getClass()+" to peer "+dest);
 						AgentAddress aa=getAgentWithRole(this.getDistantGroupID(dest), CloudCommunity.Roles.SYNCHRONIZER);
 						if (aa!=null) {
-							if (es instanceof BigDatabaseEventToSend) {
-								BigDatabaseEventToSend be = (BigDatabaseEventToSend) e;
+							if (es instanceof P2PBigDatabaseEventToSend) {
+								P2PBigDatabaseEventToSend be = (P2PBigDatabaseEventToSend) e;
 								currentBigDataFileName = getMadkitConfig().getDatabaseSynchronisationFileName();
 								currentBigDataHostID=es.getHostDestination();
 								final RandomOutputStream out = getMadkitConfig().getCacheFileCenter().getNewBufferedRandomCacheFileOutputStream(currentBigDataFileName, RandomFileOutputStream.AccessMode.READ_AND_WRITE, FILE_BUFFER_LENGTH_BYTES, 1);
@@ -383,7 +383,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 			BigDataPropositionMessage m=(BigDataPropositionMessage)_message;
 			boolean generateError=true;
-			if (m.getAttachedData() instanceof BigDatabaseEventToSend)
+			if (m.getAttachedData() instanceof P2PBigDatabaseEventToSend)
 			{
 				if (currentBigDataReceiving.containsKey(m.getConversationID()))
 					getLogger().warning("Unexpected big data proposition message " + m);
@@ -393,7 +393,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 					if (logger!=null && logger.isLoggable(Level.FINEST))
 						logger.finest("Receiving BigDatabaseEventToSend " + m);
-					BigDatabaseEventToSend b=(BigDatabaseEventToSend)m.getAttachedData();
+					P2PBigDatabaseEventToSend b=(P2PBigDatabaseEventToSend)m.getAttachedData();
 					try {
 						DecentralizedValue peerID = getDistantPeerID(_message.getSender());
 						if (peerID != null) {
@@ -512,12 +512,12 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			}
 
 		}
-		else if (_message instanceof NetworkObjectMessage && ((NetworkObjectMessage) _message).getContent() instanceof DatabaseEventToSend)
+		else if (_message instanceof NetworkObjectMessage && ((NetworkObjectMessage) _message).getContent() instanceof DBEventToSend)
 		{
 			boolean generateError = true;
 			DecentralizedValue peerID = getDistantPeerID(_message.getSender());
 			if (peerID != null) {
-				DatabaseEventToSend e = (DatabaseEventToSend) ((NetworkObjectMessage) _message).getContent();
+				DBEventToSend e = (DBEventToSend) ((NetworkObjectMessage) _message).getContent();
 				try {
 					DecentralizedValue source = e.getHostSource();
 

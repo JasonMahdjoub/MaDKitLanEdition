@@ -137,7 +137,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 			reinitSymmetricAlgorithm=false;
 			try {
 				encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.secret_key, (byte)packetCounter.getMyEncryptionCounter().length);
-				decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.secret_key, (byte)packetCounter.getMyEncryptionCounter().length);
+				decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.secret_key, (byte)packetCounter.getMyEncryptionCounter().length);
 			} catch (IOException e) {
 				throw new ConnectionException(e);
 			}
@@ -286,7 +286,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 			secret_key = hproperties.symmetricEncryptionType.getKeyGenerator(approvedRandomForKeys, hproperties.symmetricKeySizeBits)
 					.generateKey();
 			encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key);
-			decoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key);
+			decoderWithEncryption.withSymmetricSecretKeyForEncryption(secret_key);
 		} catch (NoSuchAlgorithmException | NoSuchProviderException | IOException e) {
 			secret_key = null;
 			encoderWithEncryption.withoutSymmetricEncryption();
@@ -310,7 +310,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 			
 			secret_key = keyWrapper.unwrapKey(myKeyPairForEncryption.getASymmetricPrivateKey(), _secret_key);
 			encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key);
-			decoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key);
+			decoderWithEncryption.withSymmetricSecretKeyForEncryption(secret_key);
 		} catch (IOException | IllegalArgumentException | IllegalStateException e) {
 			encoderWithEncryption.withoutSymmetricEncryption();
 			decoderWithEncryption.withoutSymmetricEncryption();

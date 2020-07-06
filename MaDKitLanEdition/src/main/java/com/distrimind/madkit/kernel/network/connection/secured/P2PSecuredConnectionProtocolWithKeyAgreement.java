@@ -158,7 +158,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 			if (secret_key_for_encryption != null) {
 				if (encoderWithEncryption.getSymmetricSecretKeyForEncryption() == null) {
 					encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key_for_encryption);
-					decoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key_for_encryption);
+					decoderWithEncryption.withSymmetricSecretKeyForEncryption(secret_key_for_encryption);
 				}
 			} else {
 				encoderWithEncryption.withoutSymmetricEncryption();
@@ -241,7 +241,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 		{
 			reinitSymmetricAlgorithm=false;
 			encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.secret_key_for_encryption, (byte)packetCounter.getMyEncryptionCounter().length);
-			decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.secret_key_for_encryption, (byte)packetCounter.getMyEncryptionCounter().length);
+			decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.secret_key_for_encryption, (byte)packetCounter.getMyEncryptionCounter().length);
 		}
 	}
 
