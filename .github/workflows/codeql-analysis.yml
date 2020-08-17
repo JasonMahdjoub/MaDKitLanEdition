@@ -38,9 +38,9 @@ jobs:
         java-version: 1.8
         architecture: x64  
     - name: Grant execute permission for gradlew
-      run: chmod +x ./Utils/gradlew
+      run: chmod +x ./MaDKitLanEdition/gradlew
     - name: Build with Gradle
-      run: cd Utils && gradle wrapper && ./gradlew assemble -PdisableSigning
+      run: cd MaDKitLanEdition && gradle wrapper && ./gradlew assemble -PdisableSigning
       
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
