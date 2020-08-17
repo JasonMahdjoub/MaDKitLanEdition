@@ -9,7 +9,7 @@
 
 ## Reporting a Vulnerability
 
-To report a vulnerability, please send me a private message at [[jason.mahdjoub@distri-mind.fr]]. I will fix the vulnerability as soon as possible.
+To report a vulnerability, please send me a private message at jason.mahdjoub@distri-mind.fr. I will fix the vulnerability as soon as possible.
 
 
 
