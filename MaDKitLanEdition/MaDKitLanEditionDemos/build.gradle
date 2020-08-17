@@ -12,6 +12,7 @@ apply plugin: 'application'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'maven-publish'
+apply plugin: 'signing'
 
 Properties props = new Properties()
 def propFile = file('gradle.properties')
@@ -64,10 +65,12 @@ allprojects {
 	group='com.distrimind.madkitdemos'
     
     mainClassName = "com.distrimind.madkitdemos.MKLEDemos"
-    compileJava.options.compilerArgs.addAll(['--release', javaVersion] as Collection<? extends String>)
+
     //compileJava.options.compilerArgs << "-Xlint"
-    if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_1_9))
+    if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_1_9)) {
+        compileJava.options.compilerArgs.addAll(['--release', javaVersion] as Collection<? extends String>)
         javadoc.options.addStringOption("html5", "-quiet")
+    }
 }
 
 
@@ -117,26 +120,82 @@ test {
    
  }
 
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
             artifact sourcesJar
             artifact javadocJar
-            
+            pom {
+                name = 'Démos for MaDKitLanEdition'
+                description = 'MaDKit is an open source multiagent-based development platform written in Java. MaDKitLanEdition Advanced network futures which enables to connect several peers between them, and emulate a secured multi-agent system that virtually evolves into the same environment, i.e. the same virtual machine.'
+                url = 'https://github.com/JazZ51/MaDKitLanEdition'
+                developers {
+                    developer {
+                        id = 'mahdjoub'
+                        name = 'Jason Mahdjoub'
+                        email = 'jason.mahdjoub@distri-mind.fr'
+                    }
+                    developer {
+                        id = 'michel'
+                        name = 'Fabien Michel'
+                    }
+                    developer {
+                        id = 'gutknecht'
+                        name = 'Olivier Gutknecht'
+                        email = 'jason.mahdjoub@distri-mind.fr'
+                    }
+                    developer {
+                        id = 'ferber'
+                        name = 'Jacques Ferber'
+                        email = 'jason.mahdjoub@distri-mind.fr'
+                    }
+                }
+
+                organization {
+                    name = 'DistriMind'
+                    url = 'https://github.com/JazZ51'
+                }
+                issueManagement {
+                    system = 'GitHub'
+                    url = 'https://github.com/JazZ51/MaDKitLanEdition/issues'
+                }
+                scm {
+                    connection = 'https://github.com/JazZ51/MaDKitLanEdition'
+                }
+                licenses {
+                    license {
+                        name = 'CeCILL-C FREE SOFTWARE LICENSE AGREEMENT'
+                        url = 'http://cecill.info/licences/Licence_CeCILL-C_V1-en.txt'
+                    }
+                }
+
+            }
         }
     }
     repositories {
         maven {
             credentials {
-              username "${user}"
-              password "${pwd}"
+                username "${user}"
+                password "${pwd}"
             }
             url "${artifactory_Url}/DistriMind-Public"
         }
     }
 }
+signing {
+    useGpgCmd()
+    required {!project.hasProperty('disableSigning')}
+    if (required) {
+        sign configurations.archives
+        sign publishing.publications.mavenJava
+    }
+}
 
-
-
+javadoc {
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
+}
 
