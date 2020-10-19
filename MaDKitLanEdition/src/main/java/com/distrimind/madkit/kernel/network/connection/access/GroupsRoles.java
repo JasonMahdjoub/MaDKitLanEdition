@@ -38,10 +38,10 @@ knowledge of the CeCILL-C license and that you accept its terms.
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.util.io.*;
-import org.apache.commons.codec.binary.Base64;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Base64;
 
 /**
  * @author Jason Mahdjoub
@@ -346,7 +346,7 @@ public class GroupsRoles implements Cloneable, SecureExternalizable {
 		@Override
 		public String toString() {
 			return "RoleID[" +
-					"id=" + Base64.encodeBase64URLSafeString(id) +
+					"id=" + Base64.getUrlEncoder().encodeToString(id) +
 					']';
 		}
 

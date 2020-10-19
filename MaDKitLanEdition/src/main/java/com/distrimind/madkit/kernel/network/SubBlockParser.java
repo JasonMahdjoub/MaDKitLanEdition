@@ -144,7 +144,7 @@ public abstract class SubBlockParser {
 						lrout.init(rout, 0);
 					}
 				} else {
-					Integrity integrity = decoder.checkHashAndSignature();
+					Integrity integrity = decoder.checkHashAndSignatures();
 					int dl = (int) decoder.getDataSizeInBytesAfterDecryption();
 					return new SubBlockInfo(new SubBlock(_block.getBytes(), _block.getOffset() + EncryptionSignatureHashEncoder.headSize, dl), integrity == Integrity.OK, integrity == Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 				}
@@ -225,7 +225,7 @@ public abstract class SubBlockParser {
 
 				Integrity integrity = decoderWithoutEncryption
 						.withRandomInputStream(lrim)
-						.checkHashAndSignature();
+						.checkHashAndSignatures();
 				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getHeadSize(),
 						(int)decoderWithoutEncryption.getDataSizeInBytesBeforeDecryption());
 

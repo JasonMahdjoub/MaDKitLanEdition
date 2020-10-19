@@ -43,6 +43,9 @@ import com.distrimind.madkit.kernel.Gatekeeper;
 import com.distrimind.madkit.kernel.Group;
 import com.distrimind.util.DecentralizedValue;
 
+import java.util.Base64;
+import java.util.Objects;
+
 /**
  * Defines the default groups and roles used for networking.
  * 
@@ -153,7 +156,7 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 
 		public static String encodeDecentralizedValue(DecentralizedValue identifier)
 		{
-			return Base64.encodeBase64URLSafeString(identifier.encode());
+			return Base64.getUrlEncoder().encodeToString(identifier.encode());
 		}
 
 		public static Group getDistributedDatabaseGroup(String localIdentifier, String distantIdentifier)
@@ -183,7 +186,7 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 		}
 		public static String extractDistantHostIDString(Group group, String localHostID)
 		{
-			if (group.getParent().equals(DISTRIBUTED_DATABASE))
+			if (Objects.requireNonNull(group.getParent()).equals(DISTRIBUTED_DATABASE))
 			{
 				String[] split=group.getName().split("~");
 				if (split.length==2)
@@ -208,7 +211,7 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 			String res=extractDistantHostIDString(group, localHostID);
 			if (res==null)
 				return null;
-			return DecentralizedValue.decode(Base64.decodeBase64(res));
+			return DecentralizedValue.decode(Base64.getUrlDecoder().decode(res));
 		}
 		public static Group getDistributedDatabaseGroup(String localIdentifier, DecentralizedValue distantIdentifier)
 		{

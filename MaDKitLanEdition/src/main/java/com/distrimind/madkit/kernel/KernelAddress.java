@@ -41,9 +41,9 @@ package com.distrimind.madkit.kernel;
 import com.distrimind.util.AbstractDecentralizedID;
 import com.distrimind.util.RenforcedDecentralizedIDGenerator;
 import com.distrimind.util.io.*;
-import org.apache.commons.codec.binary.Base64;
 
 import java.io.IOException;
+import java.util.Base64;
 
 /**
  * This class represents a unique identifier for MaDKit kernel. Uniqueness is
@@ -193,7 +193,7 @@ public class KernelAddress implements SecureExternalizable, Cloneable {
 	}
 
 	private static String getHexString(byte[] bytes) {
-		return Base64.encodeBase64URLSafeString(bytes);
+		return Base64.getUrlEncoder().encodeToString(bytes);
 	}
 
 	public AbstractDecentralizedID getAbstractDecentralizedID() {

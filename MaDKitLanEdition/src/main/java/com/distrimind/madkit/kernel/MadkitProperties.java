@@ -59,7 +59,6 @@ import com.distrimind.util.io.RandomCacheFileCenter;
 import com.distrimind.util.properties.MultiFormatProperties;
 import com.distrimind.util.properties.PropertiesParseException;
 import com.distrimind.util.version.Version;
-import org.apache.commons.codec.binary.Base64;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
@@ -69,10 +68,7 @@ import java.net.NetworkInterface;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.Properties;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -764,12 +760,12 @@ public class MadkitProperties extends MultiFormatProperties {
 		boolean change=false;
 		if (approvedRandom!=null)
 		{
-			savedRandomSeedForApprovedRandom=Base64.encodeBase64URLSafeString(approvedRandom.generateSeed(55));
+			savedRandomSeedForApprovedRandom= Base64.getUrlEncoder().encodeToString(approvedRandom.generateSeed(55));
 			change=true;
 		}
 		if (approvedRandomForKeys!=null)
 		{
-			savedRandomSeedForApprovedRandomForKeys=Base64.encodeBase64URLSafeString(approvedRandomForKeys.generateSeed(55));
+			savedRandomSeedForApprovedRandomForKeys=Base64.getUrlEncoder().encodeToString(approvedRandomForKeys.generateSeed(55));
 			change=true;
 		}
 		return change;
