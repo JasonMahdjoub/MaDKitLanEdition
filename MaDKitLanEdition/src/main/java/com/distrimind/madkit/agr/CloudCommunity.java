@@ -42,7 +42,6 @@ import com.distrimind.madkit.kernel.AgentNetworkID;
 import com.distrimind.madkit.kernel.Gatekeeper;
 import com.distrimind.madkit.kernel.Group;
 import com.distrimind.util.DecentralizedValue;
-import org.apache.commons.codec.binary.Base64;
 
 /**
  * Defines the default groups and roles used for networking.
