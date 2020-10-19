@@ -37,7 +37,6 @@
  */
 package com.distrimind.madkit.kernel;
 
-import com.distrimind.madkit.message.EnumMessage;
 
 /**
  * @author Jason Mahdjoub
@@ -46,7 +45,9 @@ import com.distrimind.madkit.message.EnumMessage;
  * 
  */
 enum NetCode {
-	NEW_PEER_DETECTED, PEER_DECONNECTED, NEW_PEER_REQUEST
+	NEW_PEER_DETECTED,
+	PEER_DISCONNECTED,
+	NEW_PEER_REQUEST
 }
 
 /*class NetworkMessage extends EnumMessage<NetCode> {

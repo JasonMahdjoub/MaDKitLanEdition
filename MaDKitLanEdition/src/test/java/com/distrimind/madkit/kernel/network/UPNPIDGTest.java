@@ -171,7 +171,7 @@ public class UPNPIDGTest extends JunitMadkit {
 										Assert.assertEquals(Protocol.TCP, m.getProtocol());
 										Assert.assertEquals(internalPort, m.getInternalPort());
 	
-										Assert.assertEquals("message="+m.getMessage()+", description="+m.getDescription()+", external port="+m.getExternalPort(), MappingReturnCode.SUCESS, m.getReturnCode());
+										Assert.assertEquals("message="+m.getMessage()+", description="+m.getDescription()+", external port="+m.getExternalPort(), MappingReturnCode.SUCCESS, m.getReturnCode());
 										Assert.assertTrue(
 												m.getExternalPort() <= portEnd && m.getExternalPort() >= portStart);
 	

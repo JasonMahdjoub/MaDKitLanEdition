@@ -246,7 +246,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 		lastIdentifier=profileIdentifier;
 		keyPairsForEncryption.put(profileIdentifier, keyPairForEncryption);
 		validProfiles.put(profileIdentifier, true);
-		maxAlgos=null;
+		maxAlgorithms =null;
 		maxSizeHead=null;
 		if (symmetricEncryptionType == null) {
 			symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
@@ -511,9 +511,9 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	}
 
 	/**
-	 * The minimum asymetric cipher RSA Key size
+	 * The minimum asymmetric cipher RSA Key size
 	 */
-	public final int minASymetricKeySizeBits = 2048;
+	public final int minASymmetricKeySizeBits = 2048;
 
 	/**
 	 * Symmetric encryption algorithm
@@ -575,8 +575,8 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 			s= akp.getNonPQCKeyPair().getKeySizeBits();
 		else
 			s=((ASymmetricKeyPair)akp).getKeySizeBits();
-		if (s < minASymetricKeySizeBits)
-			throw new ConnectionException("_rsa_key_size must be greater or equal than " + minASymetricKeySizeBits
+		if (s < minASymmetricKeySizeBits)
+			throw new ConnectionException("_rsa_key_size must be greater or equal than " + minASymmetricKeySizeBits
 					+ " . Moreover, this number must correspond to this schema : _rsa_key_size=2^x.");
 		return valid;
 	}
@@ -622,7 +622,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	public boolean canBeServer() {
 		return true;
 	}
-	private transient List<MaximumBodyOutputSizeComputer> maxAlgos=null;
+	private transient List<MaximumBodyOutputSizeComputer> maxAlgorithms =null;
 	@Override
 	public int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException
 	{
@@ -630,8 +630,8 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	        return size;
 		try {
 			int res=0;
-			if (maxAlgos==null) {
-				List<MaximumBodyOutputSizeComputer> maxAlgos=new ArrayList<>(this.symmetricEncryptionTypes.size());
+			if (maxAlgorithms ==null) {
+				List<MaximumBodyOutputSizeComputer> maxAlgorithms=new ArrayList<>(this.symmetricEncryptionTypes.size());
 				for (Map.Entry<Integer, Boolean> e : this.validProfiles.entrySet()) {
 					if (!e.getValue())
 						continue;
@@ -639,11 +639,11 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 					SymmetricEncryptionType encryptionType=symmetricEncryptionTypes.get(profile);
 					if (enableEncryption && encryptionType==null)
 						continue;
-					maxAlgos.add(new MaximumBodyOutputSizeComputer(enableEncryption, encryptionType, symmetricEncryptionKeySizeBits.get(profile), signatures.get(profile), messageDigestTypes.get(profile)));
+					maxAlgorithms.add(new MaximumBodyOutputSizeComputer(enableEncryption, encryptionType, symmetricEncryptionKeySizeBits.get(profile), signatures.get(profile), messageDigestTypes.get(profile)));
 				}
-                this.maxAlgos=maxAlgos;
+                this.maxAlgorithms =maxAlgorithms;
 			}
-			for (MaximumBodyOutputSizeComputer maxAlgo : maxAlgos)
+			for (MaximumBodyOutputSizeComputer maxAlgo : maxAlgorithms)
 			{
 				int v=maxAlgo.getMaximumBodyOutputSizeForEncryption(size);
 				if (v>res)

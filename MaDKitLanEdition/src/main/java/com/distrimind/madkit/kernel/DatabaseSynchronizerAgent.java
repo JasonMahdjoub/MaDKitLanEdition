@@ -6,7 +6,7 @@ jason.mahdjoub@distri-mind.fr
 
 This software (Object Oriented Database (OOD)) is a computer program 
 whose purpose is to manage a local database with the object paradigm 
-and the java langage 
+and the java language
 
 This software is governed by the CeCILL-C license under French law and
 abiding by the rules of distribution of free software.  You can  use, 
@@ -436,7 +436,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 				currentBigDataTransferID=null;
 
 				receiveMessage(checkEvents);
-				if (res.getType()!=BigDataResultMessage.Type.BIG_DATA_TRANSFERED)
+				if (res.getType()!=BigDataResultMessage.Type.BIG_DATA_TRANSFERRED)
 				{
 					try {
 						synchronizer.disconnectHook(currentBigDataHostID);
@@ -447,7 +447,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 				}
 				currentBigDataHostID=null;
 			}
-			else if (res.getType()==BigDataResultMessage.Type.BIG_DATA_TRANSFERED) {
+			else if (res.getType()==BigDataResultMessage.Type.BIG_DATA_TRANSFERRED) {
 
 
 				final BigDataMetaData e = currentBigDataReceiving.remove(res.getConversationID());

@@ -68,12 +68,12 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties ex
 	public boolean enableEncryption = true;
 
 	/**
-	 * The asymetric cipher key size
+	 * The asymmetric cipher key size
 	 */
 	public short aSymmetricKeySize = 4096;
 
 	/**
-	 * The minimum asymetric cipher RSA Key size
+	 * The minimum asymmetric cipher RSA Key size
 	 */
 	public final int minASymmetricKeySize = 2048;
 

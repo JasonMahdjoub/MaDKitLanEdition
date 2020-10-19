@@ -5,7 +5,7 @@ jason.mahdjoub@distri-mind.fr
 
 This software (Object Oriented Database (OOD)) is a computer program
 whose purpose is to manage a local database with the object paradigm
-and the java langage
+and the java language
 
 This software is governed by the CeCILL-C license under French law and
 abiding by the rules of distribution of free software.  You can  use,
@@ -148,7 +148,7 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 	}
 
 
-	private Map<Role, AbstractAgent> availableSenders= Collections.synchronizedMap(new HashMap<Role, AbstractAgent>());
+	private final Map<Role, AbstractAgent> availableSenders= Collections.synchronizedMap(new HashMap<>());
 
 	private void checkSender(final AbstractAgent abstractAgent, final Group group, final String r, String groupPath) throws DatabaseException {
 		if (abstractAgent==null)
@@ -328,8 +328,7 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 				@Override
 				public Void run() throws Exception {
 					Role role=new Role(group, roleSender);
-					if (availableSenders.get(role)==null)
-						availableSenders.put(role,requester);
+					availableSenders.putIfAbsent(role, requester);
 					addRecord(new Record(group.getPath(), roleSender, roleReceiver, message));
 
 					return null;

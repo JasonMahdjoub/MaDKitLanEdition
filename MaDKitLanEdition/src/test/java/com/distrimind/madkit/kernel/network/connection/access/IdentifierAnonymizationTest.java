@@ -74,7 +74,7 @@ public class IdentifierAnonymizationTest {
 			AbstractSecureRandom srand=SecureRandomType.DEFAULT.getSingleton(null);
 
 			byte[] encryptedID= AccessProtocolWithP2PAgreement.anonymizeIdentifier(id,srand , messageDigest, salt);
-			Assert.assertTrue(AccessProtocolWithP2PAgreement.compareAnonymizedIdentifier(id, encryptedID, messageDigest, salt));
+			Assert.assertTrue(AccessProtocolWithP2PAgreement.compareAnonymousIdentifier(id, encryptedID, messageDigest, salt));
 		}		
 	}
 	@Test
@@ -98,7 +98,7 @@ public class IdentifierAnonymizationTest {
 			AbstractSecureRandom srand=SecureRandomType.DEFAULT.getSingleton(null);
 
 			byte[] encryptedID= AccessProtocolWithP2PAgreement.anonymizeIdentifier(id,srand , messageDigest, salt);
-			Assert.assertTrue(AccessProtocolWithP2PAgreement.compareAnonymizedIdentifier(id, encryptedID, messageDigest, salt));
+			Assert.assertTrue(AccessProtocolWithP2PAgreement.compareAnonymousIdentifier(id, encryptedID, messageDigest, salt));
 		}		
 	}
 }

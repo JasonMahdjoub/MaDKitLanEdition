@@ -70,7 +70,7 @@ public class AgentToLaunch {
 	public static AgentToLaunch parse(String s) throws ClassNotFoundException {
 		if (s.equals("null"))
 			return null;
-		String split[] = s.split(",");
+		String[] split = s.split(",");
 		@SuppressWarnings("unchecked")
 		Class<? extends AbstractAgent> classAgent = (Class<? extends AbstractAgent>) MadkitClassLoader.getLoader()
 				.loadClass(split[0].trim());

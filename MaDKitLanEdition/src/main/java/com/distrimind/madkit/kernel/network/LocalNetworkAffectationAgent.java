@@ -37,24 +37,19 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import com.distrimind.madkit.agr.LocalCommunity;
+import com.distrimind.madkit.kernel.*;
+import com.distrimind.madkit.kernel.network.BindInetSocketAddressMessage.Type;
+import com.distrimind.madkit.kernel.network.UpnpIGDAgent.AskForNetworkInterfacesMessage;
+import com.distrimind.madkit.kernel.network.UpnpIGDAgent.NetworkInterfaceInformationMessage;
+
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.logging.Level;
-
-import com.distrimind.madkit.agr.LocalCommunity;
-import com.distrimind.madkit.kernel.AgentAddress;
-import com.distrimind.madkit.kernel.AgentFakeThread;
-import com.distrimind.madkit.kernel.Message;
-import com.distrimind.madkit.kernel.NetworkAgent;
-import com.distrimind.madkit.kernel.Task;
-import com.distrimind.madkit.kernel.network.UpnpIGDAgent.NetworkInterfaceInformationMessage;
-import com.distrimind.madkit.kernel.network.BindInetSocketAddressMessage.Type;
-import com.distrimind.madkit.kernel.network.UpnpIGDAgent.AskForNetworkInterfacesMessage;
 
 /**
  * 
@@ -72,7 +67,7 @@ class LocalNetworkAffectationAgent extends AgentFakeThread {
 
 	private final ArrayList<InetSocketAddress> port_binds = new ArrayList<>();
 	private final ArrayList<AskForConnectionMessage> askedConnections = new ArrayList<>();
-	private boolean networkStoped = false;
+	private boolean networkStopped = false;
 
 	@SuppressWarnings("unused")
 	LocalNetworkAffectationAgent() {
@@ -121,14 +116,10 @@ class LocalNetworkAffectationAgent extends AgentFakeThread {
 					else
 					{
 						timeUTC+=getMadkitConfig().networkProperties.delayInMsBetweenEachConnectionAsk;
-						scheduleTask(new Task<>(new Callable<Void>() {
-
-							@Override
-							public Void call() {
-								if (isAlive())
-									receiveMessage(new AskForConnectionMessage(ConnectionStatusMessage.Type.CONNECT, isa, true));
-								return null;
-							}
+						scheduleTask(new Task<>((Callable<Void>) () -> {
+							if (isAlive())
+								receiveMessage(new AskForConnectionMessage(ConnectionStatusMessage.Type.CONNECT, isa, true));
+							return null;
 						}, timeUTC));
 					}
 				}
@@ -142,7 +133,7 @@ class LocalNetworkAffectationAgent extends AgentFakeThread {
 
 	@Override
 	protected void end() {
-		if (!networkStoped && getMadkitConfig().networkProperties.networkInterfaceScan) {
+		if (!networkStopped && getMadkitConfig().networkProperties.networkInterfaceScan) {
 			Set<AgentAddress> aa = getAgentsWithRole(LocalCommunity.Groups.NETWORK,
 					LocalCommunity.Roles.LOCAL_NETWORK_EXPLORER_ROLE);
 			if (aa.size() > 0)
@@ -234,7 +225,7 @@ class LocalNetworkAffectationAgent extends AgentFakeThread {
 
 			}
 		} else if (_message instanceof NetworkAgent.StopNetworkMessage) {
-			networkStoped = true;
+			networkStopped = true;
 			this.broadcastMessage(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.LOCAL_NETWORK_ROLE, _message,
 					false);
 			this.sendMessageWithRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.LOCAL_NETWORK_EXPLORER_ROLE,
@@ -266,12 +257,7 @@ class LocalNetworkAffectationAgent extends AgentFakeThread {
 
 	private void addAskedConnection(AskForConnectionMessage m) {
 
-		for (Iterator<AskForConnectionMessage> it = askedConnections.iterator(); it.hasNext();) {
-			AskForConnectionMessage afcm = it.next();
-			if (afcm.getIP().equals(m.getIP())) {
-				it.remove();
-			}
-		}
+		askedConnections.removeIf(afcm -> afcm.getIP().equals(m.getIP()));
 		if (m.getType().equals(ConnectionStatusMessage.Type.CONNECT))
 			askedConnections.add(m);
 		if (logger != null && logger.isLoggable(Level.FINER))

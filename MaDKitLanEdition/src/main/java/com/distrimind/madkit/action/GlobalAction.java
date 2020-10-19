@@ -77,18 +77,18 @@ public class GlobalAction {
 	final static private ResourceBundle messages = I18nUtilities.getResourceBundle(GlobalAction.class.getSimpleName());
 
 	/**
-	 * An action that Launches the jconsole tool if it is available. It is set to
-	 * <code>null</code> if jconsole is unavailable. jconsole is available on
+	 * An action that Launches the jConsole tool if it is available. It is set to
+	 * <code>null</code> if jConsole is unavailable. jConsole is available on
 	 * environments containing the oracle JDK.
 	 */
-	final public static Action JCONSOLE;
+	final public static Action JConsole;
 
 	static {
-		final String jconsolePath = MadkitClassLoader.findJavaExecutable("jconsole");
-		if (jconsolePath == null) {
-			JCONSOLE = null;
+		final String jConsolePath = MadkitClassLoader.findJavaExecutable("jconsole");
+		if (jConsolePath == null) {
+			JConsole = null;
 		} else {
-			JCONSOLE = new MDKAbstractAction(new ActionInfo("JCONSOLE", KeyEvent.VK_L, messages)) {
+			JConsole = new MDKAbstractAction(new ActionInfo("JConsole", KeyEvent.VK_L, messages)) {
 
 				private static final long serialVersionUID = 1L;
 
@@ -96,7 +96,7 @@ public class GlobalAction {
 				public void actionPerformed(ActionEvent e) {
 					final String pid = java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
 					try {
-						new ProcessBuilder(jconsolePath, pid.substring(0, pid.indexOf('@'))).start();
+						new ProcessBuilder(jConsolePath, pid.substring(0, pid.indexOf('@'))).start();
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					}

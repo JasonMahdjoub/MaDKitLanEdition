@@ -67,13 +67,13 @@ public class NetworkLoginAccessEvent extends HookMessage {
 	private final List<CloudIdentifier> newDeniedCloudIdentifiersToOther;
 	private final List<Identifier> newDeniedIdentifiersFromOther;
 	private final List<Identifier> newDeniedIdentifiersToOther;
-	private final List<PairOfIdentifiers> newUnloggedIdentifiers;
+	private final List<PairOfIdentifiers> newUnLoggedIdentifiers;
 
 	public NetworkLoginAccessEvent(KernelAddress _concerned_kernel_address_interfaced,
 								   List<PairOfIdentifiers> allCurrentIdentifiers, List<PairOfIdentifiers> newAcceptedIdentifiers,
 								   List<CloudIdentifier> newDeniedCloudIdentifiersToOther,
 								   List<Identifier> newDeniedIdentifiersFromOther,
-								   List<Identifier> newDeniedIdentifiersToOther, List<PairOfIdentifiers> newUnloggedIdentifiers) {
+								   List<Identifier> newDeniedIdentifiersToOther, List<PairOfIdentifiers> newUnLoggedIdentifiers) {
 		super(AgentActionEvent.LOGGED_IDENTIFIERS_UPDATE);
 		if (_concerned_kernel_address_interfaced == null)
 			throw new NullPointerException("_concerned_kernel_address_interfaced");
@@ -82,25 +82,25 @@ public class NetworkLoginAccessEvent extends HookMessage {
 			throw new NullPointerException("allCurrentIdentifiers");
 		this.currentIdentifiers = Collections.unmodifiableList(allCurrentIdentifiers);
 		if (newAcceptedIdentifiers == null)
-			this.newAcceptedIdentifiers = Collections.unmodifiableList(new ArrayList<PairOfIdentifiers>());
+			this.newAcceptedIdentifiers = Collections.unmodifiableList(new ArrayList<>());
 		else
 			this.newAcceptedIdentifiers = Collections.unmodifiableList(newAcceptedIdentifiers);
 		if (newDeniedCloudIdentifiersToOther == null)
-			this.newDeniedCloudIdentifiersToOther = Collections.unmodifiableList(new ArrayList<CloudIdentifier>());
+			this.newDeniedCloudIdentifiersToOther = Collections.unmodifiableList(new ArrayList<>());
 		else
 			this.newDeniedCloudIdentifiersToOther = Collections.unmodifiableList(newDeniedCloudIdentifiersToOther);
 		if (newDeniedIdentifiersFromOther == null)
-			this.newDeniedIdentifiersFromOther = Collections.unmodifiableList(new ArrayList<Identifier>());
+			this.newDeniedIdentifiersFromOther = Collections.unmodifiableList(new ArrayList<>());
 		else
 			this.newDeniedIdentifiersFromOther = Collections.unmodifiableList(newDeniedIdentifiersFromOther);
 		if (newDeniedIdentifiersToOther == null)
-			this.newDeniedIdentifiersToOther = Collections.unmodifiableList(new ArrayList<Identifier>());
+			this.newDeniedIdentifiersToOther = Collections.unmodifiableList(new ArrayList<>());
 		else
 			this.newDeniedIdentifiersToOther = Collections.unmodifiableList(newDeniedIdentifiersToOther);
-		if (newUnloggedIdentifiers == null)
-			this.newUnloggedIdentifiers = Collections.unmodifiableList(new ArrayList<PairOfIdentifiers>());
+		if (newUnLoggedIdentifiers == null)
+			this.newUnLoggedIdentifiers = Collections.unmodifiableList(new ArrayList<>());
 		else
-			this.newUnloggedIdentifiers = Collections.unmodifiableList(newUnloggedIdentifiers);
+			this.newUnLoggedIdentifiers = Collections.unmodifiableList(newUnLoggedIdentifiers);
 	}
 
 	@Override
@@ -112,7 +112,7 @@ public class NetworkLoginAccessEvent extends HookMessage {
 				", lastDeniedCloudIdentifiersToOther=" + newDeniedCloudIdentifiersToOther +
 				", lastDeniedIdentifiersFromOther=" + newDeniedIdentifiersFromOther +
 				", lastDeniedIdentifiersToOther=" + newDeniedIdentifiersToOther +
-				", newUnloggedIdentifiers=" + newUnloggedIdentifiers +
+				", newUnLoggedIdentifiers=" + newUnLoggedIdentifiers +
 				']';
 	}
 
@@ -138,8 +138,8 @@ public class NetworkLoginAccessEvent extends HookMessage {
 
 
 
-	public List<PairOfIdentifiers> getNewUnloggedIdentifiers() {
-		return newUnloggedIdentifiers;
+	public List<PairOfIdentifiers> getNewUnLoggedIdentifiers() {
+		return newUnLoggedIdentifiers;
 	}
 
 	public KernelAddress getConcernedKernelAddress() {

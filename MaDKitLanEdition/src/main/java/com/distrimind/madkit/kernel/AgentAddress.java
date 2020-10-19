@@ -56,7 +56,7 @@ import java.io.IOException;
  * AgentAddress becomes invalid and no longer permits to reach this agent. For
  * instance, a message sent using
  * {@link AbstractAgent#sendMessage(AgentAddress, Message)} will not be
- * delivered if the agent has leaved the related CGR location.
+ * delivered if the agent has left the related CGR location.
  * 
  * @author Olivier Gutknecht
  * @author Fabien Michel
@@ -131,20 +131,6 @@ public class AgentAddress implements SecureExternalizable, Cloneable {
 	}
 	
 	
-	/*
-	 * public AgentAddress getOriginalAgentAddesss(KernelAddressInterfaced kai) { if
-	 * (!kernelAddress.equals(kai)) throw new
-	 * IllegalArgumentException("The given kernel address interfaced is incompatible with this agent address !"
-	 * ); if (kai.isInterfaced()) return new AgentAddress(agent, roleObject,
-	 * kai.getOriginalKernelAddress(), manually_requested); else return this; }
-	 * 
-	 * public AgentAddress interfaceDistantAgentAddress(KernelAddressInterfaced kai)
-	 * { if (!kernelAddress.equals(kai.getOriginalKernelAddress())) throw new
-	 * IllegalArgumentException("The given kernel address interfaced is incompatible with this agent address !"
-	 * ); if (kai.isInterfaced()) return new AgentAddress(agent, roleObject, kai,
-	 * manually_requested); else return this; }
-	 */
-
 	/**
 	 * @param newRole
 	 *            the roleObject to set
@@ -363,8 +349,9 @@ final class GroupManagerAddress extends AgentAddress {
 	{
 		
 	}
+
 	GroupManagerAddress(AbstractAgent agt, InternalRole role, KernelAddress ka, boolean manually_requested,
-			boolean securedGroup) {
+						boolean securedGroup) {
 		super(agt, role, ka, manually_requested);
 		this.securedGroup = securedGroup;
 	}

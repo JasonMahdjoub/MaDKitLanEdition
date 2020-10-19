@@ -53,8 +53,8 @@ import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
  */
 public class StatsBandwidth {
 
-	private final Map<String, RealTimeTransfertStat> bytes_uploaded_in_real_time = new HashMap<>();
-	private final Map<String, RealTimeTransfertStat> bytes_downloaded_in_real_time = new HashMap<>();
+	private final Map<String, RealTimeTransferStat> bytes_uploaded_in_real_time = new HashMap<>();
+	private final Map<String, RealTimeTransferStat> bytes_downloaded_in_real_time = new HashMap<>();
 	private final Map<String, TransferSpeedStat> bytes_uploaded_in_real_bytes = new HashMap<>();
 	private final Map<String, TransferSpeedStat> bytes_downloaded_in_real_bytes = new HashMap<>();
 
@@ -96,55 +96,55 @@ public class StatsBandwidth {
 	}
 
 	/**
-	 * Associate with a key, a {@link RealTimeTransfertStat} for LAN upload
+	 * Associate with a key, a {@link RealTimeTransferStat} for LAN upload
 	 * statistics
 	 * 
 	 * @param key
 	 *            the key
 	 * @param stat
 	 *            the statistic
-	 * @see RealTimeTransfertStat
+	 * @see RealTimeTransferStat
 	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS
 	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS
 	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS
 	 */
-	public void putBytesUploadedInRealTime(String key, RealTimeTransfertStat stat) {
+	public void putBytesUploadedInRealTime(String key, RealTimeTransferStat stat) {
 		synchronized (this) {
 			bytes_uploaded_in_real_time.put(key, stat);
 		}
 	}
 
 	/**
-	 * Remove according a key, a {@link RealTimeTransfertStat} related LAN upload
+	 * Remove according a key, a {@link RealTimeTransferStat} related LAN upload
 	 * statistics
 	 * 
 	 * @param key
 	 *            the key
-	 * @return the removed {@link RealTimeTransfertStat}
-	 * @see RealTimeTransfertStat
+	 * @return the removed {@link RealTimeTransferStat}
+	 * @see RealTimeTransferStat
 	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS
 	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS
 	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS
 	 */
-	public RealTimeTransfertStat removeBytesUploadedInRealTime(String key) {
+	public RealTimeTransferStat removeBytesUploadedInRealTime(String key) {
 		synchronized (this) {
 			return bytes_uploaded_in_real_time.remove(key);
 		}
 	}
 
 	/**
-	 * Gets according a key, a {@link RealTimeTransfertStat} related LAN upload
+	 * Gets according a key, a {@link RealTimeTransferStat} related LAN upload
 	 * statistics
 	 * 
 	 * @param key
 	 *            the key
-	 * @see RealTimeTransfertStat
+	 * @see RealTimeTransferStat
 	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS
 	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS
 	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS
-	 * @return a {@link RealTimeTransfertStat} related LAN upload statistics
+	 * @return a {@link RealTimeTransferStat} related LAN upload statistics
 	 */
-	public RealTimeTransfertStat getBytesUploadedInRealTime(String key) {
+	public RealTimeTransferStat getBytesUploadedInRealTime(String key) {
 		synchronized (this) {
 			return bytes_uploaded_in_real_time.get(key);
 		}
@@ -199,54 +199,54 @@ public class StatsBandwidth {
 	}
 
 	/**
-	 * Associate with a key, a RealTimeTransfertStat for LAN download statistics
+	 * Associate with a key, a RealTimeTransferStat for LAN download statistics
 	 * 
 	 * @param key
 	 *            the key
 	 * @param stat
 	 *            the statistic
-	 * @see RealTimeTransfertStat
+	 * @see RealTimeTransferStat
 	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS
 	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS
 	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS
 	 */
-	public void putBytesDownloadedInRealTime(String key, RealTimeTransfertStat stat) {
+	public void putBytesDownloadedInRealTime(String key, RealTimeTransferStat stat) {
 		synchronized (this) {
 			bytes_downloaded_in_real_time.put(key, stat);
 		}
 	}
 
 	/**
-	 * Remove according a key, a {@link RealTimeTransfertStat} related LAN download
+	 * Remove according a key, a {@link RealTimeTransferStat} related LAN download
 	 * statistics
 	 * 
 	 * @param key
 	 *            the key
-	 * @return the removed {@link RealTimeTransfertStat}
-	 * @see RealTimeTransfertStat
+	 * @return the removed {@link RealTimeTransferStat}
+	 * @see RealTimeTransferStat
 	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS
 	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS
 	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS
 	 */
-	public RealTimeTransfertStat removeBytesDownloadedInRealTime(String key) {
+	public RealTimeTransferStat removeBytesDownloadedInRealTime(String key) {
 		synchronized (this) {
 			return bytes_downloaded_in_real_time.remove(key);
 		}
 	}
 
 	/**
-	 * Gets according a key, a {@link RealTimeTransfertStat} related LAN download
+	 * Gets according a key, a {@link RealTimeTransferStat} related LAN download
 	 * statistics
 	 * 
 	 * @param key
 	 *            the key
-	 * @see RealTimeTransfertStat
+	 * @see RealTimeTransferStat
 	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS
 	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS
 	 * @see NetworkProperties#DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS
-	 * @return a {@link RealTimeTransfertStat} related LAN upload statistics
+	 * @return a {@link RealTimeTransferStat} related LAN upload statistics
 	 */
-	public RealTimeTransfertStat getBytesDownloadedInRealTime(String key) {
+	public RealTimeTransferStat getBytesDownloadedInRealTime(String key) {
 		synchronized (this) {
 			return bytes_downloaded_in_real_time.get(key);
 		}
@@ -303,8 +303,8 @@ public class StatsBandwidth {
 	void newDataSent(IDTransfer id, int size) {
 		StatsBandwidth sb = null;
 		synchronized (this) {
-			for (RealTimeTransfertStat s : bytes_uploaded_in_real_time.values())
-				s.newBytesIndentified(size);
+			for (RealTimeTransferStat s : bytes_uploaded_in_real_time.values())
+				s.newBytesIdentified(size);
 			if (id != null && !id.equals(TransferAgent.NullIDTransfer)) {
 				sb = transfer_agents_bandwidth.get(id.getID());
 				if (sb == null)
@@ -327,7 +327,7 @@ public class StatsBandwidth {
 		StatsBandwidth sb = null;
 		synchronized (this) {
 			for (TransferSpeedStat s : bytes_uploaded_in_real_bytes.values())
-				s.newBytesIndentified(size, duration);
+				s.newBytesIdentified(size, duration);
 			if (id != null && !id.equals(TransferAgent.NullIDTransfer)) {
 				sb = transfer_agents_bandwidth.get(id.getID());
 				if (sb == null)
@@ -348,8 +348,8 @@ public class StatsBandwidth {
 	void newDataReceived(Integer id, int size) {
 		StatsBandwidth sb = null;
 		synchronized (this) {
-			for (RealTimeTransfertStat s : bytes_downloaded_in_real_time.values())
-				s.newBytesIndentified(size);
+			for (RealTimeTransferStat s : bytes_downloaded_in_real_time.values())
+				s.newBytesIdentified(size);
 			if (id != null && id != TransferAgent.NullIDTransfer.getID()) {
 				sb = transfer_agents_bandwidth.get(id);
 				if (sb == null)
@@ -372,7 +372,7 @@ public class StatsBandwidth {
 		StatsBandwidth sb = null;
 		synchronized (this) {
 			for (TransferSpeedStat s : bytes_downloaded_in_real_bytes.values())
-				s.newBytesIndentified(size, duration);
+				s.newBytesIdentified(size, duration);
 			if (id != null && id != TransferAgent.NullIDTransfer.getID()) {
 				sb = transfer_agents_bandwidth.get(id);
 				if (sb == null)

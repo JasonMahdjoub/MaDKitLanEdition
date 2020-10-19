@@ -87,13 +87,13 @@ public class BigDataTransferReceiverAgent extends Agent {
 			if (m instanceof BigDataResultMessage)
 			{
 				BigDataResultMessage rm=((BigDataResultMessage) m);
-				if (rm.getType()==BigDataResultMessage.Type.BIG_DATA_TRANSFERED)
+				if (rm.getType()==BigDataResultMessage.Type.BIG_DATA_TRANSFERRED)
 				{
-					System.out.println(rm.getTransferedDataLength() +" bytes transfered in "+rm.getTransferDuration()+" ms"+(bdpm.bigDataExcludedFromEncryption()?" without encryption":" with encryption"));
-					System.out.println("Transfer speed (MiO per seconds) : "+(((double)rm.getTransferedDataLength())/(((double)rm.getTransferDuration())/1000.0)/1024.0/1024.0));
+					System.out.println(rm.getTransferredDataLength() +" bytes transfered in "+rm.getTransferDuration()+" ms"+(bdpm.bigDataExcludedFromEncryption()?" without encryption":" with encryption"));
+					System.out.println("Transfer speed (MiO per seconds) : "+(((double)rm.getTransferredDataLength())/(((double)rm.getTransferDuration())/1000.0)/1024.0/1024.0));
 					if (getMaximumGlobalDownloadSpeedInBytesPerSecond()!=Integer.MAX_VALUE) {
 
-                        double speed=((double) rm.getTransferedDataLength()) / ((double) rm.getTransferDuration()) * 1000.0;
+                        double speed=((double) rm.getTransferredDataLength()) / ((double) rm.getTransferDuration()) * 1000.0;
                         Assert.assertTrue(speed< getMaximumGlobalDownloadSpeedInBytesPerSecond() * 2);
                         Assert.assertTrue(speed> getMaximumGlobalDownloadSpeedInBytesPerSecond() / 2.0);
                     }

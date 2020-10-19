@@ -84,7 +84,7 @@ public class ActionInfo {
 	 * Builds a new ActionInfo considering a codeName as a string.
 	 * 
 	 * @param codeName
-	 *            the code name of the action as a string. For instance JCONSOLE.
+	 *            the code name of the action as a string. For instance JConsole.
 	 * @param keyEvent the key event
 	 * @param resource the resource bundle
 	 */

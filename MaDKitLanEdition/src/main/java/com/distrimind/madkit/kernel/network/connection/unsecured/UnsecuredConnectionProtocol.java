@@ -69,10 +69,10 @@ public class UnsecuredConnectionProtocol extends ConnectionProtocol<UnsecuredCon
 	private UnsecuredConnectionProtocol(InetSocketAddress _distant_inet_address,
                                         InetSocketAddress _local_interface_address, ConnectionProtocol<?> _subProtocol,
                                         DatabaseWrapper _sql_connection, MadkitProperties mkProperties, ConnectionProtocolProperties<?> cpp, int subProtocolLevel, boolean isServer,
-                                        boolean mustSupportBidirectionnalConnectionInitiative
+                                        boolean mustSupportBidirectionalConnectionInitiative
 										) throws ConnectionException {
 		super(_distant_inet_address, _local_interface_address, _subProtocol, _sql_connection, mkProperties,cpp,
-				subProtocolLevel, isServer, mustSupportBidirectionnalConnectionInitiative);
+				subProtocolLevel, isServer, mustSupportBidirectionalConnectionInitiative);
 		parser = new Parser();
 	}
 
@@ -137,8 +137,8 @@ public class UnsecuredConnectionProtocol extends ConnectionProtocol<UnsecuredCon
 	}
 
 	@Override
-	public TransferedBlockChecker getTransferredBlockChecker(TransferedBlockChecker subBlockChercker) {
-		return new BlockChecker(subBlockChercker);
+	public TransferedBlockChecker getTransferredBlockChecker(TransferedBlockChecker subBlockChecker) {
+		return new BlockChecker(subBlockChecker);
 	}
 
 	static class Parser extends SubBlockParser {

@@ -51,29 +51,8 @@ public final class Block {
 	public static final int BLOCK_SIZE_LIMIT = 0x200000;
 
 	private final byte[] block;
-	private int transfert_type;
+	private int transfer_type;
 	private int size;
-	/*public Block(PacketPart _packet_part, SubBlocksStructure _structure, int _transfert_type) throws PacketException {
-		this(_packet_part, _structure, _transfert_type, (byte)-1);
-	}*/
-	/*public Block(PacketPart _packet_part, SubBlocksStructure _structure, int _transfert_type, byte counterID) throws PacketException {
-		int size = _structure.block_size;
-		if (size > BLOCK_SIZE_LIMIT)
-			throw new PacketException(
-					"This block has a size (" + size + ") greater than the size limit : " + BLOCK_SIZE_LIMIT);
-		block = new byte[size];
-		transfert_type = _transfert_type;
-		putShortInt(block, 0, block.length);
-		Bits.putInt(block, 3, transfert_type);
-		this.counterID=counterID;
-		counterState=null;
-		try {
-			System.arraycopy(_packet_part.getBytes(), 0, block, _structure.initial_packet_offset,
-					_packet_part.getBytes().length);
-		} catch (Exception e) {
-			throw new PacketException(e);
-		}
-	}*/
 	public Block(SubBlocksStructure _structure) throws PacketException {
 		size = _structure.block_size;
 		if (size > BLOCK_SIZE_LIMIT)
@@ -82,7 +61,7 @@ public final class Block {
 		block = new byte[size];
 		
 		putShortInt(block, 0, size);
-		Bits.putInt(block, 3, transfert_type);
+		Bits.putInt(block, 3, transfer_type);
 	}
 
 
@@ -103,15 +82,15 @@ public final class Block {
 
 	
 	
-	public Block(byte[] tab, int size, SubBlocksStructure _structure, int _transfert_type) throws PacketException {
+	public Block(byte[] tab, int size, SubBlocksStructure _structure, int _transfer_type) throws PacketException {
 		this.size=size;
 		if (size > BLOCK_SIZE_LIMIT)
 			throw new PacketException(
 					"This block has a size (" + size + ") greater than the size limit : " + BLOCK_SIZE_LIMIT);
 		block = tab;
-		transfert_type = _transfert_type;
+		transfer_type = _transfer_type;
 		putShortInt(block, 0, size);
-		Bits.putInt(block, 3, transfert_type);
+		Bits.putInt(block, 3, transfer_type);
 		/*if (counterSelector!=null)
 			block[7]=(counterState=counterSelector.getState(this.counterID=counterID)).getCode();
 		else
@@ -142,11 +121,11 @@ public final class Block {
 					"This block has a size (" + size + ") lower than 0");
 		if (size != _block.length)
 			throw new PacketException(
-					"The given block as an invalid size (readed: " + size + "; block size: " + _block.length + ")");
-		transfert_type = getTransferID(block);
+					"The given block as an invalid size (read: " + size + "; block size: " + _block.length + ")");
+		transfer_type = getTransferID(block);
 		
 	}
-	public Block(int block_size, int _transfert_type) throws PacketException {
+	public Block(int block_size, int _transfer_type) throws PacketException {
 		this.size=block_size;
 		if (block_size > BLOCK_SIZE_LIMIT)
 			throw new PacketException(
@@ -156,34 +135,23 @@ public final class Block {
 					"block_size must be greater than getHeadSize() and lower or equal than getMaximumBlockSize()");
 		block = new byte[block_size];
 		putShortInt(block, 0, this.size);
-		Bits.putInt(block, 3, _transfert_type);
-		transfert_type = _transfert_type;
+		Bits.putInt(block, 3, _transfer_type);
+		transfer_type = _transfer_type;
 	}
-	
-	
-	public void setBlockAttributes(int blockSize, int _transpertType) throws PacketException
+
+
+	public void setBlockAttributes(int blockSize, int _transferType) throws PacketException
 	{
 		this.size=blockSize;
 		if (blockSize <= getHeadSize() || blockSize > block.length)
 			throw new PacketException(
 					"block_size must be greater than getHeadSize() and lower or equal than getMaximumBlockSize()");
 		putShortInt(block, 0, this.size);
-		Bits.putInt(block, 3, _transpertType);
-		transfert_type = _transpertType;
+		Bits.putInt(block, 3, _transferType);
+		transfer_type = _transferType;
 	}
 	
-	
-	/*Block(int block_size) throws PacketException {
-		this.size=block_size;
-		if (block_size > BLOCK_SIZE_LIMIT)
-			throw new PacketException(
-					"This block has a size (" + block_size + ") greater than the size limit : " + BLOCK_SIZE_LIMIT);
-		if (block_size <= getHeadSize() || block_size > getMaximumBlockSize())
-			throw new PacketException(
-					"block_size must be greater than getHeadSize() and lower or equal than getMaximumBlockSize()");
-		block = new byte[block_size];
-		transfert_type = -1;
-	}*/
+
 	
 	
 	
@@ -202,19 +170,19 @@ public final class Block {
 	}
 
 	public boolean isDirect() {
-		return TransferAgent.NullIDTransfer.equals(transfert_type);
+		return TransferAgent.NullIDTransfer.equals(transfer_type);
 	}
 
 	public boolean isValid() {
-		return transfert_type > -2;
+		return transfer_type > -2;
 	}
 
 	public int getTransferID() {
-		return transfert_type;
+		return transfer_type;
 	}
 
-	public void setTransfertID(int _id) {
-		transfert_type = _id;
+	public void setTransferID(int _id) {
+		transfer_type = _id;
 		Bits.putInt(block, 3, _id);
 	}
 

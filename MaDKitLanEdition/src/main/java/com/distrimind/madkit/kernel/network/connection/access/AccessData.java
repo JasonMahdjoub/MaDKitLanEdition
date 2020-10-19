@@ -71,7 +71,7 @@ public abstract class AccessData {
 
 	/**
 	 * 
-	 * @return the default group enabled for this access, whithout identification.
+	 * @return the default group enabled for this access, without identification.
 	 * 
 	 * @throws AccessException
 	 *             if a problem occurs

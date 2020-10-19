@@ -195,9 +195,9 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		for (int i=0;i<identifiers.length;i++)
 		{
 			Identifier id = identifiers[i];
-			Identifier resid=getValidDistantIdentifier(acceptedCloudIdentifiers, usedCloudIdentifiers, initializedCloudIdentifiers, id, hostSignatures[i], loginData, localGeneratedSalt);
-			if (resid!=null) {
-				validDistantIds.add(resid);
+			Identifier resId=getValidDistantIdentifier(acceptedCloudIdentifiers, usedCloudIdentifiers, initializedCloudIdentifiers, id, hostSignatures[i], loginData, localGeneratedSalt);
+			if (resId!=null) {
+				validDistantIds.add(resId);
 			}
 			else {
 				++nbAno;

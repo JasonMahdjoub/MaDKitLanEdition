@@ -69,7 +69,7 @@ public final class NetworkAgent extends AgentFakeThread {
 
 	// private AgentAddress kernelAgent;
 	private AgentAddress NIOAgentAddress = null, LocalNetworkAffectationAgentAddress = null;
-	private HashMap<ConversationID, MessageLocker> messageLockers = new HashMap<>();
+	private final HashMap<ConversationID, MessageLocker> messageLockers = new HashMap<>();
 	private DatabaseSynchronizerAgent databaseSynchronizerAgent=null;
 	public static final String REFRESH_GROUPS_ACCESS="REFRESH_GROUPS_ACCESS";
 
@@ -155,7 +155,7 @@ public final class NetworkAgent extends AgentFakeThread {
 
 		if (getMadkitConfig().networkProperties.upnpIGDEnabled
 				|| getMadkitConfig().networkProperties.networkInterfaceScan) {
-			AbstractAgent aa = MadkitNetworkAccess.getUpngIDGAgent(this);
+			AbstractAgent aa = MadkitNetworkAccess.getUpnpIDGAgent(this);
 			if (aa==null)
 				throw new NullPointerException();
 
@@ -230,7 +230,7 @@ public final class NetworkAgent extends AgentFakeThread {
 		NORMAL_DETECTION(ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED), ANOMALY_DETECTED(
 				ConnectionClosedReason.CONNECTION_ANOMALY);
 
-		private ConnectionClosedReason reason;
+		private final ConnectionClosedReason reason;
 
 		NetworkCloseReason(ConnectionClosedReason reason) {
 			this.reason = reason;
@@ -297,7 +297,7 @@ public final class NetworkAgent extends AgentFakeThread {
 								LocalCommunity.Roles.SOCKET_AGENT_ROLE, a, false);
 				}
 				break;
-			case Roles.EMMITER:// It is a message to send elsewhere
+			case Roles.EMITTER:// It is a message to send elsewhere
 			{
 				MessageLocker ml = null;
 				if (m instanceof LocalLanMessage) {

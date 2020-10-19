@@ -156,8 +156,7 @@ public abstract class AbstractAccessProtocol {
 	}
 
 	public abstract AccessMessage subSetAndGetNextMessage(AccessMessage _m) throws AccessException;
-
-	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
+	
 	protected boolean differAccessMessage(AccessMessage m) {
 		if (((m instanceof NewLocalLoginAddedMessage) || (m instanceof NewLocalLoginRemovedMessage))) {
 
@@ -187,18 +186,6 @@ public abstract class AbstractAccessProtocol {
 
 	protected abstract AccessMessage manageDifferableAccessMessage(AccessMessage _m) throws AccessException;
 
-	/*
-	 * private final LinkedList<LocalLogingAccessMessage>
-	 * new_login_events_waiting=new LinkedList<>();
-	 * 
-	 * private void addNewLocalLoginEvent(LocalLogingAccessMessage loginEvent) {
-	 * new_login_events_waiting.add(loginEvent); }
-	 * 
-	 * private LocalLogingAccessMessage popLocalLogingEvent() { if
-	 * (new_login_events_waiting.size()==0) return null;
-	 * 
-	 * return new_login_events_waiting.removeFirst(); }
-	 */
 
 	//private KernelAddress distant_kernel_address;
 	private ArrayList<PairOfIdentifiers> last_accepted_identifiers = new ArrayList<>();
@@ -206,7 +193,7 @@ public abstract class AbstractAccessProtocol {
 	private ArrayList<Identifier> last_denied_identifiers_from_other = new ArrayList<>();
 	private ArrayList<Identifier> last_denied_identifiers_to_other = new ArrayList<>();
 	private ArrayList<CloudIdentifier> last_denied_cloud_to_other = new ArrayList<>();
-	private ArrayList<PairOfIdentifiers> last_unlogged_identifiers = new ArrayList<>();
+	private ArrayList<PairOfIdentifiers> last_un_logged_identifiers = new ArrayList<>();
 
 	/*public KernelAddress getDistantKernelAddress() {
 		return distant_kernel_address;
@@ -238,7 +225,7 @@ public abstract class AbstractAccessProtocol {
 					{
 						it.remove();
 						last_accepted_identifiers.remove(poiAccepted);
-						last_unlogged_identifiers.add(poiAccepted);
+						last_un_logged_identifiers.add(poiAccepted);
 					}
 					else
 						doNotAdd=true;
@@ -256,7 +243,7 @@ public abstract class AbstractAccessProtocol {
 
 	}
 
-	protected UnlogMessage removeAcceptedIdentifiers(ArrayList<Identifier> _identifiers) {
+	protected UnLogMessage removeAcceptedIdentifiers(ArrayList<Identifier> _identifiers) {
 
 		ArrayList<PairOfIdentifiers> toRemove = new ArrayList<>(_identifiers.size());
 		ArrayList<Identifier> res = new ArrayList<>(_identifiers.size());
@@ -272,8 +259,8 @@ public abstract class AbstractAccessProtocol {
 			}
 		}
 		last_accepted_identifiers.removeAll(toRemove);
-		last_unlogged_identifiers.addAll(toRemove);
-		return new UnlogMessage(res);
+		last_un_logged_identifiers.addAll(toRemove);
+		return new UnLogMessage(res);
 	}
 
 	public void updateGroupAccess() throws AccessException {
@@ -339,9 +326,9 @@ public abstract class AbstractAccessProtocol {
 		return res;
 	}
 
-	public ArrayList<PairOfIdentifiers> getLastUnloggedIdentifiers() {
-		ArrayList<PairOfIdentifiers> res = last_unlogged_identifiers;
-		last_unlogged_identifiers = new ArrayList<>();
+	public ArrayList<PairOfIdentifiers> getLastUnLoggedIdentifiers() {
+		ArrayList<PairOfIdentifiers> res = last_un_logged_identifiers;
+		last_un_logged_identifiers = new ArrayList<>();
 		return res;
 	}
 

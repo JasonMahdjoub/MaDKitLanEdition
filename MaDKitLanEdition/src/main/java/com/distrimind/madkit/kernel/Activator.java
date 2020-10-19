@@ -70,7 +70,7 @@ import com.distrimind.madkit.simulation.activator.GenericBehaviorActivator;
 @SuppressWarnings("UnusedReturnValue")
 public abstract class Activator<A extends AbstractAgent> extends Overlooker<A> {
 
-	private int nbOfsimultaneousTasks = 1;
+	private int nbOfSimultaneousTasks = 1;
 
 	/**
 	 * Builds a new Activator on the given CGR location of the artificial society
@@ -163,19 +163,15 @@ public abstract class Activator<A extends AbstractAgent> extends Overlooker<A> {
 		final int nbOfAgentsPerTask = bucketSize / cpuCoreNb;
 		for (int i = 0; i < cpuCoreNb; i++) {
 			final int index = i;
-			workers.add(new Callable<Void>() {
-				public Void call() {
-					int firstIndex = nbOfAgentsPerTask * index;// TODO check that using junit
-					execute(list.subList(firstIndex, firstIndex + nbOfAgentsPerTask), args);
-					return null;
-				}
+			workers.add(() -> {
+				int firstIndex = nbOfAgentsPerTask * index;// TODO check that using junit
+				execute(list.subList(firstIndex, firstIndex + nbOfAgentsPerTask), args);
+				return null;
 			});
 		}
-		workers.add(new Callable<Void>() {
-			public Void call() {
-				execute(list.subList(nbOfAgentsPerTask * cpuCoreNb, list.size()), args);
-				return null;
-			}
+		workers.add(() -> {
+			execute(list.subList(nbOfAgentsPerTask * cpuCoreNb, list.size()), args);
+			return null;
 		});
 		try {
 			this.getMadkitServiceExecutor().invokeAll(workers);
@@ -196,7 +192,7 @@ public abstract class Activator<A extends AbstractAgent> extends Overlooker<A> {
 	 *         activator has to be used.
 	 */
 	public boolean isMulticoreModeOn() {
-		return nbOfsimultaneousTasks > 1;
+		return nbOfSimultaneousTasks > 1;
 	}
 
 	/**
@@ -214,7 +210,7 @@ public abstract class Activator<A extends AbstractAgent> extends Overlooker<A> {
 	 *            {@link #isMulticoreModeOn()} returns <code>false</code>.
 	 */
 	public void useMulticore(int nbOfParallelTasks) {
-		nbOfsimultaneousTasks = nbOfParallelTasks < 2 ? 1 : nbOfParallelTasks;
+		nbOfSimultaneousTasks = nbOfParallelTasks < 2 ? 1 : nbOfParallelTasks;
 	}
 
 	/**
@@ -224,7 +220,7 @@ public abstract class Activator<A extends AbstractAgent> extends Overlooker<A> {
 	 * @return the number of tasks that will be created.
 	 */
 	public int nbOfParallelTasks() {
-		return nbOfsimultaneousTasks;
+		return nbOfSimultaneousTasks;
 	}
 
 	/**
@@ -258,12 +254,10 @@ public abstract class Activator<A extends AbstractAgent> extends Overlooker<A> {
 		while (true) {
 			try {
 				m = agentClass.getDeclaredMethod(methodName);
-				if (m != null) {
-					if (!m.isAccessible()) {// TODO seems to be always the case the first time
-						m.setAccessible(true);
-					}
-					return m;
-				}
+				//if (!m.isAccessible()) {// TODO seems to be always the case the first time
+					m.setAccessible(true);
+				//}
+				return m;
 			} catch (SecurityException e) {
 				e.printStackTrace();
 			} catch (NoSuchMethodException e) {

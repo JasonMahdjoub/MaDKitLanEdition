@@ -153,8 +153,8 @@ final class LoggedKernel extends MadkitKernel {
 
 
 	@Override
-	ReturnCode leaveRole(AbstractAgent requester, Group group, String role, boolean manual_request) {
-		ReturnCode r = kernel.leaveRole(requester, group, role, manual_request);
+	ReturnCode leaveRole(AbstractAgent requester, Group group, String role, boolean manualRequested) {
+		ReturnCode r = kernel.leaveRole(requester, group, role, manualRequested);
 		if (r == SUCCESS) {
 			if (requester.isFinestLogOn()) {
 				requester.logger.log(Level.FINEST, Influence.LEAVE_ROLE.successString() + getCGRString(group, role));
@@ -610,8 +610,8 @@ final class LoggedKernel extends MadkitKernel {
 	 */
 
 	@Override
-	boolean cancelTask(AbstractAgent requester, TaskID task_id, boolean mayInteruptTask) {
-		boolean rc = kernel.cancelTask(requester, task_id, mayInteruptTask);
+	boolean cancelTask(AbstractAgent requester, TaskID task_id, boolean mayInterruptTask) {
+		boolean rc = kernel.cancelTask(requester, task_id, mayInterruptTask);
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST,
 					"Canceling task " + task_id + " with default task manager agent : " + rc);
@@ -699,11 +699,11 @@ final class LoggedKernel extends MadkitKernel {
 	}
 
 	@Override
-	void autoRequesteRole(AbstractAgent requester, AbstractGroup group, String role, SecureExternalizable passKey) {
-		kernel.autoRequesteRole(requester, group, role, passKey);
+	void autoRequestRole(AbstractAgent requester, AbstractGroup group, String role, SecureExternalizable passKey) {
+		kernel.autoRequestRole(requester, group, role, passKey);
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST,
-					"autoRequesteRole (Agent " + requester + ", Group " + group + ", Role " + role + ")");
+					"autoRequestRole (Agent " + requester + ", Group " + group + ", Role " + role + ")");
 	}
 
 	@Override
@@ -876,8 +876,8 @@ final class LoggedKernel extends MadkitKernel {
 	}
 
 	@Override
-	ReturnCode requestHookEvents(AbstractAgent requester, AgentActionEvent hookType, boolean autoremove) {
-		ReturnCode rc = kernel.requestHookEvents(requester, hookType, autoremove);
+	ReturnCode requestHookEvents(AbstractAgent requester, AgentActionEvent hookType, boolean autoRemove) {
+		ReturnCode rc = kernel.requestHookEvents(requester, hookType, autoRemove);
 
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST,

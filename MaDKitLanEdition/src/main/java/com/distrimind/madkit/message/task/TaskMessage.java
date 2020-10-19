@@ -51,7 +51,7 @@ import com.distrimind.madkit.kernel.TaskID;
 public abstract class TaskMessage extends Message {
 
 	protected final Task<?> task;
-	private TaskID taskID;
+	private final TaskID taskID;
 
 	/**
 	 * @param taskID the task identifier

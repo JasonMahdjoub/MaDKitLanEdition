@@ -65,72 +65,9 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 	 * @since MaDKitGroupEdition 1.0
 	 */
 	public static final class Groups {
-		// public static final Group NETWORK_AGENTS=new Group(false, null, true, NAME,
-		// "~~network agents");
-		/*
-		 * public static final Group DISTANT_KERNEL_AGENTS =
-		 * PRINCIPAL_GROUP.getSubGroup(false, null, false, "~~distant kernel agents");
-		 * public static final Group LOCAL_NETWORKS_AGENTS =
-		 * PRINCIPAL_GROUP.getSubGroup(false, null, false, "~~local networks agents");
-		 * 
-		 * public static Group getLocalLanGroup(InetAddress inet_address) { return
-		 * LOCAL_NETWORKS_AGENTS.getSubGroup(false, null, false,
-		 * "~~LocalLan:"+inet_address.toString()); }
-		 * 
-		 * public static Group getNioAgentGroup(InetAddress inet_address, )
-		 * 
-		 * public static final Group LOCAL_NETWORK_AGENTS =
-		 * LOCAL_NETWORK_AGENTS.getSubGroup(false, null, false, "~~local lan agent");
-		 * 
-		 * public static final Group SOCKET_AGENTS =
-		 * DISTANT_KERNEL_AGENTS.getSubGroup(false, null, false, "~~socket agents");
-		 * public static final Group DIRECT_SOCKET_AGENTS =
-		 * SOCKET_AGENTS.getSubGroup(false, null, false, "~~direct socket agents");
-		 * public static final Group INDIRECT_SOCKET_AGENTS =
-		 * SOCKET_AGENTS.getSubGroup(false, null, false, "~~indirect socket agents");
-		 * public static final Group NIO_AGENTS = SOCKET_AGENTS.getSubGroup(false, null,
-		 * false, "~~nio agents");
-		 * 
-		 * 
-		 * 
-		 * static final String ROLE_NIO_AGENT="~~NIOAgent";
-		 * 
-		 * static final Group LAN_GROUP=PRINCIPAL_GROUP.getSubGroup(true,
-		 * "~~LAN_GROUP"); static final Group
-		 * LAN_NOTIFICATIONS_GROUP=LAN_GROUP.getSubGroup(true, "~~LAN_NOTIFICATIONS");
-		 * static final String
-		 * LAN_IDENTIFIER_NOTIFICATIONS_ROLE="~~LAN_IDENTIFIER_NOTIFICATIONS"; static
-		 * final String LAN_GROUP_NOTIFICATIONS_ROLE="~~LAN_GROUP_NOTIFICATIONS"; static
-		 * final String LAN_NOTIFIER="~~LAN_NOTIFIER";
-		 * 
-		 * static final Group LAN_ROUTER_GROUP=LAN_GROUP.getSubGroup(true,
-		 * "~~LAN_ROUTER"); //static final Group
-		 * LAN_ROUTER_GROUP_FOR_DISTANT_KERNEL=LAN_GROUP.getSubGroup(true,
-		 * "~~AgentsForDistantKernel"); /*static final Group
-		 * LAN_RECEPTION_GROUP=LAN_GROUP.getSubGroup(true, "~~LAN_RECEPTION"); static
-		 * final Group LAN_EMISSION_GROUP=LAN_GROUP.getSubGroup(true,
-		 * "~~LAN_RECEPTION"); static final String
-		 * LAN_EMISSION_ROLE="~~LAN_EMISSION_ROLE"; static final String
-		 * LAN_RECEPTION_ROLE="~~LAN_RECEPTION_ROLE";
-		 */
 
-		/*
-		 * Identify the agent responsible of the discovery of the local infrastructure
-		 * (UPNP IGD routers, network interfaces).
-		 */
-		/*
-		 * static final String LAN_LOCAL_INFRASTRUCTURE_DISCOVER_ROLE=
-		 * "~~LAN_LOCAL_INFRASTRUCTURE_DISCOVER_ROLE"; //static final String
-		 * LAN_IGD_NEEDER_ROLE="~~LAN_IGD_NEEDER_ROLE"; static final String
-		 * LAN_ROUTER_ROLE="~~LAN_ROUTER_ROLE"; static final String
-		 * LAN_KERNEL_ROUTER_ROLE="~~LAN_ROUTER_ROLE"; static final String
-		 * LAN_TRANSMITER_ROLE="~~LAN_TRANSMITTER_ROLE";
-		 * 
-		 * 
-		 * 
-		 * static final String
-		 * SCHEDULER_NAME_FOR_AGENTS_FAKE_THREAD="~~MKLE_AGENTS_FAKE_THREAD_SCHEDULER";
-		 */
+
+
 
 		private static final Gatekeeper databaseGateKeeper = new Gatekeeper() {
 

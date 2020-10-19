@@ -83,11 +83,10 @@ public class KernelAddress implements SecureExternalizable, Cloneable {
 
 	protected KernelAddress(boolean isSecured, boolean initName) {
 
-		//RenforcedDecentralizedIDGenerator generatedid = new RenforcedDecentralizedIDGenerator();
 		if (isSecured) {
-			id = new RenforcedDecentralizedIDGenerator(false, true);//new SecuredDecentralizedID(generatedid, SecureRandomType.FORTUNA_WITH_BC_FIPS_APPROVED.getInstance(null));
+			id = new RenforcedDecentralizedIDGenerator(false, true);
 		} else
-			id = new RenforcedDecentralizedIDGenerator(false, false);//generatedid;
+			id = new RenforcedDecentralizedIDGenerator(false, false);
 		internalSize=(short)(id.encode().length+1);
 		if (initName)
 			initName();

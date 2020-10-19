@@ -77,7 +77,7 @@ import com.distrimind.util.version.PersonDeveloper;
 import com.distrimind.util.version.Version;
 
 /**
- * MaDKit 5 booter class.
+ * MaDKit 5 starter class.
  * 
  * <h2>MaDKit v.5 new features</h2>
  * 
@@ -259,7 +259,7 @@ final public class Madkit {
 			d.addItem("Cloud identifiers can be individually anonymous thanks to an encryption process.");
 			d.addItem("Host identifiers are sent only if the cloud identifier authentication process succeeded.");
 			d.addItem("Authentication can be done automatically with public key, through a shared password/key, or both");
-			d.addItem("P2PSecuredConnectionProtocolWithKeyAgreeement algorithm permit to make client/server authentication throw asymmetric signatures");
+			d.addItem("P2PSecuredConnectionProtocolWithKeyAgreement algorithm permit to make client/server authentication throw asymmetric signatures");
 			d.addItem("An identifier is composed of a cloud identifier, and a host identifier. In the past, one authentication concerned both cloud and host identifiers. Now it is possible to have two authentications : one for the cloud identifier, and one another for the host identifier. If one of them fails, than identifier is rejected.");
 			d.addItem("Use hybrid connexion protocols that enables to use at the same time non post quantum algorithms and post quantum algorithms. It is to prevent the quantum supremacy without loosing the benefits of stable encryption algorithms. For client/server connexion, two asymmetric key pairs are then used : one for a non post quantum algorithm like RSA and one for a post quantum algorithm like Mc Eliece");
 			d.addItem("Synchronize local database with other peers");
@@ -441,7 +441,7 @@ final public class Madkit {
 			d.addItem("Update Utils to 3.15.0.");
 			d.addItem("Add P2P connection protocol that support parametrisation of key agreement.");
 			d.addItem("Support several key agreement (including Post Quantum Cryptography key agreement (New Hope)).");
-			d.addItem("Fix security issue : when data is sent without being writed (default memory state), fill it with zeros.");
+			d.addItem("Fix security issue : when data is sent without being wrote (default memory state), fill it with zeros.");
 			d.addItem("Fix security issue : sign symmetric encryption key into client/server connection protocol.");
 			d.addItem("Fix security issue : with P2P key agreements, generate signature and encryption keys with two steps (instead of one), in order to sign the exchanged symmetric encryption key.");
 			d.addItem("Fix security issue : class serialization are now filtered with allow list and deny list. Classes that are not into deny list must implement the interference 'SerializableAndSizable'. Messages sent to the network must implement the interface NetworkMessage.");
@@ -449,10 +449,10 @@ final public class Madkit {
 			d.addItem("Fix security issue : classes externalization processes control now the allocated memory during de-externalization phase.");
 			d.addItem("Security enhancement : initialisation vectors used with encryption has now a secret part composed of counter that is increased at each data exchange.");
 			d.addItem("Security enhancement : signature and encryption process use now a secret message that is increased at each data exchange.");
-			d.addItem("Security enhancement : P2P login agreement use now JPAKE and a signature authentication if secret key for signature is available (PassworKey.getSecretKeyForSignature()).");
+			d.addItem("Security enhancement : P2P login agreement use now JPake and a signature authentication if secret key for signature is available (PasswordKey.getSecretKeyForSignature()).");
 			d.addItem("Fix issue with dead lock into indirect connection process.");
 			d.addItem("Fix issue with dual connection between two same kernels.");
-			d.addItem("Externalising Java rewrited classes into JDKRewriteUtils project.");
+			d.addItem("Externalising Java rewrote classes into JDKRewriteUtils project.");
 			d.addItem("Support of authenticated encryption algorithms. When use these algorithms, MKLE do not add a signature with independent MAC.");
 			d.addItem("Add some benchmarks.");
 			d.addItem("Support of YAML file properties.");
@@ -539,7 +539,7 @@ final public class Madkit {
 			d.addItem("Several modifications into connection and access protocols");
 			d.addItem("Adding approved randoms parameters into MaDKitProperties");
 			d.addItem("Adding point to point transfer connection signature and verification");
-			d.addItem("Saving automatically random's seed to be reload with the next application loading");
+			d.addItem("Saving automatically random seed to be reload with the next application loading");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
@@ -553,7 +553,7 @@ final public class Madkit {
 			d = new Description((short)1, (short)2, (short)0, Version.Type.Stable, (short)1, c.getTime());
 			d.addItem("Correction a problem with database");
 			d.addItem("Adding P2PSecuredConnectionProtocolWithECDHAlgorithm connection protocol (speediest)");
-			d.addItem("Adding Client/ServerSecuredConnectionProtocolWithKnwonPublicKeyWithECDHAlgorithm connection protocol (speediest)");
+			d.addItem("Adding Client/ServerSecuredConnectionProtocolWithKnownPublicKeyWithECDHAlgorithm connection protocol (speediest)");
 			d.addItem("Now all connection protocols use different keys for encryption and for signature");
 			d.addItem("Adding AccessProtocolWithP2PAgreement (speediest)");
 			d.addItem("Debugging desktop JFrame closing (however the JMV still become opened when all windows are closed)");
@@ -653,13 +653,8 @@ final public class Madkit {
 					VERSION=getNewVersionInstance();
 					defaultConfig=generateDefaultMadkitConfig();
 
-                    Runtime.getRuntime().addShutdownHook(new Thread() {
-
-                        @Override
-                        public void run() {// just in case (like ctrl+c)
-                            AgentLogger.resetLoggers();
-                        }
-                    });
+					// just in case (like ctrl+c)
+					Runtime.getRuntime().addShutdownHook(new Thread(AgentLogger::resetLoggers));
 
                     WEB=defaultConfig.madkitWeb;
 
@@ -748,19 +743,15 @@ final public class Madkit {
 	 * 
 	 * @param options
 	 *            the options which should be used to launch Madkit. If
-	 *            <code>null</code>, the dektop mode is automatically used.
+	 *            <code>null</code>, the desktop mode is automatically used.
 	 * 
 	 * @see MadkitProperties
 	 * @see NetworkProperties
 	 * 
 	 */
 	public Madkit(String... options) {
-		this(new MadkitEventListener() {
+		this(_properties -> {
 
-			@Override
-			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
-
-			}
 		}, options);
 	}
 
@@ -779,7 +770,7 @@ final public class Madkit {
 	 *            cycle
 	 * @param options
 	 *            the options which should be used to launch Madkit. If
-	 *            <code>null</code>, the dektop mode is automatically used.
+	 *            <code>null</code>, the desktop mode is automatically used.
 	 * 
 	 * @see MadkitProperties
 	 * @see NetworkProperties
@@ -802,7 +793,7 @@ final public class Madkit {
      *            cycle
      * @param options
      *            the options which should be used to launch Madkit. If
-     *            <code>null</code>, the dektop mode is automatically used.
+     *            <code>null</code>, the desktop mode is automatically used.
      *
      * @see MadkitProperties
      * @see NetworkProperties
@@ -824,19 +815,15 @@ final public class Madkit {
      *            the initial MadKit configuration
      * @param options
      *            the options which should be used to launch Madkit. If
-     *            <code>null</code>, the dektop mode is automatically used.
+     *            <code>null</code>, the desktop mode is automatically used.
      *
      * @see MadkitProperties
      * @see NetworkProperties
      */
     public Madkit(MadkitProperties madkitConfig, String... options) {
-        this(madkitConfig, null, new MadkitEventListener() {
+        this(madkitConfig, null, _properties -> {
 
-            @Override
-            public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
-
-            }
-        }, options);
+		}, options);
     }
 	Madkit(MadkitProperties madkitProperties, KernelAddress kernelAddress, MadkitEventListener eventListener, String... options) {
 		if (eventListener == null)
@@ -1106,7 +1093,7 @@ final public class Madkit {
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$IDTransfer"),
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$DirectConnection"),
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$DirectConnectionFailed"),
-					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$DirectConnectionSuceeded"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$DirectConnectionSucceeded"),
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$TryDirectConnection"),
 					BigDataTransferID.class,
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.CGRSynchrosSystemMessage"),

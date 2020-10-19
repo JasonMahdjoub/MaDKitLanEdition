@@ -1,14 +1,14 @@
 /*
  * MadKitLanEdition (created by Jason MAHDJOUB (jason.mahdjoub@distri-mind.fr)) Copyright (c)
- * 2015 is a fork of MadKit and MadKitGroupExtension. 
- * 
+ * 2015 is a fork of MadKit and MadKitGroupExtension.
+ *
  * Copyright or © or Copr. Jason Mahdjoub, Fabien Michel, Olivier Gutknecht, Jacques Ferber (1997)
- * 
+ *
  * jason.mahdjoub@distri-mind.fr
  * fmichel@lirmm.fr
  * olg@no-distance.net
  * ferber@lirmm.fr
- * 
+ *
  * This software is a computer program whose purpose is to
  * provide a lightweight Java library for designing and simulating Multi-Agent Systems (MAS).
  * This software is governed by the CeCILL-C license under French law and
@@ -21,7 +21,7 @@
  * with a limited warranty  and the software's author,  the holder of the
  * economic rights,  and the successive licensors  have only  limited
  * liability.
- * 
+ *
  * In this respect, the user's attention is drawn to the risks associated
  * with loading,  using,  modifying and/or developing or reproducing the
  * software by the user in light of its specific status of free software,
@@ -41,7 +41,22 @@ import java.util.ResourceBundle;
 
 public enum ErrorMessages {
 
-	FAILED, C_NULL, G_NULL, R_NULL, CANT_LAUNCH, OPTION_MISUSED, CANT_FIND, CANT_LOAD, CANT_SAVE, CANT_LOAD_CONFIG_FILE, CANT_SAVE_CONFIG_FILE, CANT_CONNECT, MUST_BE_LAUNCHED, CONNECTION_PROTOCOL_AND_ITERATOR_NOT_SAME_INSTANCE, INCOMPATIBLE_ITERATOR, ITERATOR_NO_MORE_ELEMENTS;
+	FAILED,
+	C_NULL,
+	G_NULL,
+	R_NULL,
+	CANT_LAUNCH,
+	OPTION_MISUSED,
+	CANT_FIND,
+	CANT_LOAD,
+	CANT_SAVE,
+	CANT_LOAD_CONFIG_FILE,
+	CANT_SAVE_CONFIG_FILE,
+	CANT_CONNECT,
+	MUST_BE_LAUNCHED,
+	CONNECTION_PROTOCOL_AND_ITERATOR_NOT_SAME_INSTANCE,
+	INCOMPATIBLE_ITERATOR,
+	ITERATOR_NO_MORE_ELEMENTS;
 
 	final static ResourceBundle messages = I18nUtilities.getResourceBundle(ErrorMessages.class.getSimpleName());
 	// static ResourceBundle messages =

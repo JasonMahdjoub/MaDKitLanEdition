@@ -82,7 +82,7 @@ final class WrappedCloudIdentifier extends CloudIdentifier {
 	{
 
 	}
-	WrappedCloudIdentifier(boolean anonymize, CloudIdentifier cloudIdentifier, AbstractSecureRandom random, AbstractMessageDigest messageDigest, byte[] distantGeneratedSalt, EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties) throws NoSuchAlgorithmException, IOException, NoSuchProviderException {
+	WrappedCloudIdentifier(boolean anonymize, CloudIdentifier cloudIdentifier, AbstractSecureRandom random, AbstractMessageDigest messageDigest, byte[] distantGeneratedSalt) throws NoSuchAlgorithmException, IOException, NoSuchProviderException {
 
 		if (cloudIdentifier == null)
 			throw new NullPointerException("cloudIdentifier");

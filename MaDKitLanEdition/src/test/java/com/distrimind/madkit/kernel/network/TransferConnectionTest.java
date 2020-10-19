@@ -542,7 +542,7 @@ class AgentToLaunch extends AgentFakeThread {
 
 	@Override
 	public void activate() {
-		Assert.assertEquals(ReturnCode.SUCCESS, requestHookEvents(AgentActionEvent.TRANFER_CONNEXION_EVENT));
+		Assert.assertEquals(ReturnCode.SUCCESS, requestHookEvents(AgentActionEvent.TRANSFER_CONNEXION_EVENT));
 		Assert.assertEquals(ReturnCode.SUCCESS, requestHookEvents(AgentActionEvent.DISTANT_KERNEL_CONNECTED));
 		if (!connectionPerKernelAddress)
 			Assert.assertEquals(ReturnCode.SUCCESS, requestHookEvents(AgentActionEvent.CONNEXION_ESTABLISHED));

@@ -192,7 +192,7 @@ final class EncryptedCloudIdentifier extends CloudIdentifier {
 			throw new NullPointerException("originalCloudIdentifier");
 		if (messageDigest == null)
 			throw new NullPointerException("messageDigest");
-		return AccessProtocolWithP2PAgreement.compareAnonymizedIdentifier(originalCloudIdentifier.getBytesTabToEncode(), bytes, messageDigest, localGeneratedSalt);
+		return AccessProtocolWithP2PAgreement.compareAnonymousIdentifier(originalCloudIdentifier.getBytesTabToEncode(), bytes, messageDigest, localGeneratedSalt);
 	}
 
 	@Override

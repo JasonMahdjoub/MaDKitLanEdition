@@ -119,9 +119,9 @@ public class DataTransferResult implements SecureExternalizable {
 
 	/**
 	 * 
-	 * @return true if the transfert has been completed
+	 * @return true if the transfer has been completed
 	 */
-	public boolean hasFinishedTransfert() {
+	public boolean hasFinishedTransfer() {
 		return data_sent_size == data_to_send_size;
 	}
 

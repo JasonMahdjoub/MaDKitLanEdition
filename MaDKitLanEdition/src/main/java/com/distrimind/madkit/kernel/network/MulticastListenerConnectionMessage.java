@@ -63,7 +63,7 @@ class MulticastListenerConnectionMessage extends Message {
 
 	@Override
 	public String toString() {
-		return "MulticastListenerConnectionMessage[networkInteface=" + networkInterface + ", networkInterfaceAddress="
+		return "MulticastListenerConnectionMessage[networkInterface=" + networkInterface + ", networkInterfaceAddress="
 				+ networkInterfaceAddress + ", port=" + port + ", groupIPAddress=" + groupIPAddress + "]";
 	}
 

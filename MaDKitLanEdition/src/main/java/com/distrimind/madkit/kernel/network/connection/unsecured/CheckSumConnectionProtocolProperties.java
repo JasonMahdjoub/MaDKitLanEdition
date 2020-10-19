@@ -63,7 +63,7 @@ public class CheckSumConnectionProtocolProperties extends ConnectionProtocolProp
 	private static final long serialVersionUID = 8445859392389250136L;
 
 	/**
-	 * Message digest type, used to check the validity of transfered data
+	 * Message digest type, used to check the validity of transferred data
 	 */
 	public MessageDigestType messageDigestType = MessageDigestType.BC_BLAKE2B_512;
 

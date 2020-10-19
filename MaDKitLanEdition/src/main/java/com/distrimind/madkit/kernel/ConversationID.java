@@ -101,7 +101,7 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 			this.global_interfaced_ids=conversationID.global_interfaced_ids;
 			if (conversationID.myInterfacedIDs!=null)
 			{
-				this.myInterfacedIDs=Collections.synchronizedMap(new HashMap<KernelAddress, OriginalID>());
+				this.myInterfacedIDs=Collections.synchronizedMap(new HashMap<>());
 				//synchronized (global_interfaced_ids) {
 				try {
 					for (Map.Entry<KernelAddress, OriginalID> kpi : conversationID.myInterfacedIDs.entrySet()) {
@@ -262,19 +262,11 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 		}
 
 
-		/*void removeDistantID(Integer distantid) {
-			OriginalID oi = original_ids.get(distantid);
-			if (oi.remove())
-				distant_ids.remove(original_ids.remove(distantid).originalID);
-		}*/
 
 		boolean isEmpty() {
 			return original_ids.isEmpty();
 		}
 
-		/*int getOriginalIDsNumber() {
-			return original_ids.size();
-		}*/
 	}
 
 	private transient volatile Map<KernelAddress, InterfacedIDs> global_interfaced_ids = null;
@@ -314,48 +306,48 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 		if (origin.equals(distantKernelAddress))
 			return this;
 		else if (origin.equals(currentKernelAddress)) {
-			OriginalID distantid = null;
+			OriginalID distantId = null;
 			if (myInterfacedIDs != null) {
-				distantid = myInterfacedIDs.get(distantKernelAddress);
+				distantId = myInterfacedIDs.get(distantKernelAddress);
 			}
-			if (distantid == null) {
+			if (distantId == null) {
 				//noinspection SynchronizationOnLocalVariableOrMethodParameter
 				synchronized (global_interfaced_ids) {
 					if (myInterfacedIDs == null)
-						myInterfacedIDs = Collections.synchronizedMap(new HashMap<KernelAddress, OriginalID>());
+						myInterfacedIDs = Collections.synchronizedMap(new HashMap<>());
 					else
-						distantid = myInterfacedIDs.get(distantKernelAddress);
-					if (distantid==null) {
+						distantId = myInterfacedIDs.get(distantKernelAddress);
+					if (distantId==null) {
 						this.global_interfaced_ids = global_interfaced_ids;
 						InterfacedIDs i = global_interfaced_ids.get(distantKernelAddress);
 						if (i == null) {
 							i = new InterfacedIDs();
 							global_interfaced_ids.put(distantKernelAddress, i);
 						}
-						distantid = i.getNewID(this.id);
+						distantId = i.getNewID(this.id);
 					}
 					else
-						distantid.incrementPointerToThisOriginalID();
+						distantId.incrementPointerToThisOriginalID();
 				}
 
-				myInterfacedIDs.put(distantKernelAddress, distantid);
+				myInterfacedIDs.put(distantKernelAddress, distantId);
 			}
 			else
 			{
-				distantid.incrementPointerToThisOriginalID();
+				distantId.incrementPointerToThisOriginalID();
 			}
 			/*
-			 * else { myInterfacedIDs.put(distantKernelAddress, distantid); }
+			 * else { myInterfacedIDs.put(distantKernelAddress, distantId); }
 			 */
 			if (this instanceof BigDataTransferID)
-				return new BigDataTransferID(distantid.getOriginalID(), origin, ((BigDataTransferID) this).getBytePerSecondsStat());
+				return new BigDataTransferID(distantId.getOriginalID(), origin, ((BigDataTransferID) this).getBytePerSecondsStat());
 			else
-				return new ConversationID(distantid.getOriginalID(), origin);
+				return new ConversationID(distantId.getOriginalID(), origin);
 			/*
-			 * ConversationID cid=new ConversationID(distantid.getOriginalID(), origin);
+			 * ConversationID cid=new ConversationID(distantId.getOriginalID(), origin);
 			 * cid.myInterfacedIDs=new HashMap<KernelAddress, ConversationID.OriginalID>();
-			 * cid.myInterfacedIDs.put(distantKernelAddress, distantid);
-			 * distantid.incrementPointerToThisOriginalID(); return cid;
+			 * cid.myInterfacedIDs.put(distantKernelAddress, distantId);
+			 * distantId.incrementPointerToThisOriginalID(); return cid;
 			 */
 		} else {
 			if (this instanceof BigDataTransferID)
@@ -370,10 +362,7 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 	ConversationID getInterfacedConversationIDFromDistantPeer(Map<KernelAddress, InterfacedIDs> global_interfaced_ids,
 															  KernelAddress currentKernelAddress, KernelAddress distantKernelAddress) {
 		if (origin == null) {
-			if (this instanceof BigDataTransferID)
-				return BigDataTransferID.getConversationIDInstance();
-			else
-				return ConversationID.getConversationIDInstance();
+			return BigDataTransferID.getConversationIDInstance();
 		} else if (origin.equals(distantKernelAddress)) {
 			return this;
 		} else if (origin.equals(currentKernelAddress)) {
@@ -418,7 +407,7 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 
 				cid.global_interfaced_ids = global_interfaced_ids;
 				cid.myInterfacedIDs = Collections
-						.synchronizedMap(new HashMap<KernelAddress, ConversationID.OriginalID>());
+						.synchronizedMap(new HashMap<>());
 				cid.myInterfacedIDs.put(distantKernelAddress, distantOriginalID/*i.getNewID(o.getOriginalID())*/);
 				/*
 				 * if (myInterfacedIDs==null) myInterfacedIDs=new HashMap<>();

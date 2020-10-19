@@ -35,7 +35,16 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-package com.distrimind.madkit.kernel.network;
+package com.distrimind.madkit.kernel.network.connection.access;
+
+import com.distrimind.madkit.kernel.network.NetworkProperties;
+import com.distrimind.util.io.Integrity;
+import com.distrimind.util.io.MessageExternalizationException;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
+
+import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * 
@@ -43,11 +52,55 @@ package com.distrimind.madkit.kernel.network;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-abstract class KernelAddressNegociationMessage implements SystemMessageWithoutInnerSizeControl {
+class UnLogMessage extends AccessMessage {
+
+
+	public ArrayList<Identifier> identifier_to_un_log;
+
+	public UnLogMessage(ArrayList<Identifier> _identifiers) {
+		identifier_to_un_log = _identifiers;
+	}
+	
+	@SuppressWarnings("unused")
+	UnLogMessage()
+	{
+		
+	}
+	@Override
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+		int size=in.readInt();
+		int totalSize=4;
+		int globalSize=NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
+		if (size<0 || totalSize+size*4>globalSize)
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+		identifier_to_un_log =new ArrayList<>(size);
+		for (int i=0;i<size;i++)
+		{
+			Identifier id=in.readObject(false, Identifier.class);
+			totalSize+=id.getInternalSerializedSize();
+			if (totalSize>globalSize)
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			identifier_to_un_log.add(id);
+		}
+	}
+
 
 	@Override
-	public String toString() {
-		return getClass().getSimpleName();
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
+		oos.writeInt(identifier_to_un_log.size());
+		for (Identifier id : identifier_to_un_log)
+			oos.writeObject(id, false);
+
+		
+		
 	}
+	
+
+	@Override
+	public boolean checkDifferedMessages() {
+		return true;
+	}
+	
+
 
 }

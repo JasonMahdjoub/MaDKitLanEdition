@@ -819,7 +819,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 
 	/**
 	 * Launches a new agent in the MaDKit platform. This has the same effect as
-	 * <code>launchAgent(agent,Integer.MAX_VALUE,withGUIManagedByTheBooter)</code>
+	 * <code>launchAgent(agent,Integer.MAX_VALUE,withGUIManagedByTheInitializer)</code>
 	 * 
 	 * @param agent
 	 *            the agent to launch.
@@ -985,8 +985,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 
 
 
-	final void cannotLaunchAgent(String agentClass, Throwable e, String infos) {
-		getLogger().severeLog(ErrorMessages.CANT_LAUNCH + " " + agentClass + " : " + (infos != null ? infos : ""), e);
+	final void cannotLaunchAgent(String agentClass, Throwable e, String info) {
+		getLogger().severeLog(ErrorMessages.CANT_LAUNCH + " " + agentClass + " : " + (info != null ? info : ""), e);
 	}
 
 	/**
@@ -1000,7 +1000,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * 
 	 * 
 	 * <pre>
-	 * launchAgentBucketWithRoles("madkitgroupextension.OneAgent", 1000000,
+	 * launchAgentBucketWithRoles("OneAgent", 1000000,
 	 * 		new Role(new Group("community", "group"), "role"),
 	 * 		new Role(new Group("anotherC", "anotherG"), "anotherR"))
 	 * </pre>
@@ -1045,7 +1045,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	public List<AbstractAgent> launchAgentBucket(String agentClassName, int bucketSize, int cpuCoreNb, Role... roles) {
 		if (cpuCoreNb < 1 || bucketSize < 0)
 			throw new IllegalArgumentException(
-					"launchAgentBucket : cpuCoreNb = " + cpuCoreNb + " bucketsize = " + bucketSize);
+					"launchAgentBucket : cpuCoreNb = " + cpuCoreNb + " bucketSize = " + bucketSize);
 		List<AbstractAgent> bucket = null;
 		try {
 			bucket = getMadkitKernel().createBucket(agentClassName, bucketSize, cpuCoreNb);
@@ -2068,7 +2068,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *         not a member of the receiver's group.</li>
 	 *         <li><code>{@link ReturnCode#INVALID_AGENT_ADDRESS}</code>: If the
 	 *         receiver address is no longer valid. This is the case when the
-	 *         corresponding agent has leaved the role corresponding to the receiver
+	 *         corresponding agent has left the role corresponding to the receiver
 	 *         agent address.</li>
 	 *         </ul>
 	 * @see ReturnCode
@@ -2102,7 +2102,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *         <code>senderRole</code> is not handled by this agent.</li>
 	 *         <li><code>{@link ReturnCode#INVALID_AGENT_ADDRESS}</code>: If the
 	 *         receiver address is no longer valid. This is the case when the
-	 *         corresponding agent has leaved the role corresponding to the receiver
+	 *         corresponding agent has left the role corresponding to the receiver
 	 *         agent address.</li>
 	 *         </ul>
 	 * @see ReturnCode
@@ -2573,7 +2573,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *         <code>senderRole</code> is not handled by this agent.</li>
 	 *         <li><code>{@link ReturnCode#INVALID_AGENT_ADDRESS}</code>: If the
 	 *         receiver address is no longer valid. This is the case when the
-	 *         corresponding agent has leaved the role corresponding to the receiver
+	 *         corresponding agent has left the role corresponding to the receiver
 	 *         agent address.</li>
 	 *         </ul>
 	 * @see ReturnCode
@@ -2603,7 +2603,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *         longer a member of the corresponding group.</li>
 	 *         <li><code>{@link ReturnCode#INVALID_AGENT_ADDRESS}</code>: If the
 	 *         receiver address is no longer valid. This is the case when the
-	 *         corresponding agent has leaved the role corresponding to the receiver
+	 *         corresponding agent has left the role corresponding to the receiver
 	 *         agent address.</li>
 	 *         </ul>
 	 * @see AbstractAgent#sendReplyWithRole(Message, Message, String)
@@ -2628,7 +2628,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *         longer a member of the corresponding group.</li>
 	 *         <li><code>{@link ReturnCode#INVALID_AGENT_ADDRESS}</code>: If the
 	 *         receiver address is no longer valid. This is the case when the
-	 *         corresponding agent has leaved the role corresponding to the receiver
+	 *         corresponding agent has left the role corresponding to the receiver
 	 *         agent address.</li>
 	 *         </ul>
 	 * @see AbstractAgent#sendReplyWithRole(Message, Message, String)
@@ -3449,10 +3449,10 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		/*
 		 * Before killing the considered agent, each unread message contained into its
 		 * message box is returned to its sender, thanks to the
-		 * {@link UndelievredMessage} class. After that, the agent is killed just after
+		 * {@link UndeliveredMessage} class. After that, the agent is killed just after
 		 * a life cycle.
 		 */
-		// KILL_IT_NOW_AND_RETURNS_UNREADED_MESSAGES,
+		// KILL_IT_NOW_AND_RETURNS_UNREAD_MESSAGES,
 
 		/**
 		 * The agent is killed just after a life cycle. Do not returns undelivered
@@ -3519,7 +3519,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * will trigger its corresponding behavior using the parameters of the message.
 	 * 
 	 * @param message
-	 *            the message to proce
+	 *            the message to proceed
 	 * @param <E> the enum message type 
 	 * @since MaDKit 5.0.0.14
 	 * @see EnumMessage
@@ -3718,7 +3718,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 
 		/**
 		 * Returned by send primitives when the targeted agent address does not exist
-		 * anymore, i.e. the related agent has leaved the corresponding role
+		 * anymore, i.e. the related agent has left the corresponding role
 		 */
 		INVALID_AGENT_ADDRESS,
 		/**
@@ -3790,8 +3790,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		 * Gets the set of returns code with there data transfer reports, associated to
 		 * each distant (onto network) kernel address.
 		 * 
-		 * @return the LAN tranfer returns codes/reports, or null if this returns code
-		 *         is not assiciated to a LAN transfer.
+		 * @return the LAN transfer returns codes/reports, or null if this returns code
+		 *         is not associated to a LAN transfer.
 		 * @see TransfersReturnsCodes
 		 */
 		public TransfersReturnsCodes getTransfersReturnsCodes() {
@@ -4084,7 +4084,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * Automatically request the given role into the given represented groups, only
 	 * for groups that have been requested with other agents. Do nothing else. When
 	 * other agents leave roles, those that correspond to the current auto-requested
-	 * role are automatically leaved from this agent.
+	 * role are automatically left from this agent.
 	 * 
 	 * @param _group
 	 *            the abstract group and these represented groups.
@@ -4104,14 +4104,14 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	public void autoRequestRole(AbstractGroup _group, String _role, SecureExternalizable _passKey) {
 		if (_group == null || _role == null)
 			return;
-		getKernel().autoRequesteRole(this, _group, _role, _passKey);
+		getKernel().autoRequestRole(this, _group, _role, _passKey);
 	}
 
 	/**
 	 * Automatically request the given role into the given represented groups, only
 	 * for groups that have been requested with other agents. Do nothing else. When
 	 * other agents leave roles, those that correspond to the current auto-requested
-	 * role are automatically leaved from this agent.
+	 * role are automatically left from this agent.
 	 * 
 	 * @param _group
 	 *            the abstract group and these represented groups.
@@ -4127,14 +4127,14 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	}
 
 	/**
-	 * Tells if this agent automically request the given group/role if another
+	 * Tells if this agent automatically request the given group/role if another
 	 * another has requested this group/role.
 	 * 
 	 * @param _group
 	 *            the abstract group and these represented groups.
 	 * @param _role
 	 *            the role to request
-	 * @return true if this agent automically request the given group/role if
+	 * @return true if this agent automatically request the given group/role if
 	 *         another another has requested this group/role.
 	 * @see AbstractAgent#autoRequestRole(AbstractGroup, String, SecureExternalizable)
 	 */
@@ -4334,7 +4334,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @param length
 	 *            the data length to read into the given stream
 	 * @param messageDigestType
-	 *            message digest type used to check validity of the transfered data.
+	 *            message digest type used to check validity of the transferred data.
 	 *            Can be null.
 	 * 
 	 * @return a big data transfer ID that identify the transfer, and that gives
@@ -4385,7 +4385,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *            user custom data that will be sent with the
 	 *            {@link BigDataPropositionMessage}.
 	 * @param messageDigestType
-	 *            message digest type used to check validity of the transfered data.
+	 *            message digest type used to check validity of the transferred data.
 	 *            Can be null.
 	 * @param excludeFromEncryption true if the big data to send must be excluded from encryption
 	 * 
@@ -4526,7 +4526,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @param length
 	 *            the data length to read into the given stream
 	 * @param messageDigestType
-	 *            message digest type used to check validity of the transfered data.
+	 *            message digest type used to check validity of the transferred data.
 	 *            Can be null.
 	 * @param senderRole
 	 *            the sender role
@@ -4580,7 +4580,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *            user custom data that will be sent with the
 	 *            {@link BigDataPropositionMessage}.
 	 * @param messageDigestType
-	 *            message digest type used to check validity of the transfered data.
+	 *            message digest type used to check validity of the transferred data.
 	 *            Can be null.
 	 * @param senderRole
 	 *            the sender role
@@ -4675,7 +4675,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	}
 
 	/**
-	 * connect or disconnect two kernels indirectly by making data transfered by the
+	 * connect or disconnect two kernels indirectly by making data transferred by the
 	 * current kernel to constitute a meshed network. It requires a parameter of
 	 * type {@link AskForTransferMessage}.
 	 * 
@@ -4695,13 +4695,13 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * 
 	 * Case candidateToBan is set to false : the anomaly will be saved into a
 	 * database. If too much anomalies occurs
-	 * ({@link NetworkProperties#nbMaxAnomaliesBeforeTrigeringExpulsion}), than the
-	 * connection is closed and the IP address is expulsed for a while
+	 * ({@link NetworkProperties#nbMaxAnomaliesBeforeTriggeringExpulsion}), than the
+	 * connection is closed and the IP address is rejected for a while
 	 * ({@link NetworkProperties#expulsionDuration}). If too much expulsions occurs
 	 * ({@link NetworkProperties#nbMaxExpulsions}), the kernel will consider
 	 * anomalies the candidateToBan set to true. Case candidateToBan is set to true
 	 * : the anomaly will be also saved into a database. If too much anomalies
-	 * occurs ({@link NetworkProperties#nbMaxAnomaliesBeforeTrigeringBanishment}), than the
+	 * occurs ({@link NetworkProperties#nbMaxAnomaliesBeforeTriggeringBanishment}), than the
 	 * connection is closed and the IP address banned for a while
 	 * ({@link NetworkProperties#banishmentDuration}). If too much bans occurs
 	 * ({@link NetworkProperties#nbMaxBans}), the kernel will ban the IP
@@ -4727,13 +4727,13 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * 
 	 * Case candidateToBan is set to false : the anomaly will be saved into a
 	 * database. If too much anomalies occurs
-	 * ({@link NetworkProperties#nbMaxAnomaliesBeforeTrigeringExpulsion}), than the
+	 * ({@link NetworkProperties#nbMaxAnomaliesBeforeTriggeringExpulsion}), than the
 	 * connections associated with the kernel address and their IP addresses are
-	 * expulsed for a while ({@link NetworkProperties#expulsionDuration}). If too
+	 * rejected for a while ({@link NetworkProperties#expulsionDuration}). If too
 	 * much expulsions occurs ({@link NetworkProperties#nbMaxExpulsions}), the kernel
 	 * will consider anomalies the candidateToBan set to true. Case candidateToBan
 	 * is set to true : the anomaly will be also saved into a database. If too much
-	 * anomalies occurs ({@link NetworkProperties#nbMaxAnomaliesBeforeTrigeringBanishment}),
+	 * anomalies occurs ({@link NetworkProperties#nbMaxAnomaliesBeforeTriggeringBanishment}),
 	 * than the connections associated with the kernel address and their IP
 	 * addresses are banned for a while
 	 * ({@link NetworkProperties#banishmentDuration}). If too much bans occurs
@@ -4764,7 +4764,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *            the connection identifier
 	 * @return the corresponding statistics or null if no statistics were found.
 	 */
-	public StatsBandwidth getStatsBandwith(ConnectionIdentifier connectionIdentifier) {
+	public StatsBandwidth getStatsBandwidth(ConnectionIdentifier connectionIdentifier) {
 		return getMadkitConfig().networkProperties.getStatsBandwidth(connectionIdentifier);
 	}
 
@@ -4775,7 +4775,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *            the Madkit kernel
 	 * @return the corresponding statistics or null if no statistics were found.
 	 */
-	public StatsBandwidth getStatsBandwith(KernelAddress kernel_address) {
+	public StatsBandwidth getStatsBandwidth(KernelAddress kernel_address) {
 		return getMadkitConfig().networkProperties.getStatsBandwidth(kernel_address);
 	}
 
@@ -4812,7 +4812,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *            tells if the current peer will take connection initiative
 	 * @param thisAskConnection
 	 *            the current peer we ask connection
-	 * @param mustSupportBidirectionnalConnectionInitiative
+	 * @param mustSupportBidirectionalConnectionInitiative
 	 *            tells if the connection support bi-directional connection
 	 *            initiative
 	 * @return true if a connection is possible with the given parameters and the
@@ -4823,9 +4823,9 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 */
 	public boolean isConnectionPossible(InetSocketAddress _distant_inet_address,
 			InetSocketAddress _local_interface_address, boolean takeConnectionInitiative, boolean thisAskConnection,
-			boolean mustSupportBidirectionnalConnectionInitiative) {
+			boolean mustSupportBidirectionalConnectionInitiative) {
 		return getMadkitConfig().networkProperties.isConnectionPossible(_distant_inet_address, _local_interface_address,
-				takeConnectionInitiative, !thisAskConnection, mustSupportBidirectionnalConnectionInitiative);
+				takeConnectionInitiative, !thisAskConnection, mustSupportBidirectionalConnectionInitiative);
 	}
 
 	/**
@@ -5092,7 +5092,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	}
 
 	/**
-	 * Dissociate distant host from given database packages and unsynchronize tham with the local host.
+	 * Dissociate distant host from given database packages and unsynchronize them with the local host.
 	 *
 	 * @param hostIdentifier the distant host identifier
 	 * @param packages the list of database packages to unsynchronize

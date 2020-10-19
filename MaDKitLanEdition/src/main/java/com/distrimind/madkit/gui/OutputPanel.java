@@ -37,11 +37,11 @@
  */
 package com.distrimind.madkit.gui;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import com.distrimind.madkit.kernel.AbstractAgent;
+import com.distrimind.madkit.kernel.AgentLogger;
+
+import javax.swing.*;
+import java.awt.*;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
@@ -50,15 +50,6 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.logging.LogRecord;
 import java.util.logging.StreamHandler;
-
-import javax.swing.JButton;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.SwingWorker;
-
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.AgentLogger;
 
 /**
  * This component is the default panel which is used for the frames assigned to
@@ -150,11 +141,7 @@ public class OutputPanel extends JPanel {
 		add(BorderLayout.CENTER, new JScrollPane(outField));
 
 		final JButton b = new JButton("clear");// TODO i18n
-		b.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				clearOutput();
-			}
-		});
+		b.addActionListener(e -> clearOutput());
 		add(BorderLayout.SOUTH, b);
 	}
 

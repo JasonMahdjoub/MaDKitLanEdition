@@ -87,7 +87,7 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 
 	public AccessMessage getJPakeMessageNewStep(JPakeMessageForAuthenticationOfCloudIdentifiers initialJPakeMessage, short newStep, LoginData loginData, AbstractMessageDigest messageDigest,
 												Collection<CloudIdentifier> deniedIdentifiers,
-												Map<WrappedCloudIdentifier, P2PLoginAgreement> jpakes,
+												Map<WrappedCloudIdentifier, P2PLoginAgreement> JPakes,
 												byte[] localGeneratedSalt,
 												EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties)
 			throws Exception {
@@ -95,15 +95,15 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 		int nbAno=0;
 		if (step!=newStep-1)
 		{
-			//nbAno+=jpakes.size();
-			jpakes.clear();
+			//nbAno+=JPakes.size();
+			JPakes.clear();
 			return new AccessErrorMessage(true);
 		}
 
 		if (identifiers.length!=initialJPakeMessage.identifiers.length || this.jpakeMessages.length!=initialJPakeMessage.identifiers.length)
 		{
 			++nbAno;
-			jpakes.clear();
+			JPakes.clear();
 			return new AccessErrorMessage(true);
 		}
 
@@ -113,7 +113,7 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 			if (id==null)
 				continue;
 
-			P2PLoginAgreement jpake=jpakes.get(id);
+			P2PLoginAgreement jpake=JPakes.get(id);
 			if (jpake==null) {
 
 				addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
@@ -127,7 +127,7 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 						if (jpakeMessages[i]==null)
 						{
 							addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
-							jpakes.remove(id);
+							JPakes.remove(id);
 							++nbAno;
 						}
 						else {
@@ -137,7 +137,7 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 					else if (this.jpakeMessages[i]!=null)
 					{
 						addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
-						jpakes.remove(id);
+						JPakes.remove(id);
 						++nbAno;
 					}
 					if (!jpake.hasFinishedSend())
@@ -152,7 +152,7 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 				{
 					//ignored.printStackTrace();
 					addPairOfIdentifiers(loginData, id, deniedIdentifiers, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
-					jpakes.remove(id);
+					JPakes.remove(id);
 					++nbAno;
 				}
 			}

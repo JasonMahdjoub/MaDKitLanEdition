@@ -91,24 +91,24 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 	protected short secretKeySizeBits;
 	private final SubBlockParser parser;
 
-	protected final ServerSecuredProtocolPropertiesWithKnownPublicKey hproperties;
+	protected final ServerSecuredProtocolPropertiesWithKnownPublicKey hProperties;
 	private final AbstractSecureRandom approvedRandom;
 	final int maximumSignatureSize;
 	boolean firstMessageReceived = false;
 	private boolean needToRefreshTransferBlockChecker = true;
 	private final PacketCounterForEncryptionAndSignature packetCounter;
-	private boolean reinitSymmetricAlgorithm=true;
+	private boolean reInitSymmetricAlgorithm =true;
 
 
 	private ServerSecuredConnectionProtocolWithKnownPublicKey(InetSocketAddress _distant_inet_address,
 															  InetSocketAddress _local_interface_address, ConnectionProtocol<?> _subProtocol,
 															  DatabaseWrapper sql_connection, MadkitProperties mkProperties, ConnectionProtocolProperties<?> cpp, int subProtocolLevel, boolean isServer,
-															  boolean mustSupportBidirectionnalConnectionInitiative) throws ConnectionException {
+															  boolean mustSupportBidirectionalConnectionInitiative) throws ConnectionException {
 		super(_distant_inet_address, _local_interface_address, _subProtocol, sql_connection, mkProperties,cpp,
-				subProtocolLevel, isServer, mustSupportBidirectionnalConnectionInitiative);
-		hproperties = (ServerSecuredProtocolPropertiesWithKnownPublicKey) super.connection_protocol_properties;
+				subProtocolLevel, isServer, mustSupportBidirectionalConnectionInitiative);
+		hProperties = (ServerSecuredProtocolPropertiesWithKnownPublicKey) super.connection_protocol_properties;
 
-		hproperties.checkProperties();
+		hProperties.checkProperties();
 
 		myKeyPairForEncryption = null;
 
@@ -119,7 +119,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 		try {
 			approvedRandom=mkProperties.getApprovedSecureRandom();
 
-			maximumSignatureSize = hproperties.getMaximumSignatureSizeBits();
+			maximumSignatureSize = hProperties.getMaximumSignatureSizeBits();
 			encoderWithEncryption=new EncryptionSignatureHashEncoder();
 			encoderWithoutEncryption=new EncryptionSignatureHashEncoder();
 			decoderWithEncryption=new EncryptionSignatureHashDecoder();
@@ -129,8 +129,8 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 		} catch (NoSuchAlgorithmException | NoSuchProviderException | IOException e) {
 			throw new ConnectionException(e);
 		}
-		this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, hproperties.enableEncryption, true);
-		if (hproperties.enableEncryption)
+		this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, hProperties.enableEncryption, true);
+		if (hProperties.enableEncryption)
 			parser = new ParserWithEncryption();
 		else
 			parser = new ParserWithNoEncryption();
@@ -141,34 +141,34 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 		if (myKeyPairForEncryption != null)
 			return;
 		try {
-			if (!hproperties.isValidProfile(identifier, network_properties.encryptionRestrictionForConnectionProtocols))
+			if (!hProperties.isValidProfile(identifier, network_properties.encryptionRestrictionForConnectionProtocols))
 				throw new BlockParserException(
 						"Invalid profile " + identifier);
 
-			myKeyPairForEncryption = hproperties.getKeyPairForEncryption(identifier);
+			myKeyPairForEncryption = hProperties.getKeyPairForEncryption(identifier);
 			if (myKeyPairForEncryption == null)
 				throw new BlockParserException(
-						"Unkonw encryption profile. Impossible to find key pair identified by " + identifier);
+						"Unknown encryption profile. Impossible to find key pair identified by " + identifier);
 
 			
-			signatureType = hproperties.getSignatureType(identifier);
+			signatureType = hProperties.getSignatureType(identifier);
 			if (signatureType == null)
 				throw new BlockParserException(
-						"Unkonw encryption profile. Impossible to find signature identified by " + identifier);
+						"Unknown encryption profile. Impossible to find signature identified by " + identifier);
 
-			keyWrapper=hproperties.getKeyWrapper(identifier);
+			keyWrapper= hProperties.getKeyWrapper(identifier);
 
 			if (keyWrapper == null)
 				throw new BlockParserException(
-						"Unkonw encryption profile. Impossible to find keyWrapper identified by " + identifier);
+						"Unknown encryption profile. Impossible to find keyWrapper identified by " + identifier);
 			
-			symmetricEncryptionType = hproperties.getSymmetricEncryptionType(identifier);
+			symmetricEncryptionType = hProperties.getSymmetricEncryptionType(identifier);
 			if (symmetricEncryptionType == null)
 				throw new BlockParserException(
-						"Unkonw encryption profile. Impossible to find symmetric encryption type identified by "
+						"Unknown encryption profile. Impossible to find symmetric encryption type identified by "
 								+ identifier);
-			secretKeySizeBits=hproperties.getSymmetricEncryptionKeySizeBits(identifier);
-			messageDigestType=hproperties.getMessageDigestType(identifier);
+			secretKeySizeBits= hProperties.getSymmetricEncryptionKeySizeBits(identifier);
+			messageDigestType= hProperties.getMessageDigestType(identifier);
 			if (messageDigestType!=null) {
 				encoderWithEncryption.withMessageDigestType(messageDigestType);
 				encoderWithoutEncryption.withMessageDigestType(messageDigestType);
@@ -190,10 +190,10 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 				throw new BlockParserException(e);
 		}
 	}
-	private void reinitSymmetricAlgorithmIfNecessary() throws IOException {
-		if (reinitSymmetricAlgorithm)
+	private void reInitSymmetricAlgorithmIfNecessary() throws IOException {
+		if (reInitSymmetricAlgorithm)
 		{
-			reinitSymmetricAlgorithm=false;
+			reInitSymmetricAlgorithm =false;
 			encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.mySecretKeyForEncryption, (byte)packetCounter.getMyEncryptionCounter().length);
 			decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.mySecretKeyForEncryption, (byte)packetCounter.getMyEncryptionCounter().length);
 		}
@@ -205,16 +205,16 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 
 	private void setSecretKeys(AskClientServerConnection askMessage) throws ConnectionException {
 		try {
-			if (askMessage.getSecretKeyForEncryption()==null && hproperties.enableEncryption)
+			if (askMessage.getSecretKeyForEncryption()==null && hProperties.enableEncryption)
 				throw new ConnectionException("Secret key empty !");
 
 
 			mySecretKeyForSignature=keyWrapper.unwrapKey(myKeyPairForEncryption.getASymmetricPrivateKey(), askMessage.getSecretKeyForSignature());
 
-			if (mySecretKeyForSignature==null || !askMessage.checkSignedMessage(mySecretKeyForSignature, hproperties.enableEncryption))
+			if (mySecretKeyForSignature==null || !askMessage.checkSignedMessage(mySecretKeyForSignature, hProperties.enableEncryption))
 				throw new ConnectionException("Message signature is not checked !");
 
-			if (hproperties.enableEncryption)
+			if (hProperties.enableEncryption)
 			{
 				mySecretKeyForEncryption=keyWrapper.unwrapKey(myKeyPairForEncryption.getASymmetricPrivateKey(), askMessage.getSecretKeyForEncryption());
 				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, mySecretKeyForEncryption);
@@ -347,7 +347,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 				{
 					if (packetCounter.isDistantActivated())
 					{
-						reinitSymmetricAlgorithmIfNecessary();
+						reInitSymmetricAlgorithmIfNecessary();
 					}
 					return (int)encoderWithEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
 				}
@@ -368,7 +368,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 				case CONNECTED:
 					if (getPacketCounter().isLocalActivated())
 					{
-						reinitSymmetricAlgorithmIfNecessary();
+						reInitSymmetricAlgorithmIfNecessary();
 					}
 					return (int)decoderWithEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
 				}
@@ -431,7 +431,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 			if (isProfileInitialized())
 				return EncryptionSignatureHashEncoder.headSize;
 			else
-				return ObjectSizer.sizeOf(hproperties.getLastEncryptionProfileIdentifier());
+				return ObjectSizer.sizeOf(hProperties.getLastEncryptionProfileIdentifier());
 		}
 
 		@Override
@@ -492,7 +492,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 				{
 					if (packetCounter.isDistantActivated())
 					{
-						reinitSymmetricAlgorithmIfNecessary();
+						reInitSymmetricAlgorithmIfNecessary();
 					}
 					return (int)encoderWithoutEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
 				}
@@ -513,7 +513,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 					case CONNECTED:
 						if (getPacketCounter().isLocalActivated())
 						{
-							reinitSymmetricAlgorithmIfNecessary();
+							reInitSymmetricAlgorithmIfNecessary();
 						}
 						return (int)decoderWithoutEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
 				}
@@ -536,11 +536,11 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 	}
 
 	@Override
-	protected TransferedBlockChecker getTransferredBlockChecker(TransferedBlockChecker subBlockChercker)
+	protected TransferedBlockChecker getTransferredBlockChecker(TransferedBlockChecker subBlockChecker)
 			throws ConnectionException {
 		try {
 			needToRefreshTransferBlockChecker=false;
-			return new ConnectionProtocol.NullBlockChecker(subBlockChercker, this.isCrypted(),
+			return new ConnectionProtocol.NullBlockChecker(subBlockChecker, this.isCrypted(),
 					(short) parser.getHeadSize());
 		} catch (Exception e) {
 			needToRefreshTransferBlockChecker = true;
@@ -554,73 +554,6 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 
 	}
 
-	/*private static class BlockChecker extends TransferedBlockChecker {
-		private final ASymmetricSignatureType signatureType;
-		private final int signatureSize;
-		private transient AbstractSignature signature;
-		private transient ASymmetricPublicKey publicKey;
-
-		protected BlockChecker(TransferedBlockChecker _subChecker, ASymmetricSignatureType signatureType,
-				ASymmetricPublicKey publicKey, int signatureSize, boolean isEncrypted) throws NoSuchAlgorithmException {
-			super(_subChecker, !isEncrypted);
-			this.signatureType = signatureType;
-			this.publicKey = publicKey;
-			this.signatureSize = signatureSize;
-			initSignature();
-		}
-
-		@Override
-		public Integrity checkDataIntegrity() {
-			if (signatureType == null)
-				return Integrity.FAIL;
-			if (signature == null)
-				return Integrity.FAIL;
-			if (publicKey == null)
-				return Integrity.FAIL;
-			return Integrity.OK;
-		}
-
-		private void initSignature() throws NoSuchAlgorithmException {
-			this.signature = signatureType.getSignatureInstance();
-		}
-
-		private void writeObject(ObjectOutputStream os) throws IOException {
-			os.defaultWriteObject();
-			byte encodedPK[] = publicKey.encode();
-			os.writeInt(encodedPK.length);
-			os.write(encodedPK);
-		}
-
-		private void readObject(ObjectInputStream is) throws IOException {
-			try {
-				is.defaultReadObject();
-				int len = is.readInt();
-				byte encodedPK[] = new byte[len];
-				is.read(encodedPK);
-				publicKey = ASymmetricPublicKey.decode(encodedPK);
-				initSignature();
-			} catch (IOException e) {
-				throw e;
-			} catch (Exception e) {
-				throw new IOException(e);
-			}
-		}
-
-		@Override
-		public SubBlockInfo checkSubBlock(SubBlock _block) throws BlockParserException {
-			try {
-				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + signatureSize,
-						_block.getSize() - signatureSize);
-				signature.initVerify(publicKey);
-				signature.update(res.getBytes(), res.getOffset(), res.getSize());
-				boolean check = signature.verify(_block.getBytes(), _block.getOffset(), signatureSize);
-				return new SubBlockInfo(res, check, !check);
-			} catch (Exception e) {
-				throw new BlockParserException(e);
-			}
-		}
-
-	}*/
 
 
 	@Override

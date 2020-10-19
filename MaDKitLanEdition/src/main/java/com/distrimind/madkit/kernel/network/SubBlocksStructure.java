@@ -73,7 +73,7 @@ public class SubBlocksStructure {
 		public void init(int packetSize, ConnectionProtocol<?> connection_protocol) throws NIOException
 		{
 			int size = packetSize;
-			int inipacketsize = -1;
+			int initPacketSize = -1;
 			int s=connection_protocol.sizeOfSubConnectionProtocols() + 1;
 			if (offsets==null || offsets.length!=s)
 				offsets = new int[s];
@@ -99,14 +99,14 @@ public class SubBlocksStructure {
 					int outputSize = sbp.getBodyOutputSizeForEncryption(size);
 					if (outputSize < 0)
 						throw new BlockParserException(
-								"The parser " + sbp + " returns an ouput size lower than 0: " + outputSize);
+								"The parser " + sbp + " returns an output size lower than 0: " + outputSize);
 
 					/*
 					 * int mod=size%sbp.getSizeBlockModulus(); if (mod!=0)
 					 * size=size+(sbp.getSizeBlockModulus()-size%sbp.getSizeBlockModulus());
 					 */
-					if (inipacketsize == -1)
-						inipacketsize = size;
+					if (initPacketSize == -1)
+						initPacketSize = size;
 					/*
 					 * else { sub_block_sizes_for_parent[i+1]=size; }
 					 */
@@ -123,7 +123,7 @@ public class SubBlocksStructure {
 		}
 
 		// sub_block_sizes_for_parent[0]=sub_block_sizes[0]+Block.getHeadSize();
-		initial_packet_size = inipacketsize;
+		initial_packet_size = initPacketSize;
 		block_content_size = size;
 
 		sub_block_offsets = new int[offsets.length];
@@ -283,7 +283,7 @@ public class SubBlocksStructure {
 				int outputSize = cp.getMaximumBodyOutputSizeForEncryption(size);
 				if (outputSize < 0)
 					throw new BlockParserException(
-							"The parser " + sbp + " returns an ouput size lower than 0: " + outputSize);
+							"The parser " + sbp + " returns an output size lower than 0: " + outputSize);
 				size = outputSize + cp.getMaximumSizeHead();
 
 				/*

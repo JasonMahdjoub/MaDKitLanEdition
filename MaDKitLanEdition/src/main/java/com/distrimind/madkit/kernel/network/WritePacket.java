@@ -72,7 +72,7 @@ public final class WritePacket {
 	private final long data_length_with_message_digest;
 	private final boolean redownloaded;
 	private boolean finished = false;
-	private final boolean transfert_as_big_data;
+	private final boolean transfer_as_big_data;
 	private final short random_values_size;
 	private final AbstractSecureRandom random;
 
@@ -99,7 +99,7 @@ public final class WritePacket {
 	}
 
 	public WritePacket(int _type, int _id_packet, int _max_buffer_size, short random_values_size, AbstractSecureRandom rand,
-			RandomInputStream _input_stream, long _start_position, long length, boolean _transfert_as_big_data,
+			RandomInputStream _input_stream, long _start_position, long length, boolean _transfer_as_big_data,
 			MessageDigestType messageDigestType) throws PacketException {
 		if ((_type & PacketPartHead.TYPE_PACKET) != PacketPartHead.TYPE_PACKET)
 			throw new UnknownPacketTypeException("The given type is not a packet type (" + _type + ")");
@@ -143,7 +143,7 @@ public final class WritePacket {
 			throw new PacketException(e);
 		}
 
-		transfert_as_big_data = _transfert_as_big_data;
+		transfer_as_big_data = _transfer_as_big_data;
 	}
 
 	/*static short getRandomValueSize(int max_buffer_size, short random_values_size) {
@@ -195,7 +195,7 @@ public final class WritePacket {
 	}
 
 	public boolean concernsBigData() {
-		return transfert_as_big_data;
+		return transfer_as_big_data;
 	}
 
 	private PacketPartHead setHeadPart(boolean last_packet, AbstractByteTabOutputStream tab) {
@@ -258,13 +258,13 @@ public final class WritePacket {
 			// byte[] res=new byte[PacketPartHead.getHeadSize(first_packet)+size];
 			if (currentPacketDataSize > 0) {
 				// int offset=PacketPartHead.getHeadSize(first_packet);
-				int readed_data = res.writeData(input_stream, currentPacketDataSize);
-				if (readed_data != currentPacketDataSize)
-					throw new IllegalAccessError("Illegal writed data quantity : writed=" + readed_data + ", expected="
+				int read_data = res.writeData(input_stream, currentPacketDataSize);
+				if (read_data != currentPacketDataSize)
+					throw new IllegalAccessError("Illegal wrote data quantity : wrote=" + read_data + ", expected="
 							+ currentPacketDataSize);
-				// int readed_data=input_stream.readFully(res, offset, size);
+				// int read_data=input_stream.readFully(res, offset, size);
 
-				current_pos.addAndGet(readed_data);
+				current_pos.addAndGet(read_data);
 
 			}
 			if (messageDigest != null) {
@@ -281,12 +281,12 @@ public final class WritePacket {
 						throw new IllegalAccessError();
 					int currentDigestSize = res.getRealDataSizeWithoutPacketHeadSize() - currentPacketDataSize;
 					if (currentDigestSize > 0) {
-						int readed_data = res.writeData(digestResult, digestResultPos, currentDigestSize);
-						if (readed_data != currentDigestSize)
-							throw new IllegalAccessError("Illegal writed hash data quantity : writed=" + readed_data
+						int read_data = res.writeData(digestResult, digestResultPos, currentDigestSize);
+						if (read_data != currentDigestSize)
+							throw new IllegalAccessError("Illegal wrote hash data quantity : wrote=" + read_data
 									+ ", expected=" + currentDigestSize);
-						digestResultPos += readed_data;
-						current_pos.addAndGet(readed_data);
+						digestResultPos += read_data;
+						current_pos.addAndGet(read_data);
 					}
 
 				}
@@ -301,13 +301,6 @@ public final class WritePacket {
 						+ ") does not corresponds to the effective contained data ("
 						+ res.getRealDataSizeWithoutPacketHeadSize() + ").");
 
-			/*
-			 * if (current_pos<data_length_with_message_digest+start_position &&
-			 * readed_data!=res.getRealDataSizeWithoutPacketHeadSize()) { throw new
-			 * PacketException("The length returned by the input stream ("
-			 * +readed_data+") does not corresponds to the effective contained data ("+res.
-			 * getRealDataSizeWithoutPacketHeadSize()+")."); }
-			 */
 			if (current_pos.get() > data_length_with_message_digest + start_position) {
 				finished = true;
 				throw new IllegalAccessError(
@@ -502,7 +495,7 @@ public final class WritePacket {
 		private int cursor;
 		private int nextRandValuePos;
 		private final int realDataSize_WithoutHead;
-		private int randamValuesWrited = 0;
+		private int randomValuesWritten = 0;
 		private final int shiftedTabLength;
 
 		ByteTabOutputStreamWithRandomValues(ConnectionProtocol<?> conProto, AbstractMessageDigest messageDigest, int max_buffer_size,
@@ -543,7 +536,7 @@ public final class WritePacket {
 
 		@Override
 		int getWrittenData() {
-			return cursor - randamValuesWrited - subBlock.getOffset()-1;
+			return cursor - randomValuesWritten - subBlock.getOffset()-1;
 		}
 
 		/*@Override
@@ -611,23 +604,23 @@ public final class WritePacket {
 					return;
 				}
 
-				short nbrandmax = (short) Math.min(random_values_size_remaining - getMiniRandomValueSize() + 1,
+				short nbRandMax = (short) Math.min(random_values_size_remaining - getMiniRandomValueSize() + 1,
 						getMaximumLocalRandomValues() - 1);
-				byte nbrand = (byte) (random.nextInt(nbrandmax) + 1);
-				byte[] tabrand = new byte[nbrand];
-				random.nextBytes(tabrand);
+				byte nbRand = (byte) (random.nextInt(nbRandMax) + 1);
+				byte[] tabRand = new byte[nbRand];
+				random.nextBytes(tabRand);
 				byte nextRand = -1;
-				if (random_values_size_remaining - getMiniRandomValueSize() * 2 + 1 - nbrand >= 0)
+				if (random_values_size_remaining - getMiniRandomValueSize() * 2 + 1 - nbRand >= 0)
 					nextRand = (byte) (random.nextInt(64) + 64);
-				tab[cursor++] = encodeLocalNumberRandomVal(nbrand, random);
-				for (byte aTabrand : tabrand) tab[cursor++] = aTabrand;
+				tab[cursor++] = encodeLocalNumberRandomVal(nbRand, random);
+				for (byte aTabRand : tabRand) tab[cursor++] = aTabRand;
 				tab[cursor++] = nextRand;
-				randamValuesWrited += 2 + tabrand.length;
+				randomValuesWritten += 2 + tabRand.length;
 				if (nextRand == -1)
 					nextRandValuePos = shiftedTabLength;
 				else
 					nextRandValuePos = cursor + nextRand;
-				random_values_size_remaining -= (nbrand + 2);
+				random_values_size_remaining -= (nbRand + 2);
 			}
 		}
 

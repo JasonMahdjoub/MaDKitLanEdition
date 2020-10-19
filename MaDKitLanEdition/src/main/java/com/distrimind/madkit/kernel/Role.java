@@ -59,13 +59,13 @@ public class Role {
 	private final String m_role;
 
 	/**
-	 * The concatenation of the cummunity, the group and the role, separated by
+	 * The concatenation of the community, the group and the role, separated by
 	 * semicolons.
 	 */
 	private final String m_group_role;
 
 	/**
-	 * Constructing a Role assiciated with a group and a community.
+	 * Constructing a Role associated with a group and a community.
 	 * 
 	 * @param _group
 	 *            the group

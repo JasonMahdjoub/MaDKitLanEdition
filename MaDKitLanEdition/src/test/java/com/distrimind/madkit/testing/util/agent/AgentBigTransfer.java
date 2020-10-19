@@ -40,7 +40,7 @@ package com.distrimind.madkit.testing.util.agent;
 import com.distrimind.madkit.exceptions.SelfKillException;
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
-import com.distrimind.madkit.kernel.network.RealTimeTransfertStat;
+import com.distrimind.madkit.kernel.network.RealTimeTransferStat;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.message.hook.OrganizationEvent;
 import com.distrimind.util.crypto.MessageDigestType;
@@ -86,7 +86,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 	};
 	private final Map<AgentAddress, Boolean> otherConnected = Collections.synchronizedMap(new HashMap<AgentAddress, Boolean>());
 	private final Map<ConversationID, RandomByteArrayInputStream> inputStreams = Collections.synchronizedMap(new HashMap<ConversationID, RandomByteArrayInputStream>());
-	private final Map<ConversationID, RealTimeTransfertStat> myStats = Collections.synchronizedMap(new HashMap<ConversationID, RealTimeTransfertStat>()),
+	private final Map<ConversationID, RealTimeTransferStat> myStats = Collections.synchronizedMap(new HashMap<ConversationID, RealTimeTransferStat>()),
 			otherStats = new HashMap<>();
 	// private final HashMap<String, ConversationID> otherConversationIDs=new
 	// HashMap<>();
@@ -141,11 +141,11 @@ public class AgentBigTransfer extends AgentFakeThread {
 
 	}
 
-	public Map<ConversationID, RealTimeTransfertStat> getMyStats() {
+	public Map<ConversationID, RealTimeTransferStat> getMyStats() {
 		return myStats;
 	}
 
-	public Map<ConversationID, RealTimeTransfertStat> getOtherStats() {
+	public Map<ConversationID, RealTimeTransferStat> getOtherStats() {
 		return otherStats;
 	}
 
@@ -297,8 +297,8 @@ public class AgentBigTransfer extends AgentFakeThread {
 
 			BigDataResultMessage m = (BigDataResultMessage) _message;
 			try {
-				RealTimeTransfertStat myStat = myStats.get(m.getConversationID());
-				RealTimeTransfertStat otherStat = otherStats.get(m.getConversationID());
+				RealTimeTransferStat myStat = myStats.get(m.getConversationID());
+				RealTimeTransferStat otherStat = otherStats.get(m.getConversationID());
 
 				RandomInputStream inputStream = inputStreams.get(m.getConversationID());
 				ConversationID myTransferID = inputStream == null ? null : m.getConversationID();
@@ -308,11 +308,11 @@ public class AgentBigTransfer extends AgentFakeThread {
 
 				if (accept) {
 
-					ok &= (inputStream == null || m.getTransferedDataLength() == inputStream.length())
-							&& m.getType().equals(BigDataResultMessage.Type.BIG_DATA_TRANSFERED);
+					ok &= (inputStream == null || m.getTransferredDataLength() == inputStream.length())
+							&& m.getType().equals(BigDataResultMessage.Type.BIG_DATA_TRANSFERRED);
 
 					if (!ok)
-						System.err.println(thisRole + " Error : Transfered length=" + m.getTransferedDataLength()
+						System.err.println(thisRole + " Error : Transfered length=" + m.getTransferredDataLength()
 								+ ", inputStreamLength=" + (inputStream == null ? -1 : inputStream.length()) + ", type="
 								+ m.getType());
 
@@ -332,40 +332,40 @@ public class AgentBigTransfer extends AgentFakeThread {
 					}
 
 					System.out.println("\tTransfer Type=" + m.getType() + ", Transfer duration="
-							+ m.getTransferDuration() + ", transferDataLendth=" + m.getTransferedDataLength()
+							+ m.getTransferDuration() + ", transferDataLendth=" + m.getTransferredDataLength()
 							+ ", bytesPerSeconds="
-							+ (((double) m.getTransferedDataLength()) / (((double) m.getTransferDuration())) * 1000.0));
+							+ (((double) m.getTransferredDataLength()) / (((double) m.getTransferDuration())) * 1000.0));
 					if (m.getConversationID().equals(myTransferID)) {
 						System.out.println(
-								"\tTransfer speed through stats : " + (((double) myStat.getNumberOfIndentifiedBytes())
+								"\tTransfer speed through stats : " + (((double) myStat.getNumberOfIdentifiedBytes())
 										/ ((double) myStat.getDurationMilli()) * 1000.0));
 					} else if (m.getConversationID().equals(otherConversationID))
 						System.out.println("\tTransfer speed through stats : "
-								+ (((double) otherStat.getNumberOfIndentifiedBytes())
+								+ (((double) otherStat.getNumberOfIdentifiedBytes())
 										/ ((double) otherStat.getDurationMilli()) * 1000.0));
-					RealTimeTransfertStat globalStatUp = getMadkitConfig().networkProperties.getGlobalStatsBandwidth()
+					RealTimeTransferStat globalStatUp = getMadkitConfig().networkProperties.getGlobalStatsBandwidth()
 							.getBytesUploadedInRealTime(
 									NetworkProperties.DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS);
-					RealTimeTransfertStat globalStatDown = getMadkitConfig().networkProperties.getGlobalStatsBandwidth()
+					RealTimeTransferStat globalStatDown = getMadkitConfig().networkProperties.getGlobalStatsBandwidth()
 							.getBytesDownloadedInRealTime(
 									NetworkProperties.DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS);
 					System.out.println("\tGlobal transfer speed (upload) :"
-							+ (((double) globalStatUp.getNumberOfIndentifiedBytes())
+							+ (((double) globalStatUp.getNumberOfIdentifiedBytes())
 									/ ((double) globalStatUp.getDurationMilli()) * 1000.0));
 					System.out.println("\tGlobal transfer speed (download) :"
-							+ (((double) globalStatDown.getNumberOfIndentifiedBytes())
+							+ (((double) globalStatDown.getNumberOfIdentifiedBytes())
 									/ ((double) globalStatDown.getDurationMilli()) * 1000.0));
 
 					if (inputStream != null)
-						Assert.assertEquals(inputStream.length(), m.getTransferedDataLength());
-					Assert.assertEquals(BigDataResultMessage.Type.BIG_DATA_TRANSFERED, m.getType());
+						Assert.assertEquals(inputStream.length(), m.getTransferredDataLength());
+					Assert.assertEquals(BigDataResultMessage.Type.BIG_DATA_TRANSFERRED, m.getType());
 
 				} else {
 					ok &= m.getType() == BigDataResultMessage.Type.BIG_DATA_TRANSFER_DENIED;
 					Assert.assertTrue(ok);
 					ok &= m.getConversationID().equals(myTransferID);
 					Assert.assertTrue("myTransferID=" + myTransferID + ", conversationID=" + m.getConversationID(), ok);
-					ok &= m.getTransferedDataLength() == 0;
+					ok &= m.getTransferredDataLength() == 0;
 					Assert.assertTrue(ok);
 					ok &= otherConversationID == null;
 					Assert.assertTrue(ok);
@@ -421,18 +421,18 @@ public class AgentBigTransfer extends AgentFakeThread {
 		StringBuilder res = new StringBuilder();
 		res.append(", other number=").append(otherNumber).append(" other sent finished=").append(otherSentManaged).append("/").append(otherSendDataNumber).append(" other replied finished=").append(otherRepliedManaged).append("/").append(otherReplieNumber).append(", otherStatSize=").append(otherStats.size()).append(", alive=").append(this.isAlive()).append(", myTransferFinished=").append(myTransferFinished).append(", otherTransferFinished=").append(otherTransferFinished).append(", hasReceivedProposition=").append(hasReceivedProposition).append("\n\t");
 		for (ConversationID s : (new HashMap<>(myStats)).keySet()) {
-			RealTimeTransfertStat myStat = myStats.get(s);
+			RealTimeTransferStat myStat = myStats.get(s);
 
 			res.append(", upload(").append(s).append(")=").append(myStat == null ? Double.valueOf(-1)
-					: Double.valueOf((((double) myStat.getNumberOfIndentifiedBytes()) / ((double) myStat.getDurationMilli()))));
+					: Double.valueOf((((double) myStat.getNumberOfIdentifiedBytes()) / ((double) myStat.getDurationMilli()))));
 		}
 		res.append("\n\t");
 		for (ConversationID s : (new HashMap<>(otherStats)).keySet()) {
-			RealTimeTransfertStat otherStat = otherStats.get(s);
+			RealTimeTransferStat otherStat = otherStats.get(s);
 
 			res.append(", download(").append(s).append(")=").append(otherStat == null ? Double.valueOf(-1)
 					: Double.valueOf(
-					(((double) otherStat.getNumberOfIndentifiedBytes()) / ((double) otherStat.getDurationMilli()))));
+					(((double) otherStat.getNumberOfIdentifiedBytes()) / ((double) otherStat.getDurationMilli()))));
 		}
 		return res.toString();
 	}

@@ -200,7 +200,6 @@ public class MadkitProperties extends MultiFormatProperties {
 
 	//public Level orgLogLevel = Level.OFF;
 
-	//public boolean noOrgConsolLog = false;
 
 	/**
 	 * Option defining the default agent log level for newly launched agents.
@@ -785,7 +784,8 @@ public class MadkitProperties extends MultiFormatProperties {
 	private SecureRandomType approvedRandomTypeForKeys=SecureRandomType.FORTUNA_WITH_BC_FIPS_APPROVED_FOR_KEYS;
 	private volatile AbstractSecureRandom approvedRandom=null;
 	private volatile AbstractSecureRandom approvedRandomForKeys=null;
-	private String nonceForApprovedRandom="Au courant de l'amour lorsque je m'abandonne,\n" + 
+	@SuppressWarnings("SpellCheckingInspection")
+	private String nonceForApprovedRandom="Au courant de l'amour lorsque je m'abandonne,\n" +
 			"Dans le torrent divin quand je plonge enivré,\n" + 
 			"Et presse éperdument sur mon sein qui frissonne\n" + 
 			"Un être idolâtre.\n" + 
@@ -804,7 +804,8 @@ public class MadkitProperties extends MultiFormatProperties {
 			"Quand des restes humains le souffle a déserté,\n" + 
 			"Devant ces froids débris, devant cette poussière\n" + 
 			"Parler d'éternité !\n";
-	private String nonceForApprovedRandomForKeys="\n" + 
+	@SuppressWarnings("SpellCheckingInspection")
+	private String nonceForApprovedRandomForKeys="\n" +
 			"\n" + 
 			"    L ‘Emmuré.\n" + 
 			"\n" + 
@@ -840,7 +841,8 @@ public class MadkitProperties extends MultiFormatProperties {
 			"    Protège ce qui va éclore.\n" + 
 			"\n" + 
 			"";
-	private String parameterForApprovedRandom="J'ai rencontré trois escargots\n" + 
+	@SuppressWarnings("SpellCheckingInspection")
+	private String parameterForApprovedRandom="J'ai rencontré trois escargots\n" +
 			"Qui s'en allaient cartable au dos\n" + 
 			"Et dans le pré trois limaçons\n" + 
 			"Qui disaient par cœur leur leçon.\n" + 
@@ -852,7 +854,8 @@ public class MadkitProperties extends MultiFormatProperties {
 			"Et leur maître est-il ce corbeau\n" + 
 			"Que je vois dessiner là-haut\n" + 
 			"De belles lettres au tableau ?";
-	private String parameterForApprovedRandomForKeys="Eh bien ! reprends-le donc ce peu de fange obscure\n" + 
+	@SuppressWarnings("SpellCheckingInspection")
+	private String parameterForApprovedRandomForKeys="Eh bien ! reprends-le donc ce peu de fange obscure\n" +
 			"Qui pour quelques instants s'anima sous ta main ;\n" + 
 			"Dans ton dédain superbe, implacable Nature,\n" + 
 			"Brise à jamais le moule humain.\n" + 

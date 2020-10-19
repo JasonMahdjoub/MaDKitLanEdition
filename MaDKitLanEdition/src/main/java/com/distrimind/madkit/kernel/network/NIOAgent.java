@@ -62,7 +62,7 @@ import com.distrimind.madkit.exceptions.MadkitException;
 import com.distrimind.madkit.exceptions.OverflowException;
 import com.distrimind.madkit.exceptions.PacketException;
 import com.distrimind.madkit.exceptions.SelfKillException;
-import com.distrimind.madkit.exceptions.TransfertException;
+import com.distrimind.madkit.exceptions.TransferException;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Agent;
 import com.distrimind.madkit.kernel.AgentAddress;
@@ -138,11 +138,11 @@ final class NIOAgent extends Agent {
 	protected final ArrayList<PendingConnection> pending_connections = new ArrayList<>();
 
 	protected Group group = null;
-	private boolean stoping = false;
+	private boolean stopping = false;
 	protected AgentAddress myAgentAddress = null;
 	protected long localOnlineTime = -1;
 	protected long delayToWaitToRespectGlobalBandwidthLimit=0;
-    private RealTimeTransfertStat realTimeGlobalDownloadStat =null, realTimeGlobalUploadStat=null;
+    private RealTimeTransferStat realTimeGlobalDownloadStat =null, realTimeGlobalUploadStat=null;
     private double realTimeDownloadStatDuration=0.0, realTimeUploadStatDuration=0.0;
 
 	NIOAgent() throws ConnectionException {
@@ -285,7 +285,7 @@ final class NIOAgent extends Agent {
             @SuppressWarnings("UnnecessaryLocalVariable") double l=limit;
 
             if (realTimeGlobalDownloadStat.isOneCycleDone()) {
-                double v = ((double) realTimeGlobalDownloadStat.getNumberOfIndentifiedBytes()) / realTimeDownloadStatDuration ;
+                double v = ((double) realTimeGlobalDownloadStat.getNumberOfIdentifiedBytes()) / realTimeDownloadStatDuration ;
                 if (v >= l) {
                     res = (long) ((v - l) / l * 1000.0);
                 }
@@ -307,7 +307,7 @@ final class NIOAgent extends Agent {
 
             if (realTimeGlobalUploadStat.isOneCycleDone()) {
 
-                double v = ((double) realTimeGlobalUploadStat.getNumberOfIndentifiedBytes()) / realTimeUploadStatDuration ;
+                double v = ((double) realTimeGlobalUploadStat.getNumberOfIdentifiedBytes()) / realTimeUploadStatDuration ;
                 if (v>=l)
                 {
                     res=(long)((v-l)/l*1000.0);
@@ -385,26 +385,26 @@ final class NIOAgent extends Agent {
 					}
 				} else {
 					StatsBandwidth sb = ps.agentSocket.getStatistics();
-					RealTimeTransfertStat upload = sb.getBytesUploadedInRealTime(
+					RealTimeTransferStat upload = sb.getBytesUploadedInRealTime(
 							NetworkProperties.DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS);
 					boolean ping = false;
-					if (ps.hasDataToSend() && upload.getNumberOfIndentifiedBytes() == 0 && System.currentTimeMillis()
-							- ps.getLastDataWritedUTC() > getMadkitConfig().networkProperties.connectionTimeOut) {
+					if (ps.hasDataToSend() && upload.getNumberOfIdentifiedBytes() == 0 && System.currentTimeMillis()
+							- ps.getLastDataWroteUTC() > getMadkitConfig().networkProperties.connectionTimeOut) {
 
 						ping = true;
 					} else {
-						RealTimeTransfertStat download = sb.getBytesDownloadedInRealTime(
+						RealTimeTransferStat download = sb.getBytesDownloadedInRealTime(
 								NetworkProperties.DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS);
 
-						if (download.getNumberOfIndentifiedBytes() == 0 && upload.getNumberOfIndentifiedBytes() == 0
+						if (download.getNumberOfIdentifiedBytes() == 0 && upload.getNumberOfIdentifiedBytes() == 0
 								&& download.isOneCycleDone() && upload.isOneCycleDone()) {
 							ping = true;
 						} else if (sb
 								.getBytesDownloadedInRealTime(
 										NetworkProperties.DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS)
-								.getNumberOfIndentifiedBytes() == 0
+								.getNumberOfIdentifiedBytes() == 0
 								&& System.currentTimeMillis() - ps
-										.getLastDataWritedUTC() > getMadkitConfig().networkProperties.connectionTimeOut) {
+										.getLastDataWroteUTC() > getMadkitConfig().networkProperties.connectionTimeOut) {
 							ping = true;
 						}
 
@@ -431,7 +431,7 @@ final class NIOAgent extends Agent {
 						}
 					} catch (ConnectException e) {
 						if (logger != null)
-							logger.info(e.toString() + ", local_insterface=" + pc.local_interface + ", ip="
+							logger.info(e.toString() + ", local_interface=" + pc.local_interface + ", ip="
 									+ pc.getInetSocketAddress());
 						pendingConnectionsCanceled.add(pc);
 					}
@@ -464,7 +464,7 @@ final class NIOAgent extends Agent {
 								null, null));
 
 						if (logger != null)
-							logger.warning("Receiving data to send, but personnal socket not found ! ");
+							logger.warning("Receiving data to send, but personal socket not found ! ");
 					}
 
 				} else if (m instanceof ConnectionClosed) {
@@ -475,7 +475,7 @@ final class NIOAgent extends Agent {
 					if (ps != null)
 						ps.closeConnection(cc.reason);
 				} else if (m.getClass() == AbstractAgentSocket.AgentSocketKilled.class) {
-					if (personal_sockets_list.size() == 0 && NIOAgent.this.stoping)
+					if (personal_sockets_list.size() == 0 && NIOAgent.this.stopping)
 						NIOAgent.this.killAgent(NIOAgent.this);
 				} else if (m instanceof PongMessageReceived) {
 					PongMessageReceived pmr = (PongMessageReceived) m;
@@ -618,7 +618,7 @@ final class NIOAgent extends Agent {
 
 						AskForConnectionMessage con = (AskForConnectionMessage) m;
 						if (con.now && con.type.equals(ConnectionStatusMessage.Type.DISCONNECT)) {
-							PersonalSocket found = getPersonalSocket(con.getChoosenIP(), con.interface_address);
+							PersonalSocket found = getPersonalSocket(con.getChosenIP(), con.interface_address);
 							if (found != null) {
 								if (con.concernsIndirectConnection())
 									found.closeIndirectConnection(con.connection_closed_reason, con.getIDTransfer(),
@@ -627,23 +627,23 @@ final class NIOAgent extends Agent {
 									found.closeConnection(con.connection_closed_reason);
 							} else {
 								if (logger != null && logger.isLoggable(Level.FINEST))
-									logger.finest("Connection to close not found (address=" + con.getChoosenIP()
+									logger.finest("Connection to close not found (address=" + con.getChosenIP()
 											+ ", interface_address=" + con.interface_address + ", closeReason="
 											+ con.connection_closed_reason + ")");
 							}
 						} else {
 							if (con.type.equals(ConnectionStatusMessage.Type.CONNECT)) {
-								if (!stoping)
-									initiateConnection(con.getIP(), con.getChoosenIP(),
+								if (!stopping)
+									initiateConnection(con.getIP(), con.getChosenIP(),
 											con.interface_address.getAddress(), con);
 							} else if (con.type.equals(ConnectionStatusMessage.Type.DISCONNECT)) {
-								PersonalSocket found = getPersonalSocket(con.getChoosenIP(), con.interface_address);
+								PersonalSocket found = getPersonalSocket(con.getChosenIP(), con.interface_address);
 								if (con.connection_closed_reason == null || con.connection_closed_reason
 										.equals(ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED)) {
 									sendMessage(found.agentAddress,
 											new AskForConnectionMessage(
 													ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED, con.getIP(),
-													con.getChoosenIP(), con.interface_address, false, false));
+													con.getChosenIP(), con.interface_address, false, false));
 								} else {
 									sendMessage(found.agentAddress, con);
 								}
@@ -684,7 +684,7 @@ final class NIOAgent extends Agent {
 						logger.finer("Receiving stop network order");
 
 					boolean kill = true;
-					stoping = true;
+					stopping = true;
 					NetworkAgent.StopNetworkMessage message = (NetworkAgent.StopNetworkMessage) m;
 					for (Server s : this.serverChannels)
 						s.serverChannels.close();
@@ -814,7 +814,7 @@ final class NIOAgent extends Agent {
 
 	private void bindDatagramData(InetSocketAddress addr) {
 		try {
-			if (!stoping && getMadkitConfig().networkProperties.autoConnectWithLocalSitePeers
+			if (!stopping && getMadkitConfig().networkProperties.autoConnectWithLocalSitePeers
 					&& !personal_datagram_channels_per_ni_address.containsKey(addr.getAddress())) {
 				for (InetAddress ia : personal_datagram_channels_per_ni_address.keySet()) {
 					if (InetAddressFilter.isSameLocalNetwork(addr.getAddress(), ia))
@@ -906,21 +906,9 @@ final class NIOAgent extends Agent {
 		}
 	}
 
-	/*
-	 * private void finishConnection(SelectionKey key) { if (stoping) {
-	 * key.cancel();
-	 * 
-	 * return; }
-	 * 
-	 * 
-	 * 
-	 * try { finishConnection(null, (SocketChannel)key.channel()); }
-	 * catch(IOException e) { key.cancel(); if (logger!=null)
-	 * logger.log(Level.WARNING, "Connection failed (local initiative).", e); } }
-	 */
 
 	private void finishConnection(AbstractIP ip, SocketChannel sc) throws IOException {
-		if (stoping) {
+		if (stopping) {
 			return;
 		}
 		try {
@@ -984,7 +972,7 @@ final class NIOAgent extends Agent {
 								LocalCommunity.Roles.NIO_ROLE);
 
 						if (local_asking)
-							pendingConnectionSuceeded(socketChannel);
+							pendingConnectionSucceeded(socketChannel);
 
 						if (logger != null && logger.isLoggable(Level.FINER))
 							logger.finer("Connection established  : " + ps);
@@ -1031,7 +1019,7 @@ final class NIOAgent extends Agent {
 		if (logger != null && logger.isLoggable(Level.FINER))
 			logger.finer("Accepting connection (_key=" + _key + ")");
 
-		if (stoping) {
+		if (stopping) {
 			_key.cancel();
 			return;
 		}
@@ -1168,7 +1156,7 @@ final class NIOAgent extends Agent {
 		private final PersonalSocket personalSocket;
 		private final AbstractData data;
 		private volatile ByteBuffer buffer;
-		private TransfertException pendingExcetion=null;
+		private TransferException pendingException =null;
 		private IDTransfer idTransfer=null;
 		
 		
@@ -1185,7 +1173,7 @@ final class NIOAgent extends Agent {
 			return data.isLastMessage() && data.isFinished();
 		}
 		
-		boolean isReady() throws TransfertException
+		boolean isReady() throws TransferException
 		{
 			throwPendingException();
 
@@ -1197,7 +1185,7 @@ final class NIOAgent extends Agent {
 			}
 			catch(PacketException e)
 			{
-				throw new TransfertException(e);
+				throw new TransferException(e);
 			}
 		}
 		
@@ -1206,7 +1194,7 @@ final class NIOAgent extends Agent {
 			return data.isUnlocked();
 		}
 		
-		boolean isDataLoadingCanceled() throws TransfertException, PacketException
+		boolean isDataLoadingCanceled() throws TransferException, PacketException
 		{
 			takeNextData();
 			return buffer==null && data.isFinished();
@@ -1217,7 +1205,7 @@ final class NIOAgent extends Agent {
 			return data.getLocker();
 		}
 		
-		void takeNextData() throws TransfertException
+		void takeNextData() throws TransferException
 		{
 			try
 			{
@@ -1244,21 +1232,21 @@ final class NIOAgent extends Agent {
 			}
 			
 		}
-		private void throwPendingException() throws TransfertException
+		private void throwPendingException() throws TransferException
 		{
-			if (pendingExcetion!=null)
+			if (pendingException !=null)
 			{
 				try
 				{
-					throw pendingExcetion;
+					throw pendingException;
 				}
 				finally
 				{
-					pendingExcetion=null;
+					pendingException =null;
 				}
 			}
 		}
-		ByteBuffer getBuffer() throws TransfertException
+		ByteBuffer getBuffer() throws TransferException
 		{
 			throwPendingException();
 			takeNextData();
@@ -1295,7 +1283,7 @@ final class NIOAgent extends Agent {
 		protected int bigDataToSendIndex = 0;
 		private boolean waitingForPongMessage = false;
 		private long time_sending_ping_message;
-		private long last_data_writed_utc;
+		private long last_data_wrote_utc;
 		// private int read_locked=0;
 		private boolean is_closed = false;
 		private ConnectionClosedReason cs=null;
@@ -1310,12 +1298,12 @@ final class NIOAgent extends Agent {
 		}
 
 		public PersonalSocket(SocketChannel _socketChannel, AgentSocket _agent)
-				throws OverflowException, IOException, NoSuchAlgorithmException, NoSuchProviderException, TransfertException {
+				throws OverflowException, IOException, NoSuchAlgorithmException, NoSuchProviderException, TransferException {
 			socketChannel = _socketChannel;
 			agentSocket = _agent;
 			agentAddress = agentSocket.getAgentAddressIn(LocalCommunity.Groups.NETWORK,
 					LocalCommunity.Roles.SOCKET_AGENT_ROLE);
-			last_data_writed_utc = time_sending_ping_message = System.currentTimeMillis();
+			last_data_wrote_utc = time_sending_ping_message = System.currentTimeMillis();
 			maxBlockSize=_agent.getMaxBlockSize();
 			/*socketChannel.setOption(StandardSocketOptions.SO_SNDBUF, maxBlockSize);
 			socketChannel.setOption(StandardSocketOptions.SO_RCVBUF, maxBlockSize);*/
@@ -1326,7 +1314,7 @@ final class NIOAgent extends Agent {
 							getKernelAddress())));
 		}
 		
-		void prepareNextDataToNextIfNecessary() throws TransfertException
+		void prepareNextDataToNextIfNecessary() throws TransferException
 		{
 
 			
@@ -1343,7 +1331,7 @@ final class NIOAgent extends Agent {
 			}
 		}
 
-		NoBackData getNextNoBackData() throws TransfertException
+		NoBackData getNextNoBackData() throws TransferException
 		{
 		    if (is_closed)
 		        return null;
@@ -1365,7 +1353,7 @@ final class NIOAgent extends Agent {
 				}
 				catch(MadkitException e)
 				{
-					throw new TransfertException(e);
+					throw new TransferException(e);
 				}
 			} while(res==null);
 			
@@ -1375,7 +1363,7 @@ final class NIOAgent extends Agent {
 					return null;
 			return res;
 		}
-		private boolean freeNoBackData() throws PacketException, TransfertException
+		private boolean freeNoBackData() throws PacketException, TransferException
 		{
 			if (noBackDataToSend.getFirst().isFinished())
 			{
@@ -1394,8 +1382,8 @@ final class NIOAgent extends Agent {
 			else
 				return false;
 		}
-		long getLastDataWritedUTC() {
-			return last_data_writed_utc;
+		long getLastDataWroteUTC() {
+			return last_data_wrote_utc;
 		}
 
 		@Override
@@ -1454,7 +1442,7 @@ final class NIOAgent extends Agent {
 			return shortDataToSend.size()>0 || bigDataToSend.size()>0 || dataToTransfer.size()>0;
 		}
 
-		public boolean addDataToSend(AbstractData _data) throws TransfertException {
+		public boolean addDataToSend(AbstractData _data) throws TransferException {
 			if (shortDataToSend != null && bigDataToSend != null) {
 
 				/*
@@ -1466,7 +1454,7 @@ final class NIOAgent extends Agent {
 
 				switch (_data.getDataTransferType()) {
 				case SHORT_DATA:
-					// _data.setPriority(prioritary);
+
 					if (_data.isPriority() && shortDataToSend.size() > 0) {
 
 						ListIterator<AbstractData> itDataToSend = shortDataToSend.listIterator();
@@ -1512,7 +1500,7 @@ final class NIOAgent extends Agent {
 				return false;
 		}
 
-		private boolean hasPrioritaryDataToSend() {
+		private boolean hasPriorityDataToSend() {
 			return shortDataToSend.size() > 0 && shortDataToSend.get(0).isPriority();
 		}
 
@@ -1551,14 +1539,14 @@ final class NIOAgent extends Agent {
 				return false;
 			}
 		}*/
-		private boolean waitDataReady() throws TransfertException {
+		private boolean waitDataReady() throws TransferException {
 			try {
 				//synchronized (this.agentSocket) {
 					final AtomicBoolean hasData = new AtomicBoolean(this.noBackDataToSend.size()>0);
 					NoBackData first=null;
 					final AtomicBoolean validData = new AtomicBoolean(this.noBackDataToSend.size()>0 && (first=this.noBackDataToSend.getFirst()).isReady());
 					
-					final AtomicReference<TransfertException> exception=new AtomicReference<>();
+					final AtomicReference<TransferException> exception=new AtomicReference<>();
 					if (!hasData.get() || validData.get())
 						return hasData.get();
 				if (first==null)
@@ -1577,7 +1565,7 @@ final class NIOAgent extends Agent {
 								hasData.set(first!=null);
 								validData.set(first!=null && first.isReady());
 							}
-							catch(TransfertException e)
+							catch(TransferException e)
 							{
 								exception.set(e);
 								return false;
@@ -1596,7 +1584,7 @@ final class NIOAgent extends Agent {
 				return false;
 			}
 		}
-		private boolean isTransferTypeChangmentPossible() throws TransfertException {
+		private boolean isTransferTypeChangePossible() throws TransferException {
 			AbstractData data = null;
 			switch (dataTransferType) {
 			case SHORT_DATA:
@@ -1621,14 +1609,14 @@ final class NIOAgent extends Agent {
 			try {
 				return data == null || data.isCurrentByteBufferFinished();
 			} catch (PacketException e) {
-				throw new TransfertException(e);
+				throw new TransferException(e);
 			}
 
 		}
 
-		private boolean checkValidTransferType() throws TransfertException {
-				boolean changement = isTransferTypeChangmentPossible();
-				if (!changement)
+		private boolean checkValidTransferType() throws TransferException {
+				boolean change = isTransferTypeChangePossible();
+				if (!change)
 					return true;
 				boolean valid_data=hasDataToSend();
 				//boolean valid_data = waitDataReady();
@@ -1637,7 +1625,7 @@ final class NIOAgent extends Agent {
 				// (bigDataToSend.size()>bigDataToSendIndex &&
 				// bigDataToSend.get(bigDataToSendIndex).isReady()) || (dataToTransfer.size()>0
 				// && dataToTransfer.getFirst().isReady());
-				if (!valid_data || is_closed || hasPrioritaryDataToSend()) {
+				if (!valid_data || is_closed || hasPriorityDataToSend()) {
 					dataTransferType = DataTransferType.SHORT_DATA;
 					return !is_closed;
 				} else {
@@ -1669,7 +1657,7 @@ final class NIOAgent extends Agent {
 			
 		}
 
-		private boolean setNextTransferType() throws TransfertException {
+		private boolean setNextTransferType() throws TransferException {
 			switch (dataTransferType) {
 			case SHORT_DATA:
 				dataTransferType = DataTransferType.BIG_DATA;
@@ -1684,7 +1672,7 @@ final class NIOAgent extends Agent {
 			return checkValidTransferType();
 		}
 
-		private AbstractData getNextData() throws TransfertException {
+		private AbstractData getNextData() throws TransferException {
 			if (is_closed)
 				return null;
 			switch (dataTransferType) {
@@ -1707,7 +1695,7 @@ final class NIOAgent extends Agent {
 					return ad;
 				}
 				else
-					throw new TransfertException("Unexpected exception !");
+					throw new TransferException("Unexpected exception !");
 			case DATA_TO_TRANSFER:
 				if (dataToTransfer.size() > 0)
 				{
@@ -1717,14 +1705,14 @@ final class NIOAgent extends Agent {
 					return ad;
 				}
 				else
-					throw new TransfertException("Unexpected exception !");
+					throw new TransferException("Unexpected exception !");
 			}
 			return null;
 
 		}
 
 		@SuppressWarnings("ThrowFromFinallyBlock")
-        private boolean free(AbstractData d) throws TransfertException {
+        private boolean free(AbstractData d) throws TransferException {
 			try
 			{
 				
@@ -1736,7 +1724,7 @@ final class NIOAgent extends Agent {
 							try {
 								d.unlockMessage();
 							} catch (Exception e) {
-								throw new TransfertException("Unexpected exception !", e);
+								throw new TransferException("Unexpected exception !", e);
 							} finally {
 								AbstractData removed=shortDataToSend.removeFirst();
 								if (removed!=d)
@@ -1754,7 +1742,7 @@ final class NIOAgent extends Agent {
 							try {
 								d.unlockMessage();
 							} catch (Exception e) {
-								throw new TransfertException("Unexpected exception !", e);
+								throw new TransferException("Unexpected exception !", e);
 							}
 							AbstractData removed=bigDataToSend.remove(bigDataToSendIndex);
 							if (removed!=d)
@@ -1777,7 +1765,7 @@ final class NIOAgent extends Agent {
 							try {
 								d.unlockMessage();
 							} catch (Exception e) {
-								throw new TransfertException("Unexpected exception !", e);
+								throw new TransferException("Unexpected exception !", e);
 							}
 							AbstractData removed=dataToTransfer.removeFirst();
 							if (removed!=d)
@@ -1793,12 +1781,12 @@ final class NIOAgent extends Agent {
 			}
 			catch(PacketException e)
 			{
-				throw new TransfertException(e);
+				throw new TransferException(e);
 			}
 		}
 
 		private Timer timer_send = null;
-		private int data_sended = 0;
+		private int data_sent = 0;
 
 		public void read(SelectionKey key) {
 
@@ -1936,10 +1924,10 @@ final class NIOAgent extends Agent {
 				NoBackData data = getNextNoBackData();
 
 				//while (data != null) {
-					boolean datafinished;
+					boolean dataFinished;
 					int remaining = -1;
-					if ((datafinished = data.isFinished()) || !data.isReady()) {
-						if (datafinished) {
+					if ((dataFinished = data.isFinished()) || !data.isReady()) {
+						if (dataFinished) {
 							freeNoBackData();
 						} else {
 							if (dataNotAlreadyTwoTimes)
@@ -1962,34 +1950,34 @@ final class NIOAgent extends Agent {
 						ByteBuffer buf = data.getBuffer();
 
 						if (buf == null) {
-							throw new TransfertException("Unexpected exception !");
+							throw new TransferException("Unexpected exception !");
 						} else {
 							if (firstPacketSent) {
 								if (timer_send == null)
 									timer_send = new Timer(true);
 								else {
-									agentSocket.getStatistics().newDataSent(data.getIDTransfer(), data_sended,
+									agentSocket.getStatistics().newDataSent(data.getIDTransfer(), data_sent,
 											timer_send.getDeltaMili());
 								}
 							}
 
-							data_sended = socketChannel.write(buf);
+							data_sent = socketChannel.write(buf);
 
 							if (firstPacketSent)
 							{
 								
-								agentSocket.getStatistics().newDataSent(data.getIDTransfer(), data_sended);
+								agentSocket.getStatistics().newDataSent(data.getIDTransfer(), data_sent);
 							}
 
 							remaining = buf.remaining();
 							if (freeNoBackData() && remaining > 0)
 								throw new IllegalAccessError();
 
-							if (data_sended > 0) {
+							if (data_sent > 0) {
 								if (logger != null && logger.isLoggable(Level.FINEST))
-									logger.finest("New data sent (" + data_sended + " bytes, bufferRemaining="
+									logger.finest("New data sent (" + data_sent + " bytes, bufferRemaining="
 											+ remaining + ", totalBufferLength=" + buf.capacity() + ")");
-								last_data_writed_utc = System.currentTimeMillis();
+								last_data_wrote_utc = System.currentTimeMillis();
 							}
 
 						}
@@ -1999,22 +1987,11 @@ final class NIOAgent extends Agent {
 					data=getNextNoBackData();
 					if (data!=null)
 					    return;
-					/*if (data == null) {
-						timer_send = null;
-
-					}*/
-					/*
-					 * if (data_sended==0 && remaining>0) { //key.interestOps(SelectionKey.OP_READ);
-					 * return; }
-					 */
 
 				//}
 				if (!is_closed)
 					key.interestOps(SelectionKey.OP_CONNECT | SelectionKey.OP_READ);
 
-				/*
-				 * if (key.isValid()) key.interestOps(SelectionKey.OP_READ);
-				 */
 			} catch (IOException e) {
 				if (logger != null && logger.isLoggable(Level.FINER))
 					logger.finer("Unexpected exception during write process : " + e);
@@ -2051,17 +2028,13 @@ final class NIOAgent extends Agent {
 			}
 			delaying&=getMadkitConfig().networkProperties.delayInMsBeforeClosingConnectionNormally>0;
 			if (delaying)
-                NIOAgent.this.scheduleTask(new Task<>(new Callable<Void>() {
-
-                    @Override
-                    public Void call() {
-                        if (isAlive())
-                            receiveMessage(new ObjectMessage<>(PersonalSocket.this));
-                        else
-                            finishCloseConnection();
-                        return null;
-                    }
-                }, getMadkitConfig().networkProperties.delayInMsBeforeClosingConnectionNormally + System.currentTimeMillis()));
+                NIOAgent.this.scheduleTask(new Task<>((Callable<Void>) () -> {
+					if (isAlive())
+						receiveMessage(new ObjectMessage<>(PersonalSocket.this));
+					else
+						finishCloseConnection();
+					return null;
+				}, getMadkitConfig().networkProperties.delayInMsBeforeClosingConnectionNormally + System.currentTimeMillis()));
 			else
 				finishCloseConnection();
 
@@ -2115,7 +2088,7 @@ final class NIOAgent extends Agent {
 						}
 					}
 					if (!found) {
-						if (!stoping) {
+						if (!stopping) {
 							for (AgentAddress aa : getAgentsWithRole(LocalCommunity.Groups.LOCAL_NETWORKS,
 									LocalCommunity.Roles.LOCAL_NETWORK_ROLE)) {
 								if (isa==null)
@@ -2137,22 +2110,16 @@ final class NIOAgent extends Agent {
 			shortDataToSend = new LinkedList<>();
 			bigDataToSend = new ArrayList<>();
 			dataToTransfer = new LinkedList<>();
-			if (stoping && isAlive() && personal_sockets.isEmpty())
+			if (stopping && isAlive() && personal_sockets.isEmpty())
 			    killAgent(NIOAgent.this);
 		}
 		public void closeIndirectConnection(ConnectionClosedReason cs, IDTransfer transferID,
 				AgentAddress indirectAgentAddress) {
-			//ArrayList<AbstractData> transferedDataCanceled = new ArrayList<>();
-			for (Iterator<AbstractData> it = this.dataToTransfer.iterator(); it.hasNext();) {
-				AbstractData ad = it.next();
-				if (ad.getIDTransfer().equals(transferID)) {
-					//transferedDataCanceled.add(ad);
-					it.remove();
-				}
-			}
+
+			this.dataToTransfer.removeIf(ad -> ad.getIDTransfer().equals(transferID));
 			NIOAgent.this.sendMessageWithRole(
 					indirectAgentAddress, new ConnectionClosed(this.agentAddress.getAgentNetworkID(), cs,
-							new ArrayList<AbstractData>(0), new ArrayList<AbstractData>(0), dataToTransfer),
+							new ArrayList<>(0), new ArrayList<>(0), dataToTransfer),
 					LocalCommunity.Roles.NIO_ROLE);
 		}
 
@@ -2279,27 +2246,27 @@ final class NIOAgent extends Agent {
 	}
 
 	private void addPendingConnection(AbstractIP ip, SocketChannel socketChannel, InetSocketAddress inetSocketAddress,
-			InetAddress local_interface, AskForConnectionMessage askerMessage) {
+			InetAddress local_interface, AskForConnectionMessage callerMessage) {
 		if (logger != null && logger.isLoggable(Level.FINER))
 			logger.finer("Pending connection (inetSocketAddress=" + inetSocketAddress + ", local_interface="
 					+ local_interface + ")");
 		pending_connections
-				.add(new PendingConnection(ip, socketChannel, inetSocketAddress, local_interface, askerMessage));
+				.add(new PendingConnection(ip, socketChannel, inetSocketAddress, local_interface, callerMessage));
 	}
 
-	private void pendingConnectionSuceeded(SocketChannel socketChannel) {
+	private void pendingConnectionSucceeded(SocketChannel socketChannel) {
 
 		for (Iterator<PendingConnection> it = pending_connections.iterator(); it.hasNext();) {
 			PendingConnection pc = it.next();
 			if (pc.isConcernedBy(socketChannel)) {
-				if (pc.getAskerMessage() != null && pc.getAskerMessage().getJoinedPiece() != null
-						&& pc.getAskerMessage().getOriginalSender() != null
-						&& pc.getAskerMessage().getJoinedPiece().getClass() == TryDirectConnection.class) {
-					sendMessageWithRole(pc.getAskerMessage().getOriginalSender(),
-							new ObjectMessage<>(new TransferAgent.DirectConnectionSuceeded(
-									((TryDirectConnection) pc.getAskerMessage().getJoinedPiece()).getIDTransfer())),
+				if (pc.getCallerMessage() != null && pc.getCallerMessage().getJoinedPiece() != null
+						&& pc.getCallerMessage().getOriginalSender() != null
+						&& pc.getCallerMessage().getJoinedPiece().getClass() == TryDirectConnection.class) {
+					sendMessageWithRole(pc.getCallerMessage().getOriginalSender(),
+							new ObjectMessage<>(new TransferAgent.DirectConnectionSucceeded(
+									((TryDirectConnection) pc.getCallerMessage().getJoinedPiece()).getIDTransfer())),
 							LocalCommunity.Roles.NIO_ROLE);
-					pc.getAskerMessage().setJoinedPiece(null, null);
+					pc.getCallerMessage().setJoinedPiece(null, null);
 				}
 
 				it.remove();
@@ -2317,24 +2284,24 @@ final class NIOAgent extends Agent {
 		for (Iterator<PendingConnection> it = pending_connections.iterator(); it.hasNext();) {
 			PendingConnection pc = it.next();
 			if (pc.isConcernedBy(socketChannel)) {
-				if (pc.getAskerMessage() != null && pc.getAskerMessage().getJoinedPiece() != null
-						&& pc.getAskerMessage().getOriginalSender() != null
-						&& pc.getAskerMessage().getJoinedPiece() == TryDirectConnection.class) {
-					sendMessageWithRole(pc.getAskerMessage().getOriginalSender(),
+				if (pc.getCallerMessage() != null && pc.getCallerMessage().getJoinedPiece() != null
+						&& pc.getCallerMessage().getOriginalSender() != null
+						&& pc.getCallerMessage().getJoinedPiece() == TryDirectConnection.class) {
+					sendMessageWithRole(pc.getCallerMessage().getOriginalSender(),
 							new ObjectMessage<>(new TransferAgent.DirectConnectionFailed(
-									((TryDirectConnection) pc.getAskerMessage().getJoinedPiece()).getIDTransfer())),
+									((TryDirectConnection) pc.getCallerMessage().getJoinedPiece()).getIDTransfer())),
 							LocalCommunity.Roles.NIO_ROLE);
 				}
 				else {
-					if (pc.getAskerMessage()==null)
+					if (pc.getCallerMessage()==null)
 						throw new NullPointerException();
 
-					if (pc.getAskerMessage().getOriginalSender()!=null)
+					if (pc.getCallerMessage().getOriginalSender()!=null)
 					{
 						if (reason==null)
 							reason=ConnectionClosedReason.IP_NOT_REACHED;
-						sendMessageWithRole(pc.getAskerMessage().getOriginalSender(),
-								new ConnectionStatusMessage(ConnectionStatusMessage.Type.DISCONNECT, pc.getIP(), pc.getAskerMessage().getChoosenIP(), pc.getAskerMessage().interface_address, reason, pc.getAskerMessage().getNumberOfAnomalies(), pc.getAskerMessage().getTimeUTCOfAnomaliesCycle()),
+						sendMessageWithRole(pc.getCallerMessage().getOriginalSender(),
+								new ConnectionStatusMessage(ConnectionStatusMessage.Type.DISCONNECT, pc.getIP(), pc.getCallerMessage().getChosenIP(), pc.getCallerMessage().interface_address, reason, pc.getCallerMessage().getNumberOfAnomalies(), pc.getCallerMessage().getTimeUTCOfAnomaliesCycle()),
 								LocalCommunity.Roles.NIO_ROLE);
 
 					}
@@ -2348,13 +2315,13 @@ final class NIOAgent extends Agent {
 	private static class PendingConnection {
 		protected final InetSocketAddress inetSocketAddress;
 		protected final InetAddress local_interface;
-		private final AskForConnectionMessage askerMessage;
+		private final AskForConnectionMessage callerMessage;
 		private final SocketChannel socketChannel;
 		private final long timeUTC;
 		private final AbstractIP ip;
 
 		PendingConnection(AbstractIP ip, SocketChannel socketChannel, InetSocketAddress inetSocketAddress,
-				InetAddress local_interface, AskForConnectionMessage askerMessage) {
+				InetAddress local_interface, AskForConnectionMessage callerMessage) {
 			if (inetSocketAddress == null)
 				throw new NullPointerException("inetSocketAddress");
 			if (local_interface == null)
@@ -2367,7 +2334,7 @@ final class NIOAgent extends Agent {
 			this.socketChannel = socketChannel;
 			this.inetSocketAddress = inetSocketAddress;
 			this.local_interface = local_interface;
-			this.askerMessage = askerMessage;
+			this.callerMessage = callerMessage;
 			this.ip = ip;
 			timeUTC = System.currentTimeMillis();
 		}
@@ -2414,8 +2381,8 @@ final class NIOAgent extends Agent {
 			return inetSocketAddress.hashCode() + local_interface.hashCode();
 		}
 
-		AskForConnectionMessage getAskerMessage() {
-			return askerMessage;
+		AskForConnectionMessage getCallerMessage() {
+			return callerMessage;
 		}
 
 		long getTimeUTC() {

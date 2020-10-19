@@ -263,7 +263,7 @@ public class LocalCommunity implements Organization {// TODO check groups protec
 		}
 
 		public static Group getOriginalDistantKernelAgentGroup(KernelAddress ka) {
-			String subGroup = "~~orginal_kernel_addresses";
+			String subGroup = "~~original_kernel_addresses";
 			if (ka instanceof KernelAddressInterfaced)
 				return DISTANT_KERNEL_AGENTS_GROUPS.getSubGroup(false, distantKernelAgentSubGatekeeper, subGroup,
 						((KernelAddressInterfaced) ka).getOriginalKernelAddress().toString());
@@ -313,7 +313,7 @@ public class LocalCommunity implements Organization {// TODO check groups protec
 		 */
 		public static final String KERNEL = "~~kernel";
 		public static final String UPDATER = "~~updater";
-		public static final String EMMITER = "~~emmiter";
+		public static final String EMITTER = "~~emitter";
 		public static final String SECURITY = "~~security";
 		public static final String GUI = "~~gui";
 
@@ -325,7 +325,7 @@ public class LocalCommunity implements Organization {// TODO check groups protec
 		/**
 		 * This role is automatically given to agents that launch tasks
 		 */
-		public static final String TASK_ASKER_ROLE = Task.TASK_ASKER_ROLE;
+		public static final String TASK_CALLER_ROLE = Task.TASK_CALLER_ROLE;
 
 		// network roles
 
@@ -385,7 +385,7 @@ public class LocalCommunity implements Organization {// TODO check groups protec
 		public static final String MULTICAST_LISTENER_ROLE = "~~MULTICAST_LISTENER_ROLE";
 
 		/**
-		 * Role taken by DatabaseSynchronizeAgent to listen new incoming/outcomming distant database peer.
+		 * Role taken by DatabaseSynchronizeAgent to listen new incoming/outgoing distant database peer.
 		 */
 		public static final String DATABASE_SYNCHRONIZER_LISTENER ="~~DATABASE_SYNCHRONIZER_LISTENER";
 

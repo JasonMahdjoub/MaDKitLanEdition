@@ -82,7 +82,6 @@ class MadkitNetworkAccess {
 		}
 	}
 
-	@SuppressWarnings("ConstantConditions")
 	static boolean checkNetworkBoardEmpty(Object networkBoard) {
 		try {
 			return (Boolean) invoke(check_network_board_memory_leak, networkBoard);
@@ -109,9 +108,9 @@ class MadkitNetworkAccess {
 	}
 
 	@SuppressWarnings("unused")
-	static AbstractAgent getUpngIDGAgent(AbstractAgent _requester) {
+	static AbstractAgent getUpnpIDGAgent(AbstractAgent _requester) {
 		try {
-			return (AbstractAgent) invoke(get_upnpigd_agent_instance, null);
+			return (AbstractAgent) invoke(get_upnp_igd_agent_instance, null);
 		} catch (InvocationTargetException e) {
 			System.err.println("Unexpected error :");
 			e.printStackTrace();
@@ -155,13 +154,13 @@ class MadkitNetworkAccess {
 
 	private static final String package_name;
 	private static final Class<?> c_nio_agent;
-	private static final Class<?> c_network_blacboard;
+	private static final Class<?> c_network_board;
 	private static final Constructor<?> nio_constructor;
 	private static final Constructor<?> network_board_constructor;
 	private static final Class<?> c_local_network_affectation_agent;
 	private static final Constructor<?> local_network_affectation_agent_constructor;
-	private static final Class<?> c_upnpigd_agent;
-	private static final Method get_upnpigd_agent_instance;
+	private static final Class<?> c_upnp_igd_agent;
+	private static final Method get_upnp_igd_agent_instance;
 	private static final Method check_network_board_memory_leak;
 	private static final Constructor<DirectLocalLanMessage> direct_local_lan_message;
 	private static final Constructor<BroadcastLocalLanMessage> broadcast_local_lan_message;
@@ -169,14 +168,14 @@ class MadkitNetworkAccess {
 	static {
 		package_name = AskForConnectionMessage.class.getPackage().getName();
 		c_nio_agent = loadClass(package_name + ".NIOAgent");
-		c_network_blacboard = loadClass(package_name + ".NetworkBoard");
+		c_network_board = loadClass(package_name + ".NetworkBoard");
 		nio_constructor = getConstructor(c_nio_agent);
-		network_board_constructor = getConstructor(c_network_blacboard);
-		c_upnpigd_agent = loadClass(package_name + ".UpnpIGDAgent");
+		network_board_constructor = getConstructor(c_network_board);
+		c_upnp_igd_agent = loadClass(package_name + ".UpnpIGDAgent");
 		c_local_network_affectation_agent = loadClass(package_name + ".LocalNetworkAffectationAgent");
 		local_network_affectation_agent_constructor = getConstructor(c_local_network_affectation_agent);
-		get_upnpigd_agent_instance = getMethod(c_upnpigd_agent, "getInstance");
-		check_network_board_memory_leak = getMethod(c_network_blacboard, "checkBoardEmpty");
+		get_upnp_igd_agent_instance = getMethod(c_upnp_igd_agent, "getInstance");
+		check_network_board_memory_leak = getMethod(c_network_board, "checkBoardEmpty");
 		direct_local_lan_message = getConstructor(DirectLocalLanMessage.class, Message.class);
 		broadcast_local_lan_message = getConstructor(BroadcastLocalLanMessage.class, Message.class, AbstractGroup.class,
 				String.class, ArrayList.class);

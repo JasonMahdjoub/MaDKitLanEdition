@@ -1071,7 +1071,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 	}
 
 	@Override
-	public void notifyNewAccessChangements() {
+	public void notifyNewAccessChanges() {
 	}
 
 	@Override

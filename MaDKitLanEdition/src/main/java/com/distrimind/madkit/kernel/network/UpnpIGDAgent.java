@@ -152,12 +152,12 @@ class UpnpIGDAgent extends AgentFakeThread {
 	protected static volatile UpnpService upnpService = null;
 	protected static int pointedUpnpServiceNumber = 0;
 
-	final static ThreadPoolExecutor serviceExecutor = new ThreadPoolExecutor(1, Integer.MAX_VALUE, 1, TimeUnit.SECONDS,new SynchronousQueue<Runnable>());
+	final static ThreadPoolExecutor serviceExecutor = new ThreadPoolExecutor(1, Integer.MAX_VALUE, 1, TimeUnit.SECONDS, new SynchronousQueue<>());
 	//final static PoolExecutor serviceExecutor = new PoolExecutor(4, 5, 1, TimeUnit.SECONDS,new CircularArrayList<Runnable>(16, true));
 
-	private final RegistryListener registeryListener = new RegistryListener();
+	private final RegistryListener registryListener = new RegistryListener();
 	private final HashMap<InetAddress, Router> upnp_igd_routers = new HashMap<>();
-	private final ArrayList<AskForRouterDetectionInformation> askers_for_router_detection = new ArrayList<>();
+	private final ArrayList<AskForRouterDetectionInformation> callers_for_router_detection = new ArrayList<>();
 
 
 	protected void addRouter(InetAddress ia, Router router) {
@@ -171,7 +171,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 			if (upnp_igd_routers.containsKey(ia))
 				return;
 			upnp_igd_routers.put(ia, router);
-			for (AskForRouterDetectionInformation m : askers_for_router_detection)
+			for (AskForRouterDetectionInformation m : callers_for_router_detection)
 				sendReply(m, new IGDRouterFoundMessage(router.internal_address));
 		}
 	}
@@ -182,7 +182,7 @@ class UpnpIGDAgent extends AgentFakeThread {
         RemoteService connectionService;
         if ((connectionService=discoverConnectionService(router)) == null)
             return;
-		boolean unkowDeviceDetected = false;
+		boolean unknownDeviceDetected = false;
 		synchronized (upnp_igd_routers) {
 			try {
 				InetAddress ia = InetAddress.getByName(router.getIdentity().getDescriptorURL().getHost());
@@ -198,26 +198,21 @@ class UpnpIGDAgent extends AgentFakeThread {
 					}
 				}
 				if (r == null)
-					unkowDeviceDetected = true;
+					unknownDeviceDetected = true;
 				else {
 
 
-					/*if ((connectionService = discoverConnectionService(router)) == null) {
-						for (AskForRouterDetectionInformation m : askers_for_router_detection) {
-							sendReply(m, new IGDRouterLostMessage(r.internal_address));
-						}
-					} else {*/
 
-						if (!r.internal_address.equals(ia)) {
-							for (AskForRouterDetectionInformation m : askers_for_router_detection) {
-								sendReply(m, new IGDRouterLostMessage(r.internal_address));
-								sendReply(m, new IGDRouterFoundMessage(ia));
-							}
-							r.internal_address = ia;
+					if (!r.internal_address.equals(ia)) {
+						for (AskForRouterDetectionInformation m : callers_for_router_detection) {
+							sendReply(m, new IGDRouterLostMessage(r.internal_address));
+							sendReply(m, new IGDRouterFoundMessage(ia));
 						}
-						r.service = connectionService;
-						upnp_igd_routers.put(ia, r);
-					//}
+						r.internal_address = ia;
+					}
+					r.service = connectionService;
+					upnp_igd_routers.put(ia, r);
+
 				}
 			} catch (UnknownHostException e) {
 				if (getLogger1() != null)
@@ -226,7 +221,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 					e.printStackTrace();
 			}
 		}
-		if (unkowDeviceDetected)
+		if (unknownDeviceDetected)
 			remoteDeviceDetected(router);
 	}
 
@@ -471,42 +466,32 @@ class UpnpIGDAgent extends AgentFakeThread {
 					}
 				}
 				if (update_repetitive_task) {
-					status_task_updater = new Task<>(new Callable<Object>() {
+					status_task_updater = new Task<>(() -> {
+						upnpService.getControlPoint().execute(new GetStatusInfo(service) {
 
-						@Override
-						public Object call() {
-							upnpService.getControlPoint().execute(new GetStatusInfo(service) {
+							@Override
+							public void failure(ActionInvocation _invocation,
+									UpnpResponse _operation, String _defaultMsg) {
+								if (getLogger1() != null)
+									getLogger1().warning(_defaultMsg);
+							}
 
-								@Override
-								public void failure(ActionInvocation _invocation,
-										UpnpResponse _operation, String _defaultMsg) {
-									if (getLogger1() != null)
-										getLogger1().warning(_defaultMsg);
-								}
-
-								@Override
-								protected void success(StatusInfo _statusInfo) {
-									StatusInfo old = status.get();
-									if (old == null || !old.equals(_statusInfo)) {
-										ConnexionStatusMessage answer = new ConnexionStatusMessage(internal_address,
-												_statusInfo, old);
-										status.set(_statusInfo);
-										synchronized (asks_for_status) {
-											for (Iterator<AskForConnectionStatusMessage> it = asks_for_status
-													.iterator(); it.hasNext();) {
-												AskForConnectionStatusMessage m = it.next();
-												if (!UpnpIGDAgent.this.sendReply(m, answer.clone())
-														.equals(ReturnCode.SUCCESS)) {
-													it.remove();
-												}
-											}
-										}
+							@Override
+							protected void success(StatusInfo _statusInfo) {
+								StatusInfo old = status.get();
+								if (old == null || !old.equals(_statusInfo)) {
+									ConnexionStatusMessage answer = new ConnexionStatusMessage(internal_address,
+											_statusInfo, old);
+									status.set(_statusInfo);
+									synchronized (asks_for_status) {
+										asks_for_status.removeIf(m1 -> !UpnpIGDAgent.this.sendReply(m1, answer.clone())
+												.equals(ReturnCode.SUCCESS));
 									}
-
 								}
-							});
-							return null;
-						}
+
+							}
+						});
+						return null;
 					}, System.currentTimeMillis() + referenced_delay, referenced_delay);
 					status_task_id = UpnpIGDAgent.this.scheduleTask(status_task_updater);
 				}
@@ -584,48 +569,39 @@ class UpnpIGDAgent extends AgentFakeThread {
 					}
 				}
 				if (update_repetitive_task) {
-					external_address_task_updater = new Task<>(new Callable<Object>() {
+					external_address_task_updater = new Task<>(() -> {
+						upnpService.getControlPoint().execute(new GetExternalIP(service) {
 
-						@Override
-						public Object call() {
-							upnpService.getControlPoint().execute(new GetExternalIP(service) {
+							@Override
+							public void failure(ActionInvocation _invocation,
+									UpnpResponse _operation, String _defaultMsg) {
+								if (getLogger1() != null)
+									getLogger1().warning(_defaultMsg);
+							}
 
-								@Override
-								public void failure(ActionInvocation _invocation,
-										UpnpResponse _operation, String _defaultMsg) {
-									if (getLogger1() != null)
-										getLogger1().warning(_defaultMsg);
-								}
-
-								@Override
-								protected void success(String _externalIPAddress) {
-									try {
-										InetAddress old = external_address.get();
-										InetAddress newaddress = InetAddress.getByName(_externalIPAddress);
-										if (old == null || !old.equals(newaddress)) {
-											ExternalIPMessage answer = new ExternalIPMessage(internal_address,
-													newaddress, old);
-											external_address.set(newaddress);
-											synchronized (asks_for_external_ip) {
-												for (Iterator<AskForExternalIPMessage> it = asks_for_external_ip
-														.iterator(); it.hasNext();) {
-													AskForExternalIPMessage m = it.next();
-													if (!UpnpIGDAgent.this.sendReply(m, answer.clone())
-															.equals(ReturnCode.SUCCESS))
-														it.remove();
-												}
-											}
-										}
-									} catch (Exception e) {
-										if (getLogger1() != null) {
-											getLogger1().severeLog("Unexpected exception :", e);
+							@Override
+							protected void success(String _externalIPAddress) {
+								try {
+									InetAddress old = external_address.get();
+									InetAddress newAddress = InetAddress.getByName(_externalIPAddress);
+									if (old == null || !old.equals(newAddress)) {
+										ExternalIPMessage answer = new ExternalIPMessage(internal_address,
+												newAddress, old);
+										external_address.set(newAddress);
+										synchronized (asks_for_external_ip) {
+											asks_for_external_ip.removeIf(m1 -> !UpnpIGDAgent.this.sendReply(m1, answer.clone())
+													.equals(ReturnCode.SUCCESS));
 										}
 									}
+								} catch (Exception e) {
+									if (getLogger1() != null) {
+										getLogger1().severeLog("Unexpected exception :", e);
+									}
 								}
+							}
 
-							});
-							return null;
-						}
+						});
+						return null;
 					}, System.currentTimeMillis() + referenced_delay, referenced_delay);
 					external_address_task_id = UpnpIGDAgent.this.scheduleTask(external_address_task_updater);
 				}
@@ -669,7 +645,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 									UpnpIGDAgent.this.sendReply(m,
 											new PortMappingAnswerMessage(m.getConcernedRouter(),
 													i, m.getInternalPort(),
-													m.getDescription(), m.getProtocol(), MappingReturnCode.SUCESS));
+													m.getDescription(), m.getProtocol(), MappingReturnCode.SUCCESS));
 									return;
 								}
 							}
@@ -695,7 +671,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 						UpnpIGDAgent.this.sendReply(m,
 								new PortMappingAnswerMessage(m.getConcernedRouter(),
 										m.getExternalPortsRange()[index.get() - 1], m.getInternalPort(),
-										m.getDescription(), m.getProtocol(), MappingReturnCode.SUCESS));
+										m.getDescription(), m.getProtocol(), MappingReturnCode.SUCCESS));
 					}
 
 					@Override
@@ -824,29 +800,6 @@ class UpnpIGDAgent extends AgentFakeThread {
 
 		}
 
-		/*public void removeAllPortMappings() {
-			if (UpnpIGDAgent.upnpService != null && !removed.get()) {
-				synchronized (desired_mappings) {
-					for (final PortMapping pm : desired_mappings) {
-						upnpService.getControlPoint().execute(new PortMappingDelete(service, pm) {
-
-							@Override
-							public void success(@SuppressWarnings("rawtypes") ActionInvocation _invocation) {
-								synchronized (desired_mappings) {
-									desired_mappings.remove(pm);
-								}
-							}
-
-							@Override
-							public void failure(@SuppressWarnings("rawtypes") ActionInvocation _invocation,
-									UpnpResponse _operation, String _defaultMsg) {
-								handleFailureMessage("Impossible to remove port mapping : " + _defaultMsg);
-							}
-						});
-					}
-				}
-			}
-		}*/
 
 	}
 
@@ -890,7 +843,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 				}
 
 				pointedUpnpServiceNumber++;
-				upnpService.getRegistry().addListener(registeryListener);
+				upnpService.getRegistry().addListener(registryListener);
 				for (RemoteDevice d : upnpService.getRegistry().getRemoteDevices()) {
 					remoteDeviceDetected(d);
 				}
@@ -931,7 +884,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 		network_interface_info.shutdown();
 		if (getMadkitConfig().networkProperties.upnpIGDEnabled && upnpService != null) {
 			synchronized (UpnpIGDAgent.class) {
-				upnpService.getRegistry().removeListener(registeryListener);
+				upnpService.getRegistry().removeListener(registryListener);
 				if (--pointedUpnpServiceNumber == 0) {
 
 					try {
@@ -967,7 +920,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 
 		ArrayList<NetworkInterface> network_interfaces = new ArrayList<>();
 		long min_delay = -1;
-		HashMap<AgentAddress, AskForNetworkInterfacesMessage> askers = new HashMap<>();
+		HashMap<AgentAddress, AskForNetworkInterfacesMessage> callers = new HashMap<>();
 		TaskID task_id = null;
 		Task<Object> task = null;
 		private boolean shutdown = false;
@@ -994,7 +947,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 			return ni.isUp() && (addr != 0 || ni.isLoopback()) && addr != 224;
 		}
 
-		void addAsker(AskForNetworkInterfacesMessage _message) {
+		void addCaller(AskForNetworkInterfacesMessage _message) {
 			if (!getMadkitConfig().networkProperties.networkInterfaceScan)
 				return;
 			synchronized (this) {
@@ -1002,18 +955,18 @@ class UpnpIGDAgent extends AgentFakeThread {
 					return;
 				boolean removed = false;
 				final long old_delay = min_delay;
-				if (askers.remove(_message.getSender()) != null) {
+				if (callers.remove(_message.getSender()) != null) {
 					min_delay = -1;
 					removed = true;
 				}
 				if (_message.isRepetitive()) {
-					askers.put(_message.getSender(), _message);
+					callers.put(_message.getSender(), _message);
 					min_delay = -1;
 				}
-				if (min_delay == -1 && askers.size() > 0) {
+				if (min_delay == -1 && callers.size() > 0) {
 					min_delay = Long.MAX_VALUE;
 
-					for (AskForNetworkInterfacesMessage afni : askers.values()) {
+					for (AskForNetworkInterfacesMessage afni : callers.values()) {
 						if (min_delay > afni.getDelay())
 							min_delay = afni.getDelay();
 					}
@@ -1050,16 +1003,14 @@ class UpnpIGDAgent extends AgentFakeThread {
 												networkInterfaceRemoved(ni);
 											}
                                             network_interfaces = new ArrayList<>();
-                                            if (del_nis.size() != 0) {
-                                                for (Iterator<AskForNetworkInterfacesMessage> it = askers.values()
-                                                        .iterator(); it.hasNext(); ) {
-                                                    AskForNetworkInterfacesMessage m = it.next();
-                                                    if (!sendReply(m, new NetworkInterfaceInformationMessage(
-                                                            new_nis, del_nis)).equals(ReturnCode.SUCCESS))
-                                                        it.remove();
-                                                }
-                                            }
-                                            del_nis = new ArrayList<>();
+											for (Iterator<AskForNetworkInterfacesMessage> it = callers.values()
+													.iterator(); it.hasNext(); ) {
+												AskForNetworkInterfacesMessage m = it.next();
+												if (!sendReply(m, new NetworkInterfaceInformationMessage(
+														new_nis, del_nis)).equals(ReturnCode.SUCCESS))
+													it.remove();
+											}
+											del_nis = new ArrayList<>();
                                         }
 										scanRouters=true;
 										try {
@@ -1096,7 +1047,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 
 									network_interfaces = cur_nis;
 									if (new_nis.size() != 0 || del_nis.size() != 0) {
-										for (Iterator<AskForNetworkInterfacesMessage> it = askers.values()
+										for (Iterator<AskForNetworkInterfacesMessage> it = callers.values()
 												.iterator(); it.hasNext(); ) {
 											AskForNetworkInterfacesMessage m = it.next();
 											if (!sendReply(m, new NetworkInterfaceInformationMessage(
@@ -1125,11 +1076,11 @@ class UpnpIGDAgent extends AgentFakeThread {
 
 				if (_message.isRepetitive()) {
 					UpnpIGDAgent.this.sendReply(_message, new NetworkInterfaceInformationMessage(
-							network_interfaces, new ArrayList<NetworkInterface>()));
+							network_interfaces, new ArrayList<>()));
 				} else if (!removed) {
 					Collection<NetworkInterface> c = init();
 					UpnpIGDAgent.this.sendReply(_message,
-							new NetworkInterfaceInformationMessage(c, new ArrayList<NetworkInterface>()));
+							new NetworkInterfaceInformationMessage(c, new ArrayList<>()));
 				}
 			}
 		}
@@ -1138,7 +1089,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 			synchronized (this) {
 				if (task_id != null)
 					cancelTask(this.task_id, false);
-				this.askers.clear();
+				this.callers.clear();
 				this.min_delay = -1;
 				this.task = null;
 				this.task_id = null;
@@ -1199,7 +1150,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 			if (logger != null && logger.isLoggable(Level.FINER))
 				logger.finer("Managing message : " + _message);
 
-			network_interface_info.addAsker((UpnpIGDAgent.AskForNetworkInterfacesMessage) _message);
+			network_interface_info.addCaller((UpnpIGDAgent.AskForNetworkInterfacesMessage) _message);
 		} else if (_message instanceof UpnpIGDAgent.AskForPortMappingAddMessage) {
 			AskForPortMappingAddMessage m = (AskForPortMappingAddMessage) _message;
 			Router r;
@@ -1243,20 +1194,16 @@ class UpnpIGDAgent extends AgentFakeThread {
 
 				if (m.permanent_request) {
 					boolean found = false;
-					for (AskForRouterDetectionInformation m2 : askers_for_router_detection) {
+					for (AskForRouterDetectionInformation m2 : callers_for_router_detection) {
 						if (m2.getSender().equals(m.getSender())) {
 							found = true;
 							break;
 						}
 					}
 					if (!found)
-						askers_for_router_detection.add(m);
+						callers_for_router_detection.add(m);
 				} else {
-					for (Iterator<AskForRouterDetectionInformation> it = askers_for_router_detection.iterator(); it
-							.hasNext();) {
-						if (it.next().getSender().equals(m.getSender()))
-							it.remove();
-					}
+					callers_for_router_detection.removeIf(askForRouterDetectionInformation -> askForRouterDetectionInformation.getSender().equals(m.getSender()));
 				}
 			}
 		} else if (_message instanceof NetworkAgent.StopNetworkMessage) {
@@ -1320,7 +1267,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 	}
 
 	enum MappingReturnCode {
-		SUCESS, CONFLICTUAL_PORT_AND_IP, ACCESS_DENIED, UNKNOWN, REMOVED
+		SUCCESS, CONFLICTUAL_PORT_AND_IP, ACCESS_DENIED, UNKNOWN, REMOVED
 	}
 
 	public static abstract class AbstractRouterMessage extends Message {

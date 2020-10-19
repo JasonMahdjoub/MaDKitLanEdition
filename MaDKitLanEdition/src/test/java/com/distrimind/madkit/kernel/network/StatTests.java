@@ -59,10 +59,10 @@ public class StatTests extends JunitMadkit {
 			int duration = rand.nextInt(100) + 100;
 			TransferSpeedStat tss = new TransferSpeedStat(bytesToMean, bytesToMean / (rand.nextInt(100) + 3), duration);
 			Assert.assertFalse(tss.isOneCycleDone());
-			tss.newBytesIndentified(bytesToMean, 1);
+			tss.newBytesIdentified(bytesToMean, 1);
 			Assert.assertTrue(tss.isOneCycleDone());
 			assertEpsilonEquals(((double) bytesToMean) / (0.001), tss.getBytesPerSecond(), 1);
-			tss.newBytesIndentified(bytesToMean, 1);
+			tss.newBytesIdentified(bytesToMean, 1);
 			Assert.assertTrue(tss.isOneCycleDone());
 			assertEpsilonEquals(((double) bytesToMean) / (0.001), tss.getBytesPerSecond(), 1);
 			pause(null, duration + 100);
@@ -70,7 +70,7 @@ public class StatTests extends JunitMadkit {
 
 			assertEpsilonEquals(0, tss.getBytesPerSecond(), 0);
 			for (int j = 0; j < 10000; j++) {
-				tss.newBytesIndentified(rand.nextInt(bytesToMean * 2), rand.nextInt(duration * 2));
+				tss.newBytesIdentified(rand.nextInt(bytesToMean * 2), rand.nextInt(duration * 2));
 				tss.getBytesPerSecond();
 
 			}
@@ -91,28 +91,28 @@ public class StatTests extends JunitMadkit {
 		for (int i = 0; i < 10; i++) {
 			int duration = rand.nextInt(100) + 100;
 			int segment = rand.nextInt(8) + 2;
-			RealTimeTransfertStat rtts = new RealTimeTransfertStat(duration, segment);
-			Assert.assertEquals(0, rtts.getNumberOfIndentifiedBytes());
+			RealTimeTransferStat rtts = new RealTimeTransferStat(duration, segment);
+			Assert.assertEquals(0, rtts.getNumberOfIdentifiedBytes());
 			int numberBytes = rand.nextInt(500) + 500;
 			int totalBytes = numberBytes;
-			rtts.newBytesIndentified(numberBytes);
+			rtts.newBytesIdentified(numberBytes);
 
 			Assert.assertFalse(rtts.isOneCycleDone());
 			for (int j = 0; j < duration; j += segment) {
 				pause(null, segment);
 				numberBytes = rand.nextInt(500) + 500;
-				rtts.newBytesIndentified(numberBytes);
+				rtts.newBytesIdentified(numberBytes);
 				totalBytes += numberBytes;
 			}
 			pause(null, duration % segment);
-			rtts.newBytesIndentified(numberBytes);
+			rtts.newBytesIdentified(numberBytes);
 			totalBytes += numberBytes;
 			Assert.assertTrue(rtts.isOneCycleDone());
-			Assert.assertTrue(rtts.getNumberOfIndentifiedBytes() < totalBytes);
+			Assert.assertTrue(rtts.getNumberOfIdentifiedBytes() < totalBytes);
 
 			for (int j = 0; j < 10000; j++) {
-				rtts.newBytesIndentified(rand.nextInt(1000));
-				rtts.getNumberOfIndentifiedBytes();
+				rtts.newBytesIdentified(rand.nextInt(1000));
+				rtts.getNumberOfIdentifiedBytes();
 
 			}
 		}

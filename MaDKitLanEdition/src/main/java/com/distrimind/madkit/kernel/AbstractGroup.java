@@ -386,14 +386,14 @@ public abstract class AbstractGroup implements SecureExternalizable, Cloneable {
 			MultiGroup This = (MultiGroup) this;
 			if (_group instanceof Group) {
 				MultiGroup res = new MultiGroup();
-				ArrayList<AbstractGroup> forbiden = new ArrayList<>();
+				ArrayList<AbstractGroup> forbidden = new ArrayList<>();
 				synchronized (this) {
 					Group group = (Group) _group;
 					ArrayList<AbstractGroup> AThis = new ArrayList<>();
 
 					for (AssociatedGroup ag : This.m_groups) {
-						if (ag.m_forbiden) {
-							forbiden.add(ag.m_group);
+						if (ag.m_forbidden) {
+							forbidden.add(ag.m_group);
 						} else
 							AThis.add(ag.m_group);
 					}
@@ -405,18 +405,18 @@ public abstract class AbstractGroup implements SecureExternalizable, Cloneable {
 					}
 					if (res.m_groups.size() == 0)
 						return new MultiGroup();
-					for (AbstractGroup ag : forbiden) {
-						res.addForbidenGroup(ag);
+					for (AbstractGroup ag : forbidden) {
+						res.addForbiddenGroup(ag);
 					}
 					for (AssociatedGroup ag : res.m_groups) {
-						if (!ag.m_forbiden)
+						if (!ag.m_forbidden)
 							return res;
 					}
 					return new MultiGroup();
 				}
 			} else if (_group instanceof MultiGroup) {
 				MultiGroup res = new MultiGroup();
-				ArrayList<AbstractGroup> forbiden = new ArrayList<>();
+				ArrayList<AbstractGroup> forbidden = new ArrayList<>();
 				synchronized (this) {
 					MultiGroup group = (MultiGroup) _group;
 					ArrayList<AbstractGroup> AThis = new ArrayList<>();
@@ -425,14 +425,14 @@ public abstract class AbstractGroup implements SecureExternalizable, Cloneable {
 					//noinspection SynchronizationOnLocalVariableOrMethodParameter
 					synchronized (group) {
 						for (AssociatedGroup ag : This.m_groups) {
-							if (ag.m_forbiden) {
-								forbiden.add(ag.m_group);
+							if (ag.m_forbidden) {
+								forbidden.add(ag.m_group);
 							} else
 								AThis.add(ag.m_group);
 						}
 						for (AssociatedGroup ag : group.m_groups) {
-							if (ag.m_forbiden) {
-								forbiden.add(ag.m_group);
+							if (ag.m_forbidden) {
+								forbidden.add(ag.m_group);
 							} else
 								AGroup.addGroup(ag.m_group);
 						}
@@ -446,11 +446,11 @@ public abstract class AbstractGroup implements SecureExternalizable, Cloneable {
 						}
 						if (res.m_groups.size() == 0)
 							return new MultiGroup();
-						for (AbstractGroup ag : forbiden) {
-							res.addForbidenGroup(ag);
+						for (AbstractGroup ag : forbidden) {
+							res.addForbiddenGroup(ag);
 						}
 						for (AssociatedGroup ag : res.m_groups) {
-							if (!ag.m_forbiden)
+							if (!ag.m_forbidden)
 								return res;
 						}
 						return new MultiGroup();
@@ -517,9 +517,9 @@ public abstract class AbstractGroup implements SecureExternalizable, Cloneable {
 		else if (this instanceof MultiGroup) {
 			synchronized (this) {
 				for (AssociatedGroup ag : ((MultiGroup) this).m_groups) {
-					if (ag.m_forbiden && ag.m_group instanceof Group.Universe)
+					if (ag.m_forbidden && ag.m_group instanceof Group.Universe)
 						return true;
-					else if (!ag.m_forbiden && !ag.m_group.isEmptyForSure()) {
+					else if (!ag.m_forbidden && !ag.m_group.isEmptyForSure()) {
 						return false;
 					}
 				}
@@ -557,7 +557,7 @@ public abstract class AbstractGroup implements SecureExternalizable, Cloneable {
 				MultiGroup This = (MultiGroup) this;
 				boolean represent_universe = false;
 				for (AssociatedGroup ag : This.m_groups) {
-					if (!ag.m_forbiden) {
+					if (!ag.m_forbidden) {
 
 						ArrayList<Group> tmp = ag.m_group.notCompletelyExcludedGroups();
 						if (tmp == null) {
@@ -569,31 +569,31 @@ public abstract class AbstractGroup implements SecureExternalizable, Cloneable {
 							boolean global_add = true;
 							while (it.hasNext()) {
 								Group g2 = it.next();
-								boolean toremove = false;
-								boolean toadd = false;
+								boolean toRemove = false;
+								boolean toAdd = false;
 								if (g.getCommunity().equals(g2.getCommunity())) {
 									if (g.getPath().equals(g2.getPath())) {
 										if (!g2.isUsedSubGroups() && g.isUsedSubGroups()) {
-											toremove = true;
-											toadd = true;
+											toRemove = true;
+											toAdd = true;
 										}
 									} else if (g.getPath().startsWith(g2.getPath())) {
 										if (!g2.isUsedSubGroups()) {
-											toadd = true;
+											toAdd = true;
 										}
 									} else if (g2.getPath().startsWith(g.getPath())) {
 										if (g.isUsedSubGroups()) {
-											toremove = true;
+											toRemove = true;
 										}
-										toadd = true;
+										toAdd = true;
 									} else {
-										toadd = true;
+										toAdd = true;
 									}
 								} else
-									toadd = true;
-								if (toremove)
+									toAdd = true;
+								if (toRemove)
 									it.remove();
-								global_add = global_add & toadd;
+								global_add = global_add & toAdd;
 							}
 							if (global_add)
 								res.add(g);
@@ -603,7 +603,7 @@ public abstract class AbstractGroup implements SecureExternalizable, Cloneable {
 
 				Groups eliminated = new Groups();
 				for (AssociatedGroup ag : This.m_groups) {
-					if (ag.m_forbiden) {
+					if (ag.m_forbidden) {
 						if (represent_universe) {
 							if (ag.m_group instanceof Group.Universe)
 								return new ArrayList<>();
@@ -629,7 +629,7 @@ public abstract class AbstractGroup implements SecureExternalizable, Cloneable {
 				MultiGroup This = (MultiGroup) this;
 				Groups res_gprs = new Groups();
 				for (AssociatedGroup ag : This.m_groups) {
-					if (!ag.m_forbiden) {
+					if (!ag.m_forbidden) {
 						Groups grps = ag.m_group.getEliminated(groups);
 						res_gprs.mergeWithEliminated(grps);
 					}
@@ -637,7 +637,7 @@ public abstract class AbstractGroup implements SecureExternalizable, Cloneable {
 				@SuppressWarnings("unchecked")
 				ArrayList<Group> eliminated = (ArrayList<Group>) res_gprs.getEliminatedGroups().clone();
 				for (AssociatedGroup ag : This.m_groups) {
-					if (ag.m_forbiden) {
+					if (ag.m_forbidden) {
 						Groups grps = ag.m_group.getSurvivors(eliminated);
 
 						res_gprs.mergeWithSurvivors(grps);
@@ -652,20 +652,20 @@ public abstract class AbstractGroup implements SecureExternalizable, Cloneable {
 			Groups res = new Groups();
 			while (it.hasNext()) {
 				Group g = it.next();
-				boolean toremove = false;
+				boolean toRemove = false;
 				if (This.getCommunity().equals(g.getCommunity())) {
 					if (This.getPath().equals(g.getPath())) {
 						if (!g.isUsedSubGroups())
-							toremove = true;
+							toRemove = true;
 						else if (This.isUsedSubGroups())
-							toremove = true;
+							toRemove = true;
 					} else if (g.getPath().startsWith(This.getPath())) {
 
 						if (This.isUsedSubGroups())
-							toremove = true;
+							toRemove = true;
 					}
 				}
-				if (toremove)
+				if (toRemove)
 					res.addEliminatedGroup(g, null);
 			}
 			return res;
@@ -938,7 +938,7 @@ public abstract class AbstractGroup implements SecureExternalizable, Cloneable {
 				MultiGroup This = (MultiGroup) this;
 				Groups res = new Groups();
 				for (AssociatedGroup ag : This.m_groups) {
-					if (!ag.m_forbiden) {
+					if (!ag.m_forbidden) {
 						Groups grps = ag.m_group.getSurvivors(groups);
 						res.mergeWithSurvivors(grps);
 					}
@@ -959,7 +959,7 @@ public abstract class AbstractGroup implements SecureExternalizable, Cloneable {
 				Groups res_eliminated = new Groups();
 
 				for (AssociatedGroup ag : This.m_groups) {
-					if (ag.m_forbiden) {
+					if (ag.m_forbidden) {
 						Groups grps = ag.m_group.getSurvivors(eliminated);
 						res_eliminated.mergeWithSurvivors(grps);
 					}
@@ -973,25 +973,25 @@ public abstract class AbstractGroup implements SecureExternalizable, Cloneable {
 
 			for (Group g : groups) {
 				Group generated = null;
-				boolean toremove = false;
+				boolean toRemove = false;
 				if (This.getCommunity().equals(g.getCommunity())) {
 					if (This.getPath().equals(g.getPath())) {
 						if (This.isUsedSubGroups()) {
-							toremove = true;
+							toRemove = true;
 						} else {
 							if (!g.isUsedSubGroups()) {
-								toremove = true;
+								toRemove = true;
 							}
 						}
 					} else if (g.getPath().startsWith(This.getPath())) {
 						if (This.isUsedSubGroups())
-							toremove = true;
+							toRemove = true;
 					} else if (This.getPath().startsWith(g.getPath())) {
 						if (g.isUsedSubGroups())
 							generated = This;
 					}
 				}
-				if (!toremove)
+				if (!toRemove)
 					res.addEliminatedGroup(g, generated);
 			}
 			return res;
@@ -1017,14 +1017,10 @@ public abstract class AbstractGroup implements SecureExternalizable, Cloneable {
 			return this;
 		if (this == _group)
 			return new MultiGroup();
-		/*
-		 * if (this instanceof MultiGroup) {
-		 * ((MultiGroup)this).addForbidenGroup(_group); return this; } else
-		 */
 		{
 			MultiGroup res = new MultiGroup();
 			res.addGroup(this);
-			res.addForbidenGroup(_group);
+			res.addForbiddenGroup(_group);
 			return res;
 		}
 	}

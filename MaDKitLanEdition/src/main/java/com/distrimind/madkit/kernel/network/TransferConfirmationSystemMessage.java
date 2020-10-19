@@ -55,7 +55,7 @@ class TransferConfirmationSystemMessage extends BroadcastableSystemMessage {
 
 	private IDTransfer yourIDTransfer;
 	private IDTransfer myIDTransfer;
-	// private final TransferedBlockChecker transferBlockChercker;
+
 	private int numberOfSubBlocks;
 	private KernelAddress kernelAddressToConnect;
 	private boolean middleReached;
@@ -114,17 +114,13 @@ class TransferConfirmationSystemMessage extends BroadcastableSystemMessage {
 			throw new NullPointerException("null");
 		if (myIDTransfer == null)
 			throw new NullPointerException("myIDTransfer");
-		/*
-		 * if (transferBlockChercker==null) throw new
-		 * NullPointerException("transferBlockChercker");
-		 */
 		if (kernelAddressToConnect == null)
 			throw new NullPointerException("kernelAddressToConnect");
 		if (numberOfSubBlocks < 0)
 			throw new IllegalArgumentException();
 		this.yourIDTransfer = yourIDTransfer;
 		this.myIDTransfer = myIDTransfer;
-		// this.transferBlockChercker=transferBlockChercker;
+
 		this.kernelAddressToConnect = kernelAddressToConnect;
 		this.numberOfSubBlocks = numberOfSubBlocks;
 		this.middleReached = middleReached;
@@ -160,10 +156,7 @@ class TransferConfirmationSystemMessage extends BroadcastableSystemMessage {
 		return myIDTransfer;
 	}
 
-	/*
-	 * TransferedBlockChecker getTransferBlockChercker() { return
-	 * transferBlockChercker; }
-	 */
+
 
 	int getNumberOfSubBlocks() {
 		return numberOfSubBlocks;

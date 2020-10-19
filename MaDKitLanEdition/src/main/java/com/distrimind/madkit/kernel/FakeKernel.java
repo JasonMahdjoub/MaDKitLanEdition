@@ -109,7 +109,7 @@ class FakeKernel extends MadkitKernel {
 	}
 
 	@Override
-	final ReturnCode leaveRole(AbstractAgent agent, Group group, String role, boolean manual_request) {
+	final ReturnCode leaveRole(AbstractAgent agent, Group group, String role, boolean manualRequested) {
 		throw buildKernelException(agent);
 	}
 
@@ -330,7 +330,7 @@ class FakeKernel extends MadkitKernel {
 	 */
 
 	@Override
-	boolean cancelTask(AbstractAgent requester, TaskID task_id, boolean mayInteruptTask) {
+	boolean cancelTask(AbstractAgent requester, TaskID task_id, boolean mayInterruptTask) {
 		throw buildKernelException(requester);
 	}
 
@@ -390,7 +390,7 @@ class FakeKernel extends MadkitKernel {
 	}
 
 	@Override
-	void autoRequesteRole(AbstractAgent requester, AbstractGroup group, String role, SecureExternalizable passKey) {
+	void autoRequestRole(AbstractAgent requester, AbstractGroup group, String role, SecureExternalizable passKey) {
 		throw buildKernelException(requester);
 	}
 
@@ -474,7 +474,7 @@ class FakeKernel extends MadkitKernel {
 	}
 
 	@Override
-	ReturnCode requestHookEvents(AbstractAgent requester, AgentActionEvent hookType, boolean autoremove) {
+	ReturnCode requestHookEvents(AbstractAgent requester, AgentActionEvent hookType, boolean autoRemove) {
 		throw buildKernelException(requester);
 	}
 

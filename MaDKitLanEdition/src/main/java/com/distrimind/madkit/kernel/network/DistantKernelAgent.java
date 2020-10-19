@@ -99,7 +99,7 @@ class DistantKernelAgent extends AgentFakeThread {
 	private List<CloudIdentifier> lastDeniedCloudIdentifiersToOther = new ArrayList<>();
 	private List<Identifier> lastDeniedIdentifiersFromOther = new ArrayList<>();
 	private List<Identifier> lastDeniedIdentifiersToOther = new ArrayList<>();
-	private List<PairOfIdentifiers> last_unlogged_identifiers = new ArrayList<>();
+	private List<PairOfIdentifiers> last_un_logged_identifiers = new ArrayList<>();
 	private ListGroupsRoles localAcceptedAndRequestedGroups = new ListGroupsRoles();
 	private ArrayList<Group> sharedAcceptedAndRequestedGroups = new ArrayList<>();
 	// private MultiGroup localGeneralAcceptedGroups=new MultiGroup();
@@ -107,10 +107,10 @@ class DistantKernelAgent extends AgentFakeThread {
 	private StatsBandwidth stats = null;
 	protected AtomicLong totalDataInQueue = new AtomicLong(0);
 
-	private final AtomicBoolean transfertPaused = new AtomicBoolean(false);
-	final AtomicReference<ExceededDataQueueSize> globalExeceededDataQueueSize = new AtomicReference<>(null);
+	private final AtomicBoolean transferPaused = new AtomicBoolean(false);
+	final AtomicReference<ExceededDataQueueSize> globalExceededDataQueueSize = new AtomicReference<>(null);
 	private final HashMap<Integer, BigPacketData> packetsDataInQueue = new HashMap<>();
-	NetworkBoard networkBlacboard = null;
+	NetworkBoard networkBoard = null;
 	protected TaskID taskForPurgeCheck = null;
 	private ArrayList<ObjectMessage<SecretMessage>> differedSecretMessages = null;
 	private boolean lockSocketUntilCGRSynchroIsSent=false;
@@ -137,23 +137,18 @@ class DistantKernelAgent extends AgentFakeThread {
 			}
 
 		}
-		/*if (distant_kernel_address != null && kernelAddressActivated)
-			networkBlacboard.removeDistantKernelAddressInterfaced(distant_kernel_address);*/
 		if (stats != null && kernelAddressActivated)
 			getMadkitConfig().networkProperties.removeStatsBandwidth(distant_kernel_address);
 
 		purgeTotalDataQueue();
 
-		/*
-		 * if (distant_kernel_address!=null)
-		 * networkBlacboard.unlockSimultaneousConnections(distant_kernel_address);
-		 */
+
 
 		if (distant_kernel_address != null && kernelAddressActivated) {
 			MadkitKernelAccess.informHooks(this, new DistantKernelAgentEventMessage(
 					AgentActionEvent.DISTANT_KERNEL_DISCONNECTED, distant_kernel_address));
 			if (logger != null)
-				logger.info("Distant kernel agent deconnected : " + distant_kernel_address);
+				logger.info("Distant kernel agent disconnected : " + distant_kernel_address);
 		}
 
 		if (logger != null && logger.isLoggable(Level.FINE))
@@ -335,7 +330,7 @@ class DistantKernelAgent extends AgentFakeThread {
 								sendData(asd.getAgentAddress(), message, m.getCode() != Code.LEAVE_GROUP && m.getCode() != Code.LEAVE_ROLE, ml, false);
 								if (ml != null)
 									ml.waitUnlock(this, true);
-								potentialChangementsInGroups();
+								potentialChangesInGroups();
 								newCGRSynchroDetected(m);
 
 								//sendData(asd.getAgentAddress(), message, true, m.getMessageLocker(), false);
@@ -365,7 +360,7 @@ class DistantKernelAgent extends AgentFakeThread {
 					}
 					
 					
-					sendData(m.getSender(), m.getContent(), m.prioritary, ml, m.last_message);
+					sendData(m.getSender(), m.getContent(), m.isItAPriority, ml, m.last_message);
 				} /*else if (_message.getClass() == DistKernADataToUpgradeMessage.class) {
 					DistKernADataToUpgradeMessage m = (DistKernADataToUpgradeMessage) _message;
 					AgentAddress aa = m.dataToUpgrade.getAgentSocketSender();
@@ -449,7 +444,7 @@ class DistantKernelAgent extends AgentFakeThread {
 											((AbstractPacketData) ad).getIDPacket());
 									if (bpd != null) {
 										MadkitKernelAccess.connectionLostForBigDataTransfer(this,
-												bpd.getConversationID(), bpd.getIDPacket(), bpd.getAsker(),
+												bpd.getConversationID(), bpd.getIDPacket(), bpd.getCaller(),
 												bpd.getReceiver(), bpd.getReadDataLength(), bpd.getDuration());
 									}
 								}
@@ -458,7 +453,7 @@ class DistantKernelAgent extends AgentFakeThread {
 								if (ad instanceof BigPacketData) {
 									BigPacketData bpd = (BigPacketData) ad;
 									MadkitKernelAccess.connectionLostForBigDataTransfer(this, bpd.getConversationID(),
-											bpd.getIDPacket(), bpd.getAsker(), bpd.getReceiver(),
+											bpd.getIDPacket(), bpd.getCaller(), bpd.getReceiver(),
 											bpd.getReadDataLength(), bpd.getDuration());
 								}
 							}
@@ -486,25 +481,25 @@ class DistantKernelAgent extends AgentFakeThread {
 										+ distant_kernel_address + ")");
 
 				} else if (_message.getClass() == ExceededDataQueueSize.class) {
-					final ExceededDataQueueSize exeededDataSize = (ExceededDataQueueSize) _message;
+					final ExceededDataQueueSize exceededDataSize = (ExceededDataQueueSize) _message;
 					if (logger != null && logger.isLoggable(Level.FINEST))
 						logger.finest("Exceeded data queue size (distantInterfacedKernelAddress="
-								+ distant_kernel_address + ") : " + exeededDataSize);
-					synchronized (networkBlacboard) {
-						if (exeededDataSize.isPaused()
-								&& networkBlacboard.transferPausedForAllDistantKernelAgent.get()) {
-							if (exeededDataSize.mustPurge()) {
-								exeededDataSize.setReadingsToPurge(this.current_short_readings);
-								globalExeceededDataQueueSize.set(exeededDataSize);
+								+ distant_kernel_address + ") : " + exceededDataSize);
+					synchronized (networkBoard) {
+						if (exceededDataSize.isPaused()
+								&& networkBoard.transferPausedForAllDistantKernelAgent.get()) {
+							if (exceededDataSize.mustPurge()) {
+								exceededDataSize.setReadingsToPurge(this.current_short_readings);
+								globalExceededDataQueueSize.set(exceededDataSize);
 								if (this.totalDataInQueue.get() > 0) {
 									if (this.current_short_readings.size() > 0) {
-										if (exeededDataSize.tryPurgeNow(this)) {
+										if (exceededDataSize.tryPurgeNow(this)) {
 											Set<AgentAddress> agents = new HashSet<>();
 											for (SerializedReading sr : current_short_readings.values()) {
 												agents.add(sr.getInitialAgentAddress());
 											}
 											if (agents.size() > 0) {
-												setTansfertPaused(false, agents, true);
+												setTransferPaused(false, agents, true);
 												final long durationBeforeTestingDDOS = 30000;
 												if (taskForPurgeCheck != null)
 													cancelTask(taskForPurgeCheck, true);
@@ -512,14 +507,14 @@ class DistantKernelAgent extends AgentFakeThread {
 
 													@Override
 													public Void call() {
-														ExceededDataQueueSize e = globalExeceededDataQueueSize.get();
+														ExceededDataQueueSize e = globalExceededDataQueueSize.get();
 														if (isAlive() && e != null && e.isPaused() && e.mustPurge()) {
 															if (getMadkitConfig().networkProperties
 																	.getStatsBandwidth(getKernelAddress())
 																	.getBytesDownloadedInRealTime(
 																			NetworkProperties.DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS)
-																	.getNumberOfIndentifiedBytes() == 0) {
-																exeededDataSize.purgeCanceled(DistantKernelAgent.this);
+																	.getNumberOfIdentifiedBytes() == 0) {
+																exceededDataSize.purgeCanceled(DistantKernelAgent.this);
 																processPotentialDDOS();
 															} else {
 																scheduleTask(new Task<>(this, System.currentTimeMillis()
@@ -530,41 +525,36 @@ class DistantKernelAgent extends AgentFakeThread {
 													}
 												}, durationBeforeTestingDDOS + System.currentTimeMillis()));
 											} else {
-												// globalExeceededDataQueueSize.set(new
-												// ExceededDataQueueSize(networkBlacboard, true));
-												setTansfertPaused(true, null, true);
-												exeededDataSize.purgeFinished(this);
+
+												setTransferPaused(true, null, true);
+												exceededDataSize.purgeFinished(this);
 											}
 										}
 									} else {
-										globalExeceededDataQueueSize
-												.set(new ExceededDataQueueSize(networkBlacboard, false, true));
-										setTansfertPaused(true, null, true);
-										exeededDataSize.purgeFinished(this);
+										globalExceededDataQueueSize
+												.set(new ExceededDataQueueSize(networkBoard, false, true));
+										setTransferPaused(true, null, true);
+										exceededDataSize.purgeFinished(this);
 									}
 								} else {
-									setTansfertPaused(true, null, true);
-									exeededDataSize.purgeFinished(this);
+									setTransferPaused(true, null, true);
+									exceededDataSize.purgeFinished(this);
 								}
 							} else {
-								setTansfertPaused(true, null, true);
-								globalExeceededDataQueueSize.set(exeededDataSize);
-								if (exeededDataSize.hasOtherCandidates)
-									exeededDataSize.candidateForPurge(this);
+								setTransferPaused(true, null, true);
+								globalExceededDataQueueSize.set(exceededDataSize);
+								if (exceededDataSize.hasOtherCandidates)
+									exceededDataSize.candidateForPurge(this);
 
 							}
 						} else {
-							if (!networkBlacboard.transferPausedForAllDistantKernelAgent.get()) {
+							if (!networkBoard.transferPausedForAllDistantKernelAgent.get()) {
 								if (taskForPurgeCheck != null) {
 									cancelTask(taskForPurgeCheck, true);
 									taskForPurgeCheck = null;
 								}
-								globalExeceededDataQueueSize.set(null);
-								setTansfertPaused(false, null, true);
-								/*
-								 * if (!globalExeceededDataQueueSize.compareAndSet(null, null))
-								 * setTansfertPaused(false, null, true);
-								 */
+								globalExceededDataQueueSize.set(null);
+								setTransferPaused(false, null, true);
 							}
 						}
 					}
@@ -775,7 +765,7 @@ class DistantKernelAgent extends AgentFakeThread {
 
 	}
 
-	private void addBigDataInQueue(AgentSocketData choosenSocket, BigDataPropositionMessage bgpm)
+	private void addBigDataInQueue(AgentSocketData chosenSocket, BigDataPropositionMessage bgpm)
 			throws PacketException {
 		RandomInputStream inputStream = MadkitKernelAccess.getInputStream(bgpm);
 		if (inputStream != null) {
@@ -789,7 +779,7 @@ class DistantKernelAgent extends AgentFakeThread {
 					getMadkitConfig().networkProperties.maxBufferSize,
 					bgpm.bigDataExcludedFromEncryption()?0:getMadkitConfig().networkProperties.maxRandomPacketValues, random, inputStream,
 					bgpm.getStartStreamPosition(), bgpm.getTransferLength(), true, bgpm.getMessageDigestType());
-			BigPacketData packetData = new BigPacketData(choosenSocket.getAgentAddress(), packet, bgpm.getReceiver(),
+			BigPacketData packetData = new BigPacketData(chosenSocket.getAgentAddress(), packet, bgpm.getReceiver(),
 					bgpm.getSender(), bgpm.getConversationID(), bgpm.getStatistics(), bgpm.bigDataExcludedFromEncryption());
 			packetsDataInQueue.put(id, packetData);
 		}
@@ -838,16 +828,16 @@ class DistantKernelAgent extends AgentFakeThread {
 		private final boolean paused;
 		private final boolean purge;
 		private HashMap<Integer, SerializedReading> readingToPurge = null;
-		protected final NetworkBoard networkBlacboard;
+		protected final NetworkBoard networkBoard;
 		protected final boolean hasOtherCandidates;
 
-		ExceededDataQueueSize(NetworkBoard networkBlacboard, boolean hasOtherCandidates, boolean paused) {
-			this(networkBlacboard, hasOtherCandidates, paused, false);
+		ExceededDataQueueSize(NetworkBoard networkBoard, boolean hasOtherCandidates, boolean paused) {
+			this(networkBoard, hasOtherCandidates, paused, false);
 		}
 
-		ExceededDataQueueSize(NetworkBoard networkBlacboard, boolean hasOtherCandidates, boolean paused,
+		ExceededDataQueueSize(NetworkBoard networkBoard, boolean hasOtherCandidates, boolean paused,
 							  boolean purge) {
-			this.networkBlacboard = networkBlacboard;
+			this.networkBoard = networkBoard;
 			this.paused = paused;
 			this.purge = purge;
 			this.hasOtherCandidates = hasOtherCandidates;
@@ -866,121 +856,94 @@ class DistantKernelAgent extends AgentFakeThread {
 			return "ExceededDataQueueSize[paused=" + paused + ", purge=" + purge + "]";
 		}
 
-		void candidateForPurge(DistantKernelAgent asker) {
-			synchronized (networkBlacboard.candidatesForPurge) {
-				/*
-				 * if (networkBlacboard.currentCandidateForPurge==null) {
-				 * networkBlacboard.currentCandidateForPurge=asker; asker.receiveMessage(new
-				 * ExceededDataQueueSize(networkBlacboard, true, true)); } else { if
-				 * (!networkBlacboard.candidatesForPurge.contains(asker))
-				 * networkBlacboard.candidatesForPurge.add(asker); }
-				 */
-				if (!networkBlacboard.candidatesForPurge.contains(asker)) {
-					networkBlacboard.candidatesForPurge.add(asker);
-					networkBlacboard.candidatesForPurge.notifyAll();
+		void candidateForPurge(DistantKernelAgent caller) {
+			synchronized (networkBoard.candidatesForPurge) {
+				if (!networkBoard.candidatesForPurge.contains(caller)) {
+					networkBoard.candidatesForPurge.add(caller);
+					networkBoard.candidatesForPurge.notifyAll();
 				}
 
 			}
 		}
 
-		boolean tryPurgeNow(DistantKernelAgent asker) throws InterruptedException {
-			synchronized (networkBlacboard.candidatesForPurge) {
-				if (networkBlacboard.currentCandidateForPurge == null
-						|| networkBlacboard.currentCandidateForPurge == asker) {
-					if (hasOtherCandidates && networkBlacboard.candidatesForPurge.size() == 0) {
+		boolean tryPurgeNow(DistantKernelAgent caller) throws InterruptedException {
+			synchronized (networkBoard.candidatesForPurge) {
+				if (networkBoard.currentCandidateForPurge == null
+						|| networkBoard.currentCandidateForPurge == caller) {
+					if (hasOtherCandidates && networkBoard.candidatesForPurge.size() == 0) {
 						LockerCondition lc = new LockerCondition() {
 
 							@Override
 							public boolean isLocked() {
-								return networkBlacboard.candidatesForPurge.size() > 0;
+								return networkBoard.candidatesForPurge.size() > 0;
 							}
 						};
-						lc.setLocker(networkBlacboard.candidatesForPurge);
-						asker.wait(lc);
+						lc.setLocker(networkBoard.candidatesForPurge);
+						caller.wait(lc);
 					}
-					networkBlacboard.currentCandidateForPurge = asker;
+					networkBoard.currentCandidateForPurge = caller;
 					return true;
 				} else {
-					if (!networkBlacboard.candidatesForPurge.contains(asker))
-						networkBlacboard.candidatesForPurge.add(asker);
+					if (!networkBoard.candidatesForPurge.contains(caller))
+						networkBoard.candidatesForPurge.add(caller);
 					return false;
 				}
 			}
 		}
 
-		/*boolean isPurging(DistantKernelAgent asker) {
-			if (isPaused() && mustPurge()) {
-				synchronized (networkBlacboard.candidatesForPurge) {
-					if (networkBlacboard.currentCandidateForPurge == asker) {
-						return networkBlacboard.transfertPausedForAllDistantKernelAgent.get();
-					}
-				}
-			}
-			return false;
-		}*/
 
 		// @SuppressWarnings("synthetic-access")
-		void purgeFinished(DistantKernelAgent asker) {
-			synchronized (networkBlacboard.candidatesForPurge) {
-				if (asker.taskForPurgeCheck != null) {
-					asker.cancelTask(asker.taskForPurgeCheck, true);
-					asker.taskForPurgeCheck = null;
+		void purgeFinished(DistantKernelAgent caller) {
+			synchronized (networkBoard.candidatesForPurge) {
+				if (caller.taskForPurgeCheck != null) {
+					caller.cancelTask(caller.taskForPurgeCheck, true);
+					caller.taskForPurgeCheck = null;
 				}
-				if (networkBlacboard.transferPausedForAllDistantKernelAgent.get())
-					asker.globalExeceededDataQueueSize.set(new ExceededDataQueueSize(networkBlacboard, false, true));
+				if (networkBoard.transferPausedForAllDistantKernelAgent.get())
+					caller.globalExceededDataQueueSize.set(new ExceededDataQueueSize(networkBoard, false, true));
 				else
-					asker.globalExeceededDataQueueSize.set(null);
-				if (networkBlacboard.currentCandidateForPurge == asker) {
-					networkBlacboard.currentCandidateForPurge = null;
-					if (!networkBlacboard.candidatesForPurge.isEmpty()) {
-						if (networkBlacboard.transferPausedForAllDistantKernelAgent.get())
-							networkBlacboard.currentCandidateForPurge = networkBlacboard.candidatesForPurge
-									.remove(networkBlacboard.candidatesForPurge.size() - 1);
+					caller.globalExceededDataQueueSize.set(null);
+				if (networkBoard.currentCandidateForPurge == caller) {
+					networkBoard.currentCandidateForPurge = null;
+					if (!networkBoard.candidatesForPurge.isEmpty()) {
+						if (networkBoard.transferPausedForAllDistantKernelAgent.get())
+							networkBoard.currentCandidateForPurge = networkBoard.candidatesForPurge
+									.remove(networkBoard.candidatesForPurge.size() - 1);
 						else {
-							networkBlacboard.candidatesForPurge.clear();
+							networkBoard.candidatesForPurge.clear();
 						}
-						if (networkBlacboard.currentCandidateForPurge != null)
-							networkBlacboard.currentCandidateForPurge
-									.receiveMessage(new ExceededDataQueueSize(networkBlacboard, false, true, true));
+						if (networkBoard.currentCandidateForPurge != null)
+							networkBoard.currentCandidateForPurge
+									.receiveMessage(new ExceededDataQueueSize(networkBoard, false, true, true));
 					} else
-						asker.setGlobalTransfersPaused(false);
+						caller.setGlobalTransfersPaused(false);
 				} else {
-					/*
-					 * if (asker.logger!=null) asker.logger.severe("Illegal access");
-					 */
-					networkBlacboard.candidatesForPurge.remove(asker);
-					if (networkBlacboard.currentCandidateForPurge == null
-							|| networkBlacboard.candidatesForPurge.isEmpty()) {
-						asker.setGlobalTransfersPaused(false);
+					networkBoard.candidatesForPurge.remove(caller);
+					if (networkBoard.currentCandidateForPurge == null
+							|| networkBoard.candidatesForPurge.isEmpty()) {
+						caller.setGlobalTransfersPaused(false);
 					}
 				}
 			}
 		}
 
-		void setOneSocketPurged(DistantKernelAgent asker, Integer id, SerializedReading sr) {
+		void setOneSocketPurged(DistantKernelAgent caller, Integer id, SerializedReading sr) {
 			if (isPaused() && mustPurge()) {
-				if (asker.logger != null && asker.logger.isLoggable(Level.FINEST))
-					asker.logger.finest("Set one socket purged (distantInterfacedKernelAddress="
-							+ asker.distant_kernel_address + ", agentAddress=" + sr.getInitialAgentAddress() + ")");
-				/*
-				 * synchronized(networkBlacboard.candidatesForPurge) { if
-				 * (networkBlacboard.transfertPausedForAllDistantKernelAgent.get())
-				 * asker.sendMessageWithRole(sr.getInitialAgentAddress(), new
-				 * ExceededDataQueueSize(networkBlacboard, true),
-				 * LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE); }
-				 */
+				if (caller.logger != null && caller.logger.isLoggable(Level.FINEST))
+					caller.logger.finest("Set one socket purged (distantInterfacedKernelAddress="
+							+ caller.distant_kernel_address + ", agentAddress=" + sr.getInitialAgentAddress() + ")");
 
 				removeReading(id);
 				if (!hasReadingsToPurge()) {
-					purgeFinished(asker);
+					purgeFinished(caller);
 				}
 
 			}
 
 		}
 
-		void purgeCanceled(DistantKernelAgent asker) {
-			purgeFinished(asker);
+		void purgeCanceled(DistantKernelAgent caller) {
+			purgeFinished(caller);
 		}
 
 		@SuppressWarnings("unchecked")
@@ -1039,7 +1002,7 @@ class DistantKernelAgent extends AgentFakeThread {
 				informHooksDistantKernelAgentActivated();
 			}
 			else
-				networkBlacboard.unlockSimultaneousConnections(distant_kernel_address);
+				networkBoard.unlockSimultaneousConnections(distant_kernel_address);
 			int nb = getUsableDistantSocketAgentNumber();
 			if (nb > 1
 					&& nb > getMadkitConfig().networkProperties.numberOfMaximumConnectionsBetweenTwoSameKernelsAndMachines)
@@ -1048,7 +1011,7 @@ class DistantKernelAgent extends AgentFakeThread {
 						LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 
 		} else if (logger != null) {
-			logger.severe("Unknow agent socket " + sender);
+			logger.severe("Unknown agent socket " + sender);
 		}
 	}
 
@@ -1057,16 +1020,11 @@ class DistantKernelAgent extends AgentFakeThread {
 		ReturnCode rc = this.requestRole(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
 				LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 		if (rc.equals(ReturnCode.SUCCESS)) {
-			/*updateLocalAcceptedGroups();
-			updateDistantAcceptedGroups();*/
 			updateSharedAcceptedGroups(true, true);
 			informHooksForLoginData();
 
-			/*if (!networkBlacboard.addDistantKernelAddressInterfaced(distant_kernel_address))
-				if (logger != null)
-					logger.severe("Distant kernel address already affected : "+distant_kernel_address);*/
-			potentialChangementsInGroups();
-			networkBlacboard.unlockSimultaneousConnections(distant_kernel_address);
+			potentialChangesInGroups();
+			networkBoard.unlockSimultaneousConnections(distant_kernel_address);
 		} else {
 			if (logger != null)
 				logger.severe("Unexpected return code during distant kernel agent activation : " + rc);
@@ -1106,17 +1064,6 @@ class DistantKernelAgent extends AgentFakeThread {
 			sendMessageWithRole(sender, new ObjectMessage<>(stats),
 					LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 
-			/*
-			 * synchronized(networkBlacboard.candidatesForPurge) { ExceededDataQueueSize
-			 * e=this.globalExeceededDataQueueSize.get(); if (e!=null && e.isPaused()) {
-			 * boolean isPirgie.isPurging(this); receiveMessage(new ObjectMessage<>(new
-			 * ExceededDataQueueSize(networkBlacboard, false))); } else { receiveMessage(new
-			 * ObjectMessage<>(new ExceededDataQueueSize(networkBlacboard, false, false,
-			 * false))); }
-			 * 
-			 * }
-			 */
-
 			if (inform_hooks) {
 				informHooksDistantKernelAgentActivated();
 			}
@@ -1146,7 +1093,7 @@ class DistantKernelAgent extends AgentFakeThread {
 
 			try {
 
-				networkBlacboard.lockForSimultaneousConnections(this, distant_ka);
+				networkBoard.lockForSimultaneousConnections(this, distant_ka);
 
 			} catch (InterruptedException e) {
 				e.printStackTrace();
@@ -1181,7 +1128,6 @@ class DistantKernelAgent extends AgentFakeThread {
 						LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 				// activate the current distant kernel agent
 				activateDistantKernelAgent(sender, true);
-				//networkBlacboard.unlockSimultaneousConnections(distant_ka);
 			}
 			// send to the concerned agent socket the result of the current agent activation
 			sendMessageWithRole(sender, new KernelAddressValidation(duplicate_group),
@@ -1238,7 +1184,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			lastDeniedCloudIdentifiersToOther.addAll(a.getLastDeniedCloudIdentifiersToOther());
 			lastDeniedIdentifiersFromOther.addAll(a.getLastDeniedIdentifiersFromOther());
 			lastDeniedIdentifiersToOther.addAll(a.getLastDeniedIdentifiersToOther());
-			idsnewu.addAll(a.getLastUnloggedPairOfIdentifiers());
+			idsnewu.addAll(a.getLastUnLoggedPairOfIdentifiers());
 		}
 	}
 
@@ -1252,14 +1198,8 @@ class DistantKernelAgent extends AgentFakeThread {
 		updateLoginData(agents_socket, ids, idsnewa, lastDeniedCloudIdentifiersToOther, lastDeniedIdentifiersFromOther, lastDeniedIdentifiersToOther, idsnewu);
 		updateLoginData(indirect_agents_socket, ids, idsnewa, lastDeniedCloudIdentifiersToOther, lastDeniedIdentifiersFromOther, lastDeniedIdentifiersToOther, idsnewu);
 
-		for (Iterator<PairOfIdentifiers> it = idsnewa.iterator(); it.hasNext();) {
-			if (ids.contains(it.next()))
-				it.remove();
-		}
-		for (Iterator<PairOfIdentifiers> it = idsnewu.iterator(); it.hasNext();) {
-			if (ids.contains(it.next()))
-				it.remove();
-		}
+		idsnewa.removeIf(ids::contains);
+		idsnewu.removeIf(ids::contains);
 
 		accepted_identifiers = new ArrayList<>();
 		accepted_identifiers.addAll(ids);
@@ -1297,8 +1237,8 @@ class DistantKernelAgent extends AgentFakeThread {
 		this.lastDeniedCloudIdentifiersToOther.addAll(lastDeniedCloudIdentifiersToOther);
 		this.lastDeniedIdentifiersFromOther.addAll(lastDeniedIdentifiersFromOther);
 		this.lastDeniedIdentifiersToOther.addAll(lastDeniedIdentifiersToOther);
-		last_unlogged_identifiers.removeAll(idsnewa);
-		last_unlogged_identifiers.addAll(idsnewu);
+		last_un_logged_identifiers.removeAll(idsnewa);
+		last_un_logged_identifiers.addAll(idsnewu);
 
 		informHooksForLoginData();
 		if (logger != null && logger.isLoggable(Level.FINEST))
@@ -1310,15 +1250,15 @@ class DistantKernelAgent extends AgentFakeThread {
 		if (this.kernelAddressActivated && (accepted_identifiers.size() > 0 || last_accepted_identifiers.size() > 0
 				|| lastDeniedCloudIdentifiersToOther.size() > 0
 				|| lastDeniedIdentifiersFromOther.size()>0 || lastDeniedIdentifiersToOther.size()>0
-				|| last_unlogged_identifiers.size() > 0)) {
+				|| last_un_logged_identifiers.size() > 0)) {
 			MadkitKernelAccess.informHooks(this,
 					new NetworkLoginAccessEvent(this.distant_kernel_address, accepted_identifiers,
-							last_accepted_identifiers, lastDeniedCloudIdentifiersToOther, lastDeniedIdentifiersFromOther, lastDeniedIdentifiersToOther, last_unlogged_identifiers));
+							last_accepted_identifiers, lastDeniedCloudIdentifiersToOther, lastDeniedIdentifiersFromOther, lastDeniedIdentifiersToOther, last_un_logged_identifiers));
 			last_accepted_identifiers = new ArrayList<>();
 			lastDeniedCloudIdentifiersToOther = new ArrayList<>();
 			lastDeniedIdentifiersFromOther = new ArrayList<>();
 			lastDeniedIdentifiersToOther = new ArrayList<>();
-			last_unlogged_identifiers = new ArrayList<>();
+			last_un_logged_identifiers = new ArrayList<>();
 		}
 	}
 
@@ -1332,7 +1272,7 @@ class DistantKernelAgent extends AgentFakeThread {
 
 		this.requestRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 
-		networkBlacboard = (NetworkBoard) getBoard(LocalCommunity.Groups.NETWORK,
+		networkBoard = (NetworkBoard) getBoard(LocalCommunity.Groups.NETWORK,
 				LocalCommunity.Boards.NETWORK_BOARD);
 		// this.requestRole(LocalCommunity.Groups.getDistantKernelAgentGroup(hashCode()),
 		// LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
@@ -1361,16 +1301,16 @@ class DistantKernelAgent extends AgentFakeThread {
 		return getBestAgentSocketForDistantAgentAddress(_receiver.getKernelAddress(), _receiver, testOnlyRequestedGroups);
 	}*/
 
-	private void potentialChangementsInGroups(ArrayList<AgentSocketData> agents_socket) throws MadkitException {
+	private void potentialChangesInGroups(ArrayList<AgentSocketData> agents_socket) throws MadkitException {
 		for (AgentSocketData asd : agents_socket) {
 			if (asd.isUsable())
-				asd.potentialChangementInGroups(this);
+				asd.potentialChangesInGroups(this);
 		}
 	}
 
-	protected void potentialChangementsInGroups() throws MadkitException {
-		potentialChangementsInGroups(agents_socket);
-		potentialChangementsInGroups(indirect_agents_socket);
+	protected void potentialChangesInGroups() throws MadkitException {
+		potentialChangesInGroups(agents_socket);
+		potentialChangesInGroups(indirect_agents_socket);
 	}
 
 	protected AgentSocketData getBestAgentSocketForLocalAgentAddress(KernelAddress distantKernelAddress, AgentAddress agentAddress,
@@ -1496,7 +1436,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		private ArrayList<CloudIdentifier> lastDeniedCloudIdentifiersToOther = new ArrayList<>();
 		private ArrayList<Identifier> lastDeniedIdentifiersFromOther = new ArrayList<>();
 		private ArrayList<Identifier> lastDeniedIdentifiersToOther = new ArrayList<>();
-		private ArrayList<PairOfIdentifiers> last_unlogged_identifiers = new ArrayList<>();
+		private ArrayList<PairOfIdentifiers> last_un_logged_identifiers = new ArrayList<>();
 		private Groups myAcceptedGroups = null;
 		final InetSocketAddress distant_inet_socket_address;
 		final int numberOfIntermediatePeers;
@@ -1627,7 +1567,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			lastDeniedCloudIdentifiersToOther.addAll(event.getNewDeniedCloudIdentifiersToOther());
 			lastDeniedIdentifiersToOther.addAll(event.getNewDeniedIdentifiersToOther());
 			lastDeniedIdentifiersFromOther.addAll(event.getNewDeniedIdentifiersFromOther());
-			last_unlogged_identifiers.addAll(event.getNewUnloggedIdentifiers());
+			last_un_logged_identifiers.addAll(event.getNewUnLoggedIdentifiers());
 		}
 
 		List<PairOfIdentifiers> getAcceptedPairOfIdentifiers() {
@@ -1656,9 +1596,9 @@ class DistantKernelAgent extends AgentFakeThread {
 			return res;
 		}
 
-		ArrayList<PairOfIdentifiers> getLastUnloggedPairOfIdentifiers() {
-			ArrayList<PairOfIdentifiers> res = last_unlogged_identifiers;
-			last_unlogged_identifiers = new ArrayList<>();
+		ArrayList<PairOfIdentifiers> getLastUnLoggedPairOfIdentifiers() {
+			ArrayList<PairOfIdentifiers> res = last_un_logged_identifiers;
+			last_un_logged_identifiers = new ArrayList<>();
 			return res;
 		}
 
@@ -1670,7 +1610,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			return myAcceptedGroups;
 		}
 
-		void potentialChangementInGroups(DistantKernelAgent dka) throws MadkitException {
+		void potentialChangesInGroups(DistantKernelAgent dka) throws MadkitException {
 			AcceptedGroups ag = getAcceptedLocalGroups().potentialChangesInGroups();
 			if (ag != null) {
 				dka.sendData(this.global_address, ag, true, null, false);
@@ -1918,17 +1858,7 @@ class DistantKernelAgent extends AgentFakeThread {
 
 	}*/
 
-	/*
-	 * protected void sendData(AgentAddress receiver, Serializable _data) throws
-	 * MadkitException { sendData(receiver, _data, false, null, false); } protected
-	 * void sendData(AgentAddress receiver, Serializable _data, boolean prioritary,
-	 * boolean last_message) throws MadkitException { sendData(receiver, _data,
-	 * prioritary, null, last_message); } protected void sendData(AgentAddress
-	 * receiver, Serializable _data, MessageLocker _local_lan_message, boolean
-	 * last_message) throws MadkitException { sendData(receiver, _data, false,
-	 * _local_lan_message, last_message); }
-	 */
-	protected void sendData(AgentAddress receiver, SystemMessageWithoutInnerSizeControl _data, boolean prioritary,
+	protected void sendData(AgentAddress receiver, SystemMessageWithoutInnerSizeControl _data, boolean isItAPriority,
 							MessageLocker _messageLocker, boolean last_message) throws NIOException {
 		try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
 			baos.setObjectResolver(filteredObjectResolver);
@@ -1945,7 +1875,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			
 			if (!sendMessage(receiver,
 					new DistKernADataToUpgradeMessage(
-							new PacketData(receiver, _data, packet, _messageLocker, last_message, prioritary, _data.excludedFromEncryption())))
+							new PacketData(receiver, _data, packet, _messageLocker, last_message, isItAPriority, _data.excludedFromEncryption())))
 									.equals(ReturnCode.SUCCESS))
 				logger.warning("Fail sending data (distantInterfacedKernelAddress=" + distant_kernel_address
 						+ ", packetID=" + packet.getID() + ") : " + _data);
@@ -2017,20 +1947,8 @@ class DistantKernelAgent extends AgentFakeThread {
 				else
 					return ka;
 
-				/*KernelAddressInterfaced kai = networkBlacboard.getKernelAddressInterfaced((KernelAddress) obj);
-				if (kai != null)
-					return kai;
-				else {
-					return obj;
-				}*/
 			} else if (obj instanceof ConversationID) {
-				/*if (obj.getClass() == BigDataTransferID.class) {
-					return MadkitKernelAccess.getBigDataTransferIDInstance(
-							MadkitKernelAccess.getInterfacedConversationIDFromDistantPeer((ConversationID) obj,
-									DistantKernelAgent.this, getKernelAddress(),
-									DistantKernelAgent.this.distant_kernel_address),
-							((BigDataTransferID) obj).getBytePerSecondsStat());
-				} else */if (obj.getClass() == TaskID.class) {
+				if (obj.getClass() == TaskID.class) {
 					return MadkitKernelAccess.getTaskIDInstance(MadkitKernelAccess
 							.getInterfacedConversationIDFromDistantPeer((ConversationID) obj, DistantKernelAgent.this,
 									getKernelAddress(), DistantKernelAgent.this.distant_kernel_address));
@@ -2065,7 +1983,7 @@ class DistantKernelAgent extends AgentFakeThread {
 
 		private boolean asking_new_buffer_in_process;
 
-		private RealTimeTransfertStat stat;
+		private RealTimeTransferStat stat;
 		private IDTransfer idTransfer = null;
 		private final AtomicBoolean unlocked = new AtomicBoolean(false);
 		protected final AgentAddress firstAgentSocketSender;
@@ -2098,7 +2016,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		@Override
 		public String toString() {
 			return getClass().getSimpleName() + "[idPacket=" + packet.getID() + ", unlocked=" + unlocked.get()
-					+ ", canceled=" + isCanceled.get() + ", totalDataToSendLenght(Without connection protocol)="
+					+ ", canceled=" + isCanceled.get() + ", totalDataToSendLength(Without connection protocol)="
 					+ this.packet.getDataLengthWithHashIncluded() + ", currentByteBuffer="
 					+ (currentByteBuffer == null ? null : currentByteBuffer.capacity())
 					+ ", currentByteBufferRemaining="
@@ -2159,7 +2077,7 @@ class DistantKernelAgent extends AgentFakeThread {
 				try
 				{
 					if (stat != null)
-						stat.newBytesIndentified(currentByteBuffer.capacity());
+						stat.newBytesIdentified(currentByteBuffer.capacity());
 
 					/*if (currentBlock!=null)
 					{
@@ -2175,52 +2093,7 @@ class DistantKernelAgent extends AgentFakeThread {
 				
 			}
 		}
-		/*@Override
-		public ByteBuffer getByteBuffer() throws PacketException {
-			synchronized (this) {
-				if (currentByteBuffer == null) {
-					if (!asking_new_buffer_in_process) {
-						if (!packet.isFinished()) {
-							updateNextByteBuffer();
-							asking_new_buffer_in_process = true;
-						}
-					}
-					return null;
-				}
-				if (currentByteBuffer.remaining() == 0) {
-					if (!currentCounterIDReleased)
-					{
-						currentCounterIDReleased=true;
-						counterSelector.releaseCounterID(counterID);
-					}
-					if (asking_new_buffer_in_process) {
-						return null;
-					} else {
-						if (stat != null)
-							stat.newBytesIndentified(currentByteBuffer.capacity());
 
-						currentByteBuffer = null;
-						currentBlock = null;
-						if (packet.isFinished()) {
-							return null;
-						} else {
-
-							updateNextByteBuffer();
-							return null;
-						}
-
-					}
-				} else {
-					if (currentBlock!=null)
-					{
-						currentBlock.setCounterSelector(counterSelector);
-						currentBlock=null;
-					}
-					return currentByteBuffer;
-
-				}
-			}
-		}*/
 
 		protected void setNewBlock(IDTransfer id, Block _block) throws NIOException {
 			NIOException e=null;
@@ -2284,7 +2157,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		protected void finishLastStat() {
 			synchronized (this) {
 				if (currentByteBuffer != null && stat != null) {
-					stat.newBytesIndentified(currentByteBuffer.capacity() - currentByteBuffer.remaining());
+					stat.newBytesIdentified(currentByteBuffer.capacity() - currentByteBuffer.remaining());
 				}
 			}
 		}
@@ -2349,7 +2222,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			return idTransfer;
 		}
 
-		void setStat(RealTimeTransfertStat stat) {
+		void setStat(RealTimeTransferStat stat) {
 			synchronized (this) {
 				this.stat = stat;
 			}
@@ -2417,8 +2290,8 @@ class DistantKernelAgent extends AgentFakeThread {
 		private final MessageLocker messageLocker;
 
 		protected PacketData(AgentAddress first_receiver, SystemMessageWithoutInnerSizeControl lan_message, WritePacket _packet,
-							 MessageLocker _messageLocker, boolean _last_message, boolean pioririty, boolean excludedFromEncryption) {
-			super(pioririty, first_receiver, _packet,
+							 MessageLocker _messageLocker, boolean _last_message, boolean isItAPriority, boolean excludedFromEncryption) {
+			super(isItAPriority, first_receiver, _packet,
 					(lan_message instanceof LanMessage) ? ((LanMessage) lan_message).message.getReceiver() : null, excludedFromEncryption);
 			if (_packet.concernsBigData())
 				throw new IllegalArgumentException("_packet cannot use big data !");
@@ -2474,20 +2347,20 @@ class DistantKernelAgent extends AgentFakeThread {
 	}
 
 	class BigPacketData extends AbstractPacketData {
-		private final AgentAddress asker;
+		private final AgentAddress caller;
 		private final ConversationID conversationID;
 		private final long timeUTC;
 
 		protected BigPacketData(AgentAddress _firstAgentSocketSender, WritePacket _packet, AgentAddress _agentReceiver,
-				AgentAddress asker, ConversationID conversationID, RealTimeTransfertStat stat, boolean excludedFromEncryption) {
+								AgentAddress caller, ConversationID conversationID, RealTimeTransferStat stat, boolean excludedFromEncryption) {
 			super(false, _firstAgentSocketSender, _packet, _agentReceiver, excludedFromEncryption);
 			if (!_packet.concernsBigData())
 				throw new IllegalArgumentException("_packet has to use big data !");
-			if (asker == null)
-				throw new NullPointerException("asker");
+			if (caller == null)
+				throw new NullPointerException("caller");
 			if (conversationID == null)
 				throw new NullPointerException("conversationID");
-			this.asker = asker;
+			this.caller = caller;
 			this.conversationID = conversationID;
 			setStat(stat);
 			timeUTC = System.currentTimeMillis();
@@ -2498,8 +2371,8 @@ class DistantKernelAgent extends AgentFakeThread {
 			return false;
 		}*/
 
-		AgentAddress getAsker() {
-			return asker;
+		AgentAddress getCaller() {
+			return caller;
 		}
 
 		ConversationID getConversationID() {
@@ -2525,18 +2398,18 @@ class DistantKernelAgent extends AgentFakeThread {
 	static class SendDataFromAgentSocket extends ObjectMessage<SystemMessageWithoutInnerSizeControl> {
 
 		final boolean last_message;
-		final boolean prioritary;
+		final boolean isItAPriority;
 
-		public SendDataFromAgentSocket(SystemMessageWithoutInnerSizeControl _content, boolean last_message, boolean prioritary) {
+		public SendDataFromAgentSocket(SystemMessageWithoutInnerSizeControl _content, boolean last_message, boolean isItAPriority) {
 			super(_content);
 			this.last_message = last_message;
-			this.prioritary = prioritary;
+			this.isItAPriority = isItAPriority;
 
 		}
 
 		@Override
 		public String toString() {
-			return "SendDataFromAgentSocket[last_message=" + last_message + ", prioritary=" + prioritary
+			return "SendDataFromAgentSocket[last_message=" + last_message + ", isItAPriority=" + isItAPriority
 					+ ", systemMessage=" + getContent() + "]";
 		}
 
@@ -2646,7 +2519,7 @@ class DistantKernelAgent extends AgentFakeThread {
 	private class BigDataReading extends Reading {
 		private final int identifier;
 		private final BigDataPropositionMessage originalMessage;
-		private final RealTimeTransfertStat stat;
+		private final RealTimeTransferStat stat;
 		private int data = 0;
 
 		public BigDataReading(BigDataPropositionMessage m) {
@@ -2682,7 +2555,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			return originalMessage;
 		}
 
-		RealTimeTransfertStat getStatistics() {
+		RealTimeTransferStat getStatistics() {
 			return stat;
 		}
 	}
@@ -2708,10 +2581,10 @@ class DistantKernelAgent extends AgentFakeThread {
 			if (sr.isValid() || (sr.isTemporaryInvalid() && p.getHead().isRedownloadedPacketPart())) {
 				try {
 					sr.readNewPart(p);
-					sr.getStatistics().newBytesIndentified(p.getSubBlock().getSize());
+					sr.getStatistics().newBytesIdentified(p.getSubBlock().getSize());
 					if (sr.isInvalid()) {
 						MadkitKernelAccess.dataCorrupted(sr.getOriginalMessage(),
-								sr.getReadPacket().getWritedDataLength(), null);
+								sr.getReadPacket().getWroteDataLength(), null);
 						current_big_data_readings.remove(reading.getIdentifier());
 						processInvalidPacketPart(agent_socket_sender,
 								new PacketException("The given packet is not valid."), p, false);
@@ -2723,13 +2596,13 @@ class DistantKernelAgent extends AgentFakeThread {
 					} else if (sr.isFinished()) {
 						sr.closeStream();
 						MadkitKernelAccess.transferCompleted(sr.getOriginalMessage(),
-								sr.getReadPacket().getWritedDataLength());
+								sr.getReadPacket().getWroteDataLength());
 						current_big_data_readings.remove(reading.getIdentifier());
 					}
 				}
 				catch (PacketException | IOException e) {
 					boolean candidateToBan=(e instanceof MessageExternalizationException) && ((MessageExternalizationException) e).getIntegrity().equals(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-					MadkitKernelAccess.dataCorrupted(sr.getOriginalMessage(), sr.getReadPacket().getWritedDataLength(), null);
+					MadkitKernelAccess.dataCorrupted(sr.getOriginalMessage(), sr.getReadPacket().getWroteDataLength(), null);
 					current_big_data_readings.remove(reading.getIdentifier());
 					processInvalidPacketPart(agent_socket_sender, e, p, candidateToBan);
 					try {
@@ -2741,7 +2614,7 @@ class DistantKernelAgent extends AgentFakeThread {
 				}
 				sr.freeDataSize();
 			} else if (sr.isInvalid()) {
-				MadkitKernelAccess.dataCorrupted(sr.getOriginalMessage(), sr.getReadPacket().getWritedDataLength(), null);
+				MadkitKernelAccess.dataCorrupted(sr.getOriginalMessage(), sr.getReadPacket().getWroteDataLength(), null);
 				current_big_data_readings.remove(reading.getIdentifier());
 				processInvalidPacketPart(agent_socket_sender, new PacketException("The given packet is not valid."), p,
 						false);
@@ -2755,7 +2628,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			if (p.getHead().getTotalLength() > getMadkitConfig().networkProperties.maxShortDataSize)
 				processInvalidPacketPart(agent_socket_sender,
 						new PacketException(
-								"The given packet have not be traeted as a big data, and has a too big size : "
+								"The given packet have not be treated as a big data, and has a too big size : "
 										+ p.getHead().getTotalLength()),
 						p, false);
 			else {
@@ -2791,7 +2664,7 @@ class DistantKernelAgent extends AgentFakeThread {
 							}
 						}
 						if (tooMuch) {
-							processTooMuchSimutaneousShortDataSent();
+							processTooMuchSimultaneousShortDataSent();
 						} else {
 							current_short_readings.put(p.getHead().getID(), sr);
 
@@ -2903,7 +2776,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			} else {
 				dataSize.set(0);
 				if (logger != null)
-					logger.finer("Illgal computed data size queue !");
+					logger.finer("Illegal computed data size queue !");
 			}
 		}
 
@@ -2917,15 +2790,15 @@ class DistantKernelAgent extends AgentFakeThread {
 
 	}
 
-	private void setTansfertPaused(boolean value) {
-		setTansfertPaused(value, null, false);
+	private void setTransferPaused(boolean value) {
+		setTransferPaused(value, null, false);
 	}
 
-	private void setTansfertPaused(boolean value, Set<AgentAddress> agents, boolean force) {
+	private void setTransferPaused(boolean value, Set<AgentAddress> agents, boolean force) {
 		if (!force) {
-			ExceededDataQueueSize e = this.globalExeceededDataQueueSize.get();
+			ExceededDataQueueSize e = this.globalExceededDataQueueSize.get();
 			if (e != null) {
-				synchronized (networkBlacboard.candidatesForPurge) {
+				synchronized (networkBoard.candidatesForPurge) {
 					if (e.isPaused()) {
                         value = !e.mustPurge();
 					}
@@ -2937,7 +2810,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		 * value && e.isPurging(this)) { value=false; }
 		 */
 
-		if (this.transfertPaused.compareAndSet(!value, value) || force) {
+		if (this.transferPaused.compareAndSet(!value, value) || force) {
 			if (logger != null && logger.isLoggable(Level.FINEST))
 				logger.finest("Set transfer paused (distantInterfacedKernelAddress=" + distant_kernel_address
 						+ ", pause=" + value + ", force=" + force + ", agents=" + agents + ")");
@@ -2946,17 +2819,13 @@ class DistantKernelAgent extends AgentFakeThread {
 				return;
 
 			if (agents == null) {
-				// broadcastMessageWithRole(LocalCommunity.Groups.getDistantKernelAgentGroup(distant_kernel_address),
-				// LocalCommunity.Roles.SOCKET_AGENT_ROLE, new
-				// ExceededDataQueueSize(networkBlacboard, value),
-				// LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 				broadcastMessageWithRole(LocalCommunity.Groups.getDistantKernelAgentGroup(getNetworkID()),
 						LocalCommunity.Roles.SOCKET_AGENT_ROLE,
-						new ExceededDataQueueSize(networkBlacboard, false, value),
+						new ExceededDataQueueSize(networkBoard, false, value),
 						LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 			} else {
 				for (AgentAddress aa : agents)
-					sendMessageWithRole(aa, new ExceededDataQueueSize(networkBlacboard, false, value),
+					sendMessageWithRole(aa, new ExceededDataQueueSize(networkBoard, false, value),
 							LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 			}
 		}
@@ -2979,14 +2848,14 @@ class DistantKernelAgent extends AgentFakeThread {
 		if (value < 0)
 			throw new IllegalAccessError();
 		if (totalDataInQueue.addAndGet(value) > getMaxSizeForUnreadShortDataFromOneDistantKernel())
-			setTansfertPaused(true);
+			setTransferPaused(true);
 		incrementTotalDataQueueForAllDistantKernelAgent(value);
 
 	}
 
 	private void purgeTotalDataQueue() {
 		decrementTotalDataQueueAllDistantKernelAgent(totalDataInQueue.getAndSet(0));
-		new ExceededDataQueueSize(networkBlacboard, false, false).purgeCanceled(this);
+		new ExceededDataQueueSize(networkBoard, false, false).purgeCanceled(this);
 	}
 
 	void decrementTotalDataQueue(long value) {
@@ -3000,64 +2869,49 @@ class DistantKernelAgent extends AgentFakeThread {
 			if (logger != null)
 				logger.severe("DistantKernelAgent.totalDataInQueue cannot be negative");
 		}
-		/*
-		 * boolean ok=true; if (val==0) { ExceededDataQueueSize
-		 * e=this.globalExeceededDataQueueSize.get(); if (e!=null && e.isPaused()) {
-		 * e.purgeFinished(this); setTansfertPaused(true); ok=false; } }
-		 */
 		if (val < getMaxSizeForUnreadShortDataFromOneDistantKernel())
-			setTansfertPaused(false);
+			setTransferPaused(false);
 
 		decrementTotalDataQueueAllDistantKernelAgent(value);
 	}
 
 	private void setOneSocketPurged(Integer id, SerializedReading sr) {
-		ExceededDataQueueSize e = this.globalExeceededDataQueueSize.get();
+		ExceededDataQueueSize e = this.globalExceededDataQueueSize.get();
 		if (e != null) {
 			e.setOneSocketPurged(this, id, sr);
 		}
 	}
 
 	void setGlobalTransfersPaused(boolean value) {
-		synchronized (networkBlacboard.candidatesForPurge) {
+		synchronized (networkBoard.candidatesForPurge) {
 			if (value && !hasToPauseGlobalTransfers())
 				return;
 			if (!value && hasToPauseGlobalTransfers())
 				return;
 
-			if (networkBlacboard.transferPausedForAllDistantKernelAgent.compareAndSet(!value, value)) {
+			if (networkBoard.transferPausedForAllDistantKernelAgent.compareAndSet(!value, value)) {
 				if (logger != null && logger.isLoggable(Level.FINEST))
 					logger.finest("Set global transfer paused (distantInterfacedKernelAddress=" + distant_kernel_address
 							+ ", pause=" + value + ")");
 
 				if (value) {
-					networkBlacboard.currentCandidateForPurge = this;
+					networkBoard.currentCandidateForPurge = this;
 					// set paused
 					ReturnCode rc = broadcastMessageWithRole(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
 							LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE,
-							new ExceededDataQueueSize(networkBlacboard, true, false),
+							new ExceededDataQueueSize(networkBoard, true, false),
 							LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
-					/*
-					 * for (AgentAddress aa :
-					 * getAgentsWithRole(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
-					 * LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE)) { Message m=new
-					 * ExceededDataQueueSize(networkBlacboard, true, false); sendMessageWithRole(aa,
-					 * m, LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE); }
-					 */
-					// broadcastMessageWithRole(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
-					// LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE, m,
-					// LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
-					Message m = new ExceededDataQueueSize(networkBlacboard, rc == ReturnCode.SUCCESS, true, true);
+					Message m = new ExceededDataQueueSize(networkBoard, rc == ReturnCode.SUCCESS, true, true);
 					this.receiveMessage(m);
 				} else {
 					// unset paused
-					Message m = new ExceededDataQueueSize(networkBlacboard, false, false);
+					Message m = new ExceededDataQueueSize(networkBoard, false, false);
 					broadcastMessageWithRole(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
 							LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE, m,
 							LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 					this.receiveMessage(m);
-					networkBlacboard.candidatesForPurge.clear();
-					networkBlacboard.currentCandidateForPurge = null;
+					networkBoard.candidatesForPurge.clear();
+					networkBoard.currentCandidateForPurge = null;
 				}
 			}
 		}
@@ -3066,23 +2920,23 @@ class DistantKernelAgent extends AgentFakeThread {
 	private void incrementTotalDataQueueForAllDistantKernelAgent(long value) {
 		if (value < 0)
 			throw new IllegalAccessError();
-		if (networkBlacboard.totalDataInQueueForAllDistantKernelAgent
+		if (networkBoard.totalDataInQueueForAllDistantKernelAgent
 				.addAndGet(value) > getMaxSizeForUnreadShortDataFromAllDistantKernel()) {
 			setGlobalTransfersPaused(true);
 		}
 	}
 
 	private boolean hasToPauseGlobalTransfers() {
-		return networkBlacboard.totalDataInQueueForAllDistantKernelAgent
+		return networkBoard.totalDataInQueueForAllDistantKernelAgent
 				.get() < getMaxSizeForUnreadShortDataFromAllDistantKernel() / 2;
 	}
 
 	private void decrementTotalDataQueueAllDistantKernelAgent(long value) {
 		if (value < 0)
 			throw new IllegalAccessError();
-		long val = networkBlacboard.totalDataInQueueForAllDistantKernelAgent.addAndGet(-value);
+		long val = networkBoard.totalDataInQueueForAllDistantKernelAgent.addAndGet(-value);
 		if (val < 0) {
-			networkBlacboard.totalDataInQueueForAllDistantKernelAgent.set(0);
+			networkBoard.totalDataInQueueForAllDistantKernelAgent.set(0);
 			if (logger != null)
 				logger.severe("DistantKernelAgent.totalDataInQueueForAllDistantKernelAgent cannot be negative");
 		}
@@ -3116,11 +2970,7 @@ class DistantKernelAgent extends AgentFakeThread {
 				candidate_to_ban);
 	}
 
-	private void processTooMuchSimutaneousShortDataSent() {
-		// broadcastMessageWithRole(LocalCommunity.Groups.getDistantKernelAgentGroup(distant_kernel_address),
-		// LocalCommunity.Roles.SOCKET_AGENT_ROLE, new
-		// AskForConnectionMessage(ConnectionClosedReason.CONNECTION_ANOMALY, null,
-		// null, false), LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
+	private void processTooMuchSimultaneousShortDataSent() {
 		processInvalidProcess(null, "Too much data sent from Kernel Address " + distant_kernel_address, true);
 		if (logger != null)
 			logger.severe(

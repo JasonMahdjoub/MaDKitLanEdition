@@ -76,22 +76,22 @@ public class AccessProtocolWithP2PAgreementProperties extends AbstractAccessProt
 
 
 	/**
-	 * The asymetric cipher key size used for
+	 * The asymmetric cipher key size used for
 	 * {@link P2PASymmetricSecretMessageExchanger}
 	 */
-	public short aSymetricKeySize = 4096;
+	public short aSymmetricKeySize = 4096;
 
 	/**
-	 * The minimum asymetric cipher RSA Key size used for
+	 * The minimum asymmetric cipher RSA Key size used for
 	 * {@link P2PASymmetricSecretMessageExchanger}
 	 */
-	public final int minASymetricKeySize = 1024;
+	public final int minASymmetricKeySize = 1024;
 
 	/**
 	 * Asymmetric encryption algorithm used for
 	 * {@link P2PASymmetricSecretMessageExchanger}
 	 */
-	public ASymmetricEncryptionType aSymetricEncryptionType = ASymmetricEncryptionType.DEFAULT;
+	public ASymmetricEncryptionType aSymmetricEncryptionType = ASymmetricEncryptionType.DEFAULT;
 
 
 	/**
@@ -124,14 +124,14 @@ public class AccessProtocolWithP2PAgreementProperties extends AbstractAccessProt
 		}
 		if (p2pLoginAgreementType==P2PLoginAgreementType.ASYMMETRIC_SECRET_MESSAGE_EXCHANGER
 				|| p2pLoginAgreementType==P2PLoginAgreementType.ASYMMETRIC_SECRET_MESSAGE_EXCHANGER_AND_AGREEMENT_WITH_SYMMETRIC_SIGNATURE) {
-			if (aSymetricKeySize < minASymetricKeySize)
-				throw new AccessException("aSymetricKeySize value must be greter than " + minASymetricKeySize);
-			int tmp = aSymetricKeySize;
+			if (aSymmetricKeySize < minASymmetricKeySize)
+				throw new AccessException("aSymmetricKeySize value must be greater than " + minASymmetricKeySize);
+			int tmp = aSymmetricKeySize;
 			while (tmp != 1) {
 				if (tmp % 2 == 0)
 					tmp = tmp / 2;
 				else
-					throw new AccessException("The RSA key size have a size of " + aSymetricKeySize
+					throw new AccessException("The RSA key size have a size of " + aSymmetricKeySize
 							+ ". This number must correspond to this schema : _rsa_key_size=2^x.");
 			}
 		}
@@ -156,7 +156,7 @@ public class AccessProtocolWithP2PAgreementProperties extends AbstractAccessProt
 			return false;
 		/*if (this.asymmetricLoginAgreementType!=null && this.p2pLoginAgreementType!=null)
 			return false;*/
-		return this.aSymetricEncryptionType == null || this.aSymetricEncryptionType.isPostQuantumAlgorithm();
+		return this.aSymmetricEncryptionType == null || this.aSymmetricEncryptionType.isPostQuantumAlgorithm();
 	}
 
 

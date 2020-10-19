@@ -47,7 +47,7 @@ import com.distrimind.util.Timer;
  * This class represent a transfer speed in bytes per seconds. The statistic
  * does not change in real time, but are computed only when a transfer occurs.
  * If no transfer is done, then statistics does not change. This tool measure
- * the speed of the transfered bytes. This class is thread safe.
+ * the speed of the transferred bytes. This class is thread safe.
  * 
  * @author Jason Mahdjoub
  * @version 1.0
@@ -88,7 +88,7 @@ public class TransferSpeedStat {
 		segment = _segment;
 		bytes_to_mean = _bytes_to_mean;
 		if (bytes_to_mean / segment > Integer.MAX_VALUE)
-			throw new IllegalArgumentException("The value '_duration/_segment' must be lower than Interger.MAX_VALUE");
+			throw new IllegalArgumentException("The value '_duration/_segment' must be lower than Integer.MAX_VALUE");
 		if (bytes_to_mean / segment < 3)
 			throw new IllegalArgumentException("The value '_duration/_segment' must be greater than 3");
 		stats = new float[(int) (bytes_to_mean / segment)];
@@ -116,14 +116,14 @@ public class TransferSpeedStat {
 	}
 
 	/**
-	 * Inform that new bytes have been transfered
+	 * Inform that new bytes have been transferred
 	 * 
 	 * @param number
-	 *            the number of transfered bytes
+	 *            the number of transferred bytes
 	 * @param duration
 	 *            the duration taken to transfer bytes.
 	 */
-	public void newBytesIndentified(int number, long duration) {
+	public void newBytesIdentified(int number, long duration) {
 		if (duration < 0)
 			throw new IllegalArgumentException("duration must be greater than 0");
 		if (duration == 0)

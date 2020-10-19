@@ -131,26 +131,26 @@ public class ActMessage extends com.distrimind.madkit.kernel.Message implements 
 	
 	
 	/** Constructor for GenericMessage class
-	 * @param actiontype the action type
+	 * @param actionType the action type
 	 *  */
-	public ActMessage(String actiontype) {
-		action = actiontype;
+	public ActMessage(String actionType) {
+		action = actionType;
 		fields = new Hashtable<>();
 		excludeFromEncryption=false;
 	}
 
-	public ActMessage(String actiontype, String content) {
-		this(actiontype);
+	public ActMessage(String actionType, String content) {
+		this(actionType);
 		this.content = content;
 	}
 
-	public ActMessage(String actiontype, Object o) {
-		this(actiontype);
+	public ActMessage(String actionType, Object o) {
+		this(actionType);
 		setObject(o);
 	}
 
-	public ActMessage(String actiontype, String content, Object o, boolean excludeFromEncryption) {
-		this(actiontype);
+	public ActMessage(String actionType, String content, Object o, boolean excludeFromEncryption) {
+		this(actionType);
 		this.content = content;
 		this.excludeFromEncryption=excludeFromEncryption;
 		setObject(o);

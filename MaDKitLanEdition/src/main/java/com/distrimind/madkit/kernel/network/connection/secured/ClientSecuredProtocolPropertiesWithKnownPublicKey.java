@@ -125,8 +125,8 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 					throw new IllegalArgumentException();
 				s = ((ASymmetricPublicKey) publicKeyForEncryption).getKeySizeBits();
 			}
-			if (s < minASymetricKeySizeBits)
-				throw new IllegalArgumentException("The public key size must be greater than " + minASymetricKeySizeBits);
+			if (s < minASymmetricKeySizeBits)
+				throw new IllegalArgumentException("The public key size must be greater than " + minASymmetricKeySizeBits);
 
 			if (signatureType == null)
 				throw new NullPointerException("signatureType");
@@ -235,9 +235,9 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	private int keyIdentifier = 0;
 
 	/**
-	 * The minimum asymetric cipher RSA Key size
+	 * The minimum asymmetric cipher RSA Key size
 	 */
-	public final int minASymetricKeySizeBits = 2048;
+	public final int minASymmetricKeySizeBits = 2048;
 
 	/**
 	 * Symmetric encryption algorithm
@@ -279,8 +279,8 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 			s=((ASymmetricPublicKey)publicKey).getKeySizeBits();
 		}
 
-		if (s < minASymetricKeySizeBits)
-			throw new ConnectionException("_rsa_key_size must be greater or equal than " + minASymetricKeySizeBits
+		if (s < minASymmetricKeySizeBits)
+			throw new ConnectionException("_rsa_key_size must be greater or equal than " + minASymmetricKeySizeBits
 					+ " . Moreover, this number must correspond to this schema : _rsa_key_size=2^x.");
 		if (publicKey.getTimeExpirationUTC() < System.currentTimeMillis()) {
 			throw new ConnectionException("The distant public key has expired !");

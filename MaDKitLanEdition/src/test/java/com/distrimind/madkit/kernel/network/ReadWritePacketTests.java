@@ -107,7 +107,7 @@ public class ReadWritePacketTests extends JunitMadkit {
 		}
 
 		@Override
-		public boolean isBannedOrExpulsed() {
+		public boolean isBannedOrDefinitelyRejected() {
 			return fail;
 		}
 

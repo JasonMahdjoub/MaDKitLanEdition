@@ -71,7 +71,7 @@ public abstract class AbstractAccessProtocolProperties extends MultiFormatProper
 
 
 	/**
-	 * Tells if the identifiers must be anonymized before being sent to the distant
+	 * Tells if the identifiers must be anonymous before being sent to the distant
 	 * peer. When it is possible, ie. on a server side that have lot of clients and if it does not decrease security level,
 	 * we recommend to set this boolean to false, because the process cost CPU and database usage.
 	 * On a peer to peer pattern, set it to true. Notice that if

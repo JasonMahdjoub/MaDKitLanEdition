@@ -89,13 +89,13 @@ public abstract class CloudIdentifier implements SecureExternalizable, Identifie
 
 	byte[] getBytesTabToEncode()
 	{
-		byte[] idbytes = getIdentifierBytes();
+		byte[] idBytes = getIdentifierBytes();
 		byte[] salt = getSaltBytes();
 		if (salt==null)
-			return idbytes;
-		byte[] res = new byte[idbytes.length + salt.length];
-		System.arraycopy(idbytes, 0, res, 0, idbytes.length);
-		System.arraycopy(salt, 0, res, idbytes.length, salt.length);
+			return idBytes;
+		byte[] res = new byte[idBytes.length + salt.length];
+		System.arraycopy(idBytes, 0, res, 0, idBytes.length);
+		System.arraycopy(salt, 0, res, idBytes.length, salt.length);
 		return res;
 
 	}

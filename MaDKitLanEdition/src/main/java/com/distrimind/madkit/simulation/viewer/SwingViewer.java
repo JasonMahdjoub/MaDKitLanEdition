@@ -37,36 +37,20 @@
  */
 package com.distrimind.madkit.simulation.viewer;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ResourceBundle;
-
-import javax.swing.Action;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JPanel;
-import javax.swing.JToolBar;
-import javax.swing.SwingUtilities;
-import javax.swing.border.TitledBorder;
-
 import com.distrimind.madkit.action.ActionInfo;
 import com.distrimind.madkit.action.MDKAbstractAction;
 import com.distrimind.madkit.gui.SwingUtil;
 import com.distrimind.madkit.i18n.I18nUtilities;
 import com.distrimind.madkit.i18n.Words;
 import com.distrimind.madkit.kernel.Watcher;
+
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ResourceBundle;
 
 /**
  * A very basic simulation viewer agent. This class defines a panel for the
@@ -141,12 +125,7 @@ public abstract class SwingViewer extends Watcher {
 			public void actionPerformed(ActionEvent e) {
 			}
 		};
-		rendering.addPropertyChangeListener(new PropertyChangeListener() {
-			@Override
-			public void propertyChange(PropertyChangeEvent evt) {
-				renderingOn = !(boolean) (Boolean) rendering.getValue(Action.SELECTED_KEY);
-			}
-		});
+		rendering.addPropertyChangeListener(evt -> renderingOn = !(boolean) (Boolean) rendering.getValue(Action.SELECTED_KEY));
 		setRendering(renderingOn);
 		synchroPainting = new MDKAbstractAction(new ActionInfo("SYNCHRO_PAINTING", KeyEvent.VK_Z, messages)) {
 			private static final long serialVersionUID = 1L;
@@ -155,12 +134,9 @@ public abstract class SwingViewer extends Watcher {
 			public void actionPerformed(ActionEvent e) {
 			}
 		};
-		synchroPainting.addPropertyChangeListener(new PropertyChangeListener() {
-			@Override
-			public void propertyChange(PropertyChangeEvent evt) {
-				synchronousPainting = !(boolean) (Boolean) synchroPainting.getValue(Action.SELECTED_KEY);
-				comboBox.setVisible(synchronousPainting);
-			}
+		synchroPainting.addPropertyChangeListener(evt -> {
+			synchronousPainting = !(boolean) (Boolean) synchroPainting.getValue(Action.SELECTED_KEY);
+			comboBox.setVisible(synchronousPainting);
 		});
 		rendering.putValue(Action.SELECTED_KEY, !synchronousPainting);
 	}
@@ -215,12 +191,7 @@ public abstract class SwingViewer extends Watcher {
 			if (synchronousPainting) {
 				if (counter > renderingInterval) {
 					try {
-						SwingUtilities.invokeAndWait(new Runnable() {
-							@Override
-							public void run() {
-								displayPane.repaint();
-							}
-						});
+						SwingUtilities.invokeAndWait(() -> displayPane.repaint());
 					} catch (InterruptedException e) {
 						Thread.currentThread().interrupt();
 					} catch (InvocationTargetException e) {
@@ -328,7 +299,7 @@ public abstract class SwingViewer extends Watcher {
 	 * @param interval
 	 *            an int greater than 0
 	 */
-	@SuppressWarnings("ConstantConditions")
+
     public void setRenderingInterval(int interval) {
 		renderingInterval = interval > 0 ? interval : 1;
 		if ((Integer) comboBox.getSelectedItem() != renderingInterval) {
@@ -351,16 +322,11 @@ public abstract class SwingViewer extends Watcher {
 		comboBox.setBorder(new TitledBorder(tatt[0]));
 		comboBox.setToolTipText(tatt[1]);
 		comboBox.setEditable(true);
-		comboBox.addActionListener(new ActionListener() {
-
-			@SuppressWarnings("ConstantConditions")
-            @Override
-			public void actionPerformed(ActionEvent e) {
-				try {
-					setRenderingInterval((Integer) comboBox.getSelectedItem());
-				} catch (ClassCastException e1) {
-					comboBox.setSelectedItem(1);
-				}
+		comboBox.addActionListener(e -> {
+			try {
+				setRenderingInterval((Integer) comboBox.getSelectedItem());
+			} catch (ClassCastException e1) {
+				comboBox.setSelectedItem(1);
 			}
 		});
 	}

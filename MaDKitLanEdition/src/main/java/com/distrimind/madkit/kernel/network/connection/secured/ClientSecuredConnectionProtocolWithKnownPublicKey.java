@@ -87,42 +87,42 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 	protected final ASymmetricKeyWrapperType keyWrapper;
 	private final SubBlockParser parser;
 
-	protected final ClientSecuredProtocolPropertiesWithKnownPublicKey hproperties;
+	protected final ClientSecuredProtocolPropertiesWithKnownPublicKey hProperties;
 	
 	boolean firstMessageSent = false;
 	/*private boolean currentBlockCheckerIsNull = true;*/
 	private boolean needToRefreshTransferBlockChecker = true;
 	private final AbstractSecureRandom approvedRandom, approvedRandomForKeys;
 	private final PacketCounterForEncryptionAndSignature packetCounter;
-	private boolean reinitSymmetricAlgorithm=true;
+	private boolean reInitSymmetricAlgorithm =true;
 	
 	private ClientSecuredConnectionProtocolWithKnownPublicKey(InetSocketAddress _distant_inet_address,
 			InetSocketAddress _local_interface_address, ConnectionProtocol<?> _subProtocol,
 			DatabaseWrapper sql_connection, MadkitProperties mkProperties, ConnectionProtocolProperties<?> cpp, int subProtocolLevel, boolean isServer,
-			boolean mustSupportBidirectionnalConnectionInitiative) throws ConnectionException {
+			boolean mustSupportBidirectionalConnectionInitiative) throws ConnectionException {
 		super(_distant_inet_address, _local_interface_address, _subProtocol, sql_connection, mkProperties,cpp,
-				subProtocolLevel, isServer, mustSupportBidirectionnalConnectionInitiative);
-		hproperties = (ClientSecuredProtocolPropertiesWithKnownPublicKey) super.connection_protocol_properties;
+				subProtocolLevel, isServer, mustSupportBidirectionalConnectionInitiative);
+		hProperties = (ClientSecuredProtocolPropertiesWithKnownPublicKey) super.connection_protocol_properties;
 
-		hproperties.checkProperties();
+		hProperties.checkProperties();
 
 		
-		this.keyWrapper=hproperties.keyWrapper;
+		this.keyWrapper= hProperties.keyWrapper;
 		try {
 			approvedRandom=mkProperties.getApprovedSecureRandom();
 			approvedRandomForKeys=mkProperties.getApprovedSecureRandomForKeys();
-			distant_public_key_for_encryption = hproperties.getPublicKeyForEncryption();
+			distant_public_key_for_encryption = hProperties.getPublicKeyForEncryption();
 			aSymmetricAlgorithm = new ClientASymmetricEncryptionAlgorithm(approvedRandom, distant_public_key_for_encryption);
 
 			encoderWithEncryption=new EncryptionSignatureHashEncoder();
 			encoderWithoutEncryption=new EncryptionSignatureHashEncoder();
 			decoderWithEncryption=new EncryptionSignatureHashDecoder();
 			decoderWithoutEncryption=new EncryptionSignatureHashDecoder();
-			if (hproperties.messageDigestType!=null) {
-				encoderWithEncryption.withMessageDigestType(hproperties.messageDigestType);
-				encoderWithoutEncryption.withMessageDigestType(hproperties.messageDigestType);
-				decoderWithEncryption.withMessageDigestType(hproperties.messageDigestType);
-				decoderWithoutEncryption.withMessageDigestType(hproperties.messageDigestType);
+			if (hProperties.messageDigestType!=null) {
+				encoderWithEncryption.withMessageDigestType(hProperties.messageDigestType);
+				encoderWithoutEncryption.withMessageDigestType(hProperties.messageDigestType);
+				decoderWithEncryption.withMessageDigestType(hProperties.messageDigestType);
+				decoderWithoutEncryption.withMessageDigestType(hProperties.messageDigestType);
 			}
 			encoderWithEncryption.connectWithDecoder(decoderWithEncryption);
 			encoderWithoutEncryption.connectWithDecoder(decoderWithoutEncryption);
@@ -130,17 +130,17 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 		} catch (NoSuchAlgorithmException | NoSuchProviderException | IOException e) {
 			throw new ConnectionException(e);
 		}
-		this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, hproperties.enableEncryption, true);
+		this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, hProperties.enableEncryption, true);
 		generateSecretKey();
-		if (hproperties.enableEncryption)
+		if (hProperties.enableEncryption)
 			parser = new ParserWithEncryption();
 		else
 			parser = new ParserWithNoEncryption();
 	}
-	private void reinitSymmetricAlgorithmIfNecessary() throws IOException {
-		if (reinitSymmetricAlgorithm)
+	private void reInitSymmetricAlgorithmIfNecessary() throws IOException {
+		if (reInitSymmetricAlgorithm)
 		{
-			reinitSymmetricAlgorithm=false;
+			reInitSymmetricAlgorithm =false;
 			encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.mySecretKeyForEncryption, (byte)packetCounter.getMyEncryptionCounter().length);
 			decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.mySecretKeyForEncryption, (byte)packetCounter.getMyEncryptionCounter().length);
 		}
@@ -148,9 +148,9 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 	private void generateSecretKey() throws ConnectionException {
 		//needToRefreshTransferBlockChecker |= current_step.compareTo(Step.WAITING_FOR_CONNECTION_CONFIRMATION) >= 0;
 		try {
-			if (hproperties.enableEncryption)
+			if (hProperties.enableEncryption)
 			{
-				mySecretKeyForEncryption=hproperties.getSymmetricEncryptionType().getKeyGenerator(approvedRandomForKeys, hproperties.getSymmetricKeySizeBits()).generateKey();
+				mySecretKeyForEncryption= hProperties.getSymmetricEncryptionType().getKeyGenerator(approvedRandomForKeys, hProperties.getSymmetricKeySizeBits()).generateKey();
 				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, mySecretKeyForEncryption);
 				decoderWithEncryption.withSymmetricSecretKeyForEncryption(mySecretKeyForEncryption);
 			}
@@ -159,7 +159,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 				encoderWithEncryption.withoutSymmetricEncryption();
 				decoderWithEncryption.withoutSymmetricEncryption();
 			}
-			mySecretKeyForSignature=hproperties.getSignatureType().getKeyGenerator(approvedRandomForKeys, hproperties.getSymmetricKeySizeBits()).generateKey();
+			mySecretKeyForSignature= hProperties.getSignatureType().getKeyGenerator(approvedRandomForKeys, hProperties.getSymmetricKeySizeBits()).generateKey();
 
 			encoderWithoutEncryption.withSymmetricSecretKeyForSignature(mySecretKeyForSignature);
 			encoderWithEncryption.withSymmetricSecretKeyForSignature(mySecretKeyForSignature);
@@ -209,7 +209,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 					try {
 						current_step = Step.WAITING_FOR_CONNECTION_CONFIRMATION;
 						generateSecretKey();
-						if (hproperties.enableEncryption)
+						if (hProperties.enableEncryption)
 							return new AskClientServerConnection(approvedRandom, keyWrapper, mySecretKeyForEncryption, mySecretKeyForSignature, distant_public_key_for_encryption);
 						else
 							return new AskClientServerConnection(approvedRandom, keyWrapper, mySecretKeyForSignature, distant_public_key_for_encryption);
@@ -295,7 +295,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 				{
 					if (packetCounter.isDistantActivated())
 					{
-						reinitSymmetricAlgorithmIfNecessary();
+						reInitSymmetricAlgorithmIfNecessary();
 					}
 					return (int)encoderWithEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
 				}
@@ -315,7 +315,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 					case CONNECTED: {
 						if (getPacketCounter().isLocalActivated())
 						{
-							reinitSymmetricAlgorithmIfNecessary();
+							reInitSymmetricAlgorithmIfNecessary();
 						}
 						return (int)decoderWithEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
 					}
@@ -352,7 +352,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 							outputSize + getHeadSize());
 					if (!firstMessageSent)
 					{
-						Bits.putInt(res.getBytes(), res.getOffset(), hproperties.getEncryptionProfileIdentifier());
+						Bits.putInt(res.getBytes(), res.getOffset(), hProperties.getEncryptionProfileIdentifier());
 						setFirstMessageSent();
 					}
 					int off=_block.getSize()+_block.getOffset();
@@ -376,7 +376,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 			if (firstMessageSent)
 				return EncryptionSignatureHashEncoder.headSize;
 			else {
-				return ObjectSizer.sizeOf(hproperties.getEncryptionProfileIdentifier());
+				return ObjectSizer.sizeOf(hProperties.getEncryptionProfileIdentifier());
 			}
 		}
 
@@ -435,7 +435,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 				{
 					if (packetCounter.isDistantActivated())
 					{
-						reinitSymmetricAlgorithmIfNecessary();
+						reInitSymmetricAlgorithmIfNecessary();
 					}
 					return (int)encoderWithoutEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
 				}
@@ -455,7 +455,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 					case CONNECTED: {
 						if (getPacketCounter().isLocalActivated())
 						{
-							reinitSymmetricAlgorithmIfNecessary();
+							reInitSymmetricAlgorithmIfNecessary();
 						}
 						return (int)decoderWithoutEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
 					}
@@ -476,12 +476,12 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 	}
 
 	@Override
-	protected TransferedBlockChecker getTransferredBlockChecker(TransferedBlockChecker subBlockChercker)
+	protected TransferedBlockChecker getTransferredBlockChecker(TransferedBlockChecker subBlockChecker)
 			throws ConnectionException {
 		try {
 			needToRefreshTransferBlockChecker = false;
 			/*currentBlockCheckerIsNull=true;*/
-			return new ConnectionProtocol.NullBlockChecker(subBlockChercker, this.isCrypted(),
+			return new ConnectionProtocol.NullBlockChecker(subBlockChecker, this.isCrypted(),
 					(short) parser.getHeadSize());
 		} catch (Exception e) {
 			needToRefreshTransferBlockChecker = true;
@@ -494,72 +494,6 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 		return needToRefreshTransferBlockChecker;
 	}
 
-	/*private static class BlockChecker extends TransferedBlockChecker {
-		private final ASymmetricSignatureType signatureType;
-		private final int signatureSize;
-		private transient AbstractSignature signature;
-		private transient ASymmetricPublicKey publicKey;
-
-		protected BlockChecker(TransferedBlockChecker _subChecker, ASymmetricSignatureType signatureType,
-				ASymmetricPublicKey publicKey, int signatureSize, boolean isEncrypted) throws NoSuchAlgorithmException {
-			super(_subChecker, !isEncrypted);
-			this.signatureType = signatureType;
-			this.publicKey = publicKey;
-			this.signatureSize = signatureSize;
-			initSignature();
-		}
-
-		@Override
-		public Integrity checkDataIntegrity() {
-			if (signatureType == null)
-				return Integrity.FAIL;
-			if (signature == null)
-				return Integrity.FAIL;
-			if (publicKey == null)
-				return Integrity.FAIL;
-			return Integrity.OK;
-		}
-
-		private void initSignature() throws NoSuchAlgorithmException {
-			this.signature = signatureType.getSignatureInstance();
-		}
-
-		private void writeObject(ObjectOutputStream os) throws IOException {
-			os.defaultWriteObject();
-			byte encodedPK[] = publicKey.encode();
-			os.writeInt(encodedPK.length);
-			os.write(encodedPK);
-		}
-
-		private void readObject(ObjectInputStream is) throws IOException {
-			try {
-				is.defaultReadObject();
-				int len = is.readInt();
-				byte encodedPK[] = new byte[len];
-				is.read(encodedPK);
-				publicKey = ASymmetricPublicKey.decode(encodedPK);
-				initSignature();
-			} catch (IOException e) {
-				throw e;
-			} catch (Exception e) {
-				throw new IOException(e);
-			}
-		}
-
-		@Override
-		public SubBlockInfo checkSubBlock(SubBlock _block) throws BlockParserException {
-			try {
-				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + signatureSize,
-						_block.getSize() - signatureSize);
-				signature.initVerify(publicKey);
-				signature.update(res.getBytes(), res.getOffset(), res.getSize());
-				boolean check = signature.verify(_block.getBytes(), _block.getOffset(), signatureSize);
-				return new SubBlockInfo(res, check, !check);
-			} catch (Exception e) {
-				throw new BlockParserException(e);
-			}
-		}
-	}*/
 
 	@Override
 	public PacketCounter getPacketCounter() {

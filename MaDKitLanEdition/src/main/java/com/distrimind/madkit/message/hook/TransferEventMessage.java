@@ -57,7 +57,7 @@ public class TransferEventMessage extends HookMessage {
 	private final int idTransfer;
 
 	public TransferEventMessage(int idTransfer, AskForTransferMessage originalMessage, TransferEventType eventType) {
-		super(AgentActionEvent.TRANFER_CONNEXION_EVENT);
+		super(AgentActionEvent.TRANSFER_CONNEXION_EVENT);
 		this.originalMessage = originalMessage;
 		this.eventType = eventType;
 		this.idTransfer = idTransfer;

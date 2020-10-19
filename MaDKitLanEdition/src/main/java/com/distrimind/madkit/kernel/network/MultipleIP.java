@@ -59,22 +59,22 @@ public class MultipleIP extends AbstractIP {
 	 */
 	private static final long serialVersionUID = 8772565720786798887L;
 
-	private ArrayList<Inet4Address> inet4Adresses;
-	private ArrayList<Inet6Address> inet6Adresses;
+	private ArrayList<Inet4Address> inet4Addresses;
+	private ArrayList<Inet6Address> inet6Addresses;
 	private transient Random random;
 
 	protected MultipleIP() {
 		super(-1);
 		random = new Random(System.currentTimeMillis());
-		this.inet4Adresses = new ArrayList<>();
-		this.inet6Adresses = new ArrayList<>();
+		this.inet4Addresses = new ArrayList<>();
+		this.inet6Addresses = new ArrayList<>();
 	}
 	@Override
 	public int getInternalSerializedSize() {
 		int res=super.getInternalSerializedSize()+8;
-		for (InetAddress ia : inet4Adresses)
+		for (InetAddress ia : inet4Addresses)
 			res+= SerializationTools.getInternalSize(ia);
-		for (InetAddress ia : inet6Adresses)
+		for (InetAddress ia : inet6Addresses)
 			res+=SerializationTools.getInternalSize(ia);
 		return res;
 	}
@@ -88,29 +88,29 @@ public class MultipleIP extends AbstractIP {
 		int size=in.readInt();
 		if (size<0 || totalSize+size*4>globalSize)
 			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		this.inet4Adresses = new ArrayList<>(size);
+		this.inet4Addresses = new ArrayList<>(size);
 		for (int i=0;i<size;i++)
 		{
 			Inet4Address ia=in.readObject(false, Inet4Address.class);
 			totalSize+=SerializationTools.getInternalSize(ia);
 			if (totalSize>globalSize)
 				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			inet4Adresses.add(ia);
+			inet4Addresses.add(ia);
 		}
 		size=in.readInt();
 		totalSize+=4;
 		if (size<0 || totalSize+size*4>globalSize)
 			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		this.inet6Adresses = new ArrayList<>(size);
+		this.inet6Addresses = new ArrayList<>(size);
 		for (int i=0;i<size;i++)
 		{
 			Inet6Address ia=in.readObject(false, Inet6Address.class);
 			totalSize+=SerializationTools.getInternalSize(ia);
 			if (totalSize>globalSize)
 				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			inet6Adresses.add(ia);
+			inet6Addresses.add(ia);
 		}
-		if (inet4Adresses.isEmpty() && inet6Adresses.isEmpty())
+		if (inet4Addresses.isEmpty() && inet6Addresses.isEmpty())
 			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 	}
 
@@ -118,66 +118,66 @@ public class MultipleIP extends AbstractIP {
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		
 		super.writeExternal(oos);
-		if (inet4Adresses.isEmpty() && inet6Adresses.isEmpty())
+		if (inet4Addresses.isEmpty() && inet6Addresses.isEmpty())
 			throw new IOException();
-		oos.writeInt(inet4Adresses.size());
-		for (InetAddress ia : inet4Adresses)
+		oos.writeInt(inet4Addresses.size());
+		for (InetAddress ia : inet4Addresses)
 			oos.writeObject(ia, false);
-		oos.writeInt(inet6Adresses.size());
-		for (InetAddress ia : inet6Adresses)
+		oos.writeInt(inet6Addresses.size());
+		for (InetAddress ia : inet6Addresses)
 			oos.writeObject(ia, false);
 
 	}
 	
 
-	public MultipleIP(int port, Collection<Inet4Address> inet4Adresses, Collection<Inet6Address> inet6Adresses) {
+	public MultipleIP(int port, Collection<Inet4Address> inet4Addresses, Collection<Inet6Address> inet6Addresses) {
 		super(port);
 		random = new Random(System.currentTimeMillis());
-		this.inet4Adresses = new ArrayList<>();
-		this.inet6Adresses = new ArrayList<>();
-		for (Inet4Address ia : inet4Adresses) {
+		this.inet4Addresses = new ArrayList<>();
+		this.inet6Addresses = new ArrayList<>();
+		for (Inet4Address ia : inet4Addresses) {
 			if (ia != null)
-				this.inet4Adresses.add(ia);
+				this.inet4Addresses.add(ia);
 		}
-		for (Inet6Address ia : inet6Adresses) {
+		for (Inet6Address ia : inet6Addresses) {
 			if (ia != null)
-				this.inet6Adresses.add(ia);
+				this.inet6Addresses.add(ia);
 		}
 	}
 
-	public MultipleIP(int port, Collection<?> inetAdresses) {
+	public MultipleIP(int port, Collection<?> inetAddresses) {
 		super(port);
 		random = new Random(System.currentTimeMillis());
-		this.inet4Adresses = new ArrayList<>();
-		this.inet6Adresses = new ArrayList<>();
-		for (Object ia : inetAdresses) {
+		this.inet4Addresses = new ArrayList<>();
+		this.inet6Addresses = new ArrayList<>();
+		for (Object ia : inetAddresses) {
 			if (ia != null) {
 				if (ia instanceof Inet4Address)
-					this.inet4Adresses.add((Inet4Address) ia);
+					this.inet4Addresses.add((Inet4Address) ia);
 				else if (ia instanceof Inet6Address)
-					this.inet6Adresses.add((Inet6Address) ia);
+					this.inet6Addresses.add((Inet6Address) ia);
 				else if (ia instanceof DoubleIP) {
 					DoubleIP di = (DoubleIP) ia;
 					if (di.getInet4Address() != null)
-						this.inet4Adresses.add(di.getInet4Address());
+						this.inet4Addresses.add(di.getInet4Address());
 					if (di.getInet6Address() != null)
-						this.inet6Adresses.add(di.getInet6Address());
+						this.inet6Addresses.add(di.getInet6Address());
 				}
 			}
 		}
 	}
 
-	public MultipleIP(int port, InetAddress... inetAdresses) {
+	public MultipleIP(int port, InetAddress... inetAddresses) {
 		super(port);
 		random = new Random(System.currentTimeMillis());
-		this.inet4Adresses = new ArrayList<>();
-		this.inet6Adresses = new ArrayList<>();
-		for (InetAddress ia : inetAdresses) {
+		this.inet4Addresses = new ArrayList<>();
+		this.inet6Addresses = new ArrayList<>();
+		for (InetAddress ia : inetAddresses) {
 			if (ia != null) {
 				if (ia instanceof Inet4Address)
-					this.inet4Adresses.add((Inet4Address) ia);
+					this.inet4Addresses.add((Inet4Address) ia);
 				else if (ia instanceof Inet6Address)
-					this.inet6Adresses.add((Inet6Address) ia);
+					this.inet6Addresses.add((Inet6Address) ia);
 			}
 		}
 	}
@@ -185,14 +185,14 @@ public class MultipleIP extends AbstractIP {
 	public MultipleIP(int port, DoubleIP... doubleIPS) {
 		super(port);
 		random = new Random(System.currentTimeMillis());
-		this.inet4Adresses = new ArrayList<>();
-		this.inet6Adresses = new ArrayList<>();
+		this.inet4Addresses = new ArrayList<>();
+		this.inet6Addresses = new ArrayList<>();
 		for (DoubleIP di : doubleIPS) {
 			if (di != null) {
 				if (di.getInet4Address() != null)
-					this.inet4Adresses.add(di.getInet4Address());
+					this.inet4Addresses.add(di.getInet4Address());
 				if (di.getInet6Address() != null)
-					this.inet6Adresses.add(di.getInet6Address());
+					this.inet6Addresses.add(di.getInet6Address());
 			}
 		}
 	}
@@ -201,11 +201,11 @@ public class MultipleIP extends AbstractIP {
 	@Override
 	public Inet6Address getInet6Address(Collection<InetAddress> rejectedIps) {
 		synchronized (random) {
-			if (inet6Adresses.isEmpty())
+			if (inet6Addresses.isEmpty())
 				return null;
-			ArrayList<Inet6Address> res=inet6Adresses;
+			ArrayList<Inet6Address> res= inet6Addresses;
 			if (rejectedIps!=null && !rejectedIps.isEmpty()) {
-				ArrayList<Inet6Address> res2 = new ArrayList<>(inet6Adresses);
+				ArrayList<Inet6Address> res2 = new ArrayList<>(inet6Addresses);
 				for (InetAddress ria : rejectedIps)
 					if (ria instanceof Inet6Address)
 						res2.remove(ria);
@@ -222,11 +222,11 @@ public class MultipleIP extends AbstractIP {
 	@Override
 	public Inet4Address getInet4Address(Collection<InetAddress> rejectedIps) {
 		synchronized (random) {
-			if (inet4Adresses.isEmpty())
+			if (inet4Addresses.isEmpty())
 				return null;
-			ArrayList<Inet4Address> res=inet4Adresses;
+			ArrayList<Inet4Address> res= inet4Addresses;
 			if (rejectedIps!=null && !rejectedIps.isEmpty()) {
-				ArrayList<Inet4Address> res2 = new ArrayList<>(inet4Adresses);
+				ArrayList<Inet4Address> res2 = new ArrayList<>(inet4Addresses);
 				for (InetAddress ria : rejectedIps)
 					if (ria instanceof Inet4Address)
 						res2.remove(ria);
@@ -241,29 +241,29 @@ public class MultipleIP extends AbstractIP {
 
 	@Override
 	public InetAddress[] getInetAddresses() {
-		InetAddress[] res = new InetAddress[inet4Adresses.size() + inet6Adresses.size()];
+		InetAddress[] res = new InetAddress[inet4Addresses.size() + inet6Addresses.size()];
 		int index = 0;
-		for (Inet4Address ia : inet4Adresses)
+		for (Inet4Address ia : inet4Addresses)
 			res[index++] = ia;
-		for (Inet6Address ia : inet6Adresses)
+		for (Inet6Address ia : inet6Addresses)
 			res[index++] = ia;
 		return res;
 	}
 
 	@Override
 	public Inet6Address[] getInet6Addresses() {
-		Inet6Address[] res = new Inet6Address[inet6Adresses.size()];
+		Inet6Address[] res = new Inet6Address[inet6Addresses.size()];
 		int index = 0;
-		for (Inet6Address ia : inet6Adresses)
+		for (Inet6Address ia : inet6Addresses)
 			res[index++] = ia;
 		return res;
 	}
 
 	@Override
 	public Inet4Address[] getInet4Addresses() {
-		Inet4Address[] res = new Inet4Address[inet4Adresses.size()];
+		Inet4Address[] res = new Inet4Address[inet4Addresses.size()];
 		int index = 0;
-		for (Inet4Address ia : inet4Adresses)
+		for (Inet4Address ia : inet4Addresses)
 			res[index++] = ia;
 		return res;
 	}

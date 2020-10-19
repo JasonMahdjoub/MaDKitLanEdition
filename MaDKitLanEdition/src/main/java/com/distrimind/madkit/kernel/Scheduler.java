@@ -315,7 +315,7 @@ public class Scheduler extends Agent {
 	}
 
 	/**
-	 * The state of the simualtion.
+	 * The state of the simulation.
 	 * 
 	 * @return the state in which the simulation is.
 	 * @see SimulationState
@@ -336,18 +336,12 @@ public class Scheduler extends Agent {
 			if (logger!=null)
 				logger.log(Level.FINE, "New simulation state : "+simulationState);
 			switch (simulationState) {
-			case STEP:
-				run.setEnabled(true);
+			case STEP:case PAUSED:
+					run.setEnabled(true);
 				break;
-			case PAUSED:
-				run.setEnabled(true);
-				break;
-			case RUNNING:
-				run.setEnabled(false);
-				break;
-			case SHUTDOWN:
-				run.setEnabled(false);
-				break;
+			case RUNNING:case SHUTDOWN:
+					run.setEnabled(false);
+			break;
 			default:// impossible
 				logLifeException(new Exception("state not handle : " + newState.toString()));
 			}
@@ -504,18 +498,12 @@ public class Scheduler extends Agent {
 				if (sp.getValue() < 398) {
 					move *= 10;
 				}
-				move = (move + sp.getValue()) > sp.getMaximum() ? sp.getMaximum() : move + sp.getValue();
+				move = Math.min((move + sp.getValue()), sp.getMaximum());
 				sp.setValue(move);
 				sp.getChangeListeners()[0].stateChanged(new ChangeEvent(this));
 			}
 		});
-		sp.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				updateToolTip(p, sp);
-			}
-
-		});
+		sp.addChangeListener(e -> updateToolTip(p, sp));
 		updateToolTip(p, sp);
 		// p.setPreferredSize(new Dimension(150, 25));
 		p.add(sp);

@@ -35,42 +35,16 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-package com.distrimind.madkit.kernel.network;
 
-import java.util.ArrayList;
-
-
-import com.distrimind.madkit.kernel.KernelAddress;
-import com.distrimind.madkit.kernel.Message;
-import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
-import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
+package com.distrimind.madkit.kernel;
 
 /**
- * It is sent to agents that listen to
- * {@link AgentActionEvent#LOGGED_IDENTIFIERS_UPDATE}
+ * This interface is used by internal processes of MadKitLanEdition.
  * 
  * @author Jason Mahdjoub
- *
  * @version 1.0
- * @since MadKitLanExtension 1.0
+ * @since MadKitLanEdition 1.0
  */
-public class LoginChangmentsMessage extends Message {
-
-
-	public final ArrayList<PairOfIdentifiers> new_accepted_identifiers;
-	public final ArrayList<PairOfIdentifiers> new_removed_identifiers;
-	public final KernelAddress concerned_kernel_address;
-	final KernelAddressInterfaced concerned_kernel_address_interfaced;
-	final ConnectionProperties connection_properties;
-
-	@SuppressWarnings("unused")
-	LoginChangmentsMessage(ArrayList<PairOfIdentifiers> _new_accepted_identifiers,
-						   ArrayList<PairOfIdentifiers> _new_denied_identifiers, KernelAddress _concerned_kernel_address,
-						   KernelAddressInterfaced _concerned_kernel_address_interfaced, ConnectionProperties _connection_properties) {
-		new_accepted_identifiers = _new_accepted_identifiers;
-		new_removed_identifiers = _new_denied_identifiers;
-		concerned_kernel_address = _concerned_kernel_address;
-		concerned_kernel_address_interfaced = _concerned_kernel_address_interfaced;
-		connection_properties = _connection_properties;
-	}
+public interface GroupChangesNotifier {
+	void potentialChangesInGroups();
 }

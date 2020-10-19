@@ -76,7 +76,7 @@ public final class IPBanStat extends Table<IPBanStat.Record> {
 		public short ban_number;
 	}
 
-	public void updateDatabase(final long stat_duration_for_expulsion, final long stat_duration_for_banishments,
+	public void updateDatabase(final long stat_duration_for_expulsion, final long stat_duration_for_banishment,
 			final short expulsion_hit_limit, final short ban_hit_limit) throws DatabaseException {
 		final IPBanned ipb = this.getDatabaseWrapper().getTableInstance(IPBanned.class);
 		final IPExpulsedStat ipes = this.getDatabaseWrapper().getTableInstance(IPExpulsedStat.class);
@@ -181,17 +181,17 @@ public final class IPBanStat extends Table<IPBanStat.Record> {
 	public IPBanned.Record processExpulsion(final InetAddress add, final boolean candidate_to_ban,
 			final long expulsion_duration, final short expulsion_hit_limit, final short expulsion_limit,
 			final long ban_duration, final short ban_hit_limit, final short ban_limit,
-			final long stat_duration_for_expulsion, final long stat_duration_for_banishments,
+			final long stat_duration_for_expulsion, final long stat_duration_for_banishment,
 			Collection<InetAddress> allowInetAddressesList) throws DatabaseException {
 		return this.processExpulsion((short) 1, add, candidate_to_ban, expulsion_duration, expulsion_hit_limit,
 				expulsion_limit, ban_duration, ban_hit_limit, ban_limit, stat_duration_for_expulsion,
-				stat_duration_for_banishments, allowInetAddressesList);
+				stat_duration_for_banishment, allowInetAddressesList);
 	}
 
 	public IPBanned.Record processExpulsion(final short nbAno, final InetAddress add, final boolean candidateToBan,
 			final long expulsion_duration, final short expulsion_hit_limit, final short expulsion_limit,
 			final long ban_duration, final short ban_hit_limit, final short ban_limit,
-			final long stat_duration_for_expulsion, final long stat_duration_for_banishments,
+			final long stat_duration_for_expulsion, final long stat_duration_for_banishment,
 			Collection<InetAddress> allowInetAddressesList) throws DatabaseException {
 		if (nbAno <= 0)
 			return null;
@@ -203,7 +203,7 @@ public final class IPBanStat extends Table<IPBanStat.Record> {
 				@Override
 				public IPBanned.Record run() throws DatabaseException {
 					boolean candidate_to_ban = candidateToBan;
-					updateDatabase(stat_duration_for_expulsion, stat_duration_for_banishments, expulsion_hit_limit,
+					updateDatabase(stat_duration_for_expulsion, stat_duration_for_banishment, expulsion_hit_limit,
 							ban_hit_limit);
 
 					final IPBanned ipb = IPBanStat.this.getDatabaseWrapper()

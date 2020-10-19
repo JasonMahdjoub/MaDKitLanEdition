@@ -80,12 +80,12 @@ public final class KeysPairs extends Table<KeysPairs.Record> {
 		return res;
 	}
 
-	protected long getIdentifier(InetAddress address, byte usingTypeId, ASymmetricEncryptionType typeEncryption, ASymmetricAuthenticatedSignatureType typeSignature, short keysize,
+	protected long getIdentifier(InetAddress address, byte usingTypeId, ASymmetricEncryptionType typeEncryption, ASymmetricAuthenticatedSignatureType typeSignature, short keySize,
 			short maximumNumberOfKeysForIpSpectrum) {
 		int inet_id = (getBigInteger(address.getAddress()).mod(BigInteger.valueOf(maximumNumberOfKeysForIpSpectrum))
 				.intValue() + maximumNumberOfKeysForIpSpectrum * usingTypeId);
 
-		return ((long) inet_id) | (((long) ((typeEncryption==null?(typeSignature.ordinal()+ASymmetricEncryptionType.values().length):typeEncryption.ordinal()) & 0xFFFF)) << 32) | (((long) keysize) << 48);
+		return ((long) inet_id) | (((long) ((typeEncryption==null?(typeSignature.ordinal()+ASymmetricEncryptionType.values().length):typeEncryption.ordinal()) & 0xFFFF)) << 32) | (((long) keySize) << 48);
 	}
 	public ASymmetricKeyPair getKeyPair(final InetAddress _inet_address, final byte usingType,
 			final ASymmetricEncryptionType algorithm, final short _key_size, final AbstractSecureRandom random,

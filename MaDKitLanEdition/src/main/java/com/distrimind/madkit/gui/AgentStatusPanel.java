@@ -101,12 +101,7 @@ public class AgentStatusPanel extends JPanel {
 	}
 
 	public static void remove(KernelAddress kernelAddress) {
-		for (Iterator<Map.Entry<AbstractAgent, AgentStatusPanel>> it=panels.entrySet().iterator();it.hasNext();) {
-			Map.Entry<AbstractAgent, AgentStatusPanel> e=it.next();
-			if (!e.getKey().isAlive() || e.getKey().getKernelAddress().equals(kernelAddress)) {
-				it.remove();
-			}
-		}
+		panels.entrySet().removeIf(e -> !e.getKey().isAlive() || e.getKey().getKernelAddress().equals(kernelAddress));
 	}
 
 }

@@ -18,32 +18,17 @@
  */
 package com.distrimind.madkit.gui;
 
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Image;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
-import javax.swing.AbstractButton;
-import javax.swing.Action;
-import javax.swing.BoundedRangeModel;
-import javax.swing.BoxLayout;
-import javax.swing.DefaultBoundedRangeModel;
-import javax.swing.ImageIcon;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JMenu;
-import javax.swing.JPanel;
-import javax.swing.JSlider;
-import javax.swing.JToggleButton;
-import javax.swing.border.TitledBorder;
-
 import com.distrimind.madkit.action.GUIManagerAction;
 import com.distrimind.madkit.action.GlobalAction;
 import com.distrimind.madkit.action.KernelAction;
 import com.distrimind.madkit.kernel.AbstractAgent;
+
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
+import java.awt.*;
+import java.awt.event.MouseWheelListener;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * This class provides some utilities for building swing components.
@@ -115,12 +100,7 @@ final public class SwingUtil {
 	 */
 	public static JSlider createJSlider(final BoundedRangeModel model) {
 		final JSlider slider = new JSlider(model);
-		slider.addMouseWheelListener(new MouseWheelListener() {
-			@Override
-			public void mouseWheelMoved(MouseWheelEvent e) {
-				slider.setValue(-e.getWheelRotation() * model.getMaximum() / 100 + model.getValue());
-			}
-		});
+		slider.addMouseWheelListener(e -> slider.setValue(-e.getWheelRotation() * model.getMaximum() / 100 + model.getValue()));
 		slider.setPaintTicks(true);
 		slider.setPaintLabels(true);
 		// slider.setMajorTickSpacing(model.getMaximum()/2);
@@ -138,13 +118,13 @@ final public class SwingUtil {
 	 * <li>{@link KernelAction#LAUNCH_NETWORK}
 	 * <li>{@link KernelAction#STOP_NETWORK}
 	 * <li>{@link GUIManagerAction#CONNECT_TO_IP}
-	 * <li>{@link GlobalAction#JCONSOLE}
+	 * <li>{@link GlobalAction#JConsole}
 	 * <li>{@link KernelAction#CONSOLE}
 	 * <li>{@link GlobalAction#DEBUG}
 	 * <li>{@link GlobalAction#LOAD_LOCAL_DEMOS}
 	 * <li>{@link GlobalAction#LOAD_JAR_FILE}
 	 * <li>{@link GUIManagerAction#ICONIFY_ALL}
-	 * <li>{@link GUIManagerAction#DEICONIFY_ALL}
+	 * <li>{@link GUIManagerAction#DE_ICONIFY_ALL}
 	 * <li>{@link GUIManagerAction#KILL_AGENTS}
 	 * </ul>
 	 * @param menuOrToolBar the menu tool bar
@@ -166,8 +146,8 @@ final public class SwingUtil {
 			add.invoke(menuOrToolBar, KernelAction.STOP_NETWORK.getActionFor(agent));
 			add.invoke(menuOrToolBar, GUIManagerAction.CONNECT_TO_IP.getActionFor(agent));
 			addSeparator.invoke(menuOrToolBar);
-			if (!(GlobalAction.JCONSOLE == null /* || MadkitProperties.JAVAWS_IS_ON */)) {
-				add.invoke(menuOrToolBar, GlobalAction.JCONSOLE);
+			if (!(GlobalAction.JConsole == null /* || MadkitProperties.JAVAWS_IS_ON */)) {
+				add.invoke(menuOrToolBar, GlobalAction.JConsole);
 			}
 			add.invoke(menuOrToolBar, KernelAction.CONSOLE.getActionFor(agent));
 			addBooleanActionTo(menuOrToolBar, GlobalAction.DEBUG);
@@ -181,7 +161,7 @@ final public class SwingUtil {
 			// GUIManagerAction.LOAD_JAR_FILE.getActionFor(agent));
 			addSeparator.invoke(menuOrToolBar);
 			add.invoke(menuOrToolBar, GUIManagerAction.ICONIFY_ALL.getActionFor(agent));
-			add.invoke(menuOrToolBar, GUIManagerAction.DEICONIFY_ALL.getActionFor(agent));
+			add.invoke(menuOrToolBar, GUIManagerAction.DE_ICONIFY_ALL.getActionFor(agent));
 			addSeparator.invoke(menuOrToolBar);
 			add.invoke(menuOrToolBar, GUIManagerAction.KILL_AGENTS.getActionFor(agent));
 		} catch (IllegalArgumentException | NoSuchMethodException | SecurityException | IllegalAccessException

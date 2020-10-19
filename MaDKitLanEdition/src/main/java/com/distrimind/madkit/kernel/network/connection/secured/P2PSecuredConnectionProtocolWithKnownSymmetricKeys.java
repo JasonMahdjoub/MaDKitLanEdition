@@ -6,7 +6,7 @@ jason.mahdjoub@distri-mind.fr
 
 This software (Object Oriented Database (OOD)) is a computer program 
 whose purpose is to manage a local database with the object paradigm 
-and the java langage 
+and the java language
 
 This software is governed by the CeCILL-C license under French law and
 abiding by the rules of distribution of free software.  You can  use, 
@@ -79,12 +79,12 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 	private SymmetricEncryptionAlgorithm cipher;*/
 	private final AbstractSecureRandom approvedRandom;
 	private final PacketCounterForEncryptionAndSignature packetCounter;
-	private boolean reinitSymmetricAlgorithm=false;
+	private boolean reInitSymmetricAlgorithm =false;
 	private final SubBlockParser parser;
 	private boolean blockCheckerChanged = true;
 
-	private P2PSecuredConnectionProtocolWithKnownSymmetricKeys(InetSocketAddress _distant_inet_address, InetSocketAddress _local_interface_address, ConnectionProtocol<?> _subProtocol, DatabaseWrapper sql_connection, MadkitProperties _properties, ConnectionProtocolProperties<?> cpp, int subProtocolLevel, boolean isServer, boolean mustSupportBidirectionnalConnectionInitiative) throws ConnectionException {
-		super(_distant_inet_address, _local_interface_address, _subProtocol, sql_connection, _properties, cpp, subProtocolLevel, isServer, mustSupportBidirectionnalConnectionInitiative);
+	private P2PSecuredConnectionProtocolWithKnownSymmetricKeys(InetSocketAddress _distant_inet_address, InetSocketAddress _local_interface_address, ConnectionProtocol<?> _subProtocol, DatabaseWrapper sql_connection, MadkitProperties _properties, ConnectionProtocolProperties<?> cpp, int subProtocolLevel, boolean isServer, boolean mustSupportBidirectionalConnectionInitiative) throws ConnectionException {
+		super(_distant_inet_address, _local_interface_address, _subProtocol, sql_connection, _properties, cpp, subProtocolLevel, isServer, mustSupportBidirectionalConnectionInitiative);
 		this.properties=(P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties)cpp;
 		try {
 			approvedRandom=_properties.getApprovedSecureRandom();
@@ -137,11 +137,11 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 
 	}
 
-	private void reinitSymmetricAlgorithmIfNecessary() throws BlockParserException
+	private void reInitSymmetricAlgorithmIfNecessary() throws BlockParserException
 	{
 		try {
-			if (properties.enableEncryption && reinitSymmetricAlgorithm) {
-				reinitSymmetricAlgorithm = false;
+			if (properties.enableEncryption && reInitSymmetricAlgorithm) {
+				reInitSymmetricAlgorithm = false;
 				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secretKeyForEncryption);
 				decoderWithEncryption.withSymmetricSecretKeyForEncryption(secretKeyForEncryption);
 			}
@@ -277,19 +277,12 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 	}
 
 	@Override
-	protected TransferedBlockChecker getTransferredBlockChecker(TransferedBlockChecker subBlockChercker) throws ConnectionException {
+	protected TransferedBlockChecker getTransferredBlockChecker(TransferedBlockChecker subBlockChecker) throws ConnectionException {
 		try {
 			blockCheckerChanged = false;
-			return new ConnectionProtocol.NullBlockChecker(subBlockChercker, this.isCrypted(), (short) parser.getHeadSize());
+			return new ConnectionProtocol.NullBlockChecker(subBlockChecker, this.isCrypted(), (short) parser.getHeadSize());
 
-			/*if (secret_key_for_signature == null || current_step.compareTo(Step.WAITING_FOR_CONNECTION_CONFIRMATION) <= 0) {
-				currentBlockCheckerIsNull = true;
-				return new ConnectionProtocol.NullBlockChecker(subBlockChercker, this.isEncrypted(), (short) parser.getSizeHead());
-			} else {
-				currentBlockCheckerIsNull = false;
-				return new BlockChecker(subBlockChercker, this.hproperties.signatureType,
-						secret_key_for_signature, this.signature_size, this.isEncrypted());
-			}*/
+
 		} catch (Exception e) {
 			blockCheckerChanged = true;
 			throw new ConnectionException(e);
@@ -373,7 +366,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 					case CONNECTED:
 						if (packetCounter.isDistantActivated())
 						{
-							reinitSymmetricAlgorithmIfNecessary();
+							reInitSymmetricAlgorithmIfNecessary();
 						}
 						return (int)encoderWithEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
 				}
@@ -394,7 +387,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 					case CONNECTED:
 						if (getPacketCounter().isLocalActivated())
 						{
-							reinitSymmetricAlgorithmIfNecessary();
+							reInitSymmetricAlgorithmIfNecessary();
 						}
 						return (int)encoderWithEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
 
@@ -466,7 +459,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 					case CONNECTED:
 						if (packetCounter.isDistantActivated())
 						{
-							reinitSymmetricAlgorithmIfNecessary();
+							reInitSymmetricAlgorithmIfNecessary();
 						}
 						return (int)encoderWithoutEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
 				}
@@ -487,7 +480,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 					case CONNECTED:
 						if (getPacketCounter().isLocalActivated())
 						{
-							reinitSymmetricAlgorithmIfNecessary();
+							reInitSymmetricAlgorithmIfNecessary();
 						}
 						return (int)encoderWithoutEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
 

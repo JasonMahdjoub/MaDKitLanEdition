@@ -52,7 +52,7 @@ import java.security.SecureRandom;
  * @version 1.2
  * @since MadkitLanEdition 1.0
  */
-final class SecretMessage extends KernelAddressNegociationMessage {
+final class SecretMessage extends KernelAddressNegotiationMessage {
 
 	private static final int secretMessageSize = 100;
 

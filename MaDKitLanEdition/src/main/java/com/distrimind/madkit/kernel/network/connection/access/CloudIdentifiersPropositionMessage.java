@@ -118,7 +118,7 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 	}*/
 	CloudIdentifiersPropositionMessage(AbstractSecureRandom random, AbstractMessageDigest messageDigest,
 											  boolean permitAnonymousIdentifiers, short nbAnomalies, byte[] distantGeneratedSalt,
-									   Collection<CloudIdentifier> _id_pws, EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties) throws NoSuchAlgorithmException, IOException,NoSuchProviderException {
+									   Collection<CloudIdentifier> _id_pws) throws NoSuchAlgorithmException, IOException,NoSuchProviderException {
 		identifiers = new WrappedCloudIdentifier[_id_pws.size()];
 		int index = 0;
 		for (CloudIdentifier ip : _id_pws) {
@@ -129,7 +129,7 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 				continue;
 			}
 
-			identifiers[index++]=new WrappedCloudIdentifier(permitAnonymousIdentifiers && ip.mustBeAnonymous(),ip, random, messageDigest, distantGeneratedSalt, encryptionRestriction, accessProtocolProperties);
+			identifiers[index++]=new WrappedCloudIdentifier(permitAnonymousIdentifiers && ip.mustBeAnonymous(),ip, random, messageDigest, distantGeneratedSalt);
 		}
 
 		if (index!=identifiers.length)
@@ -245,7 +245,7 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 		return new CloudIdentifiersPropositionMessage(random, messageDigest, encryptIdentifiers,
 				loginData.canTakesLoginInitiative()
 						? ((validID.size() == 0 && this.identifiers.length > 0) ? (short) 1 : (short) 0)
-						: (nbAno > Short.MAX_VALUE) ? Short.MAX_VALUE : (short) nbAno, distantGeneratedSalt, validID, encryptionRestriction, accessProtocolProperties);
+						: (nbAno > Short.MAX_VALUE) ? Short.MAX_VALUE : (short) nbAno, distantGeneratedSalt, validID);
 	}
 
 	/*public IdPwMessage getIdPwMessage(LoginData loginData, P2PASymmetricSecretMessageExchanger cipher,

@@ -53,7 +53,7 @@ import java.io.IOException;
  */
 class TransferBlockCheckerSystemMessage extends BroadcastableSystemMessage {
 
-	private TransferedBlockChecker transferBlockChercker;
+	private TransferedBlockChecker transferBlockChecker;
 	
 	@SuppressWarnings("unused")
 	TransferBlockCheckerSystemMessage()
@@ -62,34 +62,34 @@ class TransferBlockCheckerSystemMessage extends BroadcastableSystemMessage {
 	}
 
 	TransferBlockCheckerSystemMessage(IDTransfer _idTransferDestination, KernelAddress _kernelAddressDestination,
-									  TransferedBlockChecker transferBlockChercker) {
+									  TransferedBlockChecker transferBlockChecker) {
 		super(_idTransferDestination, _kernelAddressDestination);
-		if (transferBlockChercker == null)
-			throw new NullPointerException("transferBlockChercker");
-		this.transferBlockChercker = transferBlockChercker;
+		if (transferBlockChecker == null)
+			throw new NullPointerException("transferBlockChecker");
+		this.transferBlockChecker = transferBlockChecker;
 	}
 
-	TransferedBlockChecker getTransferBlockChercker() {
-		return transferBlockChercker;
+	TransferedBlockChecker getTransferBlockChecker() {
+		return transferBlockChecker;
 	}
 	
 	@Override
 	public int getInternalSerializedSize() {
 		
-		return super.getInternalSerializedSize()+transferBlockChercker.getInternalSerializedSize();
+		return super.getInternalSerializedSize()+ transferBlockChecker.getInternalSerializedSize();
 	}
 
 
 	@Override
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		super.readExternal(in);
-		transferBlockChercker=in.readObject(false, TransferedBlockChecker.class);
+		transferBlockChecker =in.readObject(false, TransferedBlockChecker.class);
 	}
 
 	@Override
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		super.writeExternal(oos);
-		oos.writeObject(transferBlockChercker, false );
+		oos.writeObject(transferBlockChecker, false );
 
 		
 	}

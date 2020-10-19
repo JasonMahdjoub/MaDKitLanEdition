@@ -81,13 +81,13 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 		}
 	}
 
-	protected transient Collection<ParametrizedAgent> players;//=new HashSet<>();// TODO test copyonarraylist and linkedhashset
+	protected transient Collection<ParametrizedAgent> players;//=new HashSet<>();// TODO test copy on arraylist and linked hashset
 
-	private transient List<AbstractAgent> tmpReferenceableAgents;
+	private transient List<AbstractAgent> tmpReferencableAgents;
 	protected volatile transient List<AgentAddress> agentAddresses, localAgentAddresses;
     protected transient Map<AgentAddress, AgentAddress> distantAgentAddresses;
 	protected volatile transient boolean modified = true;
-	private transient AtomicReference<Set<Overlooker<? extends AbstractAgent>>> overlookers = new AtomicReference<>(
+	private final transient AtomicReference<Set<Overlooker<? extends AbstractAgent>>> overlookers = new AtomicReference<>(
 			null);
 	protected transient InternalGroup myGroup;
 	transient private Logger logger;
@@ -127,7 +127,7 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 	InternalRole(final InternalGroup groupObject, final String roleName) {
 		players = new ArrayList<>();
 		distantAgentAddresses=new HashMap<>();
-		tmpReferenceableAgents = null;
+		tmpReferencableAgents = null;
 		group = groupObject.getGroup();
 		this.roleName = roleName;
 		final MadkitKernel k = groupObject.getCommunityObject().getMyKernel();
@@ -140,7 +140,7 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 			// logger.setLevel(Level.ALL);
 			logger.finer(toString() + " created");
 		}
-		overlookers.set(new LinkedHashSet<Overlooker<? extends AbstractAgent>>());
+		overlookers.set(new LinkedHashSet<>());
 
 	}
 
@@ -171,7 +171,7 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 			if (o.isConcernedBy(group, roleName)) {
 				o.internalRoleRemoved(this);
 			}
-			overlookers.set(new LinkedHashSet<Overlooker<? extends AbstractAgent>>());
+			overlookers.set(new LinkedHashSet<>());
 		}
 	}
 
@@ -337,7 +337,7 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 
 	boolean addMember(final AbstractAgent requester, boolean manually_requested) {
 		synchronized (players) {
-			for (ParametrizedAgent aa : players)// TODO looks like I should use linkedhashset
+			for (ParametrizedAgent aa : players)// TODO looks like I should use linked hashset
 			{
 				if (aa.agent == requester) {
 					if (aa.manually_requested != manually_requested) {
@@ -476,7 +476,7 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 				Objects.requireNonNull(removeAgentAddressOf(requester, agentAddresses)).setRoleObject(null);
 			}*/
 			if (logger != null) {
-				logger.finest(requester.getName() + " has leaved role " + getCGRString(group, roleName) + "\n");
+				logger.finest(requester.getName() + " has left role " + getCGRString(group, roleName) + "\n");
 			}
 			modified = true;
 		}
@@ -484,7 +484,7 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 		if (pa.manually_requested)
 			decrementReferences(null);
 
-		checkEmptyness();
+		checkEmptiness();
 		return SUCCESS;
 	}
 
@@ -547,7 +547,7 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
         }
         if (aa != null && aa.isManuallyRequested() && aa.getKernelAddress()!=null)
             decrementReferences(aa.getKernelAddress());
-        checkEmptyness();
+        checkEmptiness();
 		return aa!=null;
 
 	}
@@ -563,7 +563,7 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 			/*if (number>0)
 				updateReferences(ka, -number);*/
 		}
-		checkEmptyness();
+		checkEmptiness();
 	}
 
 	final List<AgentAddress> buildAndGetAddresses() {
@@ -648,7 +648,7 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 		AgentAddress a = getAndRemoveDistantAgentAddress(aa);
 		if (a != null) {
 			if (logger != null) {
-				logger.finest(aa + " has leaved role " + getCGRString(group, roleName) + "\n");
+				logger.finest(aa + " has left role " + getCGRString(group, roleName) + "\n");
 			}
 			aa.setRoleObject(null);
 		}
@@ -672,13 +672,13 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 					}
 				}
 
-				checkEmptyness();
+				checkEmptiness();
 			}
 			updateReferences(kernelAddress2, -number);
 		}
 	}
 
-	void checkEmptyness() {
+	void checkEmptiness() {
 		synchronized (players) {
 			if ((players == null || players.isEmpty()) && (distantAgentAddresses == null || distantAgentAddresses.isEmpty())) {
 				cleanAndRemove();
@@ -700,7 +700,7 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 		myGroup.removeRole(roleName);
 		removeOverlookers();
 		// overlookers = null;
-		tmpReferenceableAgents = null;
+		tmpReferencableAgents = null;
 		// players = null;
 		agentAddresses = null;
 		localAgentAddresses=null;
@@ -784,23 +784,18 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 	}
 
 	final List<AbstractAgent> getAgentsList() {
-		List<AbstractAgent> res=tmpReferenceableAgents;
+		List<AbstractAgent> res= tmpReferencableAgents;
 		if (modified) {
 			synchronized (players) {
 				if (modified) {
 					modified = false;// TODO do a bench : new seems a little bit better
-					// long startTime = System.nanoTime();
 					res=new ArrayList<>(players.size());
 					for (ParametrizedAgent aa : players)
 						res.add(aa.agent);
-					res=tmpReferenceableAgents = Collections.unmodifiableList(new ArrayList<>(res));
-					// tmpReferenceableAgents =
-					// (ArrayList<AbstractAgent>)referenceableAgents.clone();
-					// long estimatedTime = System.nanoTime() - startTime;
-					// System.err.println(estimatedTime);
+					res= tmpReferencableAgents = Collections.unmodifiableList(new ArrayList<>(res));
 				}
 				else
-					res=tmpReferenceableAgents;
+					res= tmpReferencableAgents;
 			}
 		}
 		return res;

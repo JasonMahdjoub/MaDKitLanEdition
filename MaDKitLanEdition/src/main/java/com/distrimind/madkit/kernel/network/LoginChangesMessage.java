@@ -35,72 +35,42 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-package com.distrimind.madkit.kernel.network.connection.access;
+package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.kernel.network.NetworkProperties;
-import com.distrimind.util.io.Integrity;
-import com.distrimind.util.io.MessageExternalizationException;
-import com.distrimind.util.io.SecuredObjectInputStream;
-import com.distrimind.util.io.SecuredObjectOutputStream;
-
-import java.io.IOException;
 import java.util.ArrayList;
 
+
+import com.distrimind.madkit.kernel.KernelAddress;
+import com.distrimind.madkit.kernel.Message;
+import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
+import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
+
 /**
+ * It is sent to agents that listen to
+ * {@link AgentActionEvent#LOGGED_IDENTIFIERS_UPDATE}
  * 
  * @author Jason Mahdjoub
- * @version 1.1
- * @since MadkitLanEdition 1.0
+ *
+ * @version 1.0
+ * @since MadKitLanExtension 1.0
  */
-class UnlogMessage extends AccessMessage {
+public class LoginChangesMessage extends Message {
 
 
-	public ArrayList<Identifier> identifier_to_unlog;
+	public final ArrayList<PairOfIdentifiers> new_accepted_identifiers;
+	public final ArrayList<PairOfIdentifiers> new_removed_identifiers;
+	public final KernelAddress concerned_kernel_address;
+	final KernelAddressInterfaced concerned_kernel_address_interfaced;
+	final ConnectionProperties connection_properties;
 
-	public UnlogMessage(ArrayList<Identifier> _identifiers) {
-		identifier_to_unlog = _identifiers;
-	}
-	
 	@SuppressWarnings("unused")
-	UnlogMessage()
-	{
-		
+	LoginChangesMessage(ArrayList<PairOfIdentifiers> _new_accepted_identifiers,
+						ArrayList<PairOfIdentifiers> _new_denied_identifiers, KernelAddress _concerned_kernel_address,
+						KernelAddressInterfaced _concerned_kernel_address_interfaced, ConnectionProperties _connection_properties) {
+		new_accepted_identifiers = _new_accepted_identifiers;
+		new_removed_identifiers = _new_denied_identifiers;
+		concerned_kernel_address = _concerned_kernel_address;
+		concerned_kernel_address_interfaced = _concerned_kernel_address_interfaced;
+		connection_properties = _connection_properties;
 	}
-	@Override
-	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
-		int size=in.readInt();
-		int totalSize=4;
-		int globalSize=NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
-		if (size<0 || totalSize+size*4>globalSize)
-			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		identifier_to_unlog=new ArrayList<>(size);
-		for (int i=0;i<size;i++)
-		{
-			Identifier id=in.readObject(false, Identifier.class);
-			totalSize+=id.getInternalSerializedSize();
-			if (totalSize>globalSize)
-				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			identifier_to_unlog.add(id);
-		}
-	}
-
-
-	@Override
-	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
-		oos.writeInt(identifier_to_unlog.size()); 
-		for (Identifier id : identifier_to_unlog)
-			oos.writeObject(id, false);
-
-		
-		
-	}
-	
-
-	@Override
-	public boolean checkDifferedMessages() {
-		return true;
-	}
-	
-
-
 }

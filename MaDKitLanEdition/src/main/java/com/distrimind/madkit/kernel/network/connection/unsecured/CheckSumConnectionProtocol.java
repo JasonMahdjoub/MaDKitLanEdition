@@ -72,10 +72,10 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 	private CheckSumConnectionProtocol(InetSocketAddress _distant_inet_address,
 									   InetSocketAddress _local_interface_address, ConnectionProtocol<?> _subProtocol,
 									   DatabaseWrapper _sql_connection, MadkitProperties mkProperties, ConnectionProtocolProperties<?> cpp, int subProtocolLevel, boolean isServer,
-									   boolean mustSupportBidirectionnalConnectionInitiative
+									   boolean mustSupportBidirectionalConnectionInitiative
 	) throws ConnectionException {
 		super(_distant_inet_address, _local_interface_address, _subProtocol, _sql_connection, mkProperties,cpp,
-				subProtocolLevel, isServer, mustSupportBidirectionnalConnectionInitiative);
+				subProtocolLevel, isServer, mustSupportBidirectionalConnectionInitiative);
 		parser = new Parser();
 		CheckSumConnectionProtocolProperties p = (CheckSumConnectionProtocolProperties) super.connection_protocol_properties;
 		p.checkProperties();
@@ -145,9 +145,9 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 	}
 
 	@Override
-	public TransferedBlockChecker getTransferredBlockChecker(TransferedBlockChecker subBlockChercker)
+	public TransferedBlockChecker getTransferredBlockChecker(TransferedBlockChecker subBlockChecker)
 			throws ConnectionException {
-		return new BlockChecker(subBlockChercker, messageDigestType);
+		return new BlockChecker(subBlockChecker, messageDigestType);
 	}
 
 	class Parser extends SubBlockParser {
