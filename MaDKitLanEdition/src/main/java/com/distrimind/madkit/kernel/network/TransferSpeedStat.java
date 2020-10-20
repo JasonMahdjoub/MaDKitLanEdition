@@ -135,7 +135,7 @@ public class TransferSpeedStat {
 				reset(val);
 				one_cycle_done.set(true);
 			} else if (number > 0) {
-				if (timeElapsed.get().getDeltaMili() > durationBeforeObsolescence)
+				if (timeElapsed.get().getDeltaMilli() > durationBeforeObsolescence)
 					reset();
 				while (number > 0) {
 					int cursor = (int) (bytes_for_current_cycle / segment);
@@ -163,7 +163,7 @@ public class TransferSpeedStat {
 	 * @return true if sufficient bytes has been observed to give a correct metrics.
 	 */
 	public boolean isOneCycleDone() {
-		return one_cycle_done.get() && timeElapsed.get().getMili() <= durationBeforeObsolescence;
+		return one_cycle_done.get() && timeElapsed.get().getMilli() <= durationBeforeObsolescence;
 	}
 
 	/**
@@ -172,7 +172,7 @@ public class TransferSpeedStat {
 	 */
 	public double getBytesPerSecond() {
 		synchronized (this) {
-			if (timeElapsed.get().getMili() > durationBeforeObsolescence)
+			if (timeElapsed.get().getMilli() > durationBeforeObsolescence)
 				reset();
 			return bytes_per_second;
 		}

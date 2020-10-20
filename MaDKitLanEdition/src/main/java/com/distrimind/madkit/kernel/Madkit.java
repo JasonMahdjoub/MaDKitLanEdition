@@ -162,7 +162,7 @@ final public class Madkit {
 			c = Calendar.getInstance();
 			c.set(2020, Calendar.JUNE, 16);
 			Description d = new Description((short)2, (short)2, (short)0, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update Utils to 5.5.10 Stable");
+			d.addItem("Update Utils to 5.5.12 Stable");
 			d.addItem("Update OOD to 3.0.0 Stable");
 			d.addItem("Make Utils and OOD compatible with Android");
 			d.addItem("Reimplement connection protocol using new Utils classes");

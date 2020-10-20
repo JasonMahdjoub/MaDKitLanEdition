@@ -109,7 +109,7 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	 *            the signature type (if null, use default signature type)
 	 */
 	public void setEncryptionProfile(int identifier, IASymmetricPublicKey publicKeyForEncryption, SymmetricEncryptionType symmetricEncryptionType,
-			short symmetricKeySizeBits, ASymmetricKeyWrapperType keyWrapper, SymmetricAuthentifiedSignatureType signatureType, MessageDigestType messageDigestType) {
+			short symmetricKeySizeBits, ASymmetricKeyWrapperType keyWrapper, SymmetricAuthenticatedSignatureType signatureType, MessageDigestType messageDigestType) {
 		synchronized (this) {
 			if (publicKeyForEncryption == null)
 				throw new NullPointerException("publicKey");
@@ -185,7 +185,7 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	 * 
 	 * @return the signature attached to this connection protocol
 	 */
-	public SymmetricAuthentifiedSignatureType getSignatureType() {
+	public SymmetricAuthenticatedSignatureType getSignatureType() {
 
 		return signatureType;
 	}
@@ -252,7 +252,7 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	/**
 	 * Signature type
 	 */
-	public SymmetricAuthentifiedSignatureType signatureType = null;
+	public SymmetricAuthenticatedSignatureType signatureType = null;
 
 	/**
 	 * Key wrapper

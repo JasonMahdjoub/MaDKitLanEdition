@@ -146,7 +146,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	 */
 	public int generateAndAddEncryptionProfile(AbstractSecureRandom random, ASymmetricEncryptionType as_type,
 			long expirationTimeUTC, int asymmetricKeySizeBits,
-			SymmetricEncryptionType s_type, short symmetricKeySizeBits, ASymmetricKeyWrapperType keyWrapper, SymmetricAuthentifiedSignatureType signatureType, MessageDigestType messageDigestType) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
+			SymmetricEncryptionType s_type, short symmetricKeySizeBits, ASymmetricKeyWrapperType keyWrapper, SymmetricAuthenticatedSignatureType signatureType, MessageDigestType messageDigestType) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
 		return addEncryptionProfile(
 				as_type.getKeyPairGenerator(random, asymmetricKeySizeBits, expirationTimeUTC).generateKeyPair(),
 				s_type, symmetricKeySizeBits, keyWrapper, signatureType, messageDigestType);
@@ -207,7 +207,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	 * @return the encryption profile identifier
 	 */
 	public int addEncryptionProfile(AbstractKeyPair<?, ?> keyPairForEncryption,
-									SymmetricEncryptionType symmetricEncryptionType, short symmetricKeySizeBits, ASymmetricKeyWrapperType keyWrapper, SymmetricAuthentifiedSignatureType signatureType, MessageDigestType messageDigestType) {
+									SymmetricEncryptionType symmetricEncryptionType, short symmetricKeySizeBits, ASymmetricKeyWrapperType keyWrapper, SymmetricAuthenticatedSignatureType signatureType, MessageDigestType messageDigestType) {
 		return addEncryptionProfile(generateNewKeyPairIdentifier(), keyPairForEncryption, symmetricEncryptionType, symmetricKeySizeBits, keyWrapper, signatureType, messageDigestType);
 	}
 	/**
@@ -229,7 +229,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	 * @return the encryption profile identifier
 	 */
 	public int addEncryptionProfile(int profileIdentifier, AbstractKeyPair<?, ?> keyPairForEncryption,
-			SymmetricEncryptionType symmetricEncryptionType, short symmetricKeySizeBits, ASymmetricKeyWrapperType keyWrapper, SymmetricAuthentifiedSignatureType signatureType, MessageDigestType messageDigestType) {
+			SymmetricEncryptionType symmetricEncryptionType, short symmetricKeySizeBits, ASymmetricKeyWrapperType keyWrapper, SymmetricAuthenticatedSignatureType signatureType, MessageDigestType messageDigestType) {
 		if (keyPairForEncryption == null)
 			throw new NullPointerException("keyPairForEncryption");
 		if (keyPairsForEncryption.containsKey(profileIdentifier))
@@ -334,7 +334,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	 * @return the signature type attached to this connection protocol and the given
 	 *         profile identifier
 	 */
-	public SymmetricAuthentifiedSignatureType getSignatureType(int profileIdentifier) {
+	public SymmetricAuthenticatedSignatureType getSignatureType(int profileIdentifier) {
 		return signatures.get(profileIdentifier);
 	}
 	
@@ -352,7 +352,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 
 	public int getMaximumSignatureSizeBits() {
 		int res = 0;
-		for (SymmetricAuthentifiedSignatureType v : signatures.values()) {
+		for (SymmetricAuthenticatedSignatureType v : signatures.values()) {
 			res = Math.max(res, v.getSignatureSizeInBits());
 		}
 		return res;
@@ -412,7 +412,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	 * @return the default signature type attached to this connection protocol and
 	 *         its default profile
 	 */
-	public SymmetricAuthentifiedSignatureType getDefaultSignatureType() {
+	public SymmetricAuthenticatedSignatureType getDefaultSignatureType() {
 		return signatures.get(lastIdentifier);
 	}
 	/**
@@ -488,7 +488,7 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	/**
 	 * The used signatures
 	 */
-	private Map<Integer, SymmetricAuthentifiedSignatureType> signatures = new HashMap<>();
+	private Map<Integer, SymmetricAuthenticatedSignatureType> signatures = new HashMap<>();
 
 	/**
 	 * The used key wrappers

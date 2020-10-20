@@ -84,7 +84,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 	protected SymmetricAuthenticatedSignerAlgorithm signer = null;
 	protected SymmetricAuthenticatedSignatureCheckerAlgorithm signatureChecker=null;*/
 	protected SymmetricSecretKey mySecretKeyForEncryption=null,mySecretKeyForSignature=null;
-	protected SymmetricAuthentifiedSignatureType signatureType;
+	protected SymmetricAuthenticatedSignatureType signatureType;
 	protected ASymmetricKeyWrapperType keyWrapper;
 	protected MessageDigestType messageDigestType;
 	

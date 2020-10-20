@@ -1948,7 +1948,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				timer_read = new Timer(true);
 			else
 				getStatistics().newDataReceived(_block.getTransferID(), dataRead,
-						timer_read.getDeltaMili());
+						timer_read.getDeltaMilli());
 			dataRead = _block.getBlockSize();
 			getStatistics().newDataReceived(_block.getTransferID(), _block.getBlockSize());
 			_block.setTransferID(TransferAgent.NullIDTransfer.getID());

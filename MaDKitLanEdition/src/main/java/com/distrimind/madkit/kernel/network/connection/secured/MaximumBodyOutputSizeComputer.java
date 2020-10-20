@@ -50,7 +50,7 @@ import java.security.NoSuchProviderException;
 class MaximumBodyOutputSizeComputer {
 	private final EncryptionSignatureHashEncoder maxEncoder;
 
-	MaximumBodyOutputSizeComputer(boolean encryptionEnabled, SymmetricEncryptionType symmetricEncryptionType, short symmetricKeySizeBits, SymmetricAuthentifiedSignatureType symmetricSignatureType, MessageDigestType messageDigestType) throws BlockParserException {
+	MaximumBodyOutputSizeComputer(boolean encryptionEnabled, SymmetricEncryptionType symmetricEncryptionType, short symmetricKeySizeBits, SymmetricAuthenticatedSignatureType symmetricSignatureType, MessageDigestType messageDigestType) throws BlockParserException {
 		this(encryptionEnabled, symmetricEncryptionType, symmetricKeySizeBits, messageDigestType);
 		try {
 			maxEncoder.withSymmetricSecretKeyForSignature(symmetricSignatureType.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), symmetricKeySizeBits).generateKey());

@@ -1957,7 +1957,7 @@ final class NIOAgent extends Agent {
 									timer_send = new Timer(true);
 								else {
 									agentSocket.getStatistics().newDataSent(data.getIDTransfer(), data_sent,
-											timer_send.getDeltaMili());
+											timer_send.getDeltaMilli());
 								}
 							}
 

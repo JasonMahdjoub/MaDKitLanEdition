@@ -91,7 +91,7 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	/**
 	 * Symmetric signature algorithm
 	 */
-	public SymmetricAuthentifiedSignatureType symmetricSignatureType=SymmetricAuthentifiedSignatureType.HMAC_SHA2_256;
+	public SymmetricAuthenticatedSignatureType symmetricSignatureType=SymmetricAuthenticatedSignatureType.HMAC_SHA2_256;
 	
 	/**
 	 * symmetric key size in bits
