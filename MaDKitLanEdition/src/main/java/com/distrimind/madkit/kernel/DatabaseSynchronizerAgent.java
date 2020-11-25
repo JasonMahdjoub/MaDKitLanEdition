@@ -522,10 +522,10 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 					DecentralizedValue source = e.getHostSource();
 
 					if (source != null && source.equals(peerID)) {
-						if (e instanceof HookAddRequest)
+						if (e instanceof AbstractHookRequest)
 						{
 							generateError = false;
-							HookAddRequest rep=synchronizer.receivedHookAddRequest((HookAddRequest)e);
+							AbstractHookRequest rep=synchronizer.receivedHookAddRequest((AbstractHookRequest)e);
 							if (rep!=null)
 								sendReply(_message, new NetworkObjectMessage<>(rep));
 							else {
@@ -623,7 +623,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 	private void askForHookAddingAndSynchronizeDatabase(Group group, DecentralizedValue hostIdentifier,
 																 boolean conflictualRecordsReplacedByDistantRecords, Package... packages) {
 		try {
-			HookAddRequest request=synchronizer.askForHookAddingAndSynchronizeDatabase(hostIdentifier, conflictualRecordsReplacedByDistantRecords, packages);
+			AbstractHookRequest request=synchronizer.askForHookAddingAndSynchronizeDatabase(hostIdentifier, conflictualRecordsReplacedByDistantRecords, packages);
 
 			if (!sendMessageWithRole(group, CloudCommunity.Roles.SYNCHRONIZER, new NetworkObjectMessage<>(request), CloudCommunity.Roles.SYNCHRONIZER).equals(ReturnCode.SUCCESS)) {
 				getLogger().warning("Impossible to send message to host " + request);
