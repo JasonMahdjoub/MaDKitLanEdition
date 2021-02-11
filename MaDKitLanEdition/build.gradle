@@ -7,11 +7,15 @@
  */
 
 // Apply the java-library plugin to add support for Java Library
-apply plugin: 'java-library'
-apply plugin: 'eclipse'
-apply plugin: 'maven-publish'
-apply plugin: 'idea'
-apply plugin: 'signing'
+plugins {
+    id "java-library"
+    id "maven-publish"
+    id "eclipse"
+    id "idea"
+    id "signing"
+    //id "org.owasp.dependencycheck" version "6.1.0"
+}
+
 
 Properties props = new Properties()
 def propFile = file('gradle.properties')
