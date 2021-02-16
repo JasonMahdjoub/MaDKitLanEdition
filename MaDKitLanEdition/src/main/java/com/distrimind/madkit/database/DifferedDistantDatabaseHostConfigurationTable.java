@@ -79,7 +79,7 @@ public final class DifferedDistantDatabaseHostConfigurationTable extends Table<D
 			this.hostIdentifier = hostIdentifier;
 			this.conflictualRecordsReplacedByDistantRecords = conflictualRecordsReplacedByDistantRecords;
 			RandomByteArrayOutputStream baos=new RandomByteArrayOutputStream();
-			baos.writeUnsignedShortInt(packages.length);
+			baos.writeUnsignedInt24Bits(packages.length);
 			for (Package p : packages)
 			{
 				baos.writeString(p.getName(), false, Short.MAX_VALUE);
@@ -107,7 +107,7 @@ public final class DifferedDistantDatabaseHostConfigurationTable extends Table<D
 					if (_packages==null)
 					{
 						RandomByteArrayInputStream in=new RandomByteArrayInputStream(packages);
-						int s=in.readUnsignedShortInt();
+						int s=in.readUnsignedShort24Bits();
 						_packages=new Package[s];
 						for (int i=0;i<s;i++)
 						{
