@@ -59,7 +59,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.Collection;
 
-public class DatabaseTests {
+public class MKDatabaseTests {
 	static final File databaseFile = new File("tmpfortest.database");
 	static DatabaseWrapper databaseWrapper;
 	static IPBanned ipbanned;

@@ -38,7 +38,9 @@
 package com.distrimind.madkit.kernel;
 
 import com.distrimind.madkit.agr.CloudCommunity;
+import com.distrimind.madkit.database.MKDatabase;
 import com.distrimind.madkit.database.DifferedDistantDatabaseHostConfigurationTable;
+import com.distrimind.madkit.database.IPBanned;
 import com.distrimind.madkit.gui.AgentFrame;
 import com.distrimind.madkit.gui.ConsoleAgent;
 import com.distrimind.madkit.gui.MDKDesktopFrame;
@@ -47,9 +49,7 @@ import com.distrimind.madkit.i18n.SuccessMessages;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.madkit.util.MultiFormatPropertiesObjectParser;
 import com.distrimind.madkit.util.XMLUtilities;
-import com.distrimind.ood.database.DatabaseFactory;
-import com.distrimind.ood.database.DatabaseWrapper;
-import com.distrimind.ood.database.Table;
+import com.distrimind.ood.database.*;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.FileTools;
@@ -292,14 +292,62 @@ public class MadkitProperties extends MultiFormatProperties {
 	public Level warningLogLevel = Level.FINE;
 
 	private DatabaseFactory<?> databaseFactory;
+	private transient boolean databaseConfigurationsParametrized=false;
 
 	public void setDatabaseFactory(DatabaseFactory<?> df) throws DatabaseException {
 		if (databaseFactory != null && databaseFactory != df
 				&& !databaseFactory.getDatabaseWrapperSingleton().isClosed())
 			databaseFactory.getDatabaseWrapperSingleton().close();
-
+		databaseConfigurationsParametrized=false;
 		databaseFactory = df;
 	}
+	private void checkDatabaseConfigurationsParameters() throws DatabaseException {
+		if (databaseFactory!=null) {
+			if (!databaseConfigurationsParametrized) {
+				DatabaseConfigurations databaseConfigurations = databaseFactory.getDatabaseConfigurations();
+				if (databaseConfigurations == null || databaseConfigurations.getDatabaseConfiguration(MKDatabase.class.getPackage()) == null) {
+					DatabaseConfiguration mkDatabase = new DatabaseConfiguration(new DatabaseSchema(IPBanned.class.getPackage(), MKDatabase.databaseClasses));
+					if (databaseConfigurations == null)
+						databaseConfigurations = new DatabaseConfigurations(new HashSet<>(Collections.singletonList(mkDatabase)));
+					else
+						databaseConfigurations = new DatabaseConfigurations(new HashSet<>(Collections.singletonList(mkDatabase)), databaseConfigurations.getDistantPeers(), databaseConfigurations.getLocalPeer(), databaseConfigurations.isPermitIndirectSynchronizationBetweenPeers());
+					databaseFactory.setDatabaseConfigurations(databaseConfigurations);
+					databaseFactory.setDatabaseLifeCycles(new DatabaseLifeCycles() {
+						@Override
+						public void transferDatabaseFromOldVersion(DatabaseWrapper wrapper, DatabaseConfiguration newDatabaseConfiguration) throws Exception {
+
+						}
+
+						@Override
+						public void afterDatabaseCreation(DatabaseWrapper wrapper, DatabaseConfiguration newDatabaseConfiguration) throws Exception {
+
+						}
+
+						@Override
+						public boolean hasToRemoveOldDatabase(DatabaseConfiguration databaseConfiguration) throws Exception {
+							return true;
+						}
+
+						@Override
+						public boolean replaceDistantConflictualRecordsWhenDistributedDatabaseIsResynchronized(DatabaseConfiguration databaseConfiguration) {
+							return false;
+						}
+
+						@Override
+						public void saveDatabaseConfigurations(DatabaseConfigurations databaseConfigurations) {
+							try {
+								MadkitProperties.this.saveConfiguration();
+							} catch (IOException | PropertiesParseException e) {
+								e.printStackTrace();
+							}
+						}
+					});
+				}
+				databaseConfigurationsParametrized=true;
+			}
+		}
+	}
+
 
 	public boolean isDatabaseEnabled() {
 		return databaseFactory != null;
@@ -321,6 +369,7 @@ public class MadkitProperties extends MultiFormatProperties {
 	public DatabaseWrapper getDatabaseWrapper() throws DatabaseException {
 		if (databaseFactory == null)
 			return null;
+		checkDatabaseConfigurationsParameters();
 		return databaseFactory.getDatabaseWrapperSingleton();
 	}
 	private transient long databaseSynchronisationFileID=0;
@@ -495,7 +544,7 @@ public class MadkitProperties extends MultiFormatProperties {
 
 	public MadkitProperties() {
 		super(new MultiFormatPropertiesObjectParser());
-		this.minimumMadkitVersion=new Version(madkitVersion.getProgramName(), madkitVersion.getShortProgramName(), (short)2, (short)2, (short)0, Version.Type.Stable, (short)1, madkitVersion.getProjectStartDate(), madkitVersion.getProjectEndDate());
+		this.minimumMadkitVersion=new Version(madkitVersion.getProgramName(), madkitVersion.getShortProgramName(), (short)2, (short)2, (short)0, Version.Type.STABLE, (short)0, madkitVersion.getProjectStartDate(), madkitVersion.getProjectEndDate());
 		this.minimumMadkitVersion.setBuildNumber(100);
 		try {
 			madkitWeb = new URL("https://github.com/JazZ51/MaDKitLanEdition");
@@ -521,6 +570,7 @@ public class MadkitProperties extends MultiFormatProperties {
 	public void loadXML(File xml_file) throws IOException {
 		try {
 			super.loadXML(xml_file);
+			databaseConfigurationsParametrized=false;
 			logger.fine(String.format(SuccessMessages.CONFIG_LOAD_SUCCESS.toString(), xml_file.toString()));
 		} catch (PropertiesParseException e) {
 			logger.log(Level.WARNING,
@@ -535,6 +585,7 @@ public class MadkitProperties extends MultiFormatProperties {
 	public void loadXML(Document document) {
 		try {
 			super.loadXML(document);
+			databaseConfigurationsParametrized=false;
 			logger.fine(String.format(SuccessMessages.CONFIG_LOAD_SUCCESS.toString(), document.toString()));
 		} catch (PropertiesParseException e) {
 			logger.log(Level.WARNING,
@@ -552,6 +603,7 @@ public class MadkitProperties extends MultiFormatProperties {
 	@Override
 	public void loadYAML(File yaml_file) throws IOException {
 		super.loadYAML(yaml_file);
+		databaseConfigurationsParametrized=false;
 		logger.fine(String.format(SuccessMessages.CONFIG_LOAD_SUCCESS.toString(), yaml_file.toString()));
 	}
 

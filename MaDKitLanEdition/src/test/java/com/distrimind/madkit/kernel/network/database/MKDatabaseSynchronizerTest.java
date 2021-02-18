@@ -70,7 +70,7 @@ import java.util.logging.Level;
  * @since MaDKitLanEdition 2.0.0
  */
 @RunWith(Parameterized.class)
-public class DatabaseSynchronizerTest extends JunitMadkit{
+public class MKDatabaseSynchronizerTest extends JunitMadkit{
 	final NetworkEventListener eventListener1;
 	final NetworkEventListener eventListener2;
 	final DecentralizedValue localIdentifier;
@@ -83,7 +83,7 @@ public class DatabaseSynchronizerTest extends JunitMadkit{
 		return new Object[10][0];
 	}
 
-	public DatabaseSynchronizerTest() throws UnknownHostException {
+	public MKDatabaseSynchronizerTest() throws UnknownHostException {
 		P2PSecuredConnectionProtocolPropertiesWithKeyAgreement p2pprotocol=new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 		p2pprotocol.isServer = true;
 		p2pprotocol.symmetricEncryptionType= SymmetricEncryptionType.AES_CTR;

@@ -96,7 +96,7 @@
   			<class name="com.distrimind.madkit.kernel.network.ReadWritePacketTests"/>
 			<class name="com.distrimind.madkit.kernel.network.DistantGroupAccessTests"/>
   			<class name="com.distrimind.madkit.kernel.AgentAddressTest"/>
-  			<class name="com.distrimind.madkit.database.DatabaseTests"/>
+  			<class name="com.distrimind.madkit.database.MKDatabaseTests"/>
   			<class name="com.distrimind.madkit.visibility.KernelVisibilityTest"/>
   			<class name="com.distrimind.madkit.api.agent.setThreadPriorityTest"/>
   			<class name="com.distrimind.madkit.api.abstractAgent.LaunchAbstractAgentTest"/>

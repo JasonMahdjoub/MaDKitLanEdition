@@ -146,7 +146,7 @@ final public class Madkit {
 					.addDeveloper(new PersonDeveloper("michel", "fabien", "1997-02-01"))
 					.addDeveloper(new PersonDeveloper("Gutknecht", "Olivier", "1997-02-01"))
 					.addDeveloper(new PersonDeveloper("Ferber", "Jacques", "1997-02-01"))
-					.addDescription(new Description((short)2, (short)2, (short)0, Version.Type.STABLE, (short)1, "2020-01-16")
+					.addDescription(new Description((short)2, (short)2, (short)0, Version.Type.STABLE, (short)0, "2020-01-16")
 							.addItem("Update Utils to 5.16.0 STABLE")
 							.addItem("Update OOD to 3.0.0 STABLE")
 							.addItem("Make Utils and OOD compatible with Android")

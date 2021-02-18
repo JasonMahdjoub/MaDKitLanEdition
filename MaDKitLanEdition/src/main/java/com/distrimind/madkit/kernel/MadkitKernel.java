@@ -43,6 +43,7 @@ import com.distrimind.madkit.action.KernelAction;
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.agr.LocalCommunity.Groups;
 import com.distrimind.madkit.agr.LocalCommunity.Roles;
+import com.distrimind.madkit.database.MKDatabase;
 import com.distrimind.madkit.database.DifferedMessageTable;
 import com.distrimind.madkit.database.IPBanned;
 import com.distrimind.madkit.exceptions.MadkitException;
@@ -65,6 +66,7 @@ import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.message.task.TasksExecutionConfirmationMessage;
 import com.distrimind.madkit.util.XMLUtilities;
 import com.distrimind.ood.database.DatabaseConfiguration;
+import com.distrimind.ood.database.DatabaseSchema;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.IDGeneratorInt;
@@ -325,8 +327,6 @@ class MadkitKernel extends Agent {
 		differedMessageTable=null;
 		if (madkitConfig.isDatabaseEnabled()) {
 			try {
-				madkitConfig.getDatabaseWrapper().loadDatabase(new DatabaseConfiguration(IPBanned.class.getPackage()),
-						true);
 				differedMessageTable= madkitConfig.getDatabaseWrapper().getTableInstance(DifferedMessageTable.class);
 				madkitConfig.resetTemporaryDatabaseDirectoryUsedForSynchronisation();
 			} catch (DatabaseException e) {
