@@ -38,6 +38,7 @@ knowledge of the CeCILL-C license and that you accept its terms.
 import com.distrimind.madkit.kernel.network.connection.access.HostIdentifier;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.crypto.*;
+import com.distrimind.util.data_buffers.WrappedData;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
 import com.distrimind.util.io.SerializationTools;
@@ -107,7 +108,7 @@ public class CustomAutoSignedHostIdentifier extends HostIdentifier {
 	}
 
 	@Override
-	public byte[] getBytesTabToEncode() {
+	public WrappedData getBytesTabToEncode() {
 		return publicKey.encode();
 	}
 

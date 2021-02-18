@@ -208,8 +208,9 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 			if (askMessage.getSecretKeyForEncryption()==null && hProperties.enableEncryption)
 				throw new ConnectionException("Secret key empty !");
 
-
-			mySecretKeyForSignature=keyWrapper.unwrapKey(myKeyPairForEncryption.getASymmetricPrivateKey(), askMessage.getSecretKeyForSignature());
+			KeyWrapperAlgorithm kw=new KeyWrapperAlgorithm(keyWrapper, myKeyPairForEncryption);
+			mySecretKeyForSignature=kw.unwrap( askMessage.getSecretKeyForSignature());
+			mySecretKeyForSignature=kw.wrap()keyWrapper.unwrapKey(myKeyPairForEncryption.getASymmetricPrivateKey(), askMessage.getSecretKeyForSignature());
 
 			if (mySecretKeyForSignature==null || !askMessage.checkSignedMessage(mySecretKeyForSignature, hProperties.enableEncryption))
 				throw new ConnectionException("Message signature is not checked !");

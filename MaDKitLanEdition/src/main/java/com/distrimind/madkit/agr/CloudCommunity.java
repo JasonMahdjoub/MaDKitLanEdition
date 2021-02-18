@@ -41,9 +41,10 @@ import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.AgentNetworkID;
 import com.distrimind.madkit.kernel.Gatekeeper;
 import com.distrimind.madkit.kernel.Group;
+import com.distrimind.util.Bits;
 import com.distrimind.util.DecentralizedValue;
+import com.distrimind.util.data_buffers.WrappedString;
 
-import java.util.Base64;
 import java.util.Objects;
 
 /**
@@ -91,11 +92,14 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 
 		public static final Group DISTRIBUTED_DATABASE = LocalCommunity.Groups.DATABASE.getSubGroup(true, databaseGateKeeper, true, "~~peers");
 
-		public static String encodeDecentralizedValue(DecentralizedValue identifier)
+		public static WrappedString encodeDecentralizedValue(DecentralizedValue identifier)
 		{
-			return Base64.getUrlEncoder().encodeToString(identifier.encode());
+			return identifier.encode().toWrappedString();
 		}
-
+		public static Group getDistributedDatabaseGroup(String localIdentifier, WrappedString distantIdentifier)
+		{
+			return getDistributedDatabaseGroup(localIdentifier, distantIdentifier.toString());
+		}
 		public static Group getDistributedDatabaseGroup(String localIdentifier, String distantIdentifier)
 		{
 			if (localIdentifier==null)
@@ -143,12 +147,20 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 			return null;
 
 		}
+		public static DecentralizedValue extractDistantHostID(Group group, WrappedString localHostID)
+		{
+			return extractDistantHostID(group, localHostID.toString());
+		}
 		public static DecentralizedValue extractDistantHostID(Group group, String localHostID)
 		{
 			String res=extractDistantHostIDString(group, localHostID);
 			if (res==null)
 				return null;
-			return DecentralizedValue.decode(Base64.getUrlDecoder().decode(res));
+			return DecentralizedValue.decode(Bits.toBytesArrayFromBase64String(res, true));
+		}
+		public static Group getDistributedDatabaseGroup(WrappedString localIdentifier, DecentralizedValue distantIdentifier)
+		{
+			return getDistributedDatabaseGroup(localIdentifier.toString(), distantIdentifier);
 		}
 		public static Group getDistributedDatabaseGroup(String localIdentifier, DecentralizedValue distantIdentifier)
 		{

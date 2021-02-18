@@ -39,6 +39,7 @@ package com.distrimind.madkit.kernel.network.connection.access;
 
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.util.crypto.AbstractSecureRandom;
+import com.distrimind.util.data_buffers.WrappedData;
 import com.distrimind.util.io.*;
 
 import java.io.IOException;
@@ -128,8 +129,8 @@ class IdentifiersPropositionMessage extends AccessMessage {
 					throw new IllegalArgumentException(""+distantGeneratedSalt.length);
 				byte[] localGeneratedSalt=new byte[distantGeneratedSalt.length];
 				random.nextBytes(localGeneratedSalt);
-				byte[] encodedIdentifier=ip.getHostIdentifier().getBytesTabToEncode();
-				byte[] s=Identifier.signAuthenticatedIdentifier(ip.getHostIdentifier().getAuthenticationKeyPair(), encodedIdentifier, localGeneratedSalt, distantGeneratedSalt);
+				WrappedData encodedIdentifier=ip.getHostIdentifier().getBytesTabToEncode();
+				byte[] s=Identifier.signAuthenticatedIdentifier(ip.getHostIdentifier().getAuthenticationKeyPair(), encodedIdentifier.getBytes(), localGeneratedSalt, distantGeneratedSalt);
 				hostSignatures[index]=new byte[localGeneratedSalt.length +s.length];
 				System.arraycopy(localGeneratedSalt, 0, hostSignatures[index], 0, localGeneratedSalt.length);
 				System.arraycopy(s, 0, hostSignatures[index], localGeneratedSalt.length, s.length);
@@ -169,9 +170,9 @@ class IdentifiersPropositionMessage extends AccessMessage {
 
 		if (foundCloudIdentifier != null && loginData.isDistantHostIdentifierValid(identifier)) {
 			if (identifier.getHostIdentifier().isAuthenticatedByPublicKey()) {
-				byte[] encodedIdentifier = identifier.getHostIdentifier().getBytesTabToEncode();
+				WrappedData encodedIdentifier = identifier.getHostIdentifier().getBytesTabToEncode();
 
-				if (Identifier.checkAuthenticatedSignature(identifier.getHostIdentifier().getAuthenticationPublicKey(), signature, localGeneratedSalt.length, signature.length - localGeneratedSalt.length, encodedIdentifier, Arrays.copyOfRange(signature, 0, localGeneratedSalt.length), localGeneratedSalt))
+				if (Identifier.checkAuthenticatedSignature(identifier.getHostIdentifier().getAuthenticationPublicKey(), signature, localGeneratedSalt.length, signature.length - localGeneratedSalt.length, encodedIdentifier.getBytes(), Arrays.copyOfRange(signature, 0, localGeneratedSalt.length), localGeneratedSalt))
 					return new Identifier(foundCloudIdentifier, identifier.getHostIdentifier());
 				else
 					return null;

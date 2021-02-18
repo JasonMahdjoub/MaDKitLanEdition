@@ -42,6 +42,7 @@ import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.RenforcedDecentralizedIDGenerator;
 import com.distrimind.util.SecuredDecentralizedID;
 import com.distrimind.util.crypto.*;
+import com.distrimind.util.data_buffers.WrappedData;
 import com.distrimind.util.io.SecureExternalizable;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
@@ -82,7 +83,7 @@ public abstract class HostIdentifier implements SecureExternalizable {
 	@Override
 	public abstract int hashCode();
 
-	public abstract byte[] getBytesTabToEncode();
+	public abstract WrappedData getBytesTabToEncode();
 
 
 	/**
@@ -129,9 +130,9 @@ public abstract class HostIdentifier implements SecureExternalizable {
 		}
 
 		@Override
-		public byte[] getBytesTabToEncode()
+		public WrappedData getBytesTabToEncode()
 		{
-			return new byte[0];
+			return new WrappedData(new byte[0]);
 		}
 		@Override
 		public int hashCode() {
@@ -196,7 +197,7 @@ public abstract class HostIdentifier implements SecureExternalizable {
 		}
 
 		@Override
-		public byte[] getBytesTabToEncode()
+		public WrappedData getBytesTabToEncode()
 		{
 			return id.encode();
 		}

@@ -57,7 +57,8 @@ import java.security.NoSuchProviderException;
 class AskClientServerConnection extends AskConnection {
 
 	//private final transient byte[] distantPublicKeyForEncryptionEncoded;
-	private byte[] secretKeyForEncryption, secretKeyForSignature, signatureOfSecretKeyForEncryption;
+	private WrappedEncryptedSymmetricSecretKey secretKeyForEncryption, secretKeyForSignature;
+	private byte[] signatureOfSecretKeyForEncryption;
 	private byte[] randomBytes;
 
 	@SuppressWarnings("unused")
@@ -69,8 +70,8 @@ class AskClientServerConnection extends AskConnection {
 	@Override
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		super.readExternal(in);
-		secretKeyForEncryption=in.readBytesArray(true, MAX_SECRET_KEY_LENGTH);
-		secretKeyForSignature=in.readBytesArray(false, MAX_SECRET_KEY_LENGTH);
+		secretKeyForEncryption=new WrappedEncryptedSymmetricSecretKey(in.readBytesArray(true, MAX_SECRET_KEY_LENGTH));
+		secretKeyForSignature=new WrappedEncryptedSymmetricSecretKey(in.readBytesArray(false, MAX_SECRET_KEY_LENGTH));
 		signatureOfSecretKeyForEncryption=in.readBytesArray(true, MAX_SIGNATURE_LENGTH);
 		if (secretKeyForEncryption!=null && secretKeyForEncryption.length == 0)
 			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
@@ -91,8 +92,8 @@ class AskClientServerConnection extends AskConnection {
 	@Override
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		super.writeExternal(oos);
-		oos.writeBytesArray(secretKeyForEncryption, true, MAX_SECRET_KEY_LENGTH);
-		oos.writeBytesArray(secretKeyForSignature, false, MAX_SECRET_KEY_LENGTH);
+		oos.writeBytesArray(secretKeyForEncryption.getBytes(), true, MAX_SECRET_KEY_LENGTH);
+		oos.writeBytesArray(secretKeyForSignature.getBytes(), false, MAX_SECRET_KEY_LENGTH);
 		oos.writeBytesArray(signatureOfSecretKeyForEncryption, true, MAX_SIGNATURE_LENGTH);
 		oos.writeBytesArray(randomBytes, true, 256);
 	}
@@ -110,14 +111,15 @@ class AskClientServerConnection extends AskConnection {
 			throw new NullPointerException("signatureSecretKey");
 		if (distantPublicKeyForEncryption == null)
 			throw new NullPointerException("distantPublicKeyForEncryption");
-		
-		this.secretKeyForEncryption=keyWrapper.wrapKey(random, distantPublicKeyForEncryption, encryptionSecretKey);
-		this.secretKeyForSignature=keyWrapper.wrapKey(random, distantPublicKeyForEncryption, signatureSecretKey);
+		KeyWrapperAlgorithm kw=new KeyWrapperAlgorithm(keyWrapper, );
+
+		this.secretKeyForEncryption=kw.wrap(random, encryptionSecretKey);
+		this.secretKeyForSignature=kw.wrap(random, signatureSecretKey);
 		this.randomBytes=new byte[256];
 		random.nextBytes(randomBytes);
 		SymmetricAuthenticatedSignerAlgorithm signer=new SymmetricAuthenticatedSignerAlgorithm(signatureSecretKey);
 		signer.init();
-		signer.update(secretKeyForEncryption);
+		signer.update(secretKeyForEncryption.getBytes());
 		signer.update(randomBytes);
 		this.signatureOfSecretKeyForEncryption=signer.getSignature();
 		//this.distantPublicKeyForEncryptionEncoded = asymmetricAlgo.encode(distantPublicKeyForEncryption.encode());
@@ -142,7 +144,7 @@ class AskClientServerConnection extends AskConnection {
 	byte[] getSecretKeyForEncryption() {
 		return secretKeyForEncryption;
 	}
-	byte[] getSecretKeyForSignature() {
+	WrappedEncryptedSymmetricSecretKey getSecretKeyForSignature() {
 		return secretKeyForSignature;
 	}
 	
