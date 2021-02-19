@@ -208,16 +208,16 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 			if (askMessage.getSecretKeyForEncryption()==null && hProperties.enableEncryption)
 				throw new ConnectionException("Secret key empty !");
 
-			KeyWrapperAlgorithm kw=new KeyWrapperAlgorithm(keyWrapper, myKeyPairForEncryption);
-			mySecretKeyForSignature=kw.unwrap( askMessage.getSecretKeyForSignature());
-			mySecretKeyForSignature=kw.wrap()keyWrapper.unwrapKey(myKeyPairForEncryption.getASymmetricPrivateKey(), askMessage.getSecretKeyForSignature());
+			KeyWrapperAlgorithm kws=new KeyWrapperAlgorithm(keyWrapper, myKeyPairForEncryption);
+			mySecretKeyForSignature=kws.unwrap( askMessage.getSecretKeyForSignature());
 
-			if (mySecretKeyForSignature==null || !askMessage.checkSignedMessage(mySecretKeyForSignature, hProperties.enableEncryption))
+			if (mySecretKeyForSignature==null /*|| !askMessage.checkSignedMessage(mySecretKeyForSignature, hProperties.enableEncryption)*/)
 				throw new ConnectionException("Message signature is not checked !");
 
 			if (hProperties.enableEncryption)
 			{
-				mySecretKeyForEncryption=keyWrapper.unwrapKey(myKeyPairForEncryption.getASymmetricPrivateKey(), askMessage.getSecretKeyForEncryption());
+				KeyWrapperAlgorithm kwe=new KeyWrapperAlgorithm(keyWrapper, myKeyPairForEncryption, mySecretKeyForSignature);
+				mySecretKeyForEncryption=kwe.unwrap(askMessage.getSecretKeyForEncryption());
 				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, mySecretKeyForEncryption);
 				decoderWithEncryption.withSymmetricSecretKeyForEncryption(mySecretKeyForEncryption);
 			}

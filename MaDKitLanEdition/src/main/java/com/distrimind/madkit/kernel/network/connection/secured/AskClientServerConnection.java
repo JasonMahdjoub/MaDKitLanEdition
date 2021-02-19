@@ -45,8 +45,6 @@ import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 
 /**
  * 
@@ -58,7 +56,7 @@ class AskClientServerConnection extends AskConnection {
 
 	//private final transient byte[] distantPublicKeyForEncryptionEncoded;
 	private WrappedEncryptedSymmetricSecretKey secretKeyForEncryption, secretKeyForSignature;
-	private byte[] signatureOfSecretKeyForEncryption;
+	//private byte[] signatureOfSecretKeyForEncryption;
 	private byte[] randomBytes;
 
 	@SuppressWarnings("unused")
@@ -70,19 +68,20 @@ class AskClientServerConnection extends AskConnection {
 	@Override
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		super.readExternal(in);
-		secretKeyForEncryption=new WrappedEncryptedSymmetricSecretKey(in.readBytesArray(true, MAX_SECRET_KEY_LENGTH));
+		byte[] tab=in.readBytesArray(true, MAX_SECRET_KEY_LENGTH);
+		secretKeyForEncryption=tab==null?null:new WrappedEncryptedSymmetricSecretKey(tab);
 		secretKeyForSignature=new WrappedEncryptedSymmetricSecretKey(in.readBytesArray(false, MAX_SECRET_KEY_LENGTH));
-		signatureOfSecretKeyForEncryption=in.readBytesArray(true, MAX_SIGNATURE_LENGTH);
-		if (secretKeyForEncryption!=null && secretKeyForEncryption.length == 0)
+		//signatureOfSecretKeyForEncryption=in.readBytesArray(true, MAX_SIGNATURE_LENGTH);
+		if (secretKeyForEncryption!=null && secretKeyForEncryption.getBytes().length == 0)
 			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		if (secretKeyForSignature.length == 0)
+		if (secretKeyForSignature.getBytes().length == 0)
 			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		if (this.isYouAreAsking())
 			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		randomBytes=in.readBytesArray(true, 256);
-		if (secretKeyForEncryption==null && (signatureOfSecretKeyForEncryption!=null || randomBytes!=null))
+		if (secretKeyForEncryption==null && (/*signatureOfSecretKeyForEncryption!=null || */randomBytes!=null))
 			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		if (secretKeyForEncryption!=null && (signatureOfSecretKeyForEncryption==null || randomBytes==null))
+		if (secretKeyForEncryption!=null && (/*signatureOfSecretKeyForEncryption==null || */randomBytes==null))
 			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		if (randomBytes!=null  && randomBytes.length!=256)
 			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
@@ -94,14 +93,14 @@ class AskClientServerConnection extends AskConnection {
 		super.writeExternal(oos);
 		oos.writeBytesArray(secretKeyForEncryption.getBytes(), true, MAX_SECRET_KEY_LENGTH);
 		oos.writeBytesArray(secretKeyForSignature.getBytes(), false, MAX_SECRET_KEY_LENGTH);
-		oos.writeBytesArray(signatureOfSecretKeyForEncryption, true, MAX_SIGNATURE_LENGTH);
+		//oos.writeBytesArray(signatureOfSecretKeyForEncryption, true, MAX_SIGNATURE_LENGTH);
 		oos.writeBytesArray(randomBytes, true, 256);
 	}
 	
 	
 	AskClientServerConnection(AbstractSecureRandom random, ASymmetricKeyWrapperType keyWrapper, SymmetricSecretKey encryptionSecretKey,SymmetricSecretKey signatureSecretKey,			
-			IASymmetricPublicKey distantPublicKeyForEncryption) throws IOException, IllegalStateException,
-			NoSuchAlgorithmException, NoSuchProviderException {
+			IASymmetricPublicKey distantPublicKeyForEncryption) throws IOException, IllegalStateException
+			{
 		super(false);
 		if (keyWrapper == null)
 			throw new NullPointerException("symmetricAlgo");
@@ -111,17 +110,18 @@ class AskClientServerConnection extends AskConnection {
 			throw new NullPointerException("signatureSecretKey");
 		if (distantPublicKeyForEncryption == null)
 			throw new NullPointerException("distantPublicKeyForEncryption");
-		KeyWrapperAlgorithm kw=new KeyWrapperAlgorithm(keyWrapper, );
+		KeyWrapperAlgorithm kwe=new KeyWrapperAlgorithm(keyWrapper, distantPublicKeyForEncryption);
+		KeyWrapperAlgorithm kws=new KeyWrapperAlgorithm(keyWrapper, distantPublicKeyForEncryption, signatureSecretKey);
 
-		this.secretKeyForEncryption=kw.wrap(random, encryptionSecretKey);
-		this.secretKeyForSignature=kw.wrap(random, signatureSecretKey);
+		this.secretKeyForEncryption=kws.wrap(random, encryptionSecretKey);
+		this.secretKeyForSignature=kwe.wrap(random, signatureSecretKey);
 		this.randomBytes=new byte[256];
 		random.nextBytes(randomBytes);
-		SymmetricAuthenticatedSignerAlgorithm signer=new SymmetricAuthenticatedSignerAlgorithm(signatureSecretKey);
+		/*SymmetricAuthenticatedSignerAlgorithm signer=new SymmetricAuthenticatedSignerAlgorithm(signatureSecretKey);
 		signer.init();
 		signer.update(secretKeyForEncryption.getBytes());
 		signer.update(randomBytes);
-		this.signatureOfSecretKeyForEncryption=signer.getSignature();
+		this.signatureOfSecretKeyForEncryption=signer.getSignature();*/
 		//this.distantPublicKeyForEncryptionEncoded = asymmetricAlgo.encode(distantPublicKeyForEncryption.encode());
 	}
 	AskClientServerConnection(AbstractSecureRandom random, ASymmetricKeyWrapperType keyWrapper, SymmetricSecretKey signatureSecretKey,			
@@ -133,22 +133,22 @@ class AskClientServerConnection extends AskConnection {
 			throw new NullPointerException("signatureSecretKey");
 		if (distantPublicKeyForEncryption == null)
 			throw new NullPointerException("distantPublicKeyForEncryption");
-		
+		KeyWrapperAlgorithm kws=new KeyWrapperAlgorithm(keyWrapper, distantPublicKeyForEncryption);
 		this.secretKeyForEncryption=null;
-		this.secretKeyForSignature=keyWrapper.wrapKey(random, distantPublicKeyForEncryption, signatureSecretKey);
+		this.secretKeyForSignature=kws.wrap(random, signatureSecretKey);
 		this.randomBytes=null;
-		this.signatureOfSecretKeyForEncryption=null;
+		//this.signatureOfSecretKeyForEncryption=null;
 		//this.distantPublicKeyForEncryptionEncoded = asymmetricAlgo.encode(distantPublicKeyForEncryption.encode());
 	}
 
-	byte[] getSecretKeyForEncryption() {
+	WrappedEncryptedSymmetricSecretKey getSecretKeyForEncryption() {
 		return secretKeyForEncryption;
 	}
 	WrappedEncryptedSymmetricSecretKey getSecretKeyForSignature() {
 		return secretKeyForSignature;
 	}
 	
-	boolean checkSignedMessage(SymmetricSecretKey signatureSecretKey, boolean encryptionEnabled)
+	/*boolean checkSignedMessage(SymmetricSecretKey signatureSecretKey, boolean encryptionEnabled)
 	{
 		if (secretKeyForEncryption==null)
 			return !encryptionEnabled;
@@ -166,7 +166,7 @@ class AskClientServerConnection extends AskConnection {
 				|  IOException e) {
 			return false;
 		}
-	}
+	}*/
 
 	/*byte[] getEncodedPublicKeyForEncryption() {
 		return publicKeyForEncryptionEncoded;
@@ -181,7 +181,7 @@ class AskClientServerConnection extends AskConnection {
 
 	@Override
 	public void corrupt() {
-		byte[] tmp=secretKeyForEncryption;
+		WrappedEncryptedSymmetricSecretKey tmp=secretKeyForEncryption;
 		secretKeyForEncryption=secretKeyForSignature;
 		secretKeyForSignature=tmp;
 	}

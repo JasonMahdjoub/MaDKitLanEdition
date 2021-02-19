@@ -280,9 +280,10 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 		}
 	}
 
-	private byte[] encodeSecretKey() throws ConnectionException {
+	private WrappedEncryptedSymmetricSecretKey encodeSecretKey() throws ConnectionException {
 		try {
-			return keyWrapper.wrapKey(approvedRandom, distant_public_key_for_encryption, secret_key);
+			KeyWrapperAlgorithm kwe=new KeyWrapperAlgorithm(keyWrapper, distant_public_key_for_encryption);
+			return kwe.wrap(approvedRandom, secret_key);
 		} catch (IOException
 				| IllegalStateException e) {
 			throw new ConnectionException(e);
@@ -290,10 +291,10 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 
 	}
 
-	private void decodeSecretKey(byte[] _secret_key) throws ConnectionException {
+	private void decodeSecretKey(WrappedEncryptedSymmetricSecretKey _secret_key) throws ConnectionException {
 		try {
-			
-			secret_key = keyWrapper.unwrapKey(myKeyPairForEncryption.getASymmetricPrivateKey(), _secret_key);
+			KeyWrapperAlgorithm kwe=new KeyWrapperAlgorithm(keyWrapper, myKeyPairForEncryption);
+			secret_key = kwe.unwrap(_secret_key);
 			encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key);
 			decoderWithEncryption.withSymmetricSecretKeyForEncryption(secret_key);
 		} catch (IOException | IllegalArgumentException | IllegalStateException e) {
@@ -346,7 +347,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 
 					current_step = Step.WAITING_FIRST_MESSAGE;
 					generateSecretKey();
-					byte[] encoded_secret_key = encodeSecretKey();
+					WrappedEncryptedSymmetricSecretKey encoded_secret_key = encodeSecretKey();
 					return new SecretKeyMessage(encoded_secret_key);
 				}
 			} else if (_m instanceof SimilarPublicKeysError) {
@@ -387,7 +388,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 			if (_m instanceof IncomprehensibleSecretKey) {
 				generateSecretKey();
 				current_step = Step.WAITING_FIRST_MESSAGE;
-				byte[] encoded_secret_key = encodeSecretKey();
+				WrappedEncryptedSymmetricSecretKey encoded_secret_key = encodeSecretKey();
 				return new SecretKeyMessage(encoded_secret_key);
 			} else if (_m instanceof FirstMessage) {
 				current_step = Step.WAITING_FOR_CONNECTION_CONFIRMATION;
