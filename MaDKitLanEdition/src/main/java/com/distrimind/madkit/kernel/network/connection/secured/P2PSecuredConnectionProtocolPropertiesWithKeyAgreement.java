@@ -91,7 +91,7 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	/**
 	 * Symmetric signature algorithm
 	 */
-	public SymmetricAuthenticatedSignatureType symmetricSignatureType=SymmetricAuthenticatedSignatureType.HMAC_SHA2_256;
+	public SymmetricAuthenticatedSignatureType symmetricSignatureType=SymmetricAuthenticatedSignatureType.HMAC_SHA2_384;
 	
 	/**
 	 * symmetric key size in bits
@@ -106,7 +106,7 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	/**
 	 * Message digest type used to check message validity
 	 */
-	public MessageDigestType messageDigestType=MessageDigestType.SHA2_256;
+	public MessageDigestType messageDigestType=MessageDigestType.SHA2_384;
 
 	private HashMap<Integer, AbstractKeyPair<?, ?>> serverSideKeyPairs =new HashMap<>();
 

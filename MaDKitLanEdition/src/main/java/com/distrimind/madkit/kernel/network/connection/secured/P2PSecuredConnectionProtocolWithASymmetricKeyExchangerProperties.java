@@ -122,7 +122,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties ex
 	/**
 	 * Message digest type used to check message validity
 	 */
-	public MessageDigestType messageDigestType=MessageDigestType.SHA2_256;
+	public MessageDigestType messageDigestType=MessageDigestType.SHA2_384;
 
 	@Override
 	public void checkProperties() throws ConnectionException {
