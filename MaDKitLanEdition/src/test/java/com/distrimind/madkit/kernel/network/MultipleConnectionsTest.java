@@ -425,15 +425,15 @@ public class MultipleConnectionsTest extends JunitMadkit {
 
 	protected void removeDatabase() {
 		if (eventListener1.databaseFile != null && eventListener1.databaseFile.exists())
-			EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(eventListener1.databaseFile);
+			EmbeddedH2DatabaseWrapper.deleteDatabasesFiles(eventListener1.databaseFile);
 		if (eventListener2.databaseFile != null && eventListener2.databaseFile.exists())
-			EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(eventListener2.databaseFile);
+			EmbeddedH2DatabaseWrapper.deleteDatabasesFiles(eventListener2.databaseFile);
 		if (eventListener3.databaseFile != null && eventListener3.databaseFile.exists())
-			EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(eventListener3.databaseFile);
+			EmbeddedH2DatabaseWrapper.deleteDatabasesFiles(eventListener3.databaseFile);
 		if (eventListener4.databaseFile != null && eventListener4.databaseFile.exists())
-			EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(eventListener4.databaseFile);
+			EmbeddedH2DatabaseWrapper.deleteDatabasesFiles(eventListener4.databaseFile);
 		if (eventListener5.databaseFile != null && eventListener5.databaseFile.exists())
-			EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(eventListener5.databaseFile);
+			EmbeddedH2DatabaseWrapper.deleteDatabasesFiles(eventListener5.databaseFile);
 	}
 }
 

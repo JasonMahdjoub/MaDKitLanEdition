@@ -513,9 +513,9 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 			mpasker.getDatabaseWrapper().close();
 			mpreceiver.getDatabaseWrapper().close();
 			if (dbfileasker.exists())
-				mpasker.getDatabaseWrapper().deleteDatabaseFiles();
+				mpasker.getDatabaseWrapper().deleteDatabasesFiles();
 			if (dbfilereceiver.exists())
-				mpreceiver.getDatabaseWrapper().deleteDatabaseFiles();
+				mpreceiver.getDatabaseWrapper().deleteDatabasesFiles();
 			JunitMadkit.setDatabaseFactory(mpasker, new InMemoryEmbeddedH2DatabaseFactory(dbfileasker.getName()));
 			mpasker.getDatabaseWrapper().loadDatabase(new DatabaseConfiguration(KeysPairs.class.getPackage()), true);
 			JunitMadkit.setDatabaseFactory(mpreceiver, new InMemoryEmbeddedH2DatabaseFactory(dbfilereceiver.getName()));
@@ -529,9 +529,9 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 			mpasker.getDatabaseWrapper().close();
 			mpreceiver.getDatabaseWrapper().close();
 			if (dbfileasker.exists())
-				mpasker.getDatabaseWrapper().deleteDatabaseFiles();
+				mpasker.getDatabaseWrapper().deleteDatabasesFiles();
 			if (dbfilereceiver.exists())
-				mpreceiver.getDatabaseWrapper().deleteDatabaseFiles();
+				mpreceiver.getDatabaseWrapper().deleteDatabasesFiles();
 		}
 
 	}

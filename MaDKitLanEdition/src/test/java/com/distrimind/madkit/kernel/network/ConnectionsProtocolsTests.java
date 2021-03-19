@@ -91,9 +91,9 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		try {
 
 			if (dbasker.exists())
-				EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(dbasker);
+				EmbeddedH2DatabaseWrapper.deleteDatabasesFiles(dbasker);
 			if (dbreceiver.exists())
-				EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(dbreceiver);
+				EmbeddedH2DatabaseWrapper.deleteDatabasesFiles(dbreceiver);
 			asker = new InMemoryEmbeddedH2DatabaseFactory(dbasker.getName()).getDatabaseWrapperSingleton();
 			receiver = new InMemoryEmbeddedH2DatabaseFactory(dbreceiver.getName()).getDatabaseWrapperSingleton();
 			asker.loadDatabase(new DatabaseConfiguration(KeysPairs.class.getPackage()), true);
@@ -109,8 +109,8 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 	public static void removeDatabase() {
 		sql_connection_asker.close();
 		sql_connection_recveiver.close();
-		EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(dbasker);
-		EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(dbreceiver);
+		EmbeddedH2DatabaseWrapper.deleteDatabasesFiles(dbasker);
+		EmbeddedH2DatabaseWrapper.deleteDatabasesFiles(dbreceiver);
 	}
 
 	private static final int numberMaxExchange = 100;
