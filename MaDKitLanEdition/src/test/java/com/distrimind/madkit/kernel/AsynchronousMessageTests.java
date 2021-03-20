@@ -67,12 +67,12 @@ public class AsynchronousMessageTests extends JunitMadkit{
 	@BeforeClass
 	public static void beforeClass()
 	{
-		EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(databaseFile);
+		EmbeddedH2DatabaseWrapper.deleteDatabasesFiles(databaseFile);
 	}
 	@AfterClass
 	public static void afterClass()
 	{
-		EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(databaseFile);
+		EmbeddedH2DatabaseWrapper.deleteDatabasesFiles(databaseFile);
 	}
 
 	@Test

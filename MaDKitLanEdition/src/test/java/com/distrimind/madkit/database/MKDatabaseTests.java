@@ -83,7 +83,7 @@ public class MKDatabaseTests {
 	public static void closeAndDeleleteDatabase() {
 		if (databaseWrapper != null)
 			databaseWrapper.close();
-		EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(databaseFile);
+		EmbeddedH2DatabaseWrapper.deleteDatabasesFiles(databaseFile);
 		databaseWrapper = null;
 		ipbanned = null;
 		ipbanstat = null;
