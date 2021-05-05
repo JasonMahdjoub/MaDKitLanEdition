@@ -15,7 +15,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
 Properties props = new Properties()
-def propFile = file('../../../credentials.properties')
+def propFile = new File(project.getProjectDir().getParentFile().getParentFile(), 'credentials.properties')
 def artifactory_Url="https://artifactory.distri-mind.fr/artifactory"
 def user=""
 def pwd=""
