@@ -274,7 +274,7 @@ public abstract class AbstractAccessProtocol {
 				listGroupsRoles.addListGroupsRoles(lp.getGroupsAccess(id));
 				if (id.isLocallyAuthenticatedCloud() && id.isDistantlyAuthenticatedCloud()) {
 					try {
-						String localDatabaseHostID=properties.getLocalDatabaseHostIDString();
+						String localDatabaseHostID=properties.getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString();
 						if (localDatabaseHostID!=null)
 						{
 							DecentralizedValue dvDistant = lp.getDecentralizedDatabaseID(id.generateDistantIdentifier());

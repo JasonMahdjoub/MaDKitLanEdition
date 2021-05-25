@@ -43,7 +43,6 @@ import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
 import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
-import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.crypto.MessageDigestType;
@@ -523,7 +522,7 @@ class FakeKernel extends MadkitKernel {
 		throw buildKernelException(null);
 	}
 
-	@Override
+	/*@Override
 	void setIfNotPresentLocalDatabaseHostIdentifier(AbstractAgent requester, DecentralizedValue localDatabaseHostID, Package ...packages)
 	{
 		throw buildKernelException(null);
@@ -541,7 +540,7 @@ class FakeKernel extends MadkitKernel {
 	@Override
 	void removeDistantDatabaseHostFromDatabaseSynchronizer(AbstractAgent requester, DecentralizedValue hostIdentifier, Package... packages)  {
 		throw buildKernelException(null);
-	}
+	}*/
 
 	/*@Override
 	<V> V take(BlockingDeque<V> toTake) {

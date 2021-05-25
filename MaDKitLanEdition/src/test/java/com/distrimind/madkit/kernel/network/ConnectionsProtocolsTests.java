@@ -50,6 +50,7 @@ import com.distrimind.madkit.kernel.network.connection.secured.*;
 import com.distrimind.madkit.kernel.network.connection.unsecured.CheckSumConnectionProtocolProperties;
 import com.distrimind.madkit.kernel.network.connection.unsecured.UnsecuredConnectionProtocolProperties;
 import com.distrimind.ood.database.DatabaseConfiguration;
+import com.distrimind.ood.database.DatabaseSchema;
 import com.distrimind.ood.database.EmbeddedH2DatabaseWrapper;
 import com.distrimind.ood.database.InMemoryEmbeddedH2DatabaseFactory;
 import com.distrimind.util.crypto.*;
@@ -96,8 +97,12 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 				EmbeddedH2DatabaseWrapper.deleteDatabasesFiles(dbreceiver);
 			asker = new InMemoryEmbeddedH2DatabaseFactory(dbasker.getName()).getDatabaseWrapperSingleton();
 			receiver = new InMemoryEmbeddedH2DatabaseFactory(dbreceiver.getName()).getDatabaseWrapperSingleton();
-			asker.loadDatabase(new DatabaseConfiguration(KeysPairs.class.getPackage()), true);
-			receiver.loadDatabase(new DatabaseConfiguration(KeysPairs.class.getPackage()), true);
+			asker.getDatabaseConfigurationsBuilder()
+					.addConfiguration(new DatabaseConfiguration(new DatabaseSchema(KeysPairs.class.getPackage())), true, true )
+					.commit();
+			receiver.getDatabaseConfigurationsBuilder()
+					.addConfiguration(new DatabaseConfiguration(new DatabaseSchema(KeysPairs.class.getPackage())), true, true )
+					.commit();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -267,9 +272,9 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		res.add(o);
 
 		SymmetricSecretKey secretKeyForEncryption=SymmetricEncryptionType.AES_CTR.getKeyGenerator(rand).generateKey();
-		SymmetricSecretKey secretKeyForSignature=SymmetricAuthentifiedSignatureType.BC_FIPS_HMAC_SHA2_256.getKeyGenerator(rand).generateKey();
+		SymmetricSecretKey secretKeyForSignature=SymmetricAuthenticatedSignatureType.BC_FIPS_HMAC_SHA2_256.getKeyGenerator(rand).generateKey();
 		SymmetricSecretKey secretKeyForEncryption2=SymmetricEncryptionType.AES_CTR.getKeyGenerator(rand).generateKey();
-		SymmetricSecretKey secretKeyForSignature2=SymmetricAuthentifiedSignatureType.BC_FIPS_HMAC_SHA2_256.getKeyGenerator(rand).generateKey();
+		SymmetricSecretKey secretKeyForSignature2=SymmetricAuthenticatedSignatureType.BC_FIPS_HMAC_SHA2_256.getKeyGenerator(rand).generateKey();
 
 
 		o = new ConnectionProtocolProperties<?>[2];

@@ -45,19 +45,15 @@ import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
 import com.distrimind.madkit.message.EnumMessage;
 import com.distrimind.madkit.message.KernelMessage;
-import com.distrimind.madkit.message.ObjectMessage;
-import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.ood.database.exceptions.DatabaseException;
-import com.distrimind.util.DecentralizedValue;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.logging.Level;
 
 /**
  * @author Jason Mahdjoub
  * @author Fabien Michel
- * @version 1.0
+ * @version 2.0
  * @since MaDKitLanEdition 1.0
  *
  */
@@ -321,7 +317,7 @@ public final class NetworkAgent extends AgentFakeThread {
 			case Roles.KERNEL:// message from the kernel
 				if (m instanceof EnumMessage)
 					proceedEnumMessage((EnumMessage<?>) m);
-				else if (m instanceof ObjectMessage)
+				/*else if (m instanceof ObjectMessage)
 				{
 					if (((ObjectMessage<?>) m).getContent() instanceof MadkitKernel.InternalDatabaseSynchronizerEvent)
 					{
@@ -356,12 +352,6 @@ public final class NetworkAgent extends AgentFakeThread {
 								case ASSOCIATE_DISTANT_DATABASE_HOST:
 									if (databaseSynchronizerAgent!=null && databaseSynchronizerAgent.isAlive())
 									{
-										/*if (dw != null && dw.getSynchronizer().getLocalHostID()!=null) {
-											if (!dw.getSynchronizer().isPairedWith((DecentralizedValue) e.parameters[0])) {
-												updateGroupAccess();
-
-											}
-										}*/
 
 										databaseSynchronizerAgent.receiveMessage(m);
 									}
@@ -372,10 +362,7 @@ public final class NetworkAgent extends AgentFakeThread {
 								case DISSOCIATE_DISTANT_DATABASE_HOST:
 									if (databaseSynchronizerAgent!=null && databaseSynchronizerAgent.isAlive())
 									{
-										/*if (dw != null && dw.getSynchronizer().getLocalHostID()!=null) {
-											if (dw.getSynchronizer().isPairedWith((DecentralizedValue) e.parameters[0]))
-												updateGroupAccess=true;
-										}*/
+
 
 										databaseSynchronizerAgent.receiveMessage(m);
 									}
@@ -393,7 +380,7 @@ public final class NetworkAgent extends AgentFakeThread {
 					}
 					else
 						handleNotUnderstoodMessage(m);
-				}
+				}*/
 				else
 					handleNotUnderstoodMessage(m);
 				break;

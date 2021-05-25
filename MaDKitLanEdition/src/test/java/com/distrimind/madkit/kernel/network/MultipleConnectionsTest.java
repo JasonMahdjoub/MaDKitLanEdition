@@ -191,7 +191,7 @@ public class MultipleConnectionsTest extends JunitMadkit {
 						}
 					}
 					Timer t = new Timer(true);
-					while (t.getMili() < 10000 && (!agentsToLaunch1.networkPingAgent.isOK()
+					while (t.getMilli() < 10000 && (!agentsToLaunch1.networkPingAgent.isOK()
 							|| !agentsToLaunch2.networkPingAgent.isOK() || !agentsToLaunch3.networkPingAgent.isOK()
 							|| !agentsToLaunch4.networkPingAgent.isOK() || !agentsToLaunch5.networkPingAgent.isOK())) {
 						System.out.println("-------------------");

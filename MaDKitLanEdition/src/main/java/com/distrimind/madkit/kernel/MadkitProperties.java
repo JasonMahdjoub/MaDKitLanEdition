@@ -37,10 +37,8 @@
  */
 package com.distrimind.madkit.kernel;
 
-import com.distrimind.madkit.agr.CloudCommunity;
-import com.distrimind.madkit.database.MKDatabase;
-import com.distrimind.madkit.database.DifferedDistantDatabaseHostConfigurationTable;
 import com.distrimind.madkit.database.IPBanned;
+import com.distrimind.madkit.database.MKDatabase;
 import com.distrimind.madkit.gui.AgentFrame;
 import com.distrimind.madkit.gui.ConsoleAgent;
 import com.distrimind.madkit.gui.MDKDesktopFrame;
@@ -51,7 +49,6 @@ import com.distrimind.madkit.util.MultiFormatPropertiesObjectParser;
 import com.distrimind.madkit.util.XMLUtilities;
 import com.distrimind.ood.database.*;
 import com.distrimind.ood.database.exceptions.DatabaseException;
-import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.FileTools;
 import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.crypto.SecureRandomType;
@@ -78,7 +75,7 @@ import java.util.logging.Logger;
  * 
  * @author Jasopn Mahdjoub
  * @since MadKitLanEdition 1.0
- * @version 1.1
+ * @version 1.2
  * 
  */
 @SuppressWarnings("UnusedReturnValue")
@@ -296,8 +293,9 @@ public class MadkitProperties extends MultiFormatProperties {
 
 	public void setDatabaseFactory(DatabaseFactory<?> df) throws DatabaseException {
 		if (databaseFactory != null && databaseFactory != df
-				&& !databaseFactory.getDatabaseWrapperSingleton().isClosed())
+				&& !databaseFactory.getDatabaseWrapperSingleton().isClosed()) {
 			databaseFactory.getDatabaseWrapperSingleton().close();
+		}
 		databaseConfigurationsParametrized=false;
 		databaseFactory = df;
 	}
@@ -372,7 +370,11 @@ public class MadkitProperties extends MultiFormatProperties {
 		checkDatabaseConfigurationsParameters();
 		return databaseFactory.getDatabaseWrapperSingleton();
 	}
-	private transient long databaseSynchronisationFileID=0;
+
+	public DatabaseFactory<?> getDatabaseFactory() {
+		return databaseFactory;
+	}
+	//private transient long databaseSynchronisationFileID=0;
 
 	private transient File temporaryDatabaseDirectoryUsedForSynchronisation=null;
 
@@ -386,7 +388,7 @@ public class MadkitProperties extends MultiFormatProperties {
 					FileTools.deleteDirectory(temporaryDatabaseDirectoryUsedForSynchronisation);
 			}
 			temporaryDatabaseDirectoryUsedForSynchronisation=null;
-			databaseSynchronisationFileID=0;
+			//databaseSynchronisationFileID=0;
 		}
 	}
 
@@ -407,7 +409,7 @@ public class MadkitProperties extends MultiFormatProperties {
 
 	}
 
-	File getDatabaseSynchronisationFileName() throws DatabaseException {
+	/*File getDatabaseSynchronisationFileName() throws DatabaseException {
 		synchronized (this)
 		{
 			File f;
@@ -415,22 +417,20 @@ public class MadkitProperties extends MultiFormatProperties {
 			while ((f=new File(getTemporaryDatabaseDirectoryUsedForSynchronisation(), "cache"+databaseSynchronisationFileID++)).exists());
 			return f;
 		}
-	}
+	}*/
 
-	private transient volatile String localDatabaseHostIDString=null;
 
-	void resetDatabaseSynchronizerAndRemoveAllDatabaseHosts() throws DatabaseException {
+	/*void resetDatabaseSynchronizerAndRemoveAllDatabaseHosts() throws DatabaseException {
 		synchronized (this) {
 			DatabaseWrapper dw = getDatabaseWrapper();
 			if (dw != null) {
-				dw.getSynchronizer().resetSynchronizerAndRemoveAllHosts();
-				localDatabaseHostIDString = null;
+				dw.getDatabaseConfigurationsBuilder().resetSynchronizerAndRemoveAllHosts();
 			} else
 				throw new DatabaseException("No database wrapper is initialized");
 		}
-	}
+	}*/
 
-	void differDistantDatabaseHostConfiguration(DecentralizedValue hostIdentifier, boolean conflictualRecordsReplacedByDistantRecords, Package[] packages) throws DatabaseException, IOException {
+	/*void differDistantDatabaseHostConfiguration(DecentralizedValue hostIdentifier, boolean conflictualRecordsReplacedByDistantRecords, Package[] packages) throws DatabaseException, IOException {
 		synchronized (this) {
 			DatabaseWrapper dw = getDatabaseWrapper();
 			if (dw != null) {
@@ -444,7 +444,7 @@ public class MadkitProperties extends MultiFormatProperties {
 		synchronized (this) {
 			DatabaseWrapper dw = getDatabaseWrapper();
 			if (dw != null) {
-				dw.getSynchronizer().removeHook(hostIdentifier, packages);
+				dw.getDatabaseConfigurationsBuilder().removeHook(hostIdentifier, packages);
 			} else
 				throw new DatabaseException("No database wrapper is initialized");
 		}
@@ -477,7 +477,7 @@ public class MadkitProperties extends MultiFormatProperties {
 			}
 		}
 		return localDatabaseHostIDString;
-	}
+	}*/
 
 	private long maxMemoryUsedToStoreDataIntoMemoryInsteadOfFiles=20*1024*1024;
 

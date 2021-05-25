@@ -43,8 +43,6 @@ import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
 import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
-import com.distrimind.ood.database.exceptions.DatabaseException;
-import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.concurrent.ScheduledPoolExecutor;
@@ -97,7 +95,7 @@ final class LoggedKernel extends MadkitKernel {
 						Influence.CREATE_GROUP.successString() + getCGRString(group) + "distribution "
 								+ (group.isDistributed() ? "ON" : "OFF") + " with "
 								+ (group.getGateKeeper() == null ? "no access control "
-										: group.getGateKeeper().toString() + " as gatekeeper, with " + passKey
+										: group.getGateKeeper() + " as gatekeeper, with " + passKey
 												+ " as pass key"));
 			}
 			return SUCCESS;
@@ -1032,7 +1030,7 @@ final class LoggedKernel extends MadkitKernel {
 		return res;
 	}
 
-	@Override
+	/*@Override
 	void setIfNotPresentLocalDatabaseHostIdentifier(AbstractAgent requester, DecentralizedValue localDatabaseHostID, Package ...packages) throws DatabaseException
 	{
 		kernel.setIfNotPresentLocalDatabaseHostIdentifier(requester, localDatabaseHostID, packages);
@@ -1060,7 +1058,7 @@ final class LoggedKernel extends MadkitKernel {
 		kernel.removeDistantDatabaseHostFromDatabaseSynchronizer(requester, hostIdentifier, packages);
 		if (kernel.isFinestLogOn())
 			kernel.logger.log(Level.FINEST, "removeDistantDatabaseHostFromDatabaseSynchronizer (requester=" + requester + ", hostIdentifier="+hostIdentifier+", packages="+Arrays.toString(packages)+")");
-	}
+	}*/
 
 	@Override
 	int numberOfValidGeneratedID() {

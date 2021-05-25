@@ -72,6 +72,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import com.distrimind.madkit.database.DifferedMessageTable;
 import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
+import com.distrimind.ood.database.DatabaseConfigurationsBuilder;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.concurrent.LockerCondition;
@@ -174,7 +175,7 @@ import com.distrimind.util.crypto.MessageDigestType;
  * @author Fabien Michel
  * @author Olivier Gutknecht
  * @author Jason Mahdjoub
- * @version 8.0
+ * @version 9.0
  * @since MadKitLanEdition 1.0
  */
 @SuppressWarnings({"StaticInitializerReferencesSubClass", "SameParameterValue", "UnusedReturnValue"})
@@ -5059,48 +5060,13 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		return getMadkitKernel().getMaximumGlobalDownloadSpeedInBytesPerSecond(this);
 	}
 
-	/**
-	 * Set the distant host database identifier if this last was not already set.
-	 * @param localDatabaseHostID the local host identifier
-	 * @param packages the database packages that can be synchronized
-	 * @throws DatabaseException if a different local host identifier was already set
-	 */
-	public void setIfNotPresentLocalDatabaseHostIdentifier(DecentralizedValue localDatabaseHostID, Package ...packages) throws DatabaseException
-	{
-		getMadkitKernel().setIfNotPresentLocalDatabaseHostIdentifier(this, localDatabaseHostID, packages);
+	public DatabaseConfigurationsBuilder getDatabaseConfigurationBuilder() throws DatabaseException {
+		MadkitProperties mp=getMadkitConfig();
+		if (mp==null)
+			throw new DatabaseException("No database was configured !");
+		return mp.getDatabaseWrapper().getDatabaseConfigurationsBuilder();
 	}
 
-	/**
-	 * Reset the database synchronizer, remove all the distant hosts, and remove the local database identifier.
-	 * After this action, all the events to synchronize with other peers will be removed.
-	 * @throws DatabaseException if no database was configured
-	 */
-	public void resetDatabaseSynchronizer() throws DatabaseException {
-		getMadkitKernel().resetDatabaseSynchronizer(this);
-	}
-
-	/**
-	 * Configure a distant host, and associate to it database packages that can be synchronized with the local host.
-	 * If the distant host was not already added to this network, add it
-	 * @param hostIdentifier the distant host identifier
-	 * @param conflictualRecordsReplacedByDistantRecords during the first synchronization, tells if the eventual conflictual records must be replaced by the distant peer.
-	 * @param packages the list of database packages to synchronize
-	 * @throws DatabaseException if no database was configured
-	 */
-	public void addOrConfigureDistantDatabaseHost(DecentralizedValue hostIdentifier, boolean conflictualRecordsReplacedByDistantRecords, Package... packages) throws DatabaseException {
-		getMadkitKernel().addOrConfigureDistantDatabaseHost(this, hostIdentifier, conflictualRecordsReplacedByDistantRecords, packages);
-	}
-
-	/**
-	 * Dissociate distant host from given database packages and unsynchronize them with the local host.
-	 *
-	 * @param hostIdentifier the distant host identifier
-	 * @param packages the list of database packages to unsynchronize
-	 * @throws DatabaseException if no database was configured
-	 */
-	public void removeDistantDatabaseHostFromDatabaseSynchronizer(DecentralizedValue hostIdentifier, Package... packages) throws DatabaseException {
-		getMadkitKernel().removeDistantDatabaseHostFromDatabaseSynchronizer(this, hostIdentifier, packages);
-	}
 
 
 }
