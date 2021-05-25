@@ -37,6 +37,7 @@
  */
 package com.distrimind.madkit.kernel;
 
+import com.distrimind.madkit.database.DifferedMessageTable;
 import com.distrimind.madkit.database.IPBanned;
 import com.distrimind.madkit.database.MKDatabase;
 import com.distrimind.madkit.gui.AgentFrame;
@@ -305,11 +306,16 @@ public class MadkitProperties extends MultiFormatProperties {
 				DatabaseConfigurations databaseConfigurations = databaseFactory.getDatabaseConfigurations();
 				if (databaseConfigurations == null || databaseConfigurations.getDatabaseConfiguration(MKDatabase.class.getPackage()) == null) {
 					DatabaseConfiguration mkDatabase = new DatabaseConfiguration(new DatabaseSchema(IPBanned.class.getPackage(), MKDatabase.databaseClasses));
-					if (databaseConfigurations == null)
+					if (databaseConfigurations == null) {
 						databaseConfigurations = new DatabaseConfigurations(new HashSet<>(Collections.singletonList(mkDatabase)));
-					else
-						databaseConfigurations = new DatabaseConfigurations(new HashSet<>(Collections.singletonList(mkDatabase)), databaseConfigurations.getDistantPeers(), databaseConfigurations.getLocalPeer(), databaseConfigurations.isPermitIndirectSynchronizationBetweenPeers());
+
+					}
+					else {
+						databaseConfigurations = new DatabaseConfigurations(databaseConfigurations, new HashSet<>(Collections.singletonList(mkDatabase)));
+						assert databaseConfigurations.getDatabaseConfiguration(DifferedMessageTable.class.getPackage()) != null;
+					}
 					databaseFactory.setDatabaseConfigurations(databaseConfigurations);
+
 					databaseFactory.setDatabaseLifeCycles(new DatabaseLifeCycles() {
 						@Override
 						public void transferDatabaseFromOldVersion(DatabaseWrapper wrapper, DatabaseConfiguration newDatabaseConfiguration) throws Exception {
