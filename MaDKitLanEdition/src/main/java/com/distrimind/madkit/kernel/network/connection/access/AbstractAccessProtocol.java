@@ -40,6 +40,7 @@ package com.distrimind.madkit.kernel.network.connection.access;
 import com.distrimind.madkit.agr.CloudCommunity;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.MadkitProperties;
+import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedValue;
 
@@ -274,13 +275,14 @@ public abstract class AbstractAccessProtocol {
 				listGroupsRoles.addListGroupsRoles(lp.getGroupsAccess(id));
 				if (id.isLocallyAuthenticatedCloud() && id.isDistantlyAuthenticatedCloud()) {
 					try {
-						String localDatabaseHostID=properties.getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString();
-						if (localDatabaseHostID!=null)
-						{
-							DecentralizedValue dvDistant = lp.getDecentralizedDatabaseID(id.generateDistantIdentifier());
-							if (dvDistant!=null)
-							{
-								listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getDistributedDatabaseGroup(localDatabaseHostID, dvDistant));
+						DatabaseWrapper wrapper=properties.getDatabaseWrapper();
+						if (wrapper!=null) {
+							String localDatabaseHostID = wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString();
+							if (localDatabaseHostID != null) {
+								DecentralizedValue dvDistant = lp.getDecentralizedDatabaseID(id.generateDistantIdentifier());
+								if (dvDistant != null) {
+									listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getDistributedDatabaseGroup(localDatabaseHostID, dvDistant));
+								}
 							}
 						}
 					} catch (DatabaseException e) {
