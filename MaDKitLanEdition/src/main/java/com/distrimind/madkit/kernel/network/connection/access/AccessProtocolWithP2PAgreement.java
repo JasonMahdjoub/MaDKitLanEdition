@@ -529,7 +529,9 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 				m.getJPakeMessage(getAllAcceptedIdentifiers(),
 						newAcceptedCloudIdentifiers, temporaryAcceptedCloudIdentifiers, lp, JPakes,
 						access_protocol_properties.p2pLoginAgreementType, properties.getApprovedSecureRandom(), localGeneratedSalt,
-						access_protocol_properties.identifierDigestionTypeUsedForAnonymization, access_protocol_properties.passwordHashType,myKeyPair==null?null:myKeyPair.getASymmetricPublicKey(), properties.networkProperties.encryptionRestrictionForAccessProtocols, access_protocol_properties);
+						access_protocol_properties.identifierDigestionTypeUsedForAnonymization,
+						access_protocol_properties.passwordHashType,myKeyPair==null?null:myKeyPair.getASymmetricPublicKey(),
+						properties.networkProperties.encryptionRestrictionForAccessProtocols, access_protocol_properties);
 		maxSteps=initialJPakeMessage.getMaxSteps();
 		step=1;
 		if (propRep!=null)

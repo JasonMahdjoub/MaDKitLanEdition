@@ -130,7 +130,7 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	 * @throws NoSuchProviderException if the key generator provider was not found
 	 */
 	public int generateServerSideProfile(ASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
-		return generateServerSideProfile(type, random, Long.MAX_VALUE);
+		return generateServerSideProfile(type, random, System.currentTimeMillis(), Long.MAX_VALUE);
 	}
 
 	/**
@@ -143,8 +143,8 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	 * @throws NoSuchAlgorithmException if the the key generator was not found
 	 * @throws NoSuchProviderException if the key generator provider was not found
 	 */
-	public int generateServerSideProfile(ASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random, long expirationTimeUTC) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
-		return generateServerSideProfile(type, random, expirationTimeUTC, type.getDefaultKeySize());
+	public int generateServerSideProfile(ASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random, long publicKeyValidityBeginDateUTC, long expirationTimeUTC) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
+		return generateServerSideProfile(type, random, publicKeyValidityBeginDateUTC, expirationTimeUTC, type.getDefaultKeySize());
 	}
 
 	/**
@@ -158,8 +158,8 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	 * @throws NoSuchAlgorithmException if the the key generator was not found
 	 * @throws NoSuchProviderException if the key generator provider was not found
 	 */
-	public int generateServerSideProfile(ASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random, long expirationTimeUTC, int asymmetricKeySizeBits) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
-		return addServerSideProfile(type.getKeyPairGenerator(random, asymmetricKeySizeBits, expirationTimeUTC).generateKeyPair());
+	public int generateServerSideProfile(ASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random, long publicKeyValidityBeginDateUTC, long expirationTimeUTC, int asymmetricKeySizeBits) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
+		return addServerSideProfile(type.getKeyPairGenerator(random, asymmetricKeySizeBits, publicKeyValidityBeginDateUTC, expirationTimeUTC).generateKeyPair());
 	}
 
 	/**
@@ -172,7 +172,7 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	 * @throws NoSuchProviderException if the key generator provider was not found
 	 */
 	public int generateServerSideProfile(HybridASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
-		return generateServerSideProfile(type, random, Long.MAX_VALUE);
+		return generateServerSideProfile(type, random, System.currentTimeMillis(), Long.MAX_VALUE);
 	}
 
 	/**
@@ -185,8 +185,8 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	 * @throws NoSuchAlgorithmException if the the key generator was not found
 	 * @throws NoSuchProviderException if the key generator provider was not found
 	 */
-	public int generateServerSideProfile(HybridASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random, long expirationTimeUTC) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
-		return generateServerSideProfile(type, random, expirationTimeUTC, -1);
+	public int generateServerSideProfile(HybridASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random, long publicKeyValidityBeginDateUTC, long expirationTimeUTC) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
+		return generateServerSideProfile(type, random, publicKeyValidityBeginDateUTC, expirationTimeUTC, -1);
 	}
 
 
@@ -201,8 +201,8 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	 * @throws NoSuchAlgorithmException if the the key generator was not found
 	 * @throws NoSuchProviderException if the key generator provider was not found
 	 */
-	public int generateServerSideProfile(HybridASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random, long expirationTimeUTC, int asymmetricKeySizeBits) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
-		return addServerSideProfile(type.generateKeyPair(random, asymmetricKeySizeBits, expirationTimeUTC));
+	public int generateServerSideProfile(HybridASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random, long publicKeyValidityBeginDateUTC, long expirationTimeUTC, int asymmetricKeySizeBits) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
+		return addServerSideProfile(type.generateKeyPair(random, asymmetricKeySizeBits, publicKeyValidityBeginDateUTC, expirationTimeUTC));
 	}
 
 
