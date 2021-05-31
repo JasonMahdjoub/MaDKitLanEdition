@@ -98,6 +98,8 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 	public static Collection<Object[]> data() {
 		Collection<Object[]> res=null;
 		for (P2PLoginAgreementType agreement : P2PLoginAgreementType.values()) {
+			if (AccessProtocolWithP2PAgreementProperties.isIncompatibleP2PLoginAgreement(agreement))
+				continue;
 			for (boolean databaseEnabled : new boolean[]{true, false}) {
 				for (boolean identifierEncrypted : new boolean[]{true, false}) {
 					for (boolean loginInitiativeAsker : new boolean[]{false, true}) {

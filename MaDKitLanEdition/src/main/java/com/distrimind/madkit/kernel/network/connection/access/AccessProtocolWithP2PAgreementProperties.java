@@ -113,7 +113,13 @@ public class AccessProtocolWithP2PAgreementProperties extends AbstractAccessProt
 
 
 
-
+	static boolean isIncompatibleP2PLoginAgreement(P2PLoginAgreementType p2pLoginAgreementType)
+	{
+		return p2pLoginAgreementType == P2PLoginAgreementType.AGREEMENT_WITH_ASYMMETRIC_BIDIRECTIONAL_SIGNATURE
+				|| p2pLoginAgreementType == P2PLoginAgreementType.AGREEMENT_WITH_SYMMETRIC_AND_ASYMMETRIC_BIDIRECTIONAL_SIGNATURES
+				|| p2pLoginAgreementType == P2PLoginAgreementType.JPAKE_AND_AGREEMENT_WITH_ASYMMETRIC_BIDIRECTIONAL_SIGNATURE
+				|| p2pLoginAgreementType == P2PLoginAgreementType.JPAKE_AND_AGREEMENT_WITH_SYMMETRIC_AND_ASYMMETRIC_BIDIRECTIONAL_SIGNATURES;
+	}
 
 	@Override
 	void checkProperties() throws AccessException {
@@ -122,11 +128,8 @@ public class AccessProtocolWithP2PAgreementProperties extends AbstractAccessProt
 			if (identifierDigestionTypeUsedForAnonymization==null)
 				throw new AccessException(new NullPointerException("identifierDigestionTypeUsedForAnonymization can't be null !"));
 		}
-		if (p2pLoginAgreementType==P2PLoginAgreementType.AGREEMENT_WITH_ASYMMETRIC_BIDIRECTIONAL_SIGNATURE
-			|| p2pLoginAgreementType==P2PLoginAgreementType.AGREEMENT_WITH_SYMMETRIC_AND_ASYMMETRIC_BIDIRECTIONAL_SIGNATURES
-		 	|| p2pLoginAgreementType==P2PLoginAgreementType.JPAKE_AND_AGREEMENT_WITH_ASYMMETRIC_BIDIRECTIONAL_SIGNATURE
-				|| p2pLoginAgreementType==P2PLoginAgreementType.JPAKE_AND_AGREEMENT_WITH_SYMMETRIC_AND_ASYMMETRIC_BIDIRECTIONAL_SIGNATURES)
-			throw new AccessException(new NullPointerException("These protocols cannot be used !"));
+		if (isIncompatibleP2PLoginAgreement(p2pLoginAgreementType))
+			throw new AccessException(new NullPointerException("This protocol cannot be used : "+p2pLoginAgreementType));
 		if (p2pLoginAgreementType==P2PLoginAgreementType.ASYMMETRIC_SECRET_MESSAGE_EXCHANGER
 				|| p2pLoginAgreementType==P2PLoginAgreementType.ASYMMETRIC_SECRET_MESSAGE_EXCHANGER_AND_AGREEMENT_WITH_SYMMETRIC_SIGNATURE) {
 			if (aSymmetricKeySize < minASymmetricKeySize)
