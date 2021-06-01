@@ -162,9 +162,12 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 			mySecretKeyForSignature= hProperties.getSignatureType().getKeyGenerator(approvedRandomForKeys, hProperties.getSymmetricKeySizeBits()).generateKey();
 
 			encoderWithoutEncryption.withSymmetricSecretKeyForSignature(mySecretKeyForSignature);
-			encoderWithEncryption.withSymmetricSecretKeyForSignature(mySecretKeyForSignature);
+			if (mySecretKeyForEncryption==null || !mySecretKeyForEncryption.getEncryptionAlgorithmType().isAuthenticatedAlgorithm())
+				encoderWithEncryption.withSymmetricSecretKeyForSignature(mySecretKeyForSignature);
+
 			decoderWithoutEncryption.withSymmetricSecretKeyForSignature(mySecretKeyForSignature);
-			decoderWithEncryption.withSymmetricSecretKeyForSignature(mySecretKeyForSignature);
+			if (mySecretKeyForEncryption==null || !mySecretKeyForEncryption.getEncryptionAlgorithmType().isAuthenticatedAlgorithm())
+				decoderWithEncryption.withSymmetricSecretKeyForSignature(mySecretKeyForSignature);
 		} catch (NoSuchAlgorithmException | NoSuchProviderException | IOException e) {
 			resetKeys();
 			throw new ConnectionException(e);
