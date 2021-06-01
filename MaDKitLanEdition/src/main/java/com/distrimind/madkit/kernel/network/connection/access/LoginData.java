@@ -39,6 +39,7 @@ package com.distrimind.madkit.kernel.network.connection.access;
 
 import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 import com.distrimind.util.DecentralizedValue;
+import com.distrimind.util.crypto.AbstractKeyPair;
 import com.distrimind.util.crypto.AbstractMessageDigest;
 import com.distrimind.util.crypto.IASymmetricPublicKey;
 
@@ -357,11 +358,11 @@ public abstract class LoginData extends AccessData {
 	/**
 	 * According an identifier, returns the cloud password
 	 *
-	 * @param identifier
+	 * @param localIdentifier
 	 *            the identifier
 	 * @return the cloud password corresponding to the given identifier
 	 */
-	protected abstract PasswordKey getCloudPassword(CloudIdentifier identifier);
+	protected abstract PasswordKey getCloudPassword(CloudIdentifier localIdentifier);
 
 
 	/**

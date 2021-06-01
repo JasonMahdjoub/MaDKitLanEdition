@@ -243,6 +243,7 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 				}
 				return null;
 			}
+
 			@Override
 			protected List<CloudIdentifier> getCloudIdentifiersToInitiateImpl() {
 				ArrayList<CloudIdentifier> list = new ArrayList<>(identifersAndPasswords.size());
