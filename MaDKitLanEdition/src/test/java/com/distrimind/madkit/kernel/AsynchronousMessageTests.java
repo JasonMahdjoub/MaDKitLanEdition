@@ -54,14 +54,11 @@ import java.util.Collections;
  */
 public class AsynchronousMessageTests extends JunitMadkit{
 	private static final File databaseFile=new File("asynchronousDatabaseFile");
-	private static final MadkitEventListener madkitEventListener=new MadkitEventListener() {
-		@Override
-		public void onMaDKitPropertiesLoaded(MadkitProperties properties) {
-			try {
-				properties.setDatabaseFactory(new InMemoryEmbeddedH2DatabaseFactory(databaseFile.getName()));
-			} catch (DatabaseException e) {
-				e.printStackTrace();
-			}
+	private static final MadkitEventListener madkitEventListener= properties -> {
+		try {
+			properties.setDatabaseFactory(new InMemoryEmbeddedH2DatabaseFactory(databaseFile.getName()));
+		} catch (DatabaseException e) {
+			e.printStackTrace();
 		}
 	};
 	@BeforeClass

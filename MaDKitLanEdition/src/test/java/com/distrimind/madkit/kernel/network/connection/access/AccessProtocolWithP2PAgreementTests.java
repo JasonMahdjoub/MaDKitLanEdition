@@ -45,6 +45,7 @@ import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.AccessDataMKEventListener;
 import com.distrimind.madkit.kernel.network.ConnectionsProtocolsTests;
 import com.distrimind.ood.database.DatabaseConfiguration;
+import com.distrimind.ood.database.DatabaseSchema;
 import com.distrimind.ood.database.InMemoryEmbeddedH2DatabaseFactory;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.crypto.P2PLoginAgreementType;
@@ -97,6 +98,8 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 	public static Collection<Object[]> data() {
 		Collection<Object[]> res=null;
 		for (P2PLoginAgreementType agreement : P2PLoginAgreementType.values()) {
+			if (AccessProtocolWithP2PAgreementProperties.isIncompatibleP2PLoginAgreement(agreement))
+				continue;
 			for (boolean databaseEnabled : new boolean[]{true, false}) {
 				for (boolean identifierEncrypted : new boolean[]{true, false}) {
 					for (boolean loginInitiativeAsker : new boolean[]{false, true}) {
@@ -159,35 +162,11 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		adasker.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsAsker = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(0), 4, 5, 6, 10),
-				null, groupAccess, loginInitiativeAsker, new Runnable() {
-
-					@Override
-					public void run() {
-						Assert.fail();
-					}
-				},new Runnable() {
-
-					@Override
-					public void run() {
-						Assert.fail();
-					}
-				}));
+				null, groupAccess, loginInitiativeAsker, Assert::fail, Assert::fail));
 		adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsReceiver = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(1), 2, 5, 6, 12),
-				null, groupAccess, loginInitiativeReceiver, new Runnable() {
-
-					@Override
-					public void run() {
-						Assert.fail();
-					}
-				},new Runnable() {
-
-					@Override
-					public void run() {
-						Assert.fail();
-					}
-				}));
+				null, groupAccess, loginInitiativeReceiver, Assert::fail, Assert::fail));
 		if (loginInitiativeAsker || loginInitiativeReceiver) {
 			acceptedAskerIdentifiers
 					.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustomHostIdentifier(0), 5));
@@ -217,35 +196,11 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		adasker.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsAsker = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(0), 2, 5, 6, 7),
-				null, groupAccess, loginInitiativeAsker, new Runnable() {
-
-					@Override
-					public void run() {
-						Assert.fail();
-					}
-				},new Runnable() {
-
-					@Override
-					public void run() {
-						Assert.fail();
-					}
-				}));
+				null, groupAccess, loginInitiativeAsker, Assert::fail, Assert::fail));
 		adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsReceiver = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(1), 3, 5, 6, 12),
-				null, groupAccess, loginInitiativeReceiver, new Runnable() {
-
-					@Override
-					public void run() {
-						Assert.fail();
-					}
-				},new Runnable() {
-
-					@Override
-					public void run() {
-						Assert.fail();
-					}
-				}));
+				null, groupAccess, loginInitiativeReceiver, Assert::fail, Assert::fail));
 		if (loginInitiativeAsker || loginInitiativeReceiver) {
 			acceptedAskerIdentifiers
 					.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustomHostIdentifier(0), 5));
@@ -286,35 +241,11 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		adasker.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsAsker = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomAutoSignedHostIdentifier(2), AccessDataMKEventListener.CLOUD_ID_NUMBER, AccessDataMKEventListener.CLOUD_ID_NUMBER+2, AccessDataMKEventListener.CLOUD_ID_NUMBER+3),
-				null, groupAccess, loginInitiativeAsker, new Runnable() {
-
-					@Override
-					public void run() {
-						Assert.fail();
-					}
-				},new Runnable() {
-
-					@Override
-					public void run() {
-						Assert.fail();
-					}
-				}));
+				null, groupAccess, loginInitiativeAsker, Assert::fail, Assert::fail));
 		adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsReceiver = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomAutoSignedHostIdentifier(3),  AccessDataMKEventListener.CLOUD_ID_NUMBER, AccessDataMKEventListener.CLOUD_ID_NUMBER+2, AccessDataMKEventListener.CLOUD_ID_NUMBER+1),
-				null, groupAccess, loginInitiativeReceiver, new Runnable() {
-
-					@Override
-					public void run() {
-						Assert.fail();
-					}
-				},new Runnable() {
-
-					@Override
-					public void run() {
-						Assert.fail();
-					}
-				}));
+				null, groupAccess, loginInitiativeReceiver, Assert::fail, Assert::fail));
 		if (loginInitiativeAsker || loginInitiativeReceiver) {
 			acceptedAskerIdentifiers
 					.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustomAutoSignedHostIdentifier(2), AccessDataMKEventListener.CLOUD_ID_NUMBER));
@@ -355,35 +286,11 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		adasker.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsAsker = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(-1), 3),
-				null, groupAccess, loginInitiativeAsker, new Runnable() {
-
-					@Override
-					public void run() {
-						Assert.fail();
-					}
-				},new Runnable() {
-
-					@Override
-					public void run() {
-						Assert.fail();
-					}
-				}));
+				null, groupAccess, loginInitiativeAsker, Assert::fail, Assert::fail));
 		adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsReceiver = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(-1)),
-				null, groupAccess, loginInitiativeReceiver, new Runnable() {
-
-					@Override
-					public void run() {
-						Assert.fail();
-					}
-				},new Runnable() {
-
-					@Override
-					public void run() {
-						Assert.fail();
-					}
-				}));
+				null, groupAccess, loginInitiativeReceiver, Assert::fail, Assert::fail));
 		if (loginInitiativeAsker || loginInitiativeReceiver) {
 			if (loginInitiativeAsker)
 				acceptedAskerIdentifiers
@@ -411,36 +318,12 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 				identifierPassordsAsker = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(0), 2, 8, 6, 10),
 				defaultGroupAccess, groupAccess, loginInitiativeAsker,
-				new Runnable() {
-
-					@Override
-					public void run() {
-						Assert.fail();
-					}
-				},new Runnable() {
-
-					@Override
-					public void run() {
-						Assert.fail();
-					}
-				}));
+				Assert::fail, Assert::fail));
 		adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsReceiver = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(1), 0, 8, 6, 12),
 				defaultGroupAccess, groupAccess, loginInitiativeReceiver,
-				new Runnable() {
-
-					@Override
-					public void run() {
-						Assert.fail();
-					}
-				},new Runnable() {
-
-					@Override
-					public void run() {
-						Assert.fail();
-					}
-				}));
+				Assert::fail, Assert::fail));
 		if (loginInitiativeAsker || loginInitiativeReceiver) {
 			acceptedAskerIdentifiers
 					.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustomHostIdentifier(0), 8));
@@ -490,12 +373,12 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		this.acceptedReceiverIdentifiers = null;
 		this.initialAcceptedAskerIdentifiers=acceptedAskerIdentifiers;
 		this.initialAcceptedReceiverIdentifiers=acceptedReceiverIdentifiers;
-		this.initialIdentifierPassordsAsker=identifierPassordsAsker==null?null:new ArrayList<IdentifierPassword>();
+		this.initialIdentifierPassordsAsker=identifierPassordsAsker==null?null: new ArrayList<>();
 		if (initialIdentifierPassordsAsker!=null)
 		{
 			initialIdentifierPassordsAsker.addAll(identifierPassordsAsker);
 		}
-		this.initialIdentifierPassordsReceiver=identifierPassordsAsker==null?null:new ArrayList<IdentifierPassword>();
+		this.initialIdentifierPassordsReceiver=identifierPassordsAsker==null?null: new ArrayList<>();
 		if (initialIdentifierPassordsReceiver!=null)
 		{
 			initialIdentifierPassordsReceiver.addAll(identifierPassordsReceiver);
@@ -517,9 +400,14 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 			if (dbfilereceiver.exists())
 				mpreceiver.getDatabaseWrapper().deleteDatabasesFiles();
 			JunitMadkit.setDatabaseFactory(mpasker, new InMemoryEmbeddedH2DatabaseFactory(dbfileasker.getName()));
-			mpasker.getDatabaseWrapper().loadDatabase(new DatabaseConfiguration(KeysPairs.class.getPackage()), true);
+			mpasker.getDatabaseWrapper().getDatabaseConfigurationsBuilder()
+					.addConfiguration(new DatabaseConfiguration(new DatabaseSchema(KeysPairs.class.getPackage())), false, true)
+					.commit();
+
 			JunitMadkit.setDatabaseFactory(mpreceiver, new InMemoryEmbeddedH2DatabaseFactory(dbfilereceiver.getName()));
-			mpreceiver.getDatabaseWrapper().loadDatabase(new DatabaseConfiguration(KeysPairs.class.getPackage()), true);
+			mpreceiver.getDatabaseWrapper().getDatabaseConfigurationsBuilder()
+					.addConfiguration(new DatabaseConfiguration(new DatabaseSchema(KeysPairs.class.getPackage())), false, true)
+					.commit();
 		}
 	}
 

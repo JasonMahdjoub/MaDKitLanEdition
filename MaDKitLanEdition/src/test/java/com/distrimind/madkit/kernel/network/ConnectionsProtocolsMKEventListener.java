@@ -168,7 +168,7 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 		P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties p2psym=new P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties();
 		if (secretKeyForEncryption==null) {
 			secretKeyForEncryption = SymmetricEncryptionType.AES_CTR.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), (short) 128).generateKey();
-			secretKeyForSignature = SymmetricAuthentifiedSignatureType.HMAC_SHA2_256.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), (short) 128).generateKey();
+			secretKeyForSignature = SymmetricAuthenticatedSignatureType.HMAC_SHA2_256.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), (short) 128).generateKey();
 		}
 		p2psym.addProfile(1,secretKeyForEncryption, secretKeyForSignature );
 		p2psym.enableEncryption=true;

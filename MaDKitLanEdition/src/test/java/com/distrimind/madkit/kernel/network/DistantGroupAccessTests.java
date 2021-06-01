@@ -44,7 +44,7 @@ import com.distrimind.madkit.message.StringMessage;
 import com.distrimind.madkit.message.hook.HookMessage;
 import com.distrimind.madkit.message.hook.OrganizationEvent;
 import com.distrimind.madkit.testing.util.agent.NormalAgent;
-import com.distrimind.util.crypto.SymmetricAuthentifiedSignatureType;
+import com.distrimind.util.crypto.SymmetricAuthenticatedSignatureType;
 import com.distrimind.util.crypto.SymmetricEncryptionType;
 import org.junit.Assert;
 import org.junit.Test;
@@ -54,7 +54,6 @@ import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Collections;
-import java.util.concurrent.Callable;
 import java.util.logging.Level;
 
 /**
@@ -80,7 +79,7 @@ public class DistantGroupAccessTests extends JunitMadkit{
 		P2PSecuredConnectionProtocolPropertiesWithKeyAgreement p2pprotocol=new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 		p2pprotocol.isServer = true;
 		p2pprotocol.symmetricEncryptionType=SymmetricEncryptionType.AES_CBC_PKCS5Padding;
-		p2pprotocol.symmetricSignatureType= SymmetricAuthentifiedSignatureType.HMAC_SHA2_256;
+		p2pprotocol.symmetricSignatureType= SymmetricAuthenticatedSignatureType.HMAC_SHA2_256;
 		ListGroupsRoles defaultGroupAccess=new ListGroupsRoles();
 		defaultGroupAccess.addGroupsRoles(groupWithAllRoles);
 		defaultGroupAccess.addGroupsRoles(groupWithAllRolesInOnePeer);
@@ -91,7 +90,7 @@ public class DistantGroupAccessTests extends JunitMadkit{
 		this.eventListener1 = new NetworkEventListener(true, false, false, null,
 				new ConnectionsProtocolsMKEventListener(p2pprotocol), new AccessProtocolPropertiesMKEventListener(app),
 				new AccessDataMKEventListener(AccessDataMKEventListener.getDefaultAccessData(defaultGroupAccess)), 5000,
-				Collections.singletonList((AbstractIP) new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"),
+				Collections.singletonList(new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"),
 						(Inet6Address) InetAddress.getByName("::1"))),
 				InetAddress.getByName("0.0.0.0")) {
 
@@ -118,7 +117,7 @@ public class DistantGroupAccessTests extends JunitMadkit{
 		this.eventListener2 = new NetworkEventListener(true, false, false, null,
 				new ConnectionsProtocolsMKEventListener(u), new AccessProtocolPropertiesMKEventListener(app),
 				new AccessDataMKEventListener(AccessDataMKEventListener.getDefaultAccessData(defaultGroupAccess)), 5000,
-				Collections.singletonList((AbstractIP) new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"),
+				Collections.singletonList(new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"),
 						(Inet6Address) InetAddress.getByName("::1"))),
 				InetAddress.getByName("0.0.0.0")) {
 
@@ -353,21 +352,18 @@ class GroupAccessTesterAgent extends NormalAgent
 		requestRole(DistantGroupAccessTests.groupWithAllRolesInOnePeer, localAcceptedRoleNotRestricted);
 		requestRole(DistantGroupAccessTests.groupWithAllRolesNotDistributed, localAcceptedRoleNotRestricted);
 		requestRole(DistantGroupAccessTests.groupNotAccepted, localAcceptedRoleNotRestricted);
-		scheduleTask(new Task<>(new Callable<Object>() {
-			@Override
-			public Object call()  {
-				ReturnCode rc=broadcastMessageWithRole(DistantGroupAccessTests.groupWithAllRoles, distantAcceptedRoleNotRestricted, new StringMessage(distantAgentRequestGroupWithAllRolesBroadcastMessage), localAcceptedRoleNotRestricted);
-				broadcastMessageSentToGroupWithAllRoles=rc==ReturnCode.SUCCESS || rc==ReturnCode.TRANSFER_IN_PROGRESS;
-				rc=broadcastMessageWithRole(DistantGroupAccessTests.groupWithOneRole, distantAcceptedRole, new StringMessage(distantAgentRequestGroupWithOneRoleBroadcastMessage), localAcceptedRole);
-				broadcastMessageSentToGroupWithOneRole =rc==ReturnCode.SUCCESS || rc==ReturnCode.TRANSFER_IN_PROGRESS;
-				rc=broadcastMessageWithRole(DistantGroupAccessTests.groupNotAccepted, distantAcceptedRoleNotRestricted, new StringMessage(distantAgentRequestGroupNotAcceptedBroadcastMessage), localAcceptedRoleNotRestricted);
-				broadcastMessageSentToGroupNotAccepted=rc==ReturnCode.SUCCESS || rc==ReturnCode.TRANSFER_IN_PROGRESS;
-				rc=broadcastMessageWithRole(DistantGroupAccessTests.groupWithAllRolesInOnePeer, distantAcceptedRoleNotRestricted, new StringMessage(distantAgentRequestGroupWithAllRolesInOnePeerBroadcastMessage), localAcceptedRoleNotRestricted);
-				broadcastMessageSentToGroupWithOneRolesInOnePeer= rc==ReturnCode.SUCCESS || rc==ReturnCode.TRANSFER_IN_PROGRESS;
-				rc=broadcastMessageWithRole(DistantGroupAccessTests.groupWithAllRolesNotDistributed, distantAcceptedRoleNotRestricted, new StringMessage(distantAgentRequestGroupWithAllRolesNotDistributedBroadcastMessage), localAcceptedRoleNotRestricted);
-				broadcastMessageSentToGroupNotDistributed=rc==ReturnCode.SUCCESS || rc==ReturnCode.TRANSFER_IN_PROGRESS;
-				return null;
-			}
+		scheduleTask(new Task<>(() -> {
+			ReturnCode rc=broadcastMessageWithRole(DistantGroupAccessTests.groupWithAllRoles, distantAcceptedRoleNotRestricted, new StringMessage(distantAgentRequestGroupWithAllRolesBroadcastMessage), localAcceptedRoleNotRestricted);
+			broadcastMessageSentToGroupWithAllRoles=rc==ReturnCode.SUCCESS || rc==ReturnCode.TRANSFER_IN_PROGRESS;
+			rc=broadcastMessageWithRole(DistantGroupAccessTests.groupWithOneRole, distantAcceptedRole, new StringMessage(distantAgentRequestGroupWithOneRoleBroadcastMessage), localAcceptedRole);
+			broadcastMessageSentToGroupWithOneRole =rc==ReturnCode.SUCCESS || rc==ReturnCode.TRANSFER_IN_PROGRESS;
+			rc=broadcastMessageWithRole(DistantGroupAccessTests.groupNotAccepted, distantAcceptedRoleNotRestricted, new StringMessage(distantAgentRequestGroupNotAcceptedBroadcastMessage), localAcceptedRoleNotRestricted);
+			broadcastMessageSentToGroupNotAccepted=rc==ReturnCode.SUCCESS || rc==ReturnCode.TRANSFER_IN_PROGRESS;
+			rc=broadcastMessageWithRole(DistantGroupAccessTests.groupWithAllRolesInOnePeer, distantAcceptedRoleNotRestricted, new StringMessage(distantAgentRequestGroupWithAllRolesInOnePeerBroadcastMessage), localAcceptedRoleNotRestricted);
+			broadcastMessageSentToGroupWithOneRolesInOnePeer= rc==ReturnCode.SUCCESS || rc==ReturnCode.TRANSFER_IN_PROGRESS;
+			rc=broadcastMessageWithRole(DistantGroupAccessTests.groupWithAllRolesNotDistributed, distantAcceptedRoleNotRestricted, new StringMessage(distantAgentRequestGroupWithAllRolesNotDistributedBroadcastMessage), localAcceptedRoleNotRestricted);
+			broadcastMessageSentToGroupNotDistributed=rc==ReturnCode.SUCCESS || rc==ReturnCode.TRANSFER_IN_PROGRESS;
+			return null;
 		}, System.currentTimeMillis()+DistantGroupAccessTests.timeToWaitBeforeBroadcast));
 	}
 

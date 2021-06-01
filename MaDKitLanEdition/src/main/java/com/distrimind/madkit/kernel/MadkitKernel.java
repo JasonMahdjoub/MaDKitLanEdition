@@ -43,9 +43,7 @@ import com.distrimind.madkit.action.KernelAction;
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.agr.LocalCommunity.Groups;
 import com.distrimind.madkit.agr.LocalCommunity.Roles;
-import com.distrimind.madkit.database.MKDatabase;
 import com.distrimind.madkit.database.DifferedMessageTable;
-import com.distrimind.madkit.database.IPBanned;
 import com.distrimind.madkit.exceptions.MadkitException;
 import com.distrimind.madkit.gui.AgentStatusPanel;
 import com.distrimind.madkit.gui.ConsoleAgent;
@@ -65,10 +63,7 @@ import com.distrimind.madkit.message.hook.*;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.message.task.TasksExecutionConfirmationMessage;
 import com.distrimind.madkit.util.XMLUtilities;
-import com.distrimind.ood.database.DatabaseConfiguration;
-import com.distrimind.ood.database.DatabaseSchema;
 import com.distrimind.ood.database.exceptions.DatabaseException;
-import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.Utils;
 import com.distrimind.util.concurrent.LockerCondition;
@@ -108,7 +103,7 @@ import static com.distrimind.madkit.kernel.CGRSynchro.Code.*;
  * 
  * @author Fabien Michel
  * @author Jason Mahdjoub
- * @version 2.4
+ * @version 2.5
  * @since MaDKit 5.0
  * @since MaDKitLanEdition 1.0
  * 
@@ -4016,23 +4011,24 @@ class MadkitKernel extends Agent {
 		return generatorIdTransfer;
 	}
 
-	void setIfNotPresentLocalDatabaseHostIdentifier(AbstractAgent requester, DecentralizedValue localDatabaseHostID, Package ...packages) throws DatabaseException
+	/*void setIfNotPresentLocalDatabaseHostIdentifier(AbstractAgent requester, DecentralizedValue localDatabaseHostID, Package ...packages) throws DatabaseException
 	{
 		if (localDatabaseHostID==null)
 			throw new NullPointerException();
 		if (packages==null)
 			throw new NullPointerException();
 		if (!sendInternalDatabaseSynchronizerEvent(new InternalDatabaseSynchronizerEvent(InternalDatabaseSynchronizerEventType.SET_LOCAL_IDENTIFIER, localDatabaseHostID, packages)))
-			getMadkitConfig().setLocalDatabaseHostID(localDatabaseHostID, packages);
+			getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder()
+					.setLocalPeerIdentifier(localDatabaseHostID)
+					.add;
 	}
 
 	void resetDatabaseSynchronizer(AbstractAgent requester) throws DatabaseException {
 		if (!sendInternalDatabaseSynchronizerEvent(new InternalDatabaseSynchronizerEvent(InternalDatabaseSynchronizerEventType.RESET_SYNCHRONIZER)))
 			getMadkitConfig().resetDatabaseSynchronizerAndRemoveAllDatabaseHosts();
-	}
+	}*/
 
-	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
-	private boolean sendInternalDatabaseSynchronizerEvent(InternalDatabaseSynchronizerEvent event)
+	/*private boolean sendInternalDatabaseSynchronizerEvent(InternalDatabaseSynchronizerEvent event)
 	{
 		updateNetworkAgent();
 		if (netAgent!=null)
@@ -4056,9 +4052,9 @@ class MadkitKernel extends Agent {
 			this.type = type;
 			this.parameters = parameters;
 		}
-	}
+	}*/
 
-	enum InternalDatabaseSynchronizerEventType
+	/*enum InternalDatabaseSynchronizerEventType
 	{
 		SET_LOCAL_IDENTIFIER,
 		RESET_SYNCHRONIZER,
@@ -4092,7 +4088,7 @@ class MadkitKernel extends Agent {
 			getMadkitConfig().removeDistantDatabaseHost( hostIdentifier, packages);
 		}
 
-	}
+	}*/
 }
 
 final class CGRNotAvailable extends Exception {

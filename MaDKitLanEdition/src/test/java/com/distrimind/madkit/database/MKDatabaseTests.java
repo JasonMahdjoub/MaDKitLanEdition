@@ -38,10 +38,7 @@
 package com.distrimind.madkit.database;
 
 import com.distrimind.madkit.kernel.network.NetworkProperties;
-import com.distrimind.ood.database.DatabaseConfiguration;
-import com.distrimind.ood.database.DatabaseWrapper;
-import com.distrimind.ood.database.EmbeddedH2DatabaseWrapper;
-import com.distrimind.ood.database.InMemoryEmbeddedH2DatabaseFactory;
+import com.distrimind.ood.database.*;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.crypto.ASymmetricEncryptionType;
 import com.distrimind.util.crypto.ASymmetricKeyPair;
@@ -72,7 +69,9 @@ public class MKDatabaseTests {
 	public static void loadDatabase() throws IllegalArgumentException, DatabaseException {
 		closeAndDeleleteDatabase();
 		databaseWrapper = new InMemoryEmbeddedH2DatabaseFactory(databaseFile.getName()).getDatabaseWrapperSingleton();
-		databaseWrapper.loadDatabase(new DatabaseConfiguration(KeysPairs.class.getPackage()), true);
+		databaseWrapper.getDatabaseConfigurationsBuilder()
+				.addConfiguration(new DatabaseConfiguration(new DatabaseSchema(KeysPairs.class.getPackage())), false, true)
+				.commit();
 		ipbanned = databaseWrapper.getTableInstance(IPBanned.class);
 		ipbanstat = databaseWrapper.getTableInstance(IPBanStat.class);
 		ipExpulsedStat = databaseWrapper.getTableInstance(IPExpulsedStat.class);

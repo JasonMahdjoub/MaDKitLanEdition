@@ -300,7 +300,7 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		jpakeMessages=in.read2DBytesArray(false, true, identifiers.length, MAX_JPAKE_MESSAGE_LENGTH);
 		step=in.readShort();
-		totalSize+= SerializationTools.getInternalSize(jpakeMessages, identifiers.length);
+		totalSize+= SerializationTools.getInternalSize(jpakeMessages, identifiers.length, MAX_JPAKE_MESSAGE_LENGTH);
 		if (totalSize>globalSize)
 			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		if (step<1 || step>5)

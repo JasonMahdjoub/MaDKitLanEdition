@@ -114,11 +114,11 @@ public final class KeysPairs extends Table<KeysPairs.Record> {
 								ASymmetricKeyPair kp;
 								if (algorithmForEncryption==null)
 									kp = algorithmForSignature
-										.getKeyPairGenerator(random, _key_size, System.currentTimeMillis() + expiration)
+										.getKeyPairGenerator(random, _key_size, System.currentTimeMillis(), System.currentTimeMillis() + expiration)
 										.generateKeyPair();
 								else
 									kp = algorithmForEncryption
-									.getKeyPairGenerator(random, _key_size, System.currentTimeMillis() + expiration)
+									.getKeyPairGenerator(random, _key_size, System.currentTimeMillis(), System.currentTimeMillis() + expiration)
 									.generateKeyPair();
 									
 								map.put("key_pair", kp);
@@ -129,11 +129,11 @@ public final class KeysPairs extends Table<KeysPairs.Record> {
 								ASymmetricKeyPair kp;
 								if (algorithmForEncryption==null)
 									kp = algorithmForSignature
-										.getKeyPairGenerator(random, _key_size, System.currentTimeMillis() + expiration)
+										.getKeyPairGenerator(random, _key_size, System.currentTimeMillis(), System.currentTimeMillis() + expiration)
 										.generateKeyPair();
 								else
 									kp = algorithmForEncryption
-										.getKeyPairGenerator(random, _key_size, System.currentTimeMillis() + expiration)
+										.getKeyPairGenerator(random, _key_size, System.currentTimeMillis(), System.currentTimeMillis() + expiration)
 										.generateKeyPair();
 
 								map = new HashMap<>();
@@ -194,11 +194,11 @@ public final class KeysPairs extends Table<KeysPairs.Record> {
 							ASymmetricKeyPair kp;
 							if (algorithmForEncryption==null)
 								kp = algorithmForSignature
-									.getKeyPairGenerator(random, _key_size, System.currentTimeMillis() + expiration)
+									.getKeyPairGenerator(random, _key_size, System.currentTimeMillis(), System.currentTimeMillis() + expiration)
 									.generateKeyPair();
 							else
 								kp = algorithmForEncryption
-								.getKeyPairGenerator(random, _key_size, System.currentTimeMillis() + expiration)
+								.getKeyPairGenerator(random, _key_size, System.currentTimeMillis(), System.currentTimeMillis() + expiration)
 								.generateKeyPair();
 								
 							map.put("key_pair", kp);

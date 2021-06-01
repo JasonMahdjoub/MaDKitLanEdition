@@ -45,6 +45,7 @@ import com.distrimind.util.Bits;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.data_buffers.WrappedString;
 
+import java.io.IOException;
 import java.util.Objects;
 
 /**
@@ -121,8 +122,7 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 
 			return DISTRIBUTED_DATABASE.getSubGroup(true, databaseGateKeeper, false, subgroup);
 		}
-		public static DecentralizedValue extractDistantHostID(Group group, DecentralizedValue localHostID)
-		{
+		public static DecentralizedValue extractDistantHostID(Group group, DecentralizedValue localHostID) throws IOException {
 			return extractDistantHostID(group, encodeDecentralizedValue(localHostID));
 		}
 		public static String extractDistantHostIDString(Group group, String localHostID)
@@ -147,12 +147,10 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 			return null;
 
 		}
-		public static DecentralizedValue extractDistantHostID(Group group, WrappedString localHostID)
-		{
+		public static DecentralizedValue extractDistantHostID(Group group, WrappedString localHostID) throws IOException {
 			return extractDistantHostID(group, localHostID.toString());
 		}
-		public static DecentralizedValue extractDistantHostID(Group group, String localHostID)
-		{
+		public static DecentralizedValue extractDistantHostID(Group group, String localHostID) throws IOException {
 			String res=extractDistantHostIDString(group, localHostID);
 			if (res==null)
 				return null;
