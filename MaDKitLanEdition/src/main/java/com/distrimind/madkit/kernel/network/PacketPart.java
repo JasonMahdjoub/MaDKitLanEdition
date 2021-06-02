@@ -64,6 +64,7 @@ public final class PacketPart {
 
 	PacketPart(SubBlock subBlock, PacketPartHead head) {
 		//bytes = _part;
+
 		this.subBlock=subBlock;
 		if (head == null)
 			throw new NullPointerException("head");

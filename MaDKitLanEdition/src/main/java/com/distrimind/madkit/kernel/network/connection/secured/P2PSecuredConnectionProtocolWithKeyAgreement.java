@@ -121,7 +121,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 		} catch (IOException | NoSuchAlgorithmException | NoSuchProviderException e) {
 			throw new ConnectionException(e);
 		}
-		this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, hProperties.enableEncryption, true);
+		this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, hProperties.enableEncryption  && hProperties.symmetricEncryptionType.getMaxCounterSizeInBytesUsedWithBlockMode()>0, true);
 		
 		if (hProperties.enableEncryption)
 			parser = new ParserWithEncryption();
@@ -614,8 +614,12 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 
 
 	private class ParserWithEncryption extends SubBlockParser {
-		public ParserWithEncryption() throws ConnectionException {
-			super(decoderWithEncryption, decoderWithoutEncryption, encoderWithEncryption, encoderWithoutEncryption, packetCounter);
+		ParserWithEncryption() throws ConnectionException {
+			this(true);
+		}
+
+		ParserWithEncryption(boolean enableEncryption) throws ConnectionException {
+			super(enableEncryption?decoderWithEncryption:null, decoderWithoutEncryption, enableEncryption?encoderWithEncryption:null, encoderWithoutEncryption, packetCounter);
 		}
 
 		@Override
@@ -881,7 +885,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 
 	private class ParserWithNoEncryption extends ParserWithEncryption {
 		public ParserWithNoEncryption() throws ConnectionException {
-			super();
+			super(false);
 		}
 
 		@Override

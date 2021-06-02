@@ -415,7 +415,6 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 	}
 	public final Block getBlock(WritePacket _packet, int _transfert_type, AbstractSecureRandom random, boolean excludedFromEncryption)
 			throws NIOException {
-
 		try {
 			PacketPart packet_part = _packet.getNextPart(this);
 			if (packet_part == null)
@@ -433,7 +432,7 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 				PacketCounter pc=cp.getPacketCounter();
 				if (pc!=null)
 				    pc.incrementOtherCounters();
-				System.out.println(cp.getParser());
+
 				subBlock = lastSBS.getSubBlockForParent(cp.getParser().getParentBlock(subBlock, excludedFromEncryption), i, random);
 			}
 			PointToPointTransferedBlockChecker ptp=pointToPointTransferedBlockChecker;

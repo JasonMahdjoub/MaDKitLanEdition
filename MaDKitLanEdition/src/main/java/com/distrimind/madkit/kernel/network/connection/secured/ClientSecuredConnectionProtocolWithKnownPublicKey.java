@@ -130,7 +130,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 		} catch (NoSuchAlgorithmException | NoSuchProviderException | IOException e) {
 			throw new ConnectionException(e);
 		}
-		this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, hProperties.enableEncryption, true);
+		this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, hProperties.enableEncryption && hProperties.getSymmetricEncryptionType().getMaxCounterSizeInBytesUsedWithBlockMode()>0, true);
 		generateSecretKey();
 		if (hProperties.enableEncryption)
 			parser = new ParserWithEncryption();
@@ -285,9 +285,15 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 	}
 
 	private class ParserWithEncryption extends SubBlockParser {
+
 		ParserWithEncryption() throws ConnectionException {
-			super(decoderWithEncryption, decoderWithoutEncryption, encoderWithEncryption, encoderWithoutEncryption, packetCounter);
+			this(true);
 		}
+
+		ParserWithEncryption(boolean enableEncryption) throws ConnectionException {
+			super(enableEncryption?decoderWithEncryption:null, decoderWithoutEncryption, enableEncryption?encoderWithEncryption:null, encoderWithoutEncryption, packetCounter);
+		}
+
 
 		@Override
 		public int getBodyOutputSizeForEncryption(int size) throws BlockParserException {
@@ -416,7 +422,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 
 	private class ParserWithNoEncryption extends ParserWithEncryption {
 		ParserWithNoEncryption() throws ConnectionException {
-			super();
+			super(false);
 		}
 
 		@Override

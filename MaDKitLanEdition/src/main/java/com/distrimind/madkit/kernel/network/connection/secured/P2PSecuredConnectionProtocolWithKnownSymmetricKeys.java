@@ -78,7 +78,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 	private SymmetricAuthenticatedSignerAlgorithm signer;
 	private SymmetricEncryptionAlgorithm cipher;*/
 	private final AbstractSecureRandom approvedRandom;
-	private final PacketCounterForEncryptionAndSignature packetCounter;
+	private PacketCounterForEncryptionAndSignature packetCounter=null;
 	private boolean reInitSymmetricAlgorithm =false;
 	private final SubBlockParser parser;
 	private boolean blockCheckerChanged = true;
@@ -103,7 +103,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 		} catch (NoSuchAlgorithmException | NoSuchProviderException | IOException e) {
 			throw new ConnectionException(e);
 		}
-		this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, properties.enableEncryption, true);
+
 		if (properties.enableEncryption)
 			parser = new ParserWithEncryption();
 		else
@@ -128,6 +128,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 				encoderWithEncryption.withoutSymmetricEncryption();
 				decoderWithEncryption.withoutSymmetricEncryption();
 			}
+			this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, properties.enableEncryption && secretKeyForEncryption.getEncryptionAlgorithmType().getMaxCounterSizeInBytesUsedWithBlockMode()>0, true);
 
 		}
 		catch (IOException e)
@@ -305,7 +306,11 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 	private class ParserWithEncryption extends SubBlockParser
 	{
 		ParserWithEncryption() throws ConnectionException {
-			super(decoderWithEncryption, decoderWithoutEncryption, encoderWithEncryption, encoderWithoutEncryption, packetCounter);
+			this(true);
+		}
+
+		ParserWithEncryption(boolean enableEncryption) throws ConnectionException {
+			super(enableEncryption?decoderWithEncryption:null, decoderWithoutEncryption, enableEncryption?encoderWithEncryption:null, encoderWithoutEncryption, packetCounter);
 		}
 		@Override
 		public SubBlockInfo getSubBlock(SubBlock _block) throws BlockParserException {
@@ -441,7 +446,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 	private class ParserWithNoEncryption extends ParserWithEncryption
 	{
 		ParserWithNoEncryption() throws ConnectionException {
-			super();
+			super(false);
 		}
 
 		@Override

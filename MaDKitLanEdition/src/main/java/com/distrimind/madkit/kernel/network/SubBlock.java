@@ -37,6 +37,8 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import java.util.Arrays;
+
 /**
  * 
  * @author Jason Mahdjoub
@@ -100,9 +102,13 @@ public class SubBlock {
 		return size;
 	}
 
-	
 
-	
-	
-
+	@Override
+	public String toString() {
+		return "SubBlock{" +
+				"block.length=" + block.length +
+				", offset=" + offset +
+				", size=" + size +
+				'}';
+	}
 }

@@ -96,7 +96,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 	final int maximumSignatureSize;
 	boolean firstMessageReceived = false;
 	private boolean needToRefreshTransferBlockChecker = true;
-	private final PacketCounterForEncryptionAndSignature packetCounter;
+	private PacketCounterForEncryptionAndSignature packetCounter=null;
 	private boolean reInitSymmetricAlgorithm =true;
 
 
@@ -129,7 +129,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 		} catch (NoSuchAlgorithmException | NoSuchProviderException | IOException e) {
 			throw new ConnectionException(e);
 		}
-		this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, hProperties.enableEncryption, true);
+
 		if (hProperties.enableEncryption)
 			parser = new ParserWithEncryption();
 		else
@@ -226,7 +226,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 				encoderWithEncryption.withoutSymmetricEncryption();
 				decoderWithEncryption.withoutSymmetricEncryption();
 			}
-
+			this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, hProperties.enableEncryption && mySecretKeyForEncryption.getEncryptionAlgorithmType().getMaxCounterSizeInBytesUsedWithBlockMode()>0, true);
 			encoderWithoutEncryption.withSymmetricSecretKeyForSignature(mySecretKeyForSignature);
 			encoderWithEncryption.withSymmetricSecretKeyForSignature(mySecretKeyForSignature);
 			decoderWithoutEncryption.withSymmetricSecretKeyForSignature(mySecretKeyForSignature);
@@ -335,7 +335,11 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 	private class ParserWithEncryption extends SubBlockParser {
 
 		ParserWithEncryption() throws ConnectionException {
-			super(decoderWithEncryption, decoderWithoutEncryption, encoderWithEncryption, encoderWithoutEncryption, packetCounter);
+			this(true);
+		}
+
+		ParserWithEncryption(boolean enableEncryption) throws ConnectionException {
+			super(enableEncryption?decoderWithEncryption:null, decoderWithoutEncryption, enableEncryption?encoderWithEncryption:null, encoderWithoutEncryption, packetCounter);
 		}
 
 		@Override
@@ -470,7 +474,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 
 	private class ParserWithNoEncryption extends ParserWithEncryption {
 		ParserWithNoEncryption() throws ConnectionException {
-			super();
+			super(false);
 		}
 
 		@Override

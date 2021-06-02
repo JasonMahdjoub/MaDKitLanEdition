@@ -126,13 +126,15 @@ public abstract class SubBlockParser {
 				if (enabledEncryption) {
 					decoder = decoderWithEncryption;
 					if (packetCounter.isLocalActivated()) {
-						decoder.withExternalCounter(packetCounter.getMyEncryptionCounter());
+						byte[] mec=packetCounter.getMyEncryptionCounter();
+						if (mec!=null)
+							decoder.withExternalCounter(mec);
 					}
 				} else
 					decoder = decoderWithoutEncryption;
 				decoder.withRandomInputStream(lrim);
 
-				if (packetCounter.isLocalActivated()) {
+				if (packetCounter.isLocalActivated() && packetCounter.getMySignatureCounter()!=null) {
 					decoder.withAssociatedData(packetCounter.getMySignatureCounter());
 				}
 
@@ -181,16 +183,21 @@ public abstract class SubBlockParser {
 				encoder = encoderWithoutEncryption;
 			} else {
 				encoder = encoderWithEncryption;
-				if (packetCounter.isDistantActivated())
-					encoder.withExternalCounter(packetCounter.getOtherEncryptionCounter());
+				if (packetCounter.isDistantActivated()) {
+					byte[] oec=packetCounter.getOtherEncryptionCounter();
+					if (oec!=null)
+						encoder.withExternalCounter(oec);
+				}
 			}
-			if (packetCounter.isDistantActivated())
+			if (packetCounter.isDistantActivated() && packetCounter.getMySignatureCounter()!=null)
 				encoder.withAssociatedData(packetCounter.getOtherSignatureCounter());
 			if (excludeFromEncryption) {
 				encoder.encodeWithSameInputAndOutputStreamSource(_block.getBytes(), _block.getOffset(), _block.getSize());
 				return new SubBlock(_block.getBytes(), _block.getOffset() - EncryptionSignatureHashEncoder.headSize, (int) encoderWithEncryption.getMaximumOutputLength(_block.getSize()));
 			} else {
-				SubBlock res = new SubBlock(new byte[_block.getSize()], _block.getOffset() - EncryptionSignatureHashEncoder.headSize, (int) encoderWithEncryption.getMaximumOutputLength(_block.getSize()));
+				int l=(int)encoderWithEncryption.getMaximumOutputLength(_block.getSize());
+				int off=_block.getOffset() - EncryptionSignatureHashEncoder.headSize;
+				SubBlock res = new SubBlock(new byte[_block.getBytes().length], off, l);
 				encoder.encode(_block.getBytes(), _block.getOffset(), _block.getSize(), res.getBytes(), res.getOffset(), res.getSize());
 				return res;
 			}
