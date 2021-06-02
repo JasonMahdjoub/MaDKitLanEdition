@@ -629,20 +629,20 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 					if (doNotTakeIntoAccountNextState)
 						return size;
 					else
-						return (int)encoderWithoutEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
+						return getBodyOutputSizeWithEncryption(size);
 				case WAITING_FOR_SERVER_PROFILE_MESSAGE:
 				case WAITING_FOR_SERVER_SIGNATURE:
 				case WAITING_FOR_CONNECTION_CONFIRMATION:
 				{
 					if (doNotTakeIntoAccountNextState)
-						return (int)encoderWithoutEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
+						return getBodyOutputSizeWithEncryption(size);
 					else
 					{
 						if (packetCounter.isDistantActivated())
 						{
 							reInitSymmetricAlgorithmIfNecessary();
 						}
-						return (int)encoderWithEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
+						return getBodyOutputSizeWithEncryption(size);
 					}
 				}
 				case CONNECTED:
@@ -651,7 +651,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 					{
 						reInitSymmetricAlgorithmIfNecessary();
 					}
-					return (int)encoderWithEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
+					return getBodyOutputSizeWithEncryption(size);
 				}
 				}
 			} catch (IOException e) {
@@ -670,7 +670,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 				case WAITING_FOR_SIGNATURE_DATA:
 					return size;
 				case WAITING_FOR_ENCRYPTION_DATA:
-					return (int)decoderWithoutEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+					return getBodyOutputSizeWithDecryption(size);
 				case WAITING_FOR_SERVER_PROFILE_MESSAGE:
 				case WAITING_FOR_SERVER_SIGNATURE:
 				case WAITING_FOR_CONNECTION_CONFIRMATION:
@@ -680,7 +680,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 					{
 						reInitSymmetricAlgorithmIfNecessary();
 					}
-					return (int)encoderWithEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+					return getBodyOutputSizeWithDecryption(size);
 				}
 				}
 			} catch (IOException e) {
@@ -895,13 +895,13 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 						if (doNotTakeIntoAccountNextState)
 							return size;
 						else
-							return (int)encoderWithoutEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
+							return getBodyOutputSizeWithEncryption(size);
 					case WAITING_FOR_SERVER_PROFILE_MESSAGE:
 					case WAITING_FOR_SERVER_SIGNATURE:
 					case WAITING_FOR_CONNECTION_CONFIRMATION:
 					case CONNECTED:
 					{
-						return (int)encoderWithoutEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
+						return getBodyOutputSizeWithEncryption(size);
 					}
 				}
 			} catch (IOException e) {
@@ -924,7 +924,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 					case WAITING_FOR_SERVER_SIGNATURE:
 					case WAITING_FOR_CONNECTION_CONFIRMATION:
 					case CONNECTED:
-						return (int)decoderWithoutEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+						return getBodyOutputSizeWithDecryption(size);
 				}
 			} catch (IOException e) {
 				throw new BlockParserException(e);

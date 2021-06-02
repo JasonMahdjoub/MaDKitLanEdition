@@ -433,6 +433,7 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 				PacketCounter pc=cp.getPacketCounter();
 				if (pc!=null)
 				    pc.incrementOtherCounters();
+				System.out.println(cp.getParser());
 				subBlock = lastSBS.getSubBlockForParent(cp.getParser().getParentBlock(subBlock, excludedFromEncryption), i, random);
 			}
 			PointToPointTransferedBlockChecker ptp=pointToPointTransferedBlockChecker;

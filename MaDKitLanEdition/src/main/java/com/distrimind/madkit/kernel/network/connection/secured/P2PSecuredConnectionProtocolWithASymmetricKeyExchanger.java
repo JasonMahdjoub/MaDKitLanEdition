@@ -487,7 +487,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 					{
 						reInitSymmetricAlgorithmIfNecessary();
 					}
-					return (int)encoderWithEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
+					return getBodyOutputSizeWithEncryption(size);
 				}
 			} catch (Exception e) {
 				throw new BlockParserException(e);
@@ -514,7 +514,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 						{
 							reInitSymmetricAlgorithmIfNecessary();
 						}
-						return (int)encoderWithEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+						return getBodyOutputSizeWithDecryption(size);
 					}
 					else
 						return size;
@@ -525,7 +525,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 					{
 						reInitSymmetricAlgorithmIfNecessary();
 					}
-					return (int)encoderWithEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+					return getBodyOutputSizeWithDecryption(size);
 
 				}
 			} catch (Exception e) {
@@ -583,6 +583,11 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 			}
 			throw new BlockParserException("Unexpected exception");
 
+		}
+
+		@Override
+		public String toString() {
+			return "ParserWithEncryption{"+current_step+"}";
 		}
 
 		@Override
@@ -667,7 +672,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 						{
 							reInitSymmetricAlgorithmIfNecessary();
 						}
-						return (int)encoderWithoutEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
+						return getBodyOutputSizeWithEncryption(size);
 				}
 			} catch (Exception e) {
 				throw new BlockParserException(e);
@@ -694,7 +699,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 							{
 								reInitSymmetricAlgorithmIfNecessary();
 							}
-							return (int)encoderWithoutEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+							return getBodyOutputSizeWithDecryption(size);
 						}
 						else
 							return size;
@@ -705,7 +710,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 						{
 							reInitSymmetricAlgorithmIfNecessary();
 						}
-						return (int)encoderWithoutEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+						return getBodyOutputSizeWithDecryption(size);
 
 				}
 			} catch (Exception e) {

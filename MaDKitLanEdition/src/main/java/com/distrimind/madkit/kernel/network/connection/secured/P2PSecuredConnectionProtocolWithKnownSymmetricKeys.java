@@ -361,14 +361,14 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 						if (isCurrentServerAskingConnection())
 							return size;
 						else
-							return (int)encoderWithEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
+							return getBodyOutputSizeWithEncryption(size);
 
 					case CONNECTED:
 						if (packetCounter.isDistantActivated())
 						{
 							reInitSymmetricAlgorithmIfNecessary();
 						}
-						return (int)encoderWithEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
+						return getBodyOutputSizeWithEncryption(size);
 				}
 			} catch (Exception e) {
 				throw new BlockParserException(e);
@@ -383,13 +383,13 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 					case NOT_CONNECTED:
 						return size;
 					case WAITING_FOR_CONNECTION_CONFIRMATION:
-						return (int)encoderWithEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+						return getBodyOutputSizeWithDecryption(size);
 					case CONNECTED:
 						if (getPacketCounter().isLocalActivated())
 						{
 							reInitSymmetricAlgorithmIfNecessary();
 						}
-						return (int)encoderWithEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+						return getBodyOutputSizeWithDecryption(size);
 
 				}
 			} catch (Exception e) {
@@ -454,14 +454,14 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 						if (isCurrentServerAskingConnection())
 							return size;
 						else
-							return (int)encoderWithoutEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
+							return getBodyOutputSizeWithEncryption(size);
 
 					case CONNECTED:
 						if (packetCounter.isDistantActivated())
 						{
 							reInitSymmetricAlgorithmIfNecessary();
 						}
-						return (int)encoderWithoutEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
+						return getBodyOutputSizeWithEncryption(size);
 				}
 			} catch (Exception e) {
 				throw new BlockParserException(e);
@@ -476,13 +476,13 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 					case NOT_CONNECTED:
 						return size;
 					case WAITING_FOR_CONNECTION_CONFIRMATION:
-						return (int)encoderWithoutEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+						return getBodyOutputSizeWithDecryption(size);
 					case CONNECTED:
 						if (getPacketCounter().isLocalActivated())
 						{
 							reInitSymmetricAlgorithmIfNecessary();
 						}
-						return (int)encoderWithoutEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+						return getBodyOutputSizeWithDecryption(size);
 
 				}
 			} catch (Exception e) {

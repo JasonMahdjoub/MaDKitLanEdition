@@ -350,7 +350,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 					{
 						reInitSymmetricAlgorithmIfNecessary();
 					}
-					return (int)encoderWithEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
+					return getBodyOutputSizeWithEncryption(size);
 				}
 
 			} catch (Exception e) {
@@ -371,7 +371,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 					{
 						reInitSymmetricAlgorithmIfNecessary();
 					}
-					return (int)decoderWithEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+					return getBodyOutputSizeWithDecryption(size);
 				}
 			} catch (Exception e) {
 				throw new BlockParserException(e);
@@ -495,7 +495,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 					{
 						reInitSymmetricAlgorithmIfNecessary();
 					}
-					return (int)encoderWithoutEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
+					return getBodyOutputSizeWithEncryption(size);
 				}
 
 			} catch (Exception e) {
@@ -516,7 +516,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 						{
 							reInitSymmetricAlgorithmIfNecessary();
 						}
-						return (int)decoderWithoutEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+						return getBodyOutputSizeWithDecryption(size);
 				}
 			} catch (Exception e) {
 				throw new BlockParserException(e);
