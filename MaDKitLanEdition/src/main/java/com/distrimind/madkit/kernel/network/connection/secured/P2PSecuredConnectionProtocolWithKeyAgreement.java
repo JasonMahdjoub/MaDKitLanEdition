@@ -240,8 +240,15 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 		if (reInitSymmetricAlgorithm)
 		{
 			reInitSymmetricAlgorithm =false;
-			encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.secret_key_for_encryption, (byte)packetCounter.getMyEncryptionCounter().length);
-			decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.secret_key_for_encryption, (byte)packetCounter.getMyEncryptionCounter().length);
+			if (packetCounter.getMyEncryptionCounter()==null)
+			{
+				encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.secret_key_for_encryption);
+				decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.secret_key_for_encryption);
+			}
+			else {
+				encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.secret_key_for_encryption, (byte) packetCounter.getMyEncryptionCounter().length);
+				decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.secret_key_for_encryption, (byte) packetCounter.getMyEncryptionCounter().length);
+			}
 		}
 	}
 
@@ -614,12 +621,10 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 
 
 	private class ParserWithEncryption extends SubBlockParser {
-		ParserWithEncryption() throws ConnectionException {
-			this(true);
-		}
 
-		ParserWithEncryption(boolean enableEncryption) throws ConnectionException {
-			super(enableEncryption?decoderWithEncryption:null, decoderWithoutEncryption, enableEncryption?encoderWithEncryption:null, encoderWithoutEncryption, packetCounter);
+
+		ParserWithEncryption() throws ConnectionException {
+			super(decoderWithEncryption, decoderWithoutEncryption, encoderWithEncryption, encoderWithoutEncryption, packetCounter);
 		}
 
 		@Override
@@ -664,6 +669,51 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 			return size;
 
 		}
+
+		@Override
+		public int getBodyOutputSizeForSignature(int size) throws BlockParserException
+		{
+			try {
+				switch (current_step) {
+					case NOT_CONNECTED:
+					case WAITING_FOR_SIGNATURE_DATA:
+						return size;
+					case WAITING_FOR_ENCRYPTION_DATA:
+						if (doNotTakeIntoAccountNextState)
+							return size;
+						else
+							return getBodyOutputSizeWithSignature(size);
+					case WAITING_FOR_SERVER_PROFILE_MESSAGE:
+					case WAITING_FOR_SERVER_SIGNATURE:
+					case WAITING_FOR_CONNECTION_CONFIRMATION:
+					{
+						if (doNotTakeIntoAccountNextState)
+							return getBodyOutputSizeWithSignature(size);
+						else
+						{
+							if (packetCounter.isDistantActivated())
+							{
+								reInitSymmetricAlgorithmIfNecessary();
+							}
+							return getBodyOutputSizeWithSignature(size);
+						}
+					}
+					case CONNECTED:
+					{
+						if (packetCounter.isDistantActivated())
+						{
+							reInitSymmetricAlgorithmIfNecessary();
+						}
+						return getBodyOutputSizeWithSignature(size);
+					}
+				}
+			} catch (IOException e) {
+				throw new BlockParserException(e);
+			}
+			return size;
+		}
+
+
 		
 
 		@Override
@@ -719,83 +769,6 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 					getBodyOutputSizeForDecryption(_block.getSize() - getHeadSize())), true, false);
 		}
 
-
-
-		/*public SubBlockInfo getSubBlockWithEncryption(SubBlock _block, boolean enabledEncryption) throws BlockParserException {
-
-			try {
-				try {
-					rbis.init(_block.getBytes());
-					lrim.init(rbis, _block.getOffset(), _block.getSize());
-					EncryptionSignatureHashDecoder decoder;
-					if (enabledEncryption) {
-						decoder = decoderWithEncryption;
-						if (getPacketCounter().isLocalActivated()) {
-							decoder.withExternalCounter(packetCounter.getMyEncryptionCounter());
-						}
-					} else
-						decoder = decoderWithoutEncryption;
-					decoder.withRandomInputStream(rbis);
-					if (getPacketCounter().isLocalActivated()) {
-						decoder.withAssociatedData(packetCounter.getMySignatureCounter());
-					}
-
-					if (decoder.isEncrypted()) {
-						byte[] tab = new byte[_block.getBytes().length];
-						try {
-							rout.init(tab);
-							lrout.init(rout, _block.getOffset(), _block.getSize());
-							int dl = (int) decoder.decodeAndCheckHashAndSignaturesIfNecessary(lrout);
-							return new SubBlockInfo(new SubBlock(tab, _block.getOffset() + EncryptionSignatureHashEncoder.headSize, dl), true, false);
-						} finally {
-							rout.init(emptyTab);
-							lrout.init(rout, 0);
-						}
-					} else {
-						Integrity integrity = decoder.checkHashAndSignature();
-						int dl = (int) decoder.getDataSizeInBytesAfterDecryption();
-						return new SubBlockInfo(new SubBlock(_block.getBytes(), _block.getOffset() + EncryptionSignatureHashEncoder.headSize, dl), integrity == Integrity.OK, integrity == Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-					}
-				}
-				finally {
-					rbis.init(emptyTab);
-					lrim.init(rbis, 0);
-				}
-			} catch (IOException e) {
-				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset(),
-						getBodyOutputSizeForDecryption(_block.getSize() - getHeadSize()));
-				return new SubBlockInfo(res, false, e instanceof MessageExternalizationException && ((MessageExternalizationException) e).getIntegrity()==Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			}
-
-		}*/
-
-		/*public SubBlock getParentBlockWithEncryption(final SubBlock _block, boolean excludeFromEncryption) throws IOException {
-			EncryptionSignatureHashEncoder encoder;
-			if (excludeFromEncryption)
-			{
-				encoder = encoderWithoutEncryption;
-			}
-			else {
-				encoder = encoderWithEncryption;
-				if (packetCounter.isDistantActivated())
-					encoder.withExternalCounter(packetCounter.getOtherEncryptionCounter());
-			}
-			if (packetCounter.isDistantActivated())
-				encoder.withAssociatedData(packetCounter.getOtherSignatureCounter() );
-			if (excludeFromEncryption) {
-				encoder.encodeWithSameInputAndOutputStreamSource(_block.getBytes(), _block.getOffset(), _block.getSize());
-				return new SubBlock(_block.getBytes(), _block.getOffset() - EncryptionSignatureHashEncoder.headSize, (int) encoder.getMaximumOutputLength(_block.getSize()));
-			}
-			else
-			{
-				SubBlock res = new SubBlock(new byte[_block.getSize()], _block.getOffset() - EncryptionSignatureHashEncoder.headSize, (int) encoder.getMaximumOutputLength(_block.getSize()));
-				encoder.encode(_block.getBytes(), _block.getOffset(), _block.getSize(), res.getBytes(), res.getOffset(), res.getSize());
-				return res;
-			}
-
-		}*/
-		
-		
 		@Override
 		public SubBlock getParentBlock(SubBlock _block, boolean excludeFromEncryption) throws BlockParserException {
 			switch (current_step) {
@@ -883,9 +856,10 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 
 	}
 
+
 	private class ParserWithNoEncryption extends ParserWithEncryption {
-		public ParserWithNoEncryption() throws ConnectionException {
-			super(false);
+
+		ParserWithNoEncryption() throws ConnectionException {
 		}
 
 		@Override

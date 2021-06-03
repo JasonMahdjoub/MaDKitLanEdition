@@ -334,12 +334,9 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 
 	private class ParserWithEncryption extends SubBlockParser {
 
-		ParserWithEncryption() throws ConnectionException {
-			this(true);
-		}
 
-		ParserWithEncryption(boolean enableEncryption) throws ConnectionException {
-			super(enableEncryption?decoderWithEncryption:null, decoderWithoutEncryption, enableEncryption?encoderWithEncryption:null, encoderWithoutEncryption, packetCounter);
+		ParserWithEncryption() throws ConnectionException {
+			super(decoderWithEncryption, decoderWithoutEncryption, encoderWithEncryption, encoderWithoutEncryption, packetCounter);
 		}
 
 		@Override
@@ -362,7 +359,25 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 			}
 		}
 
+		@Override
+		public int getBodyOutputSizeForSignature(int size) throws BlockParserException
+		{
+			try {
+				if (current_step==Step.NOT_CONNECTED)
+					return size;
+				else
+				{
+					if (packetCounter.isDistantActivated())
+					{
+						reInitSymmetricAlgorithmIfNecessary();
+					}
+					return getBodyOutputSizeWithSignature(size);
+				}
 
+			} catch (Exception e) {
+				throw new BlockParserException(e);
+			}
+		}
 		@Override
 		public int getBodyOutputSizeForDecryption(int size) throws BlockParserException {
 			try {
@@ -474,7 +489,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 
 	private class ParserWithNoEncryption extends ParserWithEncryption {
 		ParserWithNoEncryption() throws ConnectionException {
-			super(false);
+			super();
 		}
 
 		@Override

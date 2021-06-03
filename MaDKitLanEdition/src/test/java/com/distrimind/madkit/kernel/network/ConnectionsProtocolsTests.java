@@ -142,7 +142,8 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 			throws SecurityException, IllegalArgumentException, NoSuchAlgorithmException, NoSuchProviderException, ConnectionException, IOException {
 		ArrayList<ConnectionProtocolProperties<?>[]> res = new ArrayList<>();
 		ArrayList<ConnectionProtocolProperties<?>[]> l=dataOneLevel();
-		@SuppressWarnings("unchecked")
+		res.addAll(l);
+		/*@SuppressWarnings("unchecked")
 		ArrayList<ConnectionProtocolProperties<?>[]>[] firstLevel = new ArrayList[l.size()];
 		firstLevel[0]=l;
 		for (int i = 1;i<firstLevel.length;i++)
@@ -158,7 +159,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 				res.add(base);
 			}
 
-		}
+		}*/
 		return res;
 	}
 
@@ -179,7 +180,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		o[1] = p2pp;
 		res.add(o);
 		
-		/*o = new ConnectionProtocolProperties<?>[2];
+		o = new ConnectionProtocolProperties<?>[2];
 		p2pp = new P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties();
 		p2pp.aSymmetricKeySize = 2048;
 		p2pp.symmetricEncryptionType = SymmetricEncryptionType.AES_CBC_PKCS5Padding;
@@ -434,7 +435,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		o[0] = cs;
 		cs = new CheckSumConnectionProtocolProperties();
 		o[1] = cs;
-		res.add(o);*/
+		res.add(o);
 
 
 		return res;

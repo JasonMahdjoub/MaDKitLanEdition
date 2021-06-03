@@ -172,6 +172,9 @@ public abstract class SubBlockParser {
 	protected int getBodyOutputSizeWithEncryption(int size) throws IOException {
 		return (int)(encoderWithEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize);
 	}
+	protected int getBodyOutputSizeWithSignature(int size) throws IOException {
+		return (int)(encoderWithoutEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize);
+	}
 	protected int getBodyOutputSizeWithDecryption(int size) throws IOException {
 		return (int)decoderWithEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
 	}
@@ -220,7 +223,10 @@ public abstract class SubBlockParser {
 	protected SubBlock signOutgoingPointToPointTransferredBlockWithEncoder(SubBlock _block) throws BlockParserException
 	{
 		try {
-			encoderWithoutEncryption.encodeWithSameInputAndOutputStreamSource(_block.getBytes(), _block.getOffset(), _block.getSize());
+			encoderWithoutEncryption
+					.withoutAssociatedData()
+					.withoutExternalCounter()
+					.encodeWithSameInputAndOutputStreamSource(_block.getBytes(), _block.getOffset(), _block.getSize());
 			return new SubBlock(_block.getBytes(), _block.getOffset() - EncryptionSignatureHashEncoder.headSize, (int) encoderWithoutEncryption.getMaximumOutputLength(_block.getSize()));
 		}
 		catch(Exception e)
@@ -241,6 +247,8 @@ public abstract class SubBlockParser {
 				lrim.init(rbis, _block.getOffset(), _block.getSize());
 
 				Integrity integrity = decoderWithoutEncryption
+						.withoutAssociatedData()
+						.withoutExternalCounter()
 						.withRandomInputStream(lrim)
 						.checkHashAndSignatures();
 				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getHeadSize(),

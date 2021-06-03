@@ -475,12 +475,9 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 	}
 
 	private class ParserWithEncryption extends SubBlockParser {
-		ParserWithEncryption() throws ConnectionException {
-			this(true);
-		}
 
-		ParserWithEncryption(boolean enableEncryption) throws ConnectionException {
-			super(enableEncryption?decoderWithEncryption:null, decoderWithoutEncryption, enableEncryption?encoderWithEncryption:null, encoderWithoutEncryption, packetCounter);
+		ParserWithEncryption() throws ConnectionException {
+			super(decoderWithEncryption, decoderWithoutEncryption, encoderWithEncryption, encoderWithoutEncryption, packetCounter);
 		}
 
 		@Override
@@ -507,8 +504,31 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 			return size;
 
 		}
-		
 
+		@Override
+		public int getBodyOutputSizeForSignature(int size) throws BlockParserException
+		{
+			try {
+				switch (current_step) {
+					case NOT_CONNECTED:
+					case WAITING_FOR_PUBLIC_KEY:
+					case WAITING_FOR_SECRET_KEY:
+					case WAITING_FIRST_MESSAGE: {
+						return size;
+					}
+					case WAITING_FOR_CONNECTION_CONFIRMATION:
+					case CONNECTED:
+						if (packetCounter.isDistantActivated())
+						{
+							reInitSymmetricAlgorithmIfNecessary();
+						}
+						return getBodyOutputSizeWithSignature(size);
+				}
+			} catch (Exception e) {
+				throw new BlockParserException(e);
+			}
+			return size;
+		}
 
 		@Override
 		public int getBodyOutputSizeForDecryption(int size) throws BlockParserException {
@@ -664,8 +684,9 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 	}
 
 	private class ParserWithNoEncryption extends ParserWithEncryption {
-		public ParserWithNoEncryption() throws ConnectionException {
-			super(false);
+
+
+		ParserWithNoEncryption() throws ConnectionException {
 		}
 
 		@Override

@@ -67,12 +67,12 @@ public class PointToPointTransferedBlockChecker extends TransferedBlockChecker {
 			SubBlock sb=_block;
 			if (_block.getOffset()!=Block.getHeadSize())
 				throw new IllegalAccessError();
-
 			for (ConnectionProtocol<?> cp : cpInput) {
 				//cp.getPacketCounter().incrementMyCounters();
 				SubBlockInfo checkedBlock = cp.getParser().checkIncomingPointToPointTransferredBlock(sb);
-				if (!checkedBlock.isValid())
+				if (!checkedBlock.isValid()) {
 					return checkedBlock;
+				}
 				sb = checkedBlock.getSubBlock();
 			}
 			if (cpOutput==null)
@@ -101,12 +101,11 @@ public class PointToPointTransferedBlockChecker extends TransferedBlockChecker {
 		int totalOutputHeadSize=0;
 		int size=_block.getSize();
 		for (ConnectionProtocol<?> cp : cpOutput){
-			totalOutputHeadSize += cp.getParser().getHeadSize();
-			totalOutputSize+=size=cp.getParser().getBodyOutputSizeForSignature(size);
+			int hs=cp.getParser().getHeadSize();
+			totalOutputHeadSize += hs;
+			totalOutputSize+=(size=cp.getParser().getBodyOutputSizeForSignature(size)+hs);
 		}
-		for (ConnectionProtocol<?> cp : cpOutput) {
-			totalOutputHeadSize += cp.getParser().getHeadSize();
-		}
+
 		SubBlock res;
 		if (_block.getOffset()!=Block.getHeadSize())
 			throw new IllegalAccessError();
@@ -116,12 +115,11 @@ public class PointToPointTransferedBlockChecker extends TransferedBlockChecker {
 		}
 		else
 		{
-			res=new SubBlock(new Block(totalOutputSize, transferType));
-			res=new SubBlock(res.getBytes(), res.getOffset()+totalOutputHeadSize, _block.getBytes().length-Block.getHeadSize()-totalInputHeadSize);
-			System.arraycopy(_block.getBytes(), Block.getHeadSize()+totalInputHeadSize, res.getBytes(), res.getOffset(), res.getSize());
+			res=new SubBlock(new Block(totalOutputSize, transferType), Block.getHeadSize()+totalOutputHeadSize, _block.getSize());
+			System.arraycopy(_block.getBytes(), Block.getHeadSize()+totalInputHeadSize, res.getBytes(), res.getOffset(), _block.getSize());
 			//Block.setCounterState(res.getBytes(), Block.getCounterState(_block.getBytes()));
 		}
-		
+
 		for (java.util.Iterator<ConnectionProtocol<?>> it=cpOutput.reverseIterator();it.hasNext();)
 		{
 			ConnectionProtocol<?> cp=it.next();

@@ -56,6 +56,12 @@ public class SubBlock {
 		size = block.length - offset;
 	}
 
+	public SubBlock(Block _block, int _offset, int _size) {
+		block = _block.getBytes();
+		offset = _offset;
+		size = _size;
+	}
+
 	
 	
 	

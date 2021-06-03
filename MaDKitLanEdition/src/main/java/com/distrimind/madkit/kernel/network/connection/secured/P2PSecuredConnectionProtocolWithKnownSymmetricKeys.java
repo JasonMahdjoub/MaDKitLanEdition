@@ -305,12 +305,9 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 
 	private class ParserWithEncryption extends SubBlockParser
 	{
-		ParserWithEncryption() throws ConnectionException {
-			this(true);
-		}
 
-		ParserWithEncryption(boolean enableEncryption) throws ConnectionException {
-			super(enableEncryption?decoderWithEncryption:null, decoderWithoutEncryption, enableEncryption?encoderWithEncryption:null, encoderWithoutEncryption, packetCounter);
+		ParserWithEncryption() throws ConnectionException {
+			super(decoderWithEncryption, decoderWithoutEncryption, encoderWithEncryption, encoderWithoutEncryption, packetCounter);
 		}
 		@Override
 		public SubBlockInfo getSubBlock(SubBlock _block) throws BlockParserException {
@@ -374,6 +371,31 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 							reInitSymmetricAlgorithmIfNecessary();
 						}
 						return getBodyOutputSizeWithEncryption(size);
+				}
+			} catch (Exception e) {
+				throw new BlockParserException(e);
+			}
+			return size;
+		}
+		@Override
+		public int getBodyOutputSizeForSignature(int size) throws BlockParserException
+		{
+			try {
+				switch (status) {
+					case NOT_CONNECTED:
+						return size;
+					case WAITING_FOR_CONNECTION_CONFIRMATION:
+						if (isCurrentServerAskingConnection())
+							return size;
+						else
+							return getBodyOutputSizeWithSignature(size);
+
+					case CONNECTED:
+						if (packetCounter.isDistantActivated())
+						{
+							reInitSymmetricAlgorithmIfNecessary();
+						}
+						return getBodyOutputSizeWithSignature(size);
 				}
 			} catch (Exception e) {
 				throw new BlockParserException(e);
@@ -446,7 +468,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 	private class ParserWithNoEncryption extends ParserWithEncryption
 	{
 		ParserWithNoEncryption() throws ConnectionException {
-			super(false);
+			super();
 		}
 
 		@Override
