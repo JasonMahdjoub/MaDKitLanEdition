@@ -118,18 +118,34 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 		this.secretKeyForEncryption=properties.getSymmetricSecretKeyForEncryption(id);
 		this.secretKeyForSignature=properties.getSymmetricSecretKeyForSignature(id);
 		try {
+			this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, properties.enableEncryption && secretKeyForEncryption.getEncryptionAlgorithmType().getMaxCounterSizeInBytesUsedWithBlockMode()>0, true);
 			encoderWithoutEncryption.withSymmetricSecretKeyForSignature(secretKeyForSignature);
-			encoderWithEncryption.withSymmetricSecretKeyForSignature(secretKeyForSignature);
+			if (!properties.enableEncryption || !secretKeyForEncryption.getEncryptionAlgorithmType().isAuthenticatedAlgorithm())
+				encoderWithEncryption.withSymmetricSecretKeyForSignature(secretKeyForSignature);
+			else
+				encoderWithEncryption.withoutSymmetricSignature();
+
 			decoderWithoutEncryption.withSymmetricSecretKeyForSignature(secretKeyForSignature);
-			decoderWithEncryption.withSymmetricSecretKeyForSignature(secretKeyForSignature);
+			if (!properties.enableEncryption || !secretKeyForEncryption.getEncryptionAlgorithmType().isAuthenticatedAlgorithm())
+				decoderWithEncryption.withSymmetricSecretKeyForSignature(secretKeyForSignature);
+			else
+				decoderWithEncryption.withoutSymmetricSignature();
 			if (properties.enableEncryption) {
-				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secretKeyForEncryption);
-				decoderWithEncryption.withSymmetricSecretKeyForEncryption(secretKeyForEncryption);
+				byte[] pc=packetCounter.getMyEncryptionCounter();
+				if (pc!=null)
+				{
+					encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secretKeyForEncryption, (byte)pc.length);
+					decoderWithEncryption.withSymmetricSecretKeyForEncryption(secretKeyForEncryption, (byte)pc.length);
+				}
+				else {
+					encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secretKeyForEncryption);
+					decoderWithEncryption.withSymmetricSecretKeyForEncryption(secretKeyForEncryption);
+				}
 			} else {
 				encoderWithEncryption.withoutSymmetricEncryption();
 				decoderWithEncryption.withoutSymmetricEncryption();
 			}
-			this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, properties.enableEncryption && secretKeyForEncryption.getEncryptionAlgorithmType().getMaxCounterSizeInBytesUsedWithBlockMode()>0, true);
+
 			parser.setPacketCounter(packetCounter);
 		}
 		catch (IOException e)
@@ -144,8 +160,16 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 		try {
 			if (properties.enableEncryption && reInitSymmetricAlgorithm) {
 				reInitSymmetricAlgorithm = false;
-				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secretKeyForEncryption);
-				decoderWithEncryption.withSymmetricSecretKeyForEncryption(secretKeyForEncryption);
+				byte[] pc=packetCounter.getMyEncryptionCounter();
+				if (pc!=null)
+				{
+					encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secretKeyForEncryption, (byte)pc.length);
+					decoderWithEncryption.withSymmetricSecretKeyForEncryption(secretKeyForEncryption, (byte)pc.length);
+				}
+				else {
+					encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secretKeyForEncryption);
+					decoderWithEncryption.withSymmetricSecretKeyForEncryption(secretKeyForEncryption);
+				}
 			}
 		}
 		catch (IOException e)

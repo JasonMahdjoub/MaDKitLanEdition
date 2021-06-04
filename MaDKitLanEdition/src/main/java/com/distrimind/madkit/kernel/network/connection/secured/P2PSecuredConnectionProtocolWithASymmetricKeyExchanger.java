@@ -278,8 +278,16 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 		try {
 			secret_key = hProperties.symmetricEncryptionType.getKeyGenerator(approvedRandomForKeys, hProperties.symmetricKeySizeBits)
 					.generateKey();
-			encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key);
-			decoderWithEncryption.withSymmetricSecretKeyForEncryption(secret_key);
+			byte[] pc=packetCounter.getMyEncryptionCounter();
+			if (pc!=null)
+			{
+				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key, (byte)pc.length);
+				decoderWithEncryption.withSymmetricSecretKeyForEncryption(secret_key, (byte)pc.length);
+			}
+			else {
+				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key);
+				decoderWithEncryption.withSymmetricSecretKeyForEncryption(secret_key);
+			}
 		} catch (NoSuchAlgorithmException | NoSuchProviderException | IOException e) {
 			secret_key = null;
 			encoderWithEncryption.withoutSymmetricEncryption();
@@ -303,8 +311,16 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 		try {
 			KeyWrapperAlgorithm kwe=new KeyWrapperAlgorithm(keyWrapper, myKeyPairForEncryption);
 			secret_key = kwe.unwrap(_secret_key);
-			encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key);
-			decoderWithEncryption.withSymmetricSecretKeyForEncryption(secret_key);
+			byte[] pc=packetCounter.getMyEncryptionCounter();
+			if (pc!=null)
+			{
+				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key, (byte)pc.length);
+				decoderWithEncryption.withSymmetricSecretKeyForEncryption(secret_key, (byte)pc.length);
+			}
+			else {
+				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key);
+				decoderWithEncryption.withSymmetricSecretKeyForEncryption(secret_key);
+			}
 		} catch (IOException | IllegalArgumentException | IllegalStateException e) {
 			encoderWithEncryption.withoutSymmetricEncryption();
 			decoderWithEncryption.withoutSymmetricEncryption();

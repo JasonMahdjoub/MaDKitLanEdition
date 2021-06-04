@@ -159,8 +159,16 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 		try {
 			if (secret_key_for_encryption != null) {
 				if (encoderWithEncryption.getSymmetricSecretKeyForEncryption() == null) {
-					encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key_for_encryption);
-					decoderWithEncryption.withSymmetricSecretKeyForEncryption(secret_key_for_encryption);
+					byte[] pc=packetCounter.getMyEncryptionCounter();
+					if (pc!=null)
+					{
+						encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key_for_encryption, (byte)pc.length);
+						decoderWithEncryption.withSymmetricSecretKeyForEncryption(secret_key_for_encryption, (byte)pc.length);
+					}
+					else {
+						encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key_for_encryption);
+						decoderWithEncryption.withSymmetricSecretKeyForEncryption(secret_key_for_encryption);
+					}
 				}
 			} else {
 				encoderWithEncryption.withoutSymmetricEncryption();

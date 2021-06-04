@@ -158,8 +158,15 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 			if (hProperties.enableEncryption)
 			{
 				mySecretKeyForEncryption= hProperties.getSymmetricEncryptionType().getKeyGenerator(approvedRandomForKeys, hProperties.getSymmetricKeySizeBits()).generateKey();
-				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, mySecretKeyForEncryption);
-				decoderWithEncryption.withSymmetricSecretKeyForEncryption(mySecretKeyForEncryption);
+				if (packetCounter.getMyEncryptionCounter()==null) {
+					encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.mySecretKeyForEncryption);
+					decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.mySecretKeyForEncryption);
+				}
+				else
+				{
+					encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.mySecretKeyForEncryption, (byte) packetCounter.getMyEncryptionCounter().length);
+					decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.mySecretKeyForEncryption, (byte) packetCounter.getMyEncryptionCounter().length);
+				}
 			}
 			else {
 				mySecretKeyForEncryption = null;
