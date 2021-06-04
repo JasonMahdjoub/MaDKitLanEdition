@@ -90,7 +90,7 @@ final class ReadPacket {
 			} else {
 				messageDigest = messageDigestType.getMessageDigestInstance();
 				messageDigest.reset();
-				digestResult = new byte[messageDigest.getDigestLength()];
+				digestResult = new byte[messageDigest.getDigestLengthInBytes()];
 				digestResultTransmitted = new byte[digestResult.length];
 			}
 		} catch (Exception e) {

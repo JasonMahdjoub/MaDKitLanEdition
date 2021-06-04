@@ -73,8 +73,8 @@ public class SubBlocksStructure {
 		public void init(int packetSize, ConnectionProtocol<?> connection_protocol) throws NIOException
 		{
 			int size = packetSize;
-			int initPacketSize = -1;
-			int s=connection_protocol.sizeOfSubConnectionProtocols() + 1;
+			this.initial_packet_size = -1;
+			int s=connection_protocol.numberOfSubConnectionProtocols() + 1;
 			if (offsets==null || offsets.length!=s)
 				offsets = new int[s];
 			if (sub_block_sizes==null || sub_block_sizes.length!=offsets.length)
@@ -105,8 +105,8 @@ public class SubBlocksStructure {
 					 * int mod=size%sbp.getSizeBlockModulus(); if (mod!=0)
 					 * size=size+(sbp.getSizeBlockModulus()-size%sbp.getSizeBlockModulus());
 					 */
-					if (initPacketSize == -1)
-						initPacketSize = size;
+					if (initial_packet_size == -1)
+						initial_packet_size = size;
 					/*
 					 * else { sub_block_sizes_for_parent[i+1]=size; }
 					 */
@@ -123,7 +123,6 @@ public class SubBlocksStructure {
 		}
 
 		// sub_block_sizes_for_parent[0]=sub_block_sizes[0]+Block.getHeadSize();
-		initial_packet_size = initPacketSize;
 		block_content_size = size;
 
 		sub_block_offsets = new int[offsets.length];
@@ -144,7 +143,7 @@ public class SubBlocksStructure {
 		if (size <= 0)
 			throw new NIOException("Invalid block (too little size)");
 		int offset = Block.getHeadSize();
-		int s=connection_protocol.sizeOfSubConnectionProtocols() + 1;
+		int s=connection_protocol.numberOfSubConnectionProtocols() + 1;
 		if (sub_block_sizes==null || sub_block_sizes.length!=s)
 			sub_block_sizes = new int[s];
 		if (sub_block_offsets==null || sub_block_offsets.length!=s)
