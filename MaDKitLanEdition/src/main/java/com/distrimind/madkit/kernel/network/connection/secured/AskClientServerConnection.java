@@ -91,7 +91,7 @@ class AskClientServerConnection extends AskConnection {
 	@Override
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		super.writeExternal(oos);
-		oos.writeBytesArray(secretKeyForEncryption.getBytes(), true, MAX_SECRET_KEY_LENGTH);
+		oos.writeBytesArray(secretKeyForEncryption==null?null:secretKeyForEncryption.getBytes(), true, MAX_SECRET_KEY_LENGTH);
 		oos.writeBytesArray(secretKeyForSignature.getBytes(), false, MAX_SECRET_KEY_LENGTH);
 		//oos.writeBytesArray(signatureOfSecretKeyForEncryption, true, MAX_SIGNATURE_LENGTH);
 		oos.writeBytesArray(randomBytes, true, 256);
