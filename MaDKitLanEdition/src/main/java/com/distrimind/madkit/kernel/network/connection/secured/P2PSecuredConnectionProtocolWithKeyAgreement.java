@@ -240,14 +240,14 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 		if (reInitSymmetricAlgorithm)
 		{
 			reInitSymmetricAlgorithm =false;
-			if (packetCounter.getMyEncryptionCounter()==null)
-			{
-				encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.secret_key_for_encryption);
-				decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.secret_key_for_encryption);
-			}
-			else {
-				encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.secret_key_for_encryption, (byte) packetCounter.getMyEncryptionCounter().length);
-				decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.secret_key_for_encryption, (byte) packetCounter.getMyEncryptionCounter().length);
+			if (isCrypted()) {
+				if (packetCounter.getMyEncryptionCounter() == null) {
+					encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.secret_key_for_encryption);
+					decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.secret_key_for_encryption);
+				} else {
+					encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.secret_key_for_encryption, (byte) packetCounter.getMyEncryptionCounter().length);
+					decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.secret_key_for_encryption, (byte) packetCounter.getMyEncryptionCounter().length);
+				}
 			}
 		}
 	}

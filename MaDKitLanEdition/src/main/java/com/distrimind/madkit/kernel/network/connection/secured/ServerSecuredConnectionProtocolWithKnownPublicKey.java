@@ -194,8 +194,15 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 		if (reInitSymmetricAlgorithm)
 		{
 			reInitSymmetricAlgorithm =false;
-			encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.mySecretKeyForEncryption, (byte)packetCounter.getMyEncryptionCounter().length);
-			decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.mySecretKeyForEncryption, (byte)packetCounter.getMyEncryptionCounter().length);
+			if (packetCounter.getMyEncryptionCounter()==null) {
+				encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.mySecretKeyForEncryption);
+				decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.mySecretKeyForEncryption);
+			}
+			else {
+				encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.mySecretKeyForEncryption, (byte) packetCounter.getMyEncryptionCounter().length);
+				decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.mySecretKeyForEncryption, (byte) packetCounter.getMyEncryptionCounter().length);
+
+			}
 		}
 	}
 	boolean isProfileInitialized()
@@ -214,25 +221,41 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 			if (mySecretKeyForSignature==null /*|| !askMessage.checkSignedMessage(mySecretKeyForSignature, hProperties.enableEncryption)*/)
 				throw new ConnectionException("Message signature is not checked !");
 
+
+
+
 			if (hProperties.enableEncryption)
 			{
 				KeyWrapperAlgorithm kwe=new KeyWrapperAlgorithm(keyWrapper, myKeyPairForEncryption, mySecretKeyForSignature);
 				mySecretKeyForEncryption=kwe.unwrap(askMessage.getSecretKeyForEncryption());
-				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, mySecretKeyForEncryption);
-				decoderWithEncryption.withSymmetricSecretKeyForEncryption(mySecretKeyForEncryption);
+				this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, hProperties.enableEncryption && mySecretKeyForEncryption.getEncryptionAlgorithmType().getMaxCounterSizeInBytesUsedWithBlockMode()>0, true);
+				if (this.packetCounter.getMyEncryptionCounter()==null) {
+					encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, mySecretKeyForEncryption);
+					decoderWithEncryption.withSymmetricSecretKeyForEncryption(mySecretKeyForEncryption);
+				}
+				else
+				{
+					encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, mySecretKeyForEncryption, (byte)packetCounter.getMyEncryptionCounter().length);
+					decoderWithEncryption.withSymmetricSecretKeyForEncryption(mySecretKeyForEncryption, (byte)packetCounter.getMyEncryptionCounter().length);
+				}
 			}
 			else {
+				this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, false, true);
 				mySecretKeyForEncryption = null;
 				encoderWithEncryption.withoutSymmetricEncryption();
 				decoderWithEncryption.withoutSymmetricEncryption();
 			}
-			this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, hProperties.enableEncryption && mySecretKeyForEncryption.getEncryptionAlgorithmType().getMaxCounterSizeInBytesUsedWithBlockMode()>0, true);
+			parser.setPacketCounter(packetCounter);
+
 			encoderWithoutEncryption.withSymmetricSecretKeyForSignature(mySecretKeyForSignature);
-			encoderWithEncryption.withSymmetricSecretKeyForSignature(mySecretKeyForSignature);
+			if (!hProperties.enableEncryption || !mySecretKeyForEncryption.getEncryptionAlgorithmType().isAuthenticatedAlgorithm())
+				encoderWithEncryption.withSymmetricSecretKeyForSignature(mySecretKeyForSignature);
 			decoderWithoutEncryption.withSymmetricSecretKeyForSignature(mySecretKeyForSignature);
-			decoderWithEncryption.withSymmetricSecretKeyForSignature(mySecretKeyForSignature);
+			if (!hProperties.enableEncryption || !mySecretKeyForEncryption.getEncryptionAlgorithmType().isAuthenticatedAlgorithm())
+				decoderWithEncryption.withSymmetricSecretKeyForSignature(mySecretKeyForSignature);
 			// this.secret_key=symmetricAlgorithm.getSecretKey();
 		} catch (Exception e) {
+			e.printStackTrace();
 			resetKeys();
 			throw new ConnectionException(e);
 		}
@@ -337,6 +360,11 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 
 		ParserWithEncryption() throws ConnectionException {
 			super(decoderWithEncryption, decoderWithoutEncryption, encoderWithEncryption, encoderWithoutEncryption, packetCounter);
+		}
+
+		@Override
+		public String toString() {
+			return "ServerParserWithEncryption{"+current_step+"}";
 		}
 
 		@Override

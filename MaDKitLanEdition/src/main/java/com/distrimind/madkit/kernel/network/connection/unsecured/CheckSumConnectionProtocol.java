@@ -188,7 +188,7 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 
 		@Override
 		public int getHeadSize() {
-			return messageDigest.getDigestLength();
+			return messageDigest.getDigestLengthInBytes();
 		}
 
 		@Override
@@ -289,7 +289,7 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 		public SubBlockInfo checkSubBlock(SubBlock _block) throws BlockParserException {
 			messageDigest.reset();
 			
-			int dl = messageDigest.getDigestLength();
+			int dl = messageDigest.getDigestLengthInBytes();
 			SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + dl, _block.getSize() - dl);
 			messageDigest.update(res.getBytes(), res.getOffset(), res.getSize());
 			byte[] digest = messageDigest.digest();

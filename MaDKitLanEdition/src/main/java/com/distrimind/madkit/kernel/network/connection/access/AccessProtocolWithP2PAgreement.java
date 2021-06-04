@@ -189,13 +189,13 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 
 					if (access_data instanceof LoginData) {
 						access_state = AccessState.ACCESS_INITIALIZED;
-						JPakeAccessInitialized res=new JPakeAccessInitialized(((LoginData)access_data).canTakesLoginInitiative(), properties.getApprovedSecureRandomForKeys(), messageDigest.getDigestLength());
+						JPakeAccessInitialized res=new JPakeAccessInitialized(((LoginData)access_data).canTakesLoginInitiative(), properties.getApprovedSecureRandomForKeys(), messageDigest.getDigestLengthInBytes());
 						localGeneratedSalt=res.getGeneratedSalt();
 						return res;
 						
 					} else {
 						access_state = AccessState.ACCESS_INITIALIZED;
-						JPakeAccessInitialized res=new JPakeAccessInitialized(false, properties.getApprovedSecureRandomForKeys(), messageDigest.getDigestLength());
+						JPakeAccessInitialized res=new JPakeAccessInitialized(false, properties.getApprovedSecureRandomForKeys(), messageDigest.getDigestLengthInBytes());
 						localGeneratedSalt=res.getGeneratedSalt();
 						return res;
 					}
@@ -644,7 +644,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 		if (messageDigest==null)
 			throw new NullPointerException();
 		
-		int mds=messageDigest.getDigestLength();
+		int mds=messageDigest.getDigestLengthInBytes();
 		byte[] ivParameter=new byte[mds];
 		random.nextBytes(ivParameter);
 		if (distantGeneratedSalt.length!=ivParameter.length)
@@ -669,7 +669,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 		System.arraycopy(identifier, 0, res, generatedSalt.length, identifier.length);
 		identifier=res;
 		
-		final int mds=messageDigest.getDigestLength();
+		final int mds=messageDigest.getDigestLengthInBytes();
 		if (ivParameter.length<mds)
 			throw new IllegalArgumentException("Invalid IvParameter size");
 		int index=0;
@@ -695,7 +695,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 	}
 
 	static boolean compareAnonymousIdentifier(byte[] identifier, byte[] anonymousIdentifier, AbstractMessageDigest messageDigest, byte[] localGeneratedSalt) throws IOException {
-		if (anonymousIdentifier==null || anonymousIdentifier.length<messageDigest.getDigestLength()*2)
+		if (anonymousIdentifier==null || anonymousIdentifier.length<messageDigest.getDigestLengthInBytes()*2)
 			return false;
 		byte[] expectedAnonymousIdentifier= anonymizeIdentifier(identifier, anonymousIdentifier, messageDigest, localGeneratedSalt);
 		return Arrays.equals(expectedAnonymousIdentifier, anonymousIdentifier);

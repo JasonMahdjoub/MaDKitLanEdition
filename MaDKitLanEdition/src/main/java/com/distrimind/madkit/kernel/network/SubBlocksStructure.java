@@ -73,7 +73,7 @@ public class SubBlocksStructure {
 		public void init(int packetSize, ConnectionProtocol<?> connection_protocol) throws NIOException
 		{
 			int size = packetSize;
-			this.initial_packet_size = -1;
+			this.initial_packet_size = size;
 			int s=connection_protocol.numberOfSubConnectionProtocols() + 1;
 			if (offsets==null || offsets.length!=s)
 				offsets = new int[s];
@@ -101,12 +101,6 @@ public class SubBlocksStructure {
 						throw new BlockParserException(
 								"The parser " + sbp + " returns an output size lower than 0: " + outputSize);
 
-					/*
-					 * int mod=size%sbp.getSizeBlockModulus(); if (mod!=0)
-					 * size=size+(sbp.getSizeBlockModulus()-size%sbp.getSizeBlockModulus());
-					 */
-					if (initial_packet_size == -1)
-						initial_packet_size = size;
 					/*
 					 * else { sub_block_sizes_for_parent[i+1]=size; }
 					 */

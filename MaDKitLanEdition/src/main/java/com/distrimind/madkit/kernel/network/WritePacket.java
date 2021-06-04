@@ -280,7 +280,7 @@ public final class WritePacket {
 				if (current_pos.get() >= data_length + start_position) {
 					if (digestResultPos < 0)
 						throw new IllegalAccessError();
-					int currentDigestSize = res.getRealDataSizeWithoutPacketHeadSize() - currentPacketDataSize;
+					int currentDigestSize = res.getRealDataSizeWithoutPacketHeadSize() - currentPacketDataSize-digestResultPos;
 					if (currentDigestSize > 0) {
 						int read_data = res.writeData(digestResult, digestResultPos, currentDigestSize);
 						if (read_data != currentDigestSize)
@@ -390,6 +390,8 @@ public final class WritePacket {
 			int max_buffer_size, int packet_head_size, long _data_remaining, short random_values_size, AbstractSecureRandom rand) throws NIOException {
 		if (random_values_size<0)
 			throw new NullPointerException();
+		if (_data_remaining<=0)
+			throw new IllegalArgumentException();
 		if (random_values_size == 0)
 			return new ByteTabOutputStream(conProto, messageDigest, max_buffer_size, packet_head_size, _data_remaining);
 		else
@@ -403,7 +405,7 @@ public final class WritePacket {
 		private final byte[] tab;
 		private final SubBlock subBlock;
 		private int cursor;
-		private final int length;
+		private final int end_cursor;
 		private final int realDataSize_WithoutHead;
 
 		ByteTabOutputStream(ConnectionProtocol<?> connectionProtocol, AbstractMessageDigest messageDigest, int max_buffer_size, int packet_head_size,
@@ -415,11 +417,12 @@ public final class WritePacket {
 			 * byte[size];
 			 */
 			realDataSize_WithoutHead = (int)Math.min(_data_remaining, max_buffer_size);
-			subBlock=connectionProtocol.initSubBlock(packet_head_size + realDataSize_WithoutHead+1+(messageDigest==null?0:messageDigest.getDigestLengthInBytes()));
+			int packetSize=packet_head_size + realDataSize_WithoutHead+1;
+			subBlock=connectionProtocol.initSubBlock(packetSize);
 			//tab = new byte[size];
 			tab=subBlock.getBytes();
 			cursor = subBlock.getOffset();
-			length=subBlock.getSize();
+			end_cursor=packetSize+cursor;
 			tab[cursor++]=0;
 		}
 		static int getMaxOutputSize(int max_buffer_size, int packet_head_size)
@@ -447,7 +450,7 @@ public final class WritePacket {
 		int writeData(byte[] _d, int _offset, int size) throws EOFException {
 			if (size <= 0)
 				return 0;
-			if (size+cursor>length)
+			if (size+cursor>end_cursor)
 				throw new EOFException();
 			System.arraycopy(_d, _offset, tab, cursor, size);
 			if (messageDigest != null)
@@ -460,7 +463,7 @@ public final class WritePacket {
 		int writeData(RandomInputStream _is, int _size) throws IOException {
 			if (_size <= 0)
 				return 0;
-			if (_size+cursor>length)
+			if (_size+cursor>end_cursor)
 				throw new EOFException();
 			_is.readFully(tab, cursor, _size);
 			if (messageDigest != null)
@@ -507,7 +510,7 @@ public final class WritePacket {
 		private final int realDataSize_WithoutHead;
 		private int randomValuesWritten = 0;
 		private final int shiftedTabLength;
-		private final int length;
+		private final int endCursor;
 
 		ByteTabOutputStreamWithRandomValues(ConnectionProtocol<?> conProto, AbstractMessageDigest messageDigest, int max_buffer_size,
 				int packet_head_size, long _data_remaining, short max_random_values_size, AbstractSecureRandom rand) throws NIOException {
@@ -530,12 +533,13 @@ public final class WritePacket {
 			 * packet_head_size); data_size=(short)(tab.length-this.random_values_size);
 			 */
 			int size = (int) (Math.min(_data_remaining, max_buffer_size));
-			subBlock=conProto.initSubBlock(size + packet_head_size + random_values_size+1+(messageDigest==null?0:messageDigest.getDigestLengthInBytes()));
+			int packetSize=size + packet_head_size + random_values_size+1;
+			subBlock=conProto.initSubBlock(packetSize);
 			//tab = new byte[size + packet_head_size + this.random_values_size];
 			tab=subBlock.getBytes();
-			length=subBlock.getSize();
 			realDataSize_WithoutHead = size;
 			cursor = subBlock.getOffset();
+			endCursor=packetSize+cursor;
 			nextRandValuePos = cursor+1;
 			shiftedTabLength=subBlock.getOffset()+subBlock.getSize();
 			tab[cursor++]=1;
@@ -562,7 +566,7 @@ public final class WritePacket {
 		int writeData(byte[] d, int offset, int size) throws EOFException {
 			if (size <= 0)
 				return 0;
-			if (size+cursor>length)
+			if (size+cursor>endCursor)
 				throw new EOFException();
 			int total = 0;
 			while (size > 0) {
@@ -588,7 +592,7 @@ public final class WritePacket {
 		int writeData(RandomInputStream is, int size) throws IOException {
 			if (size <= 0)
 				return 0;
-			if (size+cursor>length)
+			if (size+cursor>endCursor)
 				throw new EOFException();
 			int total = 0;
 			while (size > 0) {

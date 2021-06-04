@@ -112,6 +112,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 	}
 
 	private void initSecretKeys(int id) throws ConnectionException {
+
 		if (!properties.isValidProfile(id, network_properties.encryptionRestrictionForConnectionProtocols))
 			throw new ConnectionException();
 		this.secretKeyForEncryption=properties.getSymmetricSecretKeyForEncryption(id);
@@ -129,7 +130,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 				decoderWithEncryption.withoutSymmetricEncryption();
 			}
 			this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, properties.enableEncryption && secretKeyForEncryption.getEncryptionAlgorithmType().getMaxCounterSizeInBytesUsedWithBlockMode()>0, true);
-
+			parser.setPacketCounter(packetCounter);
 		}
 		catch (IOException e)
 		{

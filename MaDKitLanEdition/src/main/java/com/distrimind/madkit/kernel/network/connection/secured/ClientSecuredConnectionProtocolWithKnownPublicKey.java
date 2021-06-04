@@ -141,8 +141,15 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 		if (reInitSymmetricAlgorithm)
 		{
 			reInitSymmetricAlgorithm =false;
-			encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.mySecretKeyForEncryption, (byte)packetCounter.getMyEncryptionCounter().length);
-			decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.mySecretKeyForEncryption, (byte)packetCounter.getMyEncryptionCounter().length);
+			if (packetCounter.getMyEncryptionCounter()==null) {
+				encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.mySecretKeyForEncryption);
+				decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.mySecretKeyForEncryption);
+			}
+			else
+			{
+				encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.mySecretKeyForEncryption, (byte) packetCounter.getMyEncryptionCounter().length);
+				decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.mySecretKeyForEncryption, (byte) packetCounter.getMyEncryptionCounter().length);
+			}
 		}
 	}
 	private void generateSecretKey() throws ConnectionException {
@@ -287,6 +294,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 	private class ParserWithEncryption extends SubBlockParser {
 
 
+
 		ParserWithEncryption() throws ConnectionException {
 			super(decoderWithEncryption, decoderWithoutEncryption, encoderWithEncryption, encoderWithoutEncryption, packetCounter);
 		}
@@ -294,7 +302,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 		public int getBodyOutputSizeForSignature(int size) throws BlockParserException
 		{
 			try {
-				if (current_step==Step.NOT_CONNECTED || current_step==Step.WAITING_FOR_CONNECTION_CONFIRMATION)
+				if (current_step==Step.NOT_CONNECTED)
 					return size;
 				else
 				{
@@ -312,8 +320,9 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 		@Override
 		public int getBodyOutputSizeForEncryption(int size) throws BlockParserException {
 			try {
-				if (current_step==Step.NOT_CONNECTED || current_step==Step.WAITING_FOR_CONNECTION_CONFIRMATION)
+				if (current_step==Step.NOT_CONNECTED) {
 					return size;
+				}
 				else
 				{
 					if (packetCounter.isDistantActivated())
@@ -432,6 +441,10 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 			throw new BlockParserException("Unexpected exception");
 		}
 
+		@Override
+		public String toString() {
+			return "ClientParserWithEncryption{"+current_step+"}";
+		}
 	}
 
 	private class ParserWithNoEncryption extends ParserWithEncryption {

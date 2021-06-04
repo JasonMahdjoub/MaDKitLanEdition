@@ -428,7 +428,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			if (logger != null && logger.isLoggable(Level.FINE))
 				logger.fine(" launched ! (distant_inet_address=" + this.distant_inet_address + ", this_ask_connection="
 						+ this_ask_connection + ", connectionProtocolsNumber="
-						+ (1 + connection_protocol.sizeOfSubConnectionProtocols()) + ") ");
+						+ (1 + connection_protocol.numberOfSubConnectionProtocols()) + ") ");
 
 		} catch (Exception e) {
 			if (logger != null)

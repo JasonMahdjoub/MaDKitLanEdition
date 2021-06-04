@@ -129,7 +129,7 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 				throw new IllegalArgumentException("The public key size must be greater than " + minASymmetricKeySizeBits);
 
 			if (signatureType == null)
-				throw new NullPointerException("signatureType");
+				signatureType=SymmetricAuthenticatedSignatureType.DEFAULT;
 			this.publicKeyForEncryption = publicKeyForEncryption;
 			this.signatureType = signatureType;
 			keyIdentifier = identifier;

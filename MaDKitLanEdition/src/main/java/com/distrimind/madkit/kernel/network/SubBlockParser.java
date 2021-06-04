@@ -45,6 +45,7 @@ import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.kernel.network.connection.secured.PacketCounterForEncryptionAndSignature;
 import com.distrimind.util.crypto.EncryptionSignatureHashDecoder;
 import com.distrimind.util.crypto.EncryptionSignatureHashEncoder;
+import com.distrimind.util.crypto.SymmetricSecretKey;
 import com.distrimind.util.io.*;
 
 /**
@@ -155,7 +156,6 @@ public abstract class SubBlockParser {
 					}
 				} else {
 					Integrity integrity = decoder.checkHashAndSignatures();
-					System.out.println(integrity);
 					int dl = (int) decoder.getDataSizeInBytesAfterDecryption();
 					return new SubBlockInfo(new SubBlock(_block.getBytes(), _block.getOffset() + EncryptionSignatureHashEncoder.headSize, dl), integrity == Integrity.OK, integrity == Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 				}
@@ -174,14 +174,25 @@ public abstract class SubBlockParser {
 			}
 		}
 	}
+	private int getBodyOutputSizeWithEncryptionImpl(int size) throws IOException {
+		SymmetricSecretKey sske=encoderWithEncryption.getSymmetricSecretKeyForEncryption();
+		if (sske!=null && !sske.useEncryptionAlgorithm())
+			return (int)(encoderWithEncryption.getMaximumOutputLength(size));
+		else
+			return (int)(encoderWithoutEncryption.getMaximumOutputLength(size));
+	}
 	protected int getBodyOutputSizeWithEncryption(int size) throws IOException {
-		return (int)(encoderWithEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize);
+		return getBodyOutputSizeWithEncryptionImpl(size)-EncryptionSignatureHashEncoder.headSize;
 	}
 	protected int getBodyOutputSizeWithSignature(int size) throws IOException {
 		return (int)(encoderWithoutEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize);
 	}
 	protected int getBodyOutputSizeWithDecryption(int size) throws IOException {
-		return (int)decoderWithEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+		SymmetricSecretKey sske=encoderWithEncryption.getSymmetricSecretKeyForEncryption();
+		if (sske!=null && !sske.useEncryptionAlgorithm())
+			return (int)decoderWithEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+		else
+			return (int)decoderWithoutEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
 	}
 
 	protected SubBlock getEncryptedParentBlock(final SubBlock _block, boolean excludeFromEncryption) throws BlockParserException {
@@ -202,13 +213,13 @@ public abstract class SubBlockParser {
 			if (excludeFromEncryption) {
 				byte[] tab=_block.getBytes();
 				int l=encoder.encodeWithSameInputAndOutputStreamSource(tab, _block.getOffset(), _block.getSize());
-				SubBlock res= new SubBlock(tab, _block.getOffset() - EncryptionSignatureHashEncoder.headSize, (int) encoderWithEncryption.getMaximumOutputLength(_block.getSize()));
+				SubBlock res= new SubBlock(tab, _block.getOffset() - EncryptionSignatureHashEncoder.headSize, getBodyOutputSizeWithEncryptionImpl(_block.getSize()));
 
 				for (int i=res.getOffset()+l, m=res.getOffset()+res.getSize();i<m;i++)
 					tab[i]=0;
 				return res;
 			} else {
-				int l=(int)encoderWithEncryption.getMaximumOutputLength(_block.getSize());
+				int l=getBodyOutputSizeWithEncryptionImpl(_block.getSize());
 
 				int off=_block.getOffset() - EncryptionSignatureHashEncoder.headSize;
 				byte[] tab=new byte[_block.getBytes().length];
