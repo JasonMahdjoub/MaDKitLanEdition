@@ -244,17 +244,23 @@ public abstract class SubBlockParser {
 		byte[] tab=res.getBytes();
 		for (int i=res.getOffset();i<_block.getOffset();i++)
 			tab[i]=0;
+		for (int i=_block.getOffset()+ _block.getSize(), m=res.getOffset()+res.getSize();i<m;i++)
+			tab[i]=0;
 		return res;
 
 	}
 	protected SubBlock signOutgoingPointToPointTransferredBlockWithEncoder(SubBlock _block) throws BlockParserException
 	{
 		try {
-			encoderWithoutEncryption
+			int l=encoderWithoutEncryption
 					.withoutAssociatedData()
 					.withoutExternalCounter()
 					.encodeWithSameInputAndOutputStreamSource(_block.getBytes(), _block.getOffset(), _block.getSize());
-			return new SubBlock(_block.getBytes(), _block.getOffset() - EncryptionSignatureHashEncoder.headSize, (int) encoderWithoutEncryption.getMaximumOutputLength(_block.getSize()));
+			byte[] tab=_block.getBytes();
+			SubBlock res=new SubBlock(tab, _block.getOffset() - EncryptionSignatureHashEncoder.headSize, (int) encoderWithoutEncryption.getMaximumOutputLength(_block.getSize()));
+			for (int i=res.getOffset()+l, m=res.getOffset()+res.getSize();i<m;i++)
+				tab[i]=0;
+			return res;
 		}
 		catch(Exception e)
 		{
