@@ -95,7 +95,11 @@ public abstract class SubBlockParser {
 	private final EncryptionSignatureHashDecoder decoderWithoutEncryption;
 	private final EncryptionSignatureHashEncoder encoderWithEncryption;
 	private final EncryptionSignatureHashEncoder encoderWithoutEncryption;
-	private final PacketCounterForEncryptionAndSignature packetCounter;
+	private PacketCounterForEncryptionAndSignature packetCounter;
+
+	public void setPacketCounter(PacketCounterForEncryptionAndSignature packetCounter) {
+		this.packetCounter = packetCounter;
+	}
 
 	public SubBlockParser(EncryptionSignatureHashDecoder decoderWithEncryption, EncryptionSignatureHashDecoder decoderWithoutEncryption, EncryptionSignatureHashEncoder encoderWithEncryption, EncryptionSignatureHashEncoder encoderWithoutEncryption, PacketCounterForEncryptionAndSignature packetCounter) throws ConnectionException {
 		this.rbis = new RandomByteArrayInputStream(emptyTab);
@@ -151,6 +155,7 @@ public abstract class SubBlockParser {
 					}
 				} else {
 					Integrity integrity = decoder.checkHashAndSignatures();
+					System.out.println(integrity);
 					int dl = (int) decoder.getDataSizeInBytesAfterDecryption();
 					return new SubBlockInfo(new SubBlock(_block.getBytes(), _block.getOffset() + EncryptionSignatureHashEncoder.headSize, dl), integrity == Integrity.OK, integrity == Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 				}
@@ -195,13 +200,22 @@ public abstract class SubBlockParser {
 			if (packetCounter.isDistantActivated() && packetCounter.getMySignatureCounter()!=null)
 				encoder.withAssociatedData(packetCounter.getOtherSignatureCounter());
 			if (excludeFromEncryption) {
-				encoder.encodeWithSameInputAndOutputStreamSource(_block.getBytes(), _block.getOffset(), _block.getSize());
-				return new SubBlock(_block.getBytes(), _block.getOffset() - EncryptionSignatureHashEncoder.headSize, (int) encoderWithEncryption.getMaximumOutputLength(_block.getSize()));
+				byte[] tab=_block.getBytes();
+				int l=encoder.encodeWithSameInputAndOutputStreamSource(tab, _block.getOffset(), _block.getSize());
+				SubBlock res= new SubBlock(tab, _block.getOffset() - EncryptionSignatureHashEncoder.headSize, (int) encoderWithEncryption.getMaximumOutputLength(_block.getSize()));
+
+				for (int i=res.getOffset()+l, m=res.getOffset()+res.getSize();i<m;i++)
+					tab[i]=0;
+				return res;
 			} else {
 				int l=(int)encoderWithEncryption.getMaximumOutputLength(_block.getSize());
+
 				int off=_block.getOffset() - EncryptionSignatureHashEncoder.headSize;
-				SubBlock res = new SubBlock(new byte[_block.getBytes().length], off, l);
-				encoder.encode(_block.getBytes(), _block.getOffset(), _block.getSize(), res.getBytes(), res.getOffset(), res.getSize());
+				byte[] tab=new byte[_block.getBytes().length];
+				SubBlock res = new SubBlock(tab, off, l);
+				l=encoder.encode(_block.getBytes(), _block.getOffset(), _block.getSize(), res.getBytes(), res.getOffset(), res.getSize());
+				for (int i=res.getOffset()+l, m=res.getOffset()+res.getSize();i<m;i++)
+					tab[i]=0;
 				return res;
 			}
 		}
