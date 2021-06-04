@@ -298,6 +298,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 		ParserWithEncryption() throws ConnectionException {
 			super(decoderWithEncryption, decoderWithoutEncryption, encoderWithEncryption, encoderWithoutEncryption, packetCounter);
 		}
+
 		@Override
 		public int getBodyOutputSizeForSignature(int size) throws BlockParserException
 		{

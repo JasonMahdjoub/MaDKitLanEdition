@@ -175,11 +175,13 @@ public abstract class SubBlockParser {
 		}
 	}
 	private int getBodyOutputSizeWithEncryptionImpl(int size) throws IOException {
-		SymmetricSecretKey sske=encoderWithEncryption.getSymmetricSecretKeyForEncryption();
-		if (sske!=null && !sske.useEncryptionAlgorithm())
+
+		/*SymmetricSecretKey ssks=encoderWithEncryption.getSymmetricSecretKeyForSignature();
+		if (ssks==null) {
+			return (int) Math.max(encoderWithEncryption.getMaximumOutputLength(size), encoderWithoutEncryption.getMaximumOutputLength(size));
+		}
+		else*/
 			return (int)(encoderWithEncryption.getMaximumOutputLength(size));
-		else
-			return (int)(encoderWithoutEncryption.getMaximumOutputLength(size));
 	}
 	protected int getBodyOutputSizeWithEncryption(int size) throws IOException {
 		return getBodyOutputSizeWithEncryptionImpl(size)-EncryptionSignatureHashEncoder.headSize;
@@ -188,11 +190,13 @@ public abstract class SubBlockParser {
 		return (int)(encoderWithoutEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize);
 	}
 	protected int getBodyOutputSizeWithDecryption(int size) throws IOException {
-		SymmetricSecretKey sske=encoderWithEncryption.getSymmetricSecretKeyForEncryption();
-		if (sske!=null && !sske.useEncryptionAlgorithm())
-			return (int)decoderWithEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+		size+=EncryptionSignatureHashEncoder.headSize;
+		SymmetricSecretKey ssks=decoderWithEncryption.getSymmetricSecretKeyForSignature();
+		if (ssks==null) {
+			return (int) Math.max(decoderWithEncryption.getMaximumOutputLength(size), decoderWithoutEncryption.getMaximumOutputLength(size));
+		}
 		else
-			return (int)decoderWithoutEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+			return (int)(decoderWithEncryption.getMaximumOutputLength(size));
 	}
 
 	protected SubBlock getEncryptedParentBlock(final SubBlock _block, boolean excludeFromEncryption) throws BlockParserException {

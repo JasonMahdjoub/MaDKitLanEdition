@@ -136,9 +136,11 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 				if (encoderWithoutEncryption.getSymmetricSecretKeyForSignature()==null || decoderWithoutEncryption.getSymmetricSecretKeyForSignature()==null)
 				{
 					encoderWithoutEncryption.withSymmetricSecretKeyForSignature(secret_key_for_signature);
-					encoderWithEncryption.withSymmetricSecretKeyForSignature(secret_key_for_signature);
+					if (!hProperties.enableEncryption || !hProperties.symmetricEncryptionType.isAuthenticatedAlgorithm())
+						encoderWithEncryption.withSymmetricSecretKeyForSignature(secret_key_for_signature);
 					decoderWithoutEncryption.withSymmetricSecretKeyForSignature(secret_key_for_signature);
-					decoderWithEncryption.withSymmetricSecretKeyForSignature(secret_key_for_signature);
+					if (!hProperties.enableEncryption || !hProperties.symmetricEncryptionType.isAuthenticatedAlgorithm())
+						decoderWithEncryption.withSymmetricSecretKeyForSignature(secret_key_for_signature);
 					blockCheckerChanged=true;
 				}
 			} else {
