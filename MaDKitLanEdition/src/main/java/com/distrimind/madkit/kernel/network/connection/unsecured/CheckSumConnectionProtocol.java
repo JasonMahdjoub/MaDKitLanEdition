@@ -159,12 +159,14 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 		@Override
 		public SubBlockInfo getSubBlock(SubBlock _block) throws BlockParserException {
 			int sizeHead = getHeadSize();
-			SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + sizeHead, _block.getSize() - sizeHead);
+			byte[] tab=_block.getBytes();
+			SubBlock res = new SubBlock(tab, _block.getOffset() + sizeHead, _block.getSize() - sizeHead);
 			messageDigest.reset();
-			messageDigest.update(res.getBytes(), res.getOffset(), res.getSize());
+			messageDigest.update(tab, res.getOffset(), res.getSize());
 			byte[] digest = messageDigest.digest();
+			int offset=_block.getOffset();
 			for (int i = 0; i < sizeHead; i++) {
-				if (digest[i] != _block.getBytes()[i + _block.getOffset()])
+				if (digest[i] != tab[i + offset])
 					return new SubBlockInfo(res, false, false);
 			}
 			return new SubBlockInfo(res, true, false);
@@ -205,12 +207,14 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 		@Override
 		public SubBlockInfo checkIncomingPointToPointTransferredBlock(SubBlock _block) throws BlockParserException {
 			int sizeHead = getHeadSize();
-			SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + sizeHead, _block.getSize() - sizeHead);
+			byte[] tab=_block.getBytes();
+			SubBlock res = new SubBlock(tab, _block.getOffset() + sizeHead, _block.getSize() - sizeHead);
 			messageDigest.reset();
-			messageDigest.update(res.getBytes(), res.getOffset(), res.getSize());
+			messageDigest.update(tab, res.getOffset(), res.getSize());
 			byte[] digest = messageDigest.digest();
+			int offset=_block.getOffset();
 			for (int i = 0; i < sizeHead; i++) {
-				if (digest[i] != _block.getBytes()[i + _block.getOffset()])
+				if (digest[i] != tab[i + offset])
 					return new SubBlockInfo(res, false, false);
 			}
 			return new SubBlockInfo(res, true, false);
@@ -289,15 +293,16 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 		public SubBlockInfo checkSubBlock(SubBlock _block) throws BlockParserException {
 			messageDigest.reset();
 			
-			int dl = messageDigest.getDigestLengthInBytes();
-			SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + dl, _block.getSize() - dl);
-			messageDigest.update(res.getBytes(), res.getOffset(), res.getSize());
+			int sizeHead = messageDigest.getDigestLengthInBytes();
+			byte[] tab=_block.getBytes();
+			SubBlock res = new SubBlock(tab, _block.getOffset() + sizeHead, _block.getSize() - sizeHead);
+			messageDigest.update(tab, res.getOffset(), res.getSize());
 			byte[] digest = messageDigest.digest();
-			for (int i = 0; i < dl; i++) {
-				if (digest[i] != _block.getBytes()[i + _block.getOffset()])
+			int offset=_block.getOffset();
+			for (int i = 0; i < sizeHead; i++) {
+				if (digest[i] != tab[i + offset])
 					return new SubBlockInfo(res, false, false);
 			}
-
 			return new SubBlockInfo(res, true, false);
 		}
 
