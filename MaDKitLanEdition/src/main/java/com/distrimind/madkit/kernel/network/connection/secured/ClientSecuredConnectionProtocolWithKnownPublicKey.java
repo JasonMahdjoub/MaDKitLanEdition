@@ -141,14 +141,14 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 		if (reInitSymmetricAlgorithm)
 		{
 			reInitSymmetricAlgorithm =false;
-			if (packetCounter.getMyEncryptionCounter()==null) {
-				encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.mySecretKeyForEncryption);
-				decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.mySecretKeyForEncryption);
-			}
-			else
-			{
-				encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.mySecretKeyForEncryption, (byte) packetCounter.getMyEncryptionCounter().length);
-				decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.mySecretKeyForEncryption, (byte) packetCounter.getMyEncryptionCounter().length);
+			if (hProperties.enableEncryption) {
+				if (packetCounter.getMyEncryptionCounter() == null) {
+					encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.mySecretKeyForEncryption);
+					decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.mySecretKeyForEncryption);
+				} else {
+					encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.mySecretKeyForEncryption, (byte) packetCounter.getMyEncryptionCounter().length);
+					decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.mySecretKeyForEncryption, (byte) packetCounter.getMyEncryptionCounter().length);
+				}
 			}
 		}
 	}
