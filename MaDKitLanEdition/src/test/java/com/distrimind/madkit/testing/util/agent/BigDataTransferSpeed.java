@@ -75,7 +75,7 @@ public class BigDataTransferSpeed extends JunitMadkit {
         P2PSecuredConnectionProtocolPropertiesWithKeyAgreement p2pprotocol=new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
         p2pprotocol.isServer = true;
         p2pprotocol.symmetricEncryptionType=SymmetricEncryptionType.AES_CBC_PKCS5Padding;
-        p2pprotocol.symmetricSignatureType= SymmetricAuthenticatedSignatureType.HMAC_SHA2_256;
+        p2pprotocol.symmetricSignatureType= SymmetricAuthenticatedSignatureType.HMAC_SHA2_384;
         ListGroupsRoles defaultGroupAccess=new ListGroupsRoles();
         defaultGroupAccess.addGroupsRoles(JunitMadkit.GROUP);
 
@@ -107,7 +107,7 @@ public class BigDataTransferSpeed extends JunitMadkit {
 					P2PSecuredConnectionProtocolWithKeyAgreementProperties p2pprotocol=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
 					p2pprotocol.isServer = true;
 					p2pprotocol.symmetricEncryptionType=SymmetricEncryptionType.AES_CTR;
-                    p2pprotocol.symmetricSignatureType= SymmetricAuthentifiedSignatureType.HMAC_SHA2_256;
+                    p2pprotocol.symmetricSignatureType= SymmetricAuthentifiedSignatureType.HMAC_SHA2_384;
 					new NetworkEventListener(true, false, false, null,
 							new ConnectionsProtocolsMKEventListener(p2pprotocol),
 							new AccessProtocolPropertiesMKEventListener(app),
