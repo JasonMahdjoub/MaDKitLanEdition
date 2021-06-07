@@ -60,25 +60,11 @@ public final class Block {
 					"This block has a size (" + size + ") greater than the size limit : " + BLOCK_SIZE_LIMIT);
 		block = new byte[size];
 		
-		putShortInt(block, 0, size);
+		Bits.putUnsignedInt24Bits(block, 0, size);
 		Bits.putInt(block, 3, transfer_type);
 	}
 
 
-	
-
-	public static void putShortInt(byte[] b, int off, int val) {
-		if (val>BLOCK_SIZE_LIMIT)
-			throw new IllegalArgumentException("val cannot be greater than "+0xFFFFFF);
-		if (val<0)
-			throw new IllegalArgumentException("val cannot be negative");
-		b[off + 2] = (byte) (val);
-		b[off + 1] = (byte) (val >>> 8);
-		b[off] = (byte) (val >>> 16);
-	}
-	public static int getShortInt(byte[] b, int off) {
-		return ((b[off + 2] & 0xFF)) + ((b[off + 1] & 0xFF) << 8) + ((b[off] & 0xFF) << 16);
-	}
 
 	
 	
@@ -89,12 +75,8 @@ public final class Block {
 					"This block has a size (" + size + ") greater than the size limit : " + BLOCK_SIZE_LIMIT);
 		block = tab;
 		transfer_type = _transfer_type;
-		putShortInt(block, 0, size);
+		Bits.putUnsignedInt24Bits(block, 0, size);
 		Bits.putInt(block, 3, transfer_type);
-		/*if (counterSelector!=null)
-			block[7]=(counterState=counterSelector.getState(this.counterID=counterID)).getCode();
-		else
-			this.counterID=-1;*/
 	}
 
 	public static int getTransferID(byte [] _block)
@@ -134,7 +116,7 @@ public final class Block {
 			throw new PacketException(
 					"block_size must be greater than getHeadSize() and lower or equal than getMaximumBlockSize()");
 		block = new byte[block_size];
-		putShortInt(block, 0, this.size);
+		Bits.putUnsignedInt24Bits(block, 0, this.size);
 		Bits.putInt(block, 3, _transfer_type);
 		transfer_type = _transfer_type;
 	}
@@ -146,7 +128,7 @@ public final class Block {
 		if (blockSize <= getHeadSize() || blockSize > block.length)
 			throw new PacketException(
 					"block_size must be greater than getHeadSize() and lower or equal than getMaximumBlockSize()");
-		putShortInt(block, 0, this.size);
+		Bits.putUnsignedInt24Bits(block, 0, this.size);
 		Bits.putInt(block, 3, _transferType);
 		transfer_type = _transferType;
 	}
@@ -191,7 +173,7 @@ public final class Block {
 	}
 
 	public static int getBlockSize(byte[] _bytes, int offset) {
-		return getShortInt(_bytes, offset);
+		return Bits.getUnsignedInt24Bits(_bytes, offset);
 	}
 
 	public static int getMaximumBlockSize() {

@@ -325,7 +325,7 @@ public final class WritePacket {
 			{
 				tmpByteTab[0]=type;
 				Bits.putInt(tmpByteTab, 1, wp.id_packet);
-				Block.putShortInt(tmpByteTab, 5, getRealDataSizeWithoutPacketHeadSize());
+				Bits.putUnsignedInt24Bits(tmpByteTab, 5, getRealDataSizeWithoutPacketHeadSize());
 				if (wp.current_pos.get() == wp.start_position) {
 					Bits.putLong(tmpByteTab, 8, wp.data_length_with_message_digest);
 					Bits.putLong(tmpByteTab, 16, wp.start_position);
