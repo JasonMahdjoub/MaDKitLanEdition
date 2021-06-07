@@ -71,7 +71,7 @@ public class KillingWaitingMessageThreadedAgentsTest extends JunitMadkit {
 				assertEquals(TIMEOUT, launchAgent(a, 1));
 				assertEquals(TIMEOUT, killAgent(a, 1));
 				assertAgentIsZombie(a);
-				JunitMadkit.pause(this, 5000);
+				JunitMadkit.pause(this, 10000);
 				assertAgentIsTerminated(a);
 
 				a = new WaitingMessageAgent(true, true, true);

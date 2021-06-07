@@ -510,8 +510,10 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 
 	private void postActivate() {
 		synchronized (state) {
-			if (!state.compareAndSet(State.ACTIVATING, State.ACTIVATED))
-				throw new AssertionError("not init in activation : ");
+			if (!state.compareAndSet(State.ACTIVATING, State.ACTIVATED)) {
+				//if (state.get().compareTo(ENDING) < 0)
+					throw new AssertionError("not init in activation : " + state.get());
+			}
 
 			state.notifyAll();
 		}
@@ -562,6 +564,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 			 * be hard killed after that
 			 */
 			postActivate();
+			/*if (state.get().compareTo(ENDING)>=0)
+				result=ReturnCode.KILLING_ALREADY_IN_PROGRESS;*/
 			result = SUCCESS;
 		} catch (SelfKillException e) {
 			logMethod(false);
