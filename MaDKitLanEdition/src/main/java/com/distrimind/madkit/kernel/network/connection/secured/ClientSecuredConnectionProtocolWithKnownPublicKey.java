@@ -48,7 +48,6 @@ import com.distrimind.madkit.kernel.network.connection.*;
 import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.util.Bits;
 import com.distrimind.util.crypto.*;
-import com.distrimind.util.sizeof.ObjectSizer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -328,7 +327,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 		@Override
 		public int getBodyOutputSizeForEncryption(int size) throws BlockParserException {
 			try {
-				if (current_step==Step.NOT_CONNECTED) {
+				if (current_step==Step.NOT_CONNECTED || current_step==Step.WAITING_FOR_CONNECTION_CONFIRMATION) {
 					return size;
 				}
 				else
@@ -467,47 +466,6 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 		@Override
 		protected SubBlock getEncryptedParentBlock(SubBlock _block, boolean excludeFromEncryption) throws BlockParserException {
 			return super.getEncryptedParentBlock(_block, true);
-		}
-
-		@Override
-		public int getBodyOutputSizeForEncryption(int size) throws BlockParserException {
-			try {
-				if (current_step==Step.NOT_CONNECTED || current_step==Step.WAITING_FOR_CONNECTION_CONFIRMATION)
-					return size;
-				else
-				{
-					if (packetCounter.isDistantActivated())
-					{
-						reInitSymmetricAlgorithmIfNecessary();
-					}
-					return getBodyOutputSizeWithEncryption(size);
-				}
-			} catch (Exception e) {
-				throw new BlockParserException(e);
-			}
-		}
-		@Override
-		public int getBodyOutputSizeForDecryption(int size) throws BlockParserException {
-			try {
-				switch (current_step) {
-					case NOT_CONNECTED:
-					{
-						return size;
-					}
-					case WAITING_FOR_CONNECTION_CONFIRMATION:
-					case CONNECTED: {
-						if (getPacketCounter().isLocalActivated())
-						{
-							reInitSymmetricAlgorithmIfNecessary();
-						}
-						return getBodyOutputSizeWithDecryption(size);
-					}
-				}
-
-			} catch (Exception e) {
-				throw new BlockParserException(e);
-			}
-			throw new BlockParserException();
 		}
 
 
