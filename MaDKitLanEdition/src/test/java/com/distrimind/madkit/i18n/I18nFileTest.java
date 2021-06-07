@@ -102,7 +102,7 @@ public class I18nFileTest {
 		assertEquals(set.size(), defaultConfig.size());
 		for (E enum1 : set) {
 			System.err.println(enum1.name());
-			assertNotNull(defaultConfig.getProperty(enum1.name()));
+			assertNotNull(enum1.name(), defaultConfig.getProperty(enum1.name()));
 		}
 	}
 }
