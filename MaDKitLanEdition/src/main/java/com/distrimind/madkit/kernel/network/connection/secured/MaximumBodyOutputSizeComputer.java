@@ -49,11 +49,18 @@ import java.security.NoSuchProviderException;
  */
 class MaximumBodyOutputSizeComputer {
 	private final EncryptionSignatureHashEncoder maxEncoder;
+	private final EncryptionSignatureHashEncoder maxEncoderWithoutEncryption;
 
 	MaximumBodyOutputSizeComputer(boolean encryptionEnabled, SymmetricEncryptionType symmetricEncryptionType, short symmetricKeySizeBits, SymmetricAuthenticatedSignatureType symmetricSignatureType, MessageDigestType messageDigestType) throws BlockParserException {
 		this(encryptionEnabled, symmetricEncryptionType, symmetricKeySizeBits, messageDigestType);
 		try {
-			maxEncoder.withSymmetricSecretKeyForSignature(symmetricSignatureType.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), symmetricKeySizeBits).generateKey());
+			SymmetricSecretKey ssk=symmetricSignatureType.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), symmetricKeySizeBits).generateKey();
+			if (!encryptionEnabled || !symmetricEncryptionType.isAuthenticatedAlgorithm()) {
+				maxEncoder.withSymmetricSecretKeyForSignature(ssk);
+			}
+			else {
+				maxEncoderWithoutEncryption.withSymmetricSecretKeyForSignature(ssk);
+			}
 		} catch (NoSuchAlgorithmException | NoSuchProviderException | IOException e) {
 			throw new BlockParserException(e);
 		}
@@ -61,8 +68,18 @@ class MaximumBodyOutputSizeComputer {
 	MaximumBodyOutputSizeComputer(boolean encryptionEnabled, SymmetricSecretKey symmetricSecretKeyForEncryption, SymmetricSecretKey symmetricSecretKeyForSignature, MessageDigestType messageDigestType) throws BlockParserException {
 		try {
 			maxEncoder = new EncryptionSignatureHashEncoder();
+			if (encryptionEnabled && symmetricSecretKeyForEncryption.getEncryptionAlgorithmType().isAuthenticatedAlgorithm())
+				maxEncoderWithoutEncryption = new EncryptionSignatureHashEncoder();
+			else
+				maxEncoderWithoutEncryption=null;
 			init(encryptionEnabled, encryptionEnabled?symmetricSecretKeyForEncryption:null, messageDigestType);
-			maxEncoder.withSymmetricSecretKeyForSignature(symmetricSecretKeyForSignature);
+			if (maxEncoderWithoutEncryption==null) {
+				maxEncoder.withSymmetricSecretKeyForSignature(symmetricSecretKeyForSignature);
+			}
+			else {
+				maxEncoderWithoutEncryption.withSymmetricSecretKeyForSignature(symmetricSecretKeyForSignature);
+			}
+
 		} catch (IOException e) {
 			throw new BlockParserException(e);
 		}
@@ -71,8 +88,11 @@ class MaximumBodyOutputSizeComputer {
 		try {
 			if (encryptionEnabled)
 				maxEncoder.withSymmetricSecretKeyForEncryption(SecureRandomType.DEFAULT.getSingleton(null), symmetricSecretKeyForEncryption);
-			if (messageDigestType != null)
+			if (messageDigestType != null) {
 				maxEncoder.withMessageDigestType(messageDigestType);
+				if (maxEncoderWithoutEncryption!=null)
+					maxEncoderWithoutEncryption.withMessageDigestType(messageDigestType);
+			}
 
 		} catch (NoSuchAlgorithmException | NoSuchProviderException | IOException e) {
 			throw new BlockParserException(e);
@@ -81,6 +101,10 @@ class MaximumBodyOutputSizeComputer {
 	private MaximumBodyOutputSizeComputer(boolean encryptionEnabled, SymmetricEncryptionType symmetricEncryptionType, short symmetricKeySizeBits, MessageDigestType messageDigestType) throws BlockParserException{
 		try {
 			maxEncoder = new EncryptionSignatureHashEncoder();
+			if (encryptionEnabled && symmetricEncryptionType.isAuthenticatedAlgorithm())
+				maxEncoderWithoutEncryption = new EncryptionSignatureHashEncoder();
+			else
+				maxEncoderWithoutEncryption=null;
 			init(encryptionEnabled, encryptionEnabled?symmetricEncryptionType.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), symmetricKeySizeBits).generateKey():null, messageDigestType);
 		} catch (NoSuchAlgorithmException | NoSuchProviderException | IOException e) {
 			throw new BlockParserException(e);
@@ -99,7 +123,11 @@ class MaximumBodyOutputSizeComputer {
 
 	int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException {
 		try {
-			return (int)maxEncoder.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
+			int res=(int)maxEncoder.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
+			if (maxEncoderWithoutEncryption!=null)
+				return Math.max(res, (int)maxEncoderWithoutEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize);
+			else
+				return res;
 		} catch (IOException e) {
 			throw new BlockParserException(e);
 		}
