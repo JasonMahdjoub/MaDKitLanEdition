@@ -84,7 +84,7 @@ public class PointToPointTransferedBlockChecker extends TransferedBlockChecker {
 				//Block.setCounterState(res.getBytes(), Block.getCounterState(_block.getBytes()));
 				return new SubBlockInfo(res, true, false);
 			}
-			return new SubBlockInfo(prepareBlock(new SubBlock(sb.getBytes(), Block.getHeadSize(), sb.getBytes().length-Block.getHeadSize()), sb.getOffset()-Block.getHeadSize(), new Block(_block.getBytes()).getTransferID()), true, false);
+			return new SubBlockInfo(prepareBlock(sb, sb.getOffset()-Block.getHeadSize(), Block.getTransferID(_block.getBytes())), true, false);
 		}
 		catch (PacketException e)
 		{
@@ -96,22 +96,22 @@ public class PointToPointTransferedBlockChecker extends TransferedBlockChecker {
 	{
 		if (cpOutput==null)
 			throw new NullPointerException();
-		
+
 		int totalOutputSize=Block.getHeadSize();
 		int totalOutputHeadSize=0;
 		int size=_block.getSize();
 		for (ConnectionProtocol<?> cp : cpOutput){
 			int hs=cp.getParser().getHeadSize();
 			totalOutputHeadSize += hs;
-			totalOutputSize+=(size=cp.getParser().getBodyOutputSizeForSignature(size)+hs);
+			totalOutputSize+=(size=(cp.getParser().getBodyOutputSizeForSignature(size)+hs));
 		}
 
 		SubBlock res;
-		if (_block.getOffset()!=Block.getHeadSize())
-			throw new IllegalAccessError();
-		if (totalInputHeadSize>=totalOutputHeadSize && totalOutputSize<=_block.getBytes().length)
+		/*if (_block.getOffset()!=Block.getHeadSize())
+			throw new IllegalAccessError();*/
+		if (totalInputHeadSize==totalOutputHeadSize && totalOutputSize<=_block.getBytes().length)
 		{
-			res=new SubBlock(_block.getBytes(), Block.getHeadSize()+totalOutputHeadSize, _block.getBytes().length-Block.getHeadSize()-totalInputHeadSize);
+			res=new SubBlock(_block.getBytes(), Block.getHeadSize()+totalOutputHeadSize, _block.getSize());
 		}
 		else
 		{
@@ -126,7 +126,7 @@ public class PointToPointTransferedBlockChecker extends TransferedBlockChecker {
 			//cp.getPacketCounter().incrementOtherCounters();
 			res=cp.getParser().signIfPossibleOutgoingPointToPointTransferredBlock(res);
 		}
-		
+
 		return res;
 	}
 	

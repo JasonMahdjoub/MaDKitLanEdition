@@ -265,7 +265,7 @@ public class NetworkEventListener implements MadkitEventListener {
 									databaseFile, cp,
                                     app, ad, 5001+h,
                                     Arrays.asList(
-                                            (AbstractIP) new DoubleIP(5001,
+                                            new DoubleIP(5001,
                                                     (Inet4Address) InetAddress.getByName("127.0.0.1")),
 											new DoubleIP(5001,
 													(Inet6Address) InetAddress.getByName("::1"))));
@@ -273,7 +273,7 @@ public class NetworkEventListener implements MadkitEventListener {
                             o[h] = new NetworkEventListener(network, upnpIGDEnabled, false,
 									databaseFile, cp,
                                     app, ad, 5001+h,
-									Collections.singletonList((AbstractIP) new DoubleIP(5001,
+									Collections.singletonList(new DoubleIP(5001,
 											(Inet4Address) InetAddress.getByName("127.0.0.1"),
 											(Inet6Address) InetAddress.getByName("::1"))));
 
