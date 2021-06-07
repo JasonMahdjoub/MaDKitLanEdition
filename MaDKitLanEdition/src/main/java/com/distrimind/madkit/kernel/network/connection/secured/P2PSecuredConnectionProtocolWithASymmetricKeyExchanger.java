@@ -876,9 +876,12 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 		@Override
 		public SubBlockInfo checkSubBlock(SubBlock _block) throws BlockParserException {
 			try {
-				Integrity i=decoder.checkHashAndPublicSignature(_block.getBytes(), _block.getOffset(), _block.getSize());
+				Integrity i=decoder
+						.withRandomInputStream(new LimitedRandomInputStream(new RandomByteArrayInputStream(_block.getBytes()), _block.getOffset(), _block.getSize()))
+						.checkHashAndPublicSignature();
+
 				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + EncryptionSignatureHashEncoder.headSize,
-						_block.getSize()-EncryptionSignatureHashEncoder.headSize);
+						(int)decoder.getDataSizeInBytesAfterDecryptionOrAfterPublicSignatureChecking());
 
 				return new SubBlockInfo(res, i==Integrity.OK, i==Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			} catch (Exception e) {

@@ -392,7 +392,10 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 							outputSize + getHeadSize());
 					if (!firstMessageSent)
 					{
-						Bits.putInt(res.getBytes(), res.getOffset(), hProperties.getEncryptionProfileIdentifier());
+						byte[] tab=res.getBytes();
+						Bits.putInt(tab, res.getOffset(), hProperties.getEncryptionProfileIdentifier());
+						for (int i=res.getOffset()+4;i<_block.getOffset();i++)
+							tab[i]=0;
 						setFirstMessageSent();
 					}
 					int off=_block.getSize()+_block.getOffset();
@@ -413,11 +416,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 
 		@Override
 		public int getHeadSize() {
-			if (firstMessageSent)
-				return EncryptionSignatureHashEncoder.headSize;
-			else {
-				return ObjectSizer.sizeOf(hProperties.getEncryptionProfileIdentifier());
-			}
+			return EncryptionSignatureHashEncoder.headSize;
 		}
 
 

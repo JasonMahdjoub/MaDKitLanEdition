@@ -650,11 +650,10 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 					else
 						return getBodyOutputSizeWithEncryption(size);
 				case WAITING_FOR_SERVER_PROFILE_MESSAGE:
-				case WAITING_FOR_SERVER_SIGNATURE:
-				case WAITING_FOR_CONNECTION_CONFIRMATION:
 				{
-					if (doNotTakeIntoAccountNextState)
-						return getBodyOutputSizeWithEncryption(size);
+					if (doNotTakeIntoAccountNextState && !hProperties.enableEncryption) {
+						return size;
+					}
 					else
 					{
 						if (packetCounter.isDistantActivated())
@@ -664,6 +663,8 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 						return getBodyOutputSizeWithEncryption(size);
 					}
 				}
+				case WAITING_FOR_SERVER_SIGNATURE:
+				case WAITING_FOR_CONNECTION_CONFIRMATION:
 				case CONNECTED:
 				{
 					if (packetCounter.isDistantActivated())
@@ -786,13 +787,13 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 				case WAITING_FOR_SIGNATURE_DATA:
 					return getParentBlockWithNoTreatments(_block);
 				case WAITING_FOR_ENCRYPTION_DATA:
-					if (doNotTakeIntoAccountNextState)
+					if (doNotTakeIntoAccountNextState) {
 						return getParentBlockWithNoTreatments(_block);
+					}
 					else
 						return getEncryptedParentBlock(_block, true);
 				case WAITING_FOR_SERVER_PROFILE_MESSAGE:
-				case WAITING_FOR_SERVER_SIGNATURE:
-				case WAITING_FOR_CONNECTION_CONFIRMATION: {
+				{
 					if (doNotTakeIntoAccountNextState)
 					{
 						if (!hProperties.enableEncryption)
@@ -805,6 +806,8 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 						return getEncryptedParentBlock(_block, excludeFromEncryption);
 					}
 				}
+				case WAITING_FOR_SERVER_SIGNATURE:
+				case WAITING_FOR_CONNECTION_CONFIRMATION:
 				case CONNECTED: {
 					return getEncryptedParentBlock(_block, excludeFromEncryption);
 				}
@@ -872,7 +875,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 		ParserWithNoEncryption() throws ConnectionException {
 		}
 
-		@Override
+		/*@Override
 		public int getBodyOutputSizeForEncryption(int size) throws BlockParserException {
 			try {
 				switch (current_step) {
@@ -880,8 +883,9 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 					case WAITING_FOR_SIGNATURE_DATA:
 						return size;
 					case WAITING_FOR_ENCRYPTION_DATA:
-						if (doNotTakeIntoAccountNextState)
+						if (doNotTakeIntoAccountNextState) {
 							return size;
+						}
 						else
 							return getBodyOutputSizeWithEncryption(size);
 					case WAITING_FOR_SERVER_PROFILE_MESSAGE:
@@ -897,10 +901,10 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 			}
 			return size;
 
-		}
+		}*/
 
 
-		@Override
+		/*@Override
 		public int getBodyOutputSizeForDecryption(int size) throws BlockParserException {
 			try {
 				switch (current_step) {
@@ -919,7 +923,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 			}
 			return size;
 
-		}
+		}*/
 
 
 		@Override

@@ -219,12 +219,12 @@ public class SubBlocksStructure {
 			throw new BlockParserException("Invalid block");
 		if (sub_block_index == sub_block_sizes.length - 1) {
 			if (_block.getOffset() != initial_packet_offset || _block.getSize() > initial_packet_size)
-				throw new BlockParserException("Invalid block");
+				throw new BlockParserException("Invalid block : "+_block+" ; "+initial_packet_offset+" ; "+initial_packet_size);
 		} else {
 			++sub_block_index;
 			if (_block.getOffset() != sub_block_offsets[sub_block_index]
 					|| _block.getSize() > sub_block_sizes[sub_block_index])
-				throw new BlockParserException("Invalid block");
+				throw new BlockParserException("Invalid block : "+_block+" ; "+sub_block_offsets[sub_block_index]+" ; "+sub_block_sizes[sub_block_index]);
 			/*
 			 * if (_block.getSize()==sub_block_sizes[sub_block_index]) return _block; else
 			 * return new SubBlock(_block.getBytes(), sub_block_offsets[sub_block_index],
