@@ -61,7 +61,7 @@ dependencies {
 
     testImplementation 'junit:junit:4.13'
     testImplementation 'org.hamcrest:hamcrest-core:2.2'
-    //api(group:'com.distrimind.ood', name: 'OOD', version: '2.4.2-Stable')
+    //api(group:'com.distrimind.ood', name: 'OOD', version: '3.1.0-STABLE')
     api project(':OOD')
     api(group:'org.fourthline.cling', name: 'cling-core', version: '2.1.2')
     api(group:'org.fourthline.cling', name: 'cling-support', version: '2.1.2')

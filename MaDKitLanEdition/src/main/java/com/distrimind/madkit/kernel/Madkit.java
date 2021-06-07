@@ -130,7 +130,7 @@ final public class Madkit {
 		return defaultConfig;
 	}
 	
-	private volatile static Version VERSION;
+	private volatile static Version VERSION=null;
 
 	static Version getNewVersionInstance()
 	{
