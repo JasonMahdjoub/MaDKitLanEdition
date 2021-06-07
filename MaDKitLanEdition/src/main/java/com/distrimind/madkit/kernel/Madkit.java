@@ -153,7 +153,7 @@ final public class Madkit {
 							.addItem("Reimplement connection protocol using new Utils classes")
 					)
 					.addDescription(new Description((short)2, (short)1, (short)10, Version.Type.STABLE, (short)1, "2020-02-15")
-							.addItem("Update Utils to 4.10.1")
+							.addItem("Update Utils to 4.10.2")
 							.addItem("Update OOD to 2.4.2")
 					);
 
