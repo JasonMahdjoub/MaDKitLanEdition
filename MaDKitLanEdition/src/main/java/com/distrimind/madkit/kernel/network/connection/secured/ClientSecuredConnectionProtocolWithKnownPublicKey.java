@@ -48,6 +48,7 @@ import com.distrimind.madkit.kernel.network.connection.*;
 import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.util.Bits;
 import com.distrimind.util.crypto.*;
+import com.distrimind.util.sizeof.ObjectSizer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -393,8 +394,6 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 					{
 						byte[] tab=res.getBytes();
 						Bits.putInt(tab, res.getOffset(), hProperties.getEncryptionProfileIdentifier());
-						for (int i=res.getOffset()+4;i<_block.getOffset();i++)
-							tab[i]=0;
 						setFirstMessageSent();
 					}
 					int off=_block.getSize()+_block.getOffset();
@@ -415,7 +414,11 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 
 		@Override
 		public int getHeadSize() {
-			return EncryptionSignatureHashEncoder.headSize;
+			if (firstMessageSent)
+				return EncryptionSignatureHashEncoder.headSize;
+			else {
+				return ObjectSizer.sizeOf(hProperties.getEncryptionProfileIdentifier());
+			}
 		}
 
 
