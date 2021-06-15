@@ -279,7 +279,7 @@ public abstract class AbstractAccessProtocol {
 						if (wrapper!=null) {
 							String localDatabaseHostID = wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString();
 							if (localDatabaseHostID != null) {
-								DecentralizedValue dvDistant = lp.getDecentralizedDatabaseID(id.generateDistantIdentifier());
+								DecentralizedValue dvDistant = lp.getDecentralizedDatabaseID(id.generateDistantIdentifier(), properties);
 								if (dvDistant != null) {
 									listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getDistributedDatabaseGroup(localDatabaseHostID, dvDistant));
 								}

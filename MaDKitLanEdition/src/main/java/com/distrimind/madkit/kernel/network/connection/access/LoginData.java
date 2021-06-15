@@ -37,7 +37,9 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
+import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.EncryptionRestriction;
+import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.crypto.AbstractKeyPair;
 import com.distrimind.util.crypto.AbstractMessageDigest;
@@ -667,14 +669,17 @@ public abstract class LoginData extends AccessData {
 	 * @param identifier the peer identifier
 	 * @return Returns the decentralized database's identifier. Returns null if the distant peer cannot synchronize its database with local peer.
 	 */
-	public DecentralizedValue getDecentralizedDatabaseID(Identifier identifier)
-	{
+	public DecentralizedValue getDecentralizedDatabaseID(Identifier identifier, MadkitProperties properties) throws DatabaseException {
 		DecentralizedValue dv=identifier.getHostIdentifier().getDecentralizedDatabaseID();
-		if (identifier.getHostIdentifier().isAuthenticatedByPublicKey() && (dv instanceof IASymmetricPublicKey) && dv.equals(identifier.getHostIdentifier().getAuthenticationPublicKey()))
-		{
-			return dv;
+		if (dv!=null) {
+			if (identifier.getHostIdentifier().isAuthenticatedByPublicKey() && (dv instanceof IASymmetricPublicKey) && dv.equals(identifier.getHostIdentifier().getAuthenticationPublicKey())) {
+				return dv;
+			} else {
+				return null;
+			}
 		}
-		return null;
+		else
+			return null;
 	}
 
 

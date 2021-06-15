@@ -84,11 +84,11 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		return new Object[10][0];
 	}
 
-	public MKDatabaseSynchronizerTest() throws UnknownHostException {
+	public MKDatabaseSynchronizerTest() throws UnknownHostException, DatabaseException {
 		P2PSecuredConnectionProtocolPropertiesWithKeyAgreement p2pprotocol=new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 		p2pprotocol.isServer = true;
 		p2pprotocol.symmetricEncryptionType= SymmetricEncryptionType.AES_CTR;
-		p2pprotocol.symmetricSignatureType= SymmetricAuthenticatedSignatureType.HMAC_SHA2_256;
+		p2pprotocol.symmetricSignatureType= SymmetricAuthenticatedSignatureType.HMAC_SHA2_384;
 		databaseFile1=new File("tmpDatabaseFile1");
 		databaseFile2=new File("tmpDatabaseFile2");
 		if(databaseFile1.exists())
@@ -108,7 +108,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		loginData1=AccessDataMKEventListener.getDefaultLoginData(
 					idpws,
 				null, defaultGroupAccess, true, Assert::fail, Assert::fail);
-		localIdentifier=loginData1.getDecentralizedDatabaseID(idpws.get(0).getIdentifier());
+		localIdentifier=loginData1.getDecentralizedDatabaseID(idpws.get(0).getIdentifier(), null);
 		this.eventListener1 = new NetworkEventListener(true, false, false, databaseFile1,
 				new ConnectionsProtocolsMKEventListener(p2pprotocol), new AccessProtocolPropertiesMKEventListener(app),
 				new AccessDataMKEventListener(loginData1), 5000,
@@ -129,7 +129,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		P2PSecuredConnectionProtocolPropertiesWithKeyAgreement u = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 		u.isServer = false;
 		u.symmetricEncryptionType=SymmetricEncryptionType.AES_CTR;
-		u.symmetricSignatureType= SymmetricAuthenticatedSignatureType.HMAC_SHA2_256;
+		u.symmetricSignatureType= SymmetricAuthenticatedSignatureType.HMAC_SHA2_384;
 
 		app = new AccessProtocolWithP2PAgreementProperties();
 		idpws=AccessDataMKEventListener
@@ -154,7 +154,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 
 			}
 		};
-		localIdentifierOtherSide=loginData1.getDecentralizedDatabaseID(idpws.get(0).getIdentifier());
+		localIdentifierOtherSide=loginData1.getDecentralizedDatabaseID(idpws.get(0).getIdentifier(), null);
 	}
 
 
