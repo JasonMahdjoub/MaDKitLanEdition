@@ -46,8 +46,7 @@ import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedIDGenerator;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.FileTools;
-import com.distrimind.util.crypto.SymmetricAuthenticatedSignatureType;
-import com.distrimind.util.crypto.SymmetricEncryptionType;
+import com.distrimind.util.crypto.*;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,6 +57,8 @@ import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -72,19 +73,33 @@ import java.util.logging.Level;
  */
 @RunWith(Parameterized.class)
 public class MKDatabaseSynchronizerTest extends JunitMadkit{
+	private static class EncryptionProfileCollection extends com.distrimind.util.crypto.EncryptionProfileCollection
+	{
+		public EncryptionProfileCollection() {
+			super();
+		}
+	}
+
+
+
 	final NetworkEventListener eventListener1;
 	final NetworkEventListener eventListener2;
 	final DecentralizedValue localIdentifier;
 	final DecentralizedValue localIdentifierOtherSide;
 	final LoginData loginData1, loginData2;
 	final File databaseFile1, databaseFile2;
+	final SymmetricSecretKey secretKeyForSignature1,secretKeyForSignature2;
+	final AbstractSecureRandom random;
 
 	@Parameterized.Parameters
 	public static Object[][] data() {
 		return new Object[10][0];
 	}
 
-	public MKDatabaseSynchronizerTest() throws UnknownHostException, DatabaseException {
+	public MKDatabaseSynchronizerTest() throws UnknownHostException, DatabaseException, NoSuchAlgorithmException, NoSuchProviderException {
+		random=SecureRandomType.DEFAULT.getInstance(null);
+		secretKeyForSignature1=SymmetricAuthenticatedSignatureType.HMAC_SHA2_384.getKeyGenerator(random).generateKey();
+		secretKeyForSignature2=SymmetricAuthenticatedSignatureType.HMAC_SHA2_384.getKeyGenerator(random).generateKey();
 		P2PSecuredConnectionProtocolPropertiesWithKeyAgreement p2pprotocol=new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 		p2pprotocol.isServer = true;
 		p2pprotocol.symmetricEncryptionType= SymmetricEncryptionType.AES_CTR;
@@ -104,12 +119,17 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 
 		defaultGroupAccess.addGroupsRoles(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA);
 
+		EncryptionProfileCollection encryptionProfileCollectionForP2PSignature1=new EncryptionProfileCollection();
+		encryptionProfileCollectionForP2PSignature1.putProfile((short)1, null, null, null, secretKeyForSignature1, null, false, true);
+		encryptionProfileCollectionForP2PSignature1.putProfile((short)2, null, null, null, secretKeyForSignature2, null, false, true);
 
 		loginData1=AccessDataMKEventListener.getDefaultLoginData(
 					idpws,
 				null, defaultGroupAccess, true, Assert::fail, Assert::fail);
 		localIdentifier=loginData1.getDecentralizedDatabaseID(idpws.get(0).getIdentifier(), null);
-		this.eventListener1 = new NetworkEventListener(true, false, false, databaseFile1,
+		this.eventListener1 = new NetworkEventListener(true, false, false,
+				databaseFile1,null, null, encryptionProfileCollectionForP2PSignature1,
+				SecureRandomType.DEFAULT,
 				new ConnectionsProtocolsMKEventListener(p2pprotocol), new AccessProtocolPropertiesMKEventListener(app),
 				new AccessDataMKEventListener(loginData1), 5000,
 				Collections.singletonList(new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"),
@@ -135,10 +155,15 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		idpws=AccessDataMKEventListener
 				.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(1), 4);
 
+		EncryptionProfileCollection encryptionProfileCollectionForP2PSignature2=new EncryptionProfileCollection();
+		encryptionProfileCollectionForP2PSignature2.putProfile((short)1, null, null, null, secretKeyForSignature1, null, false, true);
+		encryptionProfileCollectionForP2PSignature2.putProfile((short)2, null, null, null, secretKeyForSignature2, null, false, true);
+
 		loginData2=AccessDataMKEventListener.getDefaultLoginData(
 				idpws,
 				null, defaultGroupAccess, true, Assert::fail, Assert::fail);
 		this.eventListener2 = new NetworkEventListener(true, false, false, databaseFile2,
+				null,null, encryptionProfileCollectionForP2PSignature2,SecureRandomType.DEFAULT,
 				new ConnectionsProtocolsMKEventListener(u), new AccessProtocolPropertiesMKEventListener(app),
 				new AccessDataMKEventListener(loginData2), 5000,
 				Collections.singletonList(new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"),
@@ -154,7 +179,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 
 			}
 		};
-		localIdentifierOtherSide=loginData1.getDecentralizedDatabaseID(idpws.get(0).getIdentifier(), null);
+		localIdentifierOtherSide=loginData2.getDecentralizedDatabaseID(idpws.get(0).getIdentifier(), null);
 	}
 
 
@@ -183,14 +208,16 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				sleep(2500);
 				DatabaseWrapper wrapper=getMadkitConfig().getDatabaseWrapper();
 				Assert.assertNotNull(wrapper);
+				Assert.assertNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
+				Assert.assertNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString());
 				wrapper.getDatabaseConfigurationsBuilder()
 						.setLocalPeerIdentifier(localIdentifier, true, false)
 						.addConfiguration(
 							new DatabaseConfiguration(new DatabaseSchema(Table1.class.getPackage())),false, true )
 						.commit();
 
-				Assert.assertNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
-				Assert.assertNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString());
+				Assert.assertNotNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
+				Assert.assertNotNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString());
 				sleep(100);
 				Assert.assertEquals(localIdentifier, wrapper.getSynchronizer().getLocalHostID());
 				Assert.assertFalse(wrapper.getSynchronizer().isPairedWith(localIdentifierOtherSide));
@@ -269,9 +296,9 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 			} catch (DatabaseException | InterruptedException e) {
 				e.printStackTrace();
 			}
-			catch(AssertionError e)
+			catch(Throwable e)
 			{
-
+				e.printStackTrace();
 				finished.set(false);
 				throw e;
 			}

@@ -105,10 +105,7 @@ public final class NetworkAgent extends AgentFakeThread {
 
 	private void launchDatabaseSynchronizerAgent() {
 		try {
-			if (databaseSynchronizerAgent==null && getMadkitConfig().getDatabaseWrapper()!=null && getMadkitConfig()
-					.getDatabaseWrapper()
-					.getSynchronizer()
-					.getLocalHostID()!=null)
+			if (databaseSynchronizerAgent==null && getMadkitConfig().getDatabaseWrapper()!=null )
 			{
 				databaseSynchronizerAgent=new DatabaseSynchronizerAgent();
 				if (!launchAgent(databaseSynchronizerAgent).equals(ReturnCode.SUCCESS))
