@@ -205,6 +205,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		@Override
 		protected void liveCycle() {
 			try {
+				getMadkitConfig().getDatabaseWrapper().setNetworkLogLevel(Level.FINEST);
 				sleep(2500);
 				DatabaseWrapper wrapper=getMadkitConfig().getDatabaseWrapper();
 				Assert.assertNotNull(wrapper);
@@ -236,7 +237,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					++nb;
 				} while(nb<10);
 				if (nb==10) {
-
+					System.err.println("Distant pair not paired");
 					finished.set(false);
 					return;
 				}
@@ -249,7 +250,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					++nb;
 				} while(nb<10);
 				if (nb==10) {
-
+					System.err.println("Distant pair not initialized");
 					finished.set(false);
 					return;
 				}
@@ -269,6 +270,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				}
 				if (checkDistantRecords(this, table, otherListToAdd, finished))
 				{
+					System.err.println("Distant records not synchronized");
 					finished.set(false);
 					return;
 				}
@@ -289,6 +291,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				}
 				if (checkDistantRecords(this, table, otherListToAdd, finished))
 				{
+					System.err.println("Distant records not synchronized after updating records");
 					finished.set(false);
 					return;
 				}
@@ -489,7 +492,6 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 
 	@Test
 	public void testDatabaseSynchronization() {
-
 		final AtomicReference<Boolean> finished1=new AtomicReference<>(null);
 		final AtomicReference<Boolean> finished2=new AtomicReference<>(null);
 		// addMadkitArgs("--kernelLogLevel",Level.INFO.toString(),"--networkLogLevel",Level.FINEST.toString());

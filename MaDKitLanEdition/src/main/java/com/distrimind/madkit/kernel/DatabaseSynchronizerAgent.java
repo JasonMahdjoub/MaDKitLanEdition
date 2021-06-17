@@ -150,6 +150,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 				&& ! databaseConfigurationsBuilder.getConfigurations().getDistantPeers().contains(e.getKey())) {
 				this.leaveRole(e.getValue(), CloudCommunity.Roles.SYNCHRONIZER);
 				it.remove();
+				distantGroupIdsPerGroup.remove(e.getValue());
 			}
 		}
 	}
@@ -207,6 +208,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 				@Override
 				public void localHostInitialized(DecentralizedValue hostID) {
 					removeUnusedDistantGroups();
+					updateGroupAccess(DatabaseSynchronizerAgent.this);
 					//addDistantGroupID(hostID);
 				}
 
@@ -217,6 +219,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 							addDistantGroupID(dv);
 						}
 					}
+					updateGroupAccess(DatabaseSynchronizerAgent.this);
 				}
 
 				@Override
@@ -299,7 +302,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			if (peerID!=null) {
 
 				if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.REQUEST_ROLE)) {
-					peerAvailable(_message.getSender().getKernelAddress(), peerID);
+					peerAvailable(aa.getKernelAddress(), peerID);
 				} else if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.LEAVE_ROLE)) {
 
 					try {
