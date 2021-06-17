@@ -118,7 +118,7 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 			else if (cmp>0)
 				subgroup=distantIdentifier+"~"+localIdentifier;
 			else
-				throw new IllegalArgumentException();
+				throw new IllegalArgumentException(""+cmp);
 
 			return DISTRIBUTED_DATABASE.getSubGroup(true, databaseGateKeeper, false, subgroup);
 		}

@@ -114,6 +114,10 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 		distantGroupIdsPerGroup.put(group, id);
 		distantGroupIdsPerID.put(id, group);
 		this.requestRole(group, CloudCommunity.Roles.SYNCHRONIZER);
+		AgentAddress aa=this.getAgentWithRole(group, CloudCommunity.Roles.SYNCHRONIZER);
+		if (aa!=null) {
+			peerAvailable(aa.getKernelAddress(), id);
+		}
 		//return group;
 	}
 	/*private Group getOrAddDistantGroupID(DecentralizedValue id)
@@ -203,7 +207,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 				@Override
 				public void localHostInitialized(DecentralizedValue hostID) {
 					removeUnusedDistantGroups();
-					addDistantGroupID(hostID);
+					//addDistantGroupID(hostID);
 				}
 
 				@Override
@@ -268,6 +272,21 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 		return getDistantPeerID(aa.isFrom(getKernelAddress())?null:aa.getKernelAddress(), aa.getGroup(), aa.getRole());
 
 	}
+	private void peerAvailable(KernelAddress distantKernelAddress, DecentralizedValue peerID)
+	{
+		try {
+
+			if (logger!=null && logger.isLoggable(Level.FINE))
+				logger.fine("Connection initialization with peer : "+peerID);
+			synchronizer.peerConnected(peerID);
+
+		} catch (DatabaseException e) {
+			if (!distantKernelAddress.equals(getKernelAddress()))
+				anomalyDetectedWithOneDistantKernel(false, distantKernelAddress, "Unexpected exception");
+
+			getLogger().severeLog("Unexpected exception", e);
+		}
+	}
 	@Override
 	protected void liveByStep(Message _message) throws InterruptedException {
 
@@ -280,18 +299,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			if (peerID!=null) {
 
 				if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.REQUEST_ROLE)) {
-					try {
-
-						if (logger!=null && logger.isLoggable(Level.FINE))
-							logger.fine("Connection initialization with peer : "+peerID);
-						synchronizer.peerConnected(peerID);
-
-					} catch (DatabaseException e) {
-						if (!_message.getSender().isFrom(getKernelAddress()))
-							anomalyDetectedWithOneDistantKernel(false, _message.getSender().getKernelAddress(), "Unexpected exception");
-
-						getLogger().severeLog("Unexpected exception", e);
-					}
+					peerAvailable(_message.getSender().getKernelAddress(), peerID);
 				} else if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.LEAVE_ROLE)) {
 
 					try {
