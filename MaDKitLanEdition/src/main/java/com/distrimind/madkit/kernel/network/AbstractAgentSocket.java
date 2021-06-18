@@ -2601,7 +2601,8 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				boolean changes = areThereDetectedChanges();
 				if (changes)
 					notifyGroupChanges();
-				if (changes || distant_agent_address != agent_for_distant_kernel_aa) {
+				if (changes || distant_agent_address != agent_for_distant_kernel_aa)
+				{
 					notifyDistantKernelAgent();
 				}
 

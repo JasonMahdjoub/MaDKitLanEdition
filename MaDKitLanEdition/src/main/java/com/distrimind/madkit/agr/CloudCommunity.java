@@ -127,7 +127,7 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 		}
 		public static String extractDistantHostIDString(Group group, String localHostID)
 		{
-			if (Objects.requireNonNull(group.getParent()).equals(DISTRIBUTED_DATABASE))
+			if (group.getPath().startsWith(CloudCommunity.Groups.DISTRIBUTED_DATABASE.getPath()))
 			{
 				String[] split=group.getName().split("~");
 				if (split.length==2)

@@ -559,6 +559,7 @@ public class MultiGroup extends AbstractGroup {
 		return res;
 	}
 
+
 	static class AssociatedGroup implements Serializable {
 		private static final long serialVersionUID = 1215548;
 

@@ -37,9 +37,12 @@ knowledge of the CeCILL-C license and that you accept its terms.
 
 import com.distrimind.madkit.agr.CloudCommunity;
 import com.distrimind.madkit.agr.LocalCommunity;
+import com.distrimind.madkit.kernel.network.connection.access.GroupsRoles;
+import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
 import com.distrimind.madkit.message.NetworkObjectMessage;
 import com.distrimind.madkit.message.ObjectMessage;
 import com.distrimind.madkit.message.hook.HookMessage;
+import com.distrimind.madkit.message.hook.NetworkGroupsAccessEvent;
 import com.distrimind.madkit.message.hook.OrganizationEvent;
 import com.distrimind.ood.database.*;
 import com.distrimind.ood.database.exceptions.DatabaseException;
@@ -71,8 +74,8 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 	private DatabaseConfigurationsBuilder databaseConfigurationsBuilder;
 
 	private static final CheckEvents checkEvents=new CheckEvents();
-	private final Map<Group, DecentralizedValue> distantGroupIdsPerGroup=new HashMap<>();
-	private final Map<DecentralizedValue, Group> distantGroupIdsPerID=new HashMap<>();
+	private Map<Group, DecentralizedValue> distantGroupIdsPerGroup=new HashMap<>();
+	private Map<DecentralizedValue, Group> distantGroupIdsPerID=new HashMap<>();
 	private BigDataTransferID currentBigDataTransferID=null;
 	private RandomOutputStream currentBigDataOutputStream=null;
 	private DecentralizedValue currentBigDataHostID=null;
@@ -104,7 +107,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 	{
 
 	}
-	private void addDistantGroupID(DecentralizedValue id)
+	/*private void addDistantGroupID(DecentralizedValue id)
 	{
 		Group group=CloudCommunity.Groups.getDistributedDatabaseGroup(databaseConfigurationsBuilder.getConfigurations().getLocalPeerString(), id);
 		addDistantGroupID(group, id);
@@ -119,7 +122,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			peerAvailable(aa.getKernelAddress(), id);
 		}
 		//return group;
-	}
+	}*/
 	/*private Group getOrAddDistantGroupID(DecentralizedValue id)
 	{
 		Group g=distantGroupIdsPerID.get(id);
@@ -154,7 +157,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			}
 		}
 	}
-	private void initDistantGroups() {
+	/*private void initDistantGroups() {
 		DecentralizedValue dv=databaseConfigurationsBuilder.getConfigurations().getLocalPeer();
 		if (dv!=null) {
 			addDistantGroupID(dv);
@@ -162,7 +165,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 				addDistantGroupID(dv2);
 			}
 		}
-	}
+	}*/
 
 	@Override
 	protected void activate() throws InterruptedException {
@@ -214,11 +217,11 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 				@Override
 				public void hostsAdded(Set<DecentralizedValue> peersIdentifiers) {
-					if (peersIdentifiers!=null) {
+					/*if (peersIdentifiers!=null) {
 						for (DecentralizedValue dv : peersIdentifiers) {
 							addDistantGroupID(dv);
 						}
-					}
+					}*/
 					updateGroupAccess(DatabaseSynchronizerAgent.this);
 				}
 
@@ -228,11 +231,11 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 				}
 
 			});
-			initDistantGroups();
+//			initDistantGroups();
 			if (logger!=null && logger.isLoggable(Level.INFO))
 				logger.info("Data synchronizer launched");
 
-
+			this.requestHookEvents(HookMessage.AgentActionEvent.ACCESSIBLE_LAN_GROUPS_GIVEN_TO_DISTANT_PEER);
 			this.requestHookEvents(HookMessage.AgentActionEvent.REQUEST_ROLE);
 			this.requestHookEvents(HookMessage.AgentActionEvent.LEAVE_ROLE);
 		} catch (DatabaseException e) {
@@ -313,6 +316,61 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 				}
 			}
+		}
+		else if (_message instanceof NetworkGroupsAccessEvent)
+		{
+			NetworkGroupsAccessEvent m=(NetworkGroupsAccessEvent)_message;
+			HashMap<Group, DecentralizedValue> distantGroupIdsPerGroup=new HashMap<>();
+			Map<DecentralizedValue, Group> distantGroupIdsPerID=new HashMap<>();
+			boolean changed=false;
+			for (Group g : m.getGeneralAcceptedGroups().getGroups().getRepresentedGroups())
+			{
+
+				if (g.getPath().startsWith(CloudCommunity.Groups.DISTRIBUTED_DATABASE.getPath()))
+				{
+					DecentralizedValue dv=this.distantGroupIdsPerGroup.get(g);
+					if (dv!=null)
+					{
+						distantGroupIdsPerGroup.put(g, dv );
+						distantGroupIdsPerID.put(dv, g);
+						if (!hasRole(g, CloudCommunity.Roles.SYNCHRONIZER))
+							getLogger().warning("CloudCommunity.Roles.SYNCHRONIZER role should be requested with group "+g);
+					}
+					else
+					{
+
+						try {
+							dv=CloudCommunity.Groups.extractDistantHostID(g,  databaseConfigurationsBuilder.getConfigurations().getLocalPeer());
+							if (dv!=null)
+							{
+								changed=true;
+								distantGroupIdsPerGroup.put(g, dv );
+								distantGroupIdsPerID.put(dv, g);
+								this.requestRole(g, CloudCommunity.Roles.SYNCHRONIZER);
+							}
+						} catch (IOException ignored) {
+
+						}
+					}
+				}
+			}
+			if (this.distantGroupIdsPerGroup.size()!=distantGroupIdsPerGroup.size() && changed)
+			{
+				for (Map.Entry<Group, DecentralizedValue> e : this.distantGroupIdsPerGroup.entrySet())
+				{
+					if (!distantGroupIdsPerGroup.containsKey(e.getKey()))
+					{
+						leaveGroup(e.getKey());
+						try {
+							synchronizer.peerDisconnected(e.getValue());
+						} catch (DatabaseException e2) {
+							getLogger().severeLog("Impossible to disconnect " + e.getValue(), e2);
+						}
+					}
+				}
+			}
+			this.distantGroupIdsPerGroup=distantGroupIdsPerGroup;
+			this.distantGroupIdsPerID=distantGroupIdsPerID;
 		}
 		/*else if (_message instanceof DatabaseConnectionInitializationMessage)
 		{

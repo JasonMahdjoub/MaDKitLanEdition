@@ -62,6 +62,7 @@ import java.security.NoSuchProviderException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
@@ -191,6 +192,8 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		final ArrayList<Table1.Record> myListToAdd;
 		final ArrayList<Table1.Record> otherListToAdd;
 		final AtomicReference<Boolean> finished;
+		final boolean integrator;
+		private static final AtomicBoolean isIntegrator=new AtomicBoolean(true);
 
 
 		public DatabaseAgent(DecentralizedValue localIdentifier, DecentralizedValue localIdentifierOtherSide, ArrayList<Table1.Record> myListToAdd, ArrayList<Table1.Record> otherListToAdd, AtomicReference<Boolean> finished) {
@@ -199,7 +202,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 			this.myListToAdd = myListToAdd;
 			this.otherListToAdd = otherListToAdd;
 			this.finished = finished;
-
+			integrator=isIntegrator.getAndSet(false);
 		}
 
 		@Override
@@ -223,9 +226,22 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				Assert.assertEquals(localIdentifier, wrapper.getSynchronizer().getLocalHostID());
 				Assert.assertFalse(wrapper.getSynchronizer().isPairedWith(localIdentifierOtherSide));
 				wrapper.getDatabaseConfigurationsBuilder()
-						.setSynchronizationType(DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION, Table1.class.getPackage().getName())
-						.addDistantPeer(localIdentifierOtherSide, false)
-						.commit();
+						.setSynchronizationType(DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION, Table1.class.getPackage().getName());
+
+				if (integrator) {
+					wrapper.getDatabaseConfigurationsBuilder()
+							.synchronizeDistantPeersWithGivenAdditionalPackages(Collections.singletonList(localIdentifierOtherSide), Table1.class.getPackage().getName())
+							.commit();
+
+					DatabaseConfiguration dc = wrapper.getDatabaseConfigurationsBuilder().getDatabaseConfiguration(Table1.class.getPackage());
+					Assert.assertEquals(DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION, dc.getSynchronizationType());
+					Assert.assertNotNull(dc.getDistantPeersThatCanBeSynchronizedWithThisDatabase());
+					Assert.assertTrue(dc.getDistantPeersThatCanBeSynchronizedWithThisDatabase().contains(localIdentifierOtherSide));
+				}
+				else
+				{
+					wrapper.getDatabaseConfigurationsBuilder().commit();
+				}
 				sleep(100);
 				Assert.assertTrue(wrapper.getSynchronizer().isInitialized());
 				System.out.println("check paired");
@@ -251,6 +267,22 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				} while(nb<10);
 				if (nb==10) {
 					System.err.println("Distant pair not initialized");
+					finished.set(false);
+					return;
+				}
+				System.out.println("check that database synchronization is activated with other peer");
+				nb=0;
+				do {
+					DatabaseConfiguration dc = wrapper.getDatabaseConfigurationsBuilder().getDatabaseConfiguration(Table1.class.getPackage());
+					if (DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION==dc.getSynchronizationType()
+						&& dc.getDistantPeersThatCanBeSynchronizedWithThisDatabase()!=null
+						&& dc.getDistantPeersThatCanBeSynchronizedWithThisDatabase().contains(localIdentifierOtherSide))
+						break;
+					sleep(1000);
+					++nb;
+				} while(nb<10);
+				if (nb==10) {
+					System.err.println("database synchronization is not activated with other peer");
 					finished.set(false);
 					return;
 				}

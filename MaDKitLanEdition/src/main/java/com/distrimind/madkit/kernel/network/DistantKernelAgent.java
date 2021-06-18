@@ -689,6 +689,7 @@ class DistantKernelAgent extends AgentFakeThread {
 							asd.setAcceptedLocalGroups((Groups) o);
 							updateSharedAcceptedGroups(false, true);
 							//updateLocalAcceptedGroups();
+							informHooksForAccessibleGroupsData();
 						}
 
 					} else if (o.getClass() == ConnectionInfoSystemMessage.class) {
@@ -1021,7 +1022,7 @@ class DistantKernelAgent extends AgentFakeThread {
 				LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 		if (rc.equals(ReturnCode.SUCCESS)) {
 			updateSharedAcceptedGroups(true, true);
-			informHooksForLoginData();
+			informHooksForLoginsData();
 
 			potentialChangesInGroups();
 			networkBoard.unlockSimultaneousConnections(distant_kernel_address);
@@ -1240,13 +1241,13 @@ class DistantKernelAgent extends AgentFakeThread {
 		last_un_logged_identifiers.removeAll(idsnewa);
 		last_un_logged_identifiers.addAll(idsnewu);
 
-		informHooksForLoginData();
+		informHooksForLoginsData();
 		if (logger != null && logger.isLoggable(Level.FINEST))
 			logger.finest("Login data updated (distantInterfacedKernelAddress=" + distant_kernel_address + ")");
 
 	}
 
-	private void informHooksForLoginData() {
+	private void informHooksForLoginsData() {
 		if (this.kernelAddressActivated && (accepted_identifiers.size() > 0 || last_accepted_identifiers.size() > 0
 				|| lastDeniedCloudIdentifiersToOther.size() > 0
 				|| lastDeniedIdentifiersFromOther.size()>0 || lastDeniedIdentifiersToOther.size()>0
@@ -1259,6 +1260,14 @@ class DistantKernelAgent extends AgentFakeThread {
 			lastDeniedIdentifiersFromOther = new ArrayList<>();
 			lastDeniedIdentifiersToOther = new ArrayList<>();
 			last_un_logged_identifiers = new ArrayList<>();
+		}
+	}
+	private void informHooksForAccessibleGroupsData() {
+
+		if (this.kernelAddressActivated ) {
+			ListGroupsRoles mg = computeLocalGeneralAcceptedGroups();
+			MadkitKernelAccess.informHooks(this, new NetworkGroupsAccessEvent(
+					AgentActionEvent.ACCESSIBLE_LAN_GROUPS_GIVEN_TO_DISTANT_PEER, mg, localAcceptedAndRequestedGroups, distant_kernel_address, false));
 		}
 	}
 
