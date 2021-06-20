@@ -35,14 +35,16 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-import com.distrimind.madkit.kernel.*;
+import com.distrimind.madkit.kernel.AbstractAgent;
+import com.distrimind.madkit.kernel.Agent;
+import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.access.*;
 import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolPropertiesWithKeyAgreement;
 import com.distrimind.ood.database.DatabaseConfiguration;
 import com.distrimind.ood.database.DatabaseSchema;
 import com.distrimind.ood.database.DatabaseWrapper;
-import com.distrimind.ood.database.EmbeddedH2DatabaseWrapper;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedIDGenerator;
 import com.distrimind.util.DecentralizedValue;
@@ -63,7 +65,6 @@ import java.security.NoSuchProviderException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
@@ -194,16 +195,16 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		final ArrayList<Table1.Record> otherListToAdd;
 		final AtomicReference<Boolean> finished;
 		final boolean integrator;
-		private static final AtomicBoolean isIntegrator=new AtomicBoolean(true);
 
 
-		public DatabaseAgent(DecentralizedValue localIdentifier, DecentralizedValue localIdentifierOtherSide, ArrayList<Table1.Record> myListToAdd, ArrayList<Table1.Record> otherListToAdd, AtomicReference<Boolean> finished) {
+
+		public DatabaseAgent(DecentralizedValue localIdentifier, DecentralizedValue localIdentifierOtherSide, ArrayList<Table1.Record> myListToAdd, ArrayList<Table1.Record> otherListToAdd, AtomicReference<Boolean> finished, boolean isIntegrator) {
 			this.localIdentifier = localIdentifier;
 			this.localIdentifierOtherSide = localIdentifierOtherSide;
 			this.myListToAdd = myListToAdd;
 			this.otherListToAdd = otherListToAdd;
 			this.finished = finished;
-			integrator=isIntegrator.getAndSet(false);
+			integrator=isIntegrator;
 		}
 
 		@Override
@@ -543,13 +544,14 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 
 				@Override
 				protected void activate() throws InterruptedException {
-
+					Assert.assertFalse(databaseFile1.exists());
+					Assert.assertFalse(databaseFile2.exists());
 					ArrayList<Table1.Record> recordsToAdd = getRecordsToAdd();
 					ArrayList<Table1.Record> recordsToAddOtherSide = getRecordsToAdd();
-					AbstractAgent agentChecker = new DatabaseAgent(localIdentifier, localIdentifierOtherSide, recordsToAdd, recordsToAddOtherSide, finished1);
+					AbstractAgent agentChecker = new DatabaseAgent(localIdentifier, localIdentifierOtherSide, recordsToAdd, recordsToAddOtherSide, finished1, true);
 					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentChecker, eventListener1);
 					sleep(600);
-					AbstractAgent agentCheckerOtherSide = new DatabaseAgent(localIdentifierOtherSide, localIdentifier, recordsToAddOtherSide, recordsToAdd, finished2);
+					AbstractAgent agentCheckerOtherSide = new DatabaseAgent(localIdentifierOtherSide, localIdentifier, recordsToAddOtherSide, recordsToAdd, finished2, false);
 					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentCheckerOtherSide, eventListener2);
 
 					while (finished1.get() == null || finished2.get() == null) {
