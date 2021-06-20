@@ -217,17 +217,15 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				wrapper.getDatabaseConfigurationsBuilder()
 						.setLocalPeerIdentifier(localIdentifier, true, false)
 						.addConfiguration(
-							new DatabaseConfiguration(new DatabaseSchema(Table1.class.getPackage())),false, true )
+							new DatabaseConfiguration(new DatabaseSchema(Table1.class.getPackage()), DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION),false, true )
 						.commit();
 
 				Assert.assertNotNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
 				Assert.assertNotNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString());
 				sleep(100);
 				Assert.assertEquals(localIdentifier, wrapper.getSynchronizer().getLocalHostID());
-				Assert.assertFalse(wrapper.getSynchronizer().isPairedWith(localIdentifierOtherSide));
-				wrapper.getDatabaseConfigurationsBuilder()
-						.setSynchronizationType(DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION, Table1.class.getPackage().getName());
-
+				Assert.assertFalse(wrapper.getSynchronizer().isInitialized(localIdentifierOtherSide));
+				sleep(500);
 				if (integrator) {
 					wrapper.getDatabaseConfigurationsBuilder()
 							.synchronizeDistantPeersWithGivenAdditionalPackages(Collections.singletonList(localIdentifierOtherSide), Table1.class.getPackage().getName())
@@ -238,10 +236,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					Assert.assertNotNull(dc.getDistantPeersThatCanBeSynchronizedWithThisDatabase());
 					Assert.assertTrue(dc.getDistantPeersThatCanBeSynchronizedWithThisDatabase().contains(localIdentifierOtherSide));
 				}
-				else
-				{
-					wrapper.getDatabaseConfigurationsBuilder().commit();
-				}
+
 				sleep(100);
 				Assert.assertTrue(wrapper.getSynchronizer().isInitialized());
 				System.out.println("check paired");
@@ -398,6 +393,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				sleep(1900);
 				DatabaseWrapper wrapper=getMadkitConfig().getDatabaseWrapper();
 				Assert.assertNotNull(wrapper);
+
 				wrapper.getDatabaseConfigurationsBuilder()
 						.setLocalPeerIdentifier(localIdentifier, true, false)
 						.addConfiguration(
