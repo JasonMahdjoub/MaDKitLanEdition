@@ -42,6 +42,7 @@ import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnect
 import com.distrimind.ood.database.DatabaseConfiguration;
 import com.distrimind.ood.database.DatabaseSchema;
 import com.distrimind.ood.database.DatabaseWrapper;
+import com.distrimind.ood.database.EmbeddedH2DatabaseWrapper;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedIDGenerator;
 import com.distrimind.util.DecentralizedValue;
@@ -252,6 +253,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					finished.set(false);
 					return;
 				}
+				System.out.println("peer paired !");
 				System.out.println("check pair connected");
 				nb=0;
 				do {
@@ -265,6 +267,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					finished.set(false);
 					return;
 				}
+				System.out.println("peer connected !");
 				System.out.println("check that database synchronization is activated with other peer");
 				nb=0;
 				do {
@@ -397,7 +400,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				wrapper.getDatabaseConfigurationsBuilder()
 						.setLocalPeerIdentifier(localIdentifier, true, false)
 						.addConfiguration(
-							new DatabaseConfiguration(new DatabaseSchema(Table1.class.getPackage()), DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION, Collections.singletonList(localIdentifierOtherSide)),false, true )
+							new DatabaseConfiguration(new DatabaseSchema(Table1.class.getPackage()), DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION, Collections.singletonList(localIdentifierOtherSide)),false, false )
 						.commit();
 				Assert.assertNotNull(wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
 				Assert.assertNotNull(wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString());
@@ -418,6 +421,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					finished.set(false);
 					return;
 				}
+				System.out.println("peer paired !");
 				System.out.println("check pair connected");
 				nb=0;
 				do {
@@ -431,7 +435,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					finished.set(false);
 					return;
 				}
-
+				System.out.println("peer connected !");
 
 
 				Table1 table=wrapper.getTableInstance(Table1.class);
@@ -441,10 +445,14 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					return;
 				}
 				sleep(1000);
-				wrapper.getDatabaseConfigurationsBuilder().desynchronizeDistantPeerWithGivenAdditionalPackages(localIdentifierOtherSide, Table1.class.getPackage().getName());
+				wrapper.getDatabaseConfigurationsBuilder()
+						.desynchronizeDistantPeerWithGivenAdditionalPackages(localIdentifierOtherSide, Table1.class.getPackage().getName())
+						.removeDistantPeer(localIdentifierOtherSide)
+						.commit();
 				sleep(100);
-				Assert.assertFalse(wrapper.getSynchronizer().isPairedWith(localIdentifierOtherSide));
+
 				nb=0;
+				System.out.println("check peer disconnected ");
 				do {
 					if (!wrapper.getSynchronizer().isInitialized(localIdentifierOtherSide))
 						break;
@@ -456,7 +464,10 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					finished.set(false);
 					return;
 				}
-				wrapper.getDatabaseConfigurationsBuilder().resetSynchronizerAndRemoveAllHosts();
+				System.out.println("peer disconnected ");
+				wrapper.getDatabaseConfigurationsBuilder()
+						.resetSynchronizerAndRemoveAllHosts()
+						.commit();
 
 				sleep(3000);
 				Assert.assertNull(wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
@@ -548,11 +559,15 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 
 					Assert.assertEquals(true, finished1.get());
 					Assert.assertEquals(true, finished2.get());
+
 					cleanHelperMDKs(this);
 					Assert.assertEquals(getHelperInstances(this, 0).size(), 0);
 					finished1.set(null);
 					finished2.set(null);
 					System.out.println("Second step");
+					Assert.assertTrue(databaseFile1.exists());
+					Assert.assertTrue(databaseFile2.exists());
+
 					agentChecker = new SecondConnexionAgent(localIdentifier, localIdentifierOtherSide, recordsToAdd, recordsToAddOtherSide, finished1);
 					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentChecker, eventListener1);
 					sleep(400);
