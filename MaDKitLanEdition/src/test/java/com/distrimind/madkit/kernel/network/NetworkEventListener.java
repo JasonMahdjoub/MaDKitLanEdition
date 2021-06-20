@@ -42,7 +42,7 @@ import com.distrimind.madkit.kernel.MadkitEventListener;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.connection.access.HostIdentifier;
 import com.distrimind.ood.database.DatabaseFactory;
-import com.distrimind.ood.database.InMemoryEmbeddedH2DatabaseFactory;
+import com.distrimind.ood.database.InFileEmbeddedH2DatabaseFactory;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.crypto.EncryptionProfileProviderFactory;
 import com.distrimind.util.crypto.SecureRandomType;
@@ -200,7 +200,7 @@ public class NetworkEventListener implements MadkitEventListener {
 		_properties.networkProperties.autoConnectWithLocalSitePeers = autoConnectWithLocalSitePeers;
 		try {
 			if (databaseFile != null) {
-				DatabaseFactory<?> df=new InMemoryEmbeddedH2DatabaseFactory(databaseFile.getName());
+				DatabaseFactory<?> df=new InFileEmbeddedH2DatabaseFactory(databaseFile);
 				if (protectedEncryptionProfileFactoryProviderForAuthenticatedP2PMessages!=null) {
 					df.setEncryptionProfileProviders(signatureProfileProviderForAuthenticatedMessagesDestinedToCentralDatabaseBackup,
 							encryptionProfileProviderForE2EDataDestinedCentralDatabaseBackup,
