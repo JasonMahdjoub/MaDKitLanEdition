@@ -221,13 +221,13 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 						.addConfiguration(
 							new DatabaseConfiguration(new DatabaseSchema(Table1.class.getPackage()), DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION),false, true )
 						.commit();
+				Assert.assertFalse(wrapper.getSynchronizer().isInitialized(localIdentifierOtherSide));
 
 				Assert.assertNotNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
 				Assert.assertNotNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString());
-				sleep(100);
+				sleep(300);
 				Assert.assertEquals(localIdentifier, wrapper.getSynchronizer().getLocalHostID());
-				Assert.assertFalse(wrapper.getSynchronizer().isInitialized(localIdentifierOtherSide));
-				sleep(500);
+
 				if (integrator) {
 					wrapper.getDatabaseConfigurationsBuilder()
 							.synchronizeDistantPeersWithGivenAdditionalPackages(Collections.singletonList(localIdentifierOtherSide), Table1.class.getPackage().getName())
