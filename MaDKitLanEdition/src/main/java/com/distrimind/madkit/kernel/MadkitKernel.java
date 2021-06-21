@@ -63,6 +63,7 @@ import com.distrimind.madkit.message.hook.*;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.message.task.TasksExecutionConfirmationMessage;
 import com.distrimind.madkit.util.XMLUtilities;
+import com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupReceiverFactory;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.Utils;
@@ -215,7 +216,7 @@ class MadkitKernel extends Agent {
 
 	private AgentAddress netAgent;
 	// my private addresses for optimizing the message building
-	private AgentAddress netUpdater, netEmitter, kernelRole, netSecurity;
+	private AgentAddress netUpdater, netEmitter, kernelRole, netSecurity, netCentralDatabaseBackupReceiverChecker;
 	final private Set<Agent> threadedAgents;
 
 	private final Map<AgentActionEvent, Set<AbstractAgent>> hooks = Collections
@@ -436,6 +437,9 @@ class MadkitKernel extends Agent {
 		if (!requestRole(Groups.NETWORK, Roles.UPDATER, null).equals(ReturnCode.SUCCESS)) {
 			System.err.println("Kernel is unable get role Roles.UPDATER");
 		}
+		if (!requestRole(Groups.NETWORK, Roles.CENTRAL_DATABASE_BACKUP_CHECKER, null).equals(ReturnCode.SUCCESS)) {
+			System.err.println("Kernel is unable get role Roles.CENTRAL_DATABASE_BACKUP_CHECKER");
+		}
 		if (!requestRole(Groups.NETWORK, Roles.EMITTER, null).equals(ReturnCode.SUCCESS)) {
 			System.err.println("Kernel is unable get role Roles.EMITTER");
 		}
@@ -444,6 +448,7 @@ class MadkitKernel extends Agent {
 		}
 
 		// my AAs cache
+		netCentralDatabaseBackupReceiverChecker = getAgentAddressIn(Groups.NETWORK, Roles.CENTRAL_DATABASE_BACKUP_CHECKER);
 		netUpdater = getAgentAddressIn(Groups.NETWORK, Roles.UPDATER);
 		netSecurity = getAgentAddressIn(Groups.NETWORK, Roles.SECURITY);
 		netEmitter = getAgentAddressIn(Groups.NETWORK, Roles.EMITTER);
@@ -4009,6 +4014,24 @@ class MadkitKernel extends Agent {
 
 	IDGeneratorInt getIDTransferGenerator() {
 		return generatorIdTransfer;
+	}
+
+	ReturnCode setCentralDatabaseBackupReceiverFactory(AbstractAgent ignored, CentralDatabaseBackupReceiverFactory<?> centralDatabaseBackupReceiverFactory) throws DatabaseException {
+		boolean changed=getMadkitConfig().setCentralDatabaseBackupReceiverFactory(centralDatabaseBackupReceiverFactory);
+		if (changed) {
+			if (netAgent != null) {
+				Message m = new EmptyMessage();
+				m.setSender(netCentralDatabaseBackupReceiverChecker);
+				m.setReceiver(netAgent);
+				netAgent.getAgent().receiveMessage(m);
+
+			}
+			return SUCCESS;
+		}
+		else
+			return IGNORED;
+
+
 	}
 
 	/*void setIfNotPresentLocalDatabaseHostIdentifier(AbstractAgent requester, DecentralizedValue localDatabaseHostID, Package ...packages) throws DatabaseException

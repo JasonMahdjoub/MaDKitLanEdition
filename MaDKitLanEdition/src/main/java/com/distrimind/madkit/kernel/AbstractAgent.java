@@ -73,6 +73,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import com.distrimind.madkit.database.DifferedMessageTable;
 import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
 import com.distrimind.ood.database.DatabaseConfigurationsBuilder;
+import com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupReceiverFactory;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.concurrent.LockerCondition;
@@ -5071,6 +5072,9 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		return mp.getDatabaseWrapper().getDatabaseConfigurationsBuilder();
 	}
 
+	public ReturnCode setCentralDatabaseBackupReceiverFactory(CentralDatabaseBackupReceiverFactory<?> centralDatabaseBackupReceiverFactory) throws DatabaseException {
+		return getMadkitKernel().setCentralDatabaseBackupReceiverFactory(this, centralDatabaseBackupReceiverFactory);
 
+	}
 
 }

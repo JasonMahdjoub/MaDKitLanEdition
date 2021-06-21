@@ -45,6 +45,7 @@ import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
 import com.distrimind.madkit.message.EnumMessage;
 import com.distrimind.madkit.message.KernelMessage;
+import com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupReceiver;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 
 import java.util.HashMap;
@@ -67,6 +68,7 @@ public final class NetworkAgent extends AgentFakeThread {
 	private AgentAddress NIOAgentAddress = null, LocalNetworkAffectationAgentAddress = null;
 	private final HashMap<ConversationID, MessageLocker> messageLockers = new HashMap<>();
 	private DatabaseSynchronizerAgent databaseSynchronizerAgent=null;
+	private CentralDatabaseBackupReceiverAgent centralDatabaseBackupReceiverAgent=null;
 	public static final String REFRESH_GROUPS_ACCESS="REFRESH_GROUPS_ACCESS";
 
 	public NetworkAgent() {
@@ -103,6 +105,46 @@ public final class NetworkAgent extends AgentFakeThread {
 
 	}
 
+	private void checkCentralDatabaseBackupReceiverAgent() {
+
+		try {
+			CentralDatabaseBackupReceiver centralDatabaseBackupReceiver = getMadkitConfig().getCentralDatabaseBackupReceiver();
+			if (centralDatabaseBackupReceiverAgent==null) {
+				if (centralDatabaseBackupReceiver != null) {
+					centralDatabaseBackupReceiverAgent=new CentralDatabaseBackupReceiverAgent();
+					if (!launchAgent(centralDatabaseBackupReceiverAgent).equals(ReturnCode.SUCCESS))
+					{
+						centralDatabaseBackupReceiverAgent=null;
+						getLogger().warning("Unable to launch central database backup receiver agent");
+					}
+				}
+			}
+			else
+			{
+				if (centralDatabaseBackupReceiver == null) {
+					stopCentralDatabaseBackupReceiverAgent();
+				}
+			}
+		} catch (DatabaseException e) {
+			getLogger().severeLog("Problem with database", e);
+		}
+
+	}
+
+	private void stopCentralDatabaseBackupReceiverAgent() {
+		if (centralDatabaseBackupReceiverAgent!=null) {
+			if (centralDatabaseBackupReceiverAgent.isAlive()) {
+				if (!killAgent(centralDatabaseBackupReceiverAgent).equals(ReturnCode.SUCCESS))
+					getLogger().warning("Unable to kill Database synchronizer agent");
+				else
+					centralDatabaseBackupReceiverAgent = null;
+			}
+			else
+				centralDatabaseBackupReceiverAgent=null;
+		}
+	}
+
+
 	private void launchDatabaseSynchronizerAgent() {
 		try {
 			if (databaseSynchronizerAgent==null && getMadkitConfig().getDatabaseWrapper()!=null )
@@ -125,7 +167,7 @@ public final class NetworkAgent extends AgentFakeThread {
 		{
 			if (databaseSynchronizerAgent.isAlive())
 			{
-				if (killAgent(databaseSynchronizerAgent).equals(ReturnCode.SUCCESS))
+				if (!killAgent(databaseSynchronizerAgent).equals(ReturnCode.SUCCESS))
 					getLogger().warning("Unable to kill Database synchronizer agent");
 				else
 					databaseSynchronizerAgent=null;
@@ -145,6 +187,7 @@ public final class NetworkAgent extends AgentFakeThread {
 		// CloudCommunity.Roles.NET_AGENT);
 
 		launchDatabaseSynchronizerAgent();
+		checkCentralDatabaseBackupReceiverAgent();
 
 		if (getMadkitConfig().networkProperties.upnpIGDEnabled
 				|| getMadkitConfig().networkProperties.networkInterfaceScan) {
@@ -185,6 +228,7 @@ public final class NetworkAgent extends AgentFakeThread {
 	private void stopNetwork() {
 		if (LocalNetworkAffectationAgentAddress != null && NIOAgentAddress != null) {
 			stopDatabaseSynchronizerAgent();
+			stopCentralDatabaseBackupReceiverAgent();
 
 			broadcastMessage(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.TRANSFER_AGENT_ROLE,
 					new StopNetworkMessage(NetworkCloseReason.NORMAL_DETECTION));
@@ -255,6 +299,11 @@ public final class NetworkAgent extends AgentFakeThread {
 			proceedEnumMessage((EnumMessage<?>) m);
 		} else if (sender.isFrom(getKernelAddress())) {// contacted locally
 			switch (sender.getRole()) {
+				case Roles.CENTRAL_DATABASE_BACKUP_CHECKER:
+				{
+					stopCentralDatabaseBackupReceiverAgent();
+					checkCentralDatabaseBackupReceiverAgent();
+				}
 			case Roles.UPDATER:// It is a CGR update
 			{
 				/*MessageLocker ml = null;

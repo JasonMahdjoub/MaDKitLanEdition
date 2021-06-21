@@ -49,6 +49,8 @@ import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.madkit.util.MultiFormatPropertiesObjectParser;
 import com.distrimind.madkit.util.XMLUtilities;
 import com.distrimind.ood.database.*;
+import com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupReceiver;
+import com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupReceiverFactory;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.FileTools;
 import com.distrimind.util.crypto.AbstractSecureRandom;
@@ -76,7 +78,7 @@ import java.util.logging.Logger;
  * 
  * @author Jasopn Mahdjoub
  * @since MadKitLanEdition 1.0
- * @version 1.2
+ * @version 1.3
  * 
  */
 @SuppressWarnings("UnusedReturnValue")
@@ -293,9 +295,8 @@ public class MadkitProperties extends MultiFormatProperties {
 	private transient boolean databaseConfigurationsParametrized=false;
 
 	public void setDatabaseFactory(DatabaseFactory<?> df) throws DatabaseException {
-		if (databaseFactory != null && databaseFactory != df
-				&& !databaseFactory.getDatabaseWrapperSingleton().isClosed()) {
-			databaseFactory.getDatabaseWrapperSingleton().close();
+		if (databaseFactory != null && databaseFactory != df) {
+			databaseFactory.closeSingletonIfOpened();
 		}
 		databaseConfigurationsParametrized=false;
 		databaseFactory = df;
@@ -1104,4 +1105,25 @@ public class MadkitProperties extends MultiFormatProperties {
 	    for (File f : configFiles)
             save(f, reference);
     }
+
+	private CentralDatabaseBackupReceiverFactory<?> centralDatabaseBackupReceiverFactory;
+
+	boolean setCentralDatabaseBackupReceiverFactory(CentralDatabaseBackupReceiverFactory<?> centralDatabaseBackupReceiverFactory) throws DatabaseException {
+		boolean changed=false;
+		if (this.centralDatabaseBackupReceiverFactory!=null && centralDatabaseBackupReceiverFactory!=this.centralDatabaseBackupReceiverFactory)
+		{
+			changed=this.centralDatabaseBackupReceiverFactory.disconnectSingletonIfUsed();
+		}
+		this.centralDatabaseBackupReceiverFactory = centralDatabaseBackupReceiverFactory;
+		return changed;
+	}
+	public CentralDatabaseBackupReceiver getCentralDatabaseBackupReceiver() throws DatabaseException {
+		if (centralDatabaseBackupReceiverFactory==null)
+			return null;
+		DatabaseWrapper dw=getDatabaseWrapper();
+		if (dw==null)
+			return null;
+		return centralDatabaseBackupReceiverFactory.getCentralDatabaseBackupReceiverInstanceSingleton(dw);
+	}
+
 }
