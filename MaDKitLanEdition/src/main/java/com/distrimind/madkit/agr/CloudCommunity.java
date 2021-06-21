@@ -46,7 +46,6 @@ import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.data_buffers.WrappedString;
 
 import java.io.IOException;
-import java.util.Objects;
 
 /**
  * Defines the default groups and roles used for networking.
@@ -92,6 +91,7 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 
 
 		public static final Group DISTRIBUTED_DATABASE = LocalCommunity.Groups.DATABASE.getSubGroup(true, databaseGateKeeper, true, "~~peers");
+		public static final Group CENTRAL_DATABASE_BACKUP = LocalCommunity.Groups.DATABASE.getSubGroup(true, databaseGateKeeper, true, "~~central_database_backup");
 
 		public static WrappedString encodeDecentralizedValue(DecentralizedValue identifier)
 		{
@@ -122,6 +122,43 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 
 			return DISTRIBUTED_DATABASE.getSubGroup(true, databaseGateKeeper, false, subgroup);
 		}
+		public static Group getCentralDatabaseGroup(DecentralizedValue localIdentifier, DecentralizedValue distantIdentifier)
+		{
+			return getCentralDatabaseGroup(encodeDecentralizedValue(localIdentifier), encodeDecentralizedValue(distantIdentifier));
+		}
+		public static Group getCentralDatabaseGroup(String localIdentifier, DecentralizedValue distantIdentifier)
+		{
+			return getCentralDatabaseGroup(localIdentifier, encodeDecentralizedValue(distantIdentifier));
+		}
+		public static Group getCentralDatabaseGroup(WrappedString centralIdentifier, WrappedString distantPeerIdentifier)
+		{
+			return getCentralDatabaseGroup(centralIdentifier.toString(), distantPeerIdentifier.toString());
+		}
+		public static Group getCentralDatabaseGroup(String centralIdentifier, WrappedString distantPeerIdentifier)
+		{
+			return getCentralDatabaseGroup(centralIdentifier, distantPeerIdentifier.toString());
+		}
+		public static Group getCentralDatabaseGroup(String centralIdentifier, String distantPeerIdentifier)
+		{
+			if (centralIdentifier==null)
+				throw new NullPointerException();
+			if (distantPeerIdentifier==null)
+				throw new NullPointerException();
+			if (centralIdentifier.length()==0)
+				throw new IllegalArgumentException();
+			if (distantPeerIdentifier.length()==0)
+				throw new IllegalArgumentException();
+			String subgroup;
+			int cmp=centralIdentifier.compareTo(distantPeerIdentifier);
+			if (cmp<0)
+				subgroup=centralIdentifier+"~"+distantPeerIdentifier;
+			else if (cmp>0)
+				subgroup=distantPeerIdentifier+"~"+centralIdentifier;
+			else
+				throw new IllegalArgumentException(""+cmp);
+
+			return CENTRAL_DATABASE_BACKUP.getSubGroup(true, databaseGateKeeper, false, subgroup);
+		}
 		public static DecentralizedValue extractDistantHostID(Group group, DecentralizedValue localHostID) throws IOException {
 			return extractDistantHostID(group, encodeDecentralizedValue(localHostID));
 		}
@@ -146,6 +183,47 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 			}
 			return null;
 
+		}
+		public static DecentralizedValue extractDistantHostIDFromCentralDatabaseBackupGroup(Group group, DecentralizedValue centralID) throws IOException {
+			return extractDistantHostIDFromCentralDatabaseBackupGroup(group, encodeDecentralizedValue(centralID));
+		}
+		public static DecentralizedValue extractDistantHostIDFromCentralDatabaseBackupGroup(Group group, WrappedString centralID) throws IOException {
+			return extractDistantHostIDFromCentralDatabaseBackupGroup(group, centralID.toString());
+		}
+		public static DecentralizedValue extractDistantHostIDFromCentralDatabaseBackupGroup(Group group, String centralID) throws IOException {
+			String res=extractDistantHostIDStringFromCentralDatabaseBackupGroup(group, centralID);
+			if (res==null)
+				return null;
+			return DecentralizedValue.decode(Bits.toBytesArrayFromBase64String(res, true));
+		}
+		public static String extractDistantHostIDStringFromCentralDatabaseBackupGroup(Group group, DecentralizedValue centralID)
+		{
+			return extractDistantHostIDStringFromCentralDatabaseBackupGroup(group, encodeDecentralizedValue(centralID));
+		}
+		public static String extractDistantHostIDStringFromCentralDatabaseBackupGroup(Group group, WrappedString centralID)
+		{
+			return extractDistantHostIDStringFromCentralDatabaseBackupGroup(group, centralID.toString());
+		}
+		public static String extractDistantHostIDStringFromCentralDatabaseBackupGroup(Group group, String centralID)
+		{
+			if (group.getPath().startsWith(Groups.CENTRAL_DATABASE_BACKUP.getPath()))
+			{
+				String[] split=group.getName().split("~");
+				if (split.length==2)
+				{
+					if (centralID.equals(split[0]))
+					{
+						if (split[1]!=null && !split[1].equals(centralID))
+							return split[1];
+					}
+					else if (centralID.equals(split[1]))
+					{
+						if (split[0]!=null)
+							return split[0];
+					}
+				}
+			}
+			return null;
 		}
 		public static DecentralizedValue extractDistantHostID(Group group, WrappedString localHostID) throws IOException {
 			return extractDistantHostID(group, localHostID.toString());
@@ -207,5 +285,6 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 		}*/
 
 		public static final String SYNCHRONIZER="SYNCHRONIZER";
+		public static final String CENTRAL_SYNCHRONIZER="CENTRAL_SYNCHRONIZER";
 	}
 }

@@ -682,7 +682,19 @@ public abstract class LoginData extends AccessData {
 			return null;
 	}
 
-
+	@SuppressWarnings("RedundantThrows")
+	public DecentralizedValue getCentralDatabaseID(Identifier identifier, MadkitProperties properties) throws DatabaseException {
+		DecentralizedValue dv=identifier.getHostIdentifier().getCentralDecentralizedDatabaseID();
+		if (dv!=null) {
+			if (identifier.getHostIdentifier().isAuthenticatedByPublicKey() && (dv instanceof IASymmetricPublicKey) && dv.equals(identifier.getHostIdentifier().getAuthenticationPublicKey())) {
+				return dv;
+			} else {
+				return null;
+			}
+		}
+		else
+			return null;
+	}
 
 
 }
