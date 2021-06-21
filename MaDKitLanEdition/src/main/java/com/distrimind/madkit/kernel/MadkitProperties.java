@@ -49,8 +49,6 @@ import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.madkit.util.MultiFormatPropertiesObjectParser;
 import com.distrimind.madkit.util.XMLUtilities;
 import com.distrimind.ood.database.*;
-import com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupReceiver;
-import com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupReceiverFactory;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.FileTools;
 import com.distrimind.util.crypto.AbstractSecureRandom;
@@ -1117,7 +1115,7 @@ public class MadkitProperties extends MultiFormatProperties {
 		this.centralDatabaseBackupReceiverFactory = centralDatabaseBackupReceiverFactory;
 		return changed;
 	}
-	public CentralDatabaseBackupReceiver getCentralDatabaseBackupReceiver() throws DatabaseException {
+	public com.distrimind.madkit.kernel.CentralDatabaseBackupReceiver getCentralDatabaseBackupReceiver() throws DatabaseException {
 		if (centralDatabaseBackupReceiverFactory==null)
 			return null;
 		DatabaseWrapper dw=getDatabaseWrapper();

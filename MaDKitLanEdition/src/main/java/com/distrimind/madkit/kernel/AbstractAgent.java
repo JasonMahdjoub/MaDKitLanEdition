@@ -38,61 +38,14 @@
 
 package com.distrimind.madkit.kernel;
 
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
-import static com.distrimind.madkit.kernel.AbstractAgent.State.*;
-
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.swing.JFrame;
-import javax.xml.parsers.ParserConfigurationException;
-
-import com.distrimind.madkit.database.DifferedMessageTable;
-import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
-import com.distrimind.ood.database.DatabaseConfigurationsBuilder;
-import com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupReceiverFactory;
-import com.distrimind.ood.database.exceptions.DatabaseException;
-import com.distrimind.util.DecentralizedValue;
-import com.distrimind.util.concurrent.LockerCondition;
-import com.distrimind.util.io.RandomInputStream;
-import com.distrimind.util.io.SecureExternalizable;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
 import com.distrimind.madkit.action.ActionInfo;
 import com.distrimind.madkit.action.GUIManagerAction;
 import com.distrimind.madkit.agr.LocalCommunity;
-import com.distrimind.madkit.exceptions.KilledException;
-import com.distrimind.madkit.exceptions.SelfKillException;
 import com.distrimind.madkit.agr.LocalCommunity.Groups;
 import com.distrimind.madkit.agr.LocalCommunity.Roles;
+import com.distrimind.madkit.database.DifferedMessageTable;
+import com.distrimind.madkit.exceptions.KilledException;
+import com.distrimind.madkit.exceptions.SelfKillException;
 import com.distrimind.madkit.gui.AgentStatusPanel;
 import com.distrimind.madkit.gui.OutputPanel;
 import com.distrimind.madkit.gui.menu.AgentLogLevelMenu;
@@ -101,30 +54,51 @@ import com.distrimind.madkit.gui.menu.MadkitMenu;
 import com.distrimind.madkit.i18n.ErrorMessages;
 import com.distrimind.madkit.i18n.I18nUtilities;
 import com.distrimind.madkit.i18n.Words;
-import com.distrimind.madkit.kernel.network.AskForConnectionMessage;
-import com.distrimind.madkit.kernel.network.AskForTransferMessage;
-import com.distrimind.madkit.kernel.network.Connection;
-import com.distrimind.madkit.kernel.network.ConnectionIdentifier;
-import com.distrimind.madkit.kernel.network.LocalLanMessage;
-import com.distrimind.madkit.kernel.network.NetworkProperties;
-import com.distrimind.madkit.kernel.network.StatsBandwidth;
-import com.distrimind.madkit.kernel.network.TransferFilter;
-import com.distrimind.madkit.kernel.network.TransfersReturnsCodes;
+import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
-import com.distrimind.madkit.kernel.network.connection.access.AccessData;
 import com.distrimind.madkit.kernel.network.connection.access.AbstractAccessProtocolProperties;
+import com.distrimind.madkit.kernel.network.connection.access.AccessData;
+import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.ConversationFilter;
 import com.distrimind.madkit.message.EnumMessage;
 import com.distrimind.madkit.message.GUIMessage;
 import com.distrimind.madkit.message.MessageFilter;
 import com.distrimind.madkit.message.hook.AgentLifeEvent;
+import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.message.hook.MessageEvent;
 import com.distrimind.madkit.message.hook.OrganizationEvent;
 import com.distrimind.madkit.message.task.TasksExecutionConfirmationMessage;
-import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.util.XMLUtilities;
+import com.distrimind.ood.database.DatabaseConfigurationsBuilder;
+import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.crypto.MessageDigestType;
+import com.distrimind.util.io.RandomInputStream;
+import com.distrimind.util.io.SecureExternalizable;
+import org.w3c.dom.*;
+import org.xml.sax.SAXException;
+
+import javax.swing.*;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.InetSocketAddress;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
+import static com.distrimind.madkit.kernel.AbstractAgent.State.*;
 
 // * <img src="doc-files/Capture.png" alt=""/>
 /**

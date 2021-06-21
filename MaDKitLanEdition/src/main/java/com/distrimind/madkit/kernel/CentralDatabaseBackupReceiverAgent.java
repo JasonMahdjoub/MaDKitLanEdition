@@ -42,7 +42,7 @@ import com.distrimind.madkit.message.ObjectMessage;
 import com.distrimind.madkit.message.hook.HookMessage;
 import com.distrimind.madkit.message.hook.NetworkGroupsAccessEvent;
 import com.distrimind.madkit.message.hook.OrganizationEvent;
-import com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupReceiver;
+import com.distrimind.ood.database.DatabaseEvent;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.ood.database.messages.P2PDatabaseEventToSend;
 import com.distrimind.util.DecentralizedValue;
@@ -83,6 +83,7 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 			if (centralDatabaseBackupReceiver==null)
 				throw DatabaseException.getDatabaseException(new IllegalAccessException());
 			centralIDString=CloudCommunity.Groups.encodeDecentralizedValue(centralDatabaseBackupReceiver.getCentralID());
+			centralDatabaseBackupReceiver.setAgent(this);
 			requestRole(LocalCommunity.Groups.NETWORK, CloudCommunity.Roles.CENTRAL_SYNCHRONIZER);
 			updateGroupAccess(this);
 			this.requestHookEvents(HookMessage.AgentActionEvent.ACCESSIBLE_LAN_GROUPS_GIVEN_TO_DISTANT_PEER);
@@ -92,7 +93,7 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 		}
 
 	}
-	private Group getDistantGroupID(DecentralizedValue id)
+	Group getDistantGroupID(DecentralizedValue id)
 	{
 		return distantGroupIdsPerID.get(id);
 	}
