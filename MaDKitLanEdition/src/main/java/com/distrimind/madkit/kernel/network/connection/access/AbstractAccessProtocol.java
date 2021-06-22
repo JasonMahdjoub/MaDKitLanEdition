@@ -281,40 +281,39 @@ public abstract class AbstractAccessProtocol {
 						if (wrapper!=null) {
 							DecentralizedValue localDatabaseHostID=wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer();
 							String localDatabaseHostIDString = wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString();
+							CentralDatabaseBackupReceiver centralDatabaseBackupReceiver = properties.getCentralDatabaseBackupReceiver();
+							CentralDatabaseBackupCertificate certificate = wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getCentralDatabaseBackupCertificate();
+							final DecentralizedValue dvCentral = ((localDatabaseHostIDString != null && certificate!=null) || centralDatabaseBackupReceiver!=null)?lp.getCentralDatabaseID(id.generateDistantIdentifier(), properties):null;
+							final DecentralizedValue dvDistant = (localDatabaseHostIDString != null || centralDatabaseBackupReceiver!=null)?lp.getDecentralizedDatabaseID(id.generateDistantIdentifier(), properties):null;
 							if (localDatabaseHostIDString != null) {
-								DecentralizedValue dvDistant = lp.getDecentralizedDatabaseID(id.generateDistantIdentifier(), properties);
+
 								if (dvDistant != null && !dvDistant.equals(localDatabaseHostID)) {
 									listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getDistributedDatabaseGroup(localDatabaseHostIDString, dvDistant));
 								}
-								CentralDatabaseBackupCertificate certificate=wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getCentralDatabaseBackupCertificate();
-								if (certificate!=null)
-								{
-									DecentralizedValue dvCentral=lp.getCentralDatabaseID(id.generateDistantIdentifier(), properties);
-									if (dvCentral!=null && dvCentral.equals(certificate.getCentralDatabaseBackupID()) && !dvCentral.equals(localDatabaseHostID))
-									{
-										listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getCentralDatabaseGroup(localDatabaseHostIDString, dvCentral));
-									}
-								}
-							}
-						}
-					} catch (DatabaseException e) {
-						e.printStackTrace();
-					}
-				}
-				if (id.isDistantlyAuthenticatedCloud())
-				{
-					try {
-						DatabaseWrapper wrapper = properties.getDatabaseWrapper();
-						if (wrapper != null) {
 
-							CentralDatabaseBackupReceiver centralDatabaseBackupReceiver = properties.getCentralDatabaseBackupReceiver();
-							if (centralDatabaseBackupReceiver!=null)
-							{
-								DecentralizedValue dvDistant = lp.getDecentralizedDatabaseID(id.generateDistantIdentifier(), properties);
+								if (certificate != null) {
+									if (dvCentral!=null)
+									{
+										if (!dvCentral.equals(localDatabaseHostID)) {
+											listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getCentralDatabaseGroup(localDatabaseHostIDString, dvCentral));
+										}
+
+									}
+
+								}
+
+							}
+							if (centralDatabaseBackupReceiver != null) {
+								if (dvCentral!=null)
+								{
+									listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP);
+								}
+
 								if (dvDistant != null && !centralDatabaseBackupReceiver.getCentralID().equals(dvDistant)) {
 									listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getCentralDatabaseGroup(centralDatabaseBackupReceiver.getCentralID(), dvDistant));
 								}
 							}
+
 
 						}
 					} catch (DatabaseException e) {

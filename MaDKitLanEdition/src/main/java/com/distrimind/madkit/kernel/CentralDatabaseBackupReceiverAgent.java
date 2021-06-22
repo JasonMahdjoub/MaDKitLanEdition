@@ -85,9 +85,11 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 			centralIDString=CloudCommunity.Groups.encodeDecentralizedValue(centralDatabaseBackupReceiver.getCentralID());
 			centralDatabaseBackupReceiver.setAgent(this);
 			requestRole(LocalCommunity.Groups.NETWORK, CloudCommunity.Roles.CENTRAL_SYNCHRONIZER);
+			requestRole(CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP, CloudCommunity.Groups.encodeDecentralizedValue(centralDatabaseBackupReceiver.getCentralID()).toString());
 			updateGroupAccess(this);
 			this.requestHookEvents(HookMessage.AgentActionEvent.ACCESSIBLE_LAN_GROUPS_GIVEN_TO_DISTANT_PEER);
 			this.requestHookEvents(HookMessage.AgentActionEvent.LEAVE_ROLE);
+
 		} catch (DatabaseException e) {
 			getLogger().severeLog("Impossible to load CentralDatabaseBackupReceiverAgent",e );
 		}
@@ -130,7 +132,6 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 				return;
 			DecentralizedValue peerID=getDistantPeerID(aa);
 			if (peerID!=null) {
-
 				if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.LEAVE_ROLE)) {
 
 					try {
@@ -158,7 +159,7 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 					{
 						distantGroupIdsPerGroup.put(g, dv );
 						distantGroupIdsPerID.put(dv, g);
-						if (!hasRole(g, CloudCommunity.Roles.SYNCHRONIZER))
+						if (!hasRole(g, CloudCommunity.Roles.CENTRAL_SYNCHRONIZER))
 							getLogger().warning("CloudCommunity.Roles.SYNCHRONIZER role should be requested with group "+g);
 					}
 					else
@@ -171,7 +172,7 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 								changed=true;
 								distantGroupIdsPerGroup.put(g, dv );
 								distantGroupIdsPerID.put(dv, g);
-								this.requestRole(g, CloudCommunity.Roles.SYNCHRONIZER);
+								this.requestRole(g, CloudCommunity.Roles.CENTRAL_SYNCHRONIZER);
 							}
 						} catch (IOException ignored) {
 

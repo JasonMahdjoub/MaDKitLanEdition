@@ -39,20 +39,16 @@ import com.distrimind.madkit.agr.CloudCommunity;
 import com.distrimind.madkit.message.NetworkObjectMessage;
 import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.ood.database.EncryptedDatabaseBackupMetaDataPerFile;
-import com.distrimind.ood.database.OutputStreamGetter;
 import com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupCertificate;
 import com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupReceiver;
 import com.distrimind.ood.database.centraldatabaseapi.FileReference;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.ood.database.messages.BigDataEventToSendWithCentralDatabaseBackup;
 import com.distrimind.ood.database.messages.MessageComingFromCentralDatabaseBackup;
-import com.distrimind.ood.database.messages.P2PBigDatabaseEventToSend;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.crypto.EncryptionProfileProvider;
 import com.distrimind.util.io.RandomCacheFileOutputStream;
 import com.distrimind.util.io.RandomFileOutputStream;
-import com.distrimind.util.io.RandomInputStream;
-import com.distrimind.util.io.RandomOutputStream;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -74,36 +70,23 @@ public class CentralDatabaseBackupReceiverPerPeer extends com.distrimind.ood.dat
 			throw new NullPointerException();
 		this.agent=agent;
 	}
-
-	@Override
-	protected void sendMessageFromThisCentralDatabaseBackup(MessageComingFromCentralDatabaseBackup message)  {
+	private void sendMessage(MessageComingFromCentralDatabaseBackup message, AgentAddress aa, DecentralizedValue dest) {
 		try {
-			DecentralizedValue dest = message.getHostDestination();
-			if (agent.logger != null && agent.logger.isLoggable(Level.FINEST))
-				agent.logger.finest("Send event " + message.getClass() + " to peer " + dest);
-			AgentAddress aa = agent.getAgentWithRole(agent.getDistantGroupID(dest), CloudCommunity.Roles.CENTRAL_SYNCHRONIZER);
-			if (aa != null) {
-				if (message instanceof BigDataEventToSendWithCentralDatabaseBackup) {
-					BigDataEventToSendWithCentralDatabaseBackup be = (BigDataEventToSendWithCentralDatabaseBackup) message;
-					RandomCacheFileOutputStream currentBigDataOutputStream = agent.getMadkitConfig().getCacheFileCenter().getNewBufferedRandomCacheFileOutputStream(true, RandomFileOutputStream.AccessMode.READ_AND_WRITE, DatabaseSynchronizerAgent.FILE_BUFFER_LENGTH_BYTES, 1);
-					be.getPartInputStream().transferTo(currentBigDataOutputStream);
+			if (message instanceof BigDataEventToSendWithCentralDatabaseBackup) {
+				BigDataEventToSendWithCentralDatabaseBackup be = (BigDataEventToSendWithCentralDatabaseBackup) message;
+				RandomCacheFileOutputStream currentBigDataOutputStream = agent.getMadkitConfig().getCacheFileCenter().getNewBufferedRandomCacheFileOutputStream(true, RandomFileOutputStream.AccessMode.READ_AND_WRITE, DatabaseSynchronizerAgent.FILE_BUFFER_LENGTH_BYTES, 1);
+				be.getPartInputStream().transferTo(currentBigDataOutputStream);
 
-					currentBigDataTransferID = agent.sendBigDataWithRole(aa, currentBigDataOutputStream.getRandomInputStream(), message, CloudCommunity.Roles.SYNCHRONIZER);
-					if (currentBigDataTransferID == null) {
-						agent.getLogger().warning("Impossible to send message to host " + dest);
-						disconnect();
-					} else
-						return;
-				} else {
-					if (!agent.sendMessageWithRole(aa, new NetworkObjectMessage<>(message), CloudCommunity.Roles.CENTRAL_SYNCHRONIZER).equals(AbstractAgent.ReturnCode.SUCCESS)) {
-						agent.getLogger().warning("Impossible to send message to host " + dest);
-						disconnect();
-					}
+				currentBigDataTransferID = agent.sendBigDataWithRole(aa, currentBigDataOutputStream.getRandomInputStream(), message, CloudCommunity.Roles.CENTRAL_SYNCHRONIZER);
+				if (currentBigDataTransferID == null) {
+					agent.getLogger().warning("Impossible to send message to host " + dest);
+					disconnect();
 				}
-			}
-			else {
-				agent.getLogger().warning("Impossible to send message to host " + dest);
-				disconnect();
+			} else {
+				if (!agent.sendMessageWithRole(aa, new NetworkObjectMessage<>(message), CloudCommunity.Roles.CENTRAL_SYNCHRONIZER).equals(AbstractAgent.ReturnCode.SUCCESS)) {
+					agent.getLogger().warning("Impossible to send message to host " + dest);
+					disconnect();
+				}
 			}
 		}
 		catch (DatabaseException | IOException ex) {
@@ -123,8 +106,61 @@ public class CentralDatabaseBackupReceiverPerPeer extends com.distrimind.ood.dat
 	}
 
 	@Override
-	protected void sendMessageFromOtherCentralDatabaseBackup(DecentralizedValue centralDatabaseBackupID, MessageComingFromCentralDatabaseBackup message) throws DatabaseException {
+	protected void sendMessageFromThisCentralDatabaseBackup(MessageComingFromCentralDatabaseBackup message)  {
+		try {
+			DecentralizedValue dest = message.getHostDestination();
+			if (agent.logger != null && agent.logger.isLoggable(Level.FINEST))
+				agent.logger.finest("Send event " + message.getClass() + " to peer " + dest);
+			AgentAddress aa = agent.getAgentWithRole(agent.getDistantGroupID(dest), CloudCommunity.Roles.SYNCHRONIZER);
+			if (aa != null) {
+				sendMessage(message, aa, dest);
+			}
+			else {
+				agent.getLogger().warning("Impossible to send message to host " + dest);
+				disconnect();
+			}
+		}
+		catch (DatabaseException ex) {
+			agent.getLogger().severeLog("Unexpected exception", ex);
+		}
+	}
 
+	@Override
+	protected void sendMessageFromOtherCentralDatabaseBackup(DecentralizedValue centralDatabaseBackupID, MessageComingFromCentralDatabaseBackup message) {
+		DecentralizedValue dest=message.getHostDestination();
+		AgentAddress aa = agent.getAgentWithRole(agent.getDistantGroupID(dest), CloudCommunity.Roles.SYNCHRONIZER);
+		if (aa!=null)
+		{
+			sendMessage(message, aa, dest);
+		}
+		else {
+			String roleDest = CloudCommunity.Groups.encodeDecentralizedValue(centralDatabaseBackupID).toString();
+			aa = agent.getAgentAddressIn(CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP, roleDest);
+			if (aa != null) {
+				try {
+
+					if (agent.logger != null && agent.logger.isLoggable(Level.FINEST))
+						agent.logger.finest("Send event " + message.getClass() + " to peer " + centralDatabaseBackupID);
+					if (message instanceof BigDataEventToSendWithCentralDatabaseBackup) {
+						BigDataEventToSendWithCentralDatabaseBackup be = (BigDataEventToSendWithCentralDatabaseBackup) message;
+						RandomCacheFileOutputStream currentBigDataOutputStream = agent.getMadkitConfig().getCacheFileCenter().getNewBufferedRandomCacheFileOutputStream(true, RandomFileOutputStream.AccessMode.READ_AND_WRITE, DatabaseSynchronizerAgent.FILE_BUFFER_LENGTH_BYTES, 1);
+						be.getPartInputStream().transferTo(currentBigDataOutputStream);
+
+						BigDataTransferID bdid=agent.sendBigData(aa, currentBigDataOutputStream.getRandomInputStream(), message);
+						if (bdid==null && agent.logger!=null)
+							agent.logger.warning("Message not sent to other central database backup : "+message);
+
+					} else {
+						if (!agent.sendMessage(aa, new NetworkObjectMessage<>(message)).equals(AbstractAgent.ReturnCode.SUCCESS) && agent.logger!=null)
+							agent.logger.warning("Message not sent to other central database backup : "+message);
+					}
+				} catch (IOException ex) {
+					agent.getLogger().severeLog("Unexpected exception", ex);
+				}
+			}
+			else if (agent.logger!=null)
+				agent.logger.warning("Message not sent to other central database backup : "+message);
+		}
 	}
 
 	@Override

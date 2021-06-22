@@ -76,6 +76,8 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 	private Group centralDatabaseGroup=null;
 	private Map<Group, DecentralizedValue> distantGroupIdsPerGroup=new HashMap<>();
 	private Map<DecentralizedValue, Group> distantGroupIdsPerID=new HashMap<>();
+	private Map<Group, DecentralizedValue> centralGroupIdsPerGroup=new HashMap<>();
+	private Map<DecentralizedValue, Group> centralGroupIdsPerID=new HashMap<>();
 	private BigDataTransferID currentBigDataTransferID=null;
 	private RandomOutputStream currentBigDataOutputStream=null;
 	private DecentralizedValue currentBigDataHostID=null;
@@ -239,7 +241,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 		path=path.substring(0, path.length()-1);
 		path=path.substring(0, path.lastIndexOf("/")+1);
 		if (CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP.getPath().equals(path)
-				&& role.equals(CloudCommunity.Roles.SYNCHRONIZER)) {
+				&& role.equals(CloudCommunity.Roles.CENTRAL_SYNCHRONIZER)) {
 			DecentralizedValue res = centralDatabaseGroup==null?null:(centralDatabaseGroup.equals(group)?centralDatabaseID:null);
 			if (res == null) {
 				if (distantKernelAddress != null)
@@ -277,6 +279,17 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			getLogger().severeLog("Unexpected exception", e);
 		}
 	}
+	private void initCentralPeer(Group group, DecentralizedValue id)
+	{
+		assert centralDatabaseID==null;
+		try {
+			synchronizer.centralDatabaseBackupAvailable();
+			centralDatabaseID = id;
+			centralDatabaseGroup = group;
+		} catch (DatabaseException ex) {
+			getLogger().severeLog("Impossible to connect central database backup" + id, ex);
+		}
+	}
 	@Override
 	protected void liveByStep(Message _message) throws InterruptedException {
 
@@ -299,26 +312,38 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 					}
 
 				}
-			} else
+			}
+			else
 			{
 				DecentralizedValue centralPeerID=getCentralPeerID(aa);
-				if (centralPeerID!=null)
-				{
-					if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.REQUEST_ROLE)) {
-						try {
-							synchronizer.centralDatabaseBackupAvailable();
-						} catch (DatabaseException e) {
-							getLogger().severeLog("Impossible to connect central database backup"+centralPeerID, e);
-						}
-					} else if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.LEAVE_ROLE)) {
+				if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.REQUEST_ROLE)) {
+					if (this.centralDatabaseID==null) {
+						initCentralPeer(aa.getGroup(), centralPeerID);
+					}
+				} else if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.LEAVE_ROLE)) {
+
+					if (centralDatabaseID!=null && centralDatabaseID.equals(centralPeerID))
+					{
 						try {
 							synchronizer.centralDatabaseBackupDisconnected();
-						} catch (DatabaseException e) {
-							getLogger().severeLog("Impossible to disconnect central database backup " + centralDatabaseID, e);
+						} catch (DatabaseException ex) {
+							getLogger().severeLog("Impossible to disconnect central database backup " + centralDatabaseID, ex);
+						}
+						centralDatabaseID = null;
+						centralDatabaseGroup = null;
+						if (centralGroupIdsPerGroup.size()>0)
+						{
+							for (Map.Entry<Group, DecentralizedValue> e : centralGroupIdsPerGroup.entrySet()) {
+								if (hasRole(e.getKey(), CloudCommunity.Roles.SYNCHRONIZER)) {
+									initCentralPeer(e.getKey(), e.getValue());
+									break;
+								}
+							}
+
 						}
 					}
-
 				}
+
 			}
 		}
 		else if (_message instanceof NetworkGroupsAccessEvent)
@@ -326,8 +351,10 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			NetworkGroupsAccessEvent m=(NetworkGroupsAccessEvent)_message;
 			HashMap<Group, DecentralizedValue> distantGroupIdsPerGroup=new HashMap<>();
 			Map<DecentralizedValue, Group> distantGroupIdsPerID=new HashMap<>();
+			HashMap<Group, DecentralizedValue> centralGroupIdsPerGroup=new HashMap<>();
+			Map<DecentralizedValue, Group> centralGroupIdsPerID=new HashMap<>();
 			boolean changed=false;
-			boolean centralPeerGroupNotFound=true;
+			boolean centralChanged=false;
 			for (Group g : m.getGeneralAcceptedGroups().getGroups().getRepresentedGroups())
 			{
 
@@ -362,23 +389,22 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 				{
 					try {
 
-						DecentralizedValue dv = CloudCommunity.Groups.extractDistantHostIDFromCentralDatabaseBackupGroup(g, databaseConfigurationsBuilder.getConfigurations().getLocalPeer());
-						if (dv!=null) {
-							if (centralDatabaseID != null) {
-								if (centralDatabaseID.equals(dv)) {
-									centralPeerGroupNotFound=false;
-									if (!hasRole(g, CloudCommunity.Roles.SYNCHRONIZER))
-										getLogger().warning("CloudCommunity.Roles.SYNCHRONIZER role should be requested with group " + g);
-								}
-							} else {
-								if (dv.equals(databaseConfigurationsBuilder.getConfigurations().getCentralDatabaseBackupCertificate().getCentralDatabaseBackupID())) {
-									centralDatabaseID = dv;
-									centralDatabaseGroup=g;
-									centralPeerGroupNotFound=false;
-									this.requestRole(g, CloudCommunity.Roles.SYNCHRONIZER);
-								}
+						DecentralizedValue dv = this.centralGroupIdsPerGroup.get(g);
 
+						if (dv != null) {
+							centralGroupIdsPerGroup.put(g, dv );
+							centralGroupIdsPerID.put(dv, g);
+							if (!hasRole(g, CloudCommunity.Roles.SYNCHRONIZER))
+								getLogger().warning("CloudCommunity.Roles.SYNCHRONIZER role should be requested with group " + g);
+						} else {
+							dv = CloudCommunity.Groups.extractDistantHostIDFromCentralDatabaseBackupGroup(g, databaseConfigurationsBuilder.getConfigurations().getLocalPeer());
+							if (dv!=null) {
+								centralChanged=true;
+								centralGroupIdsPerGroup.put(g, dv );
+								centralGroupIdsPerID.put(dv, g);
+								this.requestRole(g, CloudCommunity.Roles.SYNCHRONIZER);
 							}
+
 						}
 					} catch (IOException ignored) {
 
@@ -400,21 +426,27 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 					}
 				}
 			}
-			this.distantGroupIdsPerGroup=distantGroupIdsPerGroup;
-			this.distantGroupIdsPerID=distantGroupIdsPerID;
-			if (centralPeerGroupNotFound)
+			if (this.centralGroupIdsPerGroup.size()!=centralGroupIdsPerGroup.size() || centralChanged)
 			{
-				if (centralDatabaseID!=null) {
-					try {
-						synchronizer.centralDatabaseBackupDisconnected();
-					} catch (DatabaseException e) {
-						getLogger().severeLog("Impossible to disconnect central database backup " + centralDatabaseID, e);
+				for (Map.Entry<Group, DecentralizedValue> e : this.centralGroupIdsPerGroup.entrySet())
+				{
+					if (!centralGroupIdsPerGroup.containsKey(e.getKey()))
+					{
+						leaveGroup(e.getKey());
+
+
 					}
 				}
-				centralDatabaseID=null;
-				centralDatabaseGroup=null;
-
-
+			}
+			this.distantGroupIdsPerGroup=distantGroupIdsPerGroup;
+			this.distantGroupIdsPerID=distantGroupIdsPerID;
+			this.centralGroupIdsPerGroup=centralGroupIdsPerGroup;
+			this.centralGroupIdsPerID=centralGroupIdsPerID;
+			if (centralDatabaseID==null && centralGroupIdsPerGroup.size()>0)
+			{
+				Map.Entry<Group, DecentralizedValue> e=centralGroupIdsPerGroup.entrySet().iterator().next();
+				centralDatabaseID = e.getValue();
+				centralDatabaseGroup = e.getKey();
 			}
 		}
 		else if (_message==checkEvents)
