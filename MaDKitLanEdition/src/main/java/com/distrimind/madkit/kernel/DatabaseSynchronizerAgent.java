@@ -528,17 +528,14 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 			BigDataPropositionMessage m=(BigDataPropositionMessage)_message;
 			boolean generateError=true;
-			if (m.getAttachedData() instanceof P2PBigDatabaseEventToSend)
-			{
-				if (currentBigDataReceiving.containsKey(m.getConversationID()))
-					getLogger().warning("Unexpected big data proposition message " + m);
-				else
-				{
-
-
-					if (logger!=null && logger.isLoggable(Level.FINEST))
+			if (currentBigDataReceiving.containsKey(m.getConversationID())) {
+				getLogger().severeLog("Unexpected big data proposition message " + m);
+			}
+			else {
+				if (m.getAttachedData() instanceof P2PBigDatabaseEventToSend) {
+					if (logger != null && logger.isLoggable(Level.FINEST))
 						logger.finest("Receiving BigDatabaseEventToSend " + m);
-					P2PBigDatabaseEventToSend b=(P2PBigDatabaseEventToSend)m.getAttachedData();
+					P2PBigDatabaseEventToSend b = (P2PBigDatabaseEventToSend) m.getAttachedData();
 					try {
 						DecentralizedValue peerID = getDistantPeerID(_message.getSender());
 						if (peerID != null) {
@@ -547,25 +544,18 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 							if (source != null && source.equals(peerID)) {
 
-								RandomOutputStream out=getMadkitConfig().getCacheFileCenter().getNewBufferedRandomCacheFileOutputStream(true, RandomFileOutputStream.AccessMode.READ_AND_WRITE, FILE_BUFFER_LENGTH_BYTES, 1);
+								RandomOutputStream out = getMadkitConfig().getCacheFileCenter().getNewBufferedRandomCacheFileOutputStream(true, RandomFileOutputStream.AccessMode.READ_AND_WRITE, FILE_BUFFER_LENGTH_BYTES, 1);
 								m.acceptTransfer(out);
 								currentBigDataReceiving.put(m.getConversationID(), new BigDataMetaData(b, out));
-								generateError=false;
+								generateError = false;
 							}
 						}
 					} catch (DatabaseException | IOException e) {
 						e.printStackTrace();
 						getLogger().severe(e.getMessage());
 					}
-				}
 
-			}
-			else if (m.getAttachedData() instanceof BigDataEventToSendWithCentralDatabaseBackup) {
-				if (currentBigDataReceiving.containsKey(m.getConversationID()))
-					getLogger().warning("Unexpected big data proposition message " + m);
-				else {
-
-
+				} else if (m.getAttachedData() instanceof BigDataEventToSendWithCentralDatabaseBackup) {
 					if (logger != null && logger.isLoggable(Level.FINEST))
 						logger.finest("Receiving BigDatabaseEventToSend " + m);
 					BigDataEventToSendWithCentralDatabaseBackup b = (BigDataEventToSendWithCentralDatabaseBackup) m.getAttachedData();
@@ -583,9 +573,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 						getLogger().severe(e.getMessage());
 					}
 				}
-
 			}
-
 			if (generateError) {
 				m.denyTransfer();
 				if (_message.getSender().isFrom(getKernelAddress()))
