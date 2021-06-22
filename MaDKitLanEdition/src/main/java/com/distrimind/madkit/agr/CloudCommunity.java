@@ -97,6 +97,9 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 		{
 			return identifier.encode().toWrappedString();
 		}
+		public static DecentralizedValue decodeDecentralizedValue(String value) throws IOException {
+			return DecentralizedValue.decode(new WrappedString(value).toWrappedData());
+		}
 		public static Group getDistributedDatabaseGroup(String localIdentifier, WrappedString distantIdentifier)
 		{
 			return getDistributedDatabaseGroup(localIdentifier, distantIdentifier.toString());

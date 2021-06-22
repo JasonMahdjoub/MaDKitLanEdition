@@ -44,11 +44,11 @@ import com.distrimind.madkit.message.hook.NetworkGroupsAccessEvent;
 import com.distrimind.madkit.message.hook.OrganizationEvent;
 import com.distrimind.ood.database.DatabaseEvent;
 import com.distrimind.ood.database.exceptions.DatabaseException;
-import com.distrimind.ood.database.messages.BigDataEventToSendWithCentralDatabaseBackup;
-import com.distrimind.ood.database.messages.P2PBigDatabaseEventToSend;
-import com.distrimind.ood.database.messages.P2PDatabaseEventToSend;
+import com.distrimind.ood.database.messages.*;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.data_buffers.WrappedString;
+import com.distrimind.util.io.RandomFileOutputStream;
+import com.distrimind.util.io.RandomOutputStream;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -65,6 +65,8 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 	private Map<DecentralizedValue, Group> distantGroupIdsPerID=new HashMap<>();
 	private CentralDatabaseBackupReceiver centralDatabaseBackupReceiver;
 	private WrappedString centralIDString;
+	private final HashMap<ConversationID, DatabaseSynchronizerAgent.BigDataMetaData> currentBigDataReceiving=new HashMap<>();
+	private final HashMap<ConversationID, DatabaseSynchronizerAgent.BigDataMetaData> currentBigDataSending=new HashMap<>();
 	private static class CheckEvents extends Message
 	{
 
@@ -208,9 +210,43 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 		{
 			BigDataPropositionMessage m=(BigDataPropositionMessage)_message;
 			boolean generateError=true;
-			if (m.getAttachedData() instanceof BigDataEventToSendWithCentralDatabaseBackup)
+			if (m.getAttachedData() instanceof MessageComingFromCentralDatabaseBackup)
 			{
-
+				BigDataEventToSendWithCentralDatabaseBackup b = (BigDataEventToSendWithCentralDatabaseBackup) m.getAttachedData();
+				try {
+					DecentralizedValue centralPeerID = getCentralPeerID(_message.getSender());
+					if (centralPeerID != null) {
+						RandomOutputStream out = getMadkitConfig().getCacheFileCenter().getNewBufferedRandomCacheFileOutputStream(true, RandomFileOutputStream.AccessMode.READ_AND_WRITE, DatabaseSynchronizerAgent.FILE_BUFFER_LENGTH_BYTES, 1);
+						m.acceptTransfer(out);
+						currentBigDataReceiving.put(m.getConversationID(), new DatabaseSynchronizerAgent.BigDataMetaData(b, out));
+						generateError = false;
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+					getLogger().severe(e.getMessage());
+				}
+			}
+			else if (m.getAttachedData() instanceof MessageDestinedToCentralDatabaseBackup) {
+				MessageDestinedToCentralDatabaseBackup b = (MessageDestinedToCentralDatabaseBackup) m.getAttachedData();
+				try {
+					DecentralizedValue peerID = getDistantPeerID(_message.getSender());
+					if (peerID != null) {
+						RandomOutputStream out = getMadkitConfig().getCacheFileCenter().getNewBufferedRandomCacheFileOutputStream(true, RandomFileOutputStream.AccessMode.READ_AND_WRITE, DatabaseSynchronizerAgent.FILE_BUFFER_LENGTH_BYTES, 1);
+						m.acceptTransfer(out);
+						currentBigDataReceiving.put(m.getConversationID(), new DatabaseSynchronizerAgent.BigDataMetaData(b, out));
+						generateError = false;
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+					getLogger().severe(e.getMessage());
+				}
+			}
+			if (generateError) {
+				m.denyTransfer();
+				if (_message.getSender().isFrom(getKernelAddress()))
+					getLogger().warning("Invalid message received from " + _message.getSender());
+				else
+					anomalyDetectedWithOneDistantKernel(true, _message.getSender().getKernelAddress(), "Invalid message received from " + _message.getSender());
 			}
 		}
 		else if (_message instanceof BigDataResultMessage)
@@ -230,5 +266,32 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 		} catch (DatabaseException e) {
 			getLogger().severeLog("", e);
 		}
+	}
+
+	private DecentralizedValue getCentralPeerID(KernelAddress distantKernelAddress, Group group, String role)
+	{
+		if (CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP.equals(group)
+				&& role.equals(CloudCommunity.Roles.CENTRAL_SYNCHRONIZER)) {
+			DecentralizedValue res= null;
+			try {
+				res = CloudCommunity.Groups.decodeDecentralizedValue(role);
+			} catch (IOException e) {
+				getLogger().severeLog("Invalided peer group " + group, e);
+			}
+
+			if (res == null) {
+				if (distantKernelAddress != null)
+					anomalyDetectedWithOneDistantKernel(true, distantKernelAddress, "Invalided peer group " + group);
+
+				getLogger().severeLog("Invalided peer group " + group);
+			}
+			return res;
+		}
+		else
+			return null;
+	}
+	private DecentralizedValue getCentralPeerID(AgentAddress aa)
+	{
+		return getCentralPeerID(aa.isFrom(getKernelAddress())?null:aa.getKernelAddress(), aa.getGroup(), aa.getRole());
 	}
 }

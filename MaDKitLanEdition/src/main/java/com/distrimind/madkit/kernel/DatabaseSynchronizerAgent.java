@@ -85,7 +85,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 	static final int FILE_BUFFER_LENGTH_BYTES=4096;
 
-	private static class BigDataMetaData
+	static class BigDataMetaData
 	{
 		DatabaseEventToSend eventToSend;
 		RandomOutputStream randomOutputStream;
@@ -243,7 +243,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 		path=path.substring(0, path.lastIndexOf("/")+1);
 		if (CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP.getPath().equals(path)
 				&& role.equals(CloudCommunity.Roles.CENTRAL_SYNCHRONIZER)) {
-			DecentralizedValue res = centralDatabaseGroup==null?null:(centralDatabaseGroup.equals(group)?centralDatabaseID:null);
+			DecentralizedValue res = centralGroupIdsPerGroup.get(group);
 			if (res == null) {
 				if (distantKernelAddress != null)
 					anomalyDetectedWithOneDistantKernel(true, distantKernelAddress, "Invalided peer group " + group);
