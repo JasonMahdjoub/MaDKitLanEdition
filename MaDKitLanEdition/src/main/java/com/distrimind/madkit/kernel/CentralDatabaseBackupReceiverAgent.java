@@ -44,6 +44,8 @@ import com.distrimind.madkit.message.hook.NetworkGroupsAccessEvent;
 import com.distrimind.madkit.message.hook.OrganizationEvent;
 import com.distrimind.ood.database.DatabaseEvent;
 import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.ood.database.messages.BigDataEventToSendWithCentralDatabaseBackup;
+import com.distrimind.ood.database.messages.P2PBigDatabaseEventToSend;
 import com.distrimind.ood.database.messages.P2PDatabaseEventToSend;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.data_buffers.WrappedString;
@@ -204,7 +206,12 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 		}
 		else if (_message instanceof BigDataPropositionMessage)
 		{
+			BigDataPropositionMessage m=(BigDataPropositionMessage)_message;
+			boolean generateError=true;
+			if (m.getAttachedData() instanceof BigDataEventToSendWithCentralDatabaseBackup)
+			{
 
+			}
 		}
 		else if (_message instanceof BigDataResultMessage)
 		{
