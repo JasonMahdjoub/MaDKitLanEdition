@@ -41,6 +41,8 @@ import com.distrimind.madkit.agr.CloudCommunity;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.ood.database.DatabaseWrapper;
+import com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupCertificate;
+import com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupReceiver;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedValue;
 
@@ -277,18 +279,46 @@ public abstract class AbstractAccessProtocol {
 					try {
 						DatabaseWrapper wrapper=properties.getDatabaseWrapper();
 						if (wrapper!=null) {
-							String localDatabaseHostID = wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString();
-							if (localDatabaseHostID != null) {
-								DecentralizedValue dvDistant = lp.getDecentralizedDatabaseID(id.generateDistantIdentifier());
-								if (dvDistant != null) {
-									listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getDistributedDatabaseGroup(localDatabaseHostID, dvDistant));
+							DecentralizedValue localDatabaseHostID=wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer();
+							String localDatabaseHostIDString = wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString();
+							CentralDatabaseBackupReceiver centralDatabaseBackupReceiver = properties.getCentralDatabaseBackupReceiver();
+							CentralDatabaseBackupCertificate certificate = wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getCentralDatabaseBackupCertificate();
+							final DecentralizedValue dvCentral = ((localDatabaseHostIDString != null && certificate!=null) || centralDatabaseBackupReceiver!=null)?lp.getCentralDatabaseID(id.generateDistantIdentifier(), properties):null;
+							final DecentralizedValue dvDistant = (localDatabaseHostIDString != null || centralDatabaseBackupReceiver!=null)?lp.getDecentralizedDatabaseID(id.generateDistantIdentifier(), properties):null;
+							if (localDatabaseHostIDString != null) {
+
+								if (dvDistant != null && !dvDistant.equals(localDatabaseHostID)) {
+									listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getDistributedDatabaseGroup(localDatabaseHostIDString, dvDistant));
+								}
+
+								if (certificate != null) {
+									if (dvCentral!=null)
+									{
+										if (!dvCentral.equals(localDatabaseHostID)) {
+											listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getCentralDatabaseGroup(localDatabaseHostIDString, dvCentral));
+										}
+
+									}
+
+								}
+
+							}
+							if (centralDatabaseBackupReceiver != null) {
+								if (dvCentral!=null)
+								{
+									listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP);
+								}
+
+								if (dvDistant != null && !centralDatabaseBackupReceiver.getCentralID().equals(dvDistant)) {
+									listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getCentralDatabaseGroup(centralDatabaseBackupReceiver.getCentralID(), dvDistant));
 								}
 							}
+
+
 						}
 					} catch (DatabaseException e) {
 						e.printStackTrace();
 					}
-
 				}
 			}
 

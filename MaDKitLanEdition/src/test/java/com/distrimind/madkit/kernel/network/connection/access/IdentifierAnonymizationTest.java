@@ -67,7 +67,7 @@ public class IdentifierAnonymizationTest {
 			Random rand=new Random(System.currentTimeMillis());
 			byte[] id=new byte[rand.nextInt(2000)+20];
 			rand.nextBytes(id);
-			byte[] salt=new byte[messageDigest.getDigestLength()];
+			byte[] salt=new byte[messageDigest.getDigestLengthInBytes()];
 			rand.nextBytes(salt);
 			
 			
@@ -92,7 +92,7 @@ public class IdentifierAnonymizationTest {
 			Random rand=new Random(System.currentTimeMillis());
 			byte[] id=new byte[rand.nextInt(2000)+20];
 			rand.nextBytes(id);
-			byte[] salt=new byte[messageDigest.getDigestLength()];
+			byte[] salt=new byte[messageDigest.getDigestLengthInBytes()];
 			rand.nextBytes(salt);
 			
 			AbstractSecureRandom srand=SecureRandomType.DEFAULT.getSingleton(null);

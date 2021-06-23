@@ -403,7 +403,7 @@ public class ReadWritePacketTests extends JunitMadkit {
 		Assert.assertEquals(_transfert_as_big_data, output.concernsBigData());
 		Assert.assertEquals(length, output.getDataLength());
 		int messageDigestSize = messageDigestType == null ? 0
-				: messageDigestType.getMessageDigestInstance().getDigestLength();
+				: messageDigestType.getMessageDigestInstance().getDigestLengthInBytes();
 		Assert.assertEquals(length + messageDigestSize, output.getDataLengthWithHashIncluded());
 		Assert.assertEquals(idPacket, output.getID());
 		Assert.assertEquals(0, output.getReadDataLengthIncludingHash());

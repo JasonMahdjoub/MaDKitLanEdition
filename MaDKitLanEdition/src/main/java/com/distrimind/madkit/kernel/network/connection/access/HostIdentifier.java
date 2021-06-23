@@ -95,7 +95,15 @@ public abstract class HostIdentifier implements SecureExternalizable {
 		return null;
 	}
 
-
+	/**
+	 * Returns the central database's identifier. If the function is not override, it returns null by default.
+	 * Central database backup permit to synchronize peers, and permit for peer to backup their database with an end-to-end encryption
+	 * @return the central database's identifier. If the function is not override, it returns null by default.
+	 */
+	public DecentralizedValue getCentralDecentralizedDatabaseID()
+	{
+		return null;
+	}
 
 	/**
 	 * Generates a unique host identifier

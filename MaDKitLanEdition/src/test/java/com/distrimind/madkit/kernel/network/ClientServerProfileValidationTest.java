@@ -18,8 +18,7 @@ public class ClientServerProfileValidationTest {
         server.invalidateProfile(id);
         Assert.assertFalse(server.isValidProfile(id, EncryptionRestriction.NO_RESTRICTION));
         long t=System.currentTimeMillis();
-        id=server.generateAndAddEncryptionProfile(SecureRandomType.DEFAULT.getSingleton(null), ASymmetricEncryptionType.DEFAULT, t, t-1, (short)2048, SymmetricEncryptionType.DEFAULT, (short)128, ASymmetricKeyWrapperType.DEFAULT, SymmetricAuthenticatedSignatureType.DEFAULT, MessageDigestType.DEFAULT);
-
+        id=server.generateAndAddEncryptionProfile(SecureRandomType.DEFAULT.getSingleton(null), ASymmetricEncryptionType.DEFAULT, t-2, t-1, (short)2048, SymmetricEncryptionType.DEFAULT, (short)128, ASymmetricKeyWrapperType.DEFAULT, SymmetricAuthenticatedSignatureType.DEFAULT, MessageDigestType.DEFAULT);
         Assert.assertFalse(server.isValidProfile(id, EncryptionRestriction.NO_RESTRICTION));
         server.invalidateProfile(id);
         Assert.assertFalse(server.isValidProfile(id, EncryptionRestriction.NO_RESTRICTION));

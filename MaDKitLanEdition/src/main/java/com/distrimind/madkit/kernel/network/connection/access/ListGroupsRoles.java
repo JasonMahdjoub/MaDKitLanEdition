@@ -154,9 +154,7 @@ public class ListGroupsRoles implements Cloneable, SecureExternalizable {
 		}
 		else
 			gr.getGroup().addGroup(group);
-		MultiGroup mg=multiGroup;
-		if (mg!=null)
-			mg.addGroup(group);
+		multiGroup=null;
 
 	}
 

@@ -103,7 +103,7 @@ final class WrappedCloudIdentifier extends CloudIdentifier {
 			if (cloudIdentifier.getAuthenticationMethod().isAuthenticatedByPublicKey()) {
 				if (random == null)
 					throw new NullPointerException("random");
-				int mds=messageDigest.getDigestLength();
+				int mds=messageDigest.getDigestLengthInBytes();
 				byte[] localGeneratedSalt=new byte[mds];
 				random.nextBytes(localGeneratedSalt);
 				if (distantGeneratedSalt.length!=localGeneratedSalt.length)
@@ -200,7 +200,7 @@ final class WrappedCloudIdentifier extends CloudIdentifier {
 			else {
 				if (signature == null)
 					return false;
-				int mds = messageDigest.getDigestLength();
+				int mds = messageDigest.getDigestLengthInBytes();
 				if (signature.length <= mds)
 					return false;
 				byte[] encodedIdentifier = originalCloudIdentifier.getBytesTabToEncode();

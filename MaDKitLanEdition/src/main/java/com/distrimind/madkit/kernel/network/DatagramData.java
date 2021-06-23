@@ -37,6 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import com.distrimind.util.Bits;
 import com.distrimind.util.io.RandomByteArrayOutputStream;
 
 import java.io.IOException;
@@ -62,8 +63,8 @@ class DatagramData {
 			if (size>DatagramLocalNetworkPresenceMessage.getMaxDatagramMessageLength())
 				throw new IllegalArgumentException();
 			byte[] res = new byte[Block.getBlockSizeLength() + size];
-			
-			Block.putShortInt(res, 0, res.length);
+
+			Bits.putUnsignedInt24Bits(res, 0, res.length);
 			//Bits.putInt(res, 0, size);
 			System.arraycopy(b, 0, res, Block.getBlockSizeLength(), size);
 			data = ByteBuffer.wrap(res);
@@ -106,7 +107,7 @@ class DatagramData {
 	ByteBuffer getUnusedReceivedData() {
 		if (isComplete() && isValid()) {
 			ByteBuffer next = null;
-			int length = Block.getShortInt(data.array(), data.arrayOffset());
+			int length = Bits.getUnsignedInt24Bits(data.array(), data.arrayOffset());
 			//length += Block.getBlockSizeLength();
 			int nLength = data.position() - length;
 			if (nLength > 0) {
@@ -123,7 +124,7 @@ class DatagramData {
 		if (data.position() < Block.getBlockSizeLength())
 			return false;
 		else
-			return data.position() >= Block.getShortInt(data.array(), data.arrayOffset());
+			return data.position() >= Bits.getUnsignedInt24Bits(data.array(), data.arrayOffset());
 	}
 
 	DatagramLocalNetworkPresenceMessage getDatagramLocalNetworkPresenceMessage() throws IOException {
@@ -137,6 +138,6 @@ class DatagramData {
 		int sizeInt = Block.getBlockSizeLength();
 
 		return data.position() < sizeInt
-				|| Block.getShortInt(data.array(), data.arrayOffset())-sizeInt <= DatagramLocalNetworkPresenceMessage.getMaxDatagramMessageLength();
+				|| Bits.getUnsignedInt24Bits(data.array(), data.arrayOffset())-sizeInt <= DatagramLocalNetworkPresenceMessage.getMaxDatagramMessageLength();
 	}
 }

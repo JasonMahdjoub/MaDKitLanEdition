@@ -298,7 +298,7 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 			}
 
 			@Override
-			public DecentralizedValue getDecentralizedDatabaseID(Identifier identifier) {
+			public DecentralizedValue getDecentralizedDatabaseID(Identifier identifier, MadkitProperties properties) {
 				synchronized (databaseIdentifiers) {
 					DecentralizedIDGenerator res=databaseIdentifiers.get(identifier);
 					if (res==null)

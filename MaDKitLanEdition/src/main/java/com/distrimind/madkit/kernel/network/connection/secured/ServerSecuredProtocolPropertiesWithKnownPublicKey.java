@@ -254,10 +254,13 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 		}
 		symmetricEncryptionTypes.put(profileIdentifier, symmetricEncryptionType);
 		symmetricEncryptionKeySizeBits.put(profileIdentifier, symmetricKeySizeBits);
-		if (signatureType == null)
-			signatures.put(profileIdentifier, symmetricEncryptionType.getDefaultSignatureAlgorithm());
-		else
-			signatures.put(profileIdentifier, signatureType);
+		if (signatureType == null) {
+			signatureType=symmetricEncryptionType.getDefaultSignatureAlgorithm();
+			if (signatureType==null)
+				signatureType=SymmetricAuthenticatedSignatureType.DEFAULT;
+
+		}
+		signatures.put(profileIdentifier, signatureType);
 		
 		if (keyWrapper==null)
 			keyWrapper=ASymmetricKeyWrapperType.DEFAULT;

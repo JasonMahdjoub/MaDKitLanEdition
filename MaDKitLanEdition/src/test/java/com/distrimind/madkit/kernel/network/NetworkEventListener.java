@@ -41,8 +41,11 @@ import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.kernel.MadkitEventListener;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.connection.access.HostIdentifier;
-import com.distrimind.ood.database.InMemoryEmbeddedH2DatabaseFactory;
+import com.distrimind.ood.database.DatabaseFactory;
+import com.distrimind.ood.database.InFileEmbeddedH2DatabaseFactory;
 import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.util.crypto.EncryptionProfileProviderFactory;
+import com.distrimind.util.crypto.SecureRandomType;
 
 import java.io.File;
 import java.io.IOException;
@@ -80,6 +83,10 @@ public class NetworkEventListener implements MadkitEventListener {
 	private int gatewayDepth = 1;
 	public long durationBeforeCancelingTransferConnection = 20000L;
 	public int maxBufferSize=Short.MAX_VALUE;
+	EncryptionProfileProviderFactory signatureProfileProviderForAuthenticatedMessagesDestinedToCentralDatabaseBackup;
+	EncryptionProfileProviderFactory encryptionProfileProviderForE2EDataDestinedCentralDatabaseBackup;
+	EncryptionProfileProviderFactory protectedEncryptionProfileFactoryProviderForAuthenticatedP2PMessages;
+	SecureRandomType randomType;
 
 	public void setGatewayDepth(int gatewayDepth) {
 		this.gatewayDepth = gatewayDepth;
@@ -138,7 +145,25 @@ public class NetworkEventListener implements MadkitEventListener {
 			inetAddressesToBind = ias;
 		}
 	}
-
+	public NetworkEventListener(boolean network, boolean upnpIGDEnabled, boolean autoConnectWithLocalSitePeers,
+								File databaseFile, EncryptionProfileProviderFactory signatureProfileProviderForAuthenticatedMessagesDestinedToCentralDatabaseBackup,
+								EncryptionProfileProviderFactory encryptionProfileProviderForE2EDataDestinedCentralDatabaseBackup,
+								EncryptionProfileProviderFactory protectedEncryptionProfileFactoryProviderForAuthenticatedP2PMessages,
+								SecureRandomType randomType, ConnectionsProtocolsMKEventListener madkitEventListenerForConnectionProtocols,
+								AccessProtocolPropertiesMKEventListener madkitEventListenerForAccessProtocols,
+								AccessDataMKEventListener madkitEventListenerForAccessData, int localPortToBind,
+								List<AbstractIP> connectionsToAttempt, InetAddress... inetAddressesToBind) {
+		this(network, upnpIGDEnabled, autoConnectWithLocalSitePeers, databaseFile, madkitEventListenerForConnectionProtocols, madkitEventListenerForAccessProtocols,
+				madkitEventListenerForAccessData, localPortToBind, connectionsToAttempt, inetAddressesToBind);
+		if (protectedEncryptionProfileFactoryProviderForAuthenticatedP2PMessages==null)
+			throw new NullPointerException();
+		if (randomType==null)
+			throw new NullPointerException();
+		this.signatureProfileProviderForAuthenticatedMessagesDestinedToCentralDatabaseBackup=signatureProfileProviderForAuthenticatedMessagesDestinedToCentralDatabaseBackup;
+		this.encryptionProfileProviderForE2EDataDestinedCentralDatabaseBackup=encryptionProfileProviderForE2EDataDestinedCentralDatabaseBackup;
+		this.protectedEncryptionProfileFactoryProviderForAuthenticatedP2PMessages=protectedEncryptionProfileFactoryProviderForAuthenticatedP2PMessages;
+		this.randomType=randomType;
+	}
 	public NetworkEventListener(boolean network, boolean upnpIGDEnabled, boolean autoConnectWithLocalSitePeers,
 			File databaseFile, ConnectionsProtocolsMKEventListener madkitEventListenerForConnectionProtocols,
 			AccessProtocolPropertiesMKEventListener madkitEventListenerForAccessProtocols,
@@ -149,6 +174,10 @@ public class NetworkEventListener implements MadkitEventListener {
 		this.autoConnectWithLocalSitePeers = autoConnectWithLocalSitePeers;
 		this.databaseEnabled = databaseFile != null;
 		this.databaseFile = databaseFile;
+		this.signatureProfileProviderForAuthenticatedMessagesDestinedToCentralDatabaseBackup=null;
+		this.encryptionProfileProviderForE2EDataDestinedCentralDatabaseBackup=null;
+		this.protectedEncryptionProfileFactoryProviderForAuthenticatedP2PMessages=null;
+		this.randomType=null;
 		this.madkitEventListenerForConnectionProtocols = madkitEventListenerForConnectionProtocols;
 		this.madkitEventListenerForAccessProtocols = madkitEventListenerForAccessProtocols;
 		this.madkitEventListenerForAccessData = madkitEventListenerForAccessData;
@@ -170,8 +199,16 @@ public class NetworkEventListener implements MadkitEventListener {
 		_properties.networkProperties.upnpIGDEnabled = upnpIGDEnabled;
 		_properties.networkProperties.autoConnectWithLocalSitePeers = autoConnectWithLocalSitePeers;
 		try {
-			if (databaseFile != null)
-				_properties.setDatabaseFactory(new InMemoryEmbeddedH2DatabaseFactory(databaseFile.getName()));
+			if (databaseFile != null) {
+				DatabaseFactory<?> df=new InFileEmbeddedH2DatabaseFactory(databaseFile);
+				if (protectedEncryptionProfileFactoryProviderForAuthenticatedP2PMessages!=null) {
+					df.setEncryptionProfileProviders(signatureProfileProviderForAuthenticatedMessagesDestinedToCentralDatabaseBackup,
+							encryptionProfileProviderForE2EDataDestinedCentralDatabaseBackup,
+							protectedEncryptionProfileFactoryProviderForAuthenticatedP2PMessages,
+							randomType);
+				}
+				_properties.setDatabaseFactory(df);
+			}
 		} catch (DatabaseException e) {
 			e.printStackTrace();
 		}
@@ -265,7 +302,7 @@ public class NetworkEventListener implements MadkitEventListener {
 									databaseFile, cp,
                                     app, ad, 5001+h,
                                     Arrays.asList(
-                                            (AbstractIP) new DoubleIP(5001,
+                                            new DoubleIP(5001,
                                                     (Inet4Address) InetAddress.getByName("127.0.0.1")),
 											new DoubleIP(5001,
 													(Inet6Address) InetAddress.getByName("::1"))));
@@ -273,7 +310,7 @@ public class NetworkEventListener implements MadkitEventListener {
                             o[h] = new NetworkEventListener(network, upnpIGDEnabled, false,
 									databaseFile, cp,
                                     app, ad, 5001+h,
-									Collections.singletonList((AbstractIP) new DoubleIP(5001,
+									Collections.singletonList(new DoubleIP(5001,
 											(Inet4Address) InetAddress.getByName("127.0.0.1"),
 											(Inet6Address) InetAddress.getByName("::1"))));
 

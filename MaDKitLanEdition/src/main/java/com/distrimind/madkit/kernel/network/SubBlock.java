@@ -37,6 +37,8 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import java.util.Arrays;
+
 /**
  * 
  * @author Jason Mahdjoub
@@ -52,6 +54,12 @@ public class SubBlock {
 		block = _block.getBytes();
 		offset = Block.getHeadSize();
 		size = block.length - offset;
+	}
+
+	public SubBlock(Block _block, int _offset, int _size) {
+		block = _block.getBytes();
+		offset = _offset;
+		size = _size;
 	}
 
 	
@@ -100,9 +108,13 @@ public class SubBlock {
 		return size;
 	}
 
-	
 
-	
-	
-
+	@Override
+	public String toString() {
+		return "SubBlock{" +
+				"block.length=" + block.length +
+				", offset=" + offset +
+				", size=" + size +
+				'}';
+	}
 }

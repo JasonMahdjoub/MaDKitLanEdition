@@ -140,8 +140,8 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 
 	private static ArrayList<ConnectionProtocolProperties<?>[]> dataWithSubLevel()
 			throws SecurityException, IllegalArgumentException, NoSuchAlgorithmException, NoSuchProviderException, ConnectionException, IOException {
-		ArrayList<ConnectionProtocolProperties<?>[]> res = new ArrayList<>();
 		ArrayList<ConnectionProtocolProperties<?>[]> l=dataOneLevel();
+		ArrayList<ConnectionProtocolProperties<?>[]> res = new ArrayList<>(l);
 		@SuppressWarnings("unchecked")
 		ArrayList<ConnectionProtocolProperties<?>[]>[] firstLevel = new ArrayList[l.size()];
 		firstLevel[0]=l;

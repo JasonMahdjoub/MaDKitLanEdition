@@ -38,6 +38,7 @@
 
 package com.distrimind.madkit.kernel;
 
+import com.distrimind.madkit.agr.CloudCommunity;
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
@@ -1146,8 +1147,11 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 		}
 	}
 
+
 	private boolean isHiddenGroup() {
-		return (this.getPath().equals(LocalCommunity.Groups.SYSTEM.getPath())
+		return (this.getPath().startsWith(CloudCommunity.Groups.DISTRIBUTED_DATABASE.getPath())
+				&& this.getCommunity().equals(CloudCommunity.Groups.DISTRIBUTED_DATABASE.getCommunity())) ||
+				(this.getPath().equals(LocalCommunity.Groups.SYSTEM.getPath())
 				&& this.getCommunity().equals(LocalCommunity.Groups.SYSTEM.getCommunity()))
 				|| this.getPath().equals(com.distrimind.madkit.agr.LocalCommunity.Groups.GUI.getPath()) && this
 						.getCommunity().equals(com.distrimind.madkit.agr.LocalCommunity.Groups.GUI.getCommunity());

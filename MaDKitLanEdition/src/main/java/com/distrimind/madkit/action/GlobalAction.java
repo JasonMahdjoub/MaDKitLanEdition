@@ -88,7 +88,7 @@ public class GlobalAction {
 		if (jConsolePath == null) {
 			JConsole = null;
 		} else {
-			JConsole = new MDKAbstractAction(new ActionInfo("JConsole", KeyEvent.VK_L, messages)) {
+			JConsole = new MDKAbstractAction(new ActionInfo("JCONSOLE", KeyEvent.VK_L, messages)) {
 
 				private static final long serialVersionUID = 1L;
 

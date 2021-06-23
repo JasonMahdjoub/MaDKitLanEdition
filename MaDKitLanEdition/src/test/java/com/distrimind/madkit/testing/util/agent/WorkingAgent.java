@@ -51,7 +51,7 @@ public class WorkingAgent extends DoItDuringLifeCycleAgent {
 
 	@Override
 	public void doIt() throws InterruptedException {
-		for (int i = 0; i < 100000000; i++) {
+		for (int i = 0; i < 150000000; i++) {
 			@SuppressWarnings("unused")
 			double d = Math.random() * 2;
             // if(i % 10000000 == 0)

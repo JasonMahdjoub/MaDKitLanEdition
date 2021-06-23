@@ -196,7 +196,7 @@ public class KillingWorkingThreadedAgentsTest extends JunitMadkit {
 				a = new WorkingAgent(false, true, true);
 				successOnLaunch(a);
 				JunitMadkit.pause(this, 10);
-				killAgent(a, 1);
+				killAgent(a, 0);
 				assertAgentIsZombie(a);
 				JunitMadkit.pause(this, 5500);
 				assertAgentIsTerminated(a);
@@ -239,7 +239,7 @@ public class KillingWorkingThreadedAgentsTest extends JunitMadkit {
 				a = new WorkingAgent(true, true, true);
 				ReturnCode r = launchAgent(a, 1);
 				assertTrue(TIMEOUT == r || r == SUCCESS);
-				r = killAgent(a, 1);
+				r = killAgent(a, 0);
 				Assert.assertEquals(TIMEOUT, r);
 				assertAgentIsZombie(a);
 				JunitMadkit.pause(this, 10000);
@@ -276,15 +276,15 @@ public class KillingWorkingThreadedAgentsTest extends JunitMadkit {
 				a = new WorkingAgent(true, false, true);
 				r = launchAgent(a, 1);
 				assertTrue(TIMEOUT == r || r == SUCCESS);
-				killAgent(a, 1);
-				assertTrue(State.ZOMBIE == a.getState() || State.ENDING == a.getState());
+				killAgent(a, 0);
+				assertTrue(""+a.getState(), State.ZOMBIE == a.getState() || State.ENDING == a.getState());
 
 				a = new WorkingAgent(true, true, true);
 				r = launchAgent(a, 1);
 				assertTrue(TIMEOUT == r || r == SUCCESS);
 				while (a.getState().compareTo(State.ACTIVATING) < 0)
 					pause(100);
-				killAgent(a, 1);
+				killAgent(a, 0);
 				assertTrue(a.getState().toString(), State.ZOMBIE == a.getState() || State.ENDING == a.getState());
 			}
 		});

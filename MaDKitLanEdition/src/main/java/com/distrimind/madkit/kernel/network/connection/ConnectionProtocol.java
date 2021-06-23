@@ -361,13 +361,13 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 		int i = 0;
 		for (Iterator<ConnectionProtocol<?>> it = this.iterator(); it.hasNext(); i++) {
 			ConnectionProtocol<?> cp = it.next();
+
 			PacketCounter pc=cp.getPacketCounter();
 			if (pc!=null)
 			    pc.incrementMyCounters();
 			boolean valid;
 			boolean candidate_to_ban =false;
 			SubBlockParser sbp = cp.getParser();
-			
 			try {
 				sbi = sbp.getSubBlock(sbi.getSubBlock());
 				valid = sbi.isValid();
@@ -415,7 +415,6 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 	}
 	public final Block getBlock(WritePacket _packet, int _transfert_type, AbstractSecureRandom random, boolean excludedFromEncryption)
 			throws NIOException {
-
 		try {
 			PacketPart packet_part = _packet.getNextPart(this);
 			if (packet_part == null)
@@ -427,12 +426,13 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 			/*Block block = new Block(packet_part, sbs, _transfert_type);
 			SubBlock subBlock = new SubBlock(block.getBytes(), sbs.initial_packet_offset, sbs.initial_packet_size);*/
 			SubBlock subBlock= packet_part.getSubBlock();
-			int i = this.sizeOfSubConnectionProtocols();
+			int i = this.numberOfSubConnectionProtocols();
 			for (Iterator<ConnectionProtocol<?>> it = this.reverseIterator(); it.hasNext(); i--) {
 				ConnectionProtocol<?> cp = it.next();
 				PacketCounter pc=cp.getPacketCounter();
 				if (pc!=null)
 				    pc.incrementOtherCounters();
+
 				subBlock = lastSBS.getSubBlockForParent(cp.getParser().getParentBlock(subBlock, excludedFromEncryption), i, random);
 			}
 			PointToPointTransferedBlockChecker ptp=pointToPointTransferedBlockChecker;
@@ -572,9 +572,9 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 
 	protected abstract boolean isTransferBlockCheckerChangedImpl();
 
-	public int sizeOfSubConnectionProtocols() {
+	public int numberOfSubConnectionProtocols() {
 		if (subProtocol != null)
-			return subProtocol.sizeOfSubConnectionProtocols() + 1;
+			return subProtocol.numberOfSubConnectionProtocols() + 1;
 		else
 			return 0;
 	}

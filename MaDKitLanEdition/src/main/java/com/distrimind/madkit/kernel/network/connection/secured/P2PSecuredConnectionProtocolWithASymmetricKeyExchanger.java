@@ -122,7 +122,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 		} catch (NoSuchAlgorithmException | NoSuchProviderException | IOException e) {
 			throw new ConnectionException(e);
 		}
-		this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, hProperties.enableEncryption, false);
+		this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, hProperties.enableEncryption && hProperties.symmetricEncryptionType.getMaxCounterSizeInBytesUsedWithBlockMode()>0, false);
 		
 		if (hProperties.enableEncryption)
 			parser = new ParserWithEncryption();
@@ -136,8 +136,16 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 		{
 			reInitSymmetricAlgorithm =false;
 			try {
-				encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.secret_key, (byte)packetCounter.getMyEncryptionCounter().length);
-				decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.secret_key, (byte)packetCounter.getMyEncryptionCounter().length);
+				byte[] ec=packetCounter.getMyEncryptionCounter();
+				if (ec==null) {
+					encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.secret_key);
+					decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.secret_key);
+				}
+				else {
+					encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.secret_key, (byte) ec.length);
+					decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.secret_key, (byte) ec.length);
+				}
+
 			} catch (IOException e) {
 				throw new ConnectionException(e);
 			}
@@ -270,8 +278,16 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 		try {
 			secret_key = hProperties.symmetricEncryptionType.getKeyGenerator(approvedRandomForKeys, hProperties.symmetricKeySizeBits)
 					.generateKey();
-			encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key);
-			decoderWithEncryption.withSymmetricSecretKeyForEncryption(secret_key);
+			byte[] pc=packetCounter.getMyEncryptionCounter();
+			if (pc!=null)
+			{
+				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key, (byte)pc.length);
+				decoderWithEncryption.withSymmetricSecretKeyForEncryption(secret_key, (byte)pc.length);
+			}
+			else {
+				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key);
+				decoderWithEncryption.withSymmetricSecretKeyForEncryption(secret_key);
+			}
 		} catch (NoSuchAlgorithmException | NoSuchProviderException | IOException e) {
 			secret_key = null;
 			encoderWithEncryption.withoutSymmetricEncryption();
@@ -295,8 +311,16 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 		try {
 			KeyWrapperAlgorithm kwe=new KeyWrapperAlgorithm(keyWrapper, myKeyPairForEncryption);
 			secret_key = kwe.unwrap(_secret_key);
-			encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key);
-			decoderWithEncryption.withSymmetricSecretKeyForEncryption(secret_key);
+			byte[] pc=packetCounter.getMyEncryptionCounter();
+			if (pc!=null)
+			{
+				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key, (byte)pc.length);
+				decoderWithEncryption.withSymmetricSecretKeyForEncryption(secret_key, (byte)pc.length);
+			}
+			else {
+				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key);
+				decoderWithEncryption.withSymmetricSecretKeyForEncryption(secret_key);
+			}
 		} catch (IOException | IllegalArgumentException | IllegalStateException e) {
 			encoderWithEncryption.withoutSymmetricEncryption();
 			decoderWithEncryption.withoutSymmetricEncryption();
@@ -467,7 +491,8 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 	}
 
 	private class ParserWithEncryption extends SubBlockParser {
-		public ParserWithEncryption() throws ConnectionException {
+
+		ParserWithEncryption() throws ConnectionException {
 			super(decoderWithEncryption, decoderWithoutEncryption, encoderWithEncryption, encoderWithoutEncryption, packetCounter);
 		}
 
@@ -487,7 +512,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 					{
 						reInitSymmetricAlgorithmIfNecessary();
 					}
-					return (int)encoderWithEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
+					return getBodyOutputSizeWithEncryption(size);
 				}
 			} catch (Exception e) {
 				throw new BlockParserException(e);
@@ -495,8 +520,31 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 			return size;
 
 		}
-		
 
+		@Override
+		public int getBodyOutputSizeForSignature(int size) throws BlockParserException
+		{
+			try {
+				switch (current_step) {
+					case NOT_CONNECTED:
+					case WAITING_FOR_PUBLIC_KEY:
+					case WAITING_FOR_SECRET_KEY:
+					case WAITING_FIRST_MESSAGE: {
+						return size;
+					}
+					case WAITING_FOR_CONNECTION_CONFIRMATION:
+					case CONNECTED:
+						if (packetCounter.isDistantActivated())
+						{
+							reInitSymmetricAlgorithmIfNecessary();
+						}
+						return getBodyOutputSizeWithSignature(size);
+				}
+			} catch (Exception e) {
+				throw new BlockParserException(e);
+			}
+			return size;
+		}
 
 		@Override
 		public int getBodyOutputSizeForDecryption(int size) throws BlockParserException {
@@ -514,7 +562,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 						{
 							reInitSymmetricAlgorithmIfNecessary();
 						}
-						return (int)encoderWithEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+						return getBodyOutputSizeWithDecryption(size);
 					}
 					else
 						return size;
@@ -525,7 +573,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 					{
 						reInitSymmetricAlgorithmIfNecessary();
 					}
-					return (int)encoderWithEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+					return getBodyOutputSizeWithDecryption(size);
 
 				}
 			} catch (Exception e) {
@@ -583,6 +631,11 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 			}
 			throw new BlockParserException("Unexpected exception");
 
+		}
+
+		@Override
+		public String toString() {
+			return "ParserWithEncryption{"+current_step+"}";
 		}
 
 		@Override
@@ -647,8 +700,9 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 	}
 
 	private class ParserWithNoEncryption extends ParserWithEncryption {
-		public ParserWithNoEncryption() throws ConnectionException {
-			super();
+
+
+		ParserWithNoEncryption() throws ConnectionException {
 		}
 
 		@Override
@@ -667,7 +721,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 						{
 							reInitSymmetricAlgorithmIfNecessary();
 						}
-						return (int)encoderWithoutEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
+						return getBodyOutputSizeWithEncryption(size);
 				}
 			} catch (Exception e) {
 				throw new BlockParserException(e);
@@ -694,7 +748,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 							{
 								reInitSymmetricAlgorithmIfNecessary();
 							}
-							return (int)encoderWithoutEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+							return getBodyOutputSizeWithDecryption(size);
 						}
 						else
 							return size;
@@ -705,7 +759,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 						{
 							reInitSymmetricAlgorithmIfNecessary();
 						}
-						return (int)encoderWithoutEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+						return getBodyOutputSizeWithDecryption(size);
 
 				}
 			} catch (Exception e) {
@@ -746,7 +800,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 			} else {
 				currentBlockCheckerIsNull = false;
 				return new BlockChecker(subBlockChecker, this.hProperties.signatureType,
-						this.myKeyPairForSignature.getASymmetricPublicKey(), EncryptionSignatureHashEncoder.headSize, this.isCrypted());
+						this.myKeyPairForSignature.getASymmetricPublicKey(), this.isCrypted(), this.hProperties.messageDigestType);
 			}
 		} catch (Exception e) {
 			blockCheckerChanged = true;
@@ -758,7 +812,9 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 
 		private ASymmetricAuthenticatedSignatureType signatureType;
 		private int signatureSize;
-		private transient ASymmetricAuthenticatedSignatureCheckerAlgorithm signatureChecker;
+		private MessageDigestType messageDigestType;
+		private transient EncryptionSignatureHashDecoder decoder;
+		//private transient ASymmetricAuthenticatedSignatureCheckerAlgorithm signatureChecker;
 		private ASymmetricPublicKey publicKey;
 		@SuppressWarnings("unused")
 		BlockChecker()
@@ -771,6 +827,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 			signatureType=in.readObject(false, ASymmetricAuthenticatedSignatureType.class);
 			signatureSize=in.readInt();
 			publicKey=in.readObject(false, ASymmetricPublicKey.class);
+			messageDigestType=in.readObject(true);
 			try
 			{
 				initSignature();
@@ -787,26 +844,31 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 			oos.writeObject(signatureType, false);
 			oos.writeInt(signatureSize);
 			oos.writeObject(publicKey, false);
+			oos.writeObject(messageDigestType, true);
 		}
 		
 		@Override
 		public int getInternalSerializedSize() {
-			return SerializationTools.getInternalSize(signatureType)+4+ SerializationTools.getInternalSize(publicKey);
+			return SerializationTools.getInternalSize(signatureType)+4+ SerializationTools.getInternalSize(publicKey)+SerializationTools.getInternalSize(messageDigestType);
 		}
 		
 		protected BlockChecker(TransferedBlockChecker _subChecker, ASymmetricAuthenticatedSignatureType signatureType,
-				ASymmetricPublicKey publicKey, int signatureSize, boolean isEncrypted) throws NoSuchAlgorithmException, NoSuchProviderException {
+				ASymmetricPublicKey publicKey, boolean isEncrypted, MessageDigestType messageDigestType) throws IOException {
 			super(_subChecker, !isEncrypted);
 			this.signatureType = signatureType;
 			this.publicKey = publicKey;
-			this.signatureSize = signatureSize;
+			this.messageDigestType = messageDigestType;
 			initSignature();
 		}
 
 		
 
-		private void initSignature() throws NoSuchAlgorithmException, NoSuchProviderException {
-			this.signatureChecker = new ASymmetricAuthenticatedSignatureCheckerAlgorithm(publicKey);
+		private void initSignature() throws IOException {
+			this.decoder=new EncryptionSignatureHashDecoder()
+					.withASymmetricPublicKeyForSignature(publicKey);
+			if (messageDigestType!=null)
+				this.decoder.withMessageDigestType(messageDigestType);
+			//this.signatureChecker = new ASymmetricAuthenticatedSignatureCheckerAlgorithm(publicKey);
 		}
 
 	
@@ -814,13 +876,14 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 		@Override
 		public SubBlockInfo checkSubBlock(SubBlock _block) throws BlockParserException {
 			try {
-				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + signatureSize,
-						_block.getSize() - signatureSize);
-				
-				
-				
-				boolean check = signatureChecker.verify(res.getBytes(), res.getOffset(), res.getSize(), _block.getBytes(), _block.getOffset(), signatureSize);
-				return new SubBlockInfo(res, check, !check);
+				Integrity i=decoder
+						.withRandomInputStream(new LimitedRandomInputStream(new RandomByteArrayInputStream(_block.getBytes()), _block.getOffset(), _block.getSize()))
+						.checkHashAndPublicSignature();
+
+				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + EncryptionSignatureHashEncoder.headSize,
+						(int)decoder.getDataSizeInBytesAfterDecryptionOrAfterPublicSignatureChecking());
+
+				return new SubBlockInfo(res, i==Integrity.OK, i==Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			} catch (Exception e) {
 				throw new BlockParserException(e);
 			}

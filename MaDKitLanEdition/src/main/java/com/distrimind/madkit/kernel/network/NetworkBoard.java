@@ -141,7 +141,7 @@ class NetworkBoard {
 		}
 	}*/
 
-	/*boolean checkDistantKernelAgentCandidateForPurgeEmpty() {
+	boolean checkDistantKernelAgentCandidateForPurgeEmpty() {
 		if (totalDataInQueueForAllDistantKernelAgent.get() != 0) {
 			new Exception("" + totalDataInQueueForAllDistantKernelAgent.get()).printStackTrace();
 			return false;
@@ -160,7 +160,7 @@ class NetworkBoard {
 		} else
 			return true;
 
-	}*/
+	}
 
 	/*boolean checkDistantKernelAddressPurged() {
 		if (!distant_kernel_addresses.isEmpty()) {
@@ -171,9 +171,10 @@ class NetworkBoard {
 
 	}*/
 
-	/*boolean checkBoardEmpty() {
+	@SuppressWarnings("unused")
+	boolean checkBoardEmpty() {
 		return checkDistantKernelAgentCandidateForPurgeEmpty();
-	}*/
+	}
 
 	protected TaskID taskIDToRemoveDatagramMessages = null;
 	protected final HashSet<DatagramLocalNetworkPresenceMessage> datagramMessages = new HashSet<>();

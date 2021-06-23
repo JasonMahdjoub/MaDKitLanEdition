@@ -96,7 +96,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 	final int maximumSignatureSize;
 	boolean firstMessageReceived = false;
 	private boolean needToRefreshTransferBlockChecker = true;
-	private final PacketCounterForEncryptionAndSignature packetCounter;
+	private PacketCounterForEncryptionAndSignature packetCounter=null;
 	private boolean reInitSymmetricAlgorithm =true;
 
 
@@ -129,7 +129,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 		} catch (NoSuchAlgorithmException | NoSuchProviderException | IOException e) {
 			throw new ConnectionException(e);
 		}
-		this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, hProperties.enableEncryption, true);
+
 		if (hProperties.enableEncryption)
 			parser = new ParserWithEncryption();
 		else
@@ -194,8 +194,16 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 		if (reInitSymmetricAlgorithm)
 		{
 			reInitSymmetricAlgorithm =false;
-			encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.mySecretKeyForEncryption, (byte)packetCounter.getMyEncryptionCounter().length);
-			decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.mySecretKeyForEncryption, (byte)packetCounter.getMyEncryptionCounter().length);
+			if (hProperties.enableEncryption) {
+				if (packetCounter.getMyEncryptionCounter() == null) {
+					encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.mySecretKeyForEncryption);
+					decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.mySecretKeyForEncryption);
+				} else {
+					encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.mySecretKeyForEncryption, (byte) packetCounter.getMyEncryptionCounter().length);
+					decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.mySecretKeyForEncryption, (byte) packetCounter.getMyEncryptionCounter().length);
+
+				}
+			}
 		}
 	}
 	boolean isProfileInitialized()
@@ -214,25 +222,41 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 			if (mySecretKeyForSignature==null /*|| !askMessage.checkSignedMessage(mySecretKeyForSignature, hProperties.enableEncryption)*/)
 				throw new ConnectionException("Message signature is not checked !");
 
+
+
+
 			if (hProperties.enableEncryption)
 			{
 				KeyWrapperAlgorithm kwe=new KeyWrapperAlgorithm(keyWrapper, myKeyPairForEncryption, mySecretKeyForSignature);
 				mySecretKeyForEncryption=kwe.unwrap(askMessage.getSecretKeyForEncryption());
-				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, mySecretKeyForEncryption);
-				decoderWithEncryption.withSymmetricSecretKeyForEncryption(mySecretKeyForEncryption);
+				this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, hProperties.enableEncryption && mySecretKeyForEncryption.getEncryptionAlgorithmType().getMaxCounterSizeInBytesUsedWithBlockMode()>0, true);
+				if (this.packetCounter.getMyEncryptionCounter()==null) {
+					encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, mySecretKeyForEncryption);
+					decoderWithEncryption.withSymmetricSecretKeyForEncryption(mySecretKeyForEncryption);
+				}
+				else
+				{
+					encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, mySecretKeyForEncryption, (byte)packetCounter.getMyEncryptionCounter().length);
+					decoderWithEncryption.withSymmetricSecretKeyForEncryption(mySecretKeyForEncryption, (byte)packetCounter.getMyEncryptionCounter().length);
+				}
 			}
 			else {
+				this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, false, true);
 				mySecretKeyForEncryption = null;
 				encoderWithEncryption.withoutSymmetricEncryption();
 				decoderWithEncryption.withoutSymmetricEncryption();
 			}
+			parser.setPacketCounter(packetCounter);
 
 			encoderWithoutEncryption.withSymmetricSecretKeyForSignature(mySecretKeyForSignature);
-			encoderWithEncryption.withSymmetricSecretKeyForSignature(mySecretKeyForSignature);
+			if (!hProperties.enableEncryption || !mySecretKeyForEncryption.getEncryptionAlgorithmType().isAuthenticatedAlgorithm())
+				encoderWithEncryption.withSymmetricSecretKeyForSignature(mySecretKeyForSignature);
 			decoderWithoutEncryption.withSymmetricSecretKeyForSignature(mySecretKeyForSignature);
-			decoderWithEncryption.withSymmetricSecretKeyForSignature(mySecretKeyForSignature);
+			if (!hProperties.enableEncryption || !mySecretKeyForEncryption.getEncryptionAlgorithmType().isAuthenticatedAlgorithm())
+				decoderWithEncryption.withSymmetricSecretKeyForSignature(mySecretKeyForSignature);
 			// this.secret_key=symmetricAlgorithm.getSecretKey();
 		} catch (Exception e) {
+			e.printStackTrace();
 			resetKeys();
 			throw new ConnectionException(e);
 		}
@@ -334,8 +358,14 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 
 	private class ParserWithEncryption extends SubBlockParser {
 
+
 		ParserWithEncryption() throws ConnectionException {
 			super(decoderWithEncryption, decoderWithoutEncryption, encoderWithEncryption, encoderWithoutEncryption, packetCounter);
+		}
+
+		@Override
+		public String toString() {
+			return "ServerParserWithEncryption{"+current_step+"}";
 		}
 
 		@Override
@@ -350,7 +380,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 					{
 						reInitSymmetricAlgorithmIfNecessary();
 					}
-					return (int)encoderWithEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
+					return getBodyOutputSizeWithEncryption(size);
 				}
 
 			} catch (Exception e) {
@@ -358,7 +388,25 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 			}
 		}
 
+		@Override
+		public int getBodyOutputSizeForSignature(int size) throws BlockParserException
+		{
+			try {
+				if (current_step==Step.NOT_CONNECTED)
+					return size;
+				else
+				{
+					if (packetCounter.isDistantActivated())
+					{
+						reInitSymmetricAlgorithmIfNecessary();
+					}
+					return getBodyOutputSizeWithSignature(size);
+				}
 
+			} catch (Exception e) {
+				throw new BlockParserException(e);
+			}
+		}
 		@Override
 		public int getBodyOutputSizeForDecryption(int size) throws BlockParserException {
 			try {
@@ -371,7 +419,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 					{
 						reInitSymmetricAlgorithmIfNecessary();
 					}
-					return (int)decoderWithEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+					return getBodyOutputSizeWithDecryption(size);
 				}
 			} catch (Exception e) {
 				throw new BlockParserException(e);
@@ -495,7 +543,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 					{
 						reInitSymmetricAlgorithmIfNecessary();
 					}
-					return (int)encoderWithoutEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
+					return getBodyOutputSizeWithEncryption(size);
 				}
 
 			} catch (Exception e) {
@@ -516,7 +564,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 						{
 							reInitSymmetricAlgorithmIfNecessary();
 						}
-						return (int)decoderWithoutEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+						return getBodyOutputSizeWithDecryption(size);
 				}
 			} catch (Exception e) {
 				throw new BlockParserException(e);

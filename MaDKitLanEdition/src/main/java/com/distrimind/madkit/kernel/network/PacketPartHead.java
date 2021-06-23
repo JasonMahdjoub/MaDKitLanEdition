@@ -83,7 +83,7 @@ public final class PacketPartHead {
 		int off=subBlock.getOffset();
 		type = _part[off];
 		id = Bits.getInt(_part, off+1);
-		data_size = Block.getShortInt(_part, off+5);
+		data_size = Bits.getUnsignedInt24Bits(_part, off+5);
 		if (isFirstPacketPart()) {
 			if (subBlock.getSize()<24)
 				throw new PacketException();

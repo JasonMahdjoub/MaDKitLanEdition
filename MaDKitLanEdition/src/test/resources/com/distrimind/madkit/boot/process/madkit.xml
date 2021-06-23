@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <MDK>
     <com.distrimind.madkit.kernel.MadkitProperties>
-    	<com.distrimind.ood.database.InFileEmbeddedHSQLDatabaseFactory.databaseFactory>
-        	<file_name>mkledbtest</file_name>
-        	<constructorNb>1</constructorNb>
-    	</com.distrimind.ood.database.InFileEmbeddedHSQLDatabaseFactory.databaseFactory>
+    	<com.distrimind.ood.database.InFileEmbeddedHSQLDatabaseFactory>
+        	<directory>mkledbtest</directory>
+    	</com.distrimind.ood.database.InFileEmbeddedHSQLDatabaseFactory>
     </com.distrimind.madkit.kernel.MadkitProperties>
 </MDK>

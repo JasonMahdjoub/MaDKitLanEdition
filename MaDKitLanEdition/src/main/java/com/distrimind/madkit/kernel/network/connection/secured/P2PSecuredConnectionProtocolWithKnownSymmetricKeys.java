@@ -78,7 +78,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 	private SymmetricAuthenticatedSignerAlgorithm signer;
 	private SymmetricEncryptionAlgorithm cipher;*/
 	private final AbstractSecureRandom approvedRandom;
-	private final PacketCounterForEncryptionAndSignature packetCounter;
+	private PacketCounterForEncryptionAndSignature packetCounter=null;
 	private boolean reInitSymmetricAlgorithm =false;
 	private final SubBlockParser parser;
 	private boolean blockCheckerChanged = true;
@@ -103,7 +103,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 		} catch (NoSuchAlgorithmException | NoSuchProviderException | IOException e) {
 			throw new ConnectionException(e);
 		}
-		this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, properties.enableEncryption, true);
+
 		if (properties.enableEncryption)
 			parser = new ParserWithEncryption();
 		else
@@ -112,23 +112,41 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 	}
 
 	private void initSecretKeys(int id) throws ConnectionException {
+
 		if (!properties.isValidProfile(id, network_properties.encryptionRestrictionForConnectionProtocols))
 			throw new ConnectionException();
 		this.secretKeyForEncryption=properties.getSymmetricSecretKeyForEncryption(id);
 		this.secretKeyForSignature=properties.getSymmetricSecretKeyForSignature(id);
 		try {
+			this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, properties.enableEncryption && secretKeyForEncryption.getEncryptionAlgorithmType().getMaxCounterSizeInBytesUsedWithBlockMode()>0, true);
 			encoderWithoutEncryption.withSymmetricSecretKeyForSignature(secretKeyForSignature);
-			encoderWithEncryption.withSymmetricSecretKeyForSignature(secretKeyForSignature);
+			if (!properties.enableEncryption || !secretKeyForEncryption.getEncryptionAlgorithmType().isAuthenticatedAlgorithm())
+				encoderWithEncryption.withSymmetricSecretKeyForSignature(secretKeyForSignature);
+			else
+				encoderWithEncryption.withoutSymmetricSignature();
+
 			decoderWithoutEncryption.withSymmetricSecretKeyForSignature(secretKeyForSignature);
-			decoderWithEncryption.withSymmetricSecretKeyForSignature(secretKeyForSignature);
+			if (!properties.enableEncryption || !secretKeyForEncryption.getEncryptionAlgorithmType().isAuthenticatedAlgorithm())
+				decoderWithEncryption.withSymmetricSecretKeyForSignature(secretKeyForSignature);
+			else
+				decoderWithEncryption.withoutSymmetricSignature();
 			if (properties.enableEncryption) {
-				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secretKeyForEncryption);
-				decoderWithEncryption.withSymmetricSecretKeyForEncryption(secretKeyForEncryption);
+				byte[] pc=packetCounter.getMyEncryptionCounter();
+				if (pc!=null)
+				{
+					encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secretKeyForEncryption, (byte)pc.length);
+					decoderWithEncryption.withSymmetricSecretKeyForEncryption(secretKeyForEncryption, (byte)pc.length);
+				}
+				else {
+					encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secretKeyForEncryption);
+					decoderWithEncryption.withSymmetricSecretKeyForEncryption(secretKeyForEncryption);
+				}
 			} else {
 				encoderWithEncryption.withoutSymmetricEncryption();
 				decoderWithEncryption.withoutSymmetricEncryption();
 			}
 
+			parser.setPacketCounter(packetCounter);
 		}
 		catch (IOException e)
 		{
@@ -142,8 +160,16 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 		try {
 			if (properties.enableEncryption && reInitSymmetricAlgorithm) {
 				reInitSymmetricAlgorithm = false;
-				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secretKeyForEncryption);
-				decoderWithEncryption.withSymmetricSecretKeyForEncryption(secretKeyForEncryption);
+				byte[] pc=packetCounter.getMyEncryptionCounter();
+				if (pc!=null)
+				{
+					encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secretKeyForEncryption, (byte)pc.length);
+					decoderWithEncryption.withSymmetricSecretKeyForEncryption(secretKeyForEncryption, (byte)pc.length);
+				}
+				else {
+					encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secretKeyForEncryption);
+					decoderWithEncryption.withSymmetricSecretKeyForEncryption(secretKeyForEncryption);
+				}
 			}
 		}
 		catch (IOException e)
@@ -304,6 +330,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 
 	private class ParserWithEncryption extends SubBlockParser
 	{
+
 		ParserWithEncryption() throws ConnectionException {
 			super(decoderWithEncryption, decoderWithoutEncryption, encoderWithEncryption, encoderWithoutEncryption, packetCounter);
 		}
@@ -361,14 +388,39 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 						if (isCurrentServerAskingConnection())
 							return size;
 						else
-							return (int)encoderWithEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
+							return getBodyOutputSizeWithEncryption(size);
 
 					case CONNECTED:
 						if (packetCounter.isDistantActivated())
 						{
 							reInitSymmetricAlgorithmIfNecessary();
 						}
-						return (int)encoderWithEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
+						return getBodyOutputSizeWithEncryption(size);
+				}
+			} catch (Exception e) {
+				throw new BlockParserException(e);
+			}
+			return size;
+		}
+		@Override
+		public int getBodyOutputSizeForSignature(int size) throws BlockParserException
+		{
+			try {
+				switch (status) {
+					case NOT_CONNECTED:
+						return size;
+					case WAITING_FOR_CONNECTION_CONFIRMATION:
+						if (isCurrentServerAskingConnection())
+							return size;
+						else
+							return getBodyOutputSizeWithSignature(size);
+
+					case CONNECTED:
+						if (packetCounter.isDistantActivated())
+						{
+							reInitSymmetricAlgorithmIfNecessary();
+						}
+						return getBodyOutputSizeWithSignature(size);
 				}
 			} catch (Exception e) {
 				throw new BlockParserException(e);
@@ -383,13 +435,13 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 					case NOT_CONNECTED:
 						return size;
 					case WAITING_FOR_CONNECTION_CONFIRMATION:
-						return (int)encoderWithEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+						return getBodyOutputSizeWithDecryption(size);
 					case CONNECTED:
 						if (getPacketCounter().isLocalActivated())
 						{
 							reInitSymmetricAlgorithmIfNecessary();
 						}
-						return (int)encoderWithEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+						return getBodyOutputSizeWithDecryption(size);
 
 				}
 			} catch (Exception e) {
@@ -454,14 +506,14 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 						if (isCurrentServerAskingConnection())
 							return size;
 						else
-							return (int)encoderWithoutEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
+							return getBodyOutputSizeWithEncryption(size);
 
 					case CONNECTED:
 						if (packetCounter.isDistantActivated())
 						{
 							reInitSymmetricAlgorithmIfNecessary();
 						}
-						return (int)encoderWithoutEncryption.getMaximumOutputLength(size)-EncryptionSignatureHashEncoder.headSize;
+						return getBodyOutputSizeWithEncryption(size);
 				}
 			} catch (Exception e) {
 				throw new BlockParserException(e);
@@ -476,13 +528,13 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 					case NOT_CONNECTED:
 						return size;
 					case WAITING_FOR_CONNECTION_CONFIRMATION:
-						return (int)encoderWithoutEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+						return getBodyOutputSizeWithDecryption(size);
 					case CONNECTED:
 						if (getPacketCounter().isLocalActivated())
 						{
 							reInitSymmetricAlgorithmIfNecessary();
 						}
-						return (int)encoderWithoutEncryption.getMaximumOutputLength(size+EncryptionSignatureHashEncoder.headSize);
+						return getBodyOutputSizeWithDecryption(size);
 
 				}
 			} catch (Exception e) {

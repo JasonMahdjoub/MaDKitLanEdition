@@ -451,7 +451,7 @@ public class JunitMadkit {
 		if (m.getKernel().isAlive())
 			m.doAction(KernelAction.EXIT);
 
-		checkKilledKernelsNb(null, m, 10000);
+		checkKilledKernelsNb(null, m, 30000);
 
 		checkEmptyConversationIDTraces(null, m, 10000);
 

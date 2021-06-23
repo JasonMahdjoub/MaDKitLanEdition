@@ -130,7 +130,7 @@ final public class Madkit {
 		return defaultConfig;
 	}
 	
-	private volatile static Version VERSION;
+	private volatile static Version VERSION=null;
 
 	static Version getNewVersionInstance()
 	{
@@ -147,13 +147,14 @@ final public class Madkit {
 					.addDeveloper(new PersonDeveloper("Gutknecht", "Olivier", "1997-02-01"))
 					.addDeveloper(new PersonDeveloper("Ferber", "Jacques", "1997-02-01"))
 					.addDescription(new Description((short)2, (short)2, (short)0, Version.Type.STABLE, (short)0, "2021-05-25")
-							.addItem("Update Utils to 5.18.1 STABLE")
+							.addItem("Update Utils to 5.18.2 STABLE")
 							.addItem("Update OOD to 3.0.0 STABLE")
 							.addItem("Make Utils and OOD compatible with Android")
 							.addItem("Reimplement connection protocol using new Utils classes")
+							.addItem("Permit MaDKit to be a central database backup server in order to synchronize database of distant peers")
 					)
 					.addDescription(new Description((short)2, (short)1, (short)10, Version.Type.STABLE, (short)1, "2020-02-15")
-							.addItem("Update Utils to 4.10.1")
+							.addItem("Update Utils to 4.10.2")
 							.addItem("Update OOD to 2.4.2")
 					);
 

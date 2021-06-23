@@ -313,6 +313,7 @@ public class LocalCommunity implements Organization {// TODO check groups protec
 		 */
 		public static final String KERNEL = "~~kernel";
 		public static final String UPDATER = "~~updater";
+		public static final String CENTRAL_DATABASE_BACKUP_CHECKER = "~~central database backup checker";
 		public static final String EMITTER = "~~emitter";
 		public static final String SECURITY = "~~security";
 		public static final String GUI = "~~gui";
