@@ -63,12 +63,20 @@ public class CentralDatabaseBackupReceiverPerPeer extends com.distrimind.ood.dat
 	private final CentralDatabaseBackupReceiverAgent agent;
 	private BigDataTransferID currentBigDataTransferID=null;
 	private RandomCacheFileOutputStream currentBigDataOutputStream=null;
+	private final EncryptionProfileProvider encryptionProfileProviderToValidateCertificateOrGetNullIfNoValidProviderIsAvailable;
+	private final FileReferenceFactory fileReferenceFactory;
 
-	protected CentralDatabaseBackupReceiverPerPeer(CentralDatabaseBackupReceiver centralDatabaseBackupReceiver, DatabaseWrapper wrapper, CentralDatabaseBackupReceiverAgent agent) {
+	protected CentralDatabaseBackupReceiverPerPeer(CentralDatabaseBackupReceiver centralDatabaseBackupReceiver, DatabaseWrapper wrapper, CentralDatabaseBackupReceiverAgent agent, EncryptionProfileProvider encryptionProfileProviderToValidateCertificateOrGetNullIfNoValidProviderIsAvailable, FileReferenceFactory fileReferenceFactory) {
 		super(centralDatabaseBackupReceiver, wrapper);
 		if (agent==null)
 			throw new NullPointerException();
+		if (encryptionProfileProviderToValidateCertificateOrGetNullIfNoValidProviderIsAvailable==null)
+			throw new NullPointerException();
+		if (fileReferenceFactory==null)
+			throw new NullPointerException();
 		this.agent=agent;
+		this.encryptionProfileProviderToValidateCertificateOrGetNullIfNoValidProviderIsAvailable=encryptionProfileProviderToValidateCertificateOrGetNullIfNoValidProviderIsAvailable;
+		this.fileReferenceFactory=fileReferenceFactory;
 	}
 	private void sendMessage(MessageComingFromCentralDatabaseBackup message, AgentAddress aa, DecentralizedValue dest) {
 		try {
@@ -165,11 +173,13 @@ public class CentralDatabaseBackupReceiverPerPeer extends com.distrimind.ood.dat
 
 	@Override
 	protected EncryptionProfileProvider getEncryptionProfileProviderToValidateCertificateOrGetNullIfNoValidProviderIsAvailable(CentralDatabaseBackupCertificate certificate) {
-		return null;
+		return encryptionProfileProviderToValidateCertificateOrGetNullIfNoValidProviderIsAvailable;
 	}
 
 	@Override
 	public FileReference getFileReference(EncryptedDatabaseBackupMetaDataPerFile encryptedDatabaseBackupMetaDataPerFile) {
-		return null;
+		if (connectedClientID==null || clientCloud==null || clientCloud.getExternalAccountID()==null || encryptedDatabaseBackupMetaDataPerFile==null)
+			return null;
+		return fileReferenceFactory.getFileReference(clientCloud.getAccountID(), clientCloud.getExternalAccountID(), connectedClientID, encryptedDatabaseBackupMetaDataPerFile);
 	}
 }

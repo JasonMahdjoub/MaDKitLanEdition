@@ -38,6 +38,9 @@ knowledge of the CeCILL-C license and that you accept its terms.
 import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedValue;
+import com.distrimind.util.crypto.EncryptionProfileProviderFactory;
+
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * @author Jason Mahdjoub
@@ -48,16 +51,32 @@ public class DefaultCentralDatabaseBackupReceiverFactory extends CentralDatabase
 	public DefaultCentralDatabaseBackupReceiverFactory() {
 	}
 
-	public DefaultCentralDatabaseBackupReceiverFactory(DecentralizedValue centralID, long durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder, long durationInMsBeforeOrderingDatabaseBackupDeletion, long durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect, long durationInMsToWaitBeforeRemovingAccountDefinitively) {
-		super(centralID, durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder, durationInMsBeforeOrderingDatabaseBackupDeletion, durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect, durationInMsToWaitBeforeRemovingAccountDefinitively);
+	public DefaultCentralDatabaseBackupReceiverFactory(DecentralizedValue centralID,
+													   long durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder,
+													   long durationInMsBeforeOrderingDatabaseBackupDeletion,
+													   long durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect,
+													   long durationInMsToWaitBeforeRemovingAccountDefinitively,
+													   EncryptionProfileProviderFactory encryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable,
+													   Class<? extends FileReferenceFactory> fileReferenceFactoryClass) {
+		super(centralID, durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder,
+				durationInMsBeforeOrderingDatabaseBackupDeletion, durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect,
+				durationInMsToWaitBeforeRemovingAccountDefinitively,
+				encryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable,
+				fileReferenceFactoryClass);
 	}
 
 	@Override
 	public CentralDatabaseBackupReceiver getCentralDatabaseBackupReceiverInstance(DatabaseWrapper wrapper) throws DatabaseException {
-		return new CentralDatabaseBackupReceiver(wrapper, getCentralID(),
-				durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder,
-				durationInMsBeforeOrderingDatabaseBackupDeletion,
-				durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect,
-				durationInMsToWaitBeforeRemovingAccountDefinitively);
+		try {
+			return new CentralDatabaseBackupReceiver(wrapper, getCentralID(),
+					durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder,
+					durationInMsBeforeOrderingDatabaseBackupDeletion,
+					durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect,
+					durationInMsToWaitBeforeRemovingAccountDefinitively,
+					encryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable.getEncryptionProfileProviderSingleton(),
+					fileReferenceFactoryClass.getDeclaredConstructor().newInstance());
+		} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+			throw DatabaseException.getDatabaseException(e);
+		}
 	}
 }

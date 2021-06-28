@@ -36,6 +36,7 @@ knowledge of the CeCILL-C license and that you accept its terms.
  */
 
 import com.distrimind.util.DecentralizedValue;
+import com.distrimind.util.crypto.EncryptionProfileProviderFactory;
 
 /**
  * @author Jason Mahdjoub
@@ -47,12 +48,16 @@ public abstract class CentralDatabaseBackupReceiverFactory<T extends CentralData
 	protected long durationInMsBeforeOrderingDatabaseBackupDeletion;
 	protected long durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect;
 	protected long durationInMsToWaitBeforeRemovingAccountDefinitively;
+	protected EncryptionProfileProviderFactory encryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable;
+	protected Class<? extends FileReferenceFactory> fileReferenceFactoryClass;
 
 	public long getDurationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder() {
 		return durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder;
 	}
 
 	public void setDurationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder(long durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder) {
+		if (durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder<0)
+			throw new IllegalArgumentException();
 		this.durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder = durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder;
 	}
 
@@ -61,6 +66,8 @@ public abstract class CentralDatabaseBackupReceiverFactory<T extends CentralData
 	}
 
 	public void setDurationInMsBeforeOrderingDatabaseBackupDeletion(long durationInMsBeforeOrderingDatabaseBackupDeletion) {
+		if (durationInMsBeforeOrderingDatabaseBackupDeletion<0)
+			throw new IllegalArgumentException();
 		this.durationInMsBeforeOrderingDatabaseBackupDeletion = durationInMsBeforeOrderingDatabaseBackupDeletion;
 	}
 
@@ -69,6 +76,8 @@ public abstract class CentralDatabaseBackupReceiverFactory<T extends CentralData
 	}
 
 	public void setDurationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect(long durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect) {
+		if (durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect<0)
+			throw new IllegalArgumentException();
 		this.durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect = durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect;
 	}
 
@@ -77,7 +86,29 @@ public abstract class CentralDatabaseBackupReceiverFactory<T extends CentralData
 	}
 
 	public void setDurationInMsToWaitBeforeRemovingAccountDefinitively(long durationInMsToWaitBeforeRemovingAccountDefinitively) {
+		if (durationInMsToWaitBeforeRemovingAccountDefinitively<0)
+			throw new IllegalArgumentException();
 		this.durationInMsToWaitBeforeRemovingAccountDefinitively = durationInMsToWaitBeforeRemovingAccountDefinitively;
+	}
+
+	public EncryptionProfileProviderFactory getEncryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable() {
+		return encryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable;
+	}
+
+	public void setEncryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable(EncryptionProfileProviderFactory encryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable) {
+		if (encryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable==null)
+			throw new NullPointerException();
+		this.encryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable = encryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable;
+	}
+
+	public Class<? extends FileReferenceFactory> getFileReferenceFactoryClass() {
+		return fileReferenceFactoryClass;
+	}
+
+	public void setFileReferenceFactoryClass(Class<? extends FileReferenceFactory> fileReferenceFactoryClass) {
+		if (fileReferenceFactoryClass ==null)
+			throw new NullPointerException();
+		this.fileReferenceFactoryClass = fileReferenceFactoryClass;
 	}
 
 	protected CentralDatabaseBackupReceiverFactory() {
@@ -87,12 +118,28 @@ public abstract class CentralDatabaseBackupReceiverFactory<T extends CentralData
 												long durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder,
 												long durationInMsBeforeOrderingDatabaseBackupDeletion,
 												long durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect,
-												long durationInMsToWaitBeforeRemovingAccountDefinitively) {
+												long durationInMsToWaitBeforeRemovingAccountDefinitively,
+												EncryptionProfileProviderFactory encryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable,
+												Class<? extends FileReferenceFactory> fileReferenceFactoryClass) {
 		super(centralID);
+		if (encryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable==null)
+			throw new NullPointerException();
+		if (fileReferenceFactoryClass==null)
+			throw new NullPointerException();
+		if (durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder<0)
+			throw new IllegalArgumentException();
+		if (durationInMsBeforeOrderingDatabaseBackupDeletion<0)
+			throw new IllegalArgumentException();
+		if (durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect<0)
+			throw new IllegalArgumentException();
+		if (durationInMsToWaitBeforeRemovingAccountDefinitively<0)
+			throw new IllegalArgumentException();
 		this.durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder = durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder;
 		this.durationInMsBeforeOrderingDatabaseBackupDeletion = durationInMsBeforeOrderingDatabaseBackupDeletion;
 		this.durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect = durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect;
 		this.durationInMsToWaitBeforeRemovingAccountDefinitively = durationInMsToWaitBeforeRemovingAccountDefinitively;
+		this.encryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable=encryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable;
+		this.fileReferenceFactoryClass=fileReferenceFactoryClass;
 	}
 
 
