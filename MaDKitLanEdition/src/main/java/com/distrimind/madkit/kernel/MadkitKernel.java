@@ -1157,6 +1157,7 @@ class MadkitKernel extends Agent {
                     removeDistantKernelAddress(distantAccessibleGroupsGivenToDistantPeer, distantAccessibleKernelsPerGroupsGivenToDistantPeer, m.getDistantKernelAddress());
 					acceptedDistantLogins.remove(m.getDistantKernelAddress());
 					removeDistantKernelAddressFromCGR(m.getDistantKernelAddress());
+					globalInterfacedIds.remove(m.getDistantKernelAddress());
 					//Group.madkitKernelKilled(m.getDistantKernelAddress());
 				}
 			} else if (hook_message.getClass() == NetworkGroupsAccessEvent.class) {
