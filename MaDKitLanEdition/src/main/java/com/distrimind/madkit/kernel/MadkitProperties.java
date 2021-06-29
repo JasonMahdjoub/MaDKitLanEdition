@@ -94,6 +94,8 @@ public class MadkitProperties extends MultiFormatProperties {
 	 */
 	public final Version madkitVersion = Madkit.getVersion();
 
+	boolean madkitLaunched=false;
+
 	/**
 	 * Represents the minimum MadkitLanEdition version that this instance can
 	 * accept. If a distant peer try to connect with a MadkitLanEdition version
@@ -1106,7 +1108,7 @@ public class MadkitProperties extends MultiFormatProperties {
 
 	private CentralDatabaseBackupReceiverFactory<?> centralDatabaseBackupReceiverFactory;
 
-	boolean setCentralDatabaseBackupReceiverFactory(CentralDatabaseBackupReceiverFactory<?> centralDatabaseBackupReceiverFactory) throws DatabaseException {
+	boolean setCentralDatabaseBackupReceiverFactoryImpl(CentralDatabaseBackupReceiverFactory<?> centralDatabaseBackupReceiverFactory) throws DatabaseException {
 		boolean changed=false;
 		if (this.centralDatabaseBackupReceiverFactory!=null && centralDatabaseBackupReceiverFactory!=this.centralDatabaseBackupReceiverFactory)
 		{
@@ -1115,6 +1117,12 @@ public class MadkitProperties extends MultiFormatProperties {
 		this.centralDatabaseBackupReceiverFactory = centralDatabaseBackupReceiverFactory;
 		return changed;
 	}
+	public boolean setCentralDatabaseBackupReceiverFactory(CentralDatabaseBackupReceiverFactory<?> centralDatabaseBackupReceiverFactory) throws DatabaseException {
+		if (madkitLaunched)
+			throw new DatabaseException("Cannot launch this function when MaDKit was launched. Please use instead the function AbstractAgent.setCentralDatabaseBackupReceiverFactory(CentralDatabaseBackupReceiverFactory)");
+		return setCentralDatabaseBackupReceiverFactoryImpl(centralDatabaseBackupReceiverFactory);
+	}
+
 	public com.distrimind.madkit.kernel.CentralDatabaseBackupReceiver getCentralDatabaseBackupReceiver() throws DatabaseException {
 		if (centralDatabaseBackupReceiverFactory==null)
 			return null;

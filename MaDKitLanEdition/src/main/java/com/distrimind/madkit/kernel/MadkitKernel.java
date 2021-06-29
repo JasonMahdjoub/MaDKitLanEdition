@@ -333,6 +333,7 @@ class MadkitKernel extends Agent {
 				}
 			}
 		}
+		madkitConfig.madkitLaunched=true;
 		//this.lockSocketUntilCGRSynchroIsSent= madkitConfig.networkProperties != null && madkitConfig.networkProperties.lockSocketUntilCGRSynchroIsSent;
 
 	}
@@ -4017,7 +4018,7 @@ class MadkitKernel extends Agent {
 	}
 
 	ReturnCode setCentralDatabaseBackupReceiverFactory(AbstractAgent ignored, CentralDatabaseBackupReceiverFactory<?> centralDatabaseBackupReceiverFactory) throws DatabaseException {
-		boolean changed=getMadkitConfig().setCentralDatabaseBackupReceiverFactory(centralDatabaseBackupReceiverFactory);
+		boolean changed=getMadkitConfig().setCentralDatabaseBackupReceiverFactoryImpl(centralDatabaseBackupReceiverFactory);
 		if (changed) {
 			if (netAgent != null) {
 				Message m = new EmptyMessage();

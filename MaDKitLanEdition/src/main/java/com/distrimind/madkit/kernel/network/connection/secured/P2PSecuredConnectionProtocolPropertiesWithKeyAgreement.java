@@ -245,6 +245,19 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 		return profileIdentifier;
 	}
 
+	public void setClientSideProfile(P2PSecuredConnectionProtocolPropertiesWithKeyAgreement serverAgreement)
+	{
+		if (!serverAgreement.isServer)
+			throw new IllegalArgumentException();
+		if (serverAgreement.serverSideKeyPairs.size()==0)
+			throw new IllegalArgumentException();
+		setClientSideProfile(serverAgreement.lastIdentifierServerSide, serverAgreement.getKeyPairForSignature(serverAgreement.lastIdentifierServerSide).getASymmetricPublicKey());
+	}
+
+	public int getLastIdentifierServerSide() {
+		return lastIdentifierServerSide;
+	}
+
 	/**
 	 * Set the profile used to check the server signature
 	 * @param profileIdentifier the profile identifier
