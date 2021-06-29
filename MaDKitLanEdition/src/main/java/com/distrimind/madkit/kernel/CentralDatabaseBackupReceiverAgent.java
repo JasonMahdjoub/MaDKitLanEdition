@@ -414,6 +414,8 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 	protected void end() throws InterruptedException {
 		try {
 			centralDatabaseBackupReceiver.disconnectAllPeers();
+			if (logger!=null)
+				logger.info("Disconnect central database synchronizer agent");
 		} catch (DatabaseException e) {
 			getLogger().severeLog("", e);
 		}

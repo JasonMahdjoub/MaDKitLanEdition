@@ -209,6 +209,8 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 	protected void end() {
 		try {
 			synchronizer.connectionLost();
+			if (logger!=null)
+				logger.info("Disconnect database synchronizer agent");
 		} catch (DatabaseException e) {
 			getLogger().severeLog("Impossible to disconnect database synchronizer", e);
 		}
@@ -280,6 +282,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 	private void initCentralPeer(Group group, DecentralizedValue id)
 	{
 		assert centralDatabaseID==null;
+		assert id!=null;
 		try {
 			centralDatabaseID = id;
 			centralDatabaseGroup = group;
@@ -337,7 +340,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			else
 			{
 				DecentralizedValue centralPeerID=getCentralPeerID(aa);
-				if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.REQUEST_ROLE)) {
+				if (centralPeerID!=null && ((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.REQUEST_ROLE)) {
 					if (this.centralDatabaseID==null) {
 						initCentralPeer(aa.getGroup(), centralPeerID);
 					}
