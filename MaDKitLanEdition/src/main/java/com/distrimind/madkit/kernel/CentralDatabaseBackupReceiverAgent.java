@@ -42,10 +42,10 @@ import com.distrimind.madkit.message.ObjectMessage;
 import com.distrimind.madkit.message.hook.HookMessage;
 import com.distrimind.madkit.message.hook.NetworkGroupsAccessEvent;
 import com.distrimind.madkit.message.hook.OrganizationEvent;
-import com.distrimind.ood.database.DatabaseEvent;
-import com.distrimind.ood.database.InputStreamGetter;
 import com.distrimind.ood.database.exceptions.DatabaseException;
-import com.distrimind.ood.database.messages.*;
+import com.distrimind.ood.database.messages.BigDataEventToSendWithCentralDatabaseBackup;
+import com.distrimind.ood.database.messages.MessageComingFromCentralDatabaseBackup;
+import com.distrimind.ood.database.messages.MessageDestinedToCentralDatabaseBackup;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.data_buffers.WrappedString;
 import com.distrimind.util.io.*;
@@ -67,11 +67,6 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 	private WrappedString centralIDString;
 	private final HashMap<ConversationID, DatabaseSynchronizerAgent.BigDataMetaData> currentBigDataReceiving=new HashMap<>();
 	private final HashMap<ConversationID, DatabaseSynchronizerAgent.BigDataMetaData> currentBigDataSending=new HashMap<>();
-	private static class CheckEvents extends Message
-	{
-
-	}
-	private static final CheckEvents checkEvents=new CheckEvents();
 	static void updateGroupAccess(AbstractAgent agent) {
 		ReturnCode rc;
 		if (!(rc=agent.broadcastMessageWithRole(LocalCommunity.Groups.NETWORK,
@@ -196,10 +191,6 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 			}
 			this.distantGroupIdsPerGroup=distantGroupIdsPerGroup;
 			this.distantGroupIdsPerID=distantGroupIdsPerID;
-		}
-		else if (_message==checkEvents)
-		{
-
 		}
 		else if (_message instanceof BigDataPropositionMessage)
 		{
@@ -347,10 +338,54 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 
 				}
 			}
-			receiveMessage(checkEvents);
 		}
-		else if (_message instanceof NetworkObjectMessage && ((NetworkObjectMessage<?>) _message).getContent() instanceof P2PDatabaseEventToSend)
+		else if (_message instanceof NetworkObjectMessage)
 		{
+			NetworkObjectMessage<?> m=(NetworkObjectMessage<?>)_message;
+			boolean generateError=true;
+			if (m.getContent() instanceof MessageComingFromCentralDatabaseBackup)
+			{
+				MessageComingFromCentralDatabaseBackup b = (MessageComingFromCentralDatabaseBackup) m.getContent();
+				try {
+					DecentralizedValue centralPeerID = getCentralPeerID(_message.getSender());
+					if (centralPeerID != null) {
+						if (!centralDatabaseBackupReceiver.sendMessageFromThisCentralDatabaseBackup(b))
+							logger.warning("Message not sent : "+b);
+						generateError = false;
+					}
+					else if (logger!=null)
+						logger.warning("Invalid message : "+b);
+				} catch (DatabaseException e) {
+					e.printStackTrace();
+					getLogger().severe(e.getMessage());
+				}
+			}
+			else if (m.getContent() instanceof MessageDestinedToCentralDatabaseBackup) {
+				MessageDestinedToCentralDatabaseBackup b = (MessageDestinedToCentralDatabaseBackup) m.getContent();
+				try {
+					DecentralizedValue peerID = getDistantPeerID(_message.getSender());
+					if (peerID != null) {
+						Integrity i=centralDatabaseBackupReceiver.received(b);
+						if (i!=Integrity.OK)
+						{
+							disconnectPeer(_message.getSender());
+							anomalyDetectedWithOneDistantKernel(i==Integrity.FAIL_AND_CANDIDATE_TO_BAN, _message.getSender().getKernelAddress(), "Invalid message received from " + _message.getSender());
+						}
+						generateError = false;
+					}
+					else if (logger!=null)
+						logger.warning("Invalid message : "+b);
+				} catch (IOException | DatabaseException e) {
+					e.printStackTrace();
+					getLogger().severe(e.getMessage());
+				}
+			}
+			if (generateError) {
+				if (_message.getSender().isFrom(getKernelAddress()))
+					getLogger().warning("Invalid message received from " + _message.getSender());
+				else
+					anomalyDetectedWithOneDistantKernel(true, _message.getSender().getKernelAddress(), "Invalid message received from " + _message.getSender());
+			}
 
 		}
 	}
