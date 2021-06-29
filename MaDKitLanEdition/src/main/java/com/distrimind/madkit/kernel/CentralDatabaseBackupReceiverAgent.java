@@ -207,8 +207,6 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 						currentBigDataReceiving.put(m.getConversationID(), new DatabaseSynchronizerAgent.BigDataMetaData(b, out));
 						generateError = false;
 					}
-					else if (logger!=null)
-						logger.warning("Invalid message : "+b);
 				} catch (IOException e) {
 					e.printStackTrace();
 					getLogger().severe(e.getMessage());
@@ -224,8 +222,6 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 						currentBigDataReceiving.put(m.getConversationID(), new DatabaseSynchronizerAgent.BigDataMetaData(b, out));
 						generateError = false;
 					}
-					else if (logger!=null)
-						logger.warning("Invalid message : "+b);
 				} catch (IOException e) {
 					e.printStackTrace();
 					getLogger().severe(e.getMessage());
@@ -236,7 +232,7 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 				if (_message.getSender().isFrom(getKernelAddress()))
 					getLogger().warning("Invalid message received from " + _message.getSender());
 				else
-					anomalyDetectedWithOneDistantKernel(true, _message.getSender().getKernelAddress(), "Invalid message received from " + _message.getSender());
+					anomalyDetectedWithOneDistantKernel(false, _message.getSender().getKernelAddress(), "Invalid message received from " + _message.getSender());
 			}
 		}
 		else if (_message instanceof BigDataResultMessage)
@@ -322,7 +318,7 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 							}
 
 						} else {
-							anomalyDetectedWithOneDistantKernel(true, _message.getSender().getKernelAddress(), "Invalid message received from " + _message.getSender());
+							anomalyDetectedWithOneDistantKernel(false, _message.getSender().getKernelAddress(), "Invalid message received from " + _message.getSender());
 
 						}
 					}
@@ -384,7 +380,7 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 				if (_message.getSender().isFrom(getKernelAddress()))
 					getLogger().warning("Invalid message received from " + _message.getSender());
 				else
-					anomalyDetectedWithOneDistantKernel(true, _message.getSender().getKernelAddress(), "Invalid message received from " + _message.getSender());
+					anomalyDetectedWithOneDistantKernel(false, _message.getSender().getKernelAddress(), "Invalid message received from " + _message.getSender());
 			}
 
 		}
