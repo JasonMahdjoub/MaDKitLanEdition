@@ -50,6 +50,7 @@ import com.distrimind.madkit.util.MultiFormatPropertiesObjectParser;
 import com.distrimind.madkit.util.XMLUtilities;
 import com.distrimind.ood.database.*;
 import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.util.DecentralizedIDGenerator;
 import com.distrimind.util.FileTools;
 import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.crypto.SecureRandomType;
@@ -383,7 +384,7 @@ public class MadkitProperties extends MultiFormatProperties {
 	}
 	//private transient long databaseSynchronisationFileID=0;
 
-	private transient File temporaryDatabaseDirectoryUsedForSynchronisation=null;
+	/*private transient File temporaryDatabaseDirectoryUsedForSynchronisation=null;
 
 	void resetTemporaryDatabaseDirectoryUsedForSynchronisation() throws DatabaseException {
 		synchronized (this)
@@ -414,7 +415,7 @@ public class MadkitProperties extends MultiFormatProperties {
 			return temporaryDatabaseDirectoryUsedForSynchronisation;
 		}
 
-	}
+	}*/
 
 	/*File getDatabaseSynchronisationFileName() throws DatabaseException {
 		synchronized (this)
@@ -502,6 +503,15 @@ public class MadkitProperties extends MultiFormatProperties {
 	}
 
 	private transient volatile RandomCacheFileCenter cacheFileCenter=null;
+	private transient volatile File cacheFileCenterDirectory=new File(tmpDirectory, new DecentralizedIDGenerator().encodeString().toString());
+	private static final File tmpDirectory = new File(
+			System.getProperty("java.io.tmpdir"), "DistriMind"+File.pathSeparatorChar+"MKLE"+File.pathSeparatorChar+"CacheFileCenter");
+
+	public void setCacheFileCenterDirectory(File cacheFileCenterDirectory) {
+		if (cacheFileCenterDirectory==null)
+			throw new NullPointerException();
+		this.cacheFileCenterDirectory = cacheFileCenterDirectory;
+	}
 
 	public RandomCacheFileCenter getCacheFileCenter()
 	{
@@ -514,7 +524,19 @@ public class MadkitProperties extends MultiFormatProperties {
 			}
 			return cacheFileCenter;
 		}
+	}
 
+	void resetCacheFileCenter()
+	{
+		synchronized (this)
+		{
+			if (cacheFileCenter!=null)
+			{
+				cacheFileCenter=null;
+			}
+			if (cacheFileCenterDirectory.exists())
+				FileTools.deleteDirectory(cacheFileCenterDirectory);
+		}
 	}
 
 

@@ -323,7 +323,7 @@ class MadkitKernel extends Agent {
 		if (madkitConfig.isDatabaseEnabled()) {
 			try {
 				differedMessageTable= madkitConfig.getDatabaseWrapper().getTableInstance(DifferedMessageTable.class);
-				madkitConfig.resetTemporaryDatabaseDirectoryUsedForSynchronisation();
+				//madkitConfig.resetTemporaryDatabaseDirectoryUsedForSynchronisation();
 			} catch (DatabaseException e) {
 				bugReport(e);
 				try {
@@ -3172,9 +3172,10 @@ class MadkitKernel extends Agent {
 			this.serviceExecutor = null;
 		}
 		try {
-			getMadkitConfig().resetTemporaryDatabaseDirectoryUsedForSynchronisation();
+			getMadkitConfig().resetCacheFileCenter();
+			//getMadkitConfig().resetTemporaryDatabaseDirectoryUsedForSynchronisation();
 			getMadkitConfig().setDatabaseFactory(null);
-		} catch (DatabaseException e) {
+		} catch (Throwable e) {
 			e.printStackTrace();
 		}
 
