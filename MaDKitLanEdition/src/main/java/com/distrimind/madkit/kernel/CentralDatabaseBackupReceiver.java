@@ -37,41 +37,34 @@ knowledge of the CeCILL-C license and that you accept its terms.
 
 import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.ood.database.exceptions.DatabaseException;
-import com.distrimind.ood.database.messages.MessageComingFromCentralDatabaseBackup;
 import com.distrimind.util.DecentralizedValue;
-import com.distrimind.util.crypto.EncryptionProfileProvider;
 
 /**
  * @author Jason Mahdjoub
  * @version 1.0
  * @since MaDKitLanEdition 2.2.0
  */
-public class CentralDatabaseBackupReceiver extends com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupReceiver {
+public abstract class CentralDatabaseBackupReceiver extends com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupReceiver {
 
 	private CentralDatabaseBackupReceiverAgent agent;
 	private final long durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder;
 	private final long durationInMsBeforeOrderingDatabaseBackupDeletion;
 	private final long durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect;
 	private final long durationInMsToWaitBeforeRemovingAccountDefinitively;
-	private final EncryptionProfileProvider encryptionProfileProviderToValidateCertificateOrGetNullIfNoValidProviderIsAvailable;
 	private final FileReferenceFactory fileReferenceFactory;
 	public CentralDatabaseBackupReceiver(DatabaseWrapper wrapper, DecentralizedValue centralID,
 										 long durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder,
 										 long durationInMsBeforeOrderingDatabaseBackupDeletion,
 										 long durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect,
 										 long durationInMsToWaitBeforeRemovingAccountDefinitively,
-										 EncryptionProfileProvider encryptionProfileProviderToValidateCertificateOrGetNullIfNoValidProviderIsAvailable,
 										 FileReferenceFactory fileReferenceFactory) throws DatabaseException {
 		super(wrapper, centralID);
-		if (encryptionProfileProviderToValidateCertificateOrGetNullIfNoValidProviderIsAvailable==null)
-			throw new NullPointerException();
 		if (fileReferenceFactory==null)
 			throw new NullPointerException();
 		this.durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder=durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder;
 		this.durationInMsBeforeOrderingDatabaseBackupDeletion=durationInMsBeforeOrderingDatabaseBackupDeletion;
 		this.durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect=durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect;
 		this.durationInMsToWaitBeforeRemovingAccountDefinitively=durationInMsToWaitBeforeRemovingAccountDefinitively;
-		this.encryptionProfileProviderToValidateCertificateOrGetNullIfNoValidProviderIsAvailable=encryptionProfileProviderToValidateCertificateOrGetNullIfNoValidProviderIsAvailable;
 		this.fileReferenceFactory=fileReferenceFactory;
 	}
 
@@ -79,10 +72,6 @@ public class CentralDatabaseBackupReceiver extends com.distrimind.ood.database.c
 		this.agent = agent;
 	}
 
-	@Override
-	protected CentralDatabaseBackupReceiverPerPeer newCentralDatabaseBackupReceiverPerPeerInstance(DatabaseWrapper wrapper) {
-		return new CentralDatabaseBackupReceiverPerPeer(this, wrapper, agent, encryptionProfileProviderToValidateCertificateOrGetNullIfNoValidProviderIsAvailable, fileReferenceFactory);
-	}
 
 	@Override
 	public long getDurationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder() {
@@ -104,5 +93,11 @@ public class CentralDatabaseBackupReceiver extends com.distrimind.ood.database.c
 		return durationInMsToWaitBeforeRemovingAccountDefinitively;
 	}
 
+	public FileReferenceFactory getFileReferenceFactory() {
+		return fileReferenceFactory;
+	}
 
+	public CentralDatabaseBackupReceiverAgent getAgent() {
+		return agent;
+	}
 }

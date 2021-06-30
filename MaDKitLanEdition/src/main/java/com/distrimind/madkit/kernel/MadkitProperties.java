@@ -319,17 +319,17 @@ public class MadkitProperties extends MultiFormatProperties {
 
 					databaseFactory.setDatabaseLifeCycles(new DatabaseLifeCycles() {
 						@Override
-						public void transferDatabaseFromOldVersion(DatabaseWrapper wrapper, DatabaseConfiguration newDatabaseConfiguration) throws Exception {
+						public void transferDatabaseFromOldVersion(DatabaseWrapper wrapper, DatabaseConfiguration newDatabaseConfiguration) {
 
 						}
 
 						@Override
-						public void afterDatabaseCreation(DatabaseWrapper wrapper, DatabaseConfiguration newDatabaseConfiguration) throws Exception {
+						public void afterDatabaseCreation(DatabaseWrapper wrapper, DatabaseConfiguration newDatabaseConfiguration) {
 
 						}
 
 						@Override
-						public boolean hasToRemoveOldDatabase(DatabaseConfiguration databaseConfiguration) throws Exception {
+						public boolean hasToRemoveOldDatabase(DatabaseConfiguration databaseConfiguration) {
 							return true;
 						}
 

@@ -39,14 +39,12 @@ import com.distrimind.madkit.agr.CloudCommunity;
 import com.distrimind.madkit.message.NetworkObjectMessage;
 import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.ood.database.EncryptedDatabaseBackupMetaDataPerFile;
-import com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupCertificate;
 import com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupReceiver;
 import com.distrimind.ood.database.centraldatabaseapi.FileReference;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.ood.database.messages.BigDataEventToSendWithCentralDatabaseBackup;
 import com.distrimind.ood.database.messages.MessageComingFromCentralDatabaseBackup;
 import com.distrimind.util.DecentralizedValue;
-import com.distrimind.util.crypto.EncryptionProfileProvider;
 import com.distrimind.util.io.RandomCacheFileOutputStream;
 import com.distrimind.util.io.RandomFileOutputStream;
 
@@ -58,24 +56,20 @@ import java.util.logging.Level;
  * @version 1.0
  * @since MaDKitLanEdition 2.2.0
  */
-public class CentralDatabaseBackupReceiverPerPeer extends com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupReceiverPerPeer {
+public abstract class CentralDatabaseBackupReceiverPerPeer extends com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupReceiverPerPeer {
 
 	private final CentralDatabaseBackupReceiverAgent agent;
 	private BigDataTransferID currentBigDataTransferID=null;
 	private RandomCacheFileOutputStream currentBigDataOutputStream=null;
-	private final EncryptionProfileProvider encryptionProfileProviderToValidateCertificateOrGetNullIfNoValidProviderIsAvailable;
 	private final FileReferenceFactory fileReferenceFactory;
 
-	protected CentralDatabaseBackupReceiverPerPeer(CentralDatabaseBackupReceiver centralDatabaseBackupReceiver, DatabaseWrapper wrapper, CentralDatabaseBackupReceiverAgent agent, EncryptionProfileProvider encryptionProfileProviderToValidateCertificateOrGetNullIfNoValidProviderIsAvailable, FileReferenceFactory fileReferenceFactory) {
+	protected CentralDatabaseBackupReceiverPerPeer(CentralDatabaseBackupReceiver centralDatabaseBackupReceiver, DatabaseWrapper wrapper, CentralDatabaseBackupReceiverAgent agent, FileReferenceFactory fileReferenceFactory) {
 		super(centralDatabaseBackupReceiver, wrapper);
 		if (agent==null)
-			throw new NullPointerException();
-		if (encryptionProfileProviderToValidateCertificateOrGetNullIfNoValidProviderIsAvailable==null)
 			throw new NullPointerException();
 		if (fileReferenceFactory==null)
 			throw new NullPointerException();
 		this.agent=agent;
-		this.encryptionProfileProviderToValidateCertificateOrGetNullIfNoValidProviderIsAvailable=encryptionProfileProviderToValidateCertificateOrGetNullIfNoValidProviderIsAvailable;
 		this.fileReferenceFactory=fileReferenceFactory;
 	}
 	private void sendMessage(MessageComingFromCentralDatabaseBackup message, AgentAddress aa, DecentralizedValue dest) {
@@ -171,10 +165,6 @@ public class CentralDatabaseBackupReceiverPerPeer extends com.distrimind.ood.dat
 		}
 	}
 
-	@Override
-	protected EncryptionProfileProvider getEncryptionProfileProviderToValidateCertificateOrGetNullIfNoValidProviderIsAvailable(CentralDatabaseBackupCertificate certificate) {
-		return encryptionProfileProviderToValidateCertificateOrGetNullIfNoValidProviderIsAvailable;
-	}
 
 	@Override
 	public FileReference getFileReference(EncryptedDatabaseBackupMetaDataPerFile encryptedDatabaseBackupMetaDataPerFile) {

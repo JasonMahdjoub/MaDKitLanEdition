@@ -47,10 +47,12 @@ import com.distrimind.ood.database.DatabaseSchema;
 import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.ood.database.EncryptedDatabaseBackupMetaDataPerFile;
 import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.util.Bits;
 import com.distrimind.util.DecentralizedIDGenerator;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.FileTools;
 import com.distrimind.util.crypto.*;
+import com.distrimind.util.data_buffers.WrappedData;
 import com.distrimind.util.io.*;
 import org.junit.Assert;
 import org.junit.Test;
@@ -59,6 +61,7 @@ import org.junit.runners.Parameterized;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -86,6 +89,108 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		}
 	}
 	final static File centralDatabaseFilesDirectory=new File("centralDatabaseFilesDirectory");
+	static class CentralDatabaseBackupCertificate extends com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupCertificate
+	{
+		private IASymmetricPublicKey centralDatabaseBackupPublicKey, certifiedAccountPublicKey;
+		private byte[] certificateIdentifier;
+		private long certificateExpirationTimeUTCInMs;
+		private final transient byte[] certificateExpirationTimeUTCInMsArray=new byte[8];
+		private byte[] signature;
+		@SuppressWarnings("unused")
+		CentralDatabaseBackupCertificate()
+		{
+
+		}
+		public CentralDatabaseBackupCertificate(AbstractKeyPair<?, ?> centralDatabaseBackupKeyPair, IASymmetricPublicKey certifiedAccountPublicKey, long certificateExpirationTimeUTCInMs) throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
+			this.centralDatabaseBackupPublicKey = centralDatabaseBackupKeyPair.getASymmetricPublicKey();
+			this.certifiedAccountPublicKey = certifiedAccountPublicKey;
+			this.certificateExpirationTimeUTCInMs=certificateExpirationTimeUTCInMs;
+			this.certificateIdentifier=generateCertificateIdentifier();
+			setCertificateExpirationTimeUTCInMsArray();
+			ASymmetricAuthenticatedSignerAlgorithm signer=new ASymmetricAuthenticatedSignerAlgorithm(centralDatabaseBackupKeyPair.getASymmetricPrivateKey());
+			signer.init();
+			WrappedData wd=certifiedAccountPublicKey.encode();
+			signer.update(wd.getBytes() );
+			signer.update(certificateIdentifier);
+			signer.update(certificateExpirationTimeUTCInMsArray);
+			signature= signer.getSignature();
+		}
+		private void setCertificateExpirationTimeUTCInMsArray()
+		{
+			Bits.putLong(certificateExpirationTimeUTCInMsArray, 0,  certificateExpirationTimeUTCInMs);
+		}
+
+
+		@Override
+		public Integrity isValidCertificate(long accountID, IASymmetricPublicKey externalAccountID, DecentralizedValue hostID, DecentralizedValue centralID) {
+
+			try {
+				ASymmetricAuthenticatedSignatureCheckerAlgorithm checker=new ASymmetricAuthenticatedSignatureCheckerAlgorithm(centralDatabaseBackupPublicKey);
+				checker.init(signature);
+				WrappedData wd=certifiedAccountPublicKey.encode();
+				checker.update(wd.getBytes() );
+				checker.update(certificateIdentifier);
+				checker.update(certificateExpirationTimeUTCInMsArray);
+				if (checker.verify())
+					return Integrity.OK;
+				else
+					return Integrity.FAIL;
+			}
+			catch (MessageExternalizationException e)
+			{
+				return e.getIntegrity();
+			}
+			catch (NoSuchProviderException | NoSuchAlgorithmException | IOException e) {
+				return Integrity.FAIL;
+			}
+		}
+
+
+		@Override
+		public long getCertificateExpirationTimeUTCInMs() {
+			return certificateExpirationTimeUTCInMs;
+		}
+
+
+
+
+		@Override
+		public IASymmetricPublicKey getCertifiedAccountPublicKey() {
+			return certifiedAccountPublicKey;
+		}
+
+		@Override
+		public byte[] getCertificateIdentifier() {
+			return certificateIdentifier;
+		}
+
+		@Override
+		public int getInternalSerializedSize() {
+			return 8+SerializationTools.getInternalSize(centralDatabaseBackupPublicKey)
+					+SerializationTools.getInternalSize(certifiedAccountPublicKey)
+					+SerializationTools.getInternalSize(signature, ASymmetricAuthenticatedSignatureType.MAX_ASYMMETRIC_SIGNATURE_SIZE)
+					+SerializationTools.getInternalSize(certificateIdentifier, MAX_SIZE_IN_BYTES_OF_CERTIFICATE_IDENTIFIER);
+		}
+
+		@Override
+		public void writeExternal(SecuredObjectOutputStream out) throws IOException {
+			out.writeObject(centralDatabaseBackupPublicKey, false);
+			out.writeObject(certifiedAccountPublicKey, false);
+			out.writeBytesArray(certificateIdentifier, false, MAX_SIZE_IN_BYTES_OF_CERTIFICATE_IDENTIFIER);
+			out.writeLong(certificateExpirationTimeUTCInMs);
+			out.writeBytesArray(signature, false, ASymmetricAuthenticatedSignatureType.MAX_ASYMMETRIC_SIGNATURE_SIZE);
+		}
+
+		@Override
+		public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+			centralDatabaseBackupPublicKey=in.readObject(false);
+			certifiedAccountPublicKey=in.readObject(false);
+			certificateIdentifier=in.readBytesArray(false, MAX_SIZE_IN_BYTES_OF_CERTIFICATE_IDENTIFIER);
+			certificateExpirationTimeUTCInMs=in.readLong();
+			signature=in.readBytesArray(false, ASymmetricAuthenticatedSignatureType.MAX_ASYMMETRIC_SIGNATURE_SIZE);
+			setCertificateExpirationTimeUTCInMsArray();
+		}
+	}
 	public static class FileReference implements com.distrimind.ood.database.centraldatabaseapi.FileReference
 	{
 		private transient File file;
@@ -166,7 +271,108 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 			return new FileReference(new File(packageFolder, "f"+encryptedDatabaseBackupMetaDataPerFile.getFileTimestampUTC()+(encryptedDatabaseBackupMetaDataPerFile.isReferenceFile()?".ref":".data")));
 		}
 	}
+	public static class CentralDatabaseBackupReceiverPerPeer extends com.distrimind.madkit.kernel.CentralDatabaseBackupReceiverPerPeer
+	{
 
+		protected CentralDatabaseBackupReceiverPerPeer(com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupReceiver centralDatabaseBackupReceiver, DatabaseWrapper wrapper, CentralDatabaseBackupReceiverAgent agent, com.distrimind.madkit.kernel.FileReferenceFactory fileReferenceFactory) {
+			super(centralDatabaseBackupReceiver, wrapper, agent, fileReferenceFactory);
+		}
+
+
+		@Override
+		protected EncryptionProfileProvider getEncryptionProfileProviderToValidateCertificateOrGetNullIfNoValidProviderIsAvailable(com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupCertificate certificate) {
+			return new EncryptionProfileProvider() {
+				@Override
+				public MessageDigestType getMessageDigest(short keyID, boolean duringDecryptionPhase) throws IOException {
+					if (keyID==0)
+						return MessageDigestType.DEFAULT;
+
+					throw new IOException();
+				}
+
+				@Override
+				public IASymmetricPrivateKey getPrivateKeyForSignature(short keyID)  {
+					return null;
+				}
+
+				@Override
+				public IASymmetricPublicKey getPublicKeyForSignature(short keyID) throws IOException {
+					if (keyID==0)
+						return certificate.getCertifiedAccountPublicKey();
+					throw new IOException();
+				}
+
+				@Override
+				public SymmetricSecretKey getSecretKeyForSignature(short keyID, boolean duringDecryptionPhase) {
+					return null;
+				}
+
+				@Override
+				public SymmetricSecretKey getSecretKeyForEncryption(short keyID, boolean duringDecryptionPhase) {
+					return null;
+				}
+
+				@Override
+				public boolean isValidProfileID(short id) {
+					return id==0;
+				}
+
+				@Override
+				public Short getValidProfileIDFromPublicKeyForSignature(IASymmetricPublicKey publicKeyForSignature) {
+					if (certificate.getCertifiedAccountPublicKey().equals(publicKeyForSignature))
+						return 0;
+					return null;
+				}
+
+				@Override
+				public short getDefaultKeyID() {
+					return 0;
+				}
+			};
+		}
+		@Override
+		public Integrity isAcceptableCertificate(com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupCertificate certificate) {
+			if (!(certificate instanceof CentralDatabaseBackupCertificate))
+				return Integrity.FAIL;
+			if (!((CentralDatabaseBackupCertificate)certificate).centralDatabaseBackupPublicKey.equals(getCentralID()) || !certificate.getCertifiedAccountPublicKey().equals(getExternalAccountID()))
+				return Integrity.FAIL_AND_CANDIDATE_TO_BAN;
+			return Integrity.OK;
+		}
+	}
+	public static class CentralDatabaseBackupReceiver extends com.distrimind.madkit.kernel.CentralDatabaseBackupReceiver
+	{
+
+		public CentralDatabaseBackupReceiver(DatabaseWrapper wrapper, DecentralizedValue centralID, long durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder, long durationInMsBeforeOrderingDatabaseBackupDeletion, long durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect, long durationInMsToWaitBeforeRemovingAccountDefinitively, com.distrimind.madkit.kernel.FileReferenceFactory fileReferenceFactory) throws DatabaseException {
+			super(wrapper, centralID, durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder, durationInMsBeforeOrderingDatabaseBackupDeletion, durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect, durationInMsToWaitBeforeRemovingAccountDefinitively, fileReferenceFactory);
+		}
+
+		@Override
+		protected CentralDatabaseBackupReceiverPerPeer newCentralDatabaseBackupReceiverPerPeerInstance(DatabaseWrapper wrapper) {
+			return new CentralDatabaseBackupReceiverPerPeer(this, wrapper, getAgent(), getFileReferenceFactory());
+		}
+	}
+	public static class CentralDatabaseBackupReceiverFactory extends com.distrimind.madkit.kernel.CentralDatabaseBackupReceiverFactory<CentralDatabaseBackupReceiver>
+	{
+		public CentralDatabaseBackupReceiverFactory() {
+		}
+
+		public CentralDatabaseBackupReceiverFactory(DecentralizedValue centralID, long durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder, long durationInMsBeforeOrderingDatabaseBackupDeletion, long durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect, long durationInMsToWaitBeforeRemovingAccountDefinitively, EncryptionProfileProviderFactory encryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable, Class<? extends com.distrimind.madkit.kernel.FileReferenceFactory> fileReferenceFactoryClass) {
+			super(centralID, durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder, durationInMsBeforeOrderingDatabaseBackupDeletion, durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect, durationInMsToWaitBeforeRemovingAccountDefinitively, encryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable, fileReferenceFactoryClass);
+		}
+
+		@Override
+		public CentralDatabaseBackupReceiver getCentralDatabaseBackupReceiverInstance(DatabaseWrapper wrapper) throws DatabaseException {
+			try {
+				return new CentralDatabaseBackupReceiver(wrapper, getCentralID(), getDurationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder(),
+						getDurationInMsBeforeOrderingDatabaseBackupDeletion(),
+						getDurationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect(),
+						getDurationInMsToWaitBeforeRemovingAccountDefinitively(),
+						getFileReferenceFactoryClass().getDeclaredConstructor().newInstance());
+			} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+				throw DatabaseException.getDatabaseException(e);
+			}
+		}
+	}
 
 	final NetworkEventListener eventListener1;
 	final NetworkEventListener eventListener2;
@@ -177,11 +383,13 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 	final LoginData loginData1, loginData2, loginDataClient1, loginDataClient2, loginDataServer;
 	final File databaseFile1, databaseFile2, databaseFileServer;
 	final SymmetricSecretKey secretKeyForSignature1,secretKeyForSignature2, secretKeyForE2EEncryption1, secretKeyForE2EEncryption2;
-	final ASymmetricKeyPair aSymmetricKeyPairForClientServerSignatures1, aSymmetricKeyPairForClientServerSignatures2;
+	final ASymmetricKeyPair aSymmetricKeyPairForClientServerSignatures1, aSymmetricKeyPairForClientServerSignatures2, centralDatabaseBackupKeyPair;
 	final AbstractSecureRandom random;
 	final boolean connectCentralDatabaseBackup;
 	final boolean indirectSynchronizationWithCentralDatabaseBackup;
-	final DefaultCentralDatabaseBackupReceiverFactory centralDatabaseBackupReceiverFactory;
+	final CentralDatabaseBackupReceiverFactory centralDatabaseBackupReceiverFactory;
+	private final CentralDatabaseBackupCertificate centralDatabaseBackupCertificate;
+
 
 	@Parameterized.Parameters
 	public static Object[][] data() {
@@ -276,13 +484,15 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 
 			EncryptionProfileCollection encryptionProfileCollectionForClientServerSignature=new EncryptionProfileCollection();
 				encryptionProfileCollectionForClientServerSignature.putProfile((short)1, null, aSymmetricKeyPairForClientServerSignatures1.getASymmetricPublicKey(), null, null, null, false, false);
-				encryptionProfileCollectionForClientServerSignature.putProfile((short)2, null, aSymmetricKeyPairForClientServerSignatures1.getASymmetricPublicKey(), null, null, null, false, true);
+				encryptionProfileCollectionForClientServerSignature.putProfile((short)2, null, aSymmetricKeyPairForClientServerSignatures2.getASymmetricPublicKey(), null, null, null, false, true);
 
 			loginDataServer = AccessDataMKEventListener.getDefaultLoginData(
 					idpws,
 					null, defaultGroupAccess, true, Assert::fail, Assert::fail);
 			serverIdentifier = loginDataServer.getDecentralizedDatabaseID(idpws.get(0).getIdentifier(), null);
-			centralDatabaseBackupReceiverFactory=new DefaultCentralDatabaseBackupReceiverFactory(serverIdentifier,
+			this.centralDatabaseBackupKeyPair=ASymmetricAuthenticatedSignatureType.BC_FIPS_Ed25519.getKeyPairGenerator(SecureRandomType.DEFAULT.getSingleton(null)).generateKeyPair();
+			centralDatabaseBackupCertificate =new CentralDatabaseBackupCertificate(centralDatabaseBackupKeyPair, aSymmetricKeyPairForClientServerSignatures2.getASymmetricPublicKey(), Long.MAX_VALUE);
+			centralDatabaseBackupReceiverFactory=new CentralDatabaseBackupReceiverFactory(centralDatabaseBackupKeyPair.getASymmetricPublicKey(),
 					1000, 1000, 1000, 5000,
 					encryptionProfileCollectionForClientServerSignature, FileReferenceFactory.class);
 			this.eventListenerServer = new NetworkEventListener(true, false, false,
@@ -313,6 +523,8 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 			serverIdentifier=null;
 			this.eventListenerServer=null;
 			centralDatabaseBackupReceiverFactory=null;
+			centralDatabaseBackupCertificate=null;
+			centralDatabaseBackupKeyPair=null;
 		}
 
 		P2PSecuredConnectionProtocolPropertiesWithKeyAgreement p2pprotocol=new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
@@ -345,8 +557,8 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 			encryptionProfileCollectionForE2EEncryption1.putProfile((short) 2, null, null, null, secretKeyForSignature2, secretKeyForE2EEncryption1, false, true);
 
 			clientServerProfileCollection1 = new EncryptionProfileCollection();
-			clientServerProfileCollection1.putProfile((short) 1, null, aSymmetricKeyPairForClientServerSignatures1.getASymmetricPublicKey(), aSymmetricKeyPairForClientServerSignatures1.getASymmetricPrivateKey(), null, null, false, false);
-			clientServerProfileCollection1.putProfile((short) 2, null, aSymmetricKeyPairForClientServerSignatures1.getASymmetricPublicKey(), aSymmetricKeyPairForClientServerSignatures1.getASymmetricPrivateKey(), null, null, false, true);
+			clientServerProfileCollection1.putProfile((short) 1, MessageDigestType.DEFAULT, aSymmetricKeyPairForClientServerSignatures1.getASymmetricPublicKey(), aSymmetricKeyPairForClientServerSignatures1.getASymmetricPrivateKey(), null, null, false, false);
+			clientServerProfileCollection1.putProfile((short) 2, MessageDigestType.DEFAULT, aSymmetricKeyPairForClientServerSignatures1.getASymmetricPublicKey(), aSymmetricKeyPairForClientServerSignatures1.getASymmetricPrivateKey(), null, null, false, true);
 		}
 		loginData1=AccessDataMKEventListener.getDefaultLoginData(
 					idpws,
@@ -449,12 +661,18 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		final ArrayList<Table1.Record> otherListToAdd;
 		final AtomicReference<Boolean> finished;
 		final boolean integrator;
+		final DatabaseConfiguration.SynchronizationType synchronizationType;
 		final boolean indirect;
+		final CentralDatabaseBackupCertificate centralDatabaseBackupCertificate;
 
 
 
-		public DatabaseAgent(DecentralizedValue localIdentifier, DecentralizedValue localIdentifierOtherSide, ArrayList<Table1.Record> myListToAdd, ArrayList<Table1.Record> otherListToAdd, AtomicReference<Boolean> finished, boolean isIntegrator,
-							 boolean indirect) {
+
+		public DatabaseAgent(DecentralizedValue localIdentifier, DecentralizedValue localIdentifierOtherSide, ArrayList<Table1.Record> myListToAdd, ArrayList<Table1.Record> otherListToAdd, AtomicReference<Boolean> finished,
+							 boolean isIntegrator,
+							 boolean central,
+							 boolean indirect,
+							 final CentralDatabaseBackupCertificate centralDatabaseBackupCertificate) {
 			this.localIdentifier = localIdentifier;
 			this.localIdentifierOtherSide = localIdentifierOtherSide;
 			this.myListToAdd = myListToAdd;
@@ -462,6 +680,8 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 			this.finished = finished;
 			integrator=isIntegrator;
 			this.indirect=indirect;
+			this.synchronizationType=central?DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE:DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION;
+			this.centralDatabaseBackupCertificate=centralDatabaseBackupCertificate;
 		}
 
 		@Override
@@ -476,7 +696,11 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				wrapper.getDatabaseConfigurationsBuilder()
 						.setLocalPeerIdentifier(localIdentifier, true, false)
 						.addConfiguration(
-							new DatabaseConfiguration(new DatabaseSchema(Table1.class.getPackage()), DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION),false, true )
+							new DatabaseConfiguration(new DatabaseSchema(Table1.class.getPackage()), synchronizationType),false, true );
+				if (synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE)
+						wrapper.getDatabaseConfigurationsBuilder()
+							.setCentralDatabaseBackupCertificate(centralDatabaseBackupCertificate);
+				wrapper.getDatabaseConfigurationsBuilder()
 						.commit();
 				Assert.assertFalse(wrapper.getSynchronizer().isInitialized(localIdentifierOtherSide));
 
@@ -491,7 +715,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 							.commit();
 
 					DatabaseConfiguration dc = wrapper.getDatabaseConfigurationsBuilder().getDatabaseConfiguration(Table1.class.getPackage());
-					Assert.assertEquals(DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION, dc.getSynchronizationType());
+					Assert.assertEquals(synchronizationType, dc.getSynchronizationType());
 					Assert.assertNotNull(dc.getDistantPeersThatCanBeSynchronizedWithThisDatabase());
 					Assert.assertTrue(dc.getDistantPeersThatCanBeSynchronizedWithThisDatabase().contains(localIdentifierOtherSide));
 				}
@@ -532,7 +756,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				int nb=0;
 				do {
 					DatabaseConfiguration dc = wrapper.getDatabaseConfigurationsBuilder().getDatabaseConfiguration(Table1.class.getPackage());
-					if (DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION==dc.getSynchronizationType()
+					if (synchronizationType==dc.getSynchronizationType()
 						&& dc.getDistantPeersThatCanBeSynchronizedWithThisDatabase()!=null
 						&& dc.getDistantPeersThatCanBeSynchronizedWithThisDatabase().contains(localIdentifierOtherSide))
 						break;
@@ -641,18 +865,23 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		final ArrayList<Table1.Record> otherListToAdd;
 		final AtomicReference<Boolean> finished;
 		final boolean indirect;
+		final DatabaseConfiguration.SynchronizationType synchronizationType;
+		final CentralDatabaseBackupCertificate centralDatabaseBackupCertificate;
 
 
 		public SecondConnexionAgent(DecentralizedValue localIdentifier, DecentralizedValue localIdentifierOtherSide, ArrayList<Table1.Record> myListToAdd,
 									ArrayList<Table1.Record> otherListToAdd, AtomicReference<Boolean> finished,
-									boolean indirect) {
+									boolean central,
+									boolean indirect,
+									final CentralDatabaseBackupCertificate centralDatabaseBackupCertificate) {
 			this.localIdentifier = localIdentifier;
 			this.localIdentifierOtherSide = localIdentifierOtherSide;
 			this.myListToAdd = myListToAdd;
 			this.otherListToAdd = otherListToAdd;
 			this.finished = finished;
 			this.indirect=indirect;
-
+			this.synchronizationType=central?DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE:DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION;
+			this.centralDatabaseBackupCertificate=centralDatabaseBackupCertificate;
 		}
 		@Override
 		protected void liveCycle() {
@@ -664,7 +893,11 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				wrapper.getDatabaseConfigurationsBuilder()
 						.setLocalPeerIdentifier(localIdentifier, true, false)
 						.addConfiguration(
-							new DatabaseConfiguration(new DatabaseSchema(Table1.class.getPackage()), DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION, Collections.singletonList(localIdentifierOtherSide)),false, false )
+							new DatabaseConfiguration(new DatabaseSchema(Table1.class.getPackage()), synchronizationType, Collections.singletonList(localIdentifierOtherSide)),false, false );
+				if (synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE)
+					wrapper.getDatabaseConfigurationsBuilder()
+							.setCentralDatabaseBackupCertificate(centralDatabaseBackupCertificate);
+				wrapper.getDatabaseConfigurationsBuilder()
 						.commit();
 				Assert.assertNotNull(wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
 				Assert.assertNotNull(wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString());
@@ -814,10 +1047,10 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					ArrayList<Table1.Record> recordsToAddOtherSide = getRecordsToAdd();
 					if (connectCentralDatabaseBackup)
 						launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, new AbstractAgent(), eventListenerServer);
-					AbstractAgent agentChecker = new DatabaseAgent(localIdentifier, localIdentifierOtherSide, recordsToAdd, recordsToAddOtherSide, finished1, true, indirectSynchronizationWithCentralDatabaseBackup);
+					AbstractAgent agentChecker = new DatabaseAgent(localIdentifier, localIdentifierOtherSide, recordsToAdd, recordsToAddOtherSide, finished1, true, connectCentralDatabaseBackup, indirectSynchronizationWithCentralDatabaseBackup, centralDatabaseBackupCertificate);
 					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentChecker, eventListener1);
 					sleep(600);
-					AbstractAgent agentCheckerOtherSide = new DatabaseAgent(localIdentifierOtherSide, localIdentifier, recordsToAddOtherSide, recordsToAdd, finished2, false, indirectSynchronizationWithCentralDatabaseBackup);
+					AbstractAgent agentCheckerOtherSide = new DatabaseAgent(localIdentifierOtherSide, localIdentifier, recordsToAddOtherSide, recordsToAdd, finished2, false, connectCentralDatabaseBackup, indirectSynchronizationWithCentralDatabaseBackup, centralDatabaseBackupCertificate);
 					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentCheckerOtherSide, eventListener2);
 
 					while (finished1.get() == null || finished2.get() == null) {
@@ -837,10 +1070,10 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					Assert.assertTrue(databaseFile2.exists());
 					if (connectCentralDatabaseBackup)
 						launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, new AbstractAgent(), eventListenerServer);
-					agentChecker = new SecondConnexionAgent(localIdentifier, localIdentifierOtherSide, recordsToAdd, recordsToAddOtherSide, finished1, indirectSynchronizationWithCentralDatabaseBackup);
+					agentChecker = new SecondConnexionAgent(localIdentifier, localIdentifierOtherSide, recordsToAdd, recordsToAddOtherSide, finished1, connectCentralDatabaseBackup, indirectSynchronizationWithCentralDatabaseBackup, centralDatabaseBackupCertificate);
 					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentChecker, eventListener1);
 					sleep(400);
-					agentCheckerOtherSide = new SecondConnexionAgent(localIdentifierOtherSide, localIdentifier, recordsToAddOtherSide, recordsToAdd, finished2, indirectSynchronizationWithCentralDatabaseBackup);
+					agentCheckerOtherSide = new SecondConnexionAgent(localIdentifierOtherSide, localIdentifier, recordsToAddOtherSide, recordsToAdd, finished2, connectCentralDatabaseBackup, indirectSynchronizationWithCentralDatabaseBackup, centralDatabaseBackupCertificate);
 					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentCheckerOtherSide, eventListener2);
 
 					while (finished1.get() == null || finished2.get() == null) {
