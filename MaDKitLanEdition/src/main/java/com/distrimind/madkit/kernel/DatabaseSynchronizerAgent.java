@@ -603,46 +603,41 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 		else if (_message instanceof BigDataResultMessage)
 		{
 			BigDataResultMessage res=(BigDataResultMessage)_message;
-			if (this.isConcernedBy(res.getSender()))
+
+			BigDataMetaData cur=currentBigDataSending.remove(res.getConversationID());
+			if (cur!=null)
 			{
-				BigDataMetaData cur=currentBigDataSending.remove(res.getConversationID());
-				if (cur==null)
-					getLogger().warning("Big data sending result should be referenced !");
-				else {
-					if (res.getType() != BigDataResultMessage.Type.BIG_DATA_TRANSFERRED) {
-						try {
-							if (cur.eventToSend instanceof BigDataEventToSendWithCentralDatabaseBackup)
-							{
-								getLogger().warning("Impossible to send message to " + _message.getReceiver());
-							}
-							else if (cur.eventToSend instanceof P2PBigDatabaseEventToSend)
-							{
-								synchronizer.peerDisconnected(((P2PBigDatabaseEventToSend) cur.eventToSend).getHostDestination());
-							}
-							else
-							{
-								getLogger().warning("Invalid message received from " + _message.getSender());
-							}
-
-						} catch (DatabaseException e) {
-							e.printStackTrace();
-							getLogger().severe(e.getMessage());
-						}
-					}
+				if (res.getType() != BigDataResultMessage.Type.BIG_DATA_TRANSFERRED) {
 					try {
-						cur.close();
-					} catch (IOException e) {
-						getLogger().severeLog("", e);
+						if (cur.eventToSend instanceof BigDataEventToSendWithCentralDatabaseBackup)
+						{
+							getLogger().warning("Impossible to send message to " + _message.getReceiver());
+						}
+						else if (cur.eventToSend instanceof P2PBigDatabaseEventToSend)
+						{
+							synchronizer.peerDisconnected(((P2PBigDatabaseEventToSend) cur.eventToSend).getHostDestination());
+						}
+						else
+						{
+							getLogger().warning("Invalid message received from " + _message.getSender());
+						}
+
+					} catch (DatabaseException e) {
+						e.printStackTrace();
+						getLogger().severe(e.getMessage());
 					}
-
-
+				}
+				try {
+					cur.close();
+				} catch (IOException e) {
+					getLogger().severeLog("", e);
 				}
 			}
 			else
 			{
-				BigDataMetaData cur=currentBigDataReceiving.remove(res.getConversationID());
+				cur=currentBigDataReceiving.remove(res.getConversationID());
 				if (cur==null)
-					getLogger().warning("Big data receiving should be referenced !");
+					getLogger().warning("Big data receiving should be referenced : "+res);
 				else {
 					if (res.getType() == BigDataResultMessage.Type.BIG_DATA_TRANSFERRED) {
 						if (cur.eventToSend instanceof BigDataEventToSendWithCentralDatabaseBackup)
@@ -674,7 +669,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 							try {
 								final RandomInputStream in = cur.randomOutputStream.getRandomInputStream();
-
+								BigDataMetaData cur2=cur;
 								synchronizer.received((P2PBigDatabaseEventToSend)cur.eventToSend, new InputStreamGetter() {
 									@Override
 									public RandomInputStream initOrResetInputStream() throws IOException {
@@ -684,7 +679,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 									@Override
 									public void close() throws Exception {
-										cur.close();
+										cur2.close();
 									}
 								});
 							}

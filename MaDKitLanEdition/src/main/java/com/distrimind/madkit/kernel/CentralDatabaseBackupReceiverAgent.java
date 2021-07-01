@@ -241,40 +241,34 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 		else if (_message instanceof BigDataResultMessage)
 		{
 			BigDataResultMessage res=(BigDataResultMessage)_message;
-			if (this.isConcernedBy(res.getSender()))
+			DatabaseSynchronizerAgent.BigDataMetaData cur=currentBigDataSending.remove(res.getConversationID());
+			if (cur!=null)
 			{
-				DatabaseSynchronizerAgent.BigDataMetaData cur=currentBigDataSending.remove(res.getConversationID());
-				if (cur==null)
-					getLogger().warning("Big data sending result should be referenced !");
-				else {
-					if (res.getType() != BigDataResultMessage.Type.BIG_DATA_TRANSFERRED) {
-						if (res.getReceiver().getGroup().getPath().startsWith(CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP.getPath()))
-						{
-							getLogger().warning("Impossible to send message to " + _message.getReceiver());
-						}
-						if (res.getReceiver().getGroup().getPath().startsWith(CloudCommunity.Groups.DISTRIBUTED_DATABASE.getPath()))
-						{
-							disconnectPeer(res.getReceiver() );
-						}
-						else
-						{
-							getLogger().warning("Invalid message received from " + _message.getSender());
-						}
+				if (res.getType() != BigDataResultMessage.Type.BIG_DATA_TRANSFERRED) {
+					if (res.getReceiver().getGroup().getPath().startsWith(CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP.getPath()))
+					{
+						getLogger().warning("Impossible to send message to " + _message.getReceiver());
 					}
-					try {
-						cur.close();
-					} catch (IOException e) {
-						getLogger().severeLog("", e);
+					if (res.getReceiver().getGroup().getPath().startsWith(CloudCommunity.Groups.DISTRIBUTED_DATABASE.getPath()))
+					{
+						disconnectPeer(res.getReceiver() );
 					}
-
-
+					else
+					{
+						getLogger().warning("Invalid message received from " + _message.getSender());
+					}
+				}
+				try {
+					cur.close();
+				} catch (IOException e) {
+					getLogger().severeLog("", e);
 				}
 			}
 			else
 			{
-				DatabaseSynchronizerAgent.BigDataMetaData cur=currentBigDataReceiving.remove(res.getConversationID());
+				cur=currentBigDataReceiving.remove(res.getConversationID());
 				if (cur==null)
-					getLogger().warning("Big data receiving should be referenced !");
+					getLogger().warning("Big data receiving should be referenced : "+res);
 				else {
 					if (res.getType() == BigDataResultMessage.Type.BIG_DATA_TRANSFERRED) {
 						if (cur.eventToSend instanceof MessageComingFromCentralDatabaseBackup)
