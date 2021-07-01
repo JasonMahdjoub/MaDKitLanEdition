@@ -37,10 +37,7 @@ knowledge of the CeCILL-C license and that you accept its terms.
 
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.network.*;
-import com.distrimind.madkit.kernel.network.connection.access.AccessProtocolWithP2PAgreementProperties;
-import com.distrimind.madkit.kernel.network.connection.access.IdentifierPassword;
-import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
-import com.distrimind.madkit.kernel.network.connection.access.LoginData;
+import com.distrimind.madkit.kernel.network.connection.access.*;
 import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolPropertiesWithKeyAgreement;
 import com.distrimind.ood.database.*;
 import com.distrimind.ood.database.exceptions.DatabaseException;
@@ -386,7 +383,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 	final LoginData loginData1, loginData2, loginDataClient1, loginDataClient2, loginDataServer;
 	final File databaseFile1, databaseFile2, databaseFileServer;
 	final SymmetricSecretKey secretKeyForSignature1,secretKeyForSignature2, secretKeyForE2EEncryption1, secretKeyForE2EEncryption2;
-	final ASymmetricKeyPair aSymmetricKeyPairForClientServerSignatures1, aSymmetricKeyPairForClientServerSignatures2, centralDatabaseBackupKeyPair;
+	final AbstractKeyPair<?, ?> aSymmetricKeyPairForClientServerSignatures1, aSymmetricKeyPairForClientServerSignatures2, centralDatabaseBackupKeyPair;
 	final AbstractSecureRandom random;
 	final boolean connectCentralDatabaseBackup;
 	final boolean indirectSynchronizationWithCentralDatabaseBackup;
@@ -426,37 +423,37 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		secretKeyForE2EEncryption1=SymmetricEncryptionType.DEFAULT.getKeyGenerator(random).generateKey();
 		secretKeyForE2EEncryption2=SymmetricEncryptionType.DEFAULT.getKeyGenerator(random).generateKey();
 
-		P2PSecuredConnectionProtocolPropertiesWithKeyAgreement clientprotocol1=null;
-		P2PSecuredConnectionProtocolPropertiesWithKeyAgreement clientprotocol2=null;
+		P2PSecuredConnectionProtocolPropertiesWithKeyAgreement clientProtocol1=null;
+		P2PSecuredConnectionProtocolPropertiesWithKeyAgreement clientProtocol2=null;
 		LoginData loginDataClient1=null, loginDataClient2=null;
 		databaseFileServer = new File("tmpDatabaseFileServer");
 		if (connectCentralDatabaseBackup) {
 			ASymmetricKeyPair keyPairForClientServerAuthentication = ASymmetricAuthenticatedSignatureType.DEFAULT.getKeyPairGenerator(random).generateKeyPair();
 
-			P2PSecuredConnectionProtocolPropertiesWithKeyAgreement serverprotocol = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
-			serverprotocol.enableEncryption = true;
-			serverprotocol.isServer = true;
-			serverprotocol.symmetricEncryptionType = SymmetricEncryptionType.AES_CTR;
-			serverprotocol.symmetricSignatureType = SymmetricAuthenticatedSignatureType.HMAC_SHA2_384;
-			serverprotocol.addServerSideProfile(keyPairForClientServerAuthentication);
+			P2PSecuredConnectionProtocolPropertiesWithKeyAgreement serverProtocol = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
+			serverProtocol.enableEncryption = true;
+			serverProtocol.isServer = true;
+			serverProtocol.symmetricEncryptionType = SymmetricEncryptionType.AES_CTR;
+			serverProtocol.symmetricSignatureType = SymmetricAuthenticatedSignatureType.HMAC_SHA2_384;
+			serverProtocol.addServerSideProfile(keyPairForClientServerAuthentication);
 
-			clientprotocol1 = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
-			clientprotocol1.enableEncryption = true;
-			clientprotocol1.filtersForDistantPeers=new InetAddressFilters();
-			clientprotocol1.filtersForDistantPeers.setDenyFilters(new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"), (Inet6Address) InetAddress.getByName("::1")));
-			clientprotocol1.isServer = false;
-			clientprotocol1.symmetricEncryptionType = SymmetricEncryptionType.AES_CTR;
-			clientprotocol1.symmetricSignatureType = SymmetricAuthenticatedSignatureType.HMAC_SHA2_384;
-			clientprotocol1.setClientSideProfile(serverprotocol);
+			clientProtocol1 = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
+			clientProtocol1.enableEncryption = true;
+			clientProtocol1.filtersForDistantPeers=new InetAddressFilters();
+			clientProtocol1.filtersForDistantPeers.setDenyFilters(new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"), (Inet6Address) InetAddress.getByName("::1")));
+			clientProtocol1.isServer = false;
+			clientProtocol1.symmetricEncryptionType = SymmetricEncryptionType.AES_CTR;
+			clientProtocol1.symmetricSignatureType = SymmetricAuthenticatedSignatureType.HMAC_SHA2_384;
+			clientProtocol1.setClientSideProfile(serverProtocol);
 
-			clientprotocol2 = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
-			clientprotocol2.enableEncryption = true;
-			clientprotocol2.filtersForDistantPeers=new InetAddressFilters();
-			clientprotocol2.filtersForDistantPeers.setDenyFilters(new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"), (Inet6Address) InetAddress.getByName("::1")));
-			clientprotocol2.isServer = false;
-			clientprotocol2.symmetricEncryptionType = SymmetricEncryptionType.AES_CTR;
-			clientprotocol2.symmetricSignatureType = SymmetricAuthenticatedSignatureType.HMAC_SHA2_384;
-			clientprotocol2.setClientSideProfile(serverprotocol);
+			clientProtocol2 = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
+			clientProtocol2.enableEncryption = true;
+			clientProtocol2.filtersForDistantPeers=new InetAddressFilters();
+			clientProtocol2.filtersForDistantPeers.setDenyFilters(new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"), (Inet6Address) InetAddress.getByName("::1")));
+			clientProtocol2.isServer = false;
+			clientProtocol2.symmetricEncryptionType = SymmetricEncryptionType.AES_CTR;
+			clientProtocol2.symmetricSignatureType = SymmetricAuthenticatedSignatureType.HMAC_SHA2_384;
+			clientProtocol2.setClientSideProfile(serverProtocol);
 
 			ArrayList<IdentifierPassword> idpws=AccessDataMKEventListener
 					.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(3), 6);
@@ -482,8 +479,10 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				FileTools.deleteDirectory(databaseFileServer);
 
 			AccessProtocolWithP2PAgreementProperties app = new AccessProtocolWithP2PAgreementProperties();
+			HostIdentifier serverHostIdentifier=AccessDataMKEventListener.getCustomHostIdentifier(2);
+
 			idpws = AccessDataMKEventListener
-					.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(2), 6);
+					.getClientOrPeerToPeerLogins(serverHostIdentifier, 6);
 
 			defaultGroupAccess = new ListGroupsRoles();
 			defaultGroupAccess.addGroupsRoles(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA);
@@ -491,16 +490,19 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 
 			loginDataServer = AccessDataMKEventListener.getDefaultLoginData(
 					idpws,
-					null, defaultGroupAccess, true, Assert::fail, Assert::fail);
-			serverIdentifier = loginDataServer.getDecentralizedDatabaseID(idpws.get(0).getIdentifier(), null);
-			this.centralDatabaseBackupKeyPair=ASymmetricAuthenticatedSignatureType.BC_FIPS_Ed25519.getKeyPairGenerator(SecureRandomType.DEFAULT.getSingleton(null)).generateKeyPair();
+					null, defaultGroupAccess, false, Assert::fail, Assert::fail);
+			this.centralDatabaseBackupKeyPair=ASymmetricAuthenticatedSignatureType.DEFAULT.getKeyPairGenerator(random).generateKeyPair();
+			AccessDataMKEventListener.centralIdentifiers.put(idpws.get(0).getIdentifier(), this.centralDatabaseBackupKeyPair.getASymmetricPublicKey());
+			serverIdentifier = this.centralDatabaseBackupKeyPair.getASymmetricPublicKey();
+
+
 			centralDatabaseBackupCertificate =new CentralDatabaseBackupCertificate(centralDatabaseBackupKeyPair, aSymmetricKeyPairForClientServerSignatures2.getASymmetricPublicKey(), Long.MAX_VALUE);
 			centralDatabaseBackupReceiverFactory=new CentralDatabaseBackupReceiverFactory(centralDatabaseBackupKeyPair.getASymmetricPublicKey(),
 					1000, 1000, 1000, 5000,
 					FileReferenceFactory.class);
 			this.eventListenerServer = new NetworkEventListener(true, false, false,
 					databaseFileServer,
-					new ConnectionsProtocolsMKEventListener(serverprotocol), new AccessProtocolPropertiesMKEventListener(app),
+					new ConnectionsProtocolsMKEventListener(serverProtocol), new AccessProtocolPropertiesMKEventListener(app),
 					new AccessDataMKEventListener(loginDataServer), 5001, Collections.emptyList(),
 					InetAddress.getByName("0.0.0.0")) {
 
@@ -581,7 +583,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		this.eventListener1 = new NetworkEventListener(true, false, false,
 				databaseFile1,clientServerProfileCollection1, encryptionProfileCollectionForE2EEncryption1, encryptionProfileCollectionForP2PSignature1,
 				SecureRandomType.DEFAULT,
-				clientprotocol1==null?new ConnectionsProtocolsMKEventListener(p2pprotocol1):new ConnectionsProtocolsMKEventListener(p2pprotocol1, clientprotocol1),
+				clientProtocol1==null?new ConnectionsProtocolsMKEventListener(p2pprotocol1):new ConnectionsProtocolsMKEventListener(p2pprotocol1, clientProtocol1),
 				new AccessProtocolPropertiesMKEventListener(new AccessProtocolWithP2PAgreementProperties()),
 				loginDataClient1==null?new AccessDataMKEventListener(loginData1):new AccessDataMKEventListener(loginData1, loginDataClient1), 5000,
 				listIpToConnect,
@@ -630,7 +632,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		this.loginDataClient2=loginDataClient2;
 		this.eventListener2 = new NetworkEventListener(true, false, false, databaseFile2,
 				clientServerProfileCollection2, encryptionProfileCollectionForE2EEncryption2, encryptionProfileCollectionForP2PSignature2,SecureRandomType.DEFAULT,
-				clientprotocol2==null?new ConnectionsProtocolsMKEventListener(p2pprotocol2):new ConnectionsProtocolsMKEventListener(p2pprotocol2, clientprotocol2),
+				clientProtocol2==null?new ConnectionsProtocolsMKEventListener(p2pprotocol2):new ConnectionsProtocolsMKEventListener(p2pprotocol2, clientProtocol2),
 				new AccessProtocolPropertiesMKEventListener(new AccessProtocolWithP2PAgreementProperties()),
 				loginDataClient2==null?new AccessDataMKEventListener(loginData2):new AccessDataMKEventListener(loginData2, loginDataClient2), 5000,
 				listIpToConnect,
@@ -1085,8 +1087,11 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					Assert.assertFalse(databaseFile2.exists());
 					ArrayList<Table1.Record> recordsToAdd = getRecordsToAdd();
 					ArrayList<Table1.Record> recordsToAddOtherSide = getRecordsToAdd();
-					if (connectCentralDatabaseBackup)
+					if (connectCentralDatabaseBackup) {
 						launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, new AbstractAgent(), eventListenerServer);
+						sleep(600);
+					}
+
 					AbstractAgent agentChecker = new DatabaseAgent(localIdentifier, localIdentifierOtherSide, recordsToAdd, recordsToAddOtherSide, finished1, true, connectCentralDatabaseBackup, indirectSynchronizationWithCentralDatabaseBackup, centralDatabaseBackupCertificate);
 					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentChecker, eventListener1);
 					sleep(600);

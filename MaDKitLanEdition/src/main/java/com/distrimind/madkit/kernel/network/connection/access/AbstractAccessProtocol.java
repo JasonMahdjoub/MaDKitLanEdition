@@ -275,6 +275,7 @@ public abstract class AbstractAccessProtocol {
 
 			for (PairOfIdentifiers id : all_accepted_identifiers) {
 				listGroupsRoles.addListGroupsRoles(lp.getGroupsAccess(id));
+
 				if (id.isLocallyAuthenticatedCloud() && id.isDistantlyAuthenticatedCloud()) {
 					try {
 						DatabaseWrapper wrapper=properties.getDatabaseWrapper();
@@ -284,6 +285,7 @@ public abstract class AbstractAccessProtocol {
 							CentralDatabaseBackupReceiver centralDatabaseBackupReceiver = properties.getCentralDatabaseBackupReceiver();
 							CentralDatabaseBackupCertificate certificate = wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getCentralDatabaseBackupCertificate();
 							final DecentralizedValue dvCentral = ((localDatabaseHostIDString != null && certificate!=null) || centralDatabaseBackupReceiver!=null)?lp.getCentralDatabaseID(id.generateDistantIdentifier(), properties):null;
+
 							final DecentralizedValue dvDistant = (localDatabaseHostIDString != null || centralDatabaseBackupReceiver!=null)?lp.getDecentralizedDatabaseID(id.generateDistantIdentifier(), properties):null;
 							if (localDatabaseHostIDString != null) {
 
