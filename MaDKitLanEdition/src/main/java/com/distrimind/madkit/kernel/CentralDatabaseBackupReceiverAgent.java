@@ -85,8 +85,11 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 				throw DatabaseException.getDatabaseException(new IllegalAccessException());
 			centralIDString=CloudCommunity.Groups.encodeDecentralizedValue(centralDatabaseBackupReceiver.getCentralID());
 			centralDatabaseBackupReceiver.setAgent(this);
-			requestRole(LocalCommunity.Groups.NETWORK, CloudCommunity.Roles.CENTRAL_SYNCHRONIZER);
-			requestRole(CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP, CloudCommunity.Groups.encodeDecentralizedValue(centralDatabaseBackupReceiver.getCentralID()).toString());
+			if (!requestRole(LocalCommunity.Groups.NETWORK, CloudCommunity.Roles.CENTRAL_SYNCHRONIZER).equals(ReturnCode.SUCCESS))
+				getLogger().warning("Impossible to enter in the group LocalCommunity.Groups.NETWORK");
+
+			if (!requestRole(CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP, CloudCommunity.Groups.encodeDecentralizedValue(centralDatabaseBackupReceiver.getCentralID()).toString()).equals(ReturnCode.SUCCESS))
+				getLogger().warning("Impossible to enter in the group CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP");
 			updateGroupAccess(this);
 			this.requestHookEvents(HookMessage.AgentActionEvent.ACCESSIBLE_LAN_GROUPS_GIVEN_TO_DISTANT_PEER);
 			this.requestHookEvents(HookMessage.AgentActionEvent.LEAVE_ROLE);
@@ -152,7 +155,6 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 			boolean changed=false;
 			for (Group g : m.getGeneralAcceptedGroups().getGroups().getRepresentedGroups())
 			{
-
 				if (g.getPath().startsWith(CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP.getPath()))
 				{
 					DecentralizedValue dv=this.distantGroupIdsPerGroup.get(g);
