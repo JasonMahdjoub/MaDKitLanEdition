@@ -131,7 +131,7 @@ public class PairOfIdentifiers {
 	 * 
 	 * @return the identifier of the local peer
 	 */
-	public Identifier generateLocalIdentifier() {
+	public Identifier getLocalIdentifier() {
 		if (localIdentifier==null)
 			localIdentifier=new Identifier(cloudIdentifier, localHostIdentifier);
 		return localIdentifier;
@@ -141,7 +141,7 @@ public class PairOfIdentifiers {
 	 * 
 	 * @return the identifier of the distant peer
 	 */
-	public Identifier generateDistantIdentifier() {
+	public Identifier getDistantIdentifier() {
 		if (distantIdentifier==null)
 			distantIdentifier=new Identifier(cloudIdentifier, distantHostIdentifier);
 		return distantIdentifier;
