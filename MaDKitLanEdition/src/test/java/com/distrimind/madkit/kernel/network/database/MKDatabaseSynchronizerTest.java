@@ -257,13 +257,19 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 	public static class FileReferenceFactory implements com.distrimind.madkit.kernel.FileReferenceFactory
 	{
 
+		static File getPackageFolder(long accountID, DecentralizedValue peerID, String packageString)
+		{
+			File accountFolder=new File(centralDatabaseFilesDirectory, "a"+accountID);
+			File peerFolder=new File(accountFolder, peerID.encodeString().toString());
+			return new File(peerFolder, packageString.replace('.', '_'));
+
+		}
+
 		@Override
 		public FileReference getFileReference(long accountID, IASymmetricPublicKey externalAccountID, DecentralizedValue peerID,
 											  EncryptedDatabaseBackupMetaDataPerFile encryptedDatabaseBackupMetaDataPerFile) {
 
-			File accountFolder=new File(centralDatabaseFilesDirectory, "a"+accountID);
-			File peerFolder=new File(accountFolder, peerID.encodeString().toString());
-			final File packageFolder=new File(peerFolder, encryptedDatabaseBackupMetaDataPerFile.getPackageString().replace('.', '_'));
+			final File packageFolder=getPackageFolder(accountID, peerID, encryptedDatabaseBackupMetaDataPerFile.getPackageString());
 			FileTools.checkFolderRecursive(packageFolder);
 			return new FileReference(new File(packageFolder, "f"+encryptedDatabaseBackupMetaDataPerFile.getFileTimestampUTC()+(encryptedDatabaseBackupMetaDataPerFile.isReferenceFile()?".ref":".data")));
 		}
@@ -785,10 +791,17 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				}
 				if (checkDistantRecords(this, table, otherListToAdd, finished))
 				{
-					System.err.println("Distant records not synchronized");
+					System.err.println("Distant records not synchronized with peers");
 					finished.set(false);
 					return;
 				}
+				if (checkSynchronizationWithCentralDB())
+				{
+					System.err.println("Distant records not synchronized with central DB");
+					finished.set(false);
+					return;
+				}
+
 				total=0;
 				System.out.println("update records");
 				while(total<myListToAdd.size())
@@ -810,6 +823,12 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					finished.set(false);
 					return;
 				}
+				if (checkSynchronizationWithCentralDB())
+				{
+					System.err.println("Distant records not synchronized with central DB");
+					finished.set(false);
+					return;
+				}
 				finished.set(true);
 			} catch (DatabaseException | InterruptedException e) {
 				e.printStackTrace();
@@ -823,6 +842,26 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 			finally {
 				this.killAgent(this);
 			}
+		}
+		boolean checkSynchronizationWithCentralDB() throws DatabaseException {
+			if (synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE)
+			{
+				BackupRestoreManager brm=getMadkitConfig().getDatabaseWrapper().getBackupRestoreManager(Table1.class.getPackage());
+				int number=brm.getFinalFiles().size();
+				File f=FileReferenceFactory.getPackageFolder(1, getMadkitConfig().getDatabaseWrapper().getSynchronizer().getLocalHostID(), Table1.class.getPackage().getName());
+				if (!f.exists()) {
+					System.out.println("Synchronization with central database backup has not started ! ");
+					return true;
+				}
+				File [] fs=f.listFiles();
+				int number2=fs==null?0:fs.length;
+				if (number!=number2)
+				{
+					System.out.println("Bad synchronized files number (peer files number="+number+", central database backup files number="+number2);
+					return true;
+				}
+			}
+			return false;
 		}
 	}
 	private static boolean checkDistantRecords(AbstractAgent agent, Table1 table, ArrayList<Table1.Record> otherListToAdd, AtomicReference<Boolean> finished) throws DatabaseException, InterruptedException {
