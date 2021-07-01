@@ -1651,13 +1651,11 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 					if (kr.m_madkit_references != 1)
 						throw new IllegalAccessError("kr.m_madkit_references=" + kr.m_madkit_references);
 				}
-				else {
-					if (kr.m_madkit_references < 0)
-						throw new IllegalAccessError("kr.m_madkit_references=" + kr.m_madkit_references);
-					/*if (kr.m_madkit_references == 0)
-						throw new IllegalAccessError("kr.m_madkit_references=" + kr.m_madkit_references);*/
-					++kr.m_madkit_references;
-				}
+				if (kr.m_madkit_references < 0)
+					throw new IllegalAccessError("kr.m_madkit_references=" + kr.m_madkit_references);
+				/*if (kr.m_madkit_references == 0)
+					throw new IllegalAccessError("kr.m_madkit_references=" + kr.m_madkit_references);*/
+				++kr.m_madkit_references;
 
 				if (kr.m_madkit_references == 2) {
 					activate = true;
