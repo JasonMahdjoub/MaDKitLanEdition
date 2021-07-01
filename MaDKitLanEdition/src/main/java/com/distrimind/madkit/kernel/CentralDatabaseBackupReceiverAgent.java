@@ -105,10 +105,7 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 	}
 	private DecentralizedValue getDistantPeerID(KernelAddress distantKernelAddress, Group group, String role)
 	{
-		String path=group.getPath();
-		path=path.substring(0, path.length()-1);
-		path=path.substring(0, path.lastIndexOf("/")+1);
-		if (CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP.getPath().equals(path)
+		if (group.getPath().startsWith(CloudCommunity.Groups.CLIENT_SERVER_DATABASE.getPath())
 				&& role.equals(CloudCommunity.Roles.SYNCHRONIZER)) {
 			DecentralizedValue res = distantGroupIdsPerGroup.get(group);
 			if (res == null) {
@@ -251,7 +248,7 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 					{
 						getLogger().warning("Impossible to send message to " + _message.getReceiver());
 					}
-					if (res.getReceiver().getGroup().getPath().startsWith(CloudCommunity.Groups.DISTRIBUTED_DATABASE.getPath()))
+					if (res.getReceiver().getGroup().getPath().startsWith(CloudCommunity.Groups.CLIENT_SERVER_DATABASE.getPath()))
 					{
 						disconnectPeer(res.getReceiver() );
 					}

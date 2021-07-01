@@ -301,10 +301,7 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 			@Override
 			public DecentralizedValue getDecentralizedDatabaseID(Identifier identifier, MadkitProperties properties) {
 				synchronized (databaseIdentifiers) {
-					DecentralizedIDGenerator res=databaseIdentifiers.get(identifier);
-					if (res==null)
-						databaseIdentifiers.put(identifier, res=new DecentralizedIDGenerator());
-					return res;
+					return databaseIdentifiers.get(identifier);
 				}
 			}
 
@@ -316,7 +313,7 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 			}
 		};
 	}
-	private static final HashMap<Identifier, DecentralizedIDGenerator> databaseIdentifiers=new HashMap<>();
+	public static final HashMap<Identifier, DecentralizedIDGenerator> databaseIdentifiers=new HashMap<>();
 	public static final HashMap<Identifier, IASymmetricPublicKey> centralIdentifiers=new HashMap<>();
 
 	public static ArrayList<AccessDataMKEventListener> getAccessDataMKEventListenerForPeerToPeerConnections(

@@ -218,10 +218,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 	private DecentralizedValue getDistantPeerID(KernelAddress distantKernelAddress, Group group, String role)
 	{
-		String path=group.getPath();
-		path=path.substring(0, path.length()-1);
-		path=path.substring(0, path.lastIndexOf("/")+1);
-		if (CloudCommunity.Groups.DISTRIBUTED_DATABASE.getPath().equals(path)
+		if (group.getPath().startsWith(CloudCommunity.Groups.DISTRIBUTED_DATABASE.getPath())
 				&& role.equals(CloudCommunity.Roles.SYNCHRONIZER)) {
 			DecentralizedValue res = distantGroupIdsPerGroup.get(group);
 			if (res == null) {
@@ -240,7 +237,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 		String path=group.getPath();
 		path=path.substring(0, path.length()-1);
 		path=path.substring(0, path.lastIndexOf("/")+1);
-		if (CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP.getPath().equals(path)
+		if (CloudCommunity.Groups.CLIENT_SERVER_DATABASE.getPath().equals(path)
 				&& role.equals(CloudCommunity.Roles.CENTRAL_SYNCHRONIZER)) {
 			DecentralizedValue res = centralGroupIdsPerGroup.get(group);
 			if (res == null) {
@@ -392,7 +389,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 						}
 					}
 				}
-				else if (g.getPath().startsWith(CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP.getPath()))
+				else if (g.getPath().startsWith(CloudCommunity.Groups.CLIENT_SERVER_DATABASE.getPath()))
 				{
 					try {
 

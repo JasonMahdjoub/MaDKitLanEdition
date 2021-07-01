@@ -95,6 +95,7 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 
 
 		public static final Group DISTRIBUTED_DATABASE = LocalCommunity.Groups.DATABASE.getSubGroup(true, databaseGateKeeper, true, "~~peers");
+		public static final Group CLIENT_SERVER_DATABASE = LocalCommunity.Groups.DATABASE.getSubGroup(true, databaseGateKeeper, true, "~~client_server");
 		public static final Group CENTRAL_DATABASE_BACKUP = LocalCommunity.Groups.DATABASE.getSubGroup(true, databaseGateKeeper, true, "~~central_database_backup");
 
 		public static WrappedString encodeDecentralizedValue(DecentralizedValue identifier)
@@ -164,7 +165,7 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 			else
 				throw new IllegalArgumentException(""+cmp);
 
-			return CENTRAL_DATABASE_BACKUP.getSubGroup(true, databaseGateKeeper, false, subgroup);
+			return CLIENT_SERVER_DATABASE.getSubGroup(true, databaseGateKeeper, false, subgroup);
 		}
 		public static DecentralizedValue extractDistantHostID(Group group, DecentralizedValue localHostID) throws IOException {
 			return extractDistantHostID(group, encodeDecentralizedValue(localHostID));
@@ -213,7 +214,7 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 		}
 		public static String extractDistantHostIDStringFromCentralDatabaseBackupGroup(Group group, String centralID)
 		{
-			if (group.getPath().startsWith(Groups.CENTRAL_DATABASE_BACKUP.getPath()))
+			if (group.getPath().startsWith(Groups.CLIENT_SERVER_DATABASE.getPath()))
 			{
 				String[] split=group.getName().split("~");
 				if (split.length==2)
