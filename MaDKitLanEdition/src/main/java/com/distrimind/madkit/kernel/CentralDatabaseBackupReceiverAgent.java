@@ -78,6 +78,8 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 	@Override
 	protected void activate() throws InterruptedException {
 		try {
+			if (logger!=null && logger.isLoggable(Level.INFO))
+				logger.info("Launch central database backup receiver");
 			centralDatabaseBackupReceiver= getMadkitConfig().getCentralDatabaseBackupReceiver();
 			if (centralDatabaseBackupReceiver==null)
 				throw DatabaseException.getDatabaseException(new IllegalAccessException());
@@ -163,11 +165,12 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 					}
 					else
 					{
-
 						try {
 							dv=CloudCommunity.Groups.extractDistantHostIDFromCentralDatabaseBackupGroup(g, centralIDString);
 							if (dv!=null)
 							{
+								if (logger!=null && logger.isLoggable(Level.INFO))
+									logger.info("Peer available : "+dv);
 								changed=true;
 								distantGroupIdsPerGroup.put(g, dv );
 								distantGroupIdsPerID.put(dv, g);

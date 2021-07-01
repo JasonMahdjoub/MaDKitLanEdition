@@ -378,14 +378,16 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 						try {
 							dv=CloudCommunity.Groups.extractDistantHostID(g,  databaseConfigurationsBuilder.getConfigurations().getLocalPeer());
-							if (dv!=null)
+							if (dv!=null && !dv.equals(synchronizer.getLocalHostID()))
 							{
+								if (logger!=null && logger.isLoggable(Level.INFO))
+									logger.info("Peer available : "+dv);
 								changed=true;
 								distantGroupIdsPerGroup.put(g, dv );
 								distantGroupIdsPerID.put(dv, g);
 								this.requestRole(g, CloudCommunity.Roles.SYNCHRONIZER);
 							}
-						} catch (IOException ignored) {
+						} catch (IOException | DatabaseException ignored) {
 
 						}
 					}
@@ -404,6 +406,8 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 						} else {
 							dv = CloudCommunity.Groups.extractDistantHostIDFromCentralDatabaseBackupGroup(g, databaseConfigurationsBuilder.getConfigurations().getLocalPeer());
 							if (dv!=null) {
+								if (logger!=null && logger.isLoggable(Level.INFO))
+									logger.info("Central database server available : "+dv);
 								centralChanged=true;
 								centralGroupIdsPerGroup.put(g, dv );
 //								centralGroupIdsPerID.put(dv, g);
@@ -422,6 +426,8 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 				{
 					if (!distantGroupIdsPerGroup.containsKey(e.getKey()))
 					{
+						if (logger!=null && logger.isLoggable(Level.INFO))
+							logger.info("Peer disconnected : "+e.getValue());
 						leaveGroup(e.getKey());
 						try {
 							synchronizer.peerDisconnected(e.getValue());
@@ -437,8 +443,9 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 				{
 					if (!centralGroupIdsPerGroup.containsKey(e.getKey()))
 					{
+						if (logger!=null && logger.isLoggable(Level.INFO))
+							logger.info("Central database server disconnected : "+e.getValue());
 						leaveGroup(e.getKey());
-
 
 					}
 				}

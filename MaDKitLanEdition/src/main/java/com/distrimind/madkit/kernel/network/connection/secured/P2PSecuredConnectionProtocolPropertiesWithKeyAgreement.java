@@ -386,14 +386,6 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 			if (e.getValue().getTimeExpirationUTC() > System.currentTimeMillis() && vp!=null && vp) {
 				valid = true;
 			}
-			int tmp=s;
-			while (tmp != 1) {
-				if (tmp % 2 == 0)
-					tmp = tmp / 2;
-				else
-					throw new ConnectionException("The RSA key size have a size of " + s
-							+ ". This number must correspond to this schema : _rsa_key_size=2^x.");
-			}
 		}
 		return valid;
 	}

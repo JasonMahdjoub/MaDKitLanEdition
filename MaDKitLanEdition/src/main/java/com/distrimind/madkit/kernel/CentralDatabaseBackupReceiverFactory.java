@@ -36,7 +36,6 @@ knowledge of the CeCILL-C license and that you accept its terms.
  */
 
 import com.distrimind.util.DecentralizedValue;
-import com.distrimind.util.crypto.EncryptionProfileProviderFactory;
 
 /**
  * @author Jason Mahdjoub
@@ -48,7 +47,7 @@ public abstract class CentralDatabaseBackupReceiverFactory<T extends CentralData
 	protected long durationInMsBeforeOrderingDatabaseBackupDeletion;
 	protected long durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect;
 	protected long durationInMsToWaitBeforeRemovingAccountDefinitively;
-	protected EncryptionProfileProviderFactory encryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable;
+
 	protected Class<? extends FileReferenceFactory> fileReferenceFactoryClass;
 
 	public long getDurationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder() {
@@ -91,15 +90,7 @@ public abstract class CentralDatabaseBackupReceiverFactory<T extends CentralData
 		this.durationInMsToWaitBeforeRemovingAccountDefinitively = durationInMsToWaitBeforeRemovingAccountDefinitively;
 	}
 
-	public EncryptionProfileProviderFactory getEncryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable() {
-		return encryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable;
-	}
 
-	public void setEncryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable(EncryptionProfileProviderFactory encryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable) {
-		if (encryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable==null)
-			throw new NullPointerException();
-		this.encryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable = encryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable;
-	}
 
 	public Class<? extends FileReferenceFactory> getFileReferenceFactoryClass() {
 		return fileReferenceFactoryClass;
@@ -119,11 +110,9 @@ public abstract class CentralDatabaseBackupReceiverFactory<T extends CentralData
 												long durationInMsBeforeOrderingDatabaseBackupDeletion,
 												long durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect,
 												long durationInMsToWaitBeforeRemovingAccountDefinitively,
-												EncryptionProfileProviderFactory encryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable,
 												Class<? extends FileReferenceFactory> fileReferenceFactoryClass) {
 		super(centralID);
-		if (encryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable==null)
-			throw new NullPointerException();
+
 		if (fileReferenceFactoryClass==null)
 			throw new NullPointerException();
 		if (durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder<0)
@@ -138,7 +127,6 @@ public abstract class CentralDatabaseBackupReceiverFactory<T extends CentralData
 		this.durationInMsBeforeOrderingDatabaseBackupDeletion = durationInMsBeforeOrderingDatabaseBackupDeletion;
 		this.durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect = durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect;
 		this.durationInMsToWaitBeforeRemovingAccountDefinitively = durationInMsToWaitBeforeRemovingAccountDefinitively;
-		this.encryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable=encryptionProfileProviderFactoryToValidateCertificateOrGetNullIfNoValidProviderIsAvailable;
 		this.fileReferenceFactoryClass=fileReferenceFactoryClass;
 	}
 
