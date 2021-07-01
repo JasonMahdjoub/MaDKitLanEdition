@@ -152,7 +152,6 @@ final public class Madkit {
 							.addItem("Make Utils and OOD compatible with Android")
 							.addItem("Reimplement connection protocol using new Utils classes")
 							.addItem("Permit MaDKit to be a central database backup server in order to synchronize database of distant peers")
-							.addItem("Fix a memory leak with interfaced kernels")
 							.addItem("Check distant and not only local ports with filters of connection protocols and with filter of access protocols")
 					)
 					.addDescription(new Description((short)2, (short)1, (short)10, Version.Type.STABLE, (short)1, "2020-02-15")
