@@ -110,9 +110,9 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 			DatabaseSynchronizerAgent.KernelAddressAndDecentralizedValue res = distantGroupIdsPerGroup.get(group);
 			if (res == null) {
 				if (distantKernelAddress != null)
-					anomalyDetectedWithOneDistantKernel(true, distantKernelAddress, "Invalided peer ID " + group);
+					anomalyDetectedWithOneDistantKernel(true, distantKernelAddress, "Invalided client ID " + group);
 
-				getLogger().severeLog("Invalided peer ID " + group);
+				getLogger().severeLog("Invalided client ID " + group);
 				return null;
 			}
 			else
@@ -133,7 +133,7 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 			if (res == null) {
 				res=initDistantClient(distantGroupIdsPerGroup, distantGroupIdsPerID, distantKernelAddress, group);
 				if (res==null)
-					getLogger().severeLog("Invalided peer ID " + group);
+					getLogger().severeLog("Invalided client ID " + group);
 				return res==null?null:res.decentralizedValue;
 			}
 			else
@@ -216,7 +216,7 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 				if (!distantGroupIdsPerGroup.containsKey(e.getKey()))
 				{
 					if (e.getValue().kernelAddress.equals(m.getConcernedKernelAddress()))
-						disconnectPeer(e.getKey(), e.getValue().decentralizedValue);
+						disconnectClient(e.getKey(), e.getValue().decentralizedValue);
 					else {
 						distantGroupIdsPerGroup.put(e.getKey(), e.getValue());
 						distantGroupIdsPerID.put(e.getValue().decentralizedValue, e.getKey());
@@ -246,7 +246,7 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 					getLogger().severe(e.getMessage());
 				}
 			}
-			else if (m.getAttachedData() instanceof MessageDestinedToCentralDatabaseBackup) {
+			if (generateError && m.getAttachedData() instanceof MessageDestinedToCentralDatabaseBackup) {
 				MessageDestinedToCentralDatabaseBackup b = (MessageDestinedToCentralDatabaseBackup) m.getAttachedData();
 				try {
 					DecentralizedValue peerID = getDistantPeerID(_message.getSender());
@@ -276,13 +276,13 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 			if (cur!=null)
 			{
 				if (res.getType() != BigDataResultMessage.Type.BIG_DATA_TRANSFERRED) {
-					if (res.getReceiver().getGroup().getPath().startsWith(CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP.getPath()))
+					if (CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP_WITH_SUB_GROUPS.includes(res.getReceiver().getGroup()))
 					{
 						getLogger().warning("Impossible to send message to " + _message.getReceiver());
 					}
-					if (res.getReceiver().getGroup().getPath().startsWith(CloudCommunity.Groups.CLIENT_SERVER_DATABASE.getPath()))
+					if (CloudCommunity.Groups.CLIENT_SERVER_DATABASE_WITH_SUB_GROUPS.includes(res.getReceiver().getGroup()))
 					{
-						disconnectPeer(res.getReceiver() );
+						disconnectClient(res.getReceiver() );
 					}
 					else
 					{
@@ -302,13 +302,13 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 					getLogger().warning("Big data receiving should be referenced : "+res);
 				else {
 					if (res.getType() == BigDataResultMessage.Type.BIG_DATA_TRANSFERRED) {
-						if (cur.eventToSend instanceof MessageComingFromCentralDatabaseBackup)
+						if (CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP_WITH_SUB_GROUPS.includes(res.getReceiver().getGroup()))
 						{
 							if (logger != null && logger.isLoggable(Level.FINEST))
 								logger.finest("Received big data result message " + res);
 
 							try {
-								final RandomInputStream in = cur.randomOutputStream.getRandomInputStream();
+								final RandomInputStream in = cur.getRandomInputStream();
 
 								((BigDataEventToSendWithCentralDatabaseBackup) cur.eventToSend).setPartInputStream(in);
 								if (!centralDatabaseBackupReceiver.sendMessageFromThisCentralDatabaseBackup((MessageComingFromCentralDatabaseBackup) cur.eventToSend))
@@ -324,13 +324,13 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 								anomalyDetectedWithOneDistantKernel(false, _message.getSender().getKernelAddress(), "Invalid message received from " + _message.getSender());
 							}
 						}
-						else if (cur.eventToSend instanceof MessageDestinedToCentralDatabaseBackup)
+						else if (CloudCommunity.Groups.CLIENT_SERVER_DATABASE_WITH_SUB_GROUPS.includes(res.getReceiver().getGroup()))
 						{
 							if (logger != null && logger.isLoggable(Level.FINEST))
 								logger.finest("Received big data result message " + res);
 
 							try {
-								final RandomInputStream in = cur.randomOutputStream.getRandomInputStream();
+								final RandomInputStream in = cur.getRandomInputStream();
 								((BigDataEventToSendWithCentralDatabaseBackup) cur.eventToSend).setPartInputStream(in);
 
 								centralDatabaseBackupReceiver.received((MessageDestinedToCentralDatabaseBackup)cur.eventToSend);
@@ -377,14 +377,13 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 							logger.warning("Message not sent : "+b);
 						generateError = false;
 					}
-					else if (logger!=null)
-						logger.warning("Invalid message : "+b);
 				} catch (DatabaseException e) {
 					e.printStackTrace();
 					getLogger().severe(e.getMessage());
 				}
 			}
-			else if (m.getContent() instanceof MessageDestinedToCentralDatabaseBackup) {
+
+			if (generateError && m.getContent() instanceof MessageDestinedToCentralDatabaseBackup) {
 				MessageDestinedToCentralDatabaseBackup b = (MessageDestinedToCentralDatabaseBackup) m.getContent();
 				try {
 					DecentralizedValue peerID = getDistantPeerID(_message.getSender());
@@ -392,7 +391,7 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 						Integrity i=centralDatabaseBackupReceiver.received(b);
 						if (i!=Integrity.OK)
 						{
-							disconnectPeer(_message.getSender());
+							disconnectClient(_message.getSender());
 							anomalyDetectedWithOneDistantKernel(i==Integrity.FAIL_AND_CANDIDATE_TO_BAN, _message.getSender().getKernelAddress(), "Invalid message received from " + _message.getSender());
 						}
 						generateError = false;
@@ -413,22 +412,22 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 
 		}
 	}
-	private void disconnectPeer(AgentAddress aa)
+	private void disconnectClient(AgentAddress aa)
 	{
 		DecentralizedValue peerID=getDistantPeerID(aa.getKernelAddress(), aa.getGroup(), aa.getRole() );
 		if (peerID==null) {
 			if (logger != null)
-				logger.warning("invalid agent address " + aa + ". Impossible to disconnect concerned peer");
+				logger.warning("invalid agent address " + aa + ". Impossible to disconnect concerned client");
 		}
 		else
 		{
-			disconnectPeer(aa.getGroup(), peerID);
+			disconnectClient(aa.getGroup(), peerID);
 			this.distantGroupIdsPerGroup.remove(aa.getGroup());
 			this.distantGroupIdsPerID.remove(peerID);
 		}
 
 	}
-	private void disconnectPeer(Group peerGroup, DecentralizedValue peerID)
+	private void disconnectClient(Group peerGroup, DecentralizedValue peerID)
 	{
 		leaveGroup(peerGroup);
 		try {
@@ -457,14 +456,14 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 			try {
 				res = CloudCommunity.Groups.decodeDecentralizedValue(role);
 			} catch (IOException e) {
-				getLogger().severeLog("Invalided peer group " + group, e);
+				getLogger().severeLog("Invalided client group " + group, e);
 			}
 
 			if (res == null) {
 				if (distantKernelAddress != null)
-					anomalyDetectedWithOneDistantKernel(true, distantKernelAddress, "Invalided peer group " + group);
+					anomalyDetectedWithOneDistantKernel(true, distantKernelAddress, "Invalided client group " + group);
 
-				getLogger().severeLog("Invalided peer group " + group);
+				getLogger().severeLog("Invalided client group " + group);
 			}
 			return res;
 		}

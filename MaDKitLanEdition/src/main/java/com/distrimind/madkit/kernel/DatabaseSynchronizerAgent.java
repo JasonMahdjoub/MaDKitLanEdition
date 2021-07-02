@@ -72,6 +72,14 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			this.kernelAddress = kernelAddress;
 			this.decentralizedValue = decentralizedValue;
 		}
+
+		@Override
+		public String toString() {
+			return "{" +
+					"kernelAddress=" + kernelAddress +
+					", decentralizedValue=" + decentralizedValue +
+					'}';
+		}
 	}
 	private DatabaseWrapper wrapper;
 	private DatabaseWrapper.DatabaseSynchronizer synchronizer;
@@ -87,21 +95,50 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 	private final HashMap<ConversationID, BigDataMetaData> currentBigDataReceiving=new HashMap<>();
 	private final HashMap<ConversationID, BigDataMetaData> currentBigDataSending=new HashMap<>();
 
+
 	static final int FILE_BUFFER_LENGTH_BYTES=4096;
 
 	static class BigDataMetaData
 	{
 		DatabaseEventToSend eventToSend;
 		RandomOutputStream randomOutputStream;
+		RandomInputStream randomInputStream;
 
 		BigDataMetaData(DatabaseEventToSend eventToSend, RandomOutputStream randomOutputStream) {
+			if (eventToSend==null)
+				throw new NullPointerException();
+			if (randomOutputStream==null)
+				throw new NullPointerException();
 			this.eventToSend = eventToSend;
 			this.randomOutputStream = randomOutputStream;
+			this.randomInputStream=null;
 		}
 
+		BigDataMetaData(DatabaseEventToSend eventToSend, RandomInputStream randomInputStream) {
+			if (eventToSend==null)
+				throw new NullPointerException();
+			if (randomInputStream==null)
+				throw new NullPointerException();
+			this.eventToSend = eventToSend;
+			this.randomInputStream = randomInputStream;
+			this.randomOutputStream = null;
+		}
+
+
 		public void close() throws IOException {
-			if (!randomOutputStream.isClosed())
+			if (randomInputStream!=null)
+			{
+				if (!randomInputStream.isClosed())
+					randomInputStream.close();
+			}
+			else if (!randomOutputStream.isClosed())
 				randomOutputStream.close();
+		}
+		public RandomInputStream getRandomInputStream() throws IOException {
+			if (randomInputStream==null)
+				return randomOutputStream.getRandomInputStream();
+			else
+				return randomInputStream;
 		}
 	}
 
@@ -249,9 +286,9 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			if (res == null) {
 				new IllegalAccessError().printStackTrace();
 				if (distantKernelAddress != null)
-					anomalyDetectedWithOneDistantKernel(true, distantKernelAddress, "Invalided peer group " + group);
+					anomalyDetectedWithOneDistantKernel(true, distantKernelAddress, "Invalided server group " + group);
 
-				getLogger().severeLog("Invalided peer group " + group);
+				getLogger().severeLog("Invalided server group " + group);
 				return null;
 			}
 			else
@@ -367,12 +404,13 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 					this.requestRole(g, CloudCommunity.Roles.SYNCHRONIZER);
 					return dv;
 				}
-			} catch (IOException ignored) {
 
+			} catch (IOException ignored) {
 			}
 
 
 		}
+
 		return null;
 	}
 	private void initCentralPeer(Group group, DecentralizedValue id)
@@ -415,39 +453,38 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 		if (_message instanceof OrganizationEvent)
 		{
-			AgentAddress aa=((OrganizationEvent) _message).getSourceAgent();
-			if (aa.getAgent()==this)
-				return;
-			DecentralizedValue peerID=getDistantPeerIDOrInitIt(aa);
-			if (peerID!=null) {
+			if (databaseConfigurationsBuilder.getConfigurations().getLocalPeer()!=null) {
+				AgentAddress aa = ((OrganizationEvent) _message).getSourceAgent();
+				if (aa.getAgent() == this)
+					return;
+				DecentralizedValue peerID = getDistantPeerIDOrInitIt(aa);
+				if (peerID != null) {
 
-				if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.REQUEST_ROLE)) {
-					peerAvailable(aa.getKernelAddress(), peerID);
-				} else if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.LEAVE_ROLE)) {
-
-					try {
-						synchronizer.peerDisconnected(peerID);
-					} catch (DatabaseException e) {
-						getLogger().severeLog("Impossible to disconnect " + peerID, e);
-					}
-
-				}
-			}
-			else
-			{
-				DecentralizedValue centralPeerID=getCentralPeerIDOrInitIt(aa);
-
-				if (centralPeerID!=null) {
 					if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.REQUEST_ROLE)) {
-						if (this.centralDatabaseID == null) {
-							initCentralPeer(aa.getGroup(), centralPeerID);
+						peerAvailable(aa.getKernelAddress(), peerID);
+					} else if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.LEAVE_ROLE)) {
+
+						try {
+							synchronizer.peerDisconnected(peerID);
+						} catch (DatabaseException e) {
+							getLogger().severeLog("Impossible to disconnect " + peerID, e);
+						}
+
+					}
+				} else {
+					DecentralizedValue centralPeerID = getCentralPeerIDOrInitIt(aa);
+
+					if (centralPeerID != null) {
+						if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.REQUEST_ROLE)) {
+							if (this.centralDatabaseID == null) {
+								initCentralPeer(aa.getGroup(), centralPeerID);
+							}
+						} else if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.LEAVE_ROLE) && centralPeerID.equals(this.centralDatabaseID)) {
+							disconnectCentralDatabaseBackup();
 						}
 					}
-					else if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.LEAVE_ROLE) && centralPeerID.equals(this.centralDatabaseID)) {
-						disconnectCentralDatabaseBackup();
-					}
-				}
 
+				}
 			}
 		}
 		else if (_message instanceof NetworkGroupsAccessEvent)
@@ -594,7 +631,40 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 						}
 					}
 					else if (e instanceof MessageDestinedToCentralDatabaseBackup) {
-						if (centralDatabaseGroup==null || !sendMessageWithRole(centralDatabaseGroup, CloudCommunity.Roles.CENTRAL_SYNCHRONIZER, new NetworkObjectMessage<>(e), CloudCommunity.Roles.SYNCHRONIZER).equals(ReturnCode.SUCCESS)) {
+						boolean sent=false;
+						if (centralDatabaseGroup!=null) {
+							if (e instanceof BigDataEventToSendWithCentralDatabaseBackup) {
+								BigDataEventToSendWithCentralDatabaseBackup be = (BigDataEventToSendWithCentralDatabaseBackup) e;
+								try {
+
+									RandomInputStream in=null;
+									BigDataTransferID currentBigDataTransferID = null;
+									try {
+										AgentAddress aa=getAgentWithRole(centralDatabaseGroup, CloudCommunity.Roles.CENTRAL_SYNCHRONIZER);
+										if (aa!=null) {
+											in = be.getPartInputStream();
+											currentBigDataTransferID = sendBigDataWithRole(aa, in, be, CloudCommunity.Roles.SYNCHRONIZER);
+											if (currentBigDataTransferID == null) {
+												getLogger().warning("Impossible to send message to host " + aa);
+												disconnectCentralDatabaseBackup();
+											} else {
+												currentBigDataSending.put(currentBigDataTransferID, new BigDataMetaData(be, in));
+												sent=true;
+											}
+										}
+									} finally {
+										if (currentBigDataTransferID == null && in != null)
+											in.close();
+									}
+								}
+								catch (IOException ex) {
+									getLogger().severeLog("Unexpected exception", ex);
+								}
+							}
+							else
+								sent=sendMessageWithRole(centralDatabaseGroup, CloudCommunity.Roles.CENTRAL_SYNCHRONIZER, new NetworkObjectMessage<>(e), CloudCommunity.Roles.SYNCHRONIZER).equals(ReturnCode.SUCCESS);
+						}
+						if (!sent) {
 							getLogger().warning("Impossible to send message to central database group: " + centralDatabaseGroup);
 							disconnectCentralDatabaseBackup();
 						}
@@ -712,7 +782,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 								logger.finest("Received big data result message " + res);
 
 							try {
-								final RandomInputStream in = cur.randomOutputStream.getRandomInputStream();
+								final RandomInputStream in = cur.getRandomInputStream();
 
 								((BigDataEventToSendWithCentralDatabaseBackup) cur.eventToSend).setPartInputStream(in);
 
@@ -734,7 +804,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 								logger.finest("Received big data result message " + res);
 
 							try {
-								final RandomInputStream in = cur.randomOutputStream.getRandomInputStream();
+								final RandomInputStream in = cur.getRandomInputStream();
 								BigDataMetaData cur2=cur;
 								synchronizer.received((P2PBigDatabaseEventToSend)cur.eventToSend, new InputStreamGetter() {
 									@Override
@@ -821,7 +891,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 					}
 				}
 			}
-			else if (m instanceof MessageComingFromCentralDatabaseBackup)
+			else if (m.getContent() instanceof MessageComingFromCentralDatabaseBackup)
 			{
 				DecentralizedValue centralID = getCentralPeerID(_message.getSender());
 				if (centralID != null) {
