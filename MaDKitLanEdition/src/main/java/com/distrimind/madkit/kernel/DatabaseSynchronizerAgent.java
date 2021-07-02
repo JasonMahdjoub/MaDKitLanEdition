@@ -50,6 +50,7 @@ import com.distrimind.util.io.*;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.logging.Level;
 
 /**
@@ -669,6 +670,13 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 							disconnectCentralDatabaseBackup();
 						}
 					}
+				}
+				Long utc=wrapper.getNextPossibleEventTimeUTC();
+				if (utc!=null) {
+					scheduleTask(new Task<>((Callable<Void>) () -> {
+						receiveMessage(checkEvents);
+						return null;
+					}, utc));
 				}
 			}
 			catch (DatabaseException e2)
