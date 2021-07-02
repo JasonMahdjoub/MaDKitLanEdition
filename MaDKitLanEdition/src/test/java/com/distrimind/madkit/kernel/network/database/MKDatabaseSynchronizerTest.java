@@ -389,6 +389,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 	final boolean indirectSynchronizationWithCentralDatabaseBackup;
 	final CentralDatabaseBackupReceiverFactory centralDatabaseBackupReceiverFactory;
 	private final CentralDatabaseBackupCertificate centralDatabaseBackupCertificate;
+	DatabaseWrapper centralDatabaseWrapper=null;
 
 
 	@Parameterized.Parameters
@@ -1092,8 +1093,19 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					ArrayList<Table1.Record> recordsToAdd = getRecordsToAdd();
 					ArrayList<Table1.Record> recordsToAddOtherSide = getRecordsToAdd();
 					if (connectCentralDatabaseBackup) {
-						launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, new AbstractAgent(), eventListenerServer);
+						launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, new AbstractAgent(){
+							@Override
+							protected void activate() {
+								try {
+									centralDatabaseWrapper= getMadkitConfig().getDatabaseWrapper();
+									getMadkitConfig().getCentralDatabaseBackupReceiver().addClient((short)10, aSymmetricKeyPairForClientServerSignatures2.getASymmetricPublicKey());
+								} catch (DatabaseException e) {
+									e.printStackTrace();
+								}
+							}
+						}, eventListenerServer);
 						sleep(600);
+
 					}
 
 					AbstractAgent agentChecker = new DatabaseAgent(localIdentifier, localIdentifierOtherSide, recordsToAdd, recordsToAddOtherSide, finished1, true, connectCentralDatabaseBackup, indirectSynchronizationWithCentralDatabaseBackup, centralDatabaseBackupCertificate);
