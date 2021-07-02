@@ -95,8 +95,11 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 
 
 		public static final Group DISTRIBUTED_DATABASE = LocalCommunity.Groups.DATABASE.getSubGroup(true, databaseGateKeeper, true, "~~peers");
+		public static final Group DISTRIBUTED_DATABASE_WITH_SUB_GROUPS = DISTRIBUTED_DATABASE.getThisGroupWithItsSubGroups();
 		public static final Group CLIENT_SERVER_DATABASE = LocalCommunity.Groups.DATABASE.getSubGroup(true, databaseGateKeeper, true, "~~client_server");
+		public static final Group CLIENT_SERVER_DATABASE_WITH_SUB_GROUPS = CLIENT_SERVER_DATABASE.getThisGroupWithItsSubGroups();
 		public static final Group CENTRAL_DATABASE_BACKUP = LocalCommunity.Groups.DATABASE.getSubGroup(true, databaseGateKeeper, true, "~~central_database_backup");
+		public static final Group CENTRAL_DATABASE_BACKUP_WITH_SUB_GROUPS = CENTRAL_DATABASE_BACKUP.getThisGroupWithItsSubGroups();
 
 		public static WrappedString encodeDecentralizedValue(DecentralizedValue identifier)
 		{

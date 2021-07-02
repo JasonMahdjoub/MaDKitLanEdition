@@ -1149,13 +1149,22 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 
 
 	private boolean isHiddenGroup() {
-		return (this.getPath().startsWith(CloudCommunity.Groups.DISTRIBUTED_DATABASE.getPath())
+		return CloudCommunity.Groups.DISTRIBUTED_DATABASE_WITH_SUB_GROUPS.includes(this)
+				|| CloudCommunity.Groups.CLIENT_SERVER_DATABASE_WITH_SUB_GROUPS.includes(this) ||
+				CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP_WITH_SUB_GROUPS.includes(this) ||
+				this.equals(LocalCommunity.Groups.SYSTEM)
+				|| this.equals(com.distrimind.madkit.agr.LocalCommunity.Groups.GUI);
+	}
+	/*private boolean isHiddenGroup() {
+		return ((this.getPath().startsWith(CloudCommunity.Groups.DISTRIBUTED_DATABASE.getPath())
+				|| this.getPath().startsWith(CloudCommunity.Groups.CLIENT_SERVER_DATABASE.getPath()) ||
+				this.getPath().startsWith(CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP.getPath()))
 				&& this.getCommunity().equals(CloudCommunity.Groups.DISTRIBUTED_DATABASE.getCommunity())) ||
 				(this.getPath().equals(LocalCommunity.Groups.SYSTEM.getPath())
-				&& this.getCommunity().equals(LocalCommunity.Groups.SYSTEM.getCommunity()))
+						&& this.getCommunity().equals(LocalCommunity.Groups.SYSTEM.getCommunity()))
 				|| this.getPath().equals(com.distrimind.madkit.agr.LocalCommunity.Groups.GUI.getPath()) && this
-						.getCommunity().equals(com.distrimind.madkit.agr.LocalCommunity.Groups.GUI.getCommunity());
-	}
+				.getCommunity().equals(com.distrimind.madkit.agr.LocalCommunity.Groups.GUI.getCommunity());
+	}*/
 
 	/**
 	 * Return true if this group represents also its subgroups.
@@ -1653,8 +1662,8 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 				}
 				if (kr.m_madkit_references < 0)
 					throw new IllegalAccessError("kr.m_madkit_references=" + kr.m_madkit_references);
-				/*if (kr.m_madkit_references == 0)
-					throw new IllegalAccessError("kr.m_madkit_references=" + kr.m_madkit_references);*/
+				if (kr.m_madkit_references == 0)
+					throw new IllegalAccessError("kr.m_madkit_references=" + kr.m_madkit_references);
 				++kr.m_madkit_references;
 
 				if (kr.m_madkit_references == 2) {
@@ -1768,8 +1777,9 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 					KernelReferences kr = kernelReferences.get(ka);
 					if (kr == null)
 						throw new NullPointerException("kr");
-					if (isAnyMadkitCreatedRecursive(ka))
+					if (isAnyMadkitCreatedRecursive(ka)) {
 						kr.m_madkit_references = 0;
+					}
 					else {
 						kernelReferences.remove(ka);
 						GroupTree p = parent;
