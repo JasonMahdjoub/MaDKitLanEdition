@@ -225,7 +225,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 	private DecentralizedValue getDistantPeerID(KernelAddress distantKernelAddress, Group group, String role)
 	{
-		if (group.getPath().startsWith(CloudCommunity.Groups.DISTRIBUTED_DATABASE.getPath())
+		if (CloudCommunity.Groups.DISTRIBUTED_DATABASE_WITH_SUB_GROUPS.includes(group)
 				&& role.equals(CloudCommunity.Roles.SYNCHRONIZER)) {
 			KernelAddressAndDecentralizedValue res = distantGroupIdsPerGroup.get(group);
 			if (res == null) {
@@ -243,10 +243,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 	}
 	private DecentralizedValue getCentralPeerID(KernelAddress distantKernelAddress, Group group, String role)
 	{
-		String path=group.getPath();
-		path=path.substring(0, path.length()-1);
-		path=path.substring(0, path.lastIndexOf("/")+1);
-		if (CloudCommunity.Groups.CLIENT_SERVER_DATABASE.getPath().equals(path)
+		if (CloudCommunity.Groups.CLIENT_SERVER_DATABASE_WITH_SUB_GROUPS.includes(group)
 				&& role.equals(CloudCommunity.Roles.CENTRAL_SYNCHRONIZER)) {
 			KernelAddressAndDecentralizedValue res = centralGroupIdsPerGroup.get(group);
 			if (res == null) {
@@ -348,13 +345,16 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			else
 			{
 				DecentralizedValue centralPeerID=getCentralPeerID(aa);
-				if (centralPeerID!=null && ((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.REQUEST_ROLE)) {
-					if (this.centralDatabaseID==null) {
-						initCentralPeer(aa.getGroup(), centralPeerID);
-					}
-				} else if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.LEAVE_ROLE)) {
 
-					disconnectCentralDatabaseBackup();
+				if (centralPeerID!=null) {
+					if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.REQUEST_ROLE)) {
+						if (this.centralDatabaseID == null) {
+							initCentralPeer(aa.getGroup(), centralPeerID);
+						}
+					}
+					else if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.LEAVE_ROLE) && centralPeerID.equals(this.centralDatabaseID)) {
+						disconnectCentralDatabaseBackup();
+					}
 				}
 
 			}
@@ -398,8 +398,6 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 							}
 						}
-						else
-							System.out.println("here");
 					}
 				}
 				else if (CloudCommunity.Groups.CLIENT_SERVER_DATABASE_WITH_SUB_GROUPS.includes(g))
@@ -471,12 +469,6 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			this.distantGroupIdsPerID=distantGroupIdsPerID;
 			this.centralGroupIdsPerGroup=centralGroupIdsPerGroup;
 			//this.centralGroupIdsPerID=centralGroupIdsPerID;
-			if (centralDatabaseID==null && centralGroupIdsPerGroup.size()>0)
-			{
-				Map.Entry<Group, KernelAddressAndDecentralizedValue> e=centralGroupIdsPerGroup.entrySet().iterator().next();
-				centralDatabaseID = e.getValue().decentralizedValue;
-				centralDatabaseGroup = e.getKey();
-			}
 		}
 		else if (_message==checkEvents)
 		{

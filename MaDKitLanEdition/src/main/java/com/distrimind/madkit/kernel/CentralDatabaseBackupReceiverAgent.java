@@ -105,7 +105,7 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 	}
 	private DecentralizedValue getDistantPeerID(KernelAddress distantKernelAddress, Group group, String role)
 	{
-		if (group.getPath().startsWith(CloudCommunity.Groups.CLIENT_SERVER_DATABASE.getPath())
+		if (CloudCommunity.Groups.CLIENT_SERVER_DATABASE_WITH_SUB_GROUPS.includes(group)
 				&& role.equals(CloudCommunity.Roles.SYNCHRONIZER)) {
 			DatabaseSynchronizerAgent.KernelAddressAndDecentralizedValue res = distantGroupIdsPerGroup.get(group);
 			if (res == null) {
@@ -154,6 +154,7 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 
 			for (Group g : m.getGeneralAcceptedGroups().getGroups().getRepresentedGroups())
 			{
+
 				if (CloudCommunity.Groups.CLIENT_SERVER_DATABASE_WITH_SUB_GROUPS.includes(g))
 				{
 					DatabaseSynchronizerAgent.KernelAddressAndDecentralizedValue dv=this.distantGroupIdsPerGroup.get(g);
@@ -172,7 +173,7 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 							{
 								dv=new DatabaseSynchronizerAgent.KernelAddressAndDecentralizedValue(m.getConcernedKernelAddress(), d);
 								if (logger!=null && logger.isLoggable(Level.INFO))
-									logger.info("Peer available : "+dv);
+									logger.info("Client available : "+dv);
 								distantGroupIdsPerGroup.put(g, dv );
 								distantGroupIdsPerID.put(dv.decentralizedValue, g);
 								this.requestRole(g, CloudCommunity.Roles.CENTRAL_SYNCHRONIZER);
