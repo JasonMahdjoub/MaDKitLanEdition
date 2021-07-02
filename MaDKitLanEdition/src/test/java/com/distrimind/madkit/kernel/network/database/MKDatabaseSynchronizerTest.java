@@ -561,11 +561,11 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		if (connectCentralDatabaseBackup) {
 			encryptionProfileCollectionForE2EEncryption1 = new EncryptionProfileCollection();
 			encryptionProfileCollectionForE2EEncryption1.putProfile((short) 1, MessageDigestType.DEFAULT, null, null, secretKeyForSignature1, secretKeyForE2EEncryption1, false, false);
-			encryptionProfileCollectionForE2EEncryption1.putProfile((short) 2, MessageDigestType.DEFAULT, null, null, secretKeyForSignature2, secretKeyForE2EEncryption1, false, true);
+			encryptionProfileCollectionForE2EEncryption1.putProfile((short) 2, MessageDigestType.DEFAULT, null, null, secretKeyForSignature2, secretKeyForE2EEncryption2, false, true);
 
 			clientServerProfileCollection1 = new EncryptionProfileCollection();
 			clientServerProfileCollection1.putProfile((short) 1, MessageDigestType.DEFAULT, aSymmetricKeyPairForClientServerSignatures1.getASymmetricPublicKey(), aSymmetricKeyPairForClientServerSignatures1.getASymmetricPrivateKey(), null, null, false, false);
-			clientServerProfileCollection1.putProfile((short) 2, MessageDigestType.DEFAULT, aSymmetricKeyPairForClientServerSignatures1.getASymmetricPublicKey(), aSymmetricKeyPairForClientServerSignatures1.getASymmetricPrivateKey(), null, null, false, true);
+			clientServerProfileCollection1.putProfile((short) 2, MessageDigestType.DEFAULT, aSymmetricKeyPairForClientServerSignatures2.getASymmetricPublicKey(), aSymmetricKeyPairForClientServerSignatures2.getASymmetricPrivateKey(), null, null, false, true);
 		}
 		loginData1=AccessDataMKEventListener.getDefaultLoginData(
 					idpws,
@@ -621,11 +621,11 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		if (connectCentralDatabaseBackup) {
 			encryptionProfileCollectionForE2EEncryption2 = new EncryptionProfileCollection();
 			encryptionProfileCollectionForE2EEncryption2.putProfile((short) 1, MessageDigestType.DEFAULT, null, null, secretKeyForSignature1, secretKeyForE2EEncryption1, false, false);
-			encryptionProfileCollectionForE2EEncryption2.putProfile((short) 2, MessageDigestType.DEFAULT, null, null, secretKeyForSignature2, secretKeyForE2EEncryption1, false, true);
+			encryptionProfileCollectionForE2EEncryption2.putProfile((short) 2, MessageDigestType.DEFAULT, null, null, secretKeyForSignature2, secretKeyForE2EEncryption2, false, true);
 
 			clientServerProfileCollection2 = new EncryptionProfileCollection();
 			clientServerProfileCollection2.putProfile((short) 1, MessageDigestType.DEFAULT, aSymmetricKeyPairForClientServerSignatures1.getASymmetricPublicKey(), aSymmetricKeyPairForClientServerSignatures1.getASymmetricPrivateKey(), null, null, false, false);
-			clientServerProfileCollection2.putProfile((short) 2, MessageDigestType.DEFAULT, aSymmetricKeyPairForClientServerSignatures1.getASymmetricPublicKey(), aSymmetricKeyPairForClientServerSignatures1.getASymmetricPrivateKey(), null, null, false, true);
+			clientServerProfileCollection2.putProfile((short) 2, MessageDigestType.DEFAULT, aSymmetricKeyPairForClientServerSignatures2.getASymmetricPublicKey(), aSymmetricKeyPairForClientServerSignatures2.getASymmetricPrivateKey(), null, null, false, true);
 		}
 
 		loginData2=AccessDataMKEventListener.getDefaultLoginData(
