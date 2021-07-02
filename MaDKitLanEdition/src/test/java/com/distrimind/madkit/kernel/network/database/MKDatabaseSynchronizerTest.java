@@ -284,7 +284,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 			return new EncryptionProfileProvider() {
 				@Override
 				public MessageDigestType getMessageDigest(short keyID, boolean duringDecryptionPhase) throws IOException {
-					if (keyID==0)
+					if (keyID==2)
 						return MessageDigestType.DEFAULT;
 
 					throw new IOException();
@@ -297,7 +297,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 
 				@Override
 				public IASymmetricPublicKey getPublicKeyForSignature(short keyID) throws IOException {
-					if (keyID==0)
+					if (keyID==2)
 						return certificate.getCertifiedAccountPublicKey();
 					throw new IOException();
 				}
@@ -314,13 +314,13 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 
 				@Override
 				public boolean isValidProfileID(short id) {
-					return id==0;
+					return id==2;
 				}
 
 				@Override
 				public Short getValidProfileIDFromPublicKeyForSignature(IASymmetricPublicKey publicKeyForSignature) {
 					if (certificate.getCertifiedAccountPublicKey().equals(publicKeyForSignature))
-						return 0;
+						return 2;
 					return null;
 				}
 
