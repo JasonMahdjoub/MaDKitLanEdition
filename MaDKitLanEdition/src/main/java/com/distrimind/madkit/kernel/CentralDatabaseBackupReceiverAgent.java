@@ -99,7 +99,7 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 		}
 
 	}
-	Group getDistantGroupID(DecentralizedValue id)
+	Group getDistantGroupPerID(DecentralizedValue id)
 	{
 		return distantGroupIdsPerID.get(id);
 	}
@@ -121,10 +121,50 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 		else
 			return null;
 	}
+	private DecentralizedValue getDistantPeerIDOrInitIt(AgentAddress aa)
+	{
+		return getDistantPeerIDOrInitIt(aa.isFrom(getKernelAddress())?null:aa.getKernelAddress(), aa.getGroup(), aa.getRole());
+	}
+	private DecentralizedValue getDistantPeerIDOrInitIt(KernelAddress distantKernelAddress, Group group, String role)
+	{
+		if (CloudCommunity.Groups.CLIENT_SERVER_DATABASE_WITH_SUB_GROUPS.includes(group)
+				&& role.equals(CloudCommunity.Roles.SYNCHRONIZER)) {
+			DatabaseSynchronizerAgent.KernelAddressAndDecentralizedValue res = distantGroupIdsPerGroup.get(group);
+			if (res == null) {
+				res=initDistantClient(distantGroupIdsPerGroup, distantGroupIdsPerID, distantKernelAddress, group);
+				if (res==null)
+					getLogger().severeLog("Invalided peer ID " + group);
+				return res==null?null:res.decentralizedValue;
+			}
+			else
+				return res.decentralizedValue;
+		}
+		else
+			return null;
+	}
 	private DecentralizedValue getDistantPeerID(AgentAddress aa)
 	{
 		return getDistantPeerID(aa.isFrom(getKernelAddress())?null:aa.getKernelAddress(), aa.getGroup(), aa.getRole());
 
+	}
+	private DatabaseSynchronizerAgent.KernelAddressAndDecentralizedValue initDistantClient(Map<Group, DatabaseSynchronizerAgent.KernelAddressAndDecentralizedValue> distantGroupIdsPerGroup, Map<DecentralizedValue, Group> distantGroupIdsPerID, KernelAddress ka, Group g)
+	{
+		try {
+			DecentralizedValue d=CloudCommunity.Groups.extractDistantHostIDFromCentralDatabaseBackupGroup(g, centralIDString);
+			if (d!=null)
+			{
+				DatabaseSynchronizerAgent.KernelAddressAndDecentralizedValue dv=new DatabaseSynchronizerAgent.KernelAddressAndDecentralizedValue(ka, d);
+				if (logger!=null && logger.isLoggable(Level.INFO))
+					logger.info("Client available : "+dv);
+				distantGroupIdsPerGroup.put(g, dv );
+				distantGroupIdsPerID.put(dv.decentralizedValue, g);
+				this.requestRole(g, CloudCommunity.Roles.CENTRAL_SYNCHRONIZER);
+				return dv;
+			}
+		} catch (IOException ignored) {
+
+		}
+		return null;
 	}
 	@Override
 	protected void liveByStep(Message _message) throws InterruptedException {
@@ -133,7 +173,7 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 			AgentAddress aa=((OrganizationEvent) _message).getSourceAgent();
 			if (aa.getAgent()==this)
 				return;
-			DecentralizedValue peerID=getDistantPeerID(aa);
+			DecentralizedValue peerID=getDistantPeerIDOrInitIt(aa);
 			if (peerID!=null) {
 				if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.LEAVE_ROLE)) {
 
@@ -167,20 +207,7 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 					}
 					else
 					{
-						try {
-							DecentralizedValue d=CloudCommunity.Groups.extractDistantHostIDFromCentralDatabaseBackupGroup(g, centralIDString);
-							if (d!=null)
-							{
-								dv=new DatabaseSynchronizerAgent.KernelAddressAndDecentralizedValue(m.getConcernedKernelAddress(), d);
-								if (logger!=null && logger.isLoggable(Level.INFO))
-									logger.info("Client available : "+dv);
-								distantGroupIdsPerGroup.put(g, dv );
-								distantGroupIdsPerID.put(dv.decentralizedValue, g);
-								this.requestRole(g, CloudCommunity.Roles.CENTRAL_SYNCHRONIZER);
-							}
-						} catch (IOException ignored) {
-
-						}
+						initDistantClient(distantGroupIdsPerGroup, distantGroupIdsPerID, m.getConcernedKernelAddress(), g);
 					}
 				}
 			}
@@ -190,8 +217,10 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 				{
 					if (e.getValue().kernelAddress.equals(m.getConcernedKernelAddress()))
 						disconnectPeer(e.getKey(), e.getValue().decentralizedValue);
-					else
+					else {
 						distantGroupIdsPerGroup.put(e.getKey(), e.getValue());
+						distantGroupIdsPerID.put(e.getValue().decentralizedValue, e.getKey());
+					}
 				}
 			}
 			this.distantGroupIdsPerGroup=distantGroupIdsPerGroup;
@@ -446,4 +475,5 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 	{
 		return getCentralPeerID(aa.isFrom(getKernelAddress())?null:aa.getKernelAddress(), aa.getGroup(), aa.getRole());
 	}
+
 }

@@ -247,6 +247,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 				&& role.equals(CloudCommunity.Roles.CENTRAL_SYNCHRONIZER)) {
 			KernelAddressAndDecentralizedValue res = centralGroupIdsPerGroup.get(group);
 			if (res == null) {
+				new IllegalAccessError().printStackTrace();
 				if (distantKernelAddress != null)
 					anomalyDetectedWithOneDistantKernel(true, distantKernelAddress, "Invalided peer group " + group);
 
@@ -259,11 +260,78 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 		else
 			return null;
 	}
+	private DecentralizedValue getDistantPeerIDOrInitIt(AgentAddress aa)
+	{
+		return getDistantPeerIDOrInitIt(aa.isFrom(getKernelAddress())?null:aa.getKernelAddress(), aa.getGroup(), aa.getRole());
+	}
+	private DecentralizedValue getDistantPeerIDOrInitIt(KernelAddress distantKernelAddress, Group group, String role)
+	{
 
+		if (CloudCommunity.Groups.DISTRIBUTED_DATABASE_WITH_SUB_GROUPS.includes(group)
+				&& role.equals(CloudCommunity.Roles.SYNCHRONIZER)) {
+			KernelAddressAndDecentralizedValue res = distantGroupIdsPerGroup.get(group);
+			if (res == null) {
+				res=initDistantID(distantGroupIdsPerGroup, distantGroupIdsPerID, distantKernelAddress, group);
+				if (res==null)
+					getLogger().severeLog("Invalided peer ID " + group);
+				return res==null?null:res.decentralizedValue;
+			}
+			else
+				return res.decentralizedValue;
+		}
+		else
+			return null;
+
+
+	}
+	private KernelAddressAndDecentralizedValue initDistantID(Map<Group, KernelAddressAndDecentralizedValue> distantGroupIdsPerGroup, Map<DecentralizedValue, Group> distantGroupIdsPerID, KernelAddress ka, Group g)
+	{
+		DecentralizedValue localPeer=databaseConfigurationsBuilder.getConfigurations().getLocalPeer();
+		if (localPeer!=null) {
+			try {
+				DecentralizedValue d = CloudCommunity.Groups.extractDistantHostID(g, localPeer);
+
+				if (d != null && !d.equals(synchronizer.getLocalHostID())) {
+					KernelAddressAndDecentralizedValue dv = new KernelAddressAndDecentralizedValue(ka, d);
+					if (logger != null && logger.isLoggable(Level.INFO))
+						logger.info("Peer available : " + dv);
+					distantGroupIdsPerGroup.put(g, dv);
+					distantGroupIdsPerID.put(dv.decentralizedValue, g);
+					this.requestRole(g, CloudCommunity.Roles.SYNCHRONIZER);
+					return dv;
+				}
+			} catch (IOException | DatabaseException ignored) {
+
+			}
+		}
+		return null;
+	}
 	private DecentralizedValue getDistantPeerID(AgentAddress aa)
 	{
 		return getDistantPeerID(aa.isFrom(getKernelAddress())?null:aa.getKernelAddress(), aa.getGroup(), aa.getRole());
 
+	}
+	private DecentralizedValue getCentralPeerIDOrInitIt(AgentAddress aa)
+	{
+		return getCentralPeerIDOrInitIt(aa.isFrom(getKernelAddress())?null:aa.getKernelAddress(), aa.getGroup(), aa.getRole());
+	}
+	private DecentralizedValue getCentralPeerIDOrInitIt(KernelAddress distantKernelAddress, Group group, String role)
+	{
+		if (CloudCommunity.Groups.CLIENT_SERVER_DATABASE_WITH_SUB_GROUPS.includes(group)
+				&& role.equals(CloudCommunity.Roles.CENTRAL_SYNCHRONIZER)) {
+			KernelAddressAndDecentralizedValue res = centralGroupIdsPerGroup.get(group);
+			if (res == null) {
+				res=initCentralServer(this.centralGroupIdsPerGroup, distantKernelAddress, group);
+				if (res==null)
+					getLogger().severeLog("Invalided peer group " + group);
+
+				return res==null?null:res.decentralizedValue;
+			}
+			else
+				return res.decentralizedValue;
+		}
+		else
+			return null;
 	}
 	private DecentralizedValue getCentralPeerID(AgentAddress aa)
 	{
@@ -283,6 +351,29 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 			getLogger().severeLog("Unexpected exception", e);
 		}
+	}
+	private KernelAddressAndDecentralizedValue initCentralServer(Map<Group, KernelAddressAndDecentralizedValue> centralGroupIdsPerGroup, KernelAddress ka, Group g)  {
+		DecentralizedValue localPeer=databaseConfigurationsBuilder.getConfigurations().getLocalPeer();
+		if (localPeer!=null) {
+			try {
+				DecentralizedValue d = CloudCommunity.Groups.extractDistantHostIDFromCentralDatabaseBackupGroup(g, localPeer);
+				if (d != null) {
+					KernelAddressAndDecentralizedValue dv=new KernelAddressAndDecentralizedValue(ka, d);
+					if (logger != null && logger.isLoggable(Level.INFO))
+						logger.info("Central database server available : " + dv);
+
+					centralGroupIdsPerGroup.put(g, dv);
+//								centralGroupIdsPerID.put(dv, g);
+					this.requestRole(g, CloudCommunity.Roles.SYNCHRONIZER);
+					return dv;
+				}
+			} catch (IOException ignored) {
+
+			}
+
+
+		}
+		return null;
 	}
 	private void initCentralPeer(Group group, DecentralizedValue id)
 	{
@@ -327,7 +418,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			AgentAddress aa=((OrganizationEvent) _message).getSourceAgent();
 			if (aa.getAgent()==this)
 				return;
-			DecentralizedValue peerID=getDistantPeerID(aa);
+			DecentralizedValue peerID=getDistantPeerIDOrInitIt(aa);
 			if (peerID!=null) {
 
 				if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.REQUEST_ROLE)) {
@@ -344,7 +435,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			}
 			else
 			{
-				DecentralizedValue centralPeerID=getCentralPeerID(aa);
+				DecentralizedValue centralPeerID=getCentralPeerIDOrInitIt(aa);
 
 				if (centralPeerID!=null) {
 					if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.REQUEST_ROLE)) {
@@ -381,54 +472,20 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 					}
 					else
 					{
-						DecentralizedValue localPeer=databaseConfigurationsBuilder.getConfigurations().getLocalPeer();
-						if (localPeer!=null) {
-							try {
-								DecentralizedValue d = CloudCommunity.Groups.extractDistantHostID(g, localPeer);
-
-								if (d != null && !d.equals(synchronizer.getLocalHostID())) {
-									dv = new KernelAddressAndDecentralizedValue(m.getConcernedKernelAddress(), d);
-									if (logger != null && logger.isLoggable(Level.INFO))
-										logger.info("Peer available : " + dv);
-									distantGroupIdsPerGroup.put(g, dv);
-									distantGroupIdsPerID.put(dv.decentralizedValue, g);
-									this.requestRole(g, CloudCommunity.Roles.SYNCHRONIZER);
-								}
-							} catch (IOException | DatabaseException ignored) {
-
-							}
-						}
+						initDistantID(distantGroupIdsPerGroup, distantGroupIdsPerID, m.getConcernedKernelAddress(), g);
 					}
 				}
 				else if (CloudCommunity.Groups.CLIENT_SERVER_DATABASE_WITH_SUB_GROUPS.includes(g))
 				{
-					try {
+					KernelAddressAndDecentralizedValue dv = this.centralGroupIdsPerGroup.get(g);
 
-						KernelAddressAndDecentralizedValue dv = this.centralGroupIdsPerGroup.get(g);
-
-						if (dv != null) {
-							centralGroupIdsPerGroup.put(g, dv );
-							//centralGroupIdsPerID.put(dv, g);
-							if (!hasRole(g, CloudCommunity.Roles.SYNCHRONIZER))
-								getLogger().warning("CloudCommunity.Roles.SYNCHRONIZER role should be requested with group " + g);
-						} else {
-							DecentralizedValue localPeer=databaseConfigurationsBuilder.getConfigurations().getLocalPeer();
-							if (localPeer!=null) {
-								DecentralizedValue d = CloudCommunity.Groups.extractDistantHostIDFromCentralDatabaseBackupGroup(g, localPeer);
-								if (d != null) {
-									dv=new KernelAddressAndDecentralizedValue(m.getConcernedKernelAddress(), d);
-									if (logger != null && logger.isLoggable(Level.INFO))
-										logger.info("Central database server available : " + dv);
-
-									centralGroupIdsPerGroup.put(g, dv);
-//								centralGroupIdsPerID.put(dv, g);
-									this.requestRole(g, CloudCommunity.Roles.SYNCHRONIZER);
-								}
-							}
-
-						}
-					} catch (IOException e) {
-						e.printStackTrace();
+					if (dv != null) {
+						centralGroupIdsPerGroup.put(g, dv );
+						//centralGroupIdsPerID.put(dv, g);
+						if (!hasRole(g, CloudCommunity.Roles.SYNCHRONIZER))
+							getLogger().warning("CloudCommunity.Roles.SYNCHRONIZER role should be requested with group " + g);
+					} else {
+						initCentralServer(centralGroupIdsPerGroup, m.getConcernedKernelAddress(), g);
 					}
 				}
 			}

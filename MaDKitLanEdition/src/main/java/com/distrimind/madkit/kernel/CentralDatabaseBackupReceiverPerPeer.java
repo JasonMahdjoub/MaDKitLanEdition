@@ -113,7 +113,8 @@ public abstract class CentralDatabaseBackupReceiverPerPeer extends com.distrimin
 			DecentralizedValue dest = message.getHostDestination();
 			if (agent.logger != null && agent.logger.isLoggable(Level.FINEST))
 				agent.logger.finest("Send event " + message.getClass() + " to peer " + dest);
-			AgentAddress aa = agent.getAgentWithRole(agent.getDistantGroupID(dest), CloudCommunity.Roles.SYNCHRONIZER);
+			Group g=agent.getDistantGroupPerID(dest);
+			AgentAddress aa = g==null?null:agent.getAgentWithRole(g, CloudCommunity.Roles.SYNCHRONIZER);
 			if (aa != null) {
 				sendMessage(message, aa, dest);
 			}
@@ -130,7 +131,7 @@ public abstract class CentralDatabaseBackupReceiverPerPeer extends com.distrimin
 	@Override
 	protected void sendMessageFromOtherCentralDatabaseBackup(DecentralizedValue centralDatabaseBackupID, MessageComingFromCentralDatabaseBackup message) {
 		DecentralizedValue dest=message.getHostDestination();
-		AgentAddress aa = agent.getAgentWithRole(agent.getDistantGroupID(dest), CloudCommunity.Roles.SYNCHRONIZER);
+		AgentAddress aa = agent.getAgentWithRole(agent.getDistantGroupPerID(dest), CloudCommunity.Roles.SYNCHRONIZER);
 		if (aa!=null)
 		{
 			sendMessage(message, aa, dest);

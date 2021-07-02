@@ -175,7 +175,7 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 		}
 		public static String extractDistantHostIDString(Group group, String localHostID)
 		{
-			if (group.getPath().startsWith(CloudCommunity.Groups.DISTRIBUTED_DATABASE.getPath()))
+			if (Groups.DISTRIBUTED_DATABASE_WITH_SUB_GROUPS.includes(group))
 			{
 				String[] split=group.getName().split("~");
 				if (split.length==2)
@@ -187,8 +187,7 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 					}
 					else if (localHostID.equals(split[1]))
 					{
-						if (split[0]!=null)
-							return split[0];
+						return split[0];
 					}
 				}
 			}
@@ -217,7 +216,7 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 		}
 		public static String extractDistantHostIDStringFromCentralDatabaseBackupGroup(Group group, String centralID)
 		{
-			if (group.getPath().startsWith(Groups.CLIENT_SERVER_DATABASE.getPath()))
+			if (Groups.CLIENT_SERVER_DATABASE_WITH_SUB_GROUPS.includes(group))
 			{
 				String[] split=group.getName().split("~");
 				if (split.length==2)
@@ -229,8 +228,7 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 					}
 					else if (centralID.equals(split[1]))
 					{
-						if (split[0]!=null)
-							return split[0];
+						return split[0];
 					}
 				}
 			}
