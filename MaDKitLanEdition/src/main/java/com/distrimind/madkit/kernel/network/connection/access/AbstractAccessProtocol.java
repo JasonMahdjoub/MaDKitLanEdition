@@ -304,17 +304,17 @@ public abstract class AbstractAccessProtocol {
 									}
 
 								}
+								if (centralDatabaseBackupReceiver != null) {
+									if (dvCentral!=null)
+									{
+										listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP);
+									}
 
-							}
-							if (centralDatabaseBackupReceiver != null) {
-								if (dvCentral!=null)
-								{
-									listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP);
+									if (dvDistant != null && !centralDatabaseBackupReceiver.getCentralID().equals(dvDistant)) {
+										listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getCentralDatabaseGroup(centralDatabaseBackupReceiver.getCentralID(), dvDistant));
+									}
 								}
 
-								if (dvDistant != null && !centralDatabaseBackupReceiver.getCentralID().equals(dvDistant)) {
-									listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getCentralDatabaseGroup(centralDatabaseBackupReceiver.getCentralID(), dvDistant));
-								}
 							}
 
 

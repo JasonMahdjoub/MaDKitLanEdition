@@ -49,10 +49,7 @@ import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.io.*;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 
 /**
@@ -62,10 +59,20 @@ import java.util.logging.Level;
  */
 public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
+	static class KernelAddressAndDecentralizedValue
+	{
+		final KernelAddress kernelAddress;
+		final DecentralizedValue decentralizedValue;
 
-
-
-
+		public KernelAddressAndDecentralizedValue(KernelAddress kernelAddress, DecentralizedValue decentralizedValue) {
+			if (kernelAddress==null)
+				throw new NullPointerException();
+			if (decentralizedValue==null)
+				throw new NullPointerException();
+			this.kernelAddress = kernelAddress;
+			this.decentralizedValue = decentralizedValue;
+		}
+	}
 	private DatabaseWrapper wrapper;
 	private DatabaseWrapper.DatabaseSynchronizer synchronizer;
 	private DatabaseConfigurationsBuilder databaseConfigurationsBuilder;
@@ -73,9 +80,9 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 	private static final CheckEvents checkEvents=new CheckEvents();
 	private DecentralizedValue centralDatabaseID=null;
 	private Group centralDatabaseGroup=null;
-	private Map<Group, DecentralizedValue> distantGroupIdsPerGroup=new HashMap<>();
+	private Map<Group, KernelAddressAndDecentralizedValue> distantGroupIdsPerGroup=new HashMap<>();
 	private Map<DecentralizedValue, Group> distantGroupIdsPerID=new HashMap<>();
-	private Map<Group, DecentralizedValue> centralGroupIdsPerGroup=new HashMap<>();
+	private Map<Group, KernelAddressAndDecentralizedValue> centralGroupIdsPerGroup=new HashMap<>();
 	//private Map<DecentralizedValue, Group> centralGroupIdsPerID=new HashMap<>();
 	private final HashMap<ConversationID, BigDataMetaData> currentBigDataReceiving=new HashMap<>();
 	private final HashMap<ConversationID, BigDataMetaData> currentBigDataSending=new HashMap<>();
@@ -220,14 +227,16 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 	{
 		if (group.getPath().startsWith(CloudCommunity.Groups.DISTRIBUTED_DATABASE.getPath())
 				&& role.equals(CloudCommunity.Roles.SYNCHRONIZER)) {
-			DecentralizedValue res = distantGroupIdsPerGroup.get(group);
+			KernelAddressAndDecentralizedValue res = distantGroupIdsPerGroup.get(group);
 			if (res == null) {
 				if (distantKernelAddress != null)
 					anomalyDetectedWithOneDistantKernel(true, distantKernelAddress, "Invalided peer ID " + group);
 
 				getLogger().severeLog("Invalided peer ID " + group);
+				return null;
 			}
-			return res;
+			else
+				return res.decentralizedValue;
 		}
 		else
 			return null;
@@ -239,14 +248,16 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 		path=path.substring(0, path.lastIndexOf("/")+1);
 		if (CloudCommunity.Groups.CLIENT_SERVER_DATABASE.getPath().equals(path)
 				&& role.equals(CloudCommunity.Roles.CENTRAL_SYNCHRONIZER)) {
-			DecentralizedValue res = centralGroupIdsPerGroup.get(group);
+			KernelAddressAndDecentralizedValue res = centralGroupIdsPerGroup.get(group);
 			if (res == null) {
 				if (distantKernelAddress != null)
 					anomalyDetectedWithOneDistantKernel(true, distantKernelAddress, "Invalided peer group " + group);
 
 				getLogger().severeLog("Invalided peer group " + group);
+				return null;
 			}
-			return res;
+			else
+				return res.decentralizedValue;
 		}
 		else
 			return null;
@@ -301,9 +312,9 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			centralDatabaseGroup = null;
 			if (centralGroupIdsPerGroup.size()>0)
 			{
-				for (Map.Entry<Group, DecentralizedValue> e : centralGroupIdsPerGroup.entrySet()) {
+				for (Map.Entry<Group, KernelAddressAndDecentralizedValue> e : centralGroupIdsPerGroup.entrySet()) {
 					if (hasRole(e.getKey(), CloudCommunity.Roles.SYNCHRONIZER)) {
-						initCentralPeer(e.getKey(), e.getValue());
+						initCentralPeer(e.getKey(), e.getValue().decentralizedValue);
 						break;
 					}
 				}
@@ -351,49 +362,51 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 		else if (_message instanceof NetworkGroupsAccessEvent)
 		{
 			NetworkGroupsAccessEvent m=(NetworkGroupsAccessEvent)_message;
-			HashMap<Group, DecentralizedValue> distantGroupIdsPerGroup=new HashMap<>();
+			HashMap<Group, KernelAddressAndDecentralizedValue> distantGroupIdsPerGroup=new HashMap<>();
 			Map<DecentralizedValue, Group> distantGroupIdsPerID=new HashMap<>();
-			HashMap<Group, DecentralizedValue> centralGroupIdsPerGroup=new HashMap<>();
+			HashMap<Group, KernelAddressAndDecentralizedValue> centralGroupIdsPerGroup=new HashMap<>();
 			//Map<DecentralizedValue, Group> centralGroupIdsPerID=new HashMap<>();
-			boolean changed=false;
-			boolean centralChanged=false;
+
 			for (Group g : m.getGeneralAcceptedGroups().getGroups().getRepresentedGroups())
 			{
-
-				if (g.getPath().startsWith(CloudCommunity.Groups.DISTRIBUTED_DATABASE.getPath()))
+				if (CloudCommunity.Groups.DISTRIBUTED_DATABASE_WITH_SUB_GROUPS.includes(g))
 				{
-					DecentralizedValue dv=this.distantGroupIdsPerGroup.get(g);
+					KernelAddressAndDecentralizedValue dv=this.distantGroupIdsPerGroup.get(g);
 					if (dv!=null)
 					{
 						distantGroupIdsPerGroup.put(g, dv );
-						distantGroupIdsPerID.put(dv, g);
+						distantGroupIdsPerID.put(dv.decentralizedValue, g);
 						if (!hasRole(g, CloudCommunity.Roles.SYNCHRONIZER))
 							getLogger().warning("CloudCommunity.Roles.SYNCHRONIZER role should be requested with group "+g);
 					}
 					else
 					{
+						DecentralizedValue localPeer=databaseConfigurationsBuilder.getConfigurations().getLocalPeer();
+						if (localPeer!=null) {
+							try {
+								DecentralizedValue d = CloudCommunity.Groups.extractDistantHostID(g, localPeer);
 
-						try {
-							dv=CloudCommunity.Groups.extractDistantHostID(g,  databaseConfigurationsBuilder.getConfigurations().getLocalPeer());
-							if (dv!=null && !dv.equals(synchronizer.getLocalHostID()))
-							{
-								if (logger!=null && logger.isLoggable(Level.INFO))
-									logger.info("Peer available : "+dv);
-								changed=true;
-								distantGroupIdsPerGroup.put(g, dv );
-								distantGroupIdsPerID.put(dv, g);
-								this.requestRole(g, CloudCommunity.Roles.SYNCHRONIZER);
+								if (d != null && !d.equals(synchronizer.getLocalHostID())) {
+									dv = new KernelAddressAndDecentralizedValue(m.getConcernedKernelAddress(), d);
+									if (logger != null && logger.isLoggable(Level.INFO))
+										logger.info("Peer available : " + dv);
+									distantGroupIdsPerGroup.put(g, dv);
+									distantGroupIdsPerID.put(dv.decentralizedValue, g);
+									this.requestRole(g, CloudCommunity.Roles.SYNCHRONIZER);
+								}
+							} catch (IOException | DatabaseException ignored) {
+
 							}
-						} catch (IOException | DatabaseException ignored) {
-
 						}
+						else
+							System.out.println("here");
 					}
 				}
-				else if (g.getPath().startsWith(CloudCommunity.Groups.CLIENT_SERVER_DATABASE.getPath()))
+				else if (CloudCommunity.Groups.CLIENT_SERVER_DATABASE_WITH_SUB_GROUPS.includes(g))
 				{
 					try {
 
-						DecentralizedValue dv = this.centralGroupIdsPerGroup.get(g);
+						KernelAddressAndDecentralizedValue dv = this.centralGroupIdsPerGroup.get(g);
 
 						if (dv != null) {
 							centralGroupIdsPerGroup.put(g, dv );
@@ -401,50 +414,57 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 							if (!hasRole(g, CloudCommunity.Roles.SYNCHRONIZER))
 								getLogger().warning("CloudCommunity.Roles.SYNCHRONIZER role should be requested with group " + g);
 						} else {
-							dv = CloudCommunity.Groups.extractDistantHostIDFromCentralDatabaseBackupGroup(g, databaseConfigurationsBuilder.getConfigurations().getLocalPeer());
-							if (dv!=null) {
-								if (logger!=null && logger.isLoggable(Level.INFO))
-									logger.info("Central database server available : "+dv);
-								centralChanged=true;
-								centralGroupIdsPerGroup.put(g, dv );
+							DecentralizedValue localPeer=databaseConfigurationsBuilder.getConfigurations().getLocalPeer();
+							if (localPeer!=null) {
+								DecentralizedValue d = CloudCommunity.Groups.extractDistantHostIDFromCentralDatabaseBackupGroup(g, localPeer);
+								if (d != null) {
+									dv=new KernelAddressAndDecentralizedValue(m.getConcernedKernelAddress(), d);
+									if (logger != null && logger.isLoggable(Level.INFO))
+										logger.info("Central database server available : " + dv);
+
+									centralGroupIdsPerGroup.put(g, dv);
 //								centralGroupIdsPerID.put(dv, g);
-								this.requestRole(g, CloudCommunity.Roles.SYNCHRONIZER);
+									this.requestRole(g, CloudCommunity.Roles.SYNCHRONIZER);
+								}
 							}
 
 						}
-					} catch (IOException ignored) {
-
+					} catch (IOException e) {
+						e.printStackTrace();
 					}
 				}
 			}
-			if (this.distantGroupIdsPerGroup.size()!=distantGroupIdsPerGroup.size() || changed)
+
+			for (Map.Entry<Group, KernelAddressAndDecentralizedValue> e : this.distantGroupIdsPerGroup.entrySet())
 			{
-				for (Map.Entry<Group, DecentralizedValue> e : this.distantGroupIdsPerGroup.entrySet())
-				{
-					if (!distantGroupIdsPerGroup.containsKey(e.getKey()))
-					{
-						if (logger!=null && logger.isLoggable(Level.INFO))
-							logger.info("Peer disconnected : "+e.getValue());
+				if (!distantGroupIdsPerGroup.containsKey(e.getKey())) {
+					if (e.getValue().kernelAddress.equals(m.getConcernedKernelAddress())) {
+						if (logger != null && logger.isLoggable(Level.INFO))
+							logger.info("Peer disconnected : " + e.getValue());
 						leaveGroup(e.getKey());
 						try {
-							synchronizer.peerDisconnected(e.getValue());
+							synchronizer.peerDisconnected(e.getValue().decentralizedValue);
 						} catch (DatabaseException e2) {
 							getLogger().severeLog("Impossible to disconnect " + e.getValue(), e2);
 						}
+					} else {
+						distantGroupIdsPerGroup.put(e.getKey(), e.getValue());
+						distantGroupIdsPerID.put(e.getValue().decentralizedValue, e.getKey());
 					}
 				}
 			}
-			if (this.centralGroupIdsPerGroup.size()!=centralGroupIdsPerGroup.size() || centralChanged)
-			{
-				for (Map.Entry<Group, DecentralizedValue> e : this.centralGroupIdsPerGroup.entrySet())
-				{
-					if (!centralGroupIdsPerGroup.containsKey(e.getKey()))
-					{
-						if (logger!=null && logger.isLoggable(Level.INFO))
-							logger.info("Central database server disconnected : "+e.getValue());
-						leaveGroup(e.getKey());
 
+			for (Map.Entry<Group, KernelAddressAndDecentralizedValue> e : this.centralGroupIdsPerGroup.entrySet())
+			{
+				if (!centralGroupIdsPerGroup.containsKey(e.getKey()))
+				{
+					if (e.getValue().kernelAddress.equals(m.getConcernedKernelAddress())) {
+						if (logger != null && logger.isLoggable(Level.INFO))
+							logger.info("Central database server disconnected : " + e.getValue());
+						leaveGroup(e.getKey());
 					}
+					else
+						centralGroupIdsPerGroup.put(e.getKey(), e.getValue());
 				}
 			}
 			this.distantGroupIdsPerGroup=distantGroupIdsPerGroup;
@@ -453,8 +473,8 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			//this.centralGroupIdsPerID=centralGroupIdsPerID;
 			if (centralDatabaseID==null && centralGroupIdsPerGroup.size()>0)
 			{
-				Map.Entry<Group, DecentralizedValue> e=centralGroupIdsPerGroup.entrySet().iterator().next();
-				centralDatabaseID = e.getValue();
+				Map.Entry<Group, KernelAddressAndDecentralizedValue> e=centralGroupIdsPerGroup.entrySet().iterator().next();
+				centralDatabaseID = e.getValue().decentralizedValue;
 				centralDatabaseGroup = e.getKey();
 			}
 		}
