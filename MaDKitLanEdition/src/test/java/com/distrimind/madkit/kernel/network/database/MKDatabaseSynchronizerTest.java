@@ -938,15 +938,18 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				DatabaseWrapper wrapper=getMadkitConfig().getDatabaseWrapper();
 				Assert.assertNotNull(wrapper);
 
-				wrapper.getDatabaseConfigurationsBuilder()
-						.setLocalPeerIdentifier(localIdentifier, true, false)
-						.addConfiguration(
-							new DatabaseConfiguration(new DatabaseSchema(Table1.class.getPackage()), synchronizationType, Collections.singletonList(localIdentifierOtherSide), synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE?new BackupConfiguration(10000, 30000, 32000,1000, null):null),false, false );
 				if (synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE)
 					wrapper.getDatabaseConfigurationsBuilder()
 							.setCentralDatabaseBackupCertificate(centralDatabaseBackupCertificate);
 				wrapper.getDatabaseConfigurationsBuilder()
+						.setLocalPeerIdentifier(localIdentifier, true, false)
+						.addConfiguration(
+							new DatabaseConfiguration(new DatabaseSchema(Table1.class.getPackage()), synchronizationType, Collections.singletonList(localIdentifierOtherSide), synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE?new BackupConfiguration(10000, 30000, 32000,1000, null):null),false, false );
+
+
+				wrapper.getDatabaseConfigurationsBuilder()
 						.commit();
+
 				Assert.assertNotNull(wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
 				Assert.assertNotNull(wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString());
 				Assert.assertEquals(wrapper.getSynchronizer().getLocalHostID(), localIdentifier);
@@ -1019,16 +1022,15 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				Assert.assertNull(wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
 				Assert.assertNull(wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString());
 				finished.set(true);
-			} catch (DatabaseException | InterruptedException e) {
-				e.printStackTrace();
-			}
-			catch(AssertionError e)
+			} catch(AssertionError e)
 			{
 				e.printStackTrace();
 				finished.set(false);
 				throw e;
-			}
-			finally {
+			} catch (Throwable e) {
+				e.printStackTrace();
+				finished.set(false);
+			} finally {
 				this.killAgent(this);
 			}
 		}
@@ -1130,8 +1132,10 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					System.out.println("Second step");
 					Assert.assertTrue(databaseFile1.exists());
 					Assert.assertTrue(databaseFile2.exists());
-					if (connectCentralDatabaseBackup)
+					if (connectCentralDatabaseBackup) {
 						launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, new AbstractAgent(), eventListenerServer);
+						sleep(600);
+					}
 					agentChecker = new SecondConnexionAgent(localIdentifier, localIdentifierOtherSide, recordsToAdd, recordsToAddOtherSide, finished1, connectCentralDatabaseBackup, indirectSynchronizationWithCentralDatabaseBackup, centralDatabaseBackupCertificate);
 					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentChecker, eventListener1);
 					sleep(400);
@@ -1151,8 +1155,10 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					finished1.set(null);
 					finished2.set(null);
 					System.out.println("Third step");
-					if (connectCentralDatabaseBackup)
+					if (connectCentralDatabaseBackup) {
 						launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, new AbstractAgent(), eventListenerServer);
+						sleep(600);
+					}
 					agentChecker = new ThirdConnexionAgent(localIdentifier, finished1);
 					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentChecker, eventListener1);
 					sleep(400);

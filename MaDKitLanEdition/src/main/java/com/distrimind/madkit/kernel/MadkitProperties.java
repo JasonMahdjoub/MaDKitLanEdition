@@ -296,11 +296,14 @@ public class MadkitProperties extends MultiFormatProperties {
 	private transient boolean databaseConfigurationsParametrized=false;
 
 	public void setDatabaseFactory(DatabaseFactory<?> df) throws DatabaseException {
+		if (centralDatabaseBackupReceiverFactory!=null)
+			centralDatabaseBackupReceiverFactory.disconnectSingletonIfUsed();
 		if (databaseFactory != null && databaseFactory != df) {
 			databaseFactory.closeSingletonIfOpened();
 		}
 		databaseConfigurationsParametrized=false;
 		databaseFactory = df;
+
 	}
 	private void checkDatabaseConfigurationsParameters() throws DatabaseException {
 		if (databaseFactory!=null) {
