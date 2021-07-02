@@ -414,6 +414,8 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 	public MKDatabaseSynchronizerTest(boolean connectCentralDatabaseBackup,
 									  boolean indirectSynchronizationWithCentralDatabaseBackup) throws IOException, DatabaseException, NoSuchAlgorithmException, NoSuchProviderException {
 		System.out.println("connectCentralDatabaseBackup="+connectCentralDatabaseBackup+", indirectSynchronizationWithCentralDatabaseBackup="+indirectSynchronizationWithCentralDatabaseBackup);
+		if(centralDatabaseFilesDirectory.exists())
+			FileTools.deleteDirectory(centralDatabaseFilesDirectory);
 		this.connectCentralDatabaseBackup=connectCentralDatabaseBackup;
 		indirectSynchronizationWithCentralDatabaseBackup=this.indirectSynchronizationWithCentralDatabaseBackup=indirectSynchronizationWithCentralDatabaseBackup & connectCentralDatabaseBackup;
 		random=SecureRandomType.DEFAULT.getInstance(null);
