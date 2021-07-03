@@ -39,14 +39,12 @@ import com.distrimind.madkit.agr.CloudCommunity;
 import com.distrimind.madkit.message.NetworkObjectMessage;
 import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.ood.database.EncryptedDatabaseBackupMetaDataPerFile;
-import com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupCertificate;
 import com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupReceiver;
 import com.distrimind.ood.database.centraldatabaseapi.FileReference;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.ood.database.messages.BigDataEventToSendWithCentralDatabaseBackup;
 import com.distrimind.ood.database.messages.MessageComingFromCentralDatabaseBackup;
 import com.distrimind.util.DecentralizedValue;
-import com.distrimind.util.crypto.EncryptionProfileProvider;
 import com.distrimind.util.io.RandomCacheFileOutputStream;
 import com.distrimind.util.io.RandomFileOutputStream;
 
@@ -58,17 +56,21 @@ import java.util.logging.Level;
  * @version 1.0
  * @since MaDKitLanEdition 2.2.0
  */
-public class CentralDatabaseBackupReceiverPerPeer extends com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupReceiverPerPeer {
+public abstract class CentralDatabaseBackupReceiverPerPeer extends com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupReceiverPerPeer {
 
 	private final CentralDatabaseBackupReceiverAgent agent;
 	private BigDataTransferID currentBigDataTransferID=null;
 	private RandomCacheFileOutputStream currentBigDataOutputStream=null;
+	private final FileReferenceFactory fileReferenceFactory;
 
-	protected CentralDatabaseBackupReceiverPerPeer(CentralDatabaseBackupReceiver centralDatabaseBackupReceiver, DatabaseWrapper wrapper, CentralDatabaseBackupReceiverAgent agent) {
+	protected CentralDatabaseBackupReceiverPerPeer(CentralDatabaseBackupReceiver centralDatabaseBackupReceiver, DatabaseWrapper wrapper, CentralDatabaseBackupReceiverAgent agent, FileReferenceFactory fileReferenceFactory) {
 		super(centralDatabaseBackupReceiver, wrapper);
 		if (agent==null)
 			throw new NullPointerException();
+		if (fileReferenceFactory==null)
+			throw new NullPointerException();
 		this.agent=agent;
+		this.fileReferenceFactory=fileReferenceFactory;
 	}
 	private void sendMessage(MessageComingFromCentralDatabaseBackup message, AgentAddress aa, DecentralizedValue dest) {
 		try {
@@ -111,7 +113,8 @@ public class CentralDatabaseBackupReceiverPerPeer extends com.distrimind.ood.dat
 			DecentralizedValue dest = message.getHostDestination();
 			if (agent.logger != null && agent.logger.isLoggable(Level.FINEST))
 				agent.logger.finest("Send event " + message.getClass() + " to peer " + dest);
-			AgentAddress aa = agent.getAgentWithRole(agent.getDistantGroupID(dest), CloudCommunity.Roles.SYNCHRONIZER);
+			Group g=agent.getDistantGroupPerID(dest);
+			AgentAddress aa = g==null?null:agent.getAgentWithRole(g, CloudCommunity.Roles.SYNCHRONIZER);
 			if (aa != null) {
 				sendMessage(message, aa, dest);
 			}
@@ -128,7 +131,7 @@ public class CentralDatabaseBackupReceiverPerPeer extends com.distrimind.ood.dat
 	@Override
 	protected void sendMessageFromOtherCentralDatabaseBackup(DecentralizedValue centralDatabaseBackupID, MessageComingFromCentralDatabaseBackup message) {
 		DecentralizedValue dest=message.getHostDestination();
-		AgentAddress aa = agent.getAgentWithRole(agent.getDistantGroupID(dest), CloudCommunity.Roles.SYNCHRONIZER);
+		AgentAddress aa = agent.getAgentWithRole(agent.getDistantGroupPerID(dest), CloudCommunity.Roles.SYNCHRONIZER);
 		if (aa!=null)
 		{
 			sendMessage(message, aa, dest);
@@ -163,13 +166,11 @@ public class CentralDatabaseBackupReceiverPerPeer extends com.distrimind.ood.dat
 		}
 	}
 
-	@Override
-	protected EncryptionProfileProvider getEncryptionProfileProviderToValidateCertificateOrGetNullIfNoValidProviderIsAvailable(CentralDatabaseBackupCertificate certificate) {
-		return null;
-	}
 
 	@Override
 	public FileReference getFileReference(EncryptedDatabaseBackupMetaDataPerFile encryptedDatabaseBackupMetaDataPerFile) {
-		return null;
+		if (connectedClientID==null || clientCloud==null || clientCloud.getExternalAccountID()==null || encryptedDatabaseBackupMetaDataPerFile==null)
+			return null;
+		return fileReferenceFactory.getFileReference(clientCloud.getAccountID(), clientCloud.getExternalAccountID(), connectedClientID, encryptedDatabaseBackupMetaDataPerFile);
 	}
 }

@@ -50,6 +50,7 @@ import com.distrimind.madkit.util.MultiFormatPropertiesObjectParser;
 import com.distrimind.madkit.util.XMLUtilities;
 import com.distrimind.ood.database.*;
 import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.util.DecentralizedIDGenerator;
 import com.distrimind.util.FileTools;
 import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.crypto.SecureRandomType;
@@ -93,6 +94,8 @@ public class MadkitProperties extends MultiFormatProperties {
 	 * Represents the current madkit version.
 	 */
 	public final Version madkitVersion = Madkit.getVersion();
+
+	boolean madkitLaunched=false;
 
 	/**
 	 * Represents the minimum MadkitLanEdition version that this instance can
@@ -293,11 +296,14 @@ public class MadkitProperties extends MultiFormatProperties {
 	private transient boolean databaseConfigurationsParametrized=false;
 
 	public void setDatabaseFactory(DatabaseFactory<?> df) throws DatabaseException {
+		if (centralDatabaseBackupReceiverFactory!=null)
+			centralDatabaseBackupReceiverFactory.disconnectSingletonIfUsed();
 		if (databaseFactory != null && databaseFactory != df) {
 			databaseFactory.closeSingletonIfOpened();
 		}
 		databaseConfigurationsParametrized=false;
 		databaseFactory = df;
+
 	}
 	private void checkDatabaseConfigurationsParameters() throws DatabaseException {
 		if (databaseFactory!=null) {
@@ -317,17 +323,17 @@ public class MadkitProperties extends MultiFormatProperties {
 
 					databaseFactory.setDatabaseLifeCycles(new DatabaseLifeCycles() {
 						@Override
-						public void transferDatabaseFromOldVersion(DatabaseWrapper wrapper, DatabaseConfiguration newDatabaseConfiguration) throws Exception {
+						public void transferDatabaseFromOldVersion(DatabaseWrapper wrapper, DatabaseConfiguration newDatabaseConfiguration) {
 
 						}
 
 						@Override
-						public void afterDatabaseCreation(DatabaseWrapper wrapper, DatabaseConfiguration newDatabaseConfiguration) throws Exception {
+						public void afterDatabaseCreation(DatabaseWrapper wrapper, DatabaseConfiguration newDatabaseConfiguration) {
 
 						}
 
 						@Override
-						public boolean hasToRemoveOldDatabase(DatabaseConfiguration databaseConfiguration) throws Exception {
+						public boolean hasToRemoveOldDatabase(DatabaseConfiguration databaseConfiguration) {
 							return true;
 						}
 
@@ -381,7 +387,7 @@ public class MadkitProperties extends MultiFormatProperties {
 	}
 	//private transient long databaseSynchronisationFileID=0;
 
-	private transient File temporaryDatabaseDirectoryUsedForSynchronisation=null;
+	/*private transient File temporaryDatabaseDirectoryUsedForSynchronisation=null;
 
 	void resetTemporaryDatabaseDirectoryUsedForSynchronisation() throws DatabaseException {
 		synchronized (this)
@@ -412,7 +418,7 @@ public class MadkitProperties extends MultiFormatProperties {
 			return temporaryDatabaseDirectoryUsedForSynchronisation;
 		}
 
-	}
+	}*/
 
 	/*File getDatabaseSynchronisationFileName() throws DatabaseException {
 		synchronized (this)
@@ -500,6 +506,15 @@ public class MadkitProperties extends MultiFormatProperties {
 	}
 
 	private transient volatile RandomCacheFileCenter cacheFileCenter=null;
+	private transient volatile File cacheFileCenterDirectory=new File(tmpDirectory, new DecentralizedIDGenerator().encodeString().toString());
+	private static final File tmpDirectory = new File(
+			System.getProperty("java.io.tmpdir"), "DistriMind"+File.pathSeparatorChar+"MKLE"+File.pathSeparatorChar+"CacheFileCenter");
+
+	public void setCacheFileCenterDirectory(File cacheFileCenterDirectory) {
+		if (cacheFileCenterDirectory==null)
+			throw new NullPointerException();
+		this.cacheFileCenterDirectory = cacheFileCenterDirectory;
+	}
 
 	public RandomCacheFileCenter getCacheFileCenter()
 	{
@@ -512,7 +527,19 @@ public class MadkitProperties extends MultiFormatProperties {
 			}
 			return cacheFileCenter;
 		}
+	}
 
+	void resetCacheFileCenter()
+	{
+		synchronized (this)
+		{
+			if (cacheFileCenter!=null)
+			{
+				cacheFileCenter=null;
+			}
+			if (cacheFileCenterDirectory.exists())
+				FileTools.deleteDirectory(cacheFileCenterDirectory);
+		}
 	}
 
 
@@ -1106,7 +1133,7 @@ public class MadkitProperties extends MultiFormatProperties {
 
 	private CentralDatabaseBackupReceiverFactory<?> centralDatabaseBackupReceiverFactory;
 
-	boolean setCentralDatabaseBackupReceiverFactory(CentralDatabaseBackupReceiverFactory<?> centralDatabaseBackupReceiverFactory) throws DatabaseException {
+	boolean setCentralDatabaseBackupReceiverFactoryImpl(CentralDatabaseBackupReceiverFactory<?> centralDatabaseBackupReceiverFactory) throws DatabaseException {
 		boolean changed=false;
 		if (this.centralDatabaseBackupReceiverFactory!=null && centralDatabaseBackupReceiverFactory!=this.centralDatabaseBackupReceiverFactory)
 		{
@@ -1115,6 +1142,12 @@ public class MadkitProperties extends MultiFormatProperties {
 		this.centralDatabaseBackupReceiverFactory = centralDatabaseBackupReceiverFactory;
 		return changed;
 	}
+	public boolean setCentralDatabaseBackupReceiverFactory(CentralDatabaseBackupReceiverFactory<?> centralDatabaseBackupReceiverFactory) throws DatabaseException {
+		if (madkitLaunched)
+			throw new DatabaseException("Cannot launch this function when MaDKit was launched. Please use instead the function AbstractAgent.setCentralDatabaseBackupReceiverFactory(CentralDatabaseBackupReceiverFactory)");
+		return setCentralDatabaseBackupReceiverFactoryImpl(centralDatabaseBackupReceiverFactory);
+	}
+
 	public com.distrimind.madkit.kernel.CentralDatabaseBackupReceiver getCentralDatabaseBackupReceiver() throws DatabaseException {
 		if (centralDatabaseBackupReceiverFactory==null)
 			return null;

@@ -129,6 +129,11 @@ public class CustomAutoSignedHostIdentifier extends HostIdentifier {
 
 	@Override
 	public DecentralizedValue getDecentralizedDatabaseID() {
-		return (DecentralizedValue)getAuthenticationPublicKey();
+		return getAuthenticationPublicKey();
+	}
+
+	@Override
+	public DecentralizedValue getCentralDecentralizedDatabaseID() {
+		return getAuthenticationPublicKey();
 	}
 }

@@ -496,7 +496,7 @@ final class NIOAgent extends Agent {
 					BindInetSocketAddressMessage message = (BindInetSocketAddressMessage) m;
 					InetSocketAddress addr = message.getInetSocketAddress();
 					if (message.getType().equals(BindInetSocketAddressMessage.Type.BIND)) {
-						if (this.getMadkitConfig().networkProperties.needsServerSocket(addr)) {
+						if (this.getMadkitConfig().networkProperties.needsServerSocket(addr, addr.getPort())) {
 							boolean alreadyBind = false;
 							for (Server s : serverChannels) {
 

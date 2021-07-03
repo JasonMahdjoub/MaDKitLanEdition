@@ -242,7 +242,7 @@ public class ConnectionProperties {
 			boolean isServer, boolean needConnectionInitiationAbility, EncryptionRestriction encryptionRestriction) throws NIOException {
 		for (ConnectionProtocolProperties<?> cpp : connection_protocol_properties) {
 			if (cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
-					_distant_inet_address.getAddress(), isServer, needConnectionInitiationAbility, encryptionRestriction))
+					_distant_inet_address.getAddress(), _distant_inet_address.getPort(), isServer, needConnectionInitiationAbility, encryptionRestriction))
 				return cpp.getConnectionProtocolInstance(_distant_inet_address, _local_interface_address,
 						sql_connection, mkProperties, isServer, needConnectionInitiationAbility, encryptionRestriction);
 		}

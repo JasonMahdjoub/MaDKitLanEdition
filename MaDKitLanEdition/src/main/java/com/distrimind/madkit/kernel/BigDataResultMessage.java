@@ -162,6 +162,6 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 	
 	public String toString()
 	{
-		return "BigDataResultMessage[type="+type+", dataTransferredInBytes="+ getTransferredDataLength()+", durationInMs="+getTransferDuration()+"]";
+		return "BigDataResultMessage[type="+type+", dataTransferredInBytes="+ getTransferredDataLength()+", durationInMs="+getTransferDuration()/*+", sender="+getSender()+", receiver="+getReceiver()*/+"]";
 	}
 }

@@ -96,6 +96,15 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 		return communityObject;
 	}
 
+	boolean containsDistantAgents()
+	{
+		return values().stream().anyMatch(InternalRole::containsDistantAgents);
+	}
+
+	void clearLocalAgents()
+	{
+		entrySet().removeIf(e -> !e.getValue().clearLocalAgents());
+	}
 
 
 	InternalGroup(Group _group, AgentAddress manager, Organization communityObject, boolean manually_created) {

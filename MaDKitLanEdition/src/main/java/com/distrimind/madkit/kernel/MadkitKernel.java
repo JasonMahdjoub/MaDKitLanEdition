@@ -323,7 +323,7 @@ class MadkitKernel extends Agent {
 		if (madkitConfig.isDatabaseEnabled()) {
 			try {
 				differedMessageTable= madkitConfig.getDatabaseWrapper().getTableInstance(DifferedMessageTable.class);
-				madkitConfig.resetTemporaryDatabaseDirectoryUsedForSynchronisation();
+				//madkitConfig.resetTemporaryDatabaseDirectoryUsedForSynchronisation();
 			} catch (DatabaseException e) {
 				bugReport(e);
 				try {
@@ -333,6 +333,7 @@ class MadkitKernel extends Agent {
 				}
 			}
 		}
+		madkitConfig.madkitLaunched=true;
 		//this.lockSocketUntilCGRSynchroIsSent= madkitConfig.networkProperties != null && madkitConfig.networkProperties.lockSocketUntilCGRSynchroIsSent;
 
 	}
@@ -1157,6 +1158,7 @@ class MadkitKernel extends Agent {
                     removeDistantKernelAddress(distantAccessibleGroupsGivenToDistantPeer, distantAccessibleKernelsPerGroupsGivenToDistantPeer, m.getDistantKernelAddress());
 					acceptedDistantLogins.remove(m.getDistantKernelAddress());
 					removeDistantKernelAddressFromCGR(m.getDistantKernelAddress());
+					//globalInterfacedIds.remove(m.getDistantKernelAddress());
 					//Group.madkitKernelKilled(m.getDistantKernelAddress());
 				}
 			} else if (hook_message.getClass() == NetworkGroupsAccessEvent.class) {
@@ -3170,9 +3172,10 @@ class MadkitKernel extends Agent {
 			this.serviceExecutor = null;
 		}
 		try {
-			getMadkitConfig().resetTemporaryDatabaseDirectoryUsedForSynchronisation();
+			getMadkitConfig().resetCacheFileCenter();
+			//getMadkitConfig().resetTemporaryDatabaseDirectoryUsedForSynchronisation();
 			getMadkitConfig().setDatabaseFactory(null);
-		} catch (DatabaseException e) {
+		} catch (Throwable e) {
 			e.printStackTrace();
 		}
 
@@ -4016,7 +4019,7 @@ class MadkitKernel extends Agent {
 	}
 
 	ReturnCode setCentralDatabaseBackupReceiverFactory(AbstractAgent ignored, CentralDatabaseBackupReceiverFactory<?> centralDatabaseBackupReceiverFactory) throws DatabaseException {
-		boolean changed=getMadkitConfig().setCentralDatabaseBackupReceiverFactory(centralDatabaseBackupReceiverFactory);
+		boolean changed=getMadkitConfig().setCentralDatabaseBackupReceiverFactoryImpl(centralDatabaseBackupReceiverFactory);
 		if (changed) {
 			if (netAgent != null) {
 				Message m = new EmptyMessage();

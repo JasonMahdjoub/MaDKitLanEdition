@@ -413,6 +413,13 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 			incrementReferences(content.getKernelAddress());
 	}*/
 
+	final boolean containsDistantAgents()
+	{
+		synchronized (players) {
+			return distantAgentAddresses != null && distantAgentAddresses.size() > 0;
+		}
+	}
+
 	final boolean addDistantMemberIfNecessary(final AgentAddress content) {
 
 		if (content.getKernelAddress()==null)
@@ -686,10 +693,14 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 		}
 	}
 
-	/**
-	 * 
-	 */
-	private void cleanAndRemove() {
+	boolean clearLocalAgents()
+	{
+		synchronized (players) {
+			cleanAndRemove(false);
+			return distantAgentAddresses!=null && distantAgentAddresses.size()>0;
+		}
+	}
+	private void cleanAndRemove(boolean distantAgents) {
 		/*
 		 * for (final Overlooker<? extends AbstractAgent> o : overlookers) {
 		 * o.setOverlookedRole(null); }
@@ -697,15 +708,24 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 		if (number_of_manually_requested_role.getAndSet(0) > 0) {
 			group.decrementMadKitReferences(this.kernelAddress);
 		}
-		myGroup.removeRole(roleName);
+		if (!distantAgents)
+			myGroup.removeRole(roleName);
 		removeOverlookers();
 		// overlookers = null;
 		tmpReferencableAgents = null;
 		// players = null;
 		agentAddresses = null;
 		localAgentAddresses=null;
-		distantAgentAddresses.clear();
+		if (distantAgents)
+			distantAgentAddresses.clear();
 		players.clear();
+		modified=true;
+	}
+	/**
+	 * 
+	 */
+	private void cleanAndRemove() {
+		cleanAndRemove(true);
 	}
 
 	// /**

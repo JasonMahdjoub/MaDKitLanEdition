@@ -44,33 +44,34 @@ import com.distrimind.util.DecentralizedValue;
  * @version 1.0
  * @since MaDKitLanEdition 2.2.0
  */
-public class CentralDatabaseBackupReceiver extends com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupReceiver {
+public abstract class CentralDatabaseBackupReceiver extends com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupReceiver {
 
 	private CentralDatabaseBackupReceiverAgent agent;
 	private final long durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder;
 	private final long durationInMsBeforeOrderingDatabaseBackupDeletion;
 	private final long durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect;
 	private final long durationInMsToWaitBeforeRemovingAccountDefinitively;
+	private final FileReferenceFactory fileReferenceFactory;
 	public CentralDatabaseBackupReceiver(DatabaseWrapper wrapper, DecentralizedValue centralID,
 										 long durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder,
 										 long durationInMsBeforeOrderingDatabaseBackupDeletion,
 										 long durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect,
-										 long durationInMsToWaitBeforeRemovingAccountDefinitively) throws DatabaseException {
+										 long durationInMsToWaitBeforeRemovingAccountDefinitively,
+										 FileReferenceFactory fileReferenceFactory) throws DatabaseException {
 		super(wrapper, centralID);
+		if (fileReferenceFactory==null)
+			throw new NullPointerException();
 		this.durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder=durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder;
 		this.durationInMsBeforeOrderingDatabaseBackupDeletion=durationInMsBeforeOrderingDatabaseBackupDeletion;
 		this.durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect=durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect;
 		this.durationInMsToWaitBeforeRemovingAccountDefinitively=durationInMsToWaitBeforeRemovingAccountDefinitively;
+		this.fileReferenceFactory=fileReferenceFactory;
 	}
 
 	void setAgent(CentralDatabaseBackupReceiverAgent agent) {
 		this.agent = agent;
 	}
 
-	@Override
-	protected CentralDatabaseBackupReceiverPerPeer newCentralDatabaseBackupReceiverPerPeerInstance(DatabaseWrapper wrapper) {
-		return new CentralDatabaseBackupReceiverPerPeer(this, wrapper, agent);
-	}
 
 	@Override
 	public long getDurationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder() {
@@ -90,5 +91,13 @@ public class CentralDatabaseBackupReceiver extends com.distrimind.ood.database.c
 	@Override
 	public long getDurationInMsToWaitBeforeRemovingAccountDefinitively() {
 		return durationInMsToWaitBeforeRemovingAccountDefinitively;
+	}
+
+	public FileReferenceFactory getFileReferenceFactory() {
+		return fileReferenceFactory;
+	}
+
+	public CentralDatabaseBackupReceiverAgent getAgent() {
+		return agent;
 	}
 }

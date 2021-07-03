@@ -35,29 +35,16 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-import com.distrimind.ood.database.DatabaseWrapper;
-import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.ood.database.EncryptedDatabaseBackupMetaDataPerFile;
+import com.distrimind.ood.database.centraldatabaseapi.FileReference;
 import com.distrimind.util.DecentralizedValue;
+import com.distrimind.util.crypto.IASymmetricPublicKey;
 
 /**
  * @author Jason Mahdjoub
  * @version 1.0
  * @since MaDKitLanEdition 2.2.0
  */
-public class DefaultCentralDatabaseBackupReceiverFactory extends CentralDatabaseBackupReceiverFactory<CentralDatabaseBackupReceiver>{
-	public DefaultCentralDatabaseBackupReceiverFactory() {
-	}
-
-	public DefaultCentralDatabaseBackupReceiverFactory(DecentralizedValue centralID, long durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder, long durationInMsBeforeOrderingDatabaseBackupDeletion, long durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect, long durationInMsToWaitBeforeRemovingAccountDefinitively) {
-		super(centralID, durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder, durationInMsBeforeOrderingDatabaseBackupDeletion, durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect, durationInMsToWaitBeforeRemovingAccountDefinitively);
-	}
-
-	@Override
-	public CentralDatabaseBackupReceiver getCentralDatabaseBackupReceiverInstance(DatabaseWrapper wrapper) throws DatabaseException {
-		return new CentralDatabaseBackupReceiver(wrapper, getCentralID(),
-				durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder,
-				durationInMsBeforeOrderingDatabaseBackupDeletion,
-				durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect,
-				durationInMsToWaitBeforeRemovingAccountDefinitively);
-	}
+public interface FileReferenceFactory {
+	FileReference getFileReference(long accountID, IASymmetricPublicKey externalAccountID, DecentralizedValue peerID, EncryptedDatabaseBackupMetaDataPerFile encryptedDatabaseBackupMetaDataPerFile);
 }

@@ -43,6 +43,7 @@ import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
 import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
+import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.concurrent.ScheduledPoolExecutor;
@@ -1026,6 +1027,16 @@ final class LoggedKernel extends MadkitKernel {
 
 		if (kernel.isFinestLogOn())
 			kernel.logger.log(Level.FINEST, "checkMemoryLeakAfterNetworkStopped (res=" + res + ")");
+
+		return res;
+	}
+
+	@Override
+	ReturnCode setCentralDatabaseBackupReceiverFactory(AbstractAgent requester, CentralDatabaseBackupReceiverFactory<?> centralDatabaseBackupReceiverFactory) throws DatabaseException {
+		ReturnCode res = kernel.setCentralDatabaseBackupReceiverFactory(requester, centralDatabaseBackupReceiverFactory);
+
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "setCentralDatabaseBackupReceiverFactory (requester="+requester+", centralDatabaseBackupReceiverFactory="+centralDatabaseBackupReceiverFactory+", res=" + res + ")");
 
 		return res;
 	}

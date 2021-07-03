@@ -41,6 +41,7 @@ import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.MadkitEventListener;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.connection.access.*;
+import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedIDGenerator;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.crypto.*;
@@ -300,15 +301,20 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 			@Override
 			public DecentralizedValue getDecentralizedDatabaseID(Identifier identifier, MadkitProperties properties) {
 				synchronized (databaseIdentifiers) {
-					DecentralizedIDGenerator res=databaseIdentifiers.get(identifier);
-					if (res==null)
-						databaseIdentifiers.put(identifier, res=new DecentralizedIDGenerator());
-					return res;
+					return databaseIdentifiers.get(identifier);
+				}
+			}
+
+			@Override
+			public DecentralizedValue getCentralDatabaseID(Identifier identifier, MadkitProperties properties) throws DatabaseException {
+				synchronized (databaseIdentifiers) {
+					return centralIdentifiers.get(identifier);
 				}
 			}
 		};
 	}
-	private static final HashMap<Identifier, DecentralizedIDGenerator> databaseIdentifiers=new HashMap<>();
+	public static final HashMap<Identifier, DecentralizedIDGenerator> databaseIdentifiers=new HashMap<>();
+	public static final HashMap<Identifier, IASymmetricPublicKey> centralIdentifiers=new HashMap<>();
 
 	public static ArrayList<AccessDataMKEventListener> getAccessDataMKEventListenerForPeerToPeerConnections(
 			final boolean canTakeLoginInitiative, final Runnable invalidPassord,final Runnable invalidCloudIdentifier, HostIdentifier hostIdentifier,

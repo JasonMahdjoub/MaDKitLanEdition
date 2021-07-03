@@ -61,12 +61,13 @@ public abstract class AccessData {
 	 * 
 	 * @param _distant_inet_address
 	 *            the distant inet address
+	 * @param _distant_port the distant port
 	 * @param _local_port
 	 *            the local port
 	 * @return true if the filter accept the connection with the given parameters
 	 */
-	public boolean isConcernedBy(InetAddress _distant_inet_address, int _local_port) {
-		return filters.isConcernedBy(_distant_inet_address, _local_port);
+	public boolean isConcernedBy(InetAddress _distant_inet_address, int _distant_port, int _local_port) {
+		return filters.isConcernedBy(_distant_inet_address, _distant_port, _local_port);
 	}
 
 	/**

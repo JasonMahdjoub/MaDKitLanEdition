@@ -48,11 +48,15 @@ public abstract class CentralDatabaseBackupReceiverFactory<T extends CentralData
 	protected long durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect;
 	protected long durationInMsToWaitBeforeRemovingAccountDefinitively;
 
+	protected Class<? extends FileReferenceFactory> fileReferenceFactoryClass;
+
 	public long getDurationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder() {
 		return durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder;
 	}
 
 	public void setDurationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder(long durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder) {
+		if (durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder<0)
+			throw new IllegalArgumentException();
 		this.durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder = durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder;
 	}
 
@@ -61,6 +65,8 @@ public abstract class CentralDatabaseBackupReceiverFactory<T extends CentralData
 	}
 
 	public void setDurationInMsBeforeOrderingDatabaseBackupDeletion(long durationInMsBeforeOrderingDatabaseBackupDeletion) {
+		if (durationInMsBeforeOrderingDatabaseBackupDeletion<0)
+			throw new IllegalArgumentException();
 		this.durationInMsBeforeOrderingDatabaseBackupDeletion = durationInMsBeforeOrderingDatabaseBackupDeletion;
 	}
 
@@ -69,6 +75,8 @@ public abstract class CentralDatabaseBackupReceiverFactory<T extends CentralData
 	}
 
 	public void setDurationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect(long durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect) {
+		if (durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect<0)
+			throw new IllegalArgumentException();
 		this.durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect = durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect;
 	}
 
@@ -77,7 +85,21 @@ public abstract class CentralDatabaseBackupReceiverFactory<T extends CentralData
 	}
 
 	public void setDurationInMsToWaitBeforeRemovingAccountDefinitively(long durationInMsToWaitBeforeRemovingAccountDefinitively) {
+		if (durationInMsToWaitBeforeRemovingAccountDefinitively<0)
+			throw new IllegalArgumentException();
 		this.durationInMsToWaitBeforeRemovingAccountDefinitively = durationInMsToWaitBeforeRemovingAccountDefinitively;
+	}
+
+
+
+	public Class<? extends FileReferenceFactory> getFileReferenceFactoryClass() {
+		return fileReferenceFactoryClass;
+	}
+
+	public void setFileReferenceFactoryClass(Class<? extends FileReferenceFactory> fileReferenceFactoryClass) {
+		if (fileReferenceFactoryClass ==null)
+			throw new NullPointerException();
+		this.fileReferenceFactoryClass = fileReferenceFactoryClass;
 	}
 
 	protected CentralDatabaseBackupReceiverFactory() {
@@ -87,12 +109,25 @@ public abstract class CentralDatabaseBackupReceiverFactory<T extends CentralData
 												long durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder,
 												long durationInMsBeforeOrderingDatabaseBackupDeletion,
 												long durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect,
-												long durationInMsToWaitBeforeRemovingAccountDefinitively) {
+												long durationInMsToWaitBeforeRemovingAccountDefinitively,
+												Class<? extends FileReferenceFactory> fileReferenceFactoryClass) {
 		super(centralID);
+
+		if (fileReferenceFactoryClass==null)
+			throw new NullPointerException();
+		if (durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder<0)
+			throw new IllegalArgumentException();
+		if (durationInMsBeforeOrderingDatabaseBackupDeletion<0)
+			throw new IllegalArgumentException();
+		if (durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect<0)
+			throw new IllegalArgumentException();
+		if (durationInMsToWaitBeforeRemovingAccountDefinitively<0)
+			throw new IllegalArgumentException();
 		this.durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder = durationInMsBeforeRemovingDatabaseBackupAfterAnDeletionOrder;
 		this.durationInMsBeforeOrderingDatabaseBackupDeletion = durationInMsBeforeOrderingDatabaseBackupDeletion;
 		this.durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect = durationInMsThatPermitToCancelPeerRemovingWhenThePeerIsTryingToReconnect;
 		this.durationInMsToWaitBeforeRemovingAccountDefinitively = durationInMsToWaitBeforeRemovingAccountDefinitively;
+		this.fileReferenceFactoryClass=fileReferenceFactoryClass;
 	}
 
 

@@ -281,7 +281,9 @@ public class LocalCommunity implements Organization {// TODO check groups protec
 				return requesterClass.getCanonicalName()
 						.equals("com.distrimind.madkit.kernel.DatabaseSynchronizerAgent")
 						|| requesterClass.getCanonicalName()
-						.equals("com.distrimind.madkit.kernel.NetworkAgent");
+						.equals("com.distrimind.madkit.kernel.NetworkAgent")
+						|| requesterClass.getCanonicalName()
+						.equals("com.distrimind.madkit.kernel.CentralDatabaseBackupReceiverAgent");
 			}
 
 			@Override
@@ -291,7 +293,9 @@ public class LocalCommunity implements Organization {// TODO check groups protec
 				return requesterClass.getCanonicalName()
 						.equals("com.distrimind.madkit.kernel.DatabaseSynchronizerAgent")
 						|| requesterClass.getCanonicalName()
-						.equals("com.distrimind.madkit.kernel.NetworkAgent");
+						.equals("com.distrimind.madkit.kernel.NetworkAgent")
+						|| requesterClass.getCanonicalName()
+						.equals("com.distrimind.madkit.kernel.CentralDatabaseBackupReceiverAgent");
 			}
 		};
 

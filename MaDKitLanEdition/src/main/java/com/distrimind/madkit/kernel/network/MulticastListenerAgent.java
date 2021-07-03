@@ -140,7 +140,7 @@ final class MulticastListenerAgent extends AgentFakeThread {
 						}
 						if (ni != null) {
 							if (!getMadkitConfig().networkProperties.needsServerSocket(new InetSocketAddress(
-									getMadkitConfig().networkProperties.portsToBindForAutomaticLocalConnections)))
+									getMadkitConfig().networkProperties.portsToBindForAutomaticLocalConnections), getMadkitConfig().networkProperties.portsToBindForAutomaticLocalConnections))
 								ni = null;
 						}
 						if (ni == null) {

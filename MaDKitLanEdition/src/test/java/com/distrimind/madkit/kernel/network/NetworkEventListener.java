@@ -198,6 +198,7 @@ public class NetworkEventListener implements MadkitEventListener {
 		_properties.networkProperties.network = network;
 		_properties.networkProperties.upnpIGDEnabled = upnpIGDEnabled;
 		_properties.networkProperties.autoConnectWithLocalSitePeers = autoConnectWithLocalSitePeers;
+
 		try {
 			if (databaseFile != null) {
 				DatabaseFactory<?> df=new InFileEmbeddedH2DatabaseFactory(databaseFile);

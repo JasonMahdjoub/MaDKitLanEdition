@@ -162,7 +162,7 @@ class LoginConfirmationMessage extends AccessMessage {
 					if (poi.getDistantHostIdentifier().equals(foundLocalId.getHostIdentifier()))
 						break;
 					else if (proposed == null || proposed.isDistantHostPartOfCloud())
-						proposed = new PairOfIdentifiers(foundLocalId, initializedIdentifiers.contains(foundLocalId.getCloudIdentifier()), poi.generateDistantIdentifier(), newAcceptedCloudIdentifiers.contains(poi.getCloudIdentifier()));
+						proposed = new PairOfIdentifiers(foundLocalId, initializedIdentifiers.contains(foundLocalId.getCloudIdentifier()), poi.getDistantIdentifier(), newAcceptedCloudIdentifiers.contains(poi.getCloudIdentifier()));
 				} else if (proposed != null && poi.getCloudIdentifier().equals(proposed.getCloudIdentifier())) {
 					removedValidatedPairOfIdentifiers.add(poi);
 					break;

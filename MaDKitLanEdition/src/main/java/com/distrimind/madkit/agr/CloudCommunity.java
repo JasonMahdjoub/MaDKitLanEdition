@@ -77,21 +77,29 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 													  final Class<? extends AbstractAgent> requesterClass, AgentNetworkID _agentNetworkID,
 													  Object _memberCard) {
 				return requesterClass.getCanonicalName()
-						.equals("com.distrimind.madkit.kernel.DatabaseSynchronizerAgent") ;}
+						.equals("com.distrimind.madkit.kernel.DatabaseSynchronizerAgent")
+						|| requesterClass.getCanonicalName()
+						.equals("com.distrimind.madkit.kernel.CentralDatabaseBackupReceiverAgent");}
 
 			@Override
 			public boolean allowAgentToTakeRole(Group _group, String _roleName,
 												final Class<? extends AbstractAgent> requesterClass, AgentNetworkID _agentNetworkID,
 												Object _memberCard) {
 				return requesterClass.getCanonicalName()
-						.equals("com.distrimind.madkit.kernel.DatabaseSynchronizerAgent");
+						.equals("com.distrimind.madkit.kernel.DatabaseSynchronizerAgent")
+						|| requesterClass.getCanonicalName()
+						.equals("com.distrimind.madkit.kernel.CentralDatabaseBackupReceiverAgent");
 
 			}
 		};
 
 
 		public static final Group DISTRIBUTED_DATABASE = LocalCommunity.Groups.DATABASE.getSubGroup(true, databaseGateKeeper, true, "~~peers");
+		public static final Group DISTRIBUTED_DATABASE_WITH_SUB_GROUPS = DISTRIBUTED_DATABASE.getThisGroupWithItsSubGroups();
+		public static final Group CLIENT_SERVER_DATABASE = LocalCommunity.Groups.DATABASE.getSubGroup(true, databaseGateKeeper, true, "~~client_server");
+		public static final Group CLIENT_SERVER_DATABASE_WITH_SUB_GROUPS = CLIENT_SERVER_DATABASE.getThisGroupWithItsSubGroups();
 		public static final Group CENTRAL_DATABASE_BACKUP = LocalCommunity.Groups.DATABASE.getSubGroup(true, databaseGateKeeper, true, "~~central_database_backup");
+		public static final Group CENTRAL_DATABASE_BACKUP_WITH_SUB_GROUPS = CENTRAL_DATABASE_BACKUP.getThisGroupWithItsSubGroups();
 
 		public static WrappedString encodeDecentralizedValue(DecentralizedValue identifier)
 		{
@@ -160,14 +168,14 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 			else
 				throw new IllegalArgumentException(""+cmp);
 
-			return CENTRAL_DATABASE_BACKUP.getSubGroup(true, databaseGateKeeper, false, subgroup);
+			return CLIENT_SERVER_DATABASE.getSubGroup(true, databaseGateKeeper, false, subgroup);
 		}
 		public static DecentralizedValue extractDistantHostID(Group group, DecentralizedValue localHostID) throws IOException {
 			return extractDistantHostID(group, encodeDecentralizedValue(localHostID));
 		}
 		public static String extractDistantHostIDString(Group group, String localHostID)
 		{
-			if (group.getPath().startsWith(CloudCommunity.Groups.DISTRIBUTED_DATABASE.getPath()))
+			if (Groups.DISTRIBUTED_DATABASE_WITH_SUB_GROUPS.includes(group))
 			{
 				String[] split=group.getName().split("~");
 				if (split.length==2)
@@ -179,8 +187,7 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 					}
 					else if (localHostID.equals(split[1]))
 					{
-						if (split[0]!=null)
-							return split[0];
+						return split[0];
 					}
 				}
 			}
@@ -209,7 +216,7 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 		}
 		public static String extractDistantHostIDStringFromCentralDatabaseBackupGroup(Group group, String centralID)
 		{
-			if (group.getPath().startsWith(Groups.CENTRAL_DATABASE_BACKUP.getPath()))
+			if (Groups.CLIENT_SERVER_DATABASE_WITH_SUB_GROUPS.includes(group))
 			{
 				String[] split=group.getName().split("~");
 				if (split.length==2)
@@ -221,8 +228,7 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 					}
 					else if (centralID.equals(split[1]))
 					{
-						if (split[0]!=null)
-							return split[0];
+						return split[0];
 					}
 				}
 			}

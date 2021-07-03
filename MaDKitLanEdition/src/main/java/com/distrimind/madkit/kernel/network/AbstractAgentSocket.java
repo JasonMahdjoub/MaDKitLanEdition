@@ -1004,7 +1004,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					.getInetAddresses(); it.hasMoreElements();) {
 				InetAddress ia = it.nextElement();
 				if (LocalNetworkAgent.isValid(ia) && getMadkitConfig().networkProperties.needsServerSocket(new InetSocketAddress(ia,
-						getMadkitConfig().networkProperties.portsToBindForAutomaticLocalConnections))) {
+						getMadkitConfig().networkProperties.portsToBindForAutomaticLocalConnections), distant_inet_address.getPort())) {
 					ias.add(ia);
 				}
 			}
@@ -1018,7 +1018,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				this.local_interface_address.getAddress(),
 				getMadkitConfig().networkProperties.portsToBindForManualDirectConnections,
 				getMadkitConfig().networkProperties.portsToBindForAutomaticLocalConnections,
-				this.getMadkitConfig().networkProperties.needsServerSocket(local_interface_address), mip);
+				this.getMadkitConfig().networkProperties.needsServerSocket(local_interface_address, distant_inet_address.getPort()), mip);
 		if (logger != null && logger.isLoggable(Level.FINEST))
 			logger.finest("Sending connection information to distant peer (distant_inet_address=" + distant_inet_address
 					+ ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress + ") : " + ci);

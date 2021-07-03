@@ -723,7 +723,7 @@ public class NetworkProperties extends MultiFormatProperties {
 
 			for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties) {
 				if (cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
-						_distant_inet_address.getAddress(), isServer, needBiDirectionalConnectionInitiationAbility, encryptionRestrictionForConnectionProtocols)) {
+						_distant_inet_address.getAddress(), _distant_inet_address.getPort(), isServer, needBiDirectionalConnectionInitiationAbility, encryptionRestrictionForConnectionProtocols)) {
 					return cpp.getConnectionProtocolInstance(_distant_inet_address, _local_interface_address,
 							sql_connection, mkProperties, isServer, needBiDirectionalConnectionInitiationAbility, encryptionRestrictionForConnectionProtocols);
 				}
@@ -791,7 +791,7 @@ public class NetworkProperties extends MultiFormatProperties {
 				}
 
 				if (l == 0 && cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
-						_distant_inet_address.getAddress(), isServer, mustSupportBidirectionalConnectionInitiative, encryptionRestrictionForConnectionProtocols)) {
+						_distant_inet_address.getAddress(), _distant_inet_address.getPort(), isServer, mustSupportBidirectionalConnectionInitiative, encryptionRestrictionForConnectionProtocols)) {
 					return cpp;
 				}
 			}
@@ -805,13 +805,14 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * 
 	 * @param _local_interface_address
 	 *            the local interface address
+	 * @param _distant_port the distant port
 	 * @return true if the local interface address can be associated with a
 	 *         connection protocol that needs a server socket.
 	 */
-	public boolean needsServerSocket(InetSocketAddress _local_interface_address) {
+	public boolean needsServerSocket(InetSocketAddress _local_interface_address, int _distant_port) {
 		synchronized (this) {
 			for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties) {
-				if (cpp.needsServerSocket(_local_interface_address.getAddress(), _local_interface_address.getPort()))
+				if (cpp.needsServerSocket(_local_interface_address.getAddress(), _local_interface_address.getPort(), _distant_port))
 					return true;
 			}
 		}
@@ -897,7 +898,7 @@ public class NetworkProperties extends MultiFormatProperties {
 			InetSocketAddress _local_interface_address) {
 		synchronized (this) {
 			for (AccessData ad : accessDataList) {
-				if (ad.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort()))
+				if (ad.isConcernedBy(_distant_inet_address.getAddress(), _distant_inet_address.getPort(), _local_interface_address.getPort()))
 					return ad;
 			}
 		}
@@ -973,7 +974,7 @@ public class NetworkProperties extends MultiFormatProperties {
 			InetSocketAddress _local_interface_address) {
 		synchronized (this) {
 			for (AbstractAccessProtocolProperties ad : accessProtocolProperties) {
-				if (ad.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort(), encryptionRestrictionForConnectionProtocols))
+				if (ad.isConcernedBy(_distant_inet_address.getAddress(), _distant_inet_address.getPort(), _local_interface_address.getPort(), encryptionRestrictionForConnectionProtocols))
 					return ad;
 			}
 		}
@@ -1011,7 +1012,7 @@ public class NetworkProperties extends MultiFormatProperties {
 			boolean found = false;
 
 			for (AccessData ad : this.accessDataList) {
-				if (ad.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort())) {
+				if (ad.isConcernedBy(_distant_inet_address.getAddress(), _distant_inet_address.getPort(), _local_interface_address.getPort())) {
 					found = true;
 					break;
 				}
@@ -1022,7 +1023,7 @@ public class NetworkProperties extends MultiFormatProperties {
 			found = false;
 
 			for (AbstractAccessProtocolProperties app : accessProtocolProperties) {
-				if (app.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort(), encryptionRestrictionForConnectionProtocols)) {
+				if (app.isConcernedBy(_distant_inet_address.getAddress(), _distant_inet_address.getPort(), _local_interface_address.getPort(), encryptionRestrictionForConnectionProtocols)) {
 					found = true;
 					break;
 				}
@@ -1033,7 +1034,7 @@ public class NetworkProperties extends MultiFormatProperties {
 
 			for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties) {
 				if (cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
-						_distant_inet_address.getAddress(), isServer, mustSupportBidirectionalConnectionInitiative, encryptionRestrictionForConnectionProtocols)) {
+						_distant_inet_address.getAddress(), _distant_inet_address.getPort(), isServer, mustSupportBidirectionalConnectionInitiative, encryptionRestrictionForConnectionProtocols)) {
 					return (!takeConnectionInitiative || cpp.canTakeConnectionInitiative());
 				}
 			}
