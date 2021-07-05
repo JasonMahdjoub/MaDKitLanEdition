@@ -400,7 +400,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		int index=0;
 		for (int i=0;i<cycles;i++) {
 			for (boolean connectCentralDatabaseBackup : new boolean[]{true, false}) {
-				for (boolean indirectSynchronizationWithCentralDatabaseBackup : connectCentralDatabaseBackup?new boolean[]{false, true}:new boolean[]{false})
+				for (boolean indirectSynchronizationWithCentralDatabaseBackup : connectCentralDatabaseBackup?new boolean[]{true, false}:new boolean[]{false})
 				{
 					res[index][0]=connectCentralDatabaseBackup;
 					res[index++][1]=indirectSynchronizationWithCentralDatabaseBackup;
@@ -516,6 +516,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					super.onMaDKitPropertiesLoaded(_properties);
 					_properties.networkProperties.networkLogLevel = Level.INFO;
 					_properties.networkProperties.maxBufferSize = Short.MAX_VALUE * 4;
+					_properties.networkProperties.upnpIGDEnabled=false;
 					try {
 						_properties.setCentralDatabaseBackupReceiverFactory(centralDatabaseBackupReceiverFactory);
 					} catch (DatabaseException e) {
@@ -600,7 +601,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				super.onMaDKitPropertiesLoaded(_properties);
 				_properties.networkProperties.networkLogLevel = Level.INFO;
 				_properties.networkProperties.maxBufferSize=Short.MAX_VALUE*4;
-
+				_properties.networkProperties.upnpIGDEnabled=false;
 
 			}
 		};
@@ -650,7 +651,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				super.onMaDKitPropertiesLoaded(_properties);
 				_properties.networkProperties.networkLogLevel = Level.INFO;
 				_properties.networkProperties.maxBufferSize=Short.MAX_VALUE*4;
-
+				_properties.networkProperties.upnpIGDEnabled=false;
 
 			}
 		};

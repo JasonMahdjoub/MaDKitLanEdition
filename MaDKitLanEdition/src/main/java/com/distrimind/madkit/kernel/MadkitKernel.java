@@ -154,6 +154,7 @@ class MadkitKernel extends Agent {
 	private final HashMap<Long, LockerCondition> agentsSendingNetworkMessage = new HashMap<>();
     private volatile int maximumGlobalUploadSpeedInBytesPerSecond;
     private volatile int maximumGlobalDownloadSpeedInBytesPerSecond;
+    private volatile boolean hasSpeedLimitation;
 
 	// final private HashMap<String, ScheduledThreadPoolExecutor>
 	// dedicatedServiceExecutors=new HashMap<>();
@@ -416,6 +417,15 @@ class MadkitKernel extends Agent {
 		}
 	}
 
+	private void setHasSpeedLimitation()
+	{
+		hasSpeedLimitation=maximumGlobalUploadSpeedInBytesPerSecond!=Integer.MAX_VALUE || maximumGlobalDownloadSpeedInBytesPerSecond!=Integer.MAX_VALUE;
+	}
+
+	boolean hasSpeedLimitation(AbstractAgent requester) {
+		return hasSpeedLimitation;
+	}
+
 	@Override
 	protected void activate() {
 		// addWebRepository();
@@ -424,6 +434,7 @@ class MadkitKernel extends Agent {
 
         maximumGlobalDownloadSpeedInBytesPerSecond=Math.max(0, getMadkitConfig().networkProperties.maximumGlobalDownloadSpeedInBytesPerSecond);
         maximumGlobalUploadSpeedInBytesPerSecond=Math.max(0, getMadkitConfig().networkProperties.maximumGlobalUploadSpeedInBytesPerSecond);
+        setHasSpeedLimitation();
         createGroup(LocalCommunity.Groups.SYSTEM);
 		createGroup(LocalCommunity.Groups.KERNELS);
 
@@ -1261,6 +1272,7 @@ class MadkitKernel extends Agent {
         if (max<=0)
             throw new IllegalArgumentException("max must be greater than zero !");
         maximumGlobalUploadSpeedInBytesPerSecond=max;
+		setHasSpeedLimitation();
     }
     @SuppressWarnings("unused")
     void setMaximumGlobalDownloadSpeedInBytesPerSecond(AbstractAgent requester, int max)
@@ -1268,6 +1280,7 @@ class MadkitKernel extends Agent {
         if (max<=0)
             throw new IllegalArgumentException("max must be greater than zero !");
         maximumGlobalDownloadSpeedInBytesPerSecond=max;
+		setHasSpeedLimitation();
     }
 
     @SuppressWarnings("unused")

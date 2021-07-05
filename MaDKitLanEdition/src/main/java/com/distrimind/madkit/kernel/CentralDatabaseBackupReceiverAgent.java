@@ -78,6 +78,8 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 	@Override
 	protected void activate() throws InterruptedException {
 		try {
+			setLogLevel(getMadkitConfig().networkProperties.networkLogLevel);
+
 			if (logger!=null && logger.isLoggable(Level.INFO))
 				logger.info("Launch central database backup receiver");
 			centralDatabaseBackupReceiver= getMadkitConfig().getCentralDatabaseBackupReceiver();
