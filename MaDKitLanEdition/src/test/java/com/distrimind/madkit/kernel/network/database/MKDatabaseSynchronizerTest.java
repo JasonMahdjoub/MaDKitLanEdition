@@ -723,7 +723,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 
 				Assert.assertNotNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
 				Assert.assertNotNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString());
-				sleep(300);
+				sleep(1200);
 				Assert.assertEquals(localIdentifier, wrapper.getSynchronizer().getLocalHostID());
 
 				if (integrator) {
@@ -876,7 +876,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		}
 	}
 	private static boolean checkDistantRecords(AbstractAgent agent, Table1 table, ArrayList<Table1.Record> otherListToAdd, AtomicReference<Boolean> finished) throws DatabaseException, InterruptedException {
-		System.out.println("check synchronization");
+		System.out.println("check synchronization, lacking = "+otherListToAdd.size()+", table.recordsNumber="+table.getRecordsNumber());
 		ArrayList<Table1.Record> l=new ArrayList<>(otherListToAdd);
 		int nb=0;
 		do {
@@ -891,8 +891,10 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					it.remove();
 				}
 			}
-			if (l.size()>0)
+			if (l.size()>0) {
+				System.out.println("lacking = "+l.size()+", table.recordsNumber="+table.getRecordsNumber());
 				agent.sleep(1000);
+			}
 			++nb;
 		} while(l.size()>0 && nb<10);
 		return l.size()>0;

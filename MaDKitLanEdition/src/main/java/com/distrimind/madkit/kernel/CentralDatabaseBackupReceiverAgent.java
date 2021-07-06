@@ -65,8 +65,8 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 	private Map<DecentralizedValue, Group> distantGroupIdsPerID=new HashMap<>();
 	private CentralDatabaseBackupReceiver centralDatabaseBackupReceiver;
 	private WrappedString centralIDString;
-	private final HashMap<ConversationID, DatabaseSynchronizerAgent.BigDataMetaData> currentBigDataReceiving=new HashMap<>();
-	private final HashMap<ConversationID, DatabaseSynchronizerAgent.BigDataMetaData> currentBigDataSending=new HashMap<>();
+	final HashMap<ConversationID, DatabaseSynchronizerAgent.BigDataMetaData> currentBigDataReceiving=new HashMap<>();
+	final HashMap<ConversationID, DatabaseSynchronizerAgent.BigDataMetaData> currentBigDataSending=new HashMap<>();
 	static void updateGroupAccess(AbstractAgent agent) {
 		ReturnCode rc;
 		if (!(rc=agent.broadcastMessageWithRole(LocalCommunity.Groups.NETWORK,
