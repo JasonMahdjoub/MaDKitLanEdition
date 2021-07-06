@@ -723,7 +723,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 
 				Assert.assertNotNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
 				Assert.assertNotNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString());
-				sleep(1200);
+				sleep(600);
 				Assert.assertEquals(localIdentifier, wrapper.getSynchronizer().getLocalHostID());
 
 				if (integrator) {
