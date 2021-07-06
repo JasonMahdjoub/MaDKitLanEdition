@@ -723,7 +723,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 
 				Assert.assertNotNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
 				Assert.assertNotNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString());
-				sleep(600);
+				sleep(1200);
 				Assert.assertEquals(localIdentifier, wrapper.getSynchronizer().getLocalHostID());
 
 				if (integrator) {
@@ -856,8 +856,9 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		boolean checkSynchronizationWithCentralDB() throws DatabaseException, InterruptedException {
 			if (synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE)
 			{
-				sleep(500);
+
 				BackupRestoreManager brm=getMadkitConfig().getDatabaseWrapper().getBackupRestoreManager(Table1.class.getPackage());
+				sleep(brm.getBackupConfiguration().getMaxBackupFileAgeInMs()+10);
 				int number=brm.getFinalFiles().size();
 				File f=FileReferenceFactory.getPackageFolder(1, getMadkitConfig().getDatabaseWrapper().getSynchronizer().getLocalHostID(), Table1.class.getPackage().getName());
 				if (!f.exists()) {
