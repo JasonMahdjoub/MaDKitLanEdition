@@ -719,6 +719,8 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 							new DatabaseConfiguration(new DatabaseSchema(Table1.class.getPackage()), synchronizationType,
 									null, synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE?new BackupConfiguration(10000, 30000, 32000,1000, null):null),false, true )
 						.commit();
+				Table1 table=wrapper.getTableInstance(Table1.class);
+				table.addRecord(myListToAdd.get(0));
 				Assert.assertFalse(wrapper.getSynchronizer().isInitialized(localIdentifierOtherSide));
 
 				Assert.assertNotNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
@@ -785,9 +787,9 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					finished.set(false);
 					return;
 				}
-				Table1 table=wrapper.getTableInstance(Table1.class);
+
 				System.out.println("add records");
-				int total=0;
+				int total=1;
 				while(total<myListToAdd.size())
 				{
 					nb=(int)(Math.random()*(myListToAdd.size()-total)+1);
@@ -839,6 +841,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					finished.set(false);
 					return;
 				}
+				sleep(1000);
 				finished.set(true);
 			} catch (DatabaseException | InterruptedException e) {
 				e.printStackTrace();
@@ -1000,6 +1003,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					return;
 				}
 				sleep(1000);
+				System.out.println("desynchronize distant peer");
 				wrapper.getDatabaseConfigurationsBuilder()
 						.desynchronizeDistantPeerWithGivenAdditionalPackages(localIdentifierOtherSide, Table1.class.getPackage().getName())
 						.removeDistantPeer(localIdentifierOtherSide)
