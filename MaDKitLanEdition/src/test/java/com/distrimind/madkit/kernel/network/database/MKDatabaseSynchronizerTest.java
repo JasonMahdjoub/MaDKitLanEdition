@@ -399,7 +399,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		Object[][] res=new Object[cycles*3][2];
 		int index=0;
 		for (int i=0;i<cycles;i++) {
-			for (boolean connectCentralDatabaseBackup : new boolean[]{true, false}) {
+			for (boolean connectCentralDatabaseBackup : new boolean[]{false, true}) {
 				for (boolean indirectSynchronizationWithCentralDatabaseBackup : connectCentralDatabaseBackup?new boolean[]{true, false}:new boolean[]{false})
 				{
 					res[index][0]=connectCentralDatabaseBackup;

@@ -148,7 +148,7 @@ final public class Madkit {
 					.addDeveloper(new PersonDeveloper("Ferber", "Jacques", "1997-02-01"))
 					.addDescription(new Description((short)2, (short)2, (short)0, Version.Type.BETA, (short)1, "2021-07-07")
 							.addItem("Update Utils to 5.18.5 STABLE")
-							.addItem("Update OOD to 3.0.0 STABLE")
+							.addItem("Update OOD to 3.1.0 Beta 2")
 							.addItem("Make Utils and OOD compatible with Android")
 							.addItem("Reimplement connection protocol using new Utils classes")
 							.addItem("Permit MaDKit to be a central database backup server in order to synchronize database of distant peers")

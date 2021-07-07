@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-2.2.0 STABLE (Build: 2135) (from 22/05/2015 to 25/05/2021)
+2.2.0 BETA 1 (Build: 2881) (from 22/05/2015 to 07/07/2021)
 
 # Creator(s):
 Jason MAHDJOUB
@@ -12,11 +12,14 @@ Jason MAHDJOUB (Entered in the team at 22/05/2015)
 # Modifications:
 
 
-### 2.2.0 STABLE (25/05/2021)
-* Update Utils to 5.18.1 STABLE
-* Update OOD to 3.0.0 STABLE
+### 2.2.0 BETA 1 (07/07/2021)
+* Update Utils to 5.18.5 STABLE
+* Update OOD to 3.1.0 Beta 2
 * Make Utils and OOD compatible with Android
 * Reimplement connection protocol using new Utils classes
+* Permit MaDKit to be a central database backup server in order to synchronize database of distant peers
+* Check distant and not only local ports with filters of connection protocols and with filter of access protocols
+* Fix unexpected high CPU usage due to a bad socket channel using
 
 
 ### 2.1.10 STABLE (15/02/2020)

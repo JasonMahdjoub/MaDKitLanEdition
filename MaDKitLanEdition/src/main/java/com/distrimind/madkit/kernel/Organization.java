@@ -118,6 +118,8 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 			if (group.isDistributed())
 			{
 				InternalGroup ig=get(group);
+				if (ig==null)
+					return;
 				if (ig.containsDistantAgents())
 				{
 					ig.clearLocalAgents();
