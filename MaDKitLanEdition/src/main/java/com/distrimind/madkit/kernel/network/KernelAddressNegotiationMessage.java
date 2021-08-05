@@ -35,35 +35,19 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-package com.distrimind.madkit.exceptions;
+package com.distrimind.madkit.kernel.network;
 
 /**
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-public class TransfertException extends NIOException {
+abstract class KernelAddressNegotiationMessage implements SystemMessageWithoutInnerSizeControl {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 2809524035883490079L;
-
-	public TransfertException() {
-		super();
-	}
-
-	public TransfertException(String _msg) {
-		super(_msg);
-	}
-
-	public TransfertException(Exception e) {
-		super(e);
-	}
-
-	public TransfertException(String _msg, Exception e) {
-		super(_msg, e);
+	@Override
+	public String toString() {
+		return getClass().getSimpleName();
 	}
 
 }

@@ -114,14 +114,15 @@ public abstract class ConnectionProtocolProperties<CP extends ConnectionProtocol
      * corresponding to a distant peer
      *
      * @param _distant_inet_address the distant inet address
+     * @param _distant_port the distant port
      * @param _local_port           the local port
      * @return true if the filter accept the connection with the given parameters
      */
-    public boolean isConcernedByDistantPeer(InetAddress _distant_inet_address, int _local_port) {
+    public boolean isConcernedByDistantPeer(InetAddress _distant_inet_address, int _distant_port, int _local_port) {
         if (filtersForDistantPeers == null)
             return true;
         else
-            return filtersForDistantPeers.isConcernedBy(_distant_inet_address, _local_port);
+            return filtersForDistantPeers.isConcernedBy(_distant_inet_address, _distant_port, _local_port);
     }
 
     /**
@@ -130,13 +131,14 @@ public abstract class ConnectionProtocolProperties<CP extends ConnectionProtocol
      *
      * @param _local_inet_address the local inet address
      * @param _local_port         the local port
+     * @param _distant_port the distant port
      * @return true if the filter accept the connection with the given parameters
      */
-    public boolean isConcernedByLocalNetworkInterface(InetAddress _local_inet_address, int _local_port) {
+    public boolean isConcernedByLocalNetworkInterface(InetAddress _local_inet_address, int _local_port, int _distant_port) {
         if (filtersForLocalNetworkInterfaces == null)
             return true;
         else
-            return filtersForLocalNetworkInterfaces.isConcernedBy(_local_inet_address, _local_port);
+            return filtersForLocalNetworkInterfaces.isConcernedBy(_local_inet_address, _distant_port, _local_port);
     }
 
     /**
@@ -151,11 +153,11 @@ public abstract class ConnectionProtocolProperties<CP extends ConnectionProtocol
      * @param encryptionRestriction the encryption restriction
      * @return true if the filter accept the connection with the given parameters
      */
-    public boolean isConcernedBy(InetAddress _local_inet_address, int _local_port, InetAddress _distant_inet_address,
+    public boolean isConcernedBy(InetAddress _local_inet_address, int _local_port, InetAddress _distant_inet_address, int _distant_port,
                                  boolean isServer, boolean needBiDirectionnalConnectionInitiationAbility, EncryptionRestriction encryptionRestriction) {
 
-        return isConcernedByLocalNetworkInterface(_local_inet_address, _local_port)
-                && isConcernedByDistantPeer(_distant_inet_address, _local_port)
+        return isConcernedByLocalNetworkInterface(_local_inet_address, _local_port, _distant_port)
+                && isConcernedByDistantPeer(_distant_inet_address, _distant_port, _local_port)
                 && (!needBiDirectionnalConnectionInitiationAbility || this.supportBidirectionnalConnectionInitiative())
                 && (!isServer || this.canBeServer())
                 && isConcernedBy(encryptionRestriction);
@@ -218,10 +220,10 @@ public abstract class ConnectionProtocolProperties<CP extends ConnectionProtocol
         return res;
     }
 
-    public final boolean needsServerSocket(InetAddress _local_inet_address, int _local_port) {
-        if (isConcernedByLocalNetworkInterface(_local_inet_address, _local_port))
+    public final boolean needsServerSocket(InetAddress _local_inet_address, int _local_port, int _distant_port) {
+        if (isConcernedByLocalNetworkInterface(_local_inet_address, _local_port, _distant_port))
             return needsServerSocketImpl() || (subProtocolProperties != null
-                    && subProtocolProperties.needsServerSocket(_local_inet_address, _local_port));
+                    && subProtocolProperties.needsServerSocket(_local_inet_address, _local_port, _distant_port));
         else
             return false;
     }
@@ -270,5 +272,5 @@ public abstract class ConnectionProtocolProperties<CP extends ConnectionProtocol
      * @return the maximum packet head size
      * @throws BlockParserException if a problem occurs
      */
-    public abstract int getMaximumSizeHead() throws BlockParserException;
+    public abstract int getMaximumHeadSize() throws BlockParserException;
 }

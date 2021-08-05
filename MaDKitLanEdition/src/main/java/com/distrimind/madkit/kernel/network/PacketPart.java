@@ -50,7 +50,7 @@ import com.distrimind.madkit.exceptions.PacketException;
 public final class PacketPart {
 
 	//private byte[] bytes;
-	private SubBlock subBlock;
+	private final SubBlock subBlock;
 	private final PacketPartHead head;
 	private final boolean isReadyToSend;
 
@@ -64,6 +64,7 @@ public final class PacketPart {
 
 	PacketPart(SubBlock subBlock, PacketPartHead head) {
 		//bytes = _part;
+
 		this.subBlock=subBlock;
 		if (head == null)
 			throw new NullPointerException("head");

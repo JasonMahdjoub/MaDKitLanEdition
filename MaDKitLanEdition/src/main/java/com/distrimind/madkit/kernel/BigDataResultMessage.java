@@ -52,7 +52,7 @@ import java.io.IOException;
 public final class BigDataResultMessage extends Message implements com.distrimind.madkit.util.NetworkMessage {
 
 
-	private long transferedData;
+	private long transferredData;
 	private Type type;
 	private int idPacket;
 	private long duration;
@@ -68,7 +68,7 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 		super.readExternal(in);
 		
 			
-		transferedData=in.readLong();
+		transferredData =in.readLong();
 		type=in.readObject(false, Type.class);
 		idPacket=in.readInt();
 		duration=in.readLong();
@@ -77,7 +77,7 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 	@Override
 	public void writeExternal(final SecuredObjectOutputStream oos) throws IOException{
 		super.writeExternal(oos);
-		oos.writeLong(transferedData);
+		oos.writeLong(transferredData);
 		oos.writeObject(type, false);
 		oos.writeInt(idPacket);
 		oos.writeLong(duration);
@@ -88,19 +88,19 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 	{
 		
 	}
-	BigDataResultMessage(Type type, long transferedData, int idPacket, long duration) {
+	BigDataResultMessage(Type type, long transferredData, int idPacket, long duration) {
 		if (type == null)
 			throw new NullPointerException("type");
-		if (type == Type.BIG_DATA_TRANSFER_DENIED && transferedData != 0)
-			throw new IllegalArgumentException("transferedData must be equal to 0");
+		if (type == Type.BIG_DATA_TRANSFER_DENIED && transferredData != 0)
+			throw new IllegalArgumentException("transferredData must be equal to 0");
 		this.type = type;
-		this.transferedData = transferedData;
+		this.transferredData = transferredData;
 		this.idPacket = idPacket;
 		this.duration = duration;
 	}
 
 	/**
-	 * Gest the transfer duration in milliseconds
+	 * Gets the transfer duration in milliseconds
 	 * 
 	 * @return the transfer duration in milliseconds
 	 */
@@ -119,12 +119,12 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 	}
 
 	/**
-	 * Gets the total data transfered in bytes
+	 * Gets the total data transferred in bytes
 	 * 
-	 * @return the total data transfered in bytes
+	 * @return the total data transferred in bytes
 	 */
-	public long getTransferedDataLength() {
-		return transferedData;
+	public long getTransferredDataLength() {
+		return transferredData;
 	}
 
 	@SuppressWarnings("unused")
@@ -134,14 +134,14 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 
 	public enum Type {
 		/**
-		 * The big data was entirely transfered.
+		 * The big data was entirely transferred.
 		 */
-		BIG_DATA_TRANSFERED,
+		BIG_DATA_TRANSFERRED,
 		/**
 		 * when a problem occurs during the data writing into the distant peer. The
-		 * associated transfered data length is precise and exact.
+		 * associated transferred data length is precise and exact.
 		 */
-		BIG_DATA_PARTIALLY_TRANSFERED,
+		BIG_DATA_PARTIALLY_TRANSFERRED,
 
 		/**
 		 * when the received data was invalid or if hash tag was invalid.
@@ -149,7 +149,7 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 		BIG_DATA_CORRUPTED,
 
 		/**
-		 * when the connection is lost. The associated transfered data length is
+		 * when the connection is lost. The associated transferred data length is
 		 * approximate.
 		 */
 		CONNECTION_LOST,
@@ -162,6 +162,6 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 	
 	public String toString()
 	{
-		return "BigDataResultMessage[type="+type+", dataTransferedInBytes="+getTransferedDataLength()+", durationInMs="+getTransferDuration()+"]";
+		return "BigDataResultMessage[type="+type+", dataTransferredInBytes="+ getTransferredDataLength()+", durationInMs="+getTransferDuration()/*+", sender="+getSender()+", receiver="+getReceiver()*/+"]";
 	}
 }

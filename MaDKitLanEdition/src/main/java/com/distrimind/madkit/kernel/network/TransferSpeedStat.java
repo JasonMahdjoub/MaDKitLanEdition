@@ -37,6 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -46,7 +47,7 @@ import com.distrimind.util.Timer;
  * This class represent a transfer speed in bytes per seconds. The statistic
  * does not change in real time, but are computed only when a transfer occurs.
  * If no transfer is done, then statistics does not change. This tool measure
- * the speed of the transfered bytes. This class is thread safe.
+ * the speed of the transferred bytes. This class is thread safe.
  * 
  * @author Jason Mahdjoub
  * @version 1.0
@@ -87,7 +88,7 @@ public class TransferSpeedStat {
 		segment = _segment;
 		bytes_to_mean = _bytes_to_mean;
 		if (bytes_to_mean / segment > Integer.MAX_VALUE)
-			throw new IllegalArgumentException("The value '_duration/_segment' must be lower than Interger.MAX_VALUE");
+			throw new IllegalArgumentException("The value '_duration/_segment' must be lower than Integer.MAX_VALUE");
 		if (bytes_to_mean / segment < 3)
 			throw new IllegalArgumentException("The value '_duration/_segment' must be greater than 3");
 		stats = new float[(int) (bytes_to_mean / segment)];
@@ -101,30 +102,28 @@ public class TransferSpeedStat {
 	}
 
 	private void reset() {
-		for (int i = 0; i < stats.length; i++)
-			stats[i] = 0.0f;
+		Arrays.fill(stats, 0.0f);
 		bytes_for_current_cycle = 0;
 		bytes_per_second = 0.0;
 		timeElapsed.set(new Timer(true));
 	}
 
 	private void reset(float _first_value) {
-		for (int i = 0; i < stats.length; i++)
-			stats[i] = _first_value;
+		Arrays.fill(stats, _first_value);
 		bytes_per_second = _first_value;
 		bytes_for_current_cycle = 0;
 		timeElapsed.set(new Timer(true));
 	}
 
 	/**
-	 * Inform that new bytes have been transfered
+	 * Inform that new bytes have been transferred
 	 * 
 	 * @param number
-	 *            the number of transfered bytes
+	 *            the number of transferred bytes
 	 * @param duration
 	 *            the duration taken to transfer bytes.
 	 */
-	public void newBytesIndentified(int number, long duration) {
+	public void newBytesIdentified(int number, long duration) {
 		if (duration < 0)
 			throw new IllegalArgumentException("duration must be greater than 0");
 		if (duration == 0)
@@ -136,7 +135,7 @@ public class TransferSpeedStat {
 				reset(val);
 				one_cycle_done.set(true);
 			} else if (number > 0) {
-				if (timeElapsed.get().getDeltaMili() > durationBeforeObsolescence)
+				if (timeElapsed.get().getDeltaMilli() > durationBeforeObsolescence)
 					reset();
 				while (number > 0) {
 					int cursor = (int) (bytes_for_current_cycle / segment);
@@ -164,7 +163,7 @@ public class TransferSpeedStat {
 	 * @return true if sufficient bytes has been observed to give a correct metrics.
 	 */
 	public boolean isOneCycleDone() {
-		return one_cycle_done.get() && timeElapsed.get().getMili() <= durationBeforeObsolescence;
+		return one_cycle_done.get() && timeElapsed.get().getMilli() <= durationBeforeObsolescence;
 	}
 
 	/**
@@ -173,7 +172,7 @@ public class TransferSpeedStat {
 	 */
 	public double getBytesPerSecond() {
 		synchronized (this) {
-			if (timeElapsed.get().getMili() > durationBeforeObsolescence)
+			if (timeElapsed.get().getMilli() > durationBeforeObsolescence)
 				reset();
 			return bytes_per_second;
 		}

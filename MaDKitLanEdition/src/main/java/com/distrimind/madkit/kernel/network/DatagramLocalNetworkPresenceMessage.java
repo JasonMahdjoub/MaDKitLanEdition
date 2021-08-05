@@ -42,6 +42,7 @@ import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.util.crypto.AbstractMessageDigest;
 import com.distrimind.util.crypto.MessageDigestType;
+import com.distrimind.util.data_buffers.WrappedData;
 import com.distrimind.util.io.RandomByteArrayInputStream;
 import com.distrimind.util.io.RandomInputStream;
 import com.distrimind.util.io.RandomOutputStream;
@@ -102,8 +103,8 @@ class DatagramLocalNetworkPresenceMessage extends Message {
         return ((long)(version.getMajor() & 0xFFF))<<50
                 | ((long)(version.getMinor() & 0xFFFF))<<34
                 | ((long)(version.getRevision() & 0xFFFF))<<18
-                | ((long)(version.getType()==Version.Type.Stable?3:(version.getType()==Version.Type.RC?2:(version.getType()==Version.Type.Beta?1:0))))<<16
-                |  ((long)(version.getAlphaBetaVersion() & 0xFFFF));
+                | ((long)(version.getType()==Version.Type.STABLE?3:(version.getType()==Version.Type.RELEASE_CANDIDATE?2:(version.getType()==Version.Type.BETA?1:0))))<<16
+                |  ((long)(version.getAlphaBetaRCVersion() & 0xFFFF));
     }
 
 
@@ -163,9 +164,9 @@ class DatagramLocalNetworkPresenceMessage extends Message {
 		this.hashCode = computeHashCode();
 	}
 
-	private static byte[] digestMessage(byte[] bytes) throws NoSuchAlgorithmException, NoSuchProviderException {
+	private static byte[] digestMessage(WrappedData bytes) throws NoSuchAlgorithmException, NoSuchProviderException {
 		AbstractMessageDigest mda = MessageDigestType.BC_FIPS_SHA3_256.getMessageDigestInstance();
-		return mda.digest(bytes);
+		return mda.digest(bytes.getBytes());
 	}
 
 	private DatagramLocalNetworkPresenceMessage(long onlineTime, long programBuildNumber, long madkitBuildNumber, long programMinimumBuildNumber, long madkitMinimumBuildNumber,

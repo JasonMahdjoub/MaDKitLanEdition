@@ -38,59 +38,14 @@
 
 package com.distrimind.madkit.kernel;
 
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
-import static com.distrimind.madkit.kernel.AbstractAgent.State.*;
-
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.swing.JFrame;
-import javax.xml.parsers.ParserConfigurationException;
-
-import com.distrimind.madkit.database.DifferedMessageTable;
-import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
-import com.distrimind.ood.database.exceptions.DatabaseException;
-import com.distrimind.util.DecentralizedValue;
-import com.distrimind.util.concurrent.LockerCondition;
-import com.distrimind.util.io.RandomInputStream;
-import com.distrimind.util.io.SecureExternalizable;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
 import com.distrimind.madkit.action.ActionInfo;
 import com.distrimind.madkit.action.GUIManagerAction;
 import com.distrimind.madkit.agr.LocalCommunity;
-import com.distrimind.madkit.exceptions.KilledException;
-import com.distrimind.madkit.exceptions.SelfKillException;
 import com.distrimind.madkit.agr.LocalCommunity.Groups;
 import com.distrimind.madkit.agr.LocalCommunity.Roles;
+import com.distrimind.madkit.database.DifferedMessageTable;
+import com.distrimind.madkit.exceptions.KilledException;
+import com.distrimind.madkit.exceptions.SelfKillException;
 import com.distrimind.madkit.gui.AgentStatusPanel;
 import com.distrimind.madkit.gui.OutputPanel;
 import com.distrimind.madkit.gui.menu.AgentLogLevelMenu;
@@ -99,30 +54,51 @@ import com.distrimind.madkit.gui.menu.MadkitMenu;
 import com.distrimind.madkit.i18n.ErrorMessages;
 import com.distrimind.madkit.i18n.I18nUtilities;
 import com.distrimind.madkit.i18n.Words;
-import com.distrimind.madkit.kernel.network.AskForConnectionMessage;
-import com.distrimind.madkit.kernel.network.AskForTransferMessage;
-import com.distrimind.madkit.kernel.network.Connection;
-import com.distrimind.madkit.kernel.network.ConnectionIdentifier;
-import com.distrimind.madkit.kernel.network.LocalLanMessage;
-import com.distrimind.madkit.kernel.network.NetworkProperties;
-import com.distrimind.madkit.kernel.network.StatsBandwidth;
-import com.distrimind.madkit.kernel.network.TransferFilter;
-import com.distrimind.madkit.kernel.network.TransfersReturnsCodes;
+import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
-import com.distrimind.madkit.kernel.network.connection.access.AccessData;
 import com.distrimind.madkit.kernel.network.connection.access.AbstractAccessProtocolProperties;
+import com.distrimind.madkit.kernel.network.connection.access.AccessData;
+import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.ConversationFilter;
 import com.distrimind.madkit.message.EnumMessage;
 import com.distrimind.madkit.message.GUIMessage;
 import com.distrimind.madkit.message.MessageFilter;
 import com.distrimind.madkit.message.hook.AgentLifeEvent;
+import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.message.hook.MessageEvent;
 import com.distrimind.madkit.message.hook.OrganizationEvent;
 import com.distrimind.madkit.message.task.TasksExecutionConfirmationMessage;
-import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.util.XMLUtilities;
+import com.distrimind.ood.database.DatabaseConfigurationsBuilder;
+import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.crypto.MessageDigestType;
+import com.distrimind.util.io.RandomInputStream;
+import com.distrimind.util.io.SecureExternalizable;
+import org.w3c.dom.*;
+import org.xml.sax.SAXException;
+
+import javax.swing.*;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.InetSocketAddress;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
+import static com.distrimind.madkit.kernel.AbstractAgent.State.*;
 
 // * <img src="doc-files/Capture.png" alt=""/>
 /**
@@ -174,7 +150,7 @@ import com.distrimind.util.crypto.MessageDigestType;
  * @author Fabien Michel
  * @author Olivier Gutknecht
  * @author Jason Mahdjoub
- * @version 8.0
+ * @version 9.0
  * @since MadKitLanEdition 1.0
  */
 @SuppressWarnings({"StaticInitializerReferencesSubClass", "SameParameterValue", "UnusedReturnValue"})
@@ -509,8 +485,10 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 
 	private void postActivate() {
 		synchronized (state) {
-			if (!state.compareAndSet(State.ACTIVATING, State.ACTIVATED))
-				throw new AssertionError("not init in activation : ");
+			if (!state.compareAndSet(State.ACTIVATING, State.ACTIVATED)) {
+				//if (state.get().compareTo(ENDING) < 0)
+					throw new AssertionError("not init in activation : " + state.get());
+			}
 
 			state.notifyAll();
 		}
@@ -561,6 +539,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 			 * be hard killed after that
 			 */
 			postActivate();
+			/*if (state.get().compareTo(ENDING)>=0)
+				result=ReturnCode.KILLING_ALREADY_IN_PROGRESS;*/
 			result = SUCCESS;
 		} catch (SelfKillException e) {
 			logMethod(false);
@@ -819,7 +799,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 
 	/**
 	 * Launches a new agent in the MaDKit platform. This has the same effect as
-	 * <code>launchAgent(agent,Integer.MAX_VALUE,withGUIManagedByTheBooter)</code>
+	 * <code>launchAgent(agent,Integer.MAX_VALUE,withGUIManagedByTheInitializer)</code>
 	 * 
 	 * @param agent
 	 *            the agent to launch.
@@ -985,8 +965,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 
 
 
-	final void cannotLaunchAgent(String agentClass, Throwable e, String infos) {
-		getLogger().severeLog(ErrorMessages.CANT_LAUNCH + " " + agentClass + " : " + (infos != null ? infos : ""), e);
+	final void cannotLaunchAgent(String agentClass, Throwable e, String info) {
+		getLogger().severeLog(ErrorMessages.CANT_LAUNCH + " " + agentClass + " : " + (info != null ? info : ""), e);
 	}
 
 	/**
@@ -1000,7 +980,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * 
 	 * 
 	 * <pre>
-	 * launchAgentBucketWithRoles("madkitgroupextension.OneAgent", 1000000,
+	 * launchAgentBucketWithRoles("OneAgent", 1000000,
 	 * 		new Role(new Group("community", "group"), "role"),
 	 * 		new Role(new Group("anotherC", "anotherG"), "anotherR"))
 	 * </pre>
@@ -1045,7 +1025,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	public List<AbstractAgent> launchAgentBucket(String agentClassName, int bucketSize, int cpuCoreNb, Role... roles) {
 		if (cpuCoreNb < 1 || bucketSize < 0)
 			throw new IllegalArgumentException(
-					"launchAgentBucket : cpuCoreNb = " + cpuCoreNb + " bucketsize = " + bucketSize);
+					"launchAgentBucket : cpuCoreNb = " + cpuCoreNb + " bucketSize = " + bucketSize);
 		List<AbstractAgent> bucket = null;
 		try {
 			bucket = getMadkitKernel().createBucket(agentClassName, bucketSize, cpuCoreNb);
@@ -2068,7 +2048,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *         not a member of the receiver's group.</li>
 	 *         <li><code>{@link ReturnCode#INVALID_AGENT_ADDRESS}</code>: If the
 	 *         receiver address is no longer valid. This is the case when the
-	 *         corresponding agent has leaved the role corresponding to the receiver
+	 *         corresponding agent has left the role corresponding to the receiver
 	 *         agent address.</li>
 	 *         </ul>
 	 * @see ReturnCode
@@ -2102,7 +2082,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *         <code>senderRole</code> is not handled by this agent.</li>
 	 *         <li><code>{@link ReturnCode#INVALID_AGENT_ADDRESS}</code>: If the
 	 *         receiver address is no longer valid. This is the case when the
-	 *         corresponding agent has leaved the role corresponding to the receiver
+	 *         corresponding agent has left the role corresponding to the receiver
 	 *         agent address.</li>
 	 *         </ul>
 	 * @see ReturnCode
@@ -2573,7 +2553,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *         <code>senderRole</code> is not handled by this agent.</li>
 	 *         <li><code>{@link ReturnCode#INVALID_AGENT_ADDRESS}</code>: If the
 	 *         receiver address is no longer valid. This is the case when the
-	 *         corresponding agent has leaved the role corresponding to the receiver
+	 *         corresponding agent has left the role corresponding to the receiver
 	 *         agent address.</li>
 	 *         </ul>
 	 * @see ReturnCode
@@ -2603,7 +2583,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *         longer a member of the corresponding group.</li>
 	 *         <li><code>{@link ReturnCode#INVALID_AGENT_ADDRESS}</code>: If the
 	 *         receiver address is no longer valid. This is the case when the
-	 *         corresponding agent has leaved the role corresponding to the receiver
+	 *         corresponding agent has left the role corresponding to the receiver
 	 *         agent address.</li>
 	 *         </ul>
 	 * @see AbstractAgent#sendReplyWithRole(Message, Message, String)
@@ -2628,7 +2608,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *         longer a member of the corresponding group.</li>
 	 *         <li><code>{@link ReturnCode#INVALID_AGENT_ADDRESS}</code>: If the
 	 *         receiver address is no longer valid. This is the case when the
-	 *         corresponding agent has leaved the role corresponding to the receiver
+	 *         corresponding agent has left the role corresponding to the receiver
 	 *         agent address.</li>
 	 *         </ul>
 	 * @see AbstractAgent#sendReplyWithRole(Message, Message, String)
@@ -2905,7 +2885,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * parameter which has been used to launch the kernel the agent is running on.
 	 * If the agent has not been launched yet, the Properties returned is the
 	 * default MaDKit configuration. It can be programmatically modified to launch a
-	 * new session with different parameters. It can also be used as a black board
+	 * new session with different parameters. It can also be used as a board
 	 * shared by all the agents of a kernel by adding new user defined properties at
 	 * run time or via the command line. 
 	 * 
@@ -3449,10 +3429,10 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		/*
 		 * Before killing the considered agent, each unread message contained into its
 		 * message box is returned to its sender, thanks to the
-		 * {@link UndelievredMessage} class. After that, the agent is killed just after
+		 * {@link UndeliveredMessage} class. After that, the agent is killed just after
 		 * a life cycle.
 		 */
-		// KILL_IT_NOW_AND_RETURNS_UNREADED_MESSAGES,
+		// KILL_IT_NOW_AND_RETURNS_UNREAD_MESSAGES,
 
 		/**
 		 * The agent is killed just after a life cycle. Do not returns undelivered
@@ -3519,7 +3499,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * will trigger its corresponding behavior using the parameters of the message.
 	 * 
 	 * @param message
-	 *            the message to proce
+	 *            the message to proceed
 	 * @param <E> the enum message type 
 	 * @since MaDKit 5.0.0.14
 	 * @see EnumMessage
@@ -3718,7 +3698,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 
 		/**
 		 * Returned by send primitives when the targeted agent address does not exist
-		 * anymore, i.e. the related agent has leaved the corresponding role
+		 * anymore, i.e. the related agent has left the corresponding role
 		 */
 		INVALID_AGENT_ADDRESS,
 		/**
@@ -3790,8 +3770,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		 * Gets the set of returns code with there data transfer reports, associated to
 		 * each distant (onto network) kernel address.
 		 * 
-		 * @return the LAN tranfer returns codes/reports, or null if this returns code
-		 *         is not assiciated to a LAN transfer.
+		 * @return the LAN transfer returns codes/reports, or null if this returns code
+		 *         is not associated to a LAN transfer.
 		 * @see TransfersReturnsCodes
 		 */
 		public TransfersReturnsCodes getTransfersReturnsCodes() {
@@ -4084,7 +4064,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * Automatically request the given role into the given represented groups, only
 	 * for groups that have been requested with other agents. Do nothing else. When
 	 * other agents leave roles, those that correspond to the current auto-requested
-	 * role are automatically leaved from this agent.
+	 * role are automatically left from this agent.
 	 * 
 	 * @param _group
 	 *            the abstract group and these represented groups.
@@ -4104,14 +4084,14 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	public void autoRequestRole(AbstractGroup _group, String _role, SecureExternalizable _passKey) {
 		if (_group == null || _role == null)
 			return;
-		getKernel().autoRequesteRole(this, _group, _role, _passKey);
+		getKernel().autoRequestRole(this, _group, _role, _passKey);
 	}
 
 	/**
 	 * Automatically request the given role into the given represented groups, only
 	 * for groups that have been requested with other agents. Do nothing else. When
 	 * other agents leave roles, those that correspond to the current auto-requested
-	 * role are automatically leaved from this agent.
+	 * role are automatically left from this agent.
 	 * 
 	 * @param _group
 	 *            the abstract group and these represented groups.
@@ -4127,14 +4107,14 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	}
 
 	/**
-	 * Tells if this agent automically request the given group/role if another
+	 * Tells if this agent automatically request the given group/role if another
 	 * another has requested this group/role.
 	 * 
 	 * @param _group
 	 *            the abstract group and these represented groups.
 	 * @param _role
 	 *            the role to request
-	 * @return true if this agent automically request the given group/role if
+	 * @return true if this agent automatically request the given group/role if
 	 *         another another has requested this group/role.
 	 * @see AbstractAgent#autoRequestRole(AbstractGroup, String, SecureExternalizable)
 	 */
@@ -4334,7 +4314,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @param length
 	 *            the data length to read into the given stream
 	 * @param messageDigestType
-	 *            message digest type used to check validity of the transfered data.
+	 *            message digest type used to check validity of the transferred data.
 	 *            Can be null.
 	 * 
 	 * @return a big data transfer ID that identify the transfer, and that gives
@@ -4385,7 +4365,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *            user custom data that will be sent with the
 	 *            {@link BigDataPropositionMessage}.
 	 * @param messageDigestType
-	 *            message digest type used to check validity of the transfered data.
+	 *            message digest type used to check validity of the transferred data.
 	 *            Can be null.
 	 * @param excludeFromEncryption true if the big data to send must be excluded from encryption
 	 * 
@@ -4526,7 +4506,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @param length
 	 *            the data length to read into the given stream
 	 * @param messageDigestType
-	 *            message digest type used to check validity of the transfered data.
+	 *            message digest type used to check validity of the transferred data.
 	 *            Can be null.
 	 * @param senderRole
 	 *            the sender role
@@ -4580,7 +4560,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *            user custom data that will be sent with the
 	 *            {@link BigDataPropositionMessage}.
 	 * @param messageDigestType
-	 *            message digest type used to check validity of the transfered data.
+	 *            message digest type used to check validity of the transferred data.
 	 *            Can be null.
 	 * @param senderRole
 	 *            the sender role
@@ -4675,7 +4655,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	}
 
 	/**
-	 * connect or disconnect two kernels indirectly by making data transfered by the
+	 * connect or disconnect two kernels indirectly by making data transferred by the
 	 * current kernel to constitute a meshed network. It requires a parameter of
 	 * type {@link AskForTransferMessage}.
 	 * 
@@ -4695,13 +4675,13 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * 
 	 * Case candidateToBan is set to false : the anomaly will be saved into a
 	 * database. If too much anomalies occurs
-	 * ({@link NetworkProperties#nbMaxAnomaliesBeforeTrigeringExpulsion}), than the
-	 * connection is closed and the IP address is expulsed for a while
+	 * ({@link NetworkProperties#nbMaxAnomaliesBeforeTriggeringExpulsion}), than the
+	 * connection is closed and the IP address is rejected for a while
 	 * ({@link NetworkProperties#expulsionDuration}). If too much expulsions occurs
 	 * ({@link NetworkProperties#nbMaxExpulsions}), the kernel will consider
 	 * anomalies the candidateToBan set to true. Case candidateToBan is set to true
 	 * : the anomaly will be also saved into a database. If too much anomalies
-	 * occurs ({@link NetworkProperties#nbMaxAnomaliesBeforeTrigeringBanishment}), than the
+	 * occurs ({@link NetworkProperties#nbMaxAnomaliesBeforeTriggeringBanishment}), than the
 	 * connection is closed and the IP address banned for a while
 	 * ({@link NetworkProperties#banishmentDuration}). If too much bans occurs
 	 * ({@link NetworkProperties#nbMaxBans}), the kernel will ban the IP
@@ -4727,13 +4707,13 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * 
 	 * Case candidateToBan is set to false : the anomaly will be saved into a
 	 * database. If too much anomalies occurs
-	 * ({@link NetworkProperties#nbMaxAnomaliesBeforeTrigeringExpulsion}), than the
+	 * ({@link NetworkProperties#nbMaxAnomaliesBeforeTriggeringExpulsion}), than the
 	 * connections associated with the kernel address and their IP addresses are
-	 * expulsed for a while ({@link NetworkProperties#expulsionDuration}). If too
+	 * rejected for a while ({@link NetworkProperties#expulsionDuration}). If too
 	 * much expulsions occurs ({@link NetworkProperties#nbMaxExpulsions}), the kernel
 	 * will consider anomalies the candidateToBan set to true. Case candidateToBan
 	 * is set to true : the anomaly will be also saved into a database. If too much
-	 * anomalies occurs ({@link NetworkProperties#nbMaxAnomaliesBeforeTrigeringBanishment}),
+	 * anomalies occurs ({@link NetworkProperties#nbMaxAnomaliesBeforeTriggeringBanishment}),
 	 * than the connections associated with the kernel address and their IP
 	 * addresses are banned for a while
 	 * ({@link NetworkProperties#banishmentDuration}). If too much bans occurs
@@ -4764,7 +4744,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *            the connection identifier
 	 * @return the corresponding statistics or null if no statistics were found.
 	 */
-	public StatsBandwidth getStatsBandwith(ConnectionIdentifier connectionIdentifier) {
+	public StatsBandwidth getStatsBandwidth(ConnectionIdentifier connectionIdentifier) {
 		return getMadkitConfig().networkProperties.getStatsBandwidth(connectionIdentifier);
 	}
 
@@ -4775,7 +4755,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *            the Madkit kernel
 	 * @return the corresponding statistics or null if no statistics were found.
 	 */
-	public StatsBandwidth getStatsBandwith(KernelAddress kernel_address) {
+	public StatsBandwidth getStatsBandwidth(KernelAddress kernel_address) {
 		return getMadkitConfig().networkProperties.getStatsBandwidth(kernel_address);
 	}
 
@@ -4812,7 +4792,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *            tells if the current peer will take connection initiative
 	 * @param thisAskConnection
 	 *            the current peer we ask connection
-	 * @param mustSupportBidirectionnalConnectionInitiative
+	 * @param mustSupportBidirectionalConnectionInitiative
 	 *            tells if the connection support bi-directional connection
 	 *            initiative
 	 * @return true if a connection is possible with the given parameters and the
@@ -4823,9 +4803,9 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 */
 	public boolean isConnectionPossible(InetSocketAddress _distant_inet_address,
 			InetSocketAddress _local_interface_address, boolean takeConnectionInitiative, boolean thisAskConnection,
-			boolean mustSupportBidirectionnalConnectionInitiative) {
+			boolean mustSupportBidirectionalConnectionInitiative) {
 		return getMadkitConfig().networkProperties.isConnectionPossible(_distant_inet_address, _local_interface_address,
-				takeConnectionInitiative, !thisAskConnection, mustSupportBidirectionnalConnectionInitiative);
+				takeConnectionInitiative, !thisAskConnection, mustSupportBidirectionalConnectionInitiative);
 	}
 
 	/**
@@ -4947,69 +4927,69 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	}
 
 	/**
-	 * Store a reference of the given blackboard into a given group. If a blackboard
-	 * with the same name has already be set, do not memorize the given blackboard
+	 * Store a reference of the given board into a given group. If a board
+	 * with the same name has already be set, do not memorize the given board
 	 * as argument. All agents into this group will be able to access to the same
-	 * blackboard.
+	 * board.
 	 * 
 	 * @param group
 	 *            the group
-	 * @param blackboardName
-	 *            the black board name
-	 * @param blackboard
-	 *            the blackboard.
-	 * @return If a black existed previously, return the previous blackboard. Else
-	 *         return the saved blackboard. Return null if this agent is not present
+	 * @param boardName
+	 *            the board name
+	 * @param board
+	 *            the board.
+	 * @return If a board existed previously, return the previous board. Else
+	 *         return the saved board. Return null if this agent is not present
 	 *         into the given group.
 	 */
-	public Object weakSetBlackboard(Group group, String blackboardName, Object blackboard) {
-		return getMadkitKernel().weakSetBlackboard(this, group, blackboardName, blackboard);
+	public Object weakSetBoard(Group group, String boardName, Object board) {
+		return getMadkitKernel().weakSetBoard(this, group, boardName, board);
 	}
 
 	/**
-	 * Store a reference of the given blackboard into a given group. If a blackboard
+	 * Store a reference of the given board into a given group. If a board
 	 * with the same name has already be set, replace it. All agents into this group
-	 * will be able to access to the same blackboard.
+	 * will be able to access to the same board.
 	 * 
 	 * @param group
 	 *            the group
-	 * @param blackboardName
-	 *            the black board name
-	 * @param blackboard
-	 *            the blackboard.
-	 * @return return the previous set blackboard. Return null if this agent is not
+	 * @param boardName
+	 *            the board name
+	 * @param board
+	 *            the board.
+	 * @return return the previous set board. Return null if this agent is not
 	 *         present into the given group.
 	 */
-	public Object setBlackboard(Group group, String blackboardName, Object blackboard) {
-		return getMadkitKernel().setBlackboard(this, group, blackboardName, blackboard);
+	public Object setBoard(Group group, String boardName, Object board) {
+		return getMadkitKernel().setBoard(this, group, boardName, board);
 	}
 
 	/**
-	 * Get the referenced blackboard into a given group, and with a given name.
+	 * Get the referenced board into a given group, and with a given name.
 	 * 
 	 * @param group
 	 *            the group
-	 * @param blackboardName
-	 *            the black board name
-	 * @return the referenced blackboard, or null if no blackboard exists. Return
+	 * @param boardName
+	 *            the board name
+	 * @return the referenced board, or null if no board exists. Return
 	 *         null if this agent is not present into the given group.
 	 */
-	public Object getBlackboard(Group group, String blackboardName) {
-		return getMadkitKernel().getBlackboard(this, group, blackboardName);
+	public Object getBoard(Group group, String boardName) {
+		return getMadkitKernel().getBoard(this, group, boardName);
 	}
 
 	/**
-	 * Remove the referenced blackboard into a given group, and with a given name.
+	 * Remove the referenced board into a given group, and with a given name.
 	 * 
 	 * @param group
 	 *            the group
-	 * @param blackboardName
-	 *            the black board name
-	 * @return the previous referenced blackboard, or null if no blackboard exists.
+	 * @param boardName
+	 *            the board name
+	 * @return the previous referenced board, or null if no board exists.
 	 *         Return null if this agent is not present into the given group.
 	 */
-	public Object removeBlackboard(Group group, String blackboardName) {
-		return getMadkitKernel().removeBlackboard(this, group, blackboardName);
+	public Object removeBoard(Group group, String boardName) {
+		return getMadkitKernel().removeBoard(this, group, boardName);
 	}
 
 
@@ -5049,6 +5029,15 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	}
 
 	/**
+	 * Tells if the network bandwidth is limited during download or during upload
+	 * @return true if the network bandwidth is limited
+	 */
+	public boolean hasNetworkSpeedLimitationDuringDownloadOrDuringUpload()
+	{
+		return getMadkitKernel().hasSpeedLimitation(this);
+	}
+
+	/**
 	 * Gets global network download speed in bytes per second.
 	 *
 	 * @see NetworkProperties#maximumGlobalDownloadSpeedInBytesPerSecond to get the persistant limit
@@ -5059,48 +5048,16 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		return getMadkitKernel().getMaximumGlobalDownloadSpeedInBytesPerSecond(this);
 	}
 
-	/**
-	 * Set the distant host database identifier if this last was not already set.
-	 * @param localDatabaseHostID the local host identifier
-	 * @param packages the database packages that can be synchronized
-	 * @throws DatabaseException if a different local host identifier was already set
-	 */
-	public void setIfNotPresentLocalDatabaseHostIdentifier(DecentralizedValue localDatabaseHostID, Package ...packages) throws DatabaseException
-	{
-		getMadkitKernel().setIfNotPresentLocalDatabaseHostIdentifier(this, localDatabaseHostID, packages);
+	public DatabaseConfigurationsBuilder getDatabaseConfigurationBuilder() throws DatabaseException {
+		MadkitProperties mp=getMadkitConfig();
+		if (mp==null)
+			throw new DatabaseException("No database was configured !");
+		return mp.getDatabaseWrapper().getDatabaseConfigurationsBuilder();
 	}
 
-	/**
-	 * Reset the database synchronizer, remove all the distant hosts, and remove the local database identifier.
-	 * After this action, all the events to synchronize with other peers will be removed.
-	 * @throws DatabaseException if no database was configured
-	 */
-	public void resetDatabaseSynchronizer() throws DatabaseException {
-		getMadkitKernel().resetDatabaseSynchronizer(this);
-	}
+	public ReturnCode setCentralDatabaseBackupReceiverFactory(CentralDatabaseBackupReceiverFactory<?> centralDatabaseBackupReceiverFactory) throws DatabaseException {
+		return getMadkitKernel().setCentralDatabaseBackupReceiverFactory(this, centralDatabaseBackupReceiverFactory);
 
-	/**
-	 * Configure a distant host, and associate to it database packages that can be synchronized with the local host.
-	 * If the distant host was not already added to this network, add it
-	 * @param hostIdentifier the distant host identifier
-	 * @param conflictualRecordsReplacedByDistantRecords during the first synchronization, tells if the eventual conflictual records must be replaced by the distant peer.
-	 * @param packages the list of database packages to synchronize
-	 * @throws DatabaseException if no database was configured
-	 */
-	public void addOrConfigureDistantDatabaseHost(DecentralizedValue hostIdentifier, boolean conflictualRecordsReplacedByDistantRecords, Package... packages) throws DatabaseException {
-		getMadkitKernel().addOrConfigureDistantDatabaseHost(this, hostIdentifier, conflictualRecordsReplacedByDistantRecords, packages);
 	}
-
-	/**
-	 * Dissociate distant host from given database packages and unsynchronize tham with the local host.
-	 *
-	 * @param hostIdentifier the distant host identifier
-	 * @param packages the list of database packages to unsynchronize
-	 * @throws DatabaseException if no database was configured
-	 */
-	public void removeDistantDatabaseHostFromDatabaseSynchronizer(DecentralizedValue hostIdentifier, Package... packages) throws DatabaseException {
-		getMadkitKernel().removeDistantDatabaseHostFromDatabaseSynchronizer(this, hostIdentifier, packages);
-	}
-
 
 }

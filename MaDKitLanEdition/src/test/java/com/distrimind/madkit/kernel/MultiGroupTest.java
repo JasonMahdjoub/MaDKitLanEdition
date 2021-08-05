@@ -63,7 +63,7 @@ public class MultiGroupTest {
 		Assert.assertTrue(mg.includes(new Group("MGC1", "G1", "G2", "G3")));
 		mg.addGroup(new Group(true, "MGC1", "G1", "G3"));
 		Assert.assertTrue(mg.includes(new Group("MGC1", "G1", "G3", "G5")));
-		mg.addForbidenGroup(new Group("MGC1", "G1", "G3", "G5"));
+		mg.addForbiddenGroup(new Group("MGC1", "G1", "G3", "G5"));
 		Assert.assertFalse(mg.includes(new Group("MGC1", "G1", "G3", "G5")));
 		Assert.assertTrue(mg.includes(new Group("MGC1", "G1", "G3", "G6")));
 		Assert.assertTrue(mg.getComplementary().includes(new Group("MGC1", "G1", "G3", "G5")));

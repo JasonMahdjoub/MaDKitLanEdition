@@ -57,7 +57,7 @@ import java.net.InetSocketAddress;
 public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionProtocolNegotiator> {
     private Status status=Status.DISCONNECTED;
     private final ConnectionProtocolNegotiatorProperties nproperties;
-    private Parser parser;
+    private final Parser parser;
     private ConnectionProtocol<?> selectedConnectionProtocol;
     private boolean needToRefreshTransferBlockChecker=true;
     private final MadkitProperties mkProperties;
@@ -183,20 +183,20 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
     }
 
     @Override
-    protected TransferedBlockChecker getTransferedBlockChecker(TransferedBlockChecker subBlockChercker) throws ConnectionException {
+    protected TransferedBlockChecker getTransferredBlockChecker(TransferedBlockChecker subBlockChercker) throws ConnectionException {
 
         if (stateJustChanged || selectedConnectionProtocol==null) {
             try {
                 needToRefreshTransferBlockChecker=false;
                 return new ConnectionProtocol.NullBlockChecker(subBlockChercker, this.isCrypted(),
-                        (short) parser.getSizeHead());
+                        (short) parser.getHeadSize());
             } catch (Exception e) {
                 needToRefreshTransferBlockChecker = true;
                 throw new ConnectionException(e);
             }
         }
         else
-            return selectedConnectionProtocol.getTransferedBlockChecker(subBlockChercker);
+            return selectedConnectionProtocol.getTransferredBlockChecker(subBlockChercker);
     }
 
     @Override
@@ -219,6 +219,9 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
 
     private class Parser extends SubBlockParser
     {
+        public Parser() throws ConnectionException {
+            super(null, null, null, null, null);
+        }
 
         @Override
         public SubBlockInfo getSubBlock(SubBlock _block) throws BlockParserException {
@@ -245,11 +248,11 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
         }
 
         @Override
-        public int getSizeHead() throws BlockParserException {
+        public int getHeadSize() throws BlockParserException {
             if (selectedConnectionProtocol==null || stateJustChanged)
                 return 0;
             else
-                return selectedConnectionProtocol.getParser().getSizeHead();
+                return selectedConnectionProtocol.getParser().getHeadSize();
         }
 
 
@@ -284,19 +287,19 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
                     _block.getSize() - getSizeHead()), true, false);
         }*/
         @Override
-        public SubBlockInfo checkIncomingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+        public SubBlockInfo checkIncomingPointToPointTransferredBlock(SubBlock _block) throws BlockParserException {
             /*if (selectedConnectionProtocol==null)
                 return checkEntrantPointToPointTransferedBlockWithNoEncryptin(_block);
             else*/
-                return selectedConnectionProtocol.getParser().checkIncomingPointToPointTransferedBlock(_block);
+                return selectedConnectionProtocol.getParser().checkIncomingPointToPointTransferredBlock(_block);
         }
 
         @Override
-        public SubBlock signIfPossibleOutgoingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+        public SubBlock signIfPossibleOutgoingPointToPointTransferredBlock(SubBlock _block) throws BlockParserException {
             /*if (selectedConnectionProtocol==null || stateJustChanged)
                 return signIfPossibleOutgoingPointToPointTransferedBlockWithNoEncryption(_block);
             else*/
-                return selectedConnectionProtocol.getParser().signIfPossibleOutgoingPointToPointTransferedBlock(_block);
+                return selectedConnectionProtocol.getParser().signIfPossibleOutgoingPointToPointTransferredBlock(_block);
 
         }
     }

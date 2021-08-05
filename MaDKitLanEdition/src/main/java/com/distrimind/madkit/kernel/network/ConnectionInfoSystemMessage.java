@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.kernel.network.LocalNetworkAgent.PossibleAddressForDirectConnnection;
+import com.distrimind.madkit.kernel.network.LocalNetworkAgent.PossibleAddressForDirectConnection;
 import com.distrimind.util.io.Integrity;
 import com.distrimind.util.io.MessageExternalizationException;
 import com.distrimind.util.io.SecuredObjectInputStream;
@@ -120,11 +120,11 @@ class ConnectionInfoSystemMessage implements SystemMessageWithoutInnerSizeContro
 	}
 	
 	
-	ConnectionInfoSystemMessage(List<PossibleAddressForDirectConnnection> inet_socket_addresses,
+	ConnectionInfoSystemMessage(List<PossibleAddressForDirectConnection> inet_socket_addresses,
 								InetAddress local_interface_address, int manualPortToConnect, int localPortToConnect,
 								boolean canBeDirectServer, AbstractIP localAddresses) {
 		this.addresses = new ArrayList<>(inet_socket_addresses.size());
-		for (PossibleAddressForDirectConnnection r : inet_socket_addresses) {
+		for (PossibleAddressForDirectConnection r : inet_socket_addresses) {
 			if (r.isConcernedBy(local_interface_address)) {
 				if (r.getIP().getPort() < 0)
 					throw new IllegalArgumentException();

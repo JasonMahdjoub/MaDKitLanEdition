@@ -41,8 +41,11 @@ import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.AgentNetworkID;
 import com.distrimind.madkit.kernel.Gatekeeper;
 import com.distrimind.madkit.kernel.Group;
+import com.distrimind.util.Bits;
 import com.distrimind.util.DecentralizedValue;
-import org.apache.commons.codec.binary.Base64;
+import com.distrimind.util.data_buffers.WrappedString;
+
+import java.io.IOException;
 
 /**
  * Defines the default groups and roles used for networking.
@@ -63,72 +66,9 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 	 * @since MaDKitGroupEdition 1.0
 	 */
 	public static final class Groups {
-		// public static final Group NETWORK_AGENTS=new Group(false, null, true, NAME,
-		// "~~network agents");
-		/*
-		 * public static final Group DISTANT_KERNEL_AGENTS =
-		 * PRINCIPAL_GROUP.getSubGroup(false, null, false, "~~distant kernel agents");
-		 * public static final Group LOCAL_NETWORKS_AGENTS =
-		 * PRINCIPAL_GROUP.getSubGroup(false, null, false, "~~local networks agents");
-		 * 
-		 * public static Group getLocalLanGroup(InetAddress inet_address) { return
-		 * LOCAL_NETWORKS_AGENTS.getSubGroup(false, null, false,
-		 * "~~LocalLan:"+inet_address.toString()); }
-		 * 
-		 * public static Group getNioAgentGroup(InetAddress inet_address, )
-		 * 
-		 * public static final Group LOCAL_NETWORK_AGENTS =
-		 * LOCAL_NETWORK_AGENTS.getSubGroup(false, null, false, "~~local lan agent");
-		 * 
-		 * public static final Group SOCKET_AGENTS =
-		 * DISTANT_KERNEL_AGENTS.getSubGroup(false, null, false, "~~socket agents");
-		 * public static final Group DIRECT_SOCKET_AGENTS =
-		 * SOCKET_AGENTS.getSubGroup(false, null, false, "~~direct socket agents");
-		 * public static final Group INDIRECT_SOCKET_AGENTS =
-		 * SOCKET_AGENTS.getSubGroup(false, null, false, "~~indirect socket agents");
-		 * public static final Group NIO_AGENTS = SOCKET_AGENTS.getSubGroup(false, null,
-		 * false, "~~nio agents");
-		 * 
-		 * 
-		 * 
-		 * static final String ROLE_NIO_AGENT="~~NIOAgent";
-		 * 
-		 * static final Group LAN_GROUP=PRINCIPAL_GROUP.getSubGroup(true,
-		 * "~~LAN_GROUP"); static final Group
-		 * LAN_NOTIFICATIONS_GROUP=LAN_GROUP.getSubGroup(true, "~~LAN_NOTIFICATIONS");
-		 * static final String
-		 * LAN_IDENTIFIER_NOTIFICATIONS_ROLE="~~LAN_IDENTIFIER_NOTIFICATIONS"; static
-		 * final String LAN_GROUP_NOTIFICATIONS_ROLE="~~LAN_GROUP_NOTIFICATIONS"; static
-		 * final String LAN_NOTIFIER="~~LAN_NOTIFIER";
-		 * 
-		 * static final Group LAN_ROUTER_GROUP=LAN_GROUP.getSubGroup(true,
-		 * "~~LAN_ROUTER"); //static final Group
-		 * LAN_ROUTER_GROUP_FOR_DISTANT_KERNEL=LAN_GROUP.getSubGroup(true,
-		 * "~~AgentsForDistantKernel"); /*static final Group
-		 * LAN_RECEPTION_GROUP=LAN_GROUP.getSubGroup(true, "~~LAN_RECEPTION"); static
-		 * final Group LAN_EMISSION_GROUP=LAN_GROUP.getSubGroup(true,
-		 * "~~LAN_RECEPTION"); static final String
-		 * LAN_EMISSION_ROLE="~~LAN_EMISSION_ROLE"; static final String
-		 * LAN_RECEPTION_ROLE="~~LAN_RECEPTION_ROLE";
-		 */
 
-		/*
-		 * Identify the agent responsible of the discovery of the local infrastructure
-		 * (UPNP IGD routers, network interfaces).
-		 */
-		/*
-		 * static final String LAN_LOCAL_INFRASTRUCTURE_DISCOVER_ROLE=
-		 * "~~LAN_LOCAL_INFRASTRUCTURE_DISCOVER_ROLE"; //static final String
-		 * LAN_IGD_NEEDER_ROLE="~~LAN_IGD_NEEDER_ROLE"; static final String
-		 * LAN_ROUTER_ROLE="~~LAN_ROUTER_ROLE"; static final String
-		 * LAN_KERNEL_ROUTER_ROLE="~~LAN_ROUTER_ROLE"; static final String
-		 * LAN_TRANSMITER_ROLE="~~LAN_TRANSMITTER_ROLE";
-		 * 
-		 * 
-		 * 
-		 * static final String
-		 * SCHEDULER_NAME_FOR_AGENTS_FAKE_THREAD="~~MKLE_AGENTS_FAKE_THREAD_SCHEDULER";
-		 */
+
+
 
 		private static final Gatekeeper databaseGateKeeper = new Gatekeeper() {
 
@@ -137,26 +77,41 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 													  final Class<? extends AbstractAgent> requesterClass, AgentNetworkID _agentNetworkID,
 													  Object _memberCard) {
 				return requesterClass.getCanonicalName()
-						.equals("com.distrimind.madkit.kernel.DatabaseSynchronizerAgent") ;}
+						.equals("com.distrimind.madkit.kernel.DatabaseSynchronizerAgent")
+						|| requesterClass.getCanonicalName()
+						.equals("com.distrimind.madkit.kernel.CentralDatabaseBackupReceiverAgent");}
 
 			@Override
 			public boolean allowAgentToTakeRole(Group _group, String _roleName,
 												final Class<? extends AbstractAgent> requesterClass, AgentNetworkID _agentNetworkID,
 												Object _memberCard) {
 				return requesterClass.getCanonicalName()
-						.equals("com.distrimind.madkit.kernel.DatabaseSynchronizerAgent");
+						.equals("com.distrimind.madkit.kernel.DatabaseSynchronizerAgent")
+						|| requesterClass.getCanonicalName()
+						.equals("com.distrimind.madkit.kernel.CentralDatabaseBackupReceiverAgent");
 
 			}
 		};
 
 
 		public static final Group DISTRIBUTED_DATABASE = LocalCommunity.Groups.DATABASE.getSubGroup(true, databaseGateKeeper, true, "~~peers");
+		public static final Group DISTRIBUTED_DATABASE_WITH_SUB_GROUPS = DISTRIBUTED_DATABASE.getThisGroupWithItsSubGroups();
+		public static final Group CLIENT_SERVER_DATABASE = LocalCommunity.Groups.DATABASE.getSubGroup(true, databaseGateKeeper, true, "~~client_server");
+		public static final Group CLIENT_SERVER_DATABASE_WITH_SUB_GROUPS = CLIENT_SERVER_DATABASE.getThisGroupWithItsSubGroups();
+		public static final Group CENTRAL_DATABASE_BACKUP = LocalCommunity.Groups.DATABASE.getSubGroup(true, databaseGateKeeper, true, "~~central_database_backup");
+		public static final Group CENTRAL_DATABASE_BACKUP_WITH_SUB_GROUPS = CENTRAL_DATABASE_BACKUP.getThisGroupWithItsSubGroups();
 
-		public static String encodeDecentralizedValue(DecentralizedValue identifier)
+		public static WrappedString encodeDecentralizedValue(DecentralizedValue identifier)
 		{
-			return Base64.encodeBase64URLSafeString(identifier.encode());
+			return identifier.encode().toWrappedString();
 		}
-
+		public static DecentralizedValue decodeDecentralizedValue(String value) throws IOException {
+			return DecentralizedValue.decode(new WrappedString(value).toWrappedData());
+		}
+		public static Group getDistributedDatabaseGroup(String localIdentifier, WrappedString distantIdentifier)
+		{
+			return getDistributedDatabaseGroup(localIdentifier, distantIdentifier.toString());
+		}
 		public static Group getDistributedDatabaseGroup(String localIdentifier, String distantIdentifier)
 		{
 			if (localIdentifier==null)
@@ -174,17 +129,53 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 			else if (cmp>0)
 				subgroup=distantIdentifier+"~"+localIdentifier;
 			else
-				throw new IllegalArgumentException();
+				throw new IllegalArgumentException(""+cmp);
 
 			return DISTRIBUTED_DATABASE.getSubGroup(true, databaseGateKeeper, false, subgroup);
 		}
-		public static DecentralizedValue extractDistantHostID(Group group, DecentralizedValue localHostID)
+		public static Group getCentralDatabaseGroup(DecentralizedValue localIdentifier, DecentralizedValue distantIdentifier)
 		{
+			return getCentralDatabaseGroup(encodeDecentralizedValue(localIdentifier), encodeDecentralizedValue(distantIdentifier));
+		}
+		public static Group getCentralDatabaseGroup(String localIdentifier, DecentralizedValue distantIdentifier)
+		{
+			return getCentralDatabaseGroup(localIdentifier, encodeDecentralizedValue(distantIdentifier));
+		}
+		public static Group getCentralDatabaseGroup(WrappedString centralIdentifier, WrappedString distantPeerIdentifier)
+		{
+			return getCentralDatabaseGroup(centralIdentifier.toString(), distantPeerIdentifier.toString());
+		}
+		public static Group getCentralDatabaseGroup(String centralIdentifier, WrappedString distantPeerIdentifier)
+		{
+			return getCentralDatabaseGroup(centralIdentifier, distantPeerIdentifier.toString());
+		}
+		public static Group getCentralDatabaseGroup(String centralIdentifier, String distantPeerIdentifier)
+		{
+			if (centralIdentifier==null)
+				throw new NullPointerException();
+			if (distantPeerIdentifier==null)
+				throw new NullPointerException();
+			if (centralIdentifier.length()==0)
+				throw new IllegalArgumentException();
+			if (distantPeerIdentifier.length()==0)
+				throw new IllegalArgumentException();
+			String subgroup;
+			int cmp=centralIdentifier.compareTo(distantPeerIdentifier);
+			if (cmp<0)
+				subgroup=centralIdentifier+"~"+distantPeerIdentifier;
+			else if (cmp>0)
+				subgroup=distantPeerIdentifier+"~"+centralIdentifier;
+			else
+				throw new IllegalArgumentException(""+cmp);
+
+			return CLIENT_SERVER_DATABASE.getSubGroup(true, databaseGateKeeper, false, subgroup);
+		}
+		public static DecentralizedValue extractDistantHostID(Group group, DecentralizedValue localHostID) throws IOException {
 			return extractDistantHostID(group, encodeDecentralizedValue(localHostID));
 		}
 		public static String extractDistantHostIDString(Group group, String localHostID)
 		{
-			if (group.getParent().equals(DISTRIBUTED_DATABASE))
+			if (Groups.DISTRIBUTED_DATABASE_WITH_SUB_GROUPS.includes(group))
 			{
 				String[] split=group.getName().split("~");
 				if (split.length==2)
@@ -196,20 +187,65 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 					}
 					else if (localHostID.equals(split[1]))
 					{
-						if (split[0]!=null)
-							return split[0];
+						return split[0];
 					}
 				}
 			}
 			return null;
 
 		}
-		public static DecentralizedValue extractDistantHostID(Group group, String localHostID)
+		public static DecentralizedValue extractDistantHostIDFromCentralDatabaseBackupGroup(Group group, DecentralizedValue centralID) throws IOException {
+			return extractDistantHostIDFromCentralDatabaseBackupGroup(group, encodeDecentralizedValue(centralID));
+		}
+		public static DecentralizedValue extractDistantHostIDFromCentralDatabaseBackupGroup(Group group, WrappedString centralID) throws IOException {
+			return extractDistantHostIDFromCentralDatabaseBackupGroup(group, centralID.toString());
+		}
+		public static DecentralizedValue extractDistantHostIDFromCentralDatabaseBackupGroup(Group group, String centralID) throws IOException {
+			String res=extractDistantHostIDStringFromCentralDatabaseBackupGroup(group, centralID);
+			if (res==null)
+				return null;
+			return DecentralizedValue.decode(Bits.toBytesArrayFromBase64String(res, true));
+		}
+		public static String extractDistantHostIDStringFromCentralDatabaseBackupGroup(Group group, DecentralizedValue centralID)
 		{
+			return extractDistantHostIDStringFromCentralDatabaseBackupGroup(group, encodeDecentralizedValue(centralID));
+		}
+		public static String extractDistantHostIDStringFromCentralDatabaseBackupGroup(Group group, WrappedString centralID)
+		{
+			return extractDistantHostIDStringFromCentralDatabaseBackupGroup(group, centralID.toString());
+		}
+		public static String extractDistantHostIDStringFromCentralDatabaseBackupGroup(Group group, String centralID)
+		{
+			if (Groups.CLIENT_SERVER_DATABASE_WITH_SUB_GROUPS.includes(group))
+			{
+				String[] split=group.getName().split("~");
+				if (split.length==2)
+				{
+					if (centralID.equals(split[0]))
+					{
+						if (split[1]!=null && !split[1].equals(centralID))
+							return split[1];
+					}
+					else if (centralID.equals(split[1]))
+					{
+						return split[0];
+					}
+				}
+			}
+			return null;
+		}
+		public static DecentralizedValue extractDistantHostID(Group group, WrappedString localHostID) throws IOException {
+			return extractDistantHostID(group, localHostID.toString());
+		}
+		public static DecentralizedValue extractDistantHostID(Group group, String localHostID) throws IOException {
 			String res=extractDistantHostIDString(group, localHostID);
 			if (res==null)
 				return null;
-			return DecentralizedValue.decode(Base64.decodeBase64(res));
+			return DecentralizedValue.decode(Bits.toBytesArrayFromBase64String(res, true));
+		}
+		public static Group getDistributedDatabaseGroup(WrappedString localIdentifier, DecentralizedValue distantIdentifier)
+		{
+			return getDistributedDatabaseGroup(localIdentifier.toString(), distantIdentifier);
 		}
 		public static Group getDistributedDatabaseGroup(String localIdentifier, DecentralizedValue distantIdentifier)
 		{
@@ -258,5 +294,6 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 		}*/
 
 		public static final String SYNCHRONIZER="SYNCHRONIZER";
+		public static final String CENTRAL_SYNCHRONIZER="CENTRAL_SYNCHRONIZER";
 	}
 }

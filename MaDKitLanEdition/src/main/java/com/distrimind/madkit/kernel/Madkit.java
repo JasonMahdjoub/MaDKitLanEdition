@@ -65,14 +65,9 @@ import com.distrimind.madkit.kernel.network.connection.access.Identifier;
 import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
 import com.distrimind.madkit.message.*;
 import com.distrimind.madkit.message.hook.HookMessage;
-import com.distrimind.ood.database.DatabaseEventType;
-import com.distrimind.ood.database.DatabaseWrapper;
-import com.distrimind.ood.database.HookAddRequest;
-import com.distrimind.ood.database.TransactionIsolation;
 import com.distrimind.util.OS;
 import com.distrimind.util.OSVersion;
 import com.distrimind.util.ReflectionTools;
-import com.distrimind.util.crypto.*;
 import com.distrimind.util.io.SecureExternalizableWithoutInnerSizeControl;
 import com.distrimind.util.io.SerializationTools;
 import com.distrimind.util.properties.PropertiesParseException;
@@ -82,13 +77,13 @@ import com.distrimind.util.version.PersonDeveloper;
 import com.distrimind.util.version.Version;
 
 /**
- * MaDKit 5 booter class.
+ * MaDKit 5 starter class.
  * 
  * <h2>MaDKit v.5 new features</h2>
  * 
  * <ul>
  * <li>One big change that comes with version 5 is how agents are identified and
- * localized within the artificial society. An agent is no longer binded to a
+ * localized within the artificial society. An agent is no longer bound to a
  * single agent address but has as many agent addresses as holden positions in
  * the artificial society. see {@link AgentAddress} for more information.</li>
  * 
@@ -135,58 +130,52 @@ final public class Madkit {
 		return defaultConfig;
 	}
 	
-	private volatile static Version VERSION;
+	private volatile static Version VERSION=null;
 
 	static Version getNewVersionInstance()
 	{
-		Calendar c = Calendar.getInstance();
-		c.set(2015, Calendar.MAY, 22);
-		Calendar c2 = Calendar.getInstance();
-		c2.set(2019, Calendar.FEBRUARY, 13);
-		Version VERSION = new Version("MaDKitLanEdition", "MKLE", (short)2, (short)1, (short)9, Version.Type.Stable, (short)1, c.getTime(), c2.getTime());
+		Version VERSION = new Version("MaDKitLanEdition", "MKLE", "2015-05-22");
 		try {
 
 			InputStream is = Madkit.class.getResourceAsStream("build.txt");
 			if (is!=null)
 				VERSION.loadBuildNumber(is);
 
-			VERSION.addCreator(new Person("mahdjoub", "jason"));
-			c = Calendar.getInstance();
-			c.set(2015, Calendar.MAY, 22);
-			VERSION.addDeveloper(new PersonDeveloper("mahdjoub", "jason", c.getTime()));
-			c = Calendar.getInstance();
-			c.set(1997, Calendar.FEBRUARY, 1);
-			VERSION.addDeveloper(new PersonDeveloper("michel", "fabien", c.getTime()));
-			c = Calendar.getInstance();
-			c.set(1997, Calendar.FEBRUARY, 1);
-			VERSION.addDeveloper(new PersonDeveloper("Gutknecht", "Olivier", c.getTime()));
-			c = Calendar.getInstance();
-			c.set(1997, Calendar.FEBRUARY, 1);
-			VERSION.addDeveloper(new PersonDeveloper("Ferber", "Jacques", c.getTime()));
+			VERSION.addCreator(new Person("mahdjoub", "jason"))
+					.addDeveloper(new PersonDeveloper("mahdjoub", "jason", "2015-05-22"))
+					.addDeveloper(new PersonDeveloper("michel", "fabien", "1997-02-01"))
+					.addDeveloper(new PersonDeveloper("Gutknecht", "Olivier", "1997-02-01"))
+					.addDeveloper(new PersonDeveloper("Ferber", "Jacques", "1997-02-01"))
+					.addDescription(new Description((short)2, (short)2, (short)0, Version.Type.BETA, (short)1, "2021-07-07")
+							.addItem("Update Utils to 5.18.5 STABLE")
+							.addItem("Update OOD to 3.1.0 Beta 2")
+							.addItem("Make Utils and OOD compatible with Android")
+							.addItem("Reimplement connection protocol using new Utils classes")
+							.addItem("Permit MaDKit to be a central database backup server in order to synchronize database of distant peers")
+							.addItem("Check distant and not only local ports with filters of connection protocols and with filter of access protocols")
+							.addItem("Fix unexpected high CPU usage due to a bad socket channel using")
+					)
+					.addDescription(new Description((short)2, (short)1, (short)10, Version.Type.STABLE, (short)1, "2020-02-15")
+							.addItem("Update Utils to 4.10.2")
+							.addItem("Update OOD to 2.4.2")
+					);
 
-			c = Calendar.getInstance();
-			c.set(2020, Calendar.FEBRUARY, 13);
-			Description d = new Description((short)2, (short)1, (short)9, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update Utils to 4.10.0");
-			d.addItem("Update OOD to 2.4.1");
-			VERSION.addDescription(d);
-
-			c = Calendar.getInstance();
+			Calendar c = Calendar.getInstance();
 			c.set(2020, Calendar.FEBRUARY, 11);
-			d = new Description((short)2, (short)1, (short)8, Version.Type.Stable, (short)1, c.getTime());
+			Description d = new Description((short)2, (short)1, (short)8, Version.Type.STABLE, (short)1, c.getTime());
 			d.addItem("Update Utils to 4.9.0");
 			d.addItem("Update OOD to 2.4.0");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2020, Calendar.JANUARY, 25);
-			d = new Description((short)2, (short)1, (short)7, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)2, (short)1, (short)7, Version.Type.STABLE, (short)1, c.getTime());
 			d.addItem("Generate random messages only if messages are lower than network block size");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2020, Calendar.JANUARY, 24);
-			d = new Description((short)2, (short)1, (short)6, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)2, (short)1, (short)6, Version.Type.STABLE, (short)1, c.getTime());
 			d.addItem("Update Utils to 4.8.5");
 			d.addItem("Update OOD to 2.3.20");
 			d.addItem("Rewrite agent thread executors and thread pool executors.");
@@ -195,37 +184,37 @@ final public class Madkit {
 
 			c = Calendar.getInstance();
 			c.set(2020, Calendar.JANUARY, 10);
-			d = new Description((short)2, (short)1, (short)5, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.3.14 Stable");
+			d = new Description((short)2, (short)1, (short)5, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Update OOD to 2.3.14 STABLE");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.DECEMBER, 17);
-			d = new Description((short)2, (short)1, (short)4, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update Utils to 4.7.1 Stable");
-			d.addItem("Update OOD to 2.3.13 Stable");
+			d = new Description((short)2, (short)1, (short)4, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Update Utils to 4.7.1 STABLE");
+			d.addItem("Update OOD to 2.3.13 STABLE");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.NOVEMBER, 22);
-			d = new Description((short)2, (short)1, (short)3, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update Utils to 4.7.0 Stable");
-			d.addItem("Update OOD to 2.3.11 Stable");
+			d = new Description((short)2, (short)1, (short)3, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Update Utils to 4.7.0 STABLE");
+			d.addItem("Update OOD to 2.3.11 STABLE");
 			d.addItem("Use LoginData.invalidCloudPassword function");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.NOVEMBER, 19);
-			d = new Description((short)2, (short)1, (short)1, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)2, (short)1, (short)1, Version.Type.STABLE, (short)1, c.getTime());
 			d.addItem("Rewrite PairOfIdentifiers class");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.NOVEMBER, 18);
-			d = new Description((short)2, (short)1, (short)0, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update Utils to 4.6.5 Stable");
-			d.addItem("Update OOD to 2.3.10 Stable");
-			d.addItem("Update JDKRewriteUtils to 1.0.4 Stable");
+			d = new Description((short)2, (short)1, (short)0, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Update Utils to 4.6.5 STABLE");
+			d.addItem("Update OOD to 2.3.10 STABLE");
+			d.addItem("Update JDKRewriteUtils to 1.0.4 STABLE");
 			d.addItem("Filter distant network roles, and not only distant network groups");
 			d.addItem("Compile with openjdk 13 (compatibility set to Java 7");
 			d.addItem("Fix network broadcast message issue when no local agent is present, and when network agents does not received broadcast message");
@@ -233,29 +222,29 @@ final public class Madkit {
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.OCTOBER, 31);
-			d = new Description((short)2, (short)0, (short)4, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update Utils to 4.6.2 Stable");
-			d.addItem("Update OOD to 2.3.7 Stable");
+			d = new Description((short)2, (short)0, (short)4, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Update Utils to 4.6.2 STABLE");
+			d.addItem("Update OOD to 2.3.7 STABLE");
 			d.addItem("Update documentation");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.OCTOBER, 19);
-			d = new Description((short)2, (short)0, (short)3, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update Utils to 4.6.1 Stable");
-			d.addItem("Update OOD to 2.3.6 Stable");
+			d = new Description((short)2, (short)0, (short)3, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Update Utils to 4.6.1 STABLE");
+			d.addItem("Update OOD to 2.3.6 STABLE");
 			d.addItem("Update dependencies");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.OCTOBER, 18);
-			d = new Description((short)2, (short)0, (short)0, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update Utils to 4.6.0 Stable");
-			d.addItem("Update OOD to 2.3.4 Stable");
+			d = new Description((short)2, (short)0, (short)0, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Update Utils to 4.6.0 STABLE");
+			d.addItem("Update OOD to 2.3.4 STABLE");
 			d.addItem("Cloud identifiers can be individually anonymous thanks to an encryption process.");
 			d.addItem("Host identifiers are sent only if the cloud identifier authentication process succeeded.");
 			d.addItem("Authentication can be done automatically with public key, through a shared password/key, or both");
-			d.addItem("P2PSecuredConnectionProtocolWithKeyAgreeement algorithm permit to make client/server authentication throw asymmetric signatures");
+			d.addItem("P2PSecuredConnectionProtocolWithKeyAgreement algorithm permit to make client/server authentication throw asymmetric signatures");
 			d.addItem("An identifier is composed of a cloud identifier, and a host identifier. In the past, one authentication concerned both cloud and host identifiers. Now it is possible to have two authentications : one for the cloud identifier, and one another for the host identifier. If one of them fails, than identifier is rejected.");
 			d.addItem("Use hybrid connexion protocols that enables to use at the same time non post quantum algorithms and post quantum algorithms. It is to prevent the quantum supremacy without loosing the benefits of stable encryption algorithms. For client/server connexion, two asymmetric key pairs are then used : one for a non post quantum algorithm like RSA and one for a post quantum algorithm like Mc Eliece");
 			d.addItem("Synchronize local database with other peers");
@@ -263,21 +252,21 @@ final public class Madkit {
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.APRIL, 24);
-			d = new Description((short)1, (short)11, (short)1, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)1, (short)11, (short)1, Version.Type.STABLE, (short)1, c.getTime());
 			d.addItem("Minimal modification into SecuredObjectOutputStream and SecuredObjectInputStream classes. ");
 			d.addItem("Fix bad use of garbage collector with ConversationID. ");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.APRIL, 23);
-			d = new Description((short)1, (short)11, (short)0, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)1, (short)11, (short)0, Version.Type.STABLE, (short)1, c.getTime());
 			d.addItem("Add SecuredObjectOutputStream and SecuredObjectInputStream classes. Do not use native ObjectInputStream.");
 			d.addItem("Add possibility to send asynchronous messages (AbstractAgent.sendMessageWithRoleOrDifferSendingUntilRecipientWasFound).");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.APRIL, 8);
-			d = new Description((short)1, (short)10, (short)2, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)1, (short)10, (short)2, Version.Type.STABLE, (short)1, c.getTime());
 			d.addItem("Add hashCode function into class AbstractIP.");
 			d.addItem("Better manage externalization.");
 			d.addItem("Better manage identifiers of connection protocol negotiator.");
@@ -290,7 +279,7 @@ final public class Madkit {
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.MARCH, 26);
-			d = new Description((short)1, (short)10, (short)1, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)1, (short)10, (short)1, Version.Type.STABLE, (short)1, c.getTime());
 			d.addItem("Do not do useless thread locking when CGR groups are synchronized with distant peers.");
 			d.addItem("Restore BigDataTransferID to previous previous (new version caused issues with Junit tests).");
 			d.addItem("Fix issue during MaDKit ending.");
@@ -298,9 +287,9 @@ final public class Madkit {
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.MARCH, 25);
-			d = new Description((short)1, (short)10, (short)0, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 Beta 104.");
-			d.addItem("Update Utils to 3.25.5 Stable.");
+			d = new Description((short)1, (short)10, (short)0, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Update OOD to 2.0.0 BETA 104.");
+			d.addItem("Update Utils to 3.25.5 STABLE.");
 			d.addItem("Add new connection protocol with symmetric keys: P2PSecuredConnectionProtocolWithKnownSymmetricKeys.");
 			d.addItem("Better tests for network transfers.");
 			d.addItem("Improve synchronization of list of distant agents.");
@@ -314,7 +303,7 @@ final public class Madkit {
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.MARCH, 1);
-			d = new Description((short)1, (short)9, (short)6, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)1, (short)9, (short)6, Version.Type.STABLE, (short)1, c.getTime());
 			d.addItem("Remove obsolete code.");
 			d.addItem("Rename function into HostIdentifier class.");
 			d.addItem("Typo corrections.");
@@ -323,7 +312,7 @@ final public class Madkit {
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.FEBRUARY, 8);
-			d = new Description((short)1, (short)9, (short)4, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)1, (short)9, (short)4, Version.Type.STABLE, (short)1, c.getTime());
 			d.addItem("Code cleaning/optimizing.");
 			VERSION.addDescription(d);
 
@@ -331,15 +320,15 @@ final public class Madkit {
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.FEBRUARY, 6);
-			d = new Description((short)1, (short)9, (short)5, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 Beta 99.");
+			d = new Description((short)1, (short)9, (short)5, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Update OOD to 2.0.0 BETA 99.");
 			d.addItem("Update Utils to 3.25.1");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.FEBRUARY, 5);
-			d = new Description((short)1, (short)9, (short)2, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 Beta 97.");
+			d = new Description((short)1, (short)9, (short)2, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Update OOD to 2.0.0 BETA 97.");
 			d.addItem("OOD - Security fix : disable cache for tables that use secret ou private keys");
 			d.addItem("OOD - Security improvement : add Field.disableCache property");
 			VERSION.addDescription(d);
@@ -347,15 +336,15 @@ final public class Madkit {
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.JANUARY, 18);
-			d = new Description((short)1, (short)9, (short)1, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 Beta 95.");
+			d = new Description((short)1, (short)9, (short)1, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Update OOD to 2.0.0 BETA 95.");
 			d.addItem("Set default OOD driver to H2 database.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.JANUARY, 13);
-			d = new Description((short)1, (short)9, (short)0, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 Beta 94.");
+			d = new Description((short)1, (short)9, (short)0, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Update OOD to 2.0.0 BETA 94.");
 			d.addItem("Update Utils to 3.24.0.");
 			d.addItem("Manage asymmetric auto-signed login.");
 			d.addItem("Better computer manage sleep mode.");
@@ -364,25 +353,25 @@ final public class Madkit {
 
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.NOVEMBER, 24);
-			d = new Description((short)1, (short)8, (short)2, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)1, (short)8, (short)2, Version.Type.STABLE, (short)1, c.getTime());
 			d.addItem("Improve security of Client/Server connection protocol.");
 			d.addItem("Resolve a concurrent modification exception into internal role.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.NOVEMBER, 23);
-			d = new Description((short)1, (short)8, (short)1, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)1, (short)8, (short)1, Version.Type.STABLE, (short)1, c.getTime());
 			d.addItem("Improve security of Client/Server connection protocol.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.NOVEMBER, 21);
-			d = new Description((short)1, (short)8, (short)0, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)1, (short)8, (short)0, Version.Type.STABLE, (short)1, c.getTime());
 			d.addItem("Detect security anomalies during big data transfers.");
             d.addItem("Correction of Group.equals() with null references.");
             d.addItem("Better manage ban with deserialization process.");
 			d.addItem("Update Utils to 3.22.1.");
-			d.addItem("Update OOD to 2.0.0 Beta 91.");
+			d.addItem("Update OOD to 2.0.0 BETA 91.");
 			d.addItem("Add function AbstractAgent.getAccessibleKernelsFilteredByGroupsGivenByDistantPeer(Group).");
 			d.addItem("Add function AbstractAgent.getAccessibleKernelsFilteredByGroupsGivenToDistantPeer(Group).");
 			d.addItem("Check public key validity with client/server connexion protocol.");
@@ -397,8 +386,8 @@ final public class Madkit {
 
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.AUGUST, 1);
-			d = new Description((short)1, (short)7, (short)6, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 Beta 86.");
+			d = new Description((short)1, (short)7, (short)6, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Update OOD to 2.0.0 BETA 86.");
 			d.addItem("Update Utils to 3.19.0.");
 			d.addItem("Add save functions into MadKit Properties.");
 			d.addItem("Fix network messages serialization problem.");
@@ -406,24 +395,24 @@ final public class Madkit {
 
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.JULY, 27);
-			d = new Description((short)1, (short)7, (short)5, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 Beta 85.");
+			d = new Description((short)1, (short)7, (short)5, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Update OOD to 2.0.0 BETA 85.");
 			d.addItem("Update Utils to 3.18.0.");
 			d.addItem("Save MKLE configuration that are different from a reference configuration. Other properties are not saved.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.JULY, 20);
-			d = new Description((short)1, (short)7, (short)3, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 Beta 84.");
+			d = new Description((short)1, (short)7, (short)3, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Update OOD to 2.0.0 BETA 84.");
 			d.addItem("Update Utils to 3.17.0.");
 			d.addItem("Fix version's control issue of distant peer.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.JULY, 13);
-			d = new Description((short)1, (short)7, (short)1, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 Beta 83.");
+			d = new Description((short)1, (short)7, (short)1, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Update OOD to 2.0.0 BETA 83.");
             d.addItem("Update Utils to 3.16.1.");
             d.addItem("Improve version's control of distant peer.");
             d.addItem("Clean code.");
@@ -432,23 +421,23 @@ final public class Madkit {
 
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.MAY, 20);
-			d = new Description((short)1, (short)7, (short)0, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 Beta 82.");
+			d = new Description((short)1, (short)7, (short)0, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Update OOD to 2.0.0 BETA 82.");
 			d.addItem("Update Utils to 3.15.0.");
 			d.addItem("Add P2P connection protocol that support parametrisation of key agreement.");
 			d.addItem("Support several key agreement (including Post Quantum Cryptography key agreement (New Hope)).");
-			d.addItem("Fix security issue : when data is sent without being writed (default memory state), fill it with zeros.");
+			d.addItem("Fix security issue : when data is sent without being wrote (default memory state), fill it with zeros.");
 			d.addItem("Fix security issue : sign symmetric encryption key into client/server connection protocol.");
 			d.addItem("Fix security issue : with P2P key agreements, generate signature and encryption keys with two steps (instead of one), in order to sign the exchanged symmetric encryption key.");
-			d.addItem("Fix security issue : class serialization are now filtered with white list and black list. Classes that are not into white list must implement the interference 'SerializableAndSizable'. Messages sent to the network must implement the interface NetworkMessage.");
+			d.addItem("Fix security issue : class serialization are now filtered with allow list and deny list. Classes that are not into deny list must implement the interference 'SerializableAndSizable'. Messages sent to the network must implement the interface NetworkMessage.");
 			d.addItem("Optimization : use externalization process instead of deserialization process during lan transfer.");
 			d.addItem("Fix security issue : classes externalization processes control now the allocated memory during de-externalization phase.");
 			d.addItem("Security enhancement : initialisation vectors used with encryption has now a secret part composed of counter that is increased at each data exchange.");
 			d.addItem("Security enhancement : signature and encryption process use now a secret message that is increased at each data exchange.");
-			d.addItem("Security enhancement : P2P login agreement use now JPAKE and a signature authentication if secret key for signature is available (PassworKey.getSecretKeyForSignature()).");
+			d.addItem("Security enhancement : P2P login agreement use now JPake and a signature authentication if secret key for signature is available (PasswordKey.getSecretKeyForSignature()).");
 			d.addItem("Fix issue with dead lock into indirect connection process.");
 			d.addItem("Fix issue with dual connection between two same kernels.");
-			d.addItem("Externalising Java rewrited classes into JDKRewriteUtils project.");
+			d.addItem("Externalising Java rewrote classes into JDKRewriteUtils project.");
 			d.addItem("Support of authenticated encryption algorithms. When use these algorithms, MKLE do not add a signature with independent MAC.");
 			d.addItem("Add some benchmarks.");
 			d.addItem("Support of YAML file properties.");
@@ -457,20 +446,20 @@ final public class Madkit {
 			
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.FEBRUARY, 27);
-			d = new Description((short)1, (short)6, (short)5, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)1, (short)6, (short)5, Version.Type.STABLE, (short)1, c.getTime());
 			d.addItem("Debug UPNP connexion with macOS.");
 			d.addItem("Fix issue with multiple identical router's messages : do not remove the router to recreate it.");
 			VERSION.addDescription(d);	
 			
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.FEBRUARY, 26);
-			d = new Description((short)1, (short)6, (short)5, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)1, (short)6, (short)5, Version.Type.STABLE, (short)1, c.getTime());
 			d.addItem("Fiw a problem with UPNP connexion under macOS.");
 			VERSION.addDescription(d);	
 			
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.FEBRUARY, 15);
-			d = new Description((short)1, (short)6, (short)4, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)1, (short)6, (short)4, Version.Type.STABLE, (short)1, c.getTime());
 			d.addItem("Fix problem of port unbind with Windows.");
 			d.addItem("Fix problem of simultaneous connections with Mac OS");
 			d.addItem("Fix problem with interface address filtering");
@@ -478,121 +467,121 @@ final public class Madkit {
 			
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.FEBRUARY, 10);
-			d = new Description((short)1, (short)6, (short)3, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 Beta 66.");
+			d = new Description((short)1, (short)6, (short)3, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Update OOD to 2.0.0 BETA 66.");
 			d.addItem("Update Utils to 3.10.5");
 			d.addItem("Change minimum public key size from 1024 to 2048");
 			VERSION.addDescription(d);			
 			
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.FEBRUARY, 10);
-			d = new Description((short)1, (short)6, (short)2, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 Beta 65.");
+			d = new Description((short)1, (short)6, (short)2, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Update OOD to 2.0.0 BETA 65.");
 			d.addItem("Update Utils to 3.10.4");
 			d.addItem("Change minimum public key size from 1024 to 2048");
 			VERSION.addDescription(d);
 			
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.FEBRUARY, 4);
-			d = new Description((short)1, (short)6, (short)1, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)1, (short)6, (short)1, Version.Type.STABLE, (short)1, c.getTime());
 			d.addItem("Overlookers were not aware from new roles adding. Fix this issue.");
 			d.addItem("Add MadKit demos");
 			VERSION.addDescription(d);
 			
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.JANUARY, 31);
-			d = new Description((short)1, (short)6, (short)0, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Updating OOD to 2.0.0 Beta 59");
+			d = new Description((short)1, (short)6, (short)0, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Updating OOD to 2.0.0 BETA 59");
 			d.addItem("Updating Utils to 3.9.0");
 			d.addItem("Messages can now be atomically non encrypted");
 			VERSION.addDescription(d);
 			
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.DECEMBER, 13);
-			d = new Description((short)1, (short)5, (short)2, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Updating OOD to 2.0.0 Beta 57");
+			d = new Description((short)1, (short)5, (short)2, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Updating OOD to 2.0.0 BETA 57");
 			d.addItem("Updating Utils to 3.7.1");
 			d.addItem("Debugging JavaDoc");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.NOVEMBER, 13);
-			d = new Description((short)1, (short)5, (short)0, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Updating OOD to 2.0.0 Beta 55");
+			d = new Description((short)1, (short)5, (short)0, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Updating OOD to 2.0.0 BETA 55");
 			d.addItem("Packets can now have sizes greater than Short.MAX_VALUE");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.NOVEMBER, 2);
-			d = new Description((short)1, (short)4, (short)5, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Updating OOD to 2.0.0 Beta 54");
+			d = new Description((short)1, (short)4, (short)5, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Updating OOD to 2.0.0 BETA 54");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.OCTOBER, 13);
-			d = new Description((short)1, (short)4, (short)0, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Updating OOD to 2.0.0 Beta 48");
+			d = new Description((short)1, (short)4, (short)0, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Updating OOD to 2.0.0 BETA 48");
 			d.addItem("Several modifications into connection and access protocols");
 			d.addItem("Adding approved randoms parameters into MaDKitProperties");
 			d.addItem("Adding point to point transfer connection signature and verification");
-			d.addItem("Saving automatically random's seed to be reload with the next application loading");
+			d.addItem("Saving automatically random seed to be reload with the next application loading");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.AUGUST, 31);
-			d = new Description((short)1, (short)2, (short)1, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)1, (short)2, (short)1, Version.Type.STABLE, (short)1, c.getTime());
 			d.addItem("Including resources in jar files");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.AUGUST, 5);
-			d = new Description((short)1, (short)2, (short)0, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)1, (short)2, (short)0, Version.Type.STABLE, (short)1, c.getTime());
 			d.addItem("Correction a problem with database");
 			d.addItem("Adding P2PSecuredConnectionProtocolWithECDHAlgorithm connection protocol (speediest)");
-			d.addItem("Adding Client/ServerSecuredConnectionProtocolWithKnwonPublicKeyWithECDHAlgorithm connection protocol (speediest)");
+			d.addItem("Adding Client/ServerSecuredConnectionProtocolWithKnownPublicKeyWithECDHAlgorithm connection protocol (speediest)");
 			d.addItem("Now all connection protocols use different keys for encryption and for signature");
 			d.addItem("Adding AccessProtocolWithP2PAgreement (speediest)");
 			d.addItem("Debugging desktop JFrame closing (however the JMV still become opened when all windows are closed)");
 			d.addItem("Several minimal bug fix");
 			d.addItem("Correction of JavaDoc");
-			d.addItem("Updating OOD to 2.0.0 Beta 20 version");
+			d.addItem("Updating OOD to 2.0.0 BETA 20 version");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.AUGUST, 5);
-			d = new Description((short)1, (short)1, (short)3, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Updating OOD to 2.0.0 Beta 15");
+			d = new Description((short)1, (short)1, (short)3, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Updating OOD to 2.0.0 BETA 15");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.AUGUST, 5);
-			d = new Description((short)1, (short)1, (short)2, Version.Type.Stable, (short)1, c.getTime());
-			d.addItem("Updating OOD to 2.0.0 Beta 14");
+			d = new Description((short)1, (short)1, (short)2, Version.Type.STABLE, (short)1, c.getTime());
+			d.addItem("Updating OOD to 2.0.0 BETA 14");
 			d.addItem("Optimizing some memory leak tests");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.AUGUST, 4);
-			d = new Description((short)1, (short)1, (short)0, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)1, (short)1, (short)0, Version.Type.STABLE, (short)1, c.getTime());
 			d.addItem("Convert project to Gradle project");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.JUNE, 4);
-			d = new Description((short)1, (short)0, (short)0, Version.Type.Stable, (short)1, c.getTime());
+			d = new Description((short)1, (short)0, (short)0, Version.Type.STABLE, (short)1, c.getTime());
 			d.addItem("Correction of a bug with database disconnection");
 			d.addItem("Debugging indirect connections");
 			d.addItem("Solving a memory leak problem with ConversationID");
 			d.addItem("Solving a memory leak problem with TransferAgent (not killed)");
 			d.addItem("Solving problem when deny BigDataProposition and kill agent just after");
 			d.addItem("Indirect connection send now ping message");
-			d.addItem("Adding white list for InetAddresses in network properties");
+			d.addItem("Adding allow list for InetAddresses in network properties");
 			d.addItem("Correcting problems of internal group/role references/dereferences");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.MAY, 27);
-			d = new Description((short)1, (short)0, (short)0, Version.Type.Beta, (short)4, c.getTime());
+			d = new Description((short)1, (short)0, (short)0, Version.Type.BETA, (short)4, c.getTime());
 			d.addItem("Agents are now identified by a long (and not int)");
 			d.addItem("Adding the function AbstractAgent.getAgentID()");
 			d.addItem("Removing static elements in Conversation ID");
@@ -600,22 +589,22 @@ final public class Madkit {
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.MAY, 23);
-			d = new Description((short)1, (short)0, (short)0, Version.Type.Beta, (short)3, c.getTime());
+			d = new Description((short)1, (short)0, (short)0, Version.Type.BETA, (short)3, c.getTime());
 			d.addItem("Update Utils to 2.7.1");
-			d.addItem("Update OOD to 2.0.0 Beta 1");
+			d.addItem("Update OOD to 2.0.0 BETA 1");
 			d.addItem("JDK 7 compatible");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.MARCH, 7);
-			d = new Description((short)1, (short)0, (short)0, Version.Type.Beta, (short)2, c.getTime());
+			d = new Description((short)1, (short)0, (short)0, Version.Type.BETA, (short)2, c.getTime());
 			d.addItem("Reinforce secret identifier/password exchange");
 			d.addItem("Add agent to launch into MKDesktop windows");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.MARCH, 4);
-			d = new Description((short)1, (short)0, (short)0, Version.Type.Beta, (short)0, c.getTime());
+			d = new Description((short)1, (short)0, (short)0, Version.Type.BETA, (short)0, c.getTime());
 			d.addItem("First MaDKitLanEdition release, based on MaDKit");
 			VERSION.addDescription(d);
 		} catch (Exception e) {
@@ -649,13 +638,8 @@ final public class Madkit {
 					VERSION=getNewVersionInstance();
 					defaultConfig=generateDefaultMadkitConfig();
 
-                    Runtime.getRuntime().addShutdownHook(new Thread() {
-
-                        @Override
-                        public void run() {// just in case (like ctrl+c)
-                            AgentLogger.resetLoggers();
-                        }
-                    });
+					// just in case (like ctrl+c)
+					Runtime.getRuntime().addShutdownHook(new Thread(AgentLogger::resetLoggers));
 
                     WEB=defaultConfig.madkitWeb;
 
@@ -744,19 +728,15 @@ final public class Madkit {
 	 * 
 	 * @param options
 	 *            the options which should be used to launch Madkit. If
-	 *            <code>null</code>, the dektop mode is automatically used.
+	 *            <code>null</code>, the desktop mode is automatically used.
 	 * 
 	 * @see MadkitProperties
 	 * @see NetworkProperties
 	 * 
 	 */
 	public Madkit(String... options) {
-		this(new MadkitEventListener() {
+		this(_properties -> {
 
-			@Override
-			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
-
-			}
 		}, options);
 	}
 
@@ -775,7 +755,7 @@ final public class Madkit {
 	 *            cycle
 	 * @param options
 	 *            the options which should be used to launch Madkit. If
-	 *            <code>null</code>, the dektop mode is automatically used.
+	 *            <code>null</code>, the desktop mode is automatically used.
 	 * 
 	 * @see MadkitProperties
 	 * @see NetworkProperties
@@ -798,7 +778,7 @@ final public class Madkit {
      *            cycle
      * @param options
      *            the options which should be used to launch Madkit. If
-     *            <code>null</code>, the dektop mode is automatically used.
+     *            <code>null</code>, the desktop mode is automatically used.
      *
      * @see MadkitProperties
      * @see NetworkProperties
@@ -820,19 +800,15 @@ final public class Madkit {
      *            the initial MadKit configuration
      * @param options
      *            the options which should be used to launch Madkit. If
-     *            <code>null</code>, the dektop mode is automatically used.
+     *            <code>null</code>, the desktop mode is automatically used.
      *
      * @see MadkitProperties
      * @see NetworkProperties
      */
     public Madkit(MadkitProperties madkitConfig, String... options) {
-        this(madkitConfig, null, new MadkitEventListener() {
+        this(madkitConfig, null, _properties -> {
 
-            @Override
-            public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
-
-            }
-        }, options);
+		}, options);
     }
 	Madkit(MadkitProperties madkitProperties, KernelAddress kernelAddress, MadkitEventListener eventListener, String... options) {
 		if (eventListener == null)
@@ -995,7 +971,7 @@ final public class Madkit {
 			System.out.println("\n-----------------------------------------------------------------------------"
 					+ "\n\t\t\t\t    MadkitLanEdition\n" + "\n\t Version: " + VERSION.getMajor() + "."
 					+ VERSION.getMinor() + "." + VERSION.getRevision() + " " + VERSION.getType()
-					+ (VERSION.getType().equals(Version.Type.Stable) ? "" : (" " + VERSION.getAlphaBetaVersion()))
+					+ (VERSION.getType().equals(Version.Type.STABLE) ? "" : (" " + VERSION.getAlphaBetaRCVersion()))
 					+ "\n\t MaDKit Team (c) 1997-"+c.get(Calendar.YEAR)
 					+ "\n\t MadkitLanEdition Team (c) " + startCal.get(Calendar.YEAR) + "-" + endCal.get(Calendar.YEAR)
 					+ "\n\t Kernel " + myKernel.getNetworkID()
@@ -1102,7 +1078,7 @@ final public class Madkit {
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$IDTransfer"),
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$DirectConnection"),
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$DirectConnectionFailed"),
-					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$DirectConnectionSuceeded"),
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$DirectConnectionSucceeded"),
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.TransferAgent$TryDirectConnection"),
 					BigDataTransferID.class,
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.CGRSynchrosSystemMessage"),
@@ -1135,35 +1111,16 @@ final public class Madkit {
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.WrappedCloudIdentifier"),
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.CloudIdentifiersPropositionMessage"),
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.JPakeMessageForAuthenticationOfCloudIdentifiers"),
-					DatabaseWrapper.DatabaseEventsToSynchronize.class,
-					DatabaseWrapper.DatabaseTransactionsIdentifiersToSynchronize.class,
-					HookAddRequest.class,
-					DatabaseWrapper.LastIDCorrection.class,
-					DatabaseWrapper.TransactionConfirmationEvents.class,
 					ListGroupsRoles.class, GroupsRoles.class));
 			for (Class<?> c : classes)
 				assert !Modifier.isAbstract(c.getModifiers()):""+c;
+
 			//noinspection unchecked
 			ArrayList<Class<? extends Enum<?>>> enums = new ArrayList<>(new HashSet<>(Arrays.asList(
 					AbstractAgent.ReturnCode.class,
 					AbstractAgent.State.class,
 					(Class<? extends Enum<?>>) Class.forName("com.distrimind.madkit.kernel.CGRSynchro$Code"),
 					ConnectionProtocol.ConnectionState.class,
-					MessageDigestType.class,
-					SecureRandomType.class,
-					SymmetricEncryptionType.class,
-					SymmetricAuthentifiedSignatureType.class,
-					ASymmetricEncryptionType.class,
-					ASymmetricAuthenticatedSignatureType.class,
-					KeyAgreementType.class,
-					PasswordHashType.class,
-					SymmetricKeyWrapperType.class,
-					ASymmetricKeyWrapperType.class,
-					ASymmetricLoginAgreementType.class,
-					CodeProvider.class,
-					EllipticCurveDiffieHellmanType.class,
-					P2PLoginAgreementType.class,
-					PasswordBasedKeyGenerationType.class,
 					Version.Type.class,
 					AgentAction.class,
 					GUIManagerAction.class,
@@ -1179,13 +1136,12 @@ final public class Madkit {
 					ConnectionProtocol.ConnectionClosedReason.class,
 					OS.class,
 					OSVersion.class,
-					DatabaseEventType.class,
-					TransactionIsolation.class,
 					HookMessage.AgentActionEvent.class,
 					EncryptionRestriction.class,
 					Identifier.AuthenticationMethod.class
 			)));
-			SerializationTools.setPredefinedClasses(classes, enums);
+
+			SerializationTools.addPredefinedClasses(classes, enums);
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 			System.exit(-1);

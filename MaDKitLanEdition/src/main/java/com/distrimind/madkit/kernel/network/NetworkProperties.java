@@ -41,7 +41,7 @@ package com.distrimind.madkit.kernel.network;
 
 import com.distrimind.madkit.exceptions.NIOException;
 import com.distrimind.madkit.kernel.*;
-import com.distrimind.madkit.kernel.network.LocalNetworkAgent.PossibleAddressForDirectConnnection;
+import com.distrimind.madkit.kernel.network.LocalNetworkAgent.PossibleAddressForDirectConnection;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
 import com.distrimind.madkit.kernel.network.connection.access.AbstractAccessProtocolProperties;
@@ -72,39 +72,28 @@ import java.util.regex.Pattern;
  * @version 1.2
  * 
  */
-@SuppressWarnings("UnusedReturnValue")
+@SuppressWarnings({"UnusedReturnValue", "FieldMayBeFinal"})
 public class NetworkProperties extends MultiFormatProperties {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -4437074500457055696L;
 
+	@SuppressWarnings("SpellCheckingInspection")
 	public NetworkProperties() {
 		super(new MultiFormatPropertiesObjectParser());
-		globalStatBandwith = new StatsBandwidth();
+		globalStatBandwidth = new StatsBandwidth();
 
-        globalStatBandwith.putBytesDownloadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS,
+        globalStatBandwidth.putBytesDownloadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS,
                 globalRealTimeTransferStatPerOneSecondForDownload);
-		/*globalStatBandwith.putBytesDownloadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS,
-				globalRealTimeTransferStatPer30SecondsForDownload);
-		globalStatBandwith.putBytesDownloadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS,
-				globalRealTimeTransferStatPer5MinutesForDownload);*/
-        globalStatBandwith.putBytesUploadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS,
+        globalStatBandwidth.putBytesUploadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS,
                 globalRealTimeTransferStatPerOneSecondForUpload);
-		/*globalStatBandwith.putBytesUploadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS,
-				globalRealTimeTransferStatPer30SecondsForUpload);
-		globalStatBandwith.putBytesUploadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS,
-				globalRealTimeTransferStatPer5MinutesForUpload);
-		globalStatBandwith.putBytesUploadedInRealBytes(DEFAULT_STAT_PER_512KB_SEGMENTS,
-				globalTransferSpeedStatPer512SegmentsForUpload);
-		globalStatBandwith.putBytesDownloadedInRealBytes(DEFAULT_STAT_PER_512KB_SEGMENTS,
-				globalTransferSpeedStatPer512SegmentsForDownload);*/
 		try {
-			whiteInetAddressesList = new ArrayList<>();
-			whiteInetAddressesList.add(InetAddress.getByName("0.0.0.0"));
-			whiteInetAddressesList.add(InetAddress.getByName("127.0.0.1"));
-			whiteInetAddressesList.add(InetAddress.getByName("::1"));
-			whiteInetAddressesList.add(InetAddress.getByName("localhost"));
+			allowInetAddressesList = new ArrayList<>();
+			allowInetAddressesList.add(InetAddress.getByName("0.0.0.0"));
+			allowInetAddressesList.add(InetAddress.getByName("127.0.0.1"));
+			allowInetAddressesList.add(InetAddress.getByName("::1"));
+			allowInetAddressesList.add(InetAddress.getByName("localhost"));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -182,14 +171,14 @@ public class NetworkProperties extends MultiFormatProperties {
 
 	/**
 	 * The maximum global unread data size (in bytes) for messages considered as
-	 * short data (not big data). This threshold concerns all connected distants
+	 * short data (not big data). This threshold concerns all connected distant
 	 * kernels.
 	 */
 	public long maxSizeForUnreadShortDataFromAllConnections = 419430400L;
 
 	/**
 	 * A file transfer is computed in bytes per second according the average of data
-	 * transfered during the last specified milliseconds (this variable).
+	 * transferred during the last specified milliseconds (this variable).
 	 */
 	public long bigDataStatDurationMean = 1000L;
 
@@ -208,7 +197,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * corresponds to the number of detected anomalies accepted before triggering an
 	 * expulsion.
 	 */
-	public short nbMaxAnomaliesBeforeTrigeringExpulsion = 7;
+	public short nbMaxAnomaliesBeforeTriggeringExpulsion = 7;
 
 	/**
 	 * When received data are incorrect or when an anomaly has been detected through
@@ -236,7 +225,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * the distant concerned host. This variable corresponds to the number of
 	 * detected anomalies accepted before triggering a banishment.
 	 */
-	public short nbMaxAnomaliesBeforeTrigeringBanishment = 1;
+	public short nbMaxAnomaliesBeforeTriggeringBanishment = 1;
 
 	/**
 	 * When a problem of security is detected, the system decide to ban temporary
@@ -248,13 +237,13 @@ public class NetworkProperties extends MultiFormatProperties {
 
 	/**
 	 * Duration of the statistics concerning the temporary expulsion of a computer.
-	 * After this duration, the statistics are reseted.
+	 * After this duration, the statistics are reset.
 	 */
 	public long expulsionStatisticDuration = 7200000L;
 
 	/**
 	 * Duration of the statistics concerning the banishment of a computer. After
-	 * this duration, the statistics are reseted.
+	 * this duration, the statistics are reset.
 	 */
 	public long banishmentStatisticDuration = 1728000000L;
 
@@ -264,7 +253,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * the current connection is just useful to inform the two computers that they
 	 * can connect between them. Else the current connection will be used to be a
 	 * gateway between the two computers. Every data between the two computers will
-	 * be transfered into the current computer/connection. However, if data is
+	 * be transferred into the current computer/connection. However, if data is
 	 * encrypted, it cannot be comprehensible for the current computer. So the data
 	 * security is maintained.
 	 * 
@@ -319,7 +308,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	/**
 	 * Define the maximum number of connections between two same kernels. Indeed,
 	 * between two machines, it is possible to have several network interfaces, so
-	 * severals connections. This limitation enables to limit the effect of a DoS
+	 * several connections. This limitation enables to limit the effect of a DoS
 	 * attack.
 	 */
 	public short numberOfMaximumConnectionsBetweenTwoSameKernelsAndMachines = 3;// TODO check if rejected peer needs to
@@ -369,7 +358,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	public long selectorTimeOutWhenWaitingPendingConnections = 300L;
 
 	/**
-	 * Delay after a connection is considered obsolete if no data was transfered.
+	 * Delay after a connection is considered obsolete if no data was transferred.
 	 */
 	public long connectionTimeOut = 30000L;
 
@@ -530,9 +519,9 @@ public class NetworkProperties extends MultiFormatProperties {
 	 */
 	public int portsToBindForManualDirectConnections = -1;
 
-	private ArrayList<PossibleAddressForDirectConnnection> addressesForDirectConnectionToAttemptFromOtherPeersThisPeer = new ArrayList<>();
+	private ArrayList<PossibleAddressForDirectConnection> addressesForDirectConnectionToAttemptFromOtherPeersThisPeer = new ArrayList<>();
 
-	void addPossibleAddressForDirectConnection(PossibleAddressForDirectConnnection isa) {
+	void addPossibleAddressForDirectConnection(PossibleAddressForDirectConnection isa) {
 		if (isa == null)
 			throw new NullPointerException("isa");
 		synchronized (this) {
@@ -540,13 +529,13 @@ public class NetworkProperties extends MultiFormatProperties {
 		}
 	}
 
-	void removePossibleAddressForDirectConnection(PossibleAddressForDirectConnnection isa) {
+	void removePossibleAddressForDirectConnection(PossibleAddressForDirectConnection isa) {
 		synchronized (this) {
 			addressesForDirectConnectionToAttemptFromOtherPeersThisPeer.remove(isa);
 		}
 	}
 
-	public List<PossibleAddressForDirectConnnection> getPossibleAddressesForDirectConnectionToAttemptFromOtherPeersToThisPeer() {
+	public List<PossibleAddressForDirectConnection> getPossibleAddressesForDirectConnectionToAttemptFromOtherPeersToThisPeer() {
 		synchronized (this) {
 			return new ArrayList<>(addressesForDirectConnectionToAttemptFromOtherPeersThisPeer);
 		}
@@ -715,7 +704,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * @param mkProperties the madkit properties
 	 * @param isServer
 	 * 			true if this peer can receive connection ask from other peer
-	 * @param needBiDirectionnalConnectionInitiationAbility
+	 * @param needBiDirectionalConnectionInitiationAbility
 	 * 			true if the two concerned peers can be interpreted as servers
 	 * @return a connection protocol chain according the distant peer ip, and the
 	 *         local used port. Returns null if no connection protocol was found.
@@ -724,9 +713,9 @@ public class NetworkProperties extends MultiFormatProperties {
 	 */
 	public ConnectionProtocol<?> getConnectionProtocolInstance(InetSocketAddress _distant_inet_address,
 			InetSocketAddress _local_interface_address, DatabaseWrapper sql_connection, MadkitProperties mkProperties, boolean isServer,
-			boolean needBiDirectionnalConnectionInitiationAbility) throws NIOException {
+			boolean needBiDirectionalConnectionInitiationAbility) throws NIOException {
 		synchronized (this) {
-			if (!needBiDirectionnalConnectionInitiationAbility) {
+			if (!needBiDirectionalConnectionInitiationAbility) {
 				ConnectionProtocol<?> res = getConnectionProtocolInstance(_distant_inet_address, _local_interface_address, sql_connection, mkProperties, isServer, true);
 				if (res != null)
 					return res;
@@ -734,9 +723,9 @@ public class NetworkProperties extends MultiFormatProperties {
 
 			for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties) {
 				if (cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
-						_distant_inet_address.getAddress(), isServer, needBiDirectionnalConnectionInitiationAbility, encryptionRestrictionForConnectionProtocols)) {
+						_distant_inet_address.getAddress(), _distant_inet_address.getPort(), isServer, needBiDirectionalConnectionInitiationAbility, encryptionRestrictionForConnectionProtocols)) {
 					return cpp.getConnectionProtocolInstance(_distant_inet_address, _local_interface_address,
-							sql_connection, mkProperties, isServer, needBiDirectionnalConnectionInitiationAbility, encryptionRestrictionForConnectionProtocols);
+							sql_connection, mkProperties, isServer, needBiDirectionalConnectionInitiationAbility, encryptionRestrictionForConnectionProtocols);
 				}
 			}
 		}
@@ -754,16 +743,16 @@ public class NetworkProperties extends MultiFormatProperties {
 	 *            the local interface address
 	 * @param isServer
 	 * 			true if this peer can receive connection ask from other peer
-	 * @param mustSupportBidirectionnalConnectionInitiative
+	 * @param mustSupportBidirectionalConnectionInitiative
 	 * 			true if the two concerned peers can be interpreted as servers
 	 * @return a connection protocol chain according the distant peer ip, and the
 	 *         local used port. Returns null if no connection protocol was found.
      */
 	public ConnectionProtocolProperties<?> getConnectionProtocolProperties(InetSocketAddress _distant_inet_address,
 			InetSocketAddress _local_interface_address, boolean isServer,
-			boolean mustSupportBidirectionnalConnectionInitiative) {
+			boolean mustSupportBidirectionalConnectionInitiative) {
 		return this.getConnectionProtocolProperties(_distant_inet_address, _local_interface_address, 0, isServer,
-				mustSupportBidirectionnalConnectionInitiative);
+				mustSupportBidirectionalConnectionInitiative);
 	}
 
 	/**
@@ -778,7 +767,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * 			the sub protocol properties level (the root protocol start with 0)
 	 * @param isServer
 	 * 			true if this peer can receive connection ask from other peer
-	 * @param mustSupportBidirectionnalConnectionInitiative
+	 * @param mustSupportBidirectionalConnectionInitiative
 	 * 			true if the two concerned peers can be interpreted as servers
 	 * @return a connection protocol properties according the distant peer ip, and
 	 *         the local used port. Returns null if no connection protocol was
@@ -786,9 +775,9 @@ public class NetworkProperties extends MultiFormatProperties {
      */
 	public ConnectionProtocolProperties<?> getConnectionProtocolProperties(InetSocketAddress _distant_inet_address,
 			InetSocketAddress _local_interface_address, int subProtocolLevel, boolean isServer,
-			boolean mustSupportBidirectionnalConnectionInitiative) {
+			boolean mustSupportBidirectionalConnectionInitiative) {
 		synchronized (this) {
-			if (!mustSupportBidirectionnalConnectionInitiative) {
+			if (!mustSupportBidirectionalConnectionInitiative) {
 				ConnectionProtocolProperties<?> res = getConnectionProtocolProperties(_distant_inet_address, _local_interface_address, subProtocolLevel, isServer, true);
 				if (res != null)
 					return res;
@@ -802,7 +791,7 @@ public class NetworkProperties extends MultiFormatProperties {
 				}
 
 				if (l == 0 && cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
-						_distant_inet_address.getAddress(), isServer, mustSupportBidirectionnalConnectionInitiative, encryptionRestrictionForConnectionProtocols)) {
+						_distant_inet_address.getAddress(), _distant_inet_address.getPort(), isServer, mustSupportBidirectionalConnectionInitiative, encryptionRestrictionForConnectionProtocols)) {
 					return cpp;
 				}
 			}
@@ -816,13 +805,14 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * 
 	 * @param _local_interface_address
 	 *            the local interface address
+	 * @param _distant_port the distant port
 	 * @return true if the local interface address can be associated with a
 	 *         connection protocol that needs a server socket.
 	 */
-	public boolean needsServerSocket(InetSocketAddress _local_interface_address) {
+	public boolean needsServerSocket(InetSocketAddress _local_interface_address, int _distant_port) {
 		synchronized (this) {
 			for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties) {
-				if (cpp.needsServerSocket(_local_interface_address.getAddress(), _local_interface_address.getPort()))
+				if (cpp.needsServerSocket(_local_interface_address.getAddress(), _local_interface_address.getPort(), _distant_port))
 					return true;
 			}
 		}
@@ -908,7 +898,7 @@ public class NetworkProperties extends MultiFormatProperties {
 			InetSocketAddress _local_interface_address) {
 		synchronized (this) {
 			for (AccessData ad : accessDataList) {
-				if (ad.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort()))
+				if (ad.isConcernedBy(_distant_inet_address.getAddress(), _distant_inet_address.getPort(), _local_interface_address.getPort()))
 					return ad;
 			}
 		}
@@ -984,7 +974,7 @@ public class NetworkProperties extends MultiFormatProperties {
 			InetSocketAddress _local_interface_address) {
 		synchronized (this) {
 			for (AbstractAccessProtocolProperties ad : accessProtocolProperties) {
-				if (ad.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort(), encryptionRestrictionForConnectionProtocols))
+				if (ad.isConcernedBy(_distant_inet_address.getAddress(), _distant_inet_address.getPort(), _local_interface_address.getPort(), encryptionRestrictionForConnectionProtocols))
 					return ad;
 			}
 		}
@@ -1002,7 +992,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 *            the local inet address
 	 * @param takeConnectionInitiative
 	 *            tells if the current peer will take connection initiative
-	 * @param mustSupportBidirectionnalConnectionInitiative
+	 * @param mustSupportBidirectionalConnectionInitiative
 	 *            tells if the connection support bi-directional connection
 	 *            initiative
 	 * @return true if a connection is possible with the given parameters and the
@@ -1013,16 +1003,16 @@ public class NetworkProperties extends MultiFormatProperties {
 	 */
 	public boolean isConnectionPossible(InetSocketAddress _distant_inet_address,
 			InetSocketAddress _local_interface_address, boolean takeConnectionInitiative, boolean isServer,
-			boolean mustSupportBidirectionnalConnectionInitiative) {
+			boolean mustSupportBidirectionalConnectionInitiative) {
 		synchronized (this) {
-			if (!mustSupportBidirectionnalConnectionInitiative) {
+			if (!mustSupportBidirectionalConnectionInitiative) {
 				if (isConnectionPossible(_distant_inet_address, _local_interface_address, takeConnectionInitiative, isServer, true))
 					return true;
 			}
 			boolean found = false;
 
 			for (AccessData ad : this.accessDataList) {
-				if (ad.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort())) {
+				if (ad.isConcernedBy(_distant_inet_address.getAddress(), _distant_inet_address.getPort(), _local_interface_address.getPort())) {
 					found = true;
 					break;
 				}
@@ -1033,7 +1023,7 @@ public class NetworkProperties extends MultiFormatProperties {
 			found = false;
 
 			for (AbstractAccessProtocolProperties app : accessProtocolProperties) {
-				if (app.isConcernedBy(_distant_inet_address.getAddress(), _local_interface_address.getPort(), encryptionRestrictionForConnectionProtocols)) {
+				if (app.isConcernedBy(_distant_inet_address.getAddress(), _distant_inet_address.getPort(), _local_interface_address.getPort(), encryptionRestrictionForConnectionProtocols)) {
 					found = true;
 					break;
 				}
@@ -1044,7 +1034,7 @@ public class NetworkProperties extends MultiFormatProperties {
 
 			for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties) {
 				if (cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
-						_distant_inet_address.getAddress(), isServer, mustSupportBidirectionnalConnectionInitiative, encryptionRestrictionForConnectionProtocols)) {
+						_distant_inet_address.getAddress(), _distant_inet_address.getPort(), isServer, mustSupportBidirectionalConnectionInitiative, encryptionRestrictionForConnectionProtocols)) {
 					return (!takeConnectionInitiative || cpp.canTakeConnectionInitiative());
 				}
 			}
@@ -1112,37 +1102,21 @@ public class NetworkProperties extends MultiFormatProperties {
 	 */
 	public static final String DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS = "~~DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS";
 
-	/*private final TransferSpeedStat globalTransferSpeedStatPer512SegmentsForDownload = new TransferSpeedStat(524288L,
-            32768L, 300000L);
-	private final TransferSpeedStat globalTransferSpeedStatPer512SegmentsForUpload = new TransferSpeedStat(524288L,
-            32768L, 300000L);*/
-	private final RealTimeTransfertStat globalRealTimeTransferStatPerOneSecondForDownload = new RealTimeTransfertStat(
+	private final RealTimeTransferStat globalRealTimeTransferStatPerOneSecondForDownload = new RealTimeTransferStat(
 			1000L, 200L);
-	private final RealTimeTransfertStat globalRealTimeTransferStatPerOneSecondForUpload = new RealTimeTransfertStat(
+	private final RealTimeTransferStat globalRealTimeTransferStatPerOneSecondForUpload = new RealTimeTransferStat(
 			1000L, 200L);
-	/*private final RealTimeTransfertStat globalRealTimeTransferStatPer30SecondsForDownload = new RealTimeTransfertStat(
-            30000L, 3000L);
-	private final RealTimeTransfertStat globalRealTimeTransferStatPer30SecondsForUpload = new RealTimeTransfertStat(
-            30000L, 3000L);
-	private final RealTimeTransfertStat globalRealTimeTransferStatPer5MinutesForDownload = new RealTimeTransfertStat(
-            300000L, 3000L);
-	private final RealTimeTransfertStat globalRealTimeTransferStatPer5MinutesForUpload = new RealTimeTransfertStat(
-            300000L, 3000L);*/
-	private final StatsBandwidth globalStatBandwith;
+	private final StatsBandwidth globalStatBandwidth;
 
 	private void initializeStatsBandwidth(StatsBandwidth stats) {
-		/*stats.putBytesDownloadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS,
-				new RealTimeTransfertStat(1000L, 200L));*/
 		stats.putBytesDownloadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS,
-				new RealTimeTransfertStat(30000L, 3000L));
+				new RealTimeTransferStat(30000L, 3000L));
 		stats.putBytesDownloadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS,
-				new RealTimeTransfertStat(300000L, 3000L));
-		/*stats.putBytesUploadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS,
-				new RealTimeTransfertStat(1000L, 200L));*/
+				new RealTimeTransferStat(300000L, 3000L));
 		stats.putBytesUploadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS,
-				new RealTimeTransfertStat(30000L, 3000L));
+				new RealTimeTransferStat(30000L, 3000L));
 		stats.putBytesUploadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS,
-				new RealTimeTransfertStat(300000L, 3000L));
+				new RealTimeTransferStat(300000L, 3000L));
 		stats.putBytesUploadedInRealBytes(DEFAULT_STAT_PER_512KB_SEGMENTS,
 				new TransferSpeedStat(524288L, 32768L, 300000L));
 		stats.putBytesDownloadedInRealBytes(DEFAULT_STAT_PER_512KB_SEGMENTS,
@@ -1329,7 +1303,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * @return the corresponding global statistics
 	 */
 	public StatsBandwidth getGlobalStatsBandwidth() {
-		return globalStatBandwith;
+		return globalStatBandwidth;
 	}
 
 	private TransferFilter transferTriggers = null;
@@ -1355,91 +1329,91 @@ public class NetworkProperties extends MultiFormatProperties {
 		return this.transferTriggers;
 	}
 
-	private ArrayList<InetAddress> whiteInetAddressesList;
+	private ArrayList<InetAddress> allowInetAddressesList;
 
 	/**
-	 * Gets addresses that cannot be blacklisted.
+	 * Gets addresses that cannot be denied.
 	 * 
-	 * @return addresses that cannot be blacklisted.
+	 * @return addresses that cannot be denied.
 	 */
-	public ArrayList<InetAddress> getWhiteInetAddressesList() {
+	public ArrayList<InetAddress> getAllowInetAddressesList() {
 
 		synchronized (this) {
-			return new ArrayList<>(whiteInetAddressesList);
+			return new ArrayList<>(allowInetAddressesList);
 		}
 	}
 
 	/**
-	 * Add an address that cannot be blacklisted
+	 * Add an address that cannot be denied
 	 * 
 	 * @param ia
 	 *            the address
 	 */
-	public void addWhiteInetAddress(InetAddress ia) {
+	public void addAllowInetAddress(InetAddress ia) {
 		if (ia == null)
 			throw new NullPointerException("ia");
 		synchronized (this) {
-			whiteInetAddressesList.add(ia);
+			allowInetAddressesList.add(ia);
 		}
 	}
 
 	/**
-	 * Add addresses that cannot be blacklisted
+	 * Add addresses that cannot be denied
 	 * 
 	 * @param ias
 	 *            the addresses
 	 */
-	public void addWhiteInetAddresses(Collection<InetAddress> ias) {
+	public void addAllowInetAddresses(Collection<InetAddress> ias) {
 		if (ias == null)
 			throw new NullPointerException("ias");
 		synchronized (this) {
 
 
 			for (InetAddress ia : ias)
-				addWhiteInetAddress(ia);
+				addAllowInetAddress(ia);
 		}
 	}
 
 	/**
-	 * Remove address that cannot be blacklisted
+	 * Remove address that cannot be denied
 	 * 
 	 * @param ia
 	 *            the address
 	 */
-	public void removeWhiteInetAddress(InetAddress ia) {
+	public void removeAllowInetAddress(InetAddress ia) {
 		synchronized (this) {
-			whiteInetAddressesList.remove(ia);
+			allowInetAddressesList.remove(ia);
 		}
 	}
 
 	/**
-	 * Remove addresses that cannot be blacklisted
+	 * Remove addresses that cannot be denied
 	 * 
 	 * @param ias
 	 *            the addresses
 	 */
-	public void removeWhiteInetAddresses(Collection<InetAddress> ias) {
+	public void removeAllowInetAddresses(Collection<InetAddress> ias) {
 		synchronized (this) {
-			whiteInetAddressesList.removeAll(ias);
+			allowInetAddressesList.removeAll(ias);
 		}
 	}
 
 	/**
-	 * Clean addresses that cannot be blacklisted
+	 * Clean addresses that cannot be denied
 	 * 
 	 */
-	public void cleanWhiteInetAddresses() {
+	public void cleanAllowInetAddresses() {
 		synchronized (this) {
-			whiteInetAddressesList.clear();
+			allowInetAddressesList.clear();
 		}
 	}
 	
 	/**
-	 * True if the data transfered through several peers can be checked (if necessary) by intermediate peers with their own security process. 
+	 * True if the data transferred through several peers can be checked (if necessary) by intermediate peers with their own security process.
 	 * End to end message checking is also included into this case, regarding the used connection protocols between the end peers. 
 	 * False if only end to end message check are accepted
 	 */
-	public boolean canUsePointToPointTransferedBlockChecker=true;
+	public boolean canUsePointToPointTransferredBlockChecker =true;
 
 
 	/**
@@ -1462,31 +1436,31 @@ public class NetworkProperties extends MultiFormatProperties {
 	
 	
 	
-	private ArrayList<String> whiteListRegexIncludingClassesForDeserialization=new ArrayList<>();
-	private ArrayList<Pattern> whiteListPatternIncludingClassesForDeserialization=null;
-	private ArrayList<Class<?>> whiteListIncludingClassesForDeserialization=new ArrayList<>();
-	private ArrayList<String> blackListRegexExcludingClassesForDeserialization=new ArrayList<>();
-	private ArrayList<Pattern> blackListPatternExcludingClassesForDeserialization=new ArrayList<>();
-	private ArrayList<Class<?>> blackListExcludingClassesForDeserialization=new ArrayList<>();
+	private ArrayList<String> allowListRegexIncludingClassesForDeserialization =new ArrayList<>();
+	private ArrayList<Pattern> allowListPatternIncludingClassesForDeserialization =null;
+	private ArrayList<Class<?>> allowListIncludingClassesForDeserialization =new ArrayList<>();
+	private ArrayList<String> denyListRegexExcludingClassesForDeserialization =new ArrayList<>();
+	private ArrayList<Pattern> denyListPatternExcludingClassesForDeserialization =new ArrayList<>();
+	private ArrayList<Class<?>> denyListExcludingClassesForDeserialization =new ArrayList<>();
 	
 	private void loadPatternsForAcceptedAndDeniedClasses()
 	{
-		if (whiteListPatternIncludingClassesForDeserialization==null)
+		if (allowListPatternIncludingClassesForDeserialization ==null)
 		{
-			whiteListPatternIncludingClassesForDeserialization=new ArrayList<>();
-			for (String s : whiteListRegexIncludingClassesForDeserialization)
+			allowListPatternIncludingClassesForDeserialization =new ArrayList<>();
+			for (String s : allowListRegexIncludingClassesForDeserialization)
 			{
 				Pattern p=Pattern.compile(s);
-				whiteListPatternIncludingClassesForDeserialization.add(p);
+				allowListPatternIncludingClassesForDeserialization.add(p);
 			}
 		}
-		if (blackListPatternExcludingClassesForDeserialization==null)
+		if (denyListPatternExcludingClassesForDeserialization ==null)
 		{
-			blackListPatternExcludingClassesForDeserialization=new ArrayList<>();
-			for (String s : blackListRegexExcludingClassesForDeserialization)
+			denyListPatternExcludingClassesForDeserialization =new ArrayList<>();
+			for (String s : denyListRegexExcludingClassesForDeserialization)
 			{
 				Pattern p=Pattern.compile(s);
-				blackListPatternExcludingClassesForDeserialization.add(p);
+				denyListPatternExcludingClassesForDeserialization.add(p);
 			}
 		}
 	}
@@ -1495,39 +1469,39 @@ public class NetworkProperties extends MultiFormatProperties {
 	{
 		if (pattern==null)
 			throw new NullPointerException();
-		whiteListRegexIncludingClassesForDeserialization.add(pattern);
+		allowListRegexIncludingClassesForDeserialization.add(pattern);
 		Pattern p=Pattern.compile(pattern);
-		whiteListPatternIncludingClassesForDeserialization.add(p);
+		allowListPatternIncludingClassesForDeserialization.add(p);
 	}
 	public void addDeniedSerializedClassWithRegex(String pattern)
 	{
 		if (pattern==null)
 			throw new NullPointerException();
-		blackListRegexExcludingClassesForDeserialization.add(pattern);
+		denyListRegexExcludingClassesForDeserialization.add(pattern);
 		Pattern p=Pattern.compile(pattern);
-		blackListPatternExcludingClassesForDeserialization.add(p);
+		denyListPatternExcludingClassesForDeserialization.add(p);
 	}
 	public void addAcceptedSerializedClass(Class<?> c)
 	{
 		if (c==null)
 			throw new NullPointerException();
-		whiteListIncludingClassesForDeserialization.add(c);
+		allowListIncludingClassesForDeserialization.add(c);
 	}
 	public void addDeniedSerializedClass(Class<?> c)
 	{
 		if (c==null)
 			throw new NullPointerException();
-		blackListExcludingClassesForDeserialization.add(c);
+		denyListExcludingClassesForDeserialization.add(c);
 	}
 	
 	public void clearAcceptedAndDeniedSerializedClasses()
 	{
-		whiteListRegexIncludingClassesForDeserialization.clear();
-		whiteListPatternIncludingClassesForDeserialization=null;
-		blackListRegexExcludingClassesForDeserialization.clear();
-		blackListPatternExcludingClassesForDeserialization=null;
-		whiteListIncludingClassesForDeserialization.clear();
-		blackListExcludingClassesForDeserialization.clear();		
+		allowListRegexIncludingClassesForDeserialization.clear();
+		allowListPatternIncludingClassesForDeserialization =null;
+		denyListRegexExcludingClassesForDeserialization.clear();
+		denyListPatternExcludingClassesForDeserialization =null;
+		allowListIncludingClassesForDeserialization.clear();
+		denyListExcludingClassesForDeserialization.clear();
 		loadPatternsForAcceptedAndDeniedClasses();
 	}
 	
@@ -1535,9 +1509,9 @@ public class NetworkProperties extends MultiFormatProperties {
 	{
 		if (isDeniedClassForSerializationUsingPatterns(className))
 			return false;
-		if (whiteListPatternIncludingClassesForDeserialization.isEmpty())
+		if (allowListPatternIncludingClassesForDeserialization.isEmpty())
 			return true;
-		for (Pattern p : whiteListPatternIncludingClassesForDeserialization)
+		for (Pattern p : allowListPatternIncludingClassesForDeserialization)
 		{
 			if (p.matcher(className).matches())
 				return true;
@@ -1547,7 +1521,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	
 	public boolean isDeniedClassForSerializationUsingPatterns(String className)
 	{
-		for (Pattern p : blackListPatternExcludingClassesForDeserialization)
+		for (Pattern p : denyListPatternExcludingClassesForDeserialization)
 		{
 			if (p.matcher(className).matches())
 				return true;
@@ -1556,13 +1530,13 @@ public class NetworkProperties extends MultiFormatProperties {
 		
 	}
 	
-	public boolean isAcceptedClassForSerializationUsingWhiteClassList(Class<?> clazz)
+	public boolean isAcceptedClassForSerializationUsingAllowClassList(Class<?> clazz)
 	{
-		if (isDeniedClassForSerializationUsingBlackClassList(clazz))
+		if (isDeniedClassForSerializationUsingDenyClassList(clazz))
 			return false;
-		if (whiteListIncludingClassesForDeserialization.isEmpty())
+		if (allowListIncludingClassesForDeserialization.isEmpty())
 			return true;
-		for (Class<?> c : whiteListIncludingClassesForDeserialization)
+		for (Class<?> c : allowListIncludingClassesForDeserialization)
 		{
 			if (c.isAssignableFrom(clazz))
 				return true;
@@ -1571,9 +1545,9 @@ public class NetworkProperties extends MultiFormatProperties {
 		
 	}
 	
-	public boolean isDeniedClassForSerializationUsingBlackClassList(Class<?> clazz)
+	public boolean isDeniedClassForSerializationUsingDenyClassList(Class<?> clazz)
 	{
-		for (Class<?> c : blackListExcludingClassesForDeserialization)
+		for (Class<?> c : denyListExcludingClassesForDeserialization)
 		{
 			if (c.isAssignableFrom(clazz))
 				return true;
@@ -1585,18 +1559,17 @@ public class NetworkProperties extends MultiFormatProperties {
 	@Override
 	public void loadXML(Document document) throws PropertiesParseException {
 		super.loadXML(document);
-		whiteListPatternIncludingClassesForDeserialization=null;
-		blackListPatternExcludingClassesForDeserialization=null;
+		allowListPatternIncludingClassesForDeserialization =null;
+		denyListPatternExcludingClassesForDeserialization =null;
 		loadPatternsForAcceptedAndDeniedClasses();
 	}
 	@Override
 	public void loadFromProperties(Properties properties) throws IllegalArgumentException {
 		super.loadFromProperties(properties);
-		whiteListPatternIncludingClassesForDeserialization=null;
-		blackListPatternExcludingClassesForDeserialization=null;
+		allowListPatternIncludingClassesForDeserialization =null;
+		denyListPatternExcludingClassesForDeserialization =null;
 		loadPatternsForAcceptedAndDeniedClasses();
 	}
-
 
 
 

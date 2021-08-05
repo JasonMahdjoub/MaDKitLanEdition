@@ -35,16 +35,35 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-
-package com.distrimind.madkit.kernel;
+package com.distrimind.madkit.exceptions;
 
 /**
- * This interface is used by internal processes of MadKitLanEdition.
  * 
  * @author Jason Mahdjoub
  * @version 1.0
- * @since MadKitLanEdition 1.0
+ * @since MadkitLanEdition 1.0
  */
-public interface GroupChangementNotifier {
-	void potentialChangementInGroups();
+public class TransferException extends NIOException {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2809524035883490079L;
+
+	public TransferException() {
+		super();
+	}
+
+	public TransferException(String _msg) {
+		super(_msg);
+	}
+
+	public TransferException(Exception e) {
+		super(e);
+	}
+
+	public TransferException(String _msg, Exception e) {
+		super(_msg, e);
+	}
+
 }

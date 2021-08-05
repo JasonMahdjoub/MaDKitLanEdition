@@ -39,7 +39,8 @@ package com.distrimind.madkit.kernel.network.connection.access;
 
 
 import com.distrimind.util.io.SecureExternalizable;
-import org.apache.commons.codec.binary.Base64;
+
+import java.util.Base64;
 
 /**
  * This identifier is related to a cloud associated to a user, or an entity.
@@ -88,13 +89,13 @@ public abstract class CloudIdentifier implements SecureExternalizable, Identifie
 
 	byte[] getBytesTabToEncode()
 	{
-		byte[] idbytes = getIdentifierBytes();
+		byte[] idBytes = getIdentifierBytes();
 		byte[] salt = getSaltBytes();
 		if (salt==null)
-			return idbytes;
-		byte[] res = new byte[idbytes.length + salt.length];
-		System.arraycopy(idbytes, 0, res, 0, idbytes.length);
-		System.arraycopy(salt, 0, res, idbytes.length, salt.length);
+			return idBytes;
+		byte[] res = new byte[idBytes.length + salt.length];
+		System.arraycopy(idBytes, 0, res, 0, idBytes.length);
+		System.arraycopy(salt, 0, res, idBytes.length, salt.length);
 		return res;
 
 	}
@@ -102,6 +103,6 @@ public abstract class CloudIdentifier implements SecureExternalizable, Identifie
 	@Override
 	public String toString()
 	{
-		return this.getClass().getSimpleName()+"["+ Base64.encodeBase64URLSafeString(getBytesTabToEncode())+"]";
+		return this.getClass().getSimpleName()+"["+ Base64.getUrlEncoder().encodeToString(getBytesTabToEncode())+"]";
 	}
 }

@@ -37,20 +37,17 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-
-import com.distrimind.madkit.kernel.network.EncryptionRestriction;
-import com.distrimind.util.crypto.AbstractKeyPair;
-import com.distrimind.util.crypto.SymmetricSecretKey;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-
 import com.distrimind.madkit.kernel.MadkitProperties;
+import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 import com.distrimind.madkit.kernel.network.InetAddressFilters;
 import com.distrimind.madkit.util.MultiFormatPropertiesObjectParser;
 import com.distrimind.madkit.util.XMLUtilities;
 import com.distrimind.util.properties.MultiFormatProperties;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 
 /**
  * Represents properties of a specific connection protocol
@@ -74,7 +71,7 @@ public abstract class AbstractAccessProtocolProperties extends MultiFormatProper
 
 
 	/**
-	 * Tells if the identifiers must be anonymized before being sent to the distant
+	 * Tells if the identifiers must be anonymous before being sent to the distant
 	 * peer. When it is possible, ie. on a server side that have lot of clients and if it does not decrease security level,
 	 * we recommend to set this boolean to false, because the process cost CPU and database usage.
 	 * On a peer to peer pattern, set it to true. Notice that if
@@ -95,18 +92,19 @@ public abstract class AbstractAccessProtocolProperties extends MultiFormatProper
 	 * 
 	 * @param _distant_inet_address
 	 *            the distant inet address
+	 * @param _distant_port the distant port
 	 * @param _local_port
 	 *            the local port
 	 * @param encryptionRestriction the encryption restriction
 	 * @return true if the filter accept the connection with the given parameters
 	 */
-	public boolean isConcernedBy(InetAddress _distant_inet_address, int _local_port, EncryptionRestriction encryptionRestriction) {
+	public boolean isConcernedBy(InetAddress _distant_inet_address, int _distant_port, int _local_port, EncryptionRestriction encryptionRestriction) {
 		if (!isConcernedBy(encryptionRestriction))
 			return false;
 		if (filters == null)
 			return true;
 		else
-			return filters.isConcernedBy(_distant_inet_address, _local_port);
+			return filters.isConcernedBy(_distant_inet_address, _distant_port, _local_port);
 	}
 
 	public abstract boolean isConcernedBy(EncryptionRestriction encryptionRestriction);

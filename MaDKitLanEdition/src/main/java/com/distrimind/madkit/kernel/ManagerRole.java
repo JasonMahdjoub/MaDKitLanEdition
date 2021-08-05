@@ -103,12 +103,5 @@ final class ManagerRole extends InternalRole {
 		return ROLE_NOT_HANDLED;
 	}
 
-	// @Override
-	// void checkEmptyness() {
-	// if(buildAndGetAddresses().isEmpty()){
-	// myGroup.chooseNewManager(oldManager);
-	// }
-	// super.checkEmptyness();
-	// }
 
 }

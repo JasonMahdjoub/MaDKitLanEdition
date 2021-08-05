@@ -43,7 +43,7 @@ import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
 import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
-import com.distrimind.util.DecentralizedValue;
+import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.crypto.MessageDigestType;
@@ -109,7 +109,7 @@ class FakeKernel extends MadkitKernel {
 	}
 
 	@Override
-	final ReturnCode leaveRole(AbstractAgent agent, Group group, String role, boolean manual_request) {
+	final ReturnCode leaveRole(AbstractAgent agent, Group group, String role, boolean manualRequested) {
 		throw buildKernelException(agent);
 	}
 
@@ -330,7 +330,7 @@ class FakeKernel extends MadkitKernel {
 	 */
 
 	@Override
-	boolean cancelTask(AbstractAgent requester, TaskID task_id, boolean mayInteruptTask) {
+	boolean cancelTask(AbstractAgent requester, TaskID task_id, boolean mayInterruptTask) {
 		throw buildKernelException(requester);
 	}
 
@@ -390,7 +390,7 @@ class FakeKernel extends MadkitKernel {
 	}
 
 	@Override
-	void autoRequesteRole(AbstractAgent requester, AbstractGroup group, String role, SecureExternalizable passKey) {
+	void autoRequestRole(AbstractAgent requester, AbstractGroup group, String role, SecureExternalizable passKey) {
 		throw buildKernelException(requester);
 	}
 
@@ -474,7 +474,7 @@ class FakeKernel extends MadkitKernel {
 	}
 
 	@Override
-	ReturnCode requestHookEvents(AbstractAgent requester, AgentActionEvent hookType, boolean autoremove) {
+	ReturnCode requestHookEvents(AbstractAgent requester, AgentActionEvent hookType, boolean autoRemove) {
 		throw buildKernelException(requester);
 	}
 
@@ -494,22 +494,22 @@ class FakeKernel extends MadkitKernel {
 	}
 
 	@Override
-	Object weakSetBlackboard(AbstractAgent requester, Group group, String name, Object data) {
+	Object weakSetBoard(AbstractAgent requester, Group group, String name, Object data) {
 		throw buildKernelException(requester);
 	}
 
 	@Override
-	Object setBlackboard(AbstractAgent requester, Group group, String name, Object data) {
+	Object setBoard(AbstractAgent requester, Group group, String name, Object data) {
 		throw buildKernelException(requester);
 	}
 
 	@Override
-	Object getBlackboard(AbstractAgent requester, Group group, String name) {
+	Object getBoard(AbstractAgent requester, Group group, String name) {
 		throw buildKernelException(requester);
 	}
 
 	@Override
-	Object removeBlackboard(AbstractAgent requester, Group group, String name) {
+	Object removeBoard(AbstractAgent requester, Group group, String name) {
 		throw buildKernelException(requester);
 	}
 
@@ -524,6 +524,11 @@ class FakeKernel extends MadkitKernel {
 	}
 
 	@Override
+	ReturnCode setCentralDatabaseBackupReceiverFactory(AbstractAgent ignored, CentralDatabaseBackupReceiverFactory<?> centralDatabaseBackupReceiverFactory) throws DatabaseException {
+		throw buildKernelException(null);
+	}
+
+	/*@Override
 	void setIfNotPresentLocalDatabaseHostIdentifier(AbstractAgent requester, DecentralizedValue localDatabaseHostID, Package ...packages)
 	{
 		throw buildKernelException(null);
@@ -541,7 +546,7 @@ class FakeKernel extends MadkitKernel {
 	@Override
 	void removeDistantDatabaseHostFromDatabaseSynchronizer(AbstractAgent requester, DecentralizedValue hostIdentifier, Package... packages)  {
 		throw buildKernelException(null);
-	}
+	}*/
 
 	/*@Override
 	<V> V take(BlockingDeque<V> toTake) {

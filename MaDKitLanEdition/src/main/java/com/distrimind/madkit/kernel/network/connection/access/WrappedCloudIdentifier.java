@@ -43,8 +43,6 @@ import com.distrimind.util.io.SerializationTools;
 
 import java.io.IOException;
 import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.InvalidParameterSpecException;
 import java.util.Arrays;
 import java.util.Objects;
 
@@ -84,7 +82,7 @@ final class WrappedCloudIdentifier extends CloudIdentifier {
 	{
 
 	}
-	WrappedCloudIdentifier(boolean anonymize, CloudIdentifier cloudIdentifier, AbstractSecureRandom random, AbstractMessageDigest messageDigest, byte[] distantGeneratedSalt, EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties) throws DigestException, InvalidKeyException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeySpecException {
+	WrappedCloudIdentifier(boolean anonymize, CloudIdentifier cloudIdentifier, AbstractSecureRandom random, AbstractMessageDigest messageDigest, byte[] distantGeneratedSalt) throws NoSuchAlgorithmException, IOException, NoSuchProviderException {
 
 		if (cloudIdentifier == null)
 			throw new NullPointerException("cloudIdentifier");
@@ -105,7 +103,7 @@ final class WrappedCloudIdentifier extends CloudIdentifier {
 			if (cloudIdentifier.getAuthenticationMethod().isAuthenticatedByPublicKey()) {
 				if (random == null)
 					throw new NullPointerException("random");
-				int mds=messageDigest.getDigestLength();
+				int mds=messageDigest.getDigestLengthInBytes();
 				byte[] localGeneratedSalt=new byte[mds];
 				random.nextBytes(localGeneratedSalt);
 				if (distantGeneratedSalt.length!=localGeneratedSalt.length)
@@ -162,7 +160,7 @@ final class WrappedCloudIdentifier extends CloudIdentifier {
 	}
 
 	@Override
-	public AbstractKeyPair getAuthenticationKeyPair() {
+	public AbstractKeyPair<?,?> getAuthenticationKeyPair() {
 		return cloudIdentifier.getAuthenticationKeyPair();
 	}
 
@@ -192,7 +190,7 @@ final class WrappedCloudIdentifier extends CloudIdentifier {
 
 	boolean checkSignature(CloudIdentifier originalCloudIdentifier,
 												  AbstractMessageDigest messageDigest, byte[] localGeneratedSalt) throws
-			InvalidKeyException, NoSuchAlgorithmException, IOException, InvalidParameterSpecException, SignatureException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeySpecException {
+			NoSuchAlgorithmException, IOException, NoSuchProviderException {
 		if (originalCloudIdentifier.getAuthenticationMethod().isAuthenticatedByPublicKey())
 		{
 			if (cloudIdentifier instanceof EncryptedCloudIdentifier)
@@ -202,7 +200,7 @@ final class WrappedCloudIdentifier extends CloudIdentifier {
 			else {
 				if (signature == null)
 					return false;
-				int mds = messageDigest.getDigestLength();
+				int mds = messageDigest.getDigestLengthInBytes();
 				if (signature.length <= mds)
 					return false;
 				byte[] encodedIdentifier = originalCloudIdentifier.getBytesTabToEncode();

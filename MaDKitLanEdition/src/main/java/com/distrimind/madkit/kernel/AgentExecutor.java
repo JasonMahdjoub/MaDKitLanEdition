@@ -93,72 +93,52 @@ final class AgentExecutor {
 	{
 		List<Future<?>> list=myAgent.getMadkitKernel().getMaDKitServiceExecutor().launchDedicatedThread(myAgent.isDaemon()?myAgent.getMadkitKernel().getDaemonAgentThreadFactory():myAgent.getMadkitKernel().getNormalAgentThreadFactory(),
 				Arrays.asList(
-						new Callable<ReturnCode>()
-						{
+						(Callable<ReturnCode>) () -> {
+							myAgent.myThread = Thread.currentThread();
+							final ReturnCode r = myAgent.activation();
 
-							@Override
-							public ReturnCode call() {
-								myAgent.myThread = Thread.currentThread();
-								final ReturnCode r = myAgent.activation();
-
-								if (r != ReturnCode.SUCCESS) {// alive is false && not a suicide
-									live.cancel(false);
-									if (end.isCancelled())// TO was 0 in the MK
-										synchronized (myAgent.state) {
-											myAgent.state.notifyAll();
-										}
-								}
-								return r;
-							}
-						},
-						new Callable<Void>()
-						{
-
-							@Override
-							public Void call() {
-								if (myAgent.getAlive().get()) {
-									myAgent.living();
-								}
-								if (end.isCancelled()) {// it is a kill with to == 0
+							if (r != ReturnCode.SUCCESS) {// alive is false && not a suicide
+								live.cancel(false);
+								if (end.isCancelled())// TO was 0 in the MK
 									synchronized (myAgent.state) {
 										myAgent.state.notifyAll();
 									}
-								}
-								return null;
 							}
+							return r;
 						},
-						new Callable<Void>()
-						{
-
-							@Override
-							public Void call() {
-								myAgent.ending();
-
+						(Callable<Void>) () -> {
+							if (myAgent.getAlive().get()) {
+								myAgent.living();
+							}
+							if (end.isCancelled()) {// it is a kill with to == 0
 								synchronized (myAgent.state) {
 									myAgent.state.notifyAll();
 								}
-
-								return null;
 							}
+							return null;
 						},
-						new Callable<Void>()
-						{
+						(Callable<Void>) () -> {
+							myAgent.ending();
 
-							@Override
-							public Void call() {
-								if (!(myAgent.getKernel() instanceof FakeKernel)) {
-									try {
-
-										MadkitKernel k = myAgent.getMadkitKernel();
-										myAgent.terminate();
-										k.removeThreadedAgent(myAgent);
-									} catch (KernelException e) {
-										System.err.println(myAgent.getKernel());
-										e.printStackTrace();
-									}
-								}
-								return null;
+							synchronized (myAgent.state) {
+								myAgent.state.notifyAll();
 							}
+
+							return null;
+						},
+						(Callable<Void>) () -> {
+							if (!(myAgent.getKernel() instanceof FakeKernel)) {
+								try {
+
+									MadkitKernel k = myAgent.getMadkitKernel();
+									myAgent.terminate();
+									k.removeThreadedAgent(myAgent);
+								} catch (KernelException e) {
+									System.err.println(myAgent.getKernel());
+									e.printStackTrace();
+								}
+							}
+							return null;
 						}
 				));
 		//noinspection unchecked

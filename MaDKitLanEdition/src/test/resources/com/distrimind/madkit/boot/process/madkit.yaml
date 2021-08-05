@@ -1,4 +1,3 @@
 !!com.distrimind.madkit.kernel.MadkitProperties
-databaseFactory: !!com.distrimind.ood.database.EmbeddedHSQLDBDatabaseFactory
-    file_name: mkledbtest
-    constructorNb: 1
+databaseFactory: !!com.distrimind.ood.database.InFileEmbeddedHSQLDatabaseFactory
+    directory: mkledbtest

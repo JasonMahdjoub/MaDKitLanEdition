@@ -68,44 +68,36 @@ public class ReflectionTools {
 	}
 
 	public static Method getMethod(final Class<?> c, final String method_name, final Class<?>... parameters) {
-		return AccessController.doPrivileged(new PrivilegedAction<Method>() {
+		return AccessController.doPrivileged((PrivilegedAction<Method>) () -> {
+			try {
 
-			@Override
-			public Method run() {
-				try {
-					
-					Method m = c.getDeclaredMethod(method_name, parameters);
-					m.setAccessible(true);
-					return m;
-				} catch (SecurityException | NoSuchMethodException e) {
-					System.err.println("Impossible to access to the function " + method_name + " of the class "
-							+ c.getCanonicalName()
-							+ ". This is an inner bug of MadKitLanEdition. Please contact the developers. Impossible to continue. See the next error :");
-					e.printStackTrace();
-					System.exit(-1);
-					return null;
-				}
+				Method m = c.getDeclaredMethod(method_name, parameters);
+				m.setAccessible(true);
+				return m;
+			} catch (SecurityException | NoSuchMethodException e) {
+				System.err.println("Impossible to access to the function " + method_name + " of the class "
+						+ c.getCanonicalName()
+						+ ". This is an inner bug of MadKitLanEdition. Please contact the developers. Impossible to continue. See the next error :");
+				e.printStackTrace();
+				System.exit(-1);
+				return null;
 			}
 		});
 		
 	}
 
 	public static <E> Constructor<E> getConstructor(final Class<E> c, final Class<?>... parameters) {
-		return AccessController.doPrivileged(new PrivilegedAction<Constructor<E>>() {
-
-			@Override
-			public Constructor<E> run() {
-				try {
-					Constructor<E> m = c.getDeclaredConstructor(parameters);
-					m.setAccessible(true);
-					return m;
-				} catch (SecurityException | NoSuchMethodException e) {
-					System.err.println("Impossible to access to the constructor of the class " + c.getCanonicalName()
-							+ ". This is an inner bug of MadKitLanEdition. Please contact the developers. Impossible to continue. See the next error :");
-					e.printStackTrace();
-					System.exit(-1);
-					return null;
-				}
+		return AccessController.doPrivileged((PrivilegedAction<Constructor<E>>) () -> {
+			try {
+				Constructor<E> m = c.getDeclaredConstructor(parameters);
+				m.setAccessible(true);
+				return m;
+			} catch (SecurityException | NoSuchMethodException e) {
+				System.err.println("Impossible to access to the constructor of the class " + c.getCanonicalName()
+						+ ". This is an inner bug of MadKitLanEdition. Please contact the developers. Impossible to continue. See the next error :");
+				e.printStackTrace();
+				System.exit(-1);
+				return null;
 			}
 		});
 		

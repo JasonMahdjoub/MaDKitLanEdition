@@ -77,11 +77,11 @@ public class MultiFormatPropertiesObjectParser extends AbstractMultiFormatObject
 			return InetAddressFilter.parse(nodeValue);
 		} else if (field_type == Properties.class) {
 			Properties p = new Properties();
-			String entries[] = nodeValue.split(";");
+			String[] entries = nodeValue.split(";");
 			for (String e : entries) {
-				String keyvalue[] = e.split(" ");
-				if (keyvalue.length == 2) {
-					p.put(keyvalue[0], keyvalue[1]);
+				String[] keyValue = e.split(" ");
+				if (keyValue.length == 2) {
+					p.put(keyValue[0], keyValue[1]);
 				}
 			}
 			return p;
@@ -125,13 +125,13 @@ public class MultiFormatPropertiesObjectParser extends AbstractMultiFormatObject
 		return false;
 	}
 
-	private static final Class<?> supportedClasses[]=new Class<?>[] {
+	private static final Class<?>[] supportedClasses =new Class<?>[] {
 			AgentToLaunch.class,
 			KernelAddressPriority.class,
 			InetAddressFilter.class,
 			Properties.class
 	};
-	private static final Class<?> supportedMultiClasses[]=new Class<?>[] {
+	private static final Class<?>[] supportedMultiClasses =new Class<?>[] {
 	
 	};
 	

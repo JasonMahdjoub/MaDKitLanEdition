@@ -57,6 +57,7 @@ import java.util.Objects;
  * @since MadkitLanEdition 1.8
  *
  */
+@SuppressWarnings("FieldMayBeFinal")
 public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolProperties<ConnectionProtocolNegotiator>
 {
     public static final short MAXIMUM_NUMBER_OF_CONNECTION_PROTOCOLS=500;
@@ -321,11 +322,11 @@ public class ConnectionProtocolNegotiatorProperties extends ConnectionProtocolPr
 
     private transient Integer maxHeadSize=null;
     @Override
-    public int getMaximumSizeHead() throws BlockParserException {
+    public int getMaximumHeadSize() throws BlockParserException {
         if (maxHeadSize==null) {
             int res = 0;
             for (ConnectionProtocolProperties<?> cpp : connectionProtocolProperties.values())
-                res = Math.max(cpp.getMaximumSizeHead(), res);
+                res = Math.max(cpp.getMaximumHeadSize(), res);
             maxHeadSize=res;
         }
         return maxHeadSize;

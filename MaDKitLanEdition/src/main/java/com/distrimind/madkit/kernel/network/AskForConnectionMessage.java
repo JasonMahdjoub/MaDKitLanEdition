@@ -99,33 +99,33 @@ public class AskForConnectionMessage extends ConnectionStatusMessage {
 			ia = getIP().getInet4Address(rejectedIps);
 
 		if (ia != null)
-			choosenIP = new InetSocketAddress(ia, getIP().getPort());
+			chosenIP = new InetSocketAddress(ia, getIP().getPort());
 		else
-			choosenIP = null;
+			chosenIP = null;
 	}
 
-	AskForConnectionMessage(Type _type, AbstractIP _address, InetSocketAddress choosenIP,
+	AskForConnectionMessage(Type _type, AbstractIP _address, InetSocketAddress chosenIP,
 			InetSocketAddress _interface_address) {
-		this(_type, _address, choosenIP, _interface_address, false);
+		this(_type, _address, chosenIP, _interface_address, false);
 	}
 
-	AskForConnectionMessage(Type _type, AbstractIP _address, InetSocketAddress choosenIP,
+	AskForConnectionMessage(Type _type, AbstractIP _address, InetSocketAddress chosenIP,
 			InetSocketAddress _interface_address, boolean now) {
-		super(_type, _address, choosenIP, _interface_address);
+		super(_type, _address, chosenIP, _interface_address);
 		this.now = now;
 	}
 
-	AskForConnectionMessage(ConnectionClosedReason reason, AbstractIP _address, InetSocketAddress choosenIP,
+	AskForConnectionMessage(ConnectionClosedReason reason, AbstractIP _address, InetSocketAddress chosenIP,
 			InetSocketAddress _interface_address, boolean now, boolean candidateToBan) {
-		super(ConnectionStatusMessage.Type.DISCONNECT, _address, choosenIP, _interface_address, reason);
+		super(ConnectionStatusMessage.Type.DISCONNECT, _address, chosenIP, _interface_address, reason);
 		this.now = now;
 		this.candidateToBan = candidateToBan;
 	}
 
-	AskForConnectionMessage(ConnectionClosedReason reason, AbstractIP _address, InetSocketAddress choosenIP,
+	AskForConnectionMessage(ConnectionClosedReason reason, AbstractIP _address, InetSocketAddress chosenIP,
 			InetSocketAddress _interface_address, boolean now, boolean candidateToBan, IDTransfer transferID,
 			AgentAddress indirectAgentAddress) {
-		this(reason, _address, choosenIP, _interface_address, now, candidateToBan);
+		this(reason, _address, chosenIP, _interface_address, now, candidateToBan);
 		this.transferID = transferID;
 		this.indirectAgentAddress = indirectAgentAddress;
 	}

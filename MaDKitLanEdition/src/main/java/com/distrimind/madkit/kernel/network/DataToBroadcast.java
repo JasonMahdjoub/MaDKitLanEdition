@@ -55,7 +55,7 @@ final class DataToBroadcast implements SystemMessageWithoutInnerSizeControl {
 
 	private BroadcastableSystemMessage messageToBroadcast;
 	private KernelAddress sender;
-	private boolean prioritary;
+	private boolean isItAPriority;
 	private IDTransfer transferID;
 
 	@SuppressWarnings("unused")
@@ -67,7 +67,7 @@ final class DataToBroadcast implements SystemMessageWithoutInnerSizeControl {
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		messageToBroadcast=in.readObject(false, BroadcastableSystemMessage.class);
 		sender=in.readObject(false, KernelAddress.class);
-		prioritary=in.readBoolean();
+		isItAPriority =in.readBoolean();
 		transferID=in.readObject(false, IDTransfer.class);
 	}
 
@@ -75,11 +75,11 @@ final class DataToBroadcast implements SystemMessageWithoutInnerSizeControl {
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		oos.writeObject(messageToBroadcast, false);
 		oos.writeObject(sender, false);
-		oos.writeBoolean(prioritary);
+		oos.writeBoolean(isItAPriority);
 		oos.writeObject(transferID, false);
 	}
 	
-	DataToBroadcast(BroadcastableSystemMessage messageToBroadcast, KernelAddress sender, boolean prioritary,
+	DataToBroadcast(BroadcastableSystemMessage messageToBroadcast, KernelAddress sender, boolean isItAPriority,
 					IDTransfer transferID) {
 		if (messageToBroadcast == null)
 			throw new NullPointerException("messageToBroadcast");
@@ -89,14 +89,14 @@ final class DataToBroadcast implements SystemMessageWithoutInnerSizeControl {
 			throw new NullPointerException("transferID");
 		this.messageToBroadcast = messageToBroadcast;
 		this.sender = sender;
-		this.prioritary = prioritary;
+		this.isItAPriority = isItAPriority;
 		this.transferID = transferID;
 	}
 
 	@Override
 	public String toString() {
 		return "DataToBroadcast[messageToBroadcast=" + messageToBroadcast + ", senderKernelAddress=" + sender
-				+ ", prioritary=" + prioritary + ", transferID=" + transferID + "]";
+				+ ", isItAPriority=" + isItAPriority + ", transferID=" + transferID + "]";
 	}
 
 	IDTransfer getTransferID() {
@@ -111,8 +111,8 @@ final class DataToBroadcast implements SystemMessageWithoutInnerSizeControl {
 		return sender;
 	}
 
-	boolean isPrioritary() {
-		return prioritary;
+	boolean isItAPriority() {
+		return isItAPriority;
 	}
 
 

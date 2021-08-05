@@ -37,15 +37,17 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
+import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.EncryptionRestriction;
+import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedValue;
+import com.distrimind.util.crypto.AbstractKeyPair;
 import com.distrimind.util.crypto.AbstractMessageDigest;
 import com.distrimind.util.crypto.IASymmetricPublicKey;
 
 import java.io.IOException;
-import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.InvalidParameterSpecException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -200,7 +202,7 @@ public abstract class LoginData extends AccessData {
 			}
 			else
 				return res;
-		} catch (InvalidKeyException | NoSuchAlgorithmException | IOException | InvalidParameterSpecException | SignatureException | NoSuchProviderException | InvalidAlgorithmParameterException | InvalidKeySpecException e) {
+		} catch (NoSuchAlgorithmException | IOException | NoSuchProviderException  e) {
 			e.printStackTrace();
 			return null;
 		}
@@ -358,11 +360,11 @@ public abstract class LoginData extends AccessData {
 	/**
 	 * According an identifier, returns the cloud password
 	 *
-	 * @param identifier
+	 * @param localIdentifier
 	 *            the identifier
 	 * @return the cloud password corresponding to the given identifier
 	 */
-	protected abstract PasswordKey getCloudPassword(CloudIdentifier identifier);
+	protected abstract PasswordKey getCloudPassword(CloudIdentifier localIdentifier);
 
 
 	/**
@@ -667,17 +669,32 @@ public abstract class LoginData extends AccessData {
 	 * @param identifier the peer identifier
 	 * @return Returns the decentralized database's identifier. Returns null if the distant peer cannot synchronize its database with local peer.
 	 */
-	public DecentralizedValue getDecentralizedDatabaseID(Identifier identifier)
-	{
+	public DecentralizedValue getDecentralizedDatabaseID(Identifier identifier, MadkitProperties properties) throws DatabaseException {
 		DecentralizedValue dv=identifier.getHostIdentifier().getDecentralizedDatabaseID();
-		if (identifier.getHostIdentifier().isAuthenticatedByPublicKey() && (dv instanceof IASymmetricPublicKey) && dv.equals(identifier.getHostIdentifier().getAuthenticationPublicKey()))
-		{
-			return dv;
+		if (dv!=null) {
+			if (identifier.getHostIdentifier().isAuthenticatedByPublicKey() && (dv instanceof IASymmetricPublicKey) && dv.equals(identifier.getHostIdentifier().getAuthenticationPublicKey())) {
+				return dv;
+			} else {
+				return null;
+			}
 		}
-		return null;
+		else
+			return null;
 	}
 
-
+	@SuppressWarnings("RedundantThrows")
+	public DecentralizedValue getCentralDatabaseID(Identifier identifier, MadkitProperties properties) throws DatabaseException {
+		DecentralizedValue dv=identifier.getHostIdentifier().getCentralDecentralizedDatabaseID();
+		if (dv!=null) {
+			if (identifier.getHostIdentifier().isAuthenticatedByPublicKey() && (dv instanceof IASymmetricPublicKey) && dv.equals(identifier.getHostIdentifier().getAuthenticationPublicKey())) {
+				return dv;
+			} else {
+				return null;
+			}
+		}
+		else
+			return null;
+	}
 
 
 }

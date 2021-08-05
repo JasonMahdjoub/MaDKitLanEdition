@@ -37,17 +37,38 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
+
+import java.io.IOException;
+
 /**
  * 
  * @author Jason Mahdjoub
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-public class AccessAbordedMessage extends AccessErrorMessage {
+class LocalLoggingAccessMessage extends AccessMessage {
 
-	public AccessAbordedMessage() {
-		super(false);
+
+	@Override
+	public boolean checkDifferedMessages() {
+		return false;
 	}
 
 
+
+	@Override
+	public void writeExternal(SecuredObjectOutputStream out) throws IOException {
+		
+	}
+
+
+
+	@Override
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+		
+	}
+	
+	
 }

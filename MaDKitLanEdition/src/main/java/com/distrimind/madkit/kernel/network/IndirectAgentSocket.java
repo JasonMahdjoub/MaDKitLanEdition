@@ -72,8 +72,8 @@ class IndirectAgentSocket extends AbstractAgentSocket {
 	private final AgentAddress agentSocketRequester;
 	private final KernelAddress distant_kernel_address_requester;
 	private final int numberOfIntermediatePeers;
-	private StatsBandwidth statRequester;
-	private KernelAddress kernelAddressDestinationForSystemBroadcast;
+	private final StatsBandwidth statRequester;
+	private final KernelAddress kernelAddressDestinationForSystemBroadcast;
 	private final InetSocketAddress distantInetSocketAddressRoot;
 	private final AgentNetworkID socketIDRoot;
 	private TaskID pingTaskID;
@@ -131,24 +131,20 @@ class IndirectAgentSocket extends AbstractAgentSocket {
 			logger.severe(
 					"Cannot request group " + LocalCommunity.Groups.getAgentSocketGroup(agentSocketRequester.hashCode())
 							+ " and role " + LocalCommunity.Roles.SOCKET_AGENT_ROLE);
-		pingTaskID = scheduleTask(new Task<>(new Callable<Void>() {
-
-			@Override
-			public Void call() {
-				if (!isAlive())
-					return null;
-				long threshold = System.currentTimeMillis() - getMadkitConfig().networkProperties.connectionTimeOut;
-				if (lastReceivedDataUTC < threshold) {
-					lastReceivedDataUTC = System.currentTimeMillis();
-
-					if (waitingPongMessage) {
-						startDisconnectionProcess(ConnectionClosedReason.CONNECTION_LOST);
-					} else {
-						receiveMessage(new SendPingMessage());
-					}
-				}
+		pingTaskID = scheduleTask(new Task<>((Callable<Void>) () -> {
+			if (!isAlive())
 				return null;
+			long threshold = System.currentTimeMillis() - getMadkitConfig().networkProperties.connectionTimeOut;
+			if (lastReceivedDataUTC < threshold) {
+				lastReceivedDataUTC = System.currentTimeMillis();
+
+				if (waitingPongMessage) {
+					startDisconnectionProcess(ConnectionClosedReason.CONNECTION_LOST);
+				} else {
+					receiveMessage(new SendPingMessage());
+				}
 			}
+			return null;
 		}, System.currentTimeMillis() + getMadkitConfig().networkProperties.connectionTimeOut,
 				getMadkitConfig().networkProperties.connectionTimeOut));
 	}
@@ -167,7 +163,7 @@ class IndirectAgentSocket extends AbstractAgentSocket {
 	}
 
 	@Override
-	public IDTransfer getTransfertType() {
+	public IDTransfer getTransferType() {
 		return transfer_id;
 	}
 
@@ -177,21 +173,21 @@ class IndirectAgentSocket extends AbstractAgentSocket {
 	 */
 
 	@Override
-	protected ReturnCode broadcastDataTowardEachIntermediatePeer(DataToBroadcast _data, boolean prioritary) {
+	protected ReturnCode broadcastDataTowardEachIntermediatePeer(DataToBroadcast _data, boolean isItAPriority) {
 		if (logger != null && logger.isLoggable(Level.FINEST))
 			logger.finest("Broadcasting indirect data toward each intermediate peer (distant_inet_address="
 					+ distant_inet_address + ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress
-					+ ", prioritary=" + prioritary + ") : " + _data);
+					+ ", isItAPriority=" + isItAPriority + ") : " + _data);
 		return sendMessageWithRole(agentSocketRequester, new ObjectMessage<>(
-						new DataToBroadcast(_data.getMessageToBroadcast(), _data.getSender(), prioritary, getTransfertType())),
+						new DataToBroadcast(_data.getMessageToBroadcast(), _data.getSender(), isItAPriority, getTransferType())),
 				LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 	}
 
 	@Override
-	protected ReturnCode broadcastDataTowardEachIntermediatePeer(BroadcastableSystemMessage _data, boolean prioritary) {
+	protected ReturnCode broadcastDataTowardEachIntermediatePeer(BroadcastableSystemMessage _data, boolean priority) {
 		if (_data == null)
 			throw new NullPointerException("_data");
-		DataToBroadcast d = new DataToBroadcast(_data, getKernelAddress(), prioritary, getTransfertType());
+		DataToBroadcast d = new DataToBroadcast(_data, getKernelAddress(), priority, getTransferType());
 		ReturnCode rc = sendMessageWithRole(agentSocketRequester, new ObjectMessage<>(d),
 				LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 
@@ -210,7 +206,7 @@ class IndirectAgentSocket extends AbstractAgentSocket {
 
 	@Override
 	protected ReturnCode broadcastDataTowardEachIntermediatePeer(AgentAddress sender, BroadcastableSystemMessage _data,
-			IDTransfer distantIDDestination, KernelAddress kaServer, boolean isPrioritary) {
+			IDTransfer distantIDDestination, KernelAddress kaServer, boolean isItAPriority) {
 		if (sender == null) {
 			throw new IllegalAccessError();
 		}
@@ -222,7 +218,7 @@ class IndirectAgentSocket extends AbstractAgentSocket {
 		}
 		return sendMessageWithRole(idt.getTransferToAgentAddress(),
 				new ObjectMessage<>(
-						new DataToBroadcast(_data, kaServer, isPrioritary, _data.getIdTransferDestination())),
+						new DataToBroadcast(_data, kaServer, isItAPriority, _data.getIdTransferDestination())),
 				LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 	}
 
@@ -245,27 +241,27 @@ class IndirectAgentSocket extends AbstractAgentSocket {
 
 	@Override
 	protected void end() {
-		statRequester.removeTransferAgentStats(getTransfertType());
+		statRequester.removeTransferAgentStats(getTransferType());
 		cancelPingTaskID();
 		super.end();
 
 	}
 
 	@Override
-	protected void deconnected(ConnectionClosedReason reason, Collection<AbstractData> _data_not_sent,
-			ArrayList<AbstractData> bigDataNotSent, Collection<AbstractData> dataToTransferNotSent) {
+	protected void disconnected(ConnectionClosedReason reason, Collection<AbstractData> _data_not_sent,
+								ArrayList<AbstractData> bigDataNotSent, Collection<AbstractData> dataToTransferNotSent) {
 		cancelPingTaskID();
-		super.deconnected(reason, _data_not_sent, bigDataNotSent, dataToTransferNotSent);
+		super.disconnected(reason, _data_not_sent, bigDataNotSent, dataToTransferNotSent);
 	}
 
 	@Override
-	protected void checkTransferBlockCheckerChangments() throws ConnectionException {
+	protected void checkTransferBlockCheckerChanges() throws ConnectionException {
 		if (connection_protocol.isTransferBlockCheckerChanged()) {
 			if (logger != null && logger.isLoggable(Level.FINER))
-				logger.finer("Update and broacast transfer block checker");
+				logger.finer("Update and broadcast transfer block checker");
 
-			TransferedBlockChecker tbc=this.connection_protocol.getTransferedBlockChecker();
-			if (tbc.isCompletelyInoperant() && getMadkitConfig().networkProperties.canUsePointToPointTransferedBlockChecker)
+			TransferedBlockChecker tbc=this.connection_protocol.getTransferredBlockChecker();
+			if (tbc.isCompletelyInoperant() && getMadkitConfig().networkProperties.canUsePointToPointTransferredBlockChecker)
 			{
 				tbc=new PointToPointTransferedBlockChecker();
 				connection_protocol.setPointToPointTransferedBlockChecker((PointToPointTransferedBlockChecker)tbc);
@@ -273,7 +269,7 @@ class IndirectAgentSocket extends AbstractAgentSocket {
 			else
 				connection_protocol.setPointToPointTransferedBlockChecker(null);
 			
-			TransferBlockCheckerSystemMessage tbcm = new TransferBlockCheckerSystemMessage(getTransfertType(),
+			TransferBlockCheckerSystemMessage tbcm = new TransferBlockCheckerSystemMessage(getTransferType(),
 					this.kernelAddressDestinationForSystemBroadcast,
 					tbc);
 			tbcm.setMessageLocker(new MessageLocker(null));

@@ -43,11 +43,9 @@ import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
 import com.distrimind.util.crypto.*;
 
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,7 +53,7 @@ import java.util.Map;
  * 
  * 
  * @author Jason Mahdjoub
- * @version 2.0
+ * @version 3.0
  * @since MadkitLanEdition 1.7
  */
 public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends ConnectionProtocolProperties<P2PSecuredConnectionProtocolWithKeyAgreement> {
@@ -78,7 +76,7 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	/**
 	 * Key agreement type
 	 */
-	public KeyAgreementType keyAgreementType=KeyAgreementType.BC_XDH_X448_WITH_SHA512CKDF;
+	public KeyAgreementType keyAgreementType=KeyAgreementType.BC_FIPS_XDH_X448_WITH_SHA512CKDF;
 
 	/**
 	 * Post quantum key agreement type
@@ -93,7 +91,7 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	/**
 	 * Symmetric signature algorithm
 	 */
-	public SymmetricAuthentifiedSignatureType symmetricSignatureType=SymmetricAuthentifiedSignatureType.HMAC_SHA2_256;
+	public SymmetricAuthenticatedSignatureType symmetricSignatureType=SymmetricAuthenticatedSignatureType.HMAC_SHA2_384;
 	
 	/**
 	 * symmetric key size in bits
@@ -105,7 +103,12 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	 */
 	public boolean isServer = true;
 
-	private HashMap<Integer, AbstractKeyPair> serverSideKeyPairs =new HashMap<>();
+	/**
+	 * Message digest type used to check message validity
+	 */
+	public MessageDigestType messageDigestType=MessageDigestType.SHA2_384;
+
+	private HashMap<Integer, AbstractKeyPair<?, ?>> serverSideKeyPairs =new HashMap<>();
 
 	private IASymmetricPublicKey clientSidePublicKey =null;
 	private int clientSideProfileIdentifier =-1;
@@ -115,19 +118,19 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	/**
 	 * The profile validation
 	 */
-	private Map<Integer, Boolean> serverSideValidProfiles = new HashMap<>();
+	private final Map<Integer, Boolean> serverSideValidProfiles = new HashMap<>();
 
 	/**
 	 * Add a server profile used to authenticate the server throw an asymmetric signature
 	 * @param type the asymmetric signature type
 	 * @param random the secure random
 	 * @return the generated profile identifier
-	 * @throws InvalidAlgorithmParameterException if a the key generator parameter was invalid
+	 * @throws IOException if a the key generator parameter was invalid
 	 * @throws NoSuchAlgorithmException if the the key generator was not found
 	 * @throws NoSuchProviderException if the key generator provider was not found
 	 */
-	public int generateServerSideProfile(ASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
-		return generateServerSideProfile(type, random, Long.MAX_VALUE);
+	public int generateServerSideProfile(ASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
+		return generateServerSideProfile(type, random, System.currentTimeMillis(), Long.MAX_VALUE);
 	}
 
 	/**
@@ -136,12 +139,12 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	 * @param random the secure random
 	 * @param expirationTimeUTC the expiration time of the generated key pair
 	 * @return the generated profile identifier
-	 * @throws InvalidAlgorithmParameterException if a the key generator parameter was invalid
+	 * @throws IOException if a the key generator parameter was invalid
 	 * @throws NoSuchAlgorithmException if the the key generator was not found
 	 * @throws NoSuchProviderException if the key generator provider was not found
 	 */
-	public int generateServerSideProfile(ASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random, long expirationTimeUTC) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
-		return generateServerSideProfile(type, random, expirationTimeUTC, type.getDefaultKeySize());
+	public int generateServerSideProfile(ASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random, long publicKeyValidityBeginDateUTC, long expirationTimeUTC) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
+		return generateServerSideProfile(type, random, publicKeyValidityBeginDateUTC, expirationTimeUTC, type.getDefaultKeySize());
 	}
 
 	/**
@@ -151,12 +154,12 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	 * @param expirationTimeUTC the expiration time of the generated key pair
 	 * @param asymmetricKeySizeBits the asymmetric key size in bits
 	 * @return the generated profile identifier
-	 * @throws InvalidAlgorithmParameterException if a the key generator parameter was invalid
+	 * @throws IOException if a the key generator parameter was invalid
 	 * @throws NoSuchAlgorithmException if the the key generator was not found
 	 * @throws NoSuchProviderException if the key generator provider was not found
 	 */
-	public int generateServerSideProfile(ASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random, long expirationTimeUTC, int asymmetricKeySizeBits) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
-		return addServerSideProfile(type.getKeyPairGenerator(random, asymmetricKeySizeBits, expirationTimeUTC).generateKeyPair());
+	public int generateServerSideProfile(ASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random, long publicKeyValidityBeginDateUTC, long expirationTimeUTC, int asymmetricKeySizeBits) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
+		return addServerSideProfile(type.getKeyPairGenerator(random, asymmetricKeySizeBits, publicKeyValidityBeginDateUTC, expirationTimeUTC).generateKeyPair());
 	}
 
 	/**
@@ -164,12 +167,12 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	 * @param type the hybrid asymmetric signature type
 	 * @param random the secure random
 	 * @return the generated profile identifier
-	 * @throws InvalidAlgorithmParameterException if a the key generator parameter was invalid
+	 * @throws IOException if a the key generator parameter was invalid
 	 * @throws NoSuchAlgorithmException if the the key generator was not found
 	 * @throws NoSuchProviderException if the key generator provider was not found
 	 */
-	public int generateServerSideProfile(HybridASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
-		return generateServerSideProfile(type, random, Long.MAX_VALUE);
+	public int generateServerSideProfile(HybridASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
+		return generateServerSideProfile(type, random, System.currentTimeMillis(), Long.MAX_VALUE);
 	}
 
 	/**
@@ -178,12 +181,12 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	 * @param random the secure random
 	 * @param expirationTimeUTC the expiration time of the generated key pair
 	 * @return the generated profile identifier
-	 * @throws InvalidAlgorithmParameterException if a the key generator parameter was invalid
+	 * @throws IOException if a the key generator parameter was invalid
 	 * @throws NoSuchAlgorithmException if the the key generator was not found
 	 * @throws NoSuchProviderException if the key generator provider was not found
 	 */
-	public int generateServerSideProfile(HybridASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random, long expirationTimeUTC) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
-		return generateServerSideProfile(type, random, expirationTimeUTC, -1);
+	public int generateServerSideProfile(HybridASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random, long publicKeyValidityBeginDateUTC, long expirationTimeUTC) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
+		return generateServerSideProfile(type, random, publicKeyValidityBeginDateUTC, expirationTimeUTC, -1);
 	}
 
 
@@ -194,12 +197,12 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	 * @param expirationTimeUTC the expiration time of the generated key pair
 	 * @param asymmetricKeySizeBits the asymmetric key size in bits
 	 * @return the generated profile identifier
-	 * @throws InvalidAlgorithmParameterException if a the key generator parameter was invalid
+	 * @throws IOException if a the key generator parameter was invalid
 	 * @throws NoSuchAlgorithmException if the the key generator was not found
 	 * @throws NoSuchProviderException if the key generator provider was not found
 	 */
-	public int generateServerSideProfile(HybridASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random, long expirationTimeUTC, int asymmetricKeySizeBits) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
-		return addServerSideProfile(type.generateKeyPair(random, asymmetricKeySizeBits, expirationTimeUTC));
+	public int generateServerSideProfile(HybridASymmetricAuthenticatedSignatureType type, AbstractSecureRandom random, long publicKeyValidityBeginDateUTC, long expirationTimeUTC, int asymmetricKeySizeBits) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
+		return addServerSideProfile(type.generateKeyPair(random, asymmetricKeySizeBits, publicKeyValidityBeginDateUTC, expirationTimeUTC));
 	}
 
 
@@ -209,7 +212,7 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	 * @param keyPairForSignature the key pair used to authenticate the server
 	 * @return the effective profile identifier
 	 */
-	public int addServerSideProfile(AbstractKeyPair keyPairForSignature) {
+	public int addServerSideProfile(AbstractKeyPair<?, ?> keyPairForSignature) {
 		return addServerSideProfile(generateNewKeyPairIdentifier(), keyPairForSignature);
 	}
 
@@ -219,7 +222,7 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	 * @param keyPairForSignature the key pair used to authenticate the server
 	 * @return the effective profile identifier
 	 */
-	public int addServerSideProfile(int profileIdentifier, AbstractKeyPair keyPairForSignature) {
+	public int addServerSideProfile(int profileIdentifier, AbstractKeyPair<?, ?> keyPairForSignature) {
 		if (keyPairForSignature == null)
 			throw new NullPointerException("keyPairForEncryption");
 		if (keyPairForSignature instanceof HybridASymmetricKeyPair)
@@ -242,6 +245,19 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 		return profileIdentifier;
 	}
 
+	public void setClientSideProfile(P2PSecuredConnectionProtocolPropertiesWithKeyAgreement serverAgreement)
+	{
+		if (!serverAgreement.isServer)
+			throw new IllegalArgumentException();
+		if (serverAgreement.serverSideKeyPairs.size()==0)
+			throw new IllegalArgumentException();
+		setClientSideProfile(serverAgreement.lastIdentifierServerSide, serverAgreement.getKeyPairForSignature(serverAgreement.lastIdentifierServerSide).getASymmetricPublicKey());
+	}
+
+	public int getLastIdentifierServerSide() {
+		return lastIdentifierServerSide;
+	}
+
 	/**
 	 * Set the profile used to check the server signature
 	 * @param profileIdentifier the profile identifier
@@ -253,7 +269,7 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 			throw new NullPointerException("publicKey");
 		if (publicKeyForSignature instanceof HybridASymmetricPublicKey)
 		{
-			if (((HybridASymmetricPublicKey)publicKeyForSignature).getNonPQCPublicKey().getAuthenticatedSignatureAlgorithmType()==null)
+			if (publicKeyForSignature.getNonPQCPublicKey().getAuthenticatedSignatureAlgorithmType()==null)
 				throw new IllegalArgumentException();
 		}
 		else if (((ASymmetricPublicKey)publicKeyForSignature).getAuthenticatedSignatureAlgorithmType()==null)
@@ -279,7 +295,7 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	 * @return the key pair attached to this connection protocol and the given
 	 *         profile identifier
 	 */
-	public AbstractKeyPair getKeyPairForSignature(int profileIdentifier) {
+	public AbstractKeyPair<?, ?> getKeyPairForSignature(int profileIdentifier) {
 		return serverSideKeyPairs.get(profileIdentifier);
 	}
 
@@ -320,7 +336,7 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 		Boolean valid= serverSideValidProfiles.get(profileIdentifier);
 		if (valid==null || !valid)
 			return false;
-		AbstractKeyPair kp=serverSideKeyPairs.get(profileIdentifier);
+		AbstractKeyPair<?, ?> kp=serverSideKeyPairs.get(profileIdentifier);
 		if (kp!=null && kp.getTimeExpirationUTC()>System.currentTimeMillis())
 		{
 			if (encryptionRestriction==EncryptionRestriction.NO_RESTRICTION)
@@ -346,12 +362,12 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 			serverSideValidProfiles.put(profileIdentifier, false);
 	}
 
-	private boolean checkKeyPairs(Map<Integer, AbstractKeyPair> keyPairs) throws ConnectionException
+	private boolean checkKeyPairs(Map<Integer, AbstractKeyPair<?, ?>> keyPairs) throws ConnectionException
 	{
 		if (keyPairs == null)
 			throw new ConnectionException("The key pairs must defined");
 		boolean valid = keyPairs.size()==0;
-		for (Map.Entry<Integer, AbstractKeyPair> e : keyPairs.entrySet()) {
+		for (Map.Entry<Integer, AbstractKeyPair<?, ?>> e : keyPairs.entrySet()) {
 			if (e.getValue() == null)
 				throw new NullPointerException();
 			int s;
@@ -369,14 +385,6 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 			Boolean vp=serverSideValidProfiles.get(e.getKey());
 			if (e.getValue().getTimeExpirationUTC() > System.currentTimeMillis() && vp!=null && vp) {
 				valid = true;
-			}
-			int tmp=s;
-			while (tmp != 1) {
-				if (tmp % 2 == 0)
-					tmp = tmp / 2;
-				else
-					throw new ConnectionException("The RSA key size have a size of " + s
-							+ ". This number must correspond to this schema : _rsa_key_size=2^x.");
 			}
 		}
 		return valid;
@@ -414,7 +422,7 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 				throw new ConnectionException();
 			if (clientSidePublicKey instanceof HybridASymmetricPublicKey)
 			{
-				if (((HybridASymmetricPublicKey)clientSidePublicKey).getNonPQCPublicKey().getAuthenticatedSignatureAlgorithmType()==null)
+				if (clientSidePublicKey.getNonPQCPublicKey().getAuthenticatedSignatureAlgorithmType()==null)
 					throw new IllegalArgumentException();
 			}
 			else if (((ASymmetricPublicKey)clientSidePublicKey).getAuthenticatedSignatureAlgorithmType()==null)
@@ -436,44 +444,18 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 		return enableEncryption;
 	}
 
-	private transient SymmetricEncryptionAlgorithm maxAlgo=null;
+	private transient MaximumBodyOutputSizeComputer maximumBodyOutputSizeComputer=null;
 
 	@Override
 	public int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException {
-		if (!isEncrypted())
-			return size;
-		else
-		{
-
-			try {
-				if (maxAlgo==null)
-					maxAlgo=new SymmetricEncryptionAlgorithm(SecureRandomType.DEFAULT.getSingleton(null), symmetricEncryptionType.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), symmetricKeySizeBits).generateKey());
-				return maxAlgo.getOutputSizeForEncryption(size)+4;
-			} catch (Exception e) {
-				throw new BlockParserException(e);
-			}
-
-		}
+		if (maximumBodyOutputSizeComputer==null)
+			maximumBodyOutputSizeComputer=new MaximumBodyOutputSizeComputer(isEncrypted(), symmetricEncryptionType, symmetricKeySizeBits, symmetricSignatureType, messageDigestType);
+		return maximumBodyOutputSizeComputer.getMaximumBodyOutputSizeForEncryption(size);
 	}
 
-
-
-	private transient volatile Integer maxHeadSize=null;
     @Override
-    public int getMaximumSizeHead() throws BlockParserException {
-        if (maxHeadSize==null)
-		{
-            try {
-
-				SymmetricAuthenticatedSignerAlgorithm signerTmp = new SymmetricAuthenticatedSignerAlgorithm(symmetricSignatureType.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), symmetricEncryptionType.getDefaultKeySizeBits()).generateKey());
-                signerTmp.init();
-                maxHeadSize = signerTmp.getMacLengthBytes();
-
-            } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidKeyException | InvalidKeySpecException e) {
-                throw new BlockParserException(e);
-            }
-        }
-        return maxHeadSize;
+    public int getMaximumHeadSize() {
+    	return EncryptionSignatureHashEncoder.headSize;
     }
 
 	@Override

@@ -93,7 +93,7 @@ public class ConnectionProperties {
 	 * corresponds to the number of detected anomalies accepted before triggering an
 	 * expulsion.
 	 */
-	public short NB_MAX_ANOMALY_BEFORE_TRIGERING_EXPULSION = 10;
+	public short NB_MAX_ANOMALY_BEFORE_TRIGGERING_EXPULSION = 10;
 
 	/**
 	 * When received data are incorrect or when an anomaly has been detected through
@@ -121,7 +121,7 @@ public class ConnectionProperties {
 	 * the distant concerned host. This variable corresponds to the number of
 	 * detected anomalies accepted before triggering a banishment.
 	 */
-	public short NB_MAX_ANOMALY_BEFORE_TRIGERING_BANISHMENT = 4;
+	public short NB_MAX_ANOMALY_BEFORE_TRIGGERING_BANISHMENT = 4;
 
 	/**
 	 * When a problem of security is detected, the system decide to ban temporary
@@ -133,13 +133,13 @@ public class ConnectionProperties {
 
 	/**
 	 * Duration of the statistics concerning the temporary expulsion of a computer.
-	 * After this duration, the statistics are reseted.
+	 * After this duration, the statistics are reset.
 	 */
 	public long EXPULSION_STATISTIC_DURATION = 7200000;
 
 	/**
 	 * Duration of the statistics concerning the banishment of a computer. After
-	 * this duration, the statistics are reseted.
+	 * this duration, the statistics are reset.
 	 */
 	public long BANISHMENT_STATISTIC_DURATION = 1728000000;
 
@@ -149,12 +149,12 @@ public class ConnectionProperties {
 	 * the current connection is just useful to inform the two computers that they
 	 * can connect between them. Else the current connection will be used to be a
 	 * gateway between the two computers. Every data between the two computers will
-	 * be transfered into the current computer/connection. However, if data is
+	 * be transferred into the current computer/connection. However, if data is
 	 * encrypted, it cannot be comprehensible for the current computer. So the data
 	 * security is maintained.
 	 * 
 	 * @see #GATEWAY_DEPTH
-	 * @see #TIME_BETWEEN_EACH_UPDATE_OF_TRANSFERT_SPEED_FOR_GATEWAY_CONNECTION
+	 * @see #TIME_BETWEEN_EACH_UPDATE_OF_TRANSFER_SPEED_FOR_GATEWAY_CONNECTION
 	 */
 	public boolean ENABLE_GATEWAY_CONNECTION = false;
 
@@ -177,7 +177,7 @@ public class ConnectionProperties {
 	 * 
 	 * @see #ENABLE_GATEWAY_CONNECTION
 	 */
-	public long TIME_BETWEEN_EACH_UPDATE_OF_TRANSFERT_SPEED_FOR_GATEWAY_CONNECTION = 30000L;
+	public long TIME_BETWEEN_EACH_UPDATE_OF_TRANSFER_SPEED_FOR_GATEWAY_CONNECTION = 30000L;
 
 	/**
 	 * Define the number of cached blocks to transfer to another machine. If this
@@ -207,7 +207,7 @@ public class ConnectionProperties {
 	/**
 	 * Define the maximum number of connections between two same kernels. Indeed,
 	 * between two machines, it is possible to have several network interfaces, so
-	 * severals connections. This limitation enables to limit the effect of a DoS
+	 * several connections. This limitation enables to limit the effect of a DoS
 	 * attack.
 	 */
 	public short NUMBER_OF_MAXIMUM_CONNECTIONS_BETWEEN_TWO_SAME_KERNELS_AND_MACHINES = 3;
@@ -242,7 +242,7 @@ public class ConnectionProperties {
 			boolean isServer, boolean needConnectionInitiationAbility, EncryptionRestriction encryptionRestriction) throws NIOException {
 		for (ConnectionProtocolProperties<?> cpp : connection_protocol_properties) {
 			if (cpp.isConcernedBy(_local_interface_address.getAddress(), _local_interface_address.getPort(),
-					_distant_inet_address.getAddress(), isServer, needConnectionInitiationAbility, encryptionRestriction))
+					_distant_inet_address.getAddress(), _distant_inet_address.getPort(), isServer, needConnectionInitiationAbility, encryptionRestriction))
 				return cpp.getConnectionProtocolInstance(_distant_inet_address, _local_interface_address,
 						sql_connection, mkProperties, isServer, needConnectionInitiationAbility, encryptionRestriction);
 		}

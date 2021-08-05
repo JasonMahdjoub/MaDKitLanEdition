@@ -42,6 +42,7 @@ import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.kernel.network.connection.AskConnection;
 import com.distrimind.madkit.kernel.network.connection.ConnectionMessage;
 import com.distrimind.util.crypto.*;
+import com.distrimind.util.data_buffers.WrappedData;
 import com.distrimind.util.io.*;
 
 import java.io.IOException;
@@ -56,12 +57,12 @@ import java.io.IOException;
 class PublicKeyMessage extends ConnectionMessage {
 
 	private transient ASymmetricPublicKey public_key_for_encryption = null;
-	private byte[] public_key_for_encryption_bytes;
+	private WrappedData public_key_for_encryption_bytes;
 	private byte[] signedPublicKey;
-	private transient byte[] public_key_bytes_distant_for_encryption;
+	private transient WrappedData public_key_bytes_distant_for_encryption;
 	private transient ASymmetricPublicKey public_key_for_signature = null;
-	private byte[] public_key_for_signature_bytes;
-	private transient byte[] public_key_bytes_distant_for_signature;
+	private WrappedData public_key_for_signature_bytes;
+	private transient WrappedData public_key_bytes_distant_for_signature;
 	
 	@SuppressWarnings("unused")
 	PublicKeyMessage()
@@ -71,9 +72,9 @@ class PublicKeyMessage extends ConnectionMessage {
 	
 	@Override
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
-		public_key_for_encryption_bytes=in.readBytesArray(false, SerializationTools.MAX_KEY_SIZE);
+		public_key_for_encryption_bytes=new WrappedData(in.readBytesArray(false, ASymmetricPublicKey.MAX_SIZE_IN_BYTES_OF_KEY_FOR_ENCRYPTION));
 		signedPublicKey=in.readBytesArray( false, AskConnection.MAX_SIGNATURE_LENGTH);
-		public_key_for_signature_bytes=in.readBytesArray(false, AskConnection.MAX_SIGNATURE_LENGTH);
+		public_key_for_signature_bytes=new WrappedData(in.readBytesArray(false, AskConnection.MAX_SIGNATURE_LENGTH));
 		try
 		{
 			AbstractKey k=AbstractKey.decode(public_key_for_encryption_bytes);
@@ -90,7 +91,7 @@ class PublicKeyMessage extends ConnectionMessage {
 			public_key_for_signature = (ASymmetricPublicKey) k;
 
  			ASymmetricAuthenticatedSignatureCheckerAlgorithm checker=new ASymmetricAuthenticatedSignatureCheckerAlgorithm(public_key_for_signature);
-			if (!checker.verify(public_key_for_encryption_bytes, signedPublicKey))
+			if (!checker.verify(public_key_for_encryption_bytes.getBytes(), signedPublicKey))
 				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			
 		} catch (Exception e) {
@@ -102,9 +103,9 @@ class PublicKeyMessage extends ConnectionMessage {
 
 	@Override
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
-		oos.writeBytesArray(public_key_for_encryption_bytes, false, SerializationTools.MAX_KEY_SIZE);
+		oos.writeBytesArray(public_key_for_encryption_bytes.getBytes(), false, ASymmetricPublicKey.MAX_SIZE_IN_BYTES_OF_KEY_FOR_ENCRYPTION);
 		oos.writeBytesArray(signedPublicKey, false, AskConnection.MAX_SIGNATURE_LENGTH);
-		oos.writeBytesArray(public_key_for_signature_bytes, false, AskConnection.MAX_SIGNATURE_LENGTH);
+		oos.writeBytesArray(public_key_for_signature_bytes.getBytes(), false, AskConnection.MAX_SIGNATURE_LENGTH);
 		
 	}
 	
@@ -118,7 +119,7 @@ class PublicKeyMessage extends ConnectionMessage {
 			public_key_for_signature_bytes = _public_key_for_signature.encode();
 			public_key_bytes_distant_for_signature = _public_key_distant_for_signature == null ? null : _public_key_distant_for_signature.encode();
 			ASymmetricAuthenticatedSignerAlgorithm signer=new ASymmetricAuthenticatedSignerAlgorithm(privateKeyForSignature);
-			signedPublicKey=signer.sign(public_key_for_encryption_bytes);
+			signedPublicKey=signer.sign(public_key_for_encryption_bytes.getBytes());
 
 
 		}

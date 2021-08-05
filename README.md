@@ -88,6 +88,7 @@ All described features are tested and considered as stable.
 * Possibility to define a blackboard for agents
 * when broadcasting a message, possibility for an agent to get all answers in one time.
 * Auto-request roles are possible. Agents can request roles only if they are requested by other agents.
+* Compatible with Java 8 and newer
 
 
 ###### Madkit Group extension futures
@@ -127,7 +128,7 @@ Adapt into your build.gradle file, the next code :
 	...
 	dependencies {
 		...
-		compile(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.1.9-Stable')
+		compile(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.2.0-BETA1')
 		...
 	}
 	...
@@ -143,7 +144,7 @@ Adapt into your pom.xml file, the next code :
 			<dependency>
 				<groupId>com.distrimind.madkit</groupId>
 				<artifactId>MaDKitLanEdition</artifactId>
-				<version>2.1.9-Stable</version>
+				<version>2.2.0-BETA1</version>
 			</dependency>
 			...
 		</dependencies>

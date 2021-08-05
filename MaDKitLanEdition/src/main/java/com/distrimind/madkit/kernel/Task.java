@@ -74,7 +74,7 @@ public final class Task<V> implements Cloneable {
 	/**
 	 * This role is automatically given to agents that launch tasks
 	 */
-	public static final String TASK_ASKER_ROLE = "~~TASK_ASKER";
+	public static final String TASK_CALLER_ROLE = "~~TASK_ASKER";
 
 	/**
 	 * The name of the default task manager agent
@@ -87,7 +87,7 @@ public final class Task<V> implements Cloneable {
 		public boolean allowAgentToTakeRole(Group _group, String _roleName,
 				final Class<? extends AbstractAgent> requesterClass, AgentNetworkID _agentNetworkID,
 				Object _memberCard) {
-			return _memberCard instanceof MemberCard && _memberCard == memberCard;
+			return _memberCard == memberCard;
 		}
 
 		@Override

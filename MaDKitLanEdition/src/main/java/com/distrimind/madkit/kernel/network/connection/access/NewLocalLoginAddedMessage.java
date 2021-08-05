@@ -52,7 +52,7 @@ import java.util.ArrayList;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-public class NewLocalLoginAddedMessage extends LocalLogingAccessMessage {
+public class NewLocalLoginAddedMessage extends LocalLoggingAccessMessage {
 
 	public ArrayList<Identifier> identifiers;
 	private transient boolean forceLoginInitiative;

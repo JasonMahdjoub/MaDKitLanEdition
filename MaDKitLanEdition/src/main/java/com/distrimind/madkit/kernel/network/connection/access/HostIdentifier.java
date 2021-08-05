@@ -42,6 +42,7 @@ import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.RenforcedDecentralizedIDGenerator;
 import com.distrimind.util.SecuredDecentralizedID;
 import com.distrimind.util.crypto.*;
+import com.distrimind.util.data_buffers.WrappedData;
 import com.distrimind.util.io.SecureExternalizable;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
@@ -82,7 +83,7 @@ public abstract class HostIdentifier implements SecureExternalizable {
 	@Override
 	public abstract int hashCode();
 
-	public abstract byte[] getBytesTabToEncode();
+	public abstract WrappedData getBytesTabToEncode();
 
 
 	/**
@@ -94,7 +95,15 @@ public abstract class HostIdentifier implements SecureExternalizable {
 		return null;
 	}
 
-
+	/**
+	 * Returns the central database's identifier. If the function is not override, it returns null by default.
+	 * Central database backup permit to synchronize peers, and permit for peer to backup their database with an end-to-end encryption
+	 * @return the central database's identifier. If the function is not override, it returns null by default.
+	 */
+	public DecentralizedValue getCentralDecentralizedDatabaseID()
+	{
+		return null;
+	}
 
 	/**
 	 * Generates a unique host identifier
@@ -116,7 +125,7 @@ public abstract class HostIdentifier implements SecureExternalizable {
 		return new DefaultHostIdentifier(bytes, off, len);
 	}
 
-	private static final NullHostIdentifier nullHostIdentifierSingleton=new NullHostIdentifier();
+
 	public static class NullHostIdentifier extends HostIdentifier
 	{
 		private NullHostIdentifier()
@@ -125,13 +134,13 @@ public abstract class HostIdentifier implements SecureExternalizable {
 		}
 		@Override
 		public boolean equals(Object _object) {
-			return _object==this || _object instanceof NullHostIdentifier;
+			return _object instanceof NullHostIdentifier;
 		}
 
 		@Override
-		public byte[] getBytesTabToEncode()
+		public WrappedData getBytesTabToEncode()
 		{
-			return new byte[0];
+			return new WrappedData(new byte[0]);
 		}
 		@Override
 		public int hashCode() {
@@ -171,10 +180,11 @@ public abstract class HostIdentifier implements SecureExternalizable {
 		}
 
 		@Override
-		public AbstractKeyPair getAuthenticationKeyPair() {
+		public AbstractKeyPair<?, ?> getAuthenticationKeyPair() {
 			return null;
 		}
 	}
+	private static final NullHostIdentifier nullHostIdentifierSingleton=new NullHostIdentifier();
 
 	public static NullHostIdentifier getNullHostIdentifierSingleton() {
 		return nullHostIdentifierSingleton;
@@ -195,7 +205,7 @@ public abstract class HostIdentifier implements SecureExternalizable {
 		}
 
 		@Override
-		public byte[] getBytesTabToEncode()
+		public WrappedData getBytesTabToEncode()
 		{
 			return id.encode();
 		}
@@ -255,7 +265,7 @@ public abstract class HostIdentifier implements SecureExternalizable {
 		}
 
 		@Override
-		public AbstractKeyPair getAuthenticationKeyPair() {
+		public AbstractKeyPair<?,?> getAuthenticationKeyPair() {
 			return null;
 		}
 	}
@@ -265,7 +275,7 @@ public abstract class HostIdentifier implements SecureExternalizable {
 
 
 
-	public abstract AbstractKeyPair getAuthenticationKeyPair();
+	public abstract AbstractKeyPair<?, ?> getAuthenticationKeyPair();
 
 	public abstract boolean isAuthenticatedByPublicKey();
 

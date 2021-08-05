@@ -56,15 +56,15 @@ import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
  */
 public class TransfersReturnsCodes {
 	private final HashMap<KernelAddress, ReturnCode> returns_code;
-	private final HashMap<KernelAddress, DataTransfertResult> data_transfert_results;
+	private final HashMap<KernelAddress, DataTransferResult> data_transfer_results;
 	// private final KernelAddress default_kernel_address;
 
 	TransfersReturnsCodes() {
 		returns_code = new HashMap<>();
-		data_transfert_results = new HashMap<>();
+		data_transfer_results = new HashMap<>();
 	}
 
-	void putResult(KernelAddress ka, ReturnCode returnCode, DataTransfertResult stats) {
+	void putResult(KernelAddress ka, ReturnCode returnCode, DataTransferResult stats) {
 		if (ka == null)
 			throw new NullPointerException("ka");
 		if (returnCode == null)
@@ -72,7 +72,7 @@ public class TransfersReturnsCodes {
 		if (stats == null)
 			throw new NullPointerException("stats");
 		returns_code.put(ka, returnCode);
-		data_transfert_results.put(ka, stats);
+		data_transfer_results.put(ka, stats);
 	}
 
 	/**
@@ -96,22 +96,12 @@ public class TransfersReturnsCodes {
 	 *            the distant kernel address located into the network
 	 * @return the result of the LAN transfer.
 	 */
-	public DataTransfertResult getDataTransfertResult(KernelAddress ka) {
+	public DataTransferResult getDataTransferResult(KernelAddress ka) {
 		if (ka == null)
 			throw new NullPointerException("ka");
-		return data_transfert_results.get(ka);
+		return data_transfer_results.get(ka);
 	}
 
-	/*
-	 * ReturnCode getReturnCode() { if (returns_code.size()!=1) throw new
-	 * IllegalAccessError("The returns code list size should be equals to 1");
-	 * return returns_code.values().iterator().next(); }
-	 * 
-	 * DataTransfertResult getDataTransfertResult() { if
-	 * (data_transfert_results.size()!=1) throw new
-	 * IllegalAccessError("The data transfert results list size should be equals to 1"
-	 * ); return data_transfert_results.values().iterator().next(); }
-	 */
 
 	/**
 	 * Return a return code associating this TransfersReturnsCodes

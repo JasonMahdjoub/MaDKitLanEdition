@@ -53,7 +53,6 @@ import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -74,34 +73,6 @@ import java.util.NoSuchElementException;
  */
 public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> implements Iterable<ConnectionProtocol<?>> {
 
-	public static class ByteArrayOutputStream extends OutputStream
-	{
-		private final byte[] tab;
-		private final int indexStart;
-		private int index;
-		
-		public ByteArrayOutputStream(byte [] tab, int indexStart)
-		{
-			this.tab=tab;
-			this.index=this.indexStart=indexStart;
-		}
-		
-		public int getSize()
-		{
-			return index-indexStart;
-		}
-
-		@Override
-		public void write(int b) {
-			tab[index++]=(byte)b;
-		}
-		@Override
-		public void write(byte[] b, int off, int len) {
-			System.arraycopy(b, off, tab, index, len);
-			index+=len;
-		}
-		
-	}
 	
 	public enum ConnectionClosedReason {
 		/**
@@ -390,13 +361,13 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 		int i = 0;
 		for (Iterator<ConnectionProtocol<?>> it = this.iterator(); it.hasNext(); i++) {
 			ConnectionProtocol<?> cp = it.next();
+
 			PacketCounter pc=cp.getPacketCounter();
 			if (pc!=null)
 			    pc.incrementMyCounters();
 			boolean valid;
 			boolean candidate_to_ban =false;
 			SubBlockParser sbp = cp.getParser();
-			
 			try {
 				sbi = sbp.getSubBlock(sbi.getSubBlock());
 				valid = sbi.isValid();
@@ -444,7 +415,6 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 	}
 	public final Block getBlock(WritePacket _packet, int _transfert_type, AbstractSecureRandom random, boolean excludedFromEncryption)
 			throws NIOException {
-
 		try {
 			PacketPart packet_part = _packet.getNextPart(this);
 			if (packet_part == null)
@@ -456,12 +426,13 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 			/*Block block = new Block(packet_part, sbs, _transfert_type);
 			SubBlock subBlock = new SubBlock(block.getBytes(), sbs.initial_packet_offset, sbs.initial_packet_size);*/
 			SubBlock subBlock= packet_part.getSubBlock();
-			int i = this.sizeOfSubConnectionProtocols();
+			int i = this.numberOfSubConnectionProtocols();
 			for (Iterator<ConnectionProtocol<?>> it = this.reverseIterator(); it.hasNext(); i--) {
 				ConnectionProtocol<?> cp = it.next();
 				PacketCounter pc=cp.getPacketCounter();
 				if (pc!=null)
 				    pc.incrementOtherCounters();
+
 				subBlock = lastSBS.getSubBlockForParent(cp.getParser().getParentBlock(subBlock, excludedFromEncryption), i, random);
 			}
 			PointToPointTransferedBlockChecker ptp=pointToPointTransferedBlockChecker;
@@ -517,7 +488,7 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 
 
 	public int getMaximumSizeHead() throws BlockParserException {
-		return connection_protocol_properties.getMaximumSizeHead();
+		return connection_protocol_properties.getMaximumHeadSize();
 	}
 
 	/**
@@ -582,12 +553,12 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 		return new ReverseIt(from_it);
 	}
 
-	public TransferedBlockChecker getTransferedBlockChecker() throws ConnectionException {
-		return getTransferedBlockChecker(
-				(subProtocol == null || this.isCrypted()) ? null : subProtocol.getTransferedBlockChecker());
+	public TransferedBlockChecker getTransferredBlockChecker() throws ConnectionException {
+		return getTransferredBlockChecker(
+				(subProtocol == null || this.isCrypted()) ? null : subProtocol.getTransferredBlockChecker());
 	}
 
-	protected abstract TransferedBlockChecker getTransferedBlockChecker(TransferedBlockChecker subBlockChercker)
+	protected abstract TransferedBlockChecker getTransferredBlockChecker(TransferedBlockChecker subBlockChercker)
 			throws ConnectionException;
 
 	public boolean isTransferBlockCheckerChanged() {
@@ -601,9 +572,9 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 
 	protected abstract boolean isTransferBlockCheckerChangedImpl();
 
-	public int sizeOfSubConnectionProtocols() {
+	public int numberOfSubConnectionProtocols() {
 		if (subProtocol != null)
-			return subProtocol.sizeOfSubConnectionProtocols() + 1;
+			return subProtocol.numberOfSubConnectionProtocols() + 1;
 		else
 			return 0;
 	}

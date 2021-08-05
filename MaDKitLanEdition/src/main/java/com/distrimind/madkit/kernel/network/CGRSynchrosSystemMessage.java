@@ -86,11 +86,11 @@ final class CGRSynchrosSystemMessage implements SystemMessageWithoutInnerSizeCon
 			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 		for (int i=0;i<size;i++)
 		{
-			String comunity=in.readString(false, Group.MAX_COMMUNITY_LENGTH);
+			String community=in.readString(false, Group.MAX_COMMUNITY_LENGTH);
 			int size2=in.readInt();
 			if (size2<0)
 				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			totalSize+=4+ SerializationTools.getInternalSize(comunity, Group.MAX_COMMUNITY_LENGTH);
+			totalSize+=4+ SerializationTools.getInternalSize(community, Group.MAX_COMMUNITY_LENGTH);
 			if (totalSize>globalSize)
 				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			Map<Group, Map<String, Collection<AgentAddress>>> groups= new HashMap<>();
@@ -107,7 +107,7 @@ final class CGRSynchrosSystemMessage implements SystemMessageWithoutInnerSizeCon
 				for (int k=0;k<size3;k++)
 				{
 					String role=in.readString(false, Group.MAX_ROLE_NAME_LENGTH);
-					totalSize+=4+SerializationTools.getInternalSize(comunity, Group.MAX_ROLE_NAME_LENGTH);
+					totalSize+=4+SerializationTools.getInternalSize(community, Group.MAX_ROLE_NAME_LENGTH);
 					int size4=in.readInt();
 					if (totalSize>globalSize)
 						throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
@@ -127,7 +127,7 @@ final class CGRSynchrosSystemMessage implements SystemMessageWithoutInnerSizeCon
 				}
 				groups.put(group, roles);
 			}
-			organization_snap_shot.put(comunity, groups);
+			organization_snap_shot.put(community, groups);
 		}
 		size=in.readInt();
 		totalSize+=size;

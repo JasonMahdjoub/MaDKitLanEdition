@@ -6,7 +6,7 @@ jason.mahdjoub@distri-mind.fr
 
 This software (Object Oriented Database (OOD)) is a computer program 
 whose purpose is to manage a local database with the object paradigm 
-and the java langage 
+and the java language
 
 This software is governed by the CeCILL-C license under French law and
 abiding by the rules of distribution of free software.  You can  use, 
@@ -46,8 +46,8 @@ import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
 
 import java.io.IOException;
-import java.security.*;
-import java.security.spec.InvalidKeySpecException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 
 /**
  * @author Jason Mahdjoub
@@ -62,7 +62,7 @@ class ServerSignatureMessage extends ConnectionMessage {
 		signature=null;
 	}
 
-	ServerSignatureMessage(byte[] messageToSign, AbstractKeyPair keyPair) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidAlgorithmParameterException, SignatureException, InvalidKeyException, IOException {
+	ServerSignatureMessage(byte[] messageToSign, AbstractKeyPair<?,?> keyPair) throws NoSuchProviderException, NoSuchAlgorithmException, IOException {
 		ASymmetricAuthenticatedSignerAlgorithm signer=new ASymmetricAuthenticatedSignerAlgorithm(keyPair.getASymmetricPrivateKey());
 		signature=signer.sign(messageToSign);
 	}
@@ -76,7 +76,7 @@ class ServerSignatureMessage extends ConnectionMessage {
 		{
 			if (signature==null)
 				return false;
-			ASymmetricAuthenticatedSignatureCheckerAlgorithm checker= null;
+			ASymmetricAuthenticatedSignatureCheckerAlgorithm checker;
 			try {
 				checker = new ASymmetricAuthenticatedSignatureCheckerAlgorithm(publicKey);
 				return checker.verify(message, signature);

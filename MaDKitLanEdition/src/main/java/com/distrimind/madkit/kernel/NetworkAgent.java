@@ -45,19 +45,16 @@ import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
 import com.distrimind.madkit.message.EnumMessage;
 import com.distrimind.madkit.message.KernelMessage;
-import com.distrimind.madkit.message.ObjectMessage;
-import com.distrimind.ood.database.DatabaseWrapper;
+import com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupReceiver;
 import com.distrimind.ood.database.exceptions.DatabaseException;
-import com.distrimind.util.DecentralizedValue;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.logging.Level;
 
 /**
  * @author Jason Mahdjoub
  * @author Fabien Michel
- * @version 1.0
+ * @version 2.0
  * @since MaDKitLanEdition 1.0
  *
  */
@@ -69,8 +66,9 @@ public final class NetworkAgent extends AgentFakeThread {
 
 	// private AgentAddress kernelAgent;
 	private AgentAddress NIOAgentAddress = null, LocalNetworkAffectationAgentAddress = null;
-	private HashMap<ConversationID, MessageLocker> messageLockers = new HashMap<>();
+	private final HashMap<ConversationID, MessageLocker> messageLockers = new HashMap<>();
 	private DatabaseSynchronizerAgent databaseSynchronizerAgent=null;
+	private CentralDatabaseBackupReceiverAgent centralDatabaseBackupReceiverAgent=null;
 	public static final String REFRESH_GROUPS_ACCESS="REFRESH_GROUPS_ACCESS";
 
 	public NetworkAgent() {
@@ -100,19 +98,56 @@ public final class NetworkAgent extends AgentFakeThread {
 		 */
 
 		// build servers
-		weakSetBlackboard(LocalCommunity.Groups.NETWORK, LocalCommunity.BlackBoards.NETWORK_BLACKBOARD,
-				MadkitNetworkAccess.getNetworkBlackboard());
+		weakSetBoard(LocalCommunity.Groups.NETWORK, LocalCommunity.Boards.NETWORK_BOARD,
+				MadkitNetworkAccess.getNetworkBoard());
 		if (getMadkitConfig().networkProperties.network)
 			launchNetwork();
 
 	}
 
+	private void checkCentralDatabaseBackupReceiverAgent() {
+
+		try {
+			CentralDatabaseBackupReceiver centralDatabaseBackupReceiver = getMadkitConfig().getCentralDatabaseBackupReceiver();
+			if (centralDatabaseBackupReceiverAgent==null) {
+				if (centralDatabaseBackupReceiver != null) {
+					centralDatabaseBackupReceiverAgent=new CentralDatabaseBackupReceiverAgent();
+					if (!launchAgent(centralDatabaseBackupReceiverAgent).equals(ReturnCode.SUCCESS))
+					{
+						centralDatabaseBackupReceiverAgent=null;
+						getLogger().warning("Unable to launch central database backup receiver agent");
+					}
+				}
+			}
+			else
+			{
+				if (centralDatabaseBackupReceiver == null) {
+					stopCentralDatabaseBackupReceiverAgent();
+				}
+			}
+		} catch (DatabaseException e) {
+			getLogger().severeLog("Problem with database", e);
+		}
+
+	}
+
+	private void stopCentralDatabaseBackupReceiverAgent() {
+		if (centralDatabaseBackupReceiverAgent!=null) {
+			if (centralDatabaseBackupReceiverAgent.isAlive()) {
+				if (!killAgent(centralDatabaseBackupReceiverAgent).equals(ReturnCode.SUCCESS))
+					getLogger().warning("Unable to kill Database synchronizer agent");
+				else
+					centralDatabaseBackupReceiverAgent = null;
+			}
+			else
+				centralDatabaseBackupReceiverAgent=null;
+		}
+	}
+
+
 	private void launchDatabaseSynchronizerAgent() {
 		try {
-			if (databaseSynchronizerAgent==null && getMadkitConfig().getDatabaseWrapper()!=null && getMadkitConfig()
-					.getDatabaseWrapper()
-					.getSynchronizer()
-					.getLocalHostID()!=null)
+			if (databaseSynchronizerAgent==null && getMadkitConfig().getDatabaseWrapper()!=null )
 			{
 				databaseSynchronizerAgent=new DatabaseSynchronizerAgent();
 				if (!launchAgent(databaseSynchronizerAgent).equals(ReturnCode.SUCCESS))
@@ -132,7 +167,7 @@ public final class NetworkAgent extends AgentFakeThread {
 		{
 			if (databaseSynchronizerAgent.isAlive())
 			{
-				if (killAgent(databaseSynchronizerAgent).equals(ReturnCode.SUCCESS))
+				if (!killAgent(databaseSynchronizerAgent).equals(ReturnCode.SUCCESS))
 					getLogger().warning("Unable to kill Database synchronizer agent");
 				else
 					databaseSynchronizerAgent=null;
@@ -152,10 +187,11 @@ public final class NetworkAgent extends AgentFakeThread {
 		// CloudCommunity.Roles.NET_AGENT);
 
 		launchDatabaseSynchronizerAgent();
+		checkCentralDatabaseBackupReceiverAgent();
 
 		if (getMadkitConfig().networkProperties.upnpIGDEnabled
 				|| getMadkitConfig().networkProperties.networkInterfaceScan) {
-			AbstractAgent aa = MadkitNetworkAccess.getUpngIDGAgent(this);
+			AbstractAgent aa = MadkitNetworkAccess.getUpnpIDGAgent(this);
 			if (aa==null)
 				throw new NullPointerException();
 
@@ -184,7 +220,7 @@ public final class NetworkAgent extends AgentFakeThread {
 	@Override
 	protected void end() {
 		stopNetwork();
-		removeBlackboard(LocalCommunity.Groups.NETWORK, LocalCommunity.BlackBoards.NETWORK_BLACKBOARD);
+		removeBoard(LocalCommunity.Groups.NETWORK, LocalCommunity.Boards.NETWORK_BOARD);
 		if (logger != null && logger.isLoggable(Level.FINE))
 			logger.fine("NetworkAgent in " + getKernelAddress() + " KILLED !");
 	}
@@ -192,6 +228,7 @@ public final class NetworkAgent extends AgentFakeThread {
 	private void stopNetwork() {
 		if (LocalNetworkAffectationAgentAddress != null && NIOAgentAddress != null) {
 			stopDatabaseSynchronizerAgent();
+			stopCentralDatabaseBackupReceiverAgent();
 
 			broadcastMessage(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.TRANSFER_AGENT_ROLE,
 					new StopNetworkMessage(NetworkCloseReason.NORMAL_DETECTION));
@@ -230,7 +267,7 @@ public final class NetworkAgent extends AgentFakeThread {
 		NORMAL_DETECTION(ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED), ANOMALY_DETECTED(
 				ConnectionClosedReason.CONNECTION_ANOMALY);
 
-		private ConnectionClosedReason reason;
+		private final ConnectionClosedReason reason;
 
 		NetworkCloseReason(ConnectionClosedReason reason) {
 			this.reason = reason;
@@ -262,6 +299,11 @@ public final class NetworkAgent extends AgentFakeThread {
 			proceedEnumMessage((EnumMessage<?>) m);
 		} else if (sender.isFrom(getKernelAddress())) {// contacted locally
 			switch (sender.getRole()) {
+				case Roles.CENTRAL_DATABASE_BACKUP_CHECKER:
+				{
+					stopCentralDatabaseBackupReceiverAgent();
+					checkCentralDatabaseBackupReceiverAgent();
+				}
 			case Roles.UPDATER:// It is a CGR update
 			{
 				/*MessageLocker ml = null;
@@ -297,7 +339,7 @@ public final class NetworkAgent extends AgentFakeThread {
 								LocalCommunity.Roles.SOCKET_AGENT_ROLE, a, false);
 				}
 				break;
-			case Roles.EMMITER:// It is a message to send elsewhere
+			case Roles.EMITTER:// It is a message to send elsewhere
 			{
 				MessageLocker ml = null;
 				if (m instanceof LocalLanMessage) {
@@ -321,7 +363,7 @@ public final class NetworkAgent extends AgentFakeThread {
 			case Roles.KERNEL:// message from the kernel
 				if (m instanceof EnumMessage)
 					proceedEnumMessage((EnumMessage<?>) m);
-				else if (m instanceof ObjectMessage)
+				/*else if (m instanceof ObjectMessage)
 				{
 					if (((ObjectMessage<?>) m).getContent() instanceof MadkitKernel.InternalDatabaseSynchronizerEvent)
 					{
@@ -356,12 +398,6 @@ public final class NetworkAgent extends AgentFakeThread {
 								case ASSOCIATE_DISTANT_DATABASE_HOST:
 									if (databaseSynchronizerAgent!=null && databaseSynchronizerAgent.isAlive())
 									{
-										/*if (dw != null && dw.getSynchronizer().getLocalHostID()!=null) {
-											if (!dw.getSynchronizer().isPairedWith((DecentralizedValue) e.parameters[0])) {
-												updateGroupAccess();
-
-											}
-										}*/
 
 										databaseSynchronizerAgent.receiveMessage(m);
 									}
@@ -372,10 +408,7 @@ public final class NetworkAgent extends AgentFakeThread {
 								case DISSOCIATE_DISTANT_DATABASE_HOST:
 									if (databaseSynchronizerAgent!=null && databaseSynchronizerAgent.isAlive())
 									{
-										/*if (dw != null && dw.getSynchronizer().getLocalHostID()!=null) {
-											if (dw.getSynchronizer().isPairedWith((DecentralizedValue) e.parameters[0]))
-												updateGroupAccess=true;
-										}*/
+
 
 										databaseSynchronizerAgent.receiveMessage(m);
 									}
@@ -393,7 +426,7 @@ public final class NetworkAgent extends AgentFakeThread {
 					}
 					else
 						handleNotUnderstoodMessage(m);
-				}
+				}*/
 				else
 					handleNotUnderstoodMessage(m);
 				break;

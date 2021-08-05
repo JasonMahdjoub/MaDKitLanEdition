@@ -43,7 +43,7 @@ import com.distrimind.madkit.kernel.network.connection.access.AbstractAccessProt
 import com.distrimind.madkit.kernel.network.connection.access.AccessProtocolWithP2PAgreementProperties;
 import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
 import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolPropertiesWithKeyAgreement;
-import com.distrimind.util.crypto.SymmetricAuthentifiedSignatureType;
+import com.distrimind.util.crypto.SymmetricAuthenticatedSignatureType;
 import com.distrimind.util.crypto.SymmetricEncryptionType;
 import com.distrimind.util.io.RandomByteArrayInputStream;
 import org.junit.Assert;
@@ -75,7 +75,7 @@ public class BigDataTransferSpeed extends JunitMadkit {
         P2PSecuredConnectionProtocolPropertiesWithKeyAgreement p2pprotocol=new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
         p2pprotocol.isServer = true;
         p2pprotocol.symmetricEncryptionType=SymmetricEncryptionType.AES_CBC_PKCS5Padding;
-        p2pprotocol.symmetricSignatureType= SymmetricAuthentifiedSignatureType.HMAC_SHA2_256;
+        p2pprotocol.symmetricSignatureType= SymmetricAuthenticatedSignatureType.HMAC_SHA2_384;
         ListGroupsRoles defaultGroupAccess=new ListGroupsRoles();
         defaultGroupAccess.addGroupsRoles(JunitMadkit.GROUP);
 
@@ -83,7 +83,7 @@ public class BigDataTransferSpeed extends JunitMadkit {
         this.eventListener1 = new NetworkEventListener(true, false, false, null,
                 new ConnectionsProtocolsMKEventListener(p2pprotocol), new AccessProtocolPropertiesMKEventListener(app),
                 new AccessDataMKEventListener(AccessDataMKEventListener.getDefaultAccessData(defaultGroupAccess)), 5000,
-                Collections.singletonList((AbstractIP) new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"),
+                Collections.singletonList(new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"),
                         (Inet6Address) InetAddress.getByName("::1"))),
                 InetAddress.getByName("0.0.0.0")) {
 
@@ -107,7 +107,7 @@ public class BigDataTransferSpeed extends JunitMadkit {
 					P2PSecuredConnectionProtocolWithKeyAgreementProperties p2pprotocol=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
 					p2pprotocol.isServer = true;
 					p2pprotocol.symmetricEncryptionType=SymmetricEncryptionType.AES_CTR;
-                    p2pprotocol.symmetricSignatureType= SymmetricAuthentifiedSignatureType.HMAC_SHA2_256;
+                    p2pprotocol.symmetricSignatureType= SymmetricAuthentifiedSignatureType.HMAC_SHA2_384;
 					new NetworkEventListener(true, false, false, null,
 							new ConnectionsProtocolsMKEventListener(p2pprotocol),
 							new AccessProtocolPropertiesMKEventListener(app),
@@ -133,7 +133,7 @@ public class BigDataTransferSpeed extends JunitMadkit {
 		this.eventListener2 = new NetworkEventListener(true, false, false, null,
 				new ConnectionsProtocolsMKEventListener(u), new AccessProtocolPropertiesMKEventListener(app),
 				new AccessDataMKEventListener(AccessDataMKEventListener.getDefaultAccessData(defaultGroupAccess)), 5000,
-				Collections.singletonList((AbstractIP) new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"),
+				Collections.singletonList(new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"),
 						(Inet6Address) InetAddress.getByName("::1"))),
 				InetAddress.getByName("0.0.0.0")) {
 
@@ -174,7 +174,7 @@ public class BigDataTransferSpeed extends JunitMadkit {
                                     delay=Math.max(60000, size/Math.min(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond)*1000+20000);
                                 else
                                     delay=60000;
-                                AgentAddress aa=getAgentsWithRole(GROUP, ROLE).iterator().next();
+                                AgentAddress aa=getAgentWithRole(GROUP, ROLE);
                                 if (aa==null)
                                     throw new NullPointerException();
 
@@ -186,11 +186,11 @@ public class BigDataTransferSpeed extends JunitMadkit {
                                 }
                                 Message m=this.waitNextMessage(delay);
 
-                                boolean tr1=m instanceof BigDataResultMessage && ((BigDataResultMessage) m).getType() == BigDataResultMessage.Type.BIG_DATA_TRANSFERED;
+                                boolean tr1=m instanceof BigDataResultMessage && ((BigDataResultMessage) m).getType() == BigDataResultMessage.Type.BIG_DATA_TRANSFERRED;
                                 if (tr1) {
                                     BigDataResultMessage br=(BigDataResultMessage)m;
                                     if (this.getMaximumGlobalUploadSpeedInBytesPerSecond() != Integer.MAX_VALUE){
-                                        double speed=((double) br.getTransferedDataLength()) / ((double) br.getTransferDuration()) * 1000.0;
+                                        double speed=((double) br.getTransferredDataLength()) / ((double) br.getTransferDuration()) * 1000.0;
                                         Assert.assertTrue(speed< getMaximumGlobalUploadSpeedInBytesPerSecond() * 2);
                                         Assert.assertTrue(speed> getMaximumGlobalUploadSpeedInBytesPerSecond() / 2.0);
                                     }
@@ -205,11 +205,11 @@ public class BigDataTransferSpeed extends JunitMadkit {
                                     e.printStackTrace();
                                 }
                                 m=this.waitNextMessage(delay);
-                                boolean tr2=m instanceof BigDataResultMessage && ((BigDataResultMessage) m).getType() == BigDataResultMessage.Type.BIG_DATA_TRANSFERED;
+                                boolean tr2=m instanceof BigDataResultMessage && ((BigDataResultMessage) m).getType() == BigDataResultMessage.Type.BIG_DATA_TRANSFERRED;
                                 if (tr2) {
                                     BigDataResultMessage br=(BigDataResultMessage)m;
                                     if (this.getMaximumGlobalUploadSpeedInBytesPerSecond() != Integer.MAX_VALUE) {
-                                        double speed=((double) br.getTransferedDataLength()) / ((double) br.getTransferDuration()) * 1000.0;
+                                        double speed=((double) br.getTransferredDataLength()) / ((double) br.getTransferDuration()) * 1000.0;
                                         Assert.assertTrue(speed< getMaximumGlobalUploadSpeedInBytesPerSecond() * 2);
                                         Assert.assertTrue(speed> getMaximumGlobalUploadSpeedInBytesPerSecond() / 2.0);
                                     }

@@ -51,7 +51,7 @@ import java.io.IOException;
  */
 public class VersionsFileGenerator {
 	@SuppressWarnings("ResultOfMethodCallIgnored")
-	public static void main(String args[]) throws IOException
+	public static void main(String[] args) throws IOException
 	{
 		String markdown=Madkit.getVersion().getMarkdownCode();
 		try(FileWriter fr = new FileWriter(new File("../versions.md")))

@@ -118,12 +118,12 @@ public class InetAddressFilter extends MultiFormatProperties {
 			throw new IllegalArgumentException("Invalid string format : " + _string);
 	}
 
-	public boolean isConcernedBy(InetAddress _distant_inet_address, int _local_port) {
+	public boolean isConcernedBy(InetAddress _distant_inet_address, int _distant_port, int _local_port) {
 		if (_distant_inet_address == null)
 			return false;
 		return (ip == null || ip.isAnyLocalAddress()
 				|| isSameLocalNetwork(ip.getAddress(), _distant_inet_address.getAddress(), networkPrefixLength))
-				&& (concernedPort < 0 || concernedPort == _local_port);
+				&& (concernedPort < 0 || concernedPort == _local_port || concernedPort == _distant_port);
 	}
 
 	public static boolean isSameLocalNetwork(byte[] addr1, byte[] addr2, short network_prefix_length) {

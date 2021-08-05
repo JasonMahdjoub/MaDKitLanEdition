@@ -40,10 +40,11 @@ package com.distrimind.madkit.kernel;
 
 import com.distrimind.util.AbstractDecentralizedID;
 import com.distrimind.util.RenforcedDecentralizedIDGenerator;
+import com.distrimind.util.data_buffers.WrappedData;
 import com.distrimind.util.io.*;
-import org.apache.commons.codec.binary.Base64;
 
 import java.io.IOException;
+import java.util.Base64;
 
 /**
  * This class represents a unique identifier for MaDKit kernel. Uniqueness is
@@ -61,7 +62,7 @@ import java.io.IOException;
 public class KernelAddress implements SecureExternalizable, Cloneable {
 
 	protected AbstractDecentralizedID id;
-	protected transient volatile byte[] kernelAddressBytes=null;
+	protected transient volatile WrappedData kernelAddressBytes=null;
 
 	private transient String name;
 	protected transient short internalSize;
@@ -83,12 +84,13 @@ public class KernelAddress implements SecureExternalizable, Cloneable {
 
 	protected KernelAddress(boolean isSecured, boolean initName) {
 
-		//RenforcedDecentralizedIDGenerator generatedid = new RenforcedDecentralizedIDGenerator();
 		if (isSecured) {
-			id = new RenforcedDecentralizedIDGenerator(false, true);//new SecuredDecentralizedID(generatedid, SecureRandomType.FORTUNA_WITH_BC_FIPS_APPROVED.getInstance(null));
+			id = new RenforcedDecentralizedIDGenerator(false, true);
 		} else
-			id = new RenforcedDecentralizedIDGenerator(false, false);//generatedid;
-		internalSize=(short)(id.encode().length+1);
+			id = new RenforcedDecentralizedIDGenerator(false, false);
+
+		kernelAddressBytes=id.encode();
+		internalSize=(short)(kernelAddressBytes.getBytes().length+1);
 		if (initName)
 			initName();
 		else
@@ -103,7 +105,8 @@ public class KernelAddress implements SecureExternalizable, Cloneable {
 		if (id == null)
 			throw new NullPointerException("id");
 		this.id = id;
-		internalSize=(short)(id.encode().length+1);
+		kernelAddressBytes=id.encode();
+		internalSize=(short)(kernelAddressBytes.getBytes().length+1);
 		if (initName)
 			initName();
 		else
@@ -120,12 +123,12 @@ public class KernelAddress implements SecureExternalizable, Cloneable {
 				throw new MessageExternalizationException(Integrity.FAIL, "internalSize="+internalSize);
 			/*synchronized(tab)
 			{*/
-				this.kernelAddressBytes=new byte[internalSize];
-				in.readFully(this.kernelAddressBytes);
+				this.kernelAddressBytes=new WrappedData(new byte[internalSize]);
+				in.readFully(this.kernelAddressBytes.getBytes());
 				//in.readFully(tab, 0, internalSize);
 				try
 				{
-					id=AbstractDecentralizedID.decode(kernelAddressBytes, 0, internalSize);
+					id=AbstractDecentralizedID.decode(kernelAddressBytes);
 				}
 				catch(Throwable t)
 				{
@@ -160,12 +163,10 @@ public class KernelAddress implements SecureExternalizable, Cloneable {
 	}
 	@Override
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
-		if (kernelAddressBytes==null)
-			kernelAddressBytes=id.encode();
-		oos.writeShort(kernelAddressBytes.length);
-		oos.write(kernelAddressBytes);
-
+		oos.writeShort(kernelAddressBytes.getBytes().length);
+		oos.write(kernelAddressBytes.getBytes());
 	}
+
 	private String getKernelName() {
 		return "@" + Madkit.getVersion().getShortProgramName() + "-" + getNetworkID();
 	}
@@ -189,11 +190,11 @@ public class KernelAddress implements SecureExternalizable, Cloneable {
 	}
 
 	public String getNetworkID() {
-		return getHexString(getAbstractDecentralizedID().encode());
+		return getHexString(		kernelAddressBytes.getBytes());
 	}
 
 	private static String getHexString(byte[] bytes) {
-		return Base64.encodeBase64URLSafeString(bytes);
+		return Base64.getUrlEncoder().encodeToString(bytes);
 	}
 
 	public AbstractDecentralizedID getAbstractDecentralizedID() {

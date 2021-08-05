@@ -40,7 +40,9 @@ package com.distrimind.madkit.i18n;
 import java.util.ResourceBundle;
 
 public enum AgentSocketMessage {
-	TO_MUCH_BYTE_CONNEC_PROTOCOL, BUFFER_SIZE_TO_BIG_CONSIDERING_CONNEC_PROTOCOL, UNEXPECTED_EXCEPTION;
+	TO_MUCH_PACKET_BYTES_IN_CONNECTION_PROTOCOL,
+	BUFFER_SIZE_TO_BIG_CONSIDERING_CONNECTION_PROTOCOL,
+	UNEXPECTED_EXCEPTION;
 
 	final static ResourceBundle messages = I18nUtilities.getResourceBundle(AgentSocketMessage.class.getSimpleName());
 

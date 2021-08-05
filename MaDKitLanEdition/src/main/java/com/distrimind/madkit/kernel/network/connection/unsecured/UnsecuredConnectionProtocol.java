@@ -69,10 +69,10 @@ public class UnsecuredConnectionProtocol extends ConnectionProtocol<UnsecuredCon
 	private UnsecuredConnectionProtocol(InetSocketAddress _distant_inet_address,
                                         InetSocketAddress _local_interface_address, ConnectionProtocol<?> _subProtocol,
                                         DatabaseWrapper _sql_connection, MadkitProperties mkProperties, ConnectionProtocolProperties<?> cpp, int subProtocolLevel, boolean isServer,
-                                        boolean mustSupportBidirectionnalConnectionInitiative
+                                        boolean mustSupportBidirectionalConnectionInitiative
 										) throws ConnectionException {
 		super(_distant_inet_address, _local_interface_address, _subProtocol, _sql_connection, mkProperties,cpp,
-				subProtocolLevel, isServer, mustSupportBidirectionnalConnectionInitiative);
+				subProtocolLevel, isServer, mustSupportBidirectionalConnectionInitiative);
 		parser = new Parser();
 	}
 
@@ -137,12 +137,14 @@ public class UnsecuredConnectionProtocol extends ConnectionProtocol<UnsecuredCon
 	}
 
 	@Override
-	public TransferedBlockChecker getTransferedBlockChecker(TransferedBlockChecker subBlockChercker) {
-		return new BlockChecker(subBlockChercker);
+	public TransferedBlockChecker getTransferredBlockChecker(TransferedBlockChecker subBlockChecker) {
+		return new BlockChecker(subBlockChecker);
 	}
 
 	static class Parser extends SubBlockParser {
-
+		public Parser() throws ConnectionException {
+			super(null, null, null, null, null);
+		}
 		@Override
 		public SubBlockInfo getSubBlock(SubBlock _block) throws BlockParserException {
 			return new SubBlockInfo(_block, true, false);
@@ -154,7 +156,7 @@ public class UnsecuredConnectionProtocol extends ConnectionProtocol<UnsecuredCon
 		}
 
 		@Override
-		public int getSizeHead() {
+		public int getHeadSize() {
 			return 0;
 		}
 
@@ -170,12 +172,12 @@ public class UnsecuredConnectionProtocol extends ConnectionProtocol<UnsecuredCon
 
 
 		@Override
-		public SubBlockInfo checkIncomingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+		public SubBlockInfo checkIncomingPointToPointTransferredBlock(SubBlock _block) throws BlockParserException {
 			return new SubBlockInfo(_block, true, false);
 		}
 
 		@Override
-		public SubBlock signIfPossibleOutgoingPointToPointTransferedBlock(SubBlock _block) {
+		public SubBlock signIfPossibleOutgoingPointToPointTransferredBlock(SubBlock _block) {
 			return _block;
 		}
 

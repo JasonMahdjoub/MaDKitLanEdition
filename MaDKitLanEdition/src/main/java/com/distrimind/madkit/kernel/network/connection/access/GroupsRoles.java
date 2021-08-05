@@ -6,7 +6,7 @@ jason.mahdjoub@distri-mind.fr
 
 This software (Object Oriented Database (OOD)) is a computer program 
 whose purpose is to manage a local database with the object paradigm 
-and the java langage 
+and the java language
 
 This software is governed by the CeCILL-C license under French law and
 abiding by the rules of distribution of free software.  You can  use, 
@@ -38,10 +38,10 @@ knowledge of the CeCILL-C license and that you accept its terms.
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.util.io.*;
-import org.apache.commons.codec.binary.Base64;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Base64;
 
 /**
  * @author Jason Mahdjoub
@@ -333,8 +333,8 @@ public class GroupsRoles implements Cloneable, SecureExternalizable {
 
 	public static class RoleID
 	{
-		private byte[] id;
-		private int hashCode;
+		private final byte[] id;
+		private final int hashCode;
 
 		private RoleID(byte[] id) {
 			if (id==null)
@@ -346,7 +346,7 @@ public class GroupsRoles implements Cloneable, SecureExternalizable {
 		@Override
 		public String toString() {
 			return "RoleID[" +
-					"id=" + Base64.encodeBase64URLSafeString(id) +
+					"id=" + Base64.getUrlEncoder().encodeToString(id) +
 					']';
 		}
 

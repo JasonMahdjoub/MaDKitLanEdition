@@ -47,7 +47,7 @@ import com.distrimind.util.crypto.*;
  * 
  * 
  * @author Jason Mahdjoub
- * @version 1.1
+ * @version 2.0
  * @since MadkitLanEdition 1.0
  */
 public class P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties extends ConnectionProtocolProperties<P2PSecuredConnectionProtocolWithASymmetricKeyExchanger> {
@@ -68,14 +68,14 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties ex
 	public boolean enableEncryption = true;
 
 	/**
-	 * The asymetric cipher key size
+	 * The asymmetric cipher key size
 	 */
-	public short aSymetricKeySize = 4096;
+	public short aSymmetricKeySize = 4096;
 
 	/**
-	 * The minimum asymetric cipher RSA Key size
+	 * The minimum asymmetric cipher RSA Key size
 	 */
-	public final int minASymetricKeySize = 2048;
+	public final int minASymmetricKeySize = 2048;
 
 	/**
 	 * Symmetric encryption algorithm
@@ -90,12 +90,12 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties ex
 	/**
 	 * Asymmetric encryption algorithm
 	 */
-	public ASymmetricEncryptionType aSymetricEncryptionType = ASymmetricEncryptionType.DEFAULT;
+	public ASymmetricEncryptionType aSymmetricEncryptionType = ASymmetricEncryptionType.DEFAULT;
 
 	/**
 	 * Signature type
 	 */
-	public ASymmetricAuthenticatedSignatureType signatureType = aSymetricEncryptionType.getDefaultSignatureAlgorithm();
+	public ASymmetricAuthenticatedSignatureType signatureType = aSymmetricEncryptionType.getDefaultSignatureAlgorithm();
 
 	/**
 	 * ASymmetric key wrapper
@@ -119,19 +119,24 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties ex
 	 */
 	public boolean isServer = true;
 
+	/**
+	 * Message digest type used to check message validity
+	 */
+	public MessageDigestType messageDigestType=MessageDigestType.SHA2_384;
+
 	@Override
 	public void checkProperties() throws ConnectionException {
-		if (aSymetricKeySize < minASymetricKeySize)
-			throw new ConnectionException("_rsa_key_size must be greater or equal than " + minASymetricKeySize
+		if (aSymmetricKeySize < minASymmetricKeySize)
+			throw new ConnectionException("_rsa_key_size must be greater or equal than " + minASymmetricKeySize
 					+ " . Moreover, this number must correspond to this schema : _rsa_key_size=2^x.");
 		if (keyWrapper==null)
 			throw new ConnectionException(new NullPointerException());
-		int tmp = aSymetricKeySize;
+		int tmp = aSymmetricKeySize;
 		while (tmp != 1) {
 			if (tmp % 2 == 0)
 				tmp = tmp / 2;
 			else
-				throw new ConnectionException("The RSA key size have a size of " + aSymetricKeySize
+				throw new ConnectionException("The RSA key size have a size of " + aSymmetricKeySize
 						+ ". This number must correspond to this schema : _rsa_key_size=2^x.");
 		}
 
@@ -147,36 +152,20 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties ex
 		return enableEncryption;
 	}
 
-	private transient SymmetricEncryptionAlgorithm maxAlgo=null;
+	private transient MaximumBodyOutputSizeComputer maximumBodyOutputSizeComputer=null;
 
 	@Override
 	public int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException {
-		if (!isEncrypted())
-			return size;
-		else
-		{
 
-			try {
-				if (maxAlgo==null)
-					maxAlgo=new SymmetricEncryptionAlgorithm(SecureRandomType.DEFAULT.getSingleton(null), symmetricEncryptionType.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), symmetricKeySizeBits).generateKey());
-				return maxAlgo.getOutputSizeForEncryption(size)+4;
-			} catch (Exception e) {
-				throw new BlockParserException(e);
-			}
-
-		}
+		if (maximumBodyOutputSizeComputer==null)
+			maximumBodyOutputSizeComputer=new MaximumBodyOutputSizeComputer(isEncrypted(), symmetricEncryptionType, symmetricKeySizeBits, signatureType, aSymmetricKeySize, messageDigestType);
+		return maximumBodyOutputSizeComputer.getMaximumBodyOutputSizeForEncryption(size);
 	}
 
 
-    private transient volatile Integer maxHeadSize=null;
-    @SuppressWarnings("deprecation")
     @Override
-    public int getMaximumSizeHead() {
-        if (maxHeadSize==null) {
-
-            maxHeadSize = signatureType.getSignatureSizeBytes(aSymetricKeySize);
-        }
-        return maxHeadSize;
+    public int getMaximumHeadSize() {
+    	return EncryptionSignatureHashEncoder.headSize;
     }
 
 	@Override
@@ -191,7 +180,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties ex
     	if (encryptionRestriction==EncryptionRestriction.HYBRID_ALGORITHMS)
     		return false;
     	else
-			return this.aSymetricEncryptionType.isPostQuantumAlgorithm() && this.signatureType.isPostQuantumAlgorithm() && keyWrapper.isPostQuantumKeyAlgorithm();
+			return this.aSymmetricEncryptionType.isPostQuantumAlgorithm() && this.signatureType.isPostQuantumAlgorithm() && keyWrapper.isPostQuantumKeyAlgorithm();
 	}
 
 	@Override

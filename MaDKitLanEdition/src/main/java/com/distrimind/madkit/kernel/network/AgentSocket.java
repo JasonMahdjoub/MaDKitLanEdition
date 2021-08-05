@@ -59,7 +59,7 @@ class AgentSocket extends AbstractAgentSocket {
 	}
 
 	@Override
-	public IDTransfer getTransfertType() {
+	public IDTransfer getTransferType() {
 		return TransferAgent.NullIDTransfer;
 	}
 
@@ -74,7 +74,7 @@ class AgentSocket extends AbstractAgentSocket {
 	}
 
 	@Override
-	protected void checkTransferBlockCheckerChangments() {
+	protected void checkTransferBlockCheckerChanges() {
 
 	}
 }

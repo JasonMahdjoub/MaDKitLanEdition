@@ -50,7 +50,7 @@ class DataToSendMessage extends NIOMessage {
 
 	public final AbstractData data;
 	public final AgentNetworkID socket;
-	// public final boolean prioritary_message;
+
 
 	/*
 	 * public DataToSendMessage(AbstractData _data, SocketChannel _socket) {
@@ -60,6 +60,6 @@ class DataToSendMessage extends NIOMessage {
 	public DataToSendMessage(AbstractData _data, AgentNetworkID _socket) {
 		data = _data;
 		socket = _socket;
-		// prioritary_message=_prioritary_message;
+
 	}
 }

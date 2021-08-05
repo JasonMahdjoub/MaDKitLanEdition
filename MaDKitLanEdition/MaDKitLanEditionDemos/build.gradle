@@ -7,14 +7,18 @@
  */
 
 // Apply the java-library plugin to add support for Java Library
-apply plugin: 'java'
-apply plugin: 'application'
-apply plugin: 'eclipse'
-apply plugin: 'idea'
-apply plugin: 'maven-publish'
+plugins {
+    id "java"
+    id "maven-publish"
+    id "eclipse"
+    id "idea"
+    id "signing"
+    id "application"
+    //id "org.owasp.dependencycheck" version "6.1.0"
+}
 
 Properties props = new Properties()
-def propFile = file('gradle.properties')
+def propFile = new File(project.getProjectDir().getParentFile().getParentFile(), 'credentials.properties')
 def artifactory_Url="https://artifactory.distri-mind.fr/artifactory"
 def user=""
 def pwd=""
@@ -22,12 +26,13 @@ if (propFile.canRead())
 {
     props.load(new FileInputStream(propFile))
 
-	if (props!=null && props.containsKey('artifactory_contextUrl'))
-		artifactory_Url="${artifactory_contextUrl}"	
-	if (props!=null && props.containsKey('artifactory_user'))
-		user="${artifactory_user}"	
-	if (props!=null && props.containsKey('artifactory_password'))
-		pwd="${artifactory_password}"	
+
+    if (props!=null && props.containsKey('artifactory_contextUrl'))
+        artifactory_Url=props.get("artifactory_contextUrl")
+    if (props!=null && props.containsKey('artifactory_user'))
+        user=props.get("artifactory_user")
+    if (props!=null && props.containsKey('artifactory_password'))
+        pwd=props.get("artifactory_password")
 }
 eclipse {
     classpath {
@@ -53,25 +58,27 @@ repositories {
 
 
 dependencies {
-     implementation(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.1.9-Stable')
+     implementation(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.2.0-BETA1')
     
      
 }
-def javaVersion=8
+def javaVersion="8"
 sourceCompatibility = javaVersion
 targetCompatibility= javaVersion
 allprojects {
 	group='com.distrimind.madkitdemos'
     
     mainClassName = "com.distrimind.madkitdemos.MKLEDemos"
-    compileJava.options.compilerArgs.addAll(['--release', javaVersion] as Collection<? extends String>)
+
     //compileJava.options.compilerArgs << "-Xlint"
-    if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_1_9))
+    if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_1_9)) {
+        compileJava.options.compilerArgs.addAll(['--release', javaVersion] as Collection<? extends String>)
         javadoc.options.addStringOption("html5", "-quiet")
+    }
 }
 
 
-version='1.0.25'
+version='1.0.27'
 
 
 task sourcesJar(type: Jar, dependsOn: classes) {
@@ -117,26 +124,82 @@ test {
    
  }
 
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
             artifact sourcesJar
             artifact javadocJar
-            
+            pom {
+                name = 'Démos for MaDKitLanEdition'
+                description = 'MaDKit is an open source multiagent-based development platform written in Java. MaDKitLanEdition Advanced network futures which enables to connect several peers between them, and emulate a secured multi-agent system that virtually evolves into the same environment, i.e. the same virtual machine.'
+                url = 'https://github.com/JazZ51/MaDKitLanEdition'
+                developers {
+                    developer {
+                        id = 'mahdjoub'
+                        name = 'Jason Mahdjoub'
+                        email = 'jason.mahdjoub@distri-mind.fr'
+                    }
+                    developer {
+                        id = 'michel'
+                        name = 'Fabien Michel'
+                    }
+                    developer {
+                        id = 'gutknecht'
+                        name = 'Olivier Gutknecht'
+                        email = 'jason.mahdjoub@distri-mind.fr'
+                    }
+                    developer {
+                        id = 'ferber'
+                        name = 'Jacques Ferber'
+                        email = 'jason.mahdjoub@distri-mind.fr'
+                    }
+                }
+
+                organization {
+                    name = 'DistriMind'
+                    url = 'https://github.com/JazZ51'
+                }
+                issueManagement {
+                    system = 'GitHub'
+                    url = 'https://github.com/JazZ51/MaDKitLanEdition/issues'
+                }
+                scm {
+                    connection = 'https://github.com/JazZ51/MaDKitLanEdition'
+                }
+                licenses {
+                    license {
+                        name = 'CeCILL-C FREE SOFTWARE LICENSE AGREEMENT'
+                        url = 'http://cecill.info/licences/Licence_CeCILL-C_V1-en.txt'
+                    }
+                }
+
+            }
         }
     }
     repositories {
         maven {
             credentials {
-              username "${user}"
-              password "${pwd}"
+                username "${user}"
+                password "${pwd}"
             }
             url "${artifactory_Url}/DistriMind-Public"
         }
     }
 }
+signing {
+    useGpgCmd()
+    required {!project.hasProperty('disableSigning')}
+    if (required) {
+        sign configurations.archives
+        sign publishing.publications.mavenJava
+    }
+}
 
-
-
+javadoc {
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
+}
 

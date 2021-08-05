@@ -52,7 +52,7 @@ import java.util.ArrayList;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-public class NewLocalLoginRemovedMessage extends LocalLogingAccessMessage {
+public class NewLocalLoginRemovedMessage extends LocalLoggingAccessMessage {
 
 
 	public ArrayList<Identifier> removed_identifiers;

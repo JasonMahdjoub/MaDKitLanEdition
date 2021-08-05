@@ -37,10 +37,9 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import java.net.InetAddress;
-
-import com.distrimind.madkit.kernel.AbstractGroup;
 import com.distrimind.madkit.kernel.network.InetAddressFilters;
+
+import java.net.InetAddress;
 
 /**
  * Represents data enabling to gives default right access
@@ -51,7 +50,7 @@ import com.distrimind.madkit.kernel.network.InetAddressFilters;
  * @version 1.0
  */
 public abstract class AccessData {
-	private InetAddressFilters filters = new InetAddressFilters();
+	private final InetAddressFilters filters = new InetAddressFilters();
 
 	public InetAddressFilters getFilters() {
 		return filters;
@@ -62,17 +61,18 @@ public abstract class AccessData {
 	 * 
 	 * @param _distant_inet_address
 	 *            the distant inet address
+	 * @param _distant_port the distant port
 	 * @param _local_port
 	 *            the local port
 	 * @return true if the filter accept the connection with the given parameters
 	 */
-	public boolean isConcernedBy(InetAddress _distant_inet_address, int _local_port) {
-		return filters.isConcernedBy(_distant_inet_address, _local_port);
+	public boolean isConcernedBy(InetAddress _distant_inet_address, int _distant_port, int _local_port) {
+		return filters.isConcernedBy(_distant_inet_address, _distant_port, _local_port);
 	}
 
 	/**
 	 * 
-	 * @return the default group enabled for this access, whithout identification.
+	 * @return the default group enabled for this access, without identification.
 	 * 
 	 * @throws AccessException
 	 *             if a problem occurs

@@ -39,6 +39,7 @@ package com.distrimind.madkit.kernel.network.connection.access;
 
 import java.io.IOException;
 import com.distrimind.util.crypto.ASymmetricPublicKey;
+import com.distrimind.util.data_buffers.WrappedData;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
 
@@ -52,7 +53,7 @@ import com.distrimind.util.io.SecuredObjectOutputStream;
 class AccessPublicKeyMessage extends AccessMessage {
 
 	private byte[] public_key_bytes;
-	private transient byte[] distant_public_key;
+	private transient WrappedData distant_public_key;
 	private boolean otherCanTakeLoginInitiative;
 	private static final int MAX_DISTANT_PUBLIC_KEY_LENGTH=16392; 
 	
@@ -75,7 +76,7 @@ class AccessPublicKeyMessage extends AccessMessage {
 	
 	public AccessPublicKeyMessage(ASymmetricPublicKey _public_key, ASymmetricPublicKey _distant_public_key,
 			boolean otherCanTakeLoginInitiative) {
-		public_key_bytes = _public_key.encode();
+		public_key_bytes = _public_key.encode().getBytes();
 		distant_public_key = _distant_public_key == null ? null : _distant_public_key.encode();
 		this.otherCanTakeLoginInitiative = otherCanTakeLoginInitiative;
 	}
@@ -91,7 +92,7 @@ class AccessPublicKeyMessage extends AccessMessage {
 	@Override
 	public void corrupt() {
 		if (distant_public_key != null)
-			public_key_bytes = distant_public_key;
+			public_key_bytes = distant_public_key.getBytes();
 	}
 
 

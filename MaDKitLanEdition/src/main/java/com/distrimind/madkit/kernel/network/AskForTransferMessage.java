@@ -53,7 +53,7 @@ import java.net.InetSocketAddress;
  * between them. The current Madkit kernel represent an intermediate peer, whole
  * only role is to transfer data between two peers. If a secure connection is
  * requested by the final peers, information will be secured, and intermediate
- * peers will not be able to read transfered data.
+ * peers will not be able to read transferred data.
  * 
  * @author Jason Mahdjoub
  * @version 1.0
@@ -62,11 +62,11 @@ import java.net.InetSocketAddress;
 public class AskForTransferMessage extends Message {
 
 	private final Type type;
-	private InetSocketAddress inetSocketAddress1;
-	private InetSocketAddress inetSocketAddress2;
-	private KernelAddress kernelAddress1;
-	private KernelAddress kernelAddress2;
-	private SecureExternalizable attachedData;
+	private final InetSocketAddress inetSocketAddress1;
+	private final InetSocketAddress inetSocketAddress2;
+	private final KernelAddress kernelAddress1;
+	private final KernelAddress kernelAddress2;
+	private final SecureExternalizable attachedData;
 
 	/**
 	 * Ask for a transfer connection between two inet socket addresses
@@ -219,16 +219,16 @@ public class AskForTransferMessage extends Message {
 	}
 
 	boolean isConcernedBy(AskForTransferMessage m) {
-		int correspondance = 0;
+		int correspondence = 0;
 		if (inetSocketAddress1 != null) {
 			if (inetSocketAddress1.equals(m.inetSocketAddress1))
-				correspondance = 1;
+				correspondence = 1;
 			else if (inetSocketAddress1.equals(m.inetSocketAddress2))
-				correspondance = 2;
+				correspondence = 2;
 			else
 				return false;
 
-			if (correspondance == 1) {
+			if (correspondence == 1) {
 				if (!inetSocketAddress2.equals(m.inetSocketAddress2))
 					return false;
 			} else {
@@ -239,15 +239,15 @@ public class AskForTransferMessage extends Message {
 			return false;
 
 		if (kernelAddress1 != null) {
-			if (correspondance == 0) {
+			if (correspondence == 0) {
 				if (kernelAddress1.equals(m.kernelAddress1))
-					correspondance = 1;
+					correspondence = 1;
 				else if (kernelAddress1.equals(m.kernelAddress2))
-					correspondance = 2;
+					correspondence = 2;
 				else
 					return false;
 			} else {
-				if (correspondance == 1) {
+				if (correspondence == 1) {
 					if (!kernelAddress1.equals(m.kernelAddress1))
 						return false;
 				} else {
@@ -255,7 +255,7 @@ public class AskForTransferMessage extends Message {
 						return false;
 				}
 			}
-			if (correspondance == 1) {
+			if (correspondence == 1) {
 				if (!kernelAddress2.equals(m.kernelAddress2))
 					return false;
 			} else {
@@ -340,11 +340,11 @@ public class AskForTransferMessage extends Message {
 			return inetAddress;
 		}
 
-		InetSocketAddress getInetSocketAddress(InetAddress commingFrom) {
+		InetSocketAddress getInetSocketAddress(InetAddress comingFrom) {
 			if (connectionInfo == null) {
 				return null;
 			} else {
-				return connectionInfo.getInetSocketAddress(commingFrom, inetAddress.getAddress());
+				return connectionInfo.getInetSocketAddress(comingFrom, inetAddress.getAddress());
 			}
 		}
 
@@ -362,8 +362,8 @@ public class AskForTransferMessage extends Message {
 				connectionInfo);
 	}
 
-	InitiateTransferConnection getIntiateConnectionMessage(AgentAddress agentSocket, KernelAddress kernelAddress,
-			IDTransfer idTransfer, int numberOfIntermediatePeers, boolean youAskConnection) {
+	InitiateTransferConnection getInitiateConnectionMessage(AgentAddress agentSocket, KernelAddress kernelAddress,
+															IDTransfer idTransfer, int numberOfIntermediatePeers, boolean youAskConnection) {
 		return new InitiateTransferConnection(agentSocket, kernelAddress, idTransfer, numberOfIntermediatePeers,
 				youAskConnection);
 	}

@@ -219,3 +219,4 @@ hs_err_pid*
 *.database.trace.db
 MaDKitLanEdition/dbasker.database
 MaDKitLanEdition/dbreceiver.database
+/MaDKitLanEdition/.gitignore

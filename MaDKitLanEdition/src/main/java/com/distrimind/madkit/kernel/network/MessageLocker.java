@@ -102,11 +102,11 @@ public final class MessageLocker extends LockerCondition {
 		}
 	}
 
-	void unlock(KernelAddress ka, DataTransfertResult report) throws MadkitException {
+	void unlock(KernelAddress ka, DataTransferResult report) throws MadkitException {
 		synchronized (getLocker()) {
 			--lock_number;
 
-			if (report != null && report.hasFinishedTransfert())
+			if (report != null && report.hasFinishedTransfer())
 				returns_code.putResult(ka, ReturnCode.SUCCESS, report);
 			else
 				returns_code.putResult(ka, ReturnCode.TRANSFER_FAILED, report);

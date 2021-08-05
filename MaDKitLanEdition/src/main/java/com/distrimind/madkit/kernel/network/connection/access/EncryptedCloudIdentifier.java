@@ -46,7 +46,6 @@ import com.distrimind.util.io.SecuredObjectOutputStream;
 import com.distrimind.util.io.SerializationTools;
 
 import java.io.IOException;
-import java.security.DigestException;
 import java.util.Arrays;
 
 /**
@@ -101,7 +100,7 @@ final class EncryptedCloudIdentifier extends CloudIdentifier {
 	}*/
 	EncryptedCloudIdentifier(CloudIdentifier cloudIdentifier, AbstractSecureRandom random, AbstractMessageDigest messageDigest, byte[] distantGeneratedSalt)
 			throws
-			DigestException {
+			IOException {
 		if (cloudIdentifier == null)
 			throw new NullPointerException("cloudIdentifier");
 		if (random == null)
@@ -183,17 +182,17 @@ final class EncryptedCloudIdentifier extends CloudIdentifier {
 	 * 			  the local generated salt
 	 * @return true if the given cloud identifier corresponds to the current
 	 *         encrypted cloud identifier, considering the given message digest and the given salt.
-	 * @throws DigestException
+	 * @throws IOException
 	 *             if a problem occurs
 	 */
 	public boolean verifyWithLocalCloudIdentifier(CloudIdentifier originalCloudIdentifier,
 			AbstractMessageDigest messageDigest, byte[] localGeneratedSalt) throws
-			DigestException {
+			IOException {
 		if (originalCloudIdentifier == null)
 			throw new NullPointerException("originalCloudIdentifier");
 		if (messageDigest == null)
 			throw new NullPointerException("messageDigest");
-		return AccessProtocolWithP2PAgreement.compareAnonymizedIdentifier(originalCloudIdentifier.getBytesTabToEncode(), bytes, messageDigest, localGeneratedSalt);
+		return AccessProtocolWithP2PAgreement.compareAnonymousIdentifier(originalCloudIdentifier.getBytesTabToEncode(), bytes, messageDigest, localGeneratedSalt);
 	}
 
 	@Override

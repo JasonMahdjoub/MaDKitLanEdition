@@ -72,10 +72,10 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 	private CheckSumConnectionProtocol(InetSocketAddress _distant_inet_address,
 									   InetSocketAddress _local_interface_address, ConnectionProtocol<?> _subProtocol,
 									   DatabaseWrapper _sql_connection, MadkitProperties mkProperties, ConnectionProtocolProperties<?> cpp, int subProtocolLevel, boolean isServer,
-									   boolean mustSupportBidirectionnalConnectionInitiative
+									   boolean mustSupportBidirectionalConnectionInitiative
 	) throws ConnectionException {
 		super(_distant_inet_address, _local_interface_address, _subProtocol, _sql_connection, mkProperties,cpp,
-				subProtocolLevel, isServer, mustSupportBidirectionnalConnectionInitiative);
+				subProtocolLevel, isServer, mustSupportBidirectionalConnectionInitiative);
 		parser = new Parser();
 		CheckSumConnectionProtocolProperties p = (CheckSumConnectionProtocolProperties) super.connection_protocol_properties;
 		p.checkProperties();
@@ -145,22 +145,29 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 	}
 
 	@Override
-	public TransferedBlockChecker getTransferedBlockChecker(TransferedBlockChecker subBlockChercker)
+	public TransferedBlockChecker getTransferredBlockChecker(TransferedBlockChecker subBlockChecker)
 			throws ConnectionException {
-		return new BlockChecker(subBlockChercker, messageDigestType);
+		return new BlockChecker(subBlockChecker, messageDigestType);
 	}
 
 	class Parser extends SubBlockParser {
 
+		public Parser() throws ConnectionException {
+			super(null, null, null, null, null);
+		}
+
 		@Override
 		public SubBlockInfo getSubBlock(SubBlock _block) throws BlockParserException {
-			int sizeHead = getSizeHead();
-			SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + sizeHead, _block.getSize() - sizeHead);
 			messageDigest.reset();
-			messageDigest.update(res.getBytes(), res.getOffset(), res.getSize());
+			int sizeHead = getHeadSize();
+			byte[] tab=_block.getBytes();
+			SubBlock res = new SubBlock(tab, _block.getOffset() + sizeHead, _block.getSize() - sizeHead);
+
+			messageDigest.update(tab, res.getOffset(), res.getSize());
 			byte[] digest = messageDigest.digest();
+			int offset=_block.getOffset();
 			for (int i = 0; i < sizeHead; i++) {
-				if (digest[i] != _block.getBytes()[i + _block.getOffset()])
+				if (digest[i] != tab[i + offset])
 					return new SubBlockInfo(res, false, false);
 			}
 			return new SubBlockInfo(res, true, false);
@@ -169,13 +176,14 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 		@Override
 		public SubBlock getParentBlock(SubBlock _block, boolean excludeFromEncryption) throws BlockParserException {
 			try {
+				int headSize=getHeadSize();
 				int outputSize=getBodyOutputSizeForEncryption(_block.getSize());
-				SubBlock res= new SubBlock(_block.getBytes(), _block.getOffset() - getSizeHead(),
-						outputSize + getSizeHead());
-				
+				SubBlock res= new SubBlock(_block.getBytes(), _block.getOffset() - headSize,
+						outputSize + headSize);
+
 				messageDigest.reset();
 				messageDigest.update(res.getBytes(), _block.getOffset(), _block.getSize());
-				messageDigest.digest(res.getBytes(), res.getOffset(), getSizeHead());
+				messageDigest.digest(res.getBytes(), res.getOffset(), headSize);
 				return res;
 			} catch (Exception e) {
 				throw new BlockParserException(e);
@@ -183,8 +191,8 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 		}
 
 		@Override
-		public int getSizeHead() {
-			return messageDigest.getDigestLength();
+		public int getHeadSize() {
+			return messageDigest.getDigestLengthInBytes();
 		}
 
 		@Override
@@ -199,27 +207,31 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 
 
 		@Override
-		public SubBlockInfo checkIncomingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
-			int sizeHead = getSizeHead();
-			SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + sizeHead, _block.getSize() - sizeHead);
+		public SubBlockInfo checkIncomingPointToPointTransferredBlock(SubBlock _block) throws BlockParserException {
+			int sizeHead = getHeadSize();
+			byte[] tab=_block.getBytes();
+			SubBlock res = new SubBlock(tab, _block.getOffset() + sizeHead, _block.getSize() - sizeHead);
 			messageDigest.reset();
-			messageDigest.update(res.getBytes(), res.getOffset(), res.getSize());
+			messageDigest.update(tab, res.getOffset(), res.getSize());
 			byte[] digest = messageDigest.digest();
+			int offset=_block.getOffset();
 			for (int i = 0; i < sizeHead; i++) {
-				if (digest[i] != _block.getBytes()[i + _block.getOffset()])
+				if (digest[i] != tab[i + offset])
 					return new SubBlockInfo(res, false, false);
 			}
 			return new SubBlockInfo(res, true, false);
 		}
 
 		@Override
-		public SubBlock signIfPossibleOutgoingPointToPointTransferedBlock(SubBlock _block) throws BlockParserException {
+		public SubBlock signIfPossibleOutgoingPointToPointTransferredBlock(SubBlock _block) throws BlockParserException {
 			try {
-				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() - getSizeHead(),
-						_block.getSize() + getSizeHead());
+				int sizeHead = getHeadSize();
+				byte[] tab=_block.getBytes();
+				SubBlock res = new SubBlock(tab, _block.getOffset() - sizeHead,
+						_block.getSize() + sizeHead);
 				messageDigest.reset();
-				messageDigest.update(res.getBytes(), _block.getOffset(), _block.getSize());
-				messageDigest.digest(res.getBytes(), res.getOffset(), getSizeHead());
+				messageDigest.update(tab, _block.getOffset(), _block.getSize());
+				messageDigest.digest(tab, res.getOffset(), sizeHead);
 				return res;
 			} catch (Exception e) {
 				throw new BlockParserException(e);
@@ -246,7 +258,7 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 		@Override
 		public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 			super.readExternal(in);
-			messageDigestType=in.readObject(false, MessageDigestType.class);
+			messageDigestType=in.readObject(false);
 			try
 			{
 				messageDigest = messageDigestType.getMessageDigestInstance();
@@ -285,15 +297,16 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 		public SubBlockInfo checkSubBlock(SubBlock _block) throws BlockParserException {
 			messageDigest.reset();
 			
-			int dl = messageDigest.getDigestLength();
-			SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + dl, _block.getSize() - dl);
-			messageDigest.update(res.getBytes(), res.getOffset(), res.getSize());
+			int sizeHead = messageDigest.getDigestLengthInBytes();
+			byte[] tab=_block.getBytes();
+			SubBlock res = new SubBlock(tab, _block.getOffset() + sizeHead, _block.getSize() - sizeHead);
+			messageDigest.update(tab, res.getOffset(), res.getSize());
 			byte[] digest = messageDigest.digest();
-			for (int i = 0; i < dl; i++) {
-				if (digest[i] != _block.getBytes()[i + _block.getOffset()])
+			int offset=_block.getOffset();
+			for (int i = 0; i < sizeHead; i++) {
+				if (digest[i] != tab[i + offset])
 					return new SubBlockInfo(res, false, false);
 			}
-
 			return new SubBlockInfo(res, true, false);
 		}
 

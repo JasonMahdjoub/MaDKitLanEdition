@@ -61,7 +61,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * The class MultiGroup combines several type of groups chosen arbitrarily.
  * These groups can be {@link Group} class, or {@link MultiGroup} class. So a
  * MultiGroup can be composed for example of a Group which represent its
- * subgroups, and by another MutliGroup.
+ * subgroups, and by another MultiGroup.
  * 
  * It is also possible to combine forbidden groups. For example, we want to get
  * subgroups of the Group "My group":
@@ -72,7 +72,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * 
  * But we want also to exclude the subgroup "One subgroup". It is possible to do
  * it like this: <code>
- * mg.addForbidenGroup(new Group(true, "My community", "My group", "One subgroup"));
+ * mg.addForbiddenGroup(new Group(true, "My community", "My group", "One subgroup"));
  * </code> If we use {@link #getRepresentedGroups(KernelAddress)} to get the
  * represented groups by 'mg', all subgroups of "My Group" will be returned,
  * excepted "One subgroup".
@@ -108,13 +108,13 @@ public class MultiGroup extends AbstractGroup {
 		m_represented_groups_by_kernel_duplicated = new ArrayList<>();
 		m_global_represented_groups = null;
 
-		int notforbiden = ois.readInt();
-		int forbiden = ois.readInt();
+		int notForbidden = ois.readInt();
+		int forbidden = ois.readInt();
 		int total=8;
 		int globalSize=NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
-		if (notforbiden<0 || forbiden<0 || total+notforbiden*4+total+forbiden*4>globalSize)
+		if (notForbidden<0 || forbidden<0 || total+notForbidden*4+total+forbidden*4>globalSize)
 			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-		for (int i = 0; i < notforbiden; i++)
+		for (int i = 0; i < notForbidden; i++)
 		{
 			AbstractGroup ag=ois.readObject(false, AbstractGroup.class);
 
@@ -123,13 +123,13 @@ public class MultiGroup extends AbstractGroup {
 				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 			addGroup(ag);
 		}
-		for (int i = 0; i < forbiden; i++)
+		for (int i = 0; i < forbidden; i++)
 		{
 			AbstractGroup ag=ois.readObject( false, AbstractGroup.class);
 			total+=ag.getInternalSerializedSize();
 			if (total>globalSize)
 				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-			addForbidenGroup(ag);
+			addForbiddenGroup(ag);
 		}
 			
 	}
@@ -137,11 +137,11 @@ public class MultiGroup extends AbstractGroup {
 	public int getInternalSerializedSize() {
 		int res=8;
 		for (AssociatedGroup ag : m_groups) {
-			if (!ag.m_forbiden)
+			if (!ag.m_forbidden)
 				res+=ag.m_group.getInternalSerializedSize();
 		}
 		for (AssociatedGroup ag : m_groups) {
-			if (ag.m_forbiden)
+			if (ag.m_forbidden)
 				res+=ag.m_group.getInternalSerializedSize();
 		}
 		return res;
@@ -150,22 +150,22 @@ public class MultiGroup extends AbstractGroup {
 	@Override
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 
-		int forbiden = 0;
-		int notforbiden = 0;
+		int forbidden = 0;
+		int notForbidden = 0;
 		for (AssociatedGroup ag : m_groups) {
-			if (ag.m_forbiden)
-				++forbiden;
+			if (ag.m_forbidden)
+				++forbidden;
 			else
-				++notforbiden;
+				++notForbidden;
 		}
-		oos.writeInt(notforbiden);
-		oos.writeInt(forbiden);
+		oos.writeInt(notForbidden);
+		oos.writeInt(forbidden);
 		for (AssociatedGroup ag : m_groups) {
-			if (!ag.m_forbiden)
+			if (!ag.m_forbidden)
 				oos.writeObject(ag.m_group, false);
 		}
 		for (AssociatedGroup ag : m_groups) {
-			if (ag.m_forbiden)
+			if (ag.m_forbidden)
 				oos.writeObject( ag.m_group, false);
 		}
 	}
@@ -211,9 +211,9 @@ public class MultiGroup extends AbstractGroup {
 			ArrayList<AssociatedGroup> groups = new ArrayList<>(m_groups.size());
 			for (AssociatedGroup ag : m_groups) {
 				if (ag.m_group instanceof MultiGroup) {
-					groups.add(new AssociatedGroup(((MultiGroup) ag.m_group).clone(), ag.m_forbiden));
+					groups.add(new AssociatedGroup(((MultiGroup) ag.m_group).clone(), ag.m_forbidden));
 				} else
-					groups.add(new AssociatedGroup(ag.m_group, ag.m_forbiden));
+					groups.add(new AssociatedGroup(ag.m_group, ag.m_forbidden));
 			}
 			return new MultiGroup(groups);
 		}
@@ -228,14 +228,14 @@ public class MultiGroup extends AbstractGroup {
 			if (s1 >= 0) {
 				for (int i = 0; i < s1; i++) {
 					AssociatedGroup ag = m_groups.get(i);
-					if (ag.m_forbiden)
-						sb.append("Forbiden");
+					if (ag.m_forbidden)
+						sb.append("Forbidden");
 					sb.append(ag.m_group);
 					sb.append(", ");
 				}
 				AssociatedGroup ag = m_groups.get(s1);
-				if (ag.m_forbiden)
-					sb.append("Forbiden");
+				if (ag.m_forbidden)
+					sb.append("Forbidden");
 				sb.append(ag.m_group);
 			}
 			sb.append("]");
@@ -251,7 +251,7 @@ public class MultiGroup extends AbstractGroup {
 	CONTAINS contains(AbstractGroup _group) {
 		for (AssociatedGroup ag : m_groups) {
 			if (ag.equals(_group)) {
-				if (ag.m_forbiden)
+				if (ag.m_forbidden)
 					return CONTAINS.CONTAINS_ON_FORBIDDEN;
 				else
 					return CONTAINS.CONTAINS_ON_AUTHORIZED;
@@ -264,7 +264,7 @@ public class MultiGroup extends AbstractGroup {
 	public boolean containsForbiddenGroups()
 	{
 		for (AssociatedGroup ag : m_groups) {
-			if (ag.m_forbiden)
+			if (ag.m_forbidden)
 				return true;
 		}
 		return true;
@@ -299,7 +299,7 @@ public class MultiGroup extends AbstractGroup {
 				Iterator<AssociatedGroup> it = m_groups.iterator();
 				while (it.hasNext()) {
 					AssociatedGroup ag = it.next();
-					if (!ag.m_forbiden) {
+					if (!ag.m_forbidden) {
 						if (ag.m_group.equals(AbstractGroup.getUniverse())) {
 							return false;
 						} else {
@@ -340,11 +340,11 @@ public class MultiGroup extends AbstractGroup {
 	 * @see AbstractGroup#getUniverse()
 	 * @since MadKitGroupExtension 1.0
 	 */
-	public boolean addForbidenGroup(AbstractGroup _g) {
+	public boolean addForbiddenGroup(AbstractGroup _g) {
 		synchronized (this) {
 			if (_g == AbstractGroup.getUniverse()) {
 				for (AssociatedGroup ag : m_groups) {
-					if (ag.m_forbiden) {
+					if (ag.m_forbidden) {
 						if (ag.m_group.equals(AbstractGroup.getUniverse())) {
 							return false;
 						}
@@ -431,14 +431,6 @@ public class MultiGroup extends AbstractGroup {
 			return false;
 		if (_ag == this)
 			return true;
-		/*
-		 * if (_ag instanceof Group.Universe) { synchronized(this) { boolean
-		 * universe=false; for (AssociatedGroup ag : m_groups) { if (ag.m_forbiden) { if
-		 * (!ag.m_group.isEmpty()) return false; } else if (ag.m_group.equals(_ag))
-		 * universe=true;
-		 * 
-		 * } return universe; } } else
-		 */
 		return this.includes(_ag) && _ag.includes(this);
 	}
 
@@ -488,7 +480,7 @@ public class MultiGroup extends AbstractGroup {
 
 				if (m_groups.size() > 0) {
 					for (AssociatedGroup ag : m_groups) {
-						if (ag.m_forbiden) {
+						if (ag.m_forbidden) {
 							f.addAll(Arrays.asList(ag.m_group.getRepresentedGroups(ka)));
 						} else {
 							l.addAll(Arrays.asList(ag.m_group.getRepresentedGroups(ka)));
@@ -537,7 +529,7 @@ public class MultiGroup extends AbstractGroup {
 
 				if (m_groups.size() > 0) {
 					for (AssociatedGroup ag : m_groups) {
-						if (ag.m_forbiden) {
+						if (ag.m_forbidden) {
 							Collections.addAll(f, ag.m_group.getRepresentedGroups());
 						} else {
 							l.addAll(Arrays.asList(ag.m_group.getRepresentedGroups()));
@@ -567,17 +559,18 @@ public class MultiGroup extends AbstractGroup {
 		return res;
 	}
 
-	class AssociatedGroup implements Serializable {
+
+	static class AssociatedGroup implements Serializable {
 		private static final long serialVersionUID = 1215548;
 
 		final AbstractGroup m_group;
 		private transient volatile Group[] m_represented_groups = null;
 		private transient volatile Group[] m_global_represented_groups = null;
-		final boolean m_forbiden;
+		final boolean m_forbidden;
 
-		AssociatedGroup(AbstractGroup _a, boolean _forbiden) {
+		AssociatedGroup(AbstractGroup _a, boolean _forbidden) {
 			m_group = _a;
-			m_forbiden = _forbiden;
+			m_forbidden = _forbidden;
 		}
 
 		boolean hasRepresentedGroupsChanged(KernelAddress ka) {

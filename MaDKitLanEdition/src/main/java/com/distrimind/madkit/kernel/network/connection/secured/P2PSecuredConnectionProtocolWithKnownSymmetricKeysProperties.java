@@ -6,7 +6,7 @@ jason.mahdjoub@distri-mind.fr
 
 This software (Object Oriented Database (OOD)) is a computer program 
 whose purpose is to manage a local database with the object paradigm 
-and the java langage 
+and the java language
 
 This software is governed by the CeCILL-C license under French law and
 abiding by the rules of distribution of free software.  You can  use, 
@@ -39,21 +39,20 @@ import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
-import com.distrimind.util.crypto.*;
+import com.distrimind.util.crypto.EncryptionSignatureHashEncoder;
+import com.distrimind.util.crypto.MessageDigestType;
+import com.distrimind.util.crypto.SymmetricSecretKey;
 
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 /**
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 2.0
  * @since MaDKitLanEdition 1.10.0
  */
+@SuppressWarnings("FieldMayBeFinal")
 public class P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties extends ConnectionProtocolProperties<P2PSecuredConnectionProtocolWithKnownSymmetricKeys> {
 
 	public P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties() {
@@ -121,8 +120,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties extend
 		secretKeysForEncryption.put(profileIdentifier, symmetricSecretKeyForEncryption);
 		secretKeysForSignature.put(profileIdentifier, symmetricSecretKeyForSignature);
 		validProfiles.put(profileIdentifier, true);
-		maxAlgo=null;
-		maxHeadSize=null;
+		maximumBodyOutputSizeComputer=null;
 		return lastIdentifier=profileIdentifier;
 	}
 
@@ -162,6 +160,10 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties extend
 	 */
 	public boolean enableEncryption = true;
 
+	/**
+	 * Message digest type used to check message validity
+	 */
+	public MessageDigestType messageDigestType=MessageDigestType.SHA2_384;
 
 	@Override
 	public boolean isConcernedBy(EncryptionRestriction encryptionRestriction) {
@@ -226,58 +228,35 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties extend
 		return enableEncryption;
 	}
 
-	private transient SymmetricEncryptionAlgorithm maxAlgo=null;
+	private transient MaximumBodyOutputSizeComputer maximumBodyOutputSizeComputer=null;
+
 	@Override
 	public int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException {
-		if (!isEncrypted())
-			return size;
-		else
-		{
-
-			try {
-				if (maxAlgo==null) {
-					SymmetricEncryptionAlgorithm alg=null;
-					int res=0;
-					for (SymmetricSecretKey k : secretKeysForEncryption.values()) {
-						SymmetricEncryptionAlgorithm a = new SymmetricEncryptionAlgorithm(SecureRandomType.DEFAULT.getSingleton(null), k);
-						int v=a.getOutputSizeForEncryption(size)+4;
-						if (res<v) {
-							res = v;
-							alg=a;
-						}
-					}
-					maxAlgo=alg;
-					return res;
+		if (maximumBodyOutputSizeComputer==null) {
+			MaximumBodyOutputSizeComputer maximumBodyOutputSizeComputer=null;
+			int max=0;
+			for (Map.Entry<Integer, Boolean> e : validProfiles.entrySet())
+			{
+				if (!e.getValue())
+					continue;
+				int profile=e.getKey();
+				MaximumBodyOutputSizeComputer m = new MaximumBodyOutputSizeComputer(isEncrypted(), getSymmetricSecretKeyForEncryption(profile),getSymmetricSecretKeyForSignature(profile) , messageDigestType);
+				int v=m.getMaximumBodyOutputSizeForEncryption(size);
+				if (v>max)
+				{
+					max=v;
+					maximumBodyOutputSizeComputer=m;
 				}
-				return maxAlgo.getOutputSizeForEncryption(size)+4;
-			} catch (Exception e) {
-				throw new BlockParserException(e);
 			}
-
+			this.maximumBodyOutputSizeComputer=maximumBodyOutputSizeComputer;
+			return max;
 		}
+		return maximumBodyOutputSizeComputer.getMaximumBodyOutputSizeForEncryption(size);
 	}
 
-
-
-	private transient volatile Integer maxHeadSize=null;
 	@Override
-	public int getMaximumSizeHead() throws BlockParserException {
-		if (maxHeadSize==null)
-		{
-			try {
-				int max=0;
-				for (SymmetricSecretKey k : secretKeysForSignature.values()) {
-					SymmetricAuthenticatedSignerAlgorithm signerTmp = new SymmetricAuthenticatedSignerAlgorithm(k);
-					signerTmp.init();
-					max = Math.max(signerTmp.getMacLengthBytes(), max);
-				}
-				maxHeadSize=max;
-
-			} catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidKeyException | InvalidKeySpecException e) {
-				throw new BlockParserException(e);
-			}
-		}
-		return maxHeadSize;
+	public int getMaximumHeadSize() {
+		return EncryptionSignatureHashEncoder.headSize;
 	}
 
 	public int getDefaultProfileIdentifier(EncryptionRestriction encryptionRestriction) {

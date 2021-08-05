@@ -185,13 +185,13 @@ public class TransferConnectionTest extends JunitMadkit {
 			ServerSecuredProtocolPropertiesWithKnownPublicKey sold = (ServerSecuredProtocolPropertiesWithKnownPublicKey) cpp;
 			ServerSecuredProtocolPropertiesWithKnownPublicKey s = new ServerSecuredProtocolPropertiesWithKnownPublicKey();
 			s.addEncryptionProfile(sold.getDefaultKeyPairForEncryption(), 
-					sold.getDefaultSymmetricEncryptionType(), sold.getDefaultSymmetricEncryptionKeySizeBits(), sold.getDefaultKeyWrapper(), sold.getDefaultSignatureType());
+					sold.getDefaultSymmetricEncryptionType(), sold.getDefaultSymmetricEncryptionKeySizeBits(), sold.getDefaultKeyWrapper(), sold.getDefaultSignatureType(), sold.getDefaultMessageDigestType());
 			res = s;
 		} else if (cpp.getClass() == P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties.class) {
 			P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties sold = (P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties) cpp;
 			P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties s = new P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties();
-			s.aSymetricEncryptionType = sold.aSymetricEncryptionType;
-			s.aSymetricKeySize = sold.aSymetricKeySize;
+			s.aSymmetricEncryptionType = sold.aSymmetricEncryptionType;
+			s.aSymmetricKeySize = sold.aSymmetricKeySize;
 			s.aSymmetricKeyExpirationMs = sold.aSymmetricKeyExpirationMs;
 			s.enableEncryption = sold.enableEncryption;
 			s.isServer = sold.isServer;
@@ -542,7 +542,7 @@ class AgentToLaunch extends AgentFakeThread {
 
 	@Override
 	public void activate() {
-		Assert.assertEquals(ReturnCode.SUCCESS, requestHookEvents(AgentActionEvent.TRANFER_CONNEXION_EVENT));
+		Assert.assertEquals(ReturnCode.SUCCESS, requestHookEvents(AgentActionEvent.TRANSFER_CONNEXION_EVENT));
 		Assert.assertEquals(ReturnCode.SUCCESS, requestHookEvents(AgentActionEvent.DISTANT_KERNEL_CONNECTED));
 		if (!connectionPerKernelAddress)
 			Assert.assertEquals(ReturnCode.SUCCESS, requestHookEvents(AgentActionEvent.CONNEXION_ESTABLISHED));

@@ -59,7 +59,7 @@ public interface Gatekeeper {
 	 * @param roleName
 	 *            the role the agent wants to play
 	 * @param requesterClass
-	 *            the requester's class
+	 *            the requesters class
 	 * @param agentNetworkID
 	 *            a string identifying uniquely an agent, even over multiple
 	 *            connected kernels
@@ -79,7 +79,7 @@ public interface Gatekeeper {
 	 * @param sub_group
 	 *            the sub group the agent wants to create
 	 * @param requesterClass
-	 *            the requester's class
+	 *            the requesters class
 	 * @param agentNetworkID
 	 *            a string identifying uniquely an agent, even over multiple
 	 *            connected kernels

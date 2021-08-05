@@ -43,9 +43,8 @@ import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.crypto.*;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.security.DigestException;
-import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.*;
@@ -63,7 +62,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 
 	private final AccessProtocolWithP2PAgreementProperties access_protocol_properties;
 	private AccessState access_state = AccessState.ACCESS_NOT_INITIALIZED;
-	private Map<WrappedCloudIdentifier, P2PLoginAgreement> jpakes;
+	private Map<WrappedCloudIdentifier, P2PLoginAgreement> JPakes;
 	
 	private final AbstractMessageDigest messageDigest;
 	private byte[] localGeneratedSalt=null, distantGeneratedSalt=null;
@@ -82,36 +81,25 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 
 	private IdentifiersPropositionMessage suspendedTransaction=null;
 	private JPakeMessageForAuthenticationOfCloudIdentifiers suspendedJpakeMessage=null;
-	private Map<WrappedCloudIdentifier, P2PLoginAgreement> suspendedJpakes=null;
+	private Map<WrappedCloudIdentifier, P2PLoginAgreement> suspendedJPakes =null;
 	private short suspendedStep;
 	private int suspendMaxSteps;
 	private ASymmetricKeyPair myKeyPair = null;
 
-	private void initKeyPair() throws NoSuchAlgorithmException, DatabaseException, NoSuchProviderException, InvalidAlgorithmParameterException {
+	private void initKeyPair() throws NoSuchAlgorithmException, DatabaseException, NoSuchProviderException, IOException {
 		if (myKeyPair == null || myKeyPair.getTimeExpirationUTC()<System.currentTimeMillis()) {
 			if (properties.getDatabaseWrapper() == null)
-				myKeyPair = access_protocol_properties.aSymetricEncryptionType
-						.getKeyPairGenerator(properties.getApprovedSecureRandomForKeys(), access_protocol_properties.aSymetricKeySize).generateKeyPair();
+				myKeyPair = access_protocol_properties.aSymmetricEncryptionType
+						.getKeyPairGenerator(properties.getApprovedSecureRandomForKeys(), access_protocol_properties.aSymmetricKeySize).generateKeyPair();
 			else
 				myKeyPair = (properties.getDatabaseWrapper().getTableInstance(KeysPairs.class).getKeyPair(
 						distant_inet_address.getAddress(), NetworkProperties.accessProtocolDatabaseUsingCode,
-						access_protocol_properties.aSymetricEncryptionType, access_protocol_properties.aSymetricKeySize,
+						access_protocol_properties.aSymmetricEncryptionType, access_protocol_properties.aSymmetricKeySize,
 						properties.getApprovedSecureRandomForKeys(), access_protocol_properties.aSymmetricKeyExpirationMs,
 						properties.networkProperties.maximumNumberOfCryptoKeysForIpsSpectrum));
 		}
 	}
 
-	/*private void initNewKeyPair() throws NoSuchAlgorithmException, DatabaseException, NoSuchProviderException, InvalidAlgorithmParameterException {
-		if (properties.getDatabaseWrapper() == null)
-			myKeyPair = access_protocol_properties.aSymetricEncryptionType
-					.getKeyPairGenerator(properties.getApprovedSecureRandomForKeys(), access_protocol_properties.aSymetricKeySize).generateKeyPair();
-		else
-			myKeyPair = (((KeysPairs) properties.getDatabaseWrapper().getTableInstance(KeysPairs.class)).getNewKeyPair(
-					distant_inet_address.getAddress(), NetworkProperties.accessProtocolDatabaseUsingCode,
-					access_protocol_properties.aSymetricEncryptionType, access_protocol_properties.aSymetricKeySize,
-					properties.getApprovedSecureRandomForKeys(), access_protocol_properties.aSymmetricKeyExpirationMs,
-					properties.networkProperties.maximumNumberOfCryptoKeysForIpsSpectrum));
-	}*/
 
 
 	public AccessProtocolWithP2PAgreement(InetSocketAddress _distant_inet_address,
@@ -152,9 +140,9 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 	@Override
 	protected void resetLogin(boolean resetLoggedIdentifiers) throws AccessException {
 		super.resetLogin(resetLoggedIdentifiers);
-		jpakes=new HashMap<>();
+		JPakes =new HashMap<>();
 		if (resetLoggedIdentifiers) {
-			setAcceptedIdentifiers(new ArrayList<PairOfIdentifiers>());
+			setAcceptedIdentifiers(new ArrayList<>());
 			setDeniedCloudIdentifiers(null);
 			setDeniedLocalIdentifiers(null);
 			setDeniedDistantIdentifiers(null);
@@ -181,7 +169,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 				access_protocol_properties.p2pLoginAgreementType== P2PLoginAgreementType.ASYMMETRIC_SECRET_MESSAGE_EXCHANGER_AND_AGREEMENT_WITH_SYMMETRIC_SIGNATURE) {
 			try {
 				initKeyPair();
-			} catch (NoSuchAlgorithmException | DatabaseException | NoSuchProviderException | InvalidAlgorithmParameterException e) {
+			} catch (NoSuchAlgorithmException | DatabaseException | NoSuchProviderException | IOException e) {
 				e.printStackTrace();
 			}
 		}
@@ -201,13 +189,13 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 
 					if (access_data instanceof LoginData) {
 						access_state = AccessState.ACCESS_INITIALIZED;
-						JPakeAccessInitialized res=new JPakeAccessInitialized(((LoginData)access_data).canTakesLoginInitiative(), properties.getApprovedSecureRandomForKeys(), messageDigest.getDigestLength());
+						JPakeAccessInitialized res=new JPakeAccessInitialized(((LoginData)access_data).canTakesLoginInitiative(), properties.getApprovedSecureRandomForKeys(), messageDigest.getDigestLengthInBytes());
 						localGeneratedSalt=res.getGeneratedSalt();
 						return res;
 						
 					} else {
 						access_state = AccessState.ACCESS_INITIALIZED;
-						JPakeAccessInitialized res=new JPakeAccessInitialized(false, properties.getApprovedSecureRandomForKeys(), messageDigest.getDigestLength());
+						JPakeAccessInitialized res=new JPakeAccessInitialized(false, properties.getApprovedSecureRandomForKeys(), messageDigest.getDigestLengthInBytes());
 						localGeneratedSalt=res.getGeneratedSalt();
 						return res;
 					}
@@ -241,11 +229,11 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 							access_state = AccessState.WAITING_FOR_CLOUD_IDENTIFIERS;
 							return new CloudIdentifiersPropositionMessage(properties.getApprovedSecureRandom(), messageDigest,
 									this.access_protocol_properties.anonymizeIdentifiersBeforeSendingToDistantPeer,
-									(short) 0, distantGeneratedSalt, getCloudIdentifiers(), properties.networkProperties.encryptionRestrictionForAccessProtocols, access_protocol_properties);
+									(short) 0, distantGeneratedSalt, getCloudIdentifiers());
 						} else {
 							if (!isOtherCanTakesInitiative()) {
 								access_state = AccessState.ACCESS_NOT_INITIALIZED;
-								return new AccessAbordedMessage();
+								return new AccessCancelledMessage();
 							} else {
 								access_state = AccessState.WAITING_FOR_CLOUD_IDENTIFIERS;
 								return new NullAccessMessage();
@@ -305,8 +293,8 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 					}
 					else
 					{
-						suspendedJpakes=jpakes;
-						jpakes=new HashMap<>();
+						suspendedJPakes = JPakes;
+						JPakes =new HashMap<>();
 						suspendedStep=step;
 						step=1;
 						suspendMaxSteps=maxSteps;
@@ -331,11 +319,11 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 						}
 					}
 					if (step == 1) {
-						setDeniedCloudIdentifiers(new ArrayList<CloudIdentifier>());
+						setDeniedCloudIdentifiers(new ArrayList<>());
 					}
 					if (step < maxSteps) {
 						AccessMessage res = jpakem.getJPakeMessageNewStep(initialJPakeMessage, ++step,
-								lp, messageDigest, getDeniedCloudIdentifiers(), jpakes, localGeneratedSalt, properties.networkProperties.encryptionRestrictionForAccessProtocols, access_protocol_properties);
+								lp, messageDigest, getDeniedCloudIdentifiers(), JPakes, localGeneratedSalt, properties.networkProperties.encryptionRestrictionForAccessProtocols, access_protocol_properties);
 						if (res instanceof AccessErrorMessage) {
 							if (access_state == AccessState.WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION)
 								access_state = AccessState.ACCESS_FINALIZED;
@@ -346,7 +334,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 					} else if (step == maxSteps) {
 						AccessMessage res = jpakem.receiveLastMessage(initialJPakeMessage, lp, messageDigest,getCloudIdentifiers(),
 								newAcceptedCloudIdentifiers, getDeniedCloudIdentifiers(),
-								temporaryAcceptedCloudIdentifiers, jpakes, localGeneratedSalt, distantGeneratedSalt,
+								temporaryAcceptedCloudIdentifiers, JPakes, localGeneratedSalt, distantGeneratedSalt,
 								properties.getApprovedSecureRandom(), properties.networkProperties.encryptionRestrictionForAccessProtocols, access_protocol_properties);
 						if (res instanceof AccessErrorMessage) {
 							if (access_state == AccessState.WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION)
@@ -500,8 +488,8 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 				else if (_m instanceof AccessFinalizedMessage) {
 					updateGroupAccess();
 					return manageDifferedAccessMessage();
-				} else if (_m instanceof UnlogMessage) {
-					removeAcceptedIdentifiers(((UnlogMessage) _m).identifier_to_unlog);
+				} else if (_m instanceof UnLogMessage) {
+					removeAcceptedIdentifiers(((UnLogMessage) _m).identifier_to_un_log);
 					updateGroupAccess();
 					return null;
 				} else {
@@ -521,12 +509,12 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 		LoginData lp = (LoginData) access_data;
 		newAcceptedCloudIdentifiers=new ArrayList<>();
 		temporaryAcceptedCloudIdentifiers=new HashMap<>();
-		jpakes=new HashMap<>();
+		JPakes =new HashMap<>();
 		CloudIdentifiersPropositionMessage propRep=null;
 		//acceptedAutoSignedCloudIdentifiers=new ArrayList<>();
 
 		if (access_state==AccessState.ACCESS_FINALIZED || getCloudIdentifiers() == null) {
-			setCloudIdentifiers(new HashSet<CloudIdentifier>());
+			setCloudIdentifiers(new HashSet<>());
 			propRep=m
 					.getIdentifiersPropositionMessageAnswer(lp, properties.getApprovedSecureRandom(), messageDigest,
 							this.access_protocol_properties.anonymizeIdentifiersBeforeSendingToDistantPeer,
@@ -539,9 +527,11 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 
 		initialJPakeMessage=
 				m.getJPakeMessage(getAllAcceptedIdentifiers(),
-						newAcceptedCloudIdentifiers, temporaryAcceptedCloudIdentifiers, lp, jpakes,
+						newAcceptedCloudIdentifiers, temporaryAcceptedCloudIdentifiers, lp, JPakes,
 						access_protocol_properties.p2pLoginAgreementType, properties.getApprovedSecureRandom(), localGeneratedSalt,
-						access_protocol_properties.identifierDigestionTypeUsedForAnonymization, access_protocol_properties.passwordHashType,myKeyPair==null?null:myKeyPair.getASymmetricPublicKey(), properties.networkProperties.encryptionRestrictionForAccessProtocols, access_protocol_properties);
+						access_protocol_properties.identifierDigestionTypeUsedForAnonymization,
+						access_protocol_properties.passwordHashType,myKeyPair==null?null:myKeyPair.getASymmetricPublicKey(),
+						properties.networkProperties.encryptionRestrictionForAccessProtocols, access_protocol_properties);
 		maxSteps=initialJPakeMessage.getMaxSteps();
 		step=1;
 		if (propRep!=null)
@@ -576,7 +566,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 				}
 				else
 				{
-					jpakes=suspendedJpakes;
+					JPakes = suspendedJPakes;
 					step=suspendedStep;
 					maxSteps=suspendMaxSteps;
 					access_state=AccessState.WAITING_FOR_NEW_CLOUD_PASSWORD_VALIDATION;
@@ -586,7 +576,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 			finally
 			{
 				suspendedTransaction=null;
-				suspendedJpakes=null;
+				suspendedJPakes =null;
 				suspendedJpakeMessage=null;
 			}
 		}
@@ -607,10 +597,10 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 					//LoginData lp = (LoginData) access_data;
 					newAcceptedCloudIdentifiers=new ArrayList<>();
 					temporaryAcceptedCloudIdentifiers=new HashMap<>();
-					jpakes=new HashMap<>();
+					JPakes =new HashMap<>();
 
 
-					setCloudIdentifiers(new HashSet<CloudIdentifier>());
+					setCloudIdentifiers(new HashSet<>());
 					newIdentifiersLoop:for (Identifier id : m.identifiers) {
 						for (PairOfIdentifiers poi : getAllAcceptedIdentifiers())
 						{
@@ -623,14 +613,14 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 					access_state = AccessState.WAITING_FOR_NEW_CLOUD_IDENTIFIERS;
 					return new CloudIdentifiersPropositionMessage(properties.getApprovedSecureRandom(), messageDigest,
 							this.access_protocol_properties.anonymizeIdentifiersBeforeSendingToDistantPeer,
-							(short) 0, distantGeneratedSalt, getCloudIdentifiers(), properties.networkProperties.encryptionRestrictionForAccessProtocols, access_protocol_properties);
+							(short) 0, distantGeneratedSalt, getCloudIdentifiers());
 				} else {
 					return null;
 				}
 			} else if (_m instanceof NewLocalLoginRemovedMessage) {
 				NewLocalLoginRemovedMessage nlrm = (NewLocalLoginRemovedMessage) _m;
-				UnlogMessage um = removeAcceptedIdentifiers(nlrm.removed_identifiers);
-				if (um.identifier_to_unlog == null || um.identifier_to_unlog.isEmpty())
+				UnLogMessage um = removeAcceptedIdentifiers(nlrm.removed_identifiers);
+				if (um.identifier_to_un_log == null || um.identifier_to_un_log.isEmpty())
 					return null;
 				else {
 					updateGroupAccess();
@@ -648,14 +638,13 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 	}
 
 	
-	static byte[] anonymizeIdentifier(byte[] identifier, AbstractSecureRandom random, AbstractMessageDigest messageDigest, byte[] distantGeneratedSalt) throws DigestException
-	{
+	static byte[] anonymizeIdentifier(byte[] identifier, AbstractSecureRandom random, AbstractMessageDigest messageDigest, byte[] distantGeneratedSalt) throws IOException {
 		if (random==null)
 			throw new NullPointerException();
 		if (messageDigest==null)
 			throw new NullPointerException();
 		
-		int mds=messageDigest.getDigestLength();
+		int mds=messageDigest.getDigestLengthInBytes();
 		byte[] ivParameter=new byte[mds];
 		random.nextBytes(ivParameter);
 		if (distantGeneratedSalt.length!=ivParameter.length)
@@ -663,8 +652,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 		return anonymizeIdentifier(identifier, ivParameter, messageDigest, distantGeneratedSalt);
 	}
 	
-	private static byte[] anonymizeIdentifier(byte[] identifier, byte[] ivParameter, AbstractMessageDigest messageDigest, byte[] generatedSalt) throws DigestException
-	{
+	private static byte[] anonymizeIdentifier(byte[] identifier, byte[] ivParameter, AbstractMessageDigest messageDigest, byte[] generatedSalt) throws IOException {
 		if (identifier==null)
 			throw new NullPointerException();
 		if (identifier.length==0)
@@ -681,7 +669,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 		System.arraycopy(identifier, 0, res, generatedSalt.length, identifier.length);
 		identifier=res;
 		
-		final int mds=messageDigest.getDigestLength();
+		final int mds=messageDigest.getDigestLengthInBytes();
 		if (ivParameter.length<mds)
 			throw new IllegalArgumentException("Invalid IvParameter size");
 		int index=0;
@@ -706,12 +694,11 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 		return res;
 	}
 
-	static boolean compareAnonymizedIdentifier(byte[] identifier, byte[] anonymizedIdentifier, AbstractMessageDigest messageDigest, byte[] localGeneratedSalt) throws DigestException
-	{
-		if (anonymizedIdentifier==null || anonymizedIdentifier.length<messageDigest.getDigestLength()*2)
+	static boolean compareAnonymousIdentifier(byte[] identifier, byte[] anonymousIdentifier, AbstractMessageDigest messageDigest, byte[] localGeneratedSalt) throws IOException {
+		if (anonymousIdentifier==null || anonymousIdentifier.length<messageDigest.getDigestLengthInBytes()*2)
 			return false;
-		byte[] expectedAnonymizedIdentifier= anonymizeIdentifier(identifier, anonymizedIdentifier, messageDigest, localGeneratedSalt);
-		return Arrays.equals(expectedAnonymizedIdentifier, anonymizedIdentifier);
+		byte[] expectedAnonymousIdentifier= anonymizeIdentifier(identifier, anonymousIdentifier, messageDigest, localGeneratedSalt);
+		return Arrays.equals(expectedAnonymousIdentifier, anonymousIdentifier);
 	}
 	
 	

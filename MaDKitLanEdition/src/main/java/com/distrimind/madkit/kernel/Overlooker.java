@@ -71,13 +71,13 @@ public abstract class Overlooker<A extends AbstractAgent> {
 	private final AtomicReference<ArrayList<A>> referenced_agents = new AtomicReference<>(null);
 
 	private final AtomicBoolean unique_references = new AtomicBoolean(true);
-	private final GroupChangementNotifier group_changement_notifier;
+	private final GroupChangesNotifier group_changes_notifier;
 
 	private class OLR {
 		public final InternalRole overlookedRole;
 		public final Group group;
 		public final AtomicReference<List<AbstractAgent>> agents = new AtomicReference<>(null);
-		public final AtomicReference<List<A>> filtred_agents = new AtomicReference<>(null);
+		public final AtomicReference<List<A>> filtered_agents = new AtomicReference<>(null);
 
 		public OLR(InternalRole _overlookedRole, Group g) {
 			overlookedRole = _overlookedRole;
@@ -89,10 +89,10 @@ public abstract class Overlooker<A extends AbstractAgent> {
 			
 			List<AbstractAgent> laa = overlookedRole.getAgentsList();
 			if (agents.get() != laa) {
-				filtred_agents.set(convertList(laa));
+				filtered_agents.set(convertList(laa));
 				agents.set(laa);
 			}
-			return filtred_agents.get();
+			return filtered_agents.get();
 		}
 
 		private List<A> convertList(List<AbstractAgent> laa) {
@@ -161,13 +161,7 @@ public abstract class Overlooker<A extends AbstractAgent> {
 		groups = _groups;
 		role = _roleName;
 		unique_references.set(unique);
-		group_changement_notifier = new GroupChangementNotifier() {
-
-			@Override
-			public void potentialChangementInGroups() {
-				Overlooker.this.potentialChangementInGroups();
-			}
-		};
+		group_changes_notifier = Overlooker.this::potentialChangesInGroups;
 
 	}
 
@@ -177,8 +171,8 @@ public abstract class Overlooker<A extends AbstractAgent> {
 					.bugReport(new IllegalArgumentException("Attempting to add an Overlooker to several kernels."));
 		}
 		this.represented_groups.set(null);
-		Group.addGroupChangementNotifier(group_changement_notifier);
-		potentialChangementInGroups();
+		Group.addGroupChangesNotifier(group_changes_notifier);
+		potentialChangesInGroups();
 	}
 
 	final void removeFromKernel() throws IllegalAccessException {
@@ -186,7 +180,7 @@ public abstract class Overlooker<A extends AbstractAgent> {
 			throw new IllegalAccessException("Attempting to remove the Overlooker " + this
 					+ " from a kernel, where it has not been added to a kernel.");
 		} else {
-			Group.removeGroupChangementNotifier(group_changement_notifier);
+			Group.removeGroupChangesNotifier(group_changes_notifier);
 			synchronized (this) {
 				if (!madkit_kernel.compareAndSet(null, null)) {
 					cleanGroupToAddAndRemove();
@@ -224,7 +218,7 @@ public abstract class Overlooker<A extends AbstractAgent> {
 				}
 			}
 			if (olr != null) {
-				List<A> l = olr.filtred_agents.get();
+				List<A> l = olr.filtered_agents.get();
 				if (l != null)
 					removing(l);
 				olr.overlookedRole.removeOverlooker(this);
@@ -267,7 +261,7 @@ public abstract class Overlooker<A extends AbstractAgent> {
 		}
 	}
 
-	void potentialChangementInGroups() {
+	void potentialChangesInGroups() {
 		if (madkit_kernel.get() != null) {
 			Group[] gps = groups.getRepresentedGroups(madkit_kernel.get().getKernelAddress());
 			Group[] rpg = represented_groups.get();
@@ -427,7 +421,7 @@ public abstract class Overlooker<A extends AbstractAgent> {
 	}
 
 	/**
-	 * This method is automatically called when a list of agents has leaved the
+	 * This method is automatically called when a list of agents has left the
 	 * corresponding group and role. This method is empty by default. Override this
 	 * method when you want to do some initialization on the agents that enter the
 	 * group/role. Default implementation is:

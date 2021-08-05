@@ -114,7 +114,20 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 			if (logger != null)
 				logger.finer("Removing" + getCGRString(group));
 
-			if (remove(group) != null) {
+			boolean remove=true;
+			if (group.isDistributed())
+			{
+				InternalGroup ig=get(group);
+				if (ig==null)
+					return;
+				if (ig.containsDistantAgents())
+				{
+					ig.clearLocalAgents();
+					remove=false;
+				}
+			}
+
+			if (remove && remove(group) != null) {
 				group.setMadKitCreated(this.myKernel.getKernelAddress(), false);
 				checkEmptyness();
 			}

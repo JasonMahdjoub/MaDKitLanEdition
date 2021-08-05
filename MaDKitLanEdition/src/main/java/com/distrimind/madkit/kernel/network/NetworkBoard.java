@@ -37,18 +37,17 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
-
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.Task;
 import com.distrimind.madkit.kernel.TaskID;
 import com.distrimind.util.concurrent.LockerCondition;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 
@@ -56,7 +55,7 @@ import com.distrimind.util.concurrent.LockerCondition;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-class NetworkBlackboard {
+class NetworkBoard {
 	final AtomicLong totalDataInQueueForAllDistantKernelAgent = new AtomicLong(0);
 	final AtomicBoolean transferPausedForAllDistantKernelAgent = new AtomicBoolean(false);
 	DistantKernelAgent currentCandidateForPurge = null;
@@ -99,11 +98,8 @@ class NetworkBlackboard {
 			lc.setLocker(lockerForSimultaneousConnections);
 
 			synchronized (lockerForSimultaneousConnections) {
-				LockerCondition lock = lockerForSimultaneousConnections.get(ka);
-				if (lock == null) {
-					lockerForSimultaneousConnections.put(ka, lc);
-					//lc = null;
-				}
+				//lc = null;
+				lockerForSimultaneousConnections.putIfAbsent(ka, lc);
 			}
 			agent.wait(lc);
 			/*if (lc != null) {
@@ -175,11 +171,12 @@ class NetworkBlackboard {
 
 	}*/
 
-	boolean checkBlackboardEmpty() {
-		return /*checkDistantKernelAddressPurged() &&*/ checkDistantKernelAgentCandidateForPurgeEmpty();
+	@SuppressWarnings("unused")
+	boolean checkBoardEmpty() {
+		return checkDistantKernelAgentCandidateForPurgeEmpty();
 	}
 
-	protected TaskID taskIDToRemoveDatatagramMessages = null;
+	protected TaskID taskIDToRemoveDatagramMessages = null;
 	protected final HashSet<DatagramLocalNetworkPresenceMessage> datagramMessages = new HashSet<>();
 
 	protected boolean addMessage(MulticastListenerAgent agent, DatagramLocalNetworkPresenceMessage m) {
@@ -188,28 +185,19 @@ class NetworkBlackboard {
 				return false;
 			else {
 				datagramMessages.add(m);
-				if (taskIDToRemoveDatatagramMessages == null) {
-					taskIDToRemoveDatatagramMessages = agent.scheduleTask(new Task<>(new Callable<Void>() {
-
-						@Override
-						public Void call() {
-							synchronized (datagramMessages) {
-								for (Iterator<DatagramLocalNetworkPresenceMessage> it = datagramMessages.iterator(); it
-										.hasNext();) {
-									DatagramLocalNetworkPresenceMessage m = it.next();
-									if (m.getOnlineTime()
-											+ MulticastListenerAgent.durationBeforeRemovingMulticastMessages < System
-													.currentTimeMillis())
-										it.remove();
-								}
-								if (datagramMessages.isEmpty()) {
-									taskIDToRemoveDatatagramMessages.cancelTask(false);
-									taskIDToRemoveDatatagramMessages = null;
-								}
-
+				if (taskIDToRemoveDatagramMessages == null) {
+					taskIDToRemoveDatagramMessages = agent.scheduleTask(new Task<>((Callable<Void>) () -> {
+						synchronized (datagramMessages) {
+							datagramMessages.removeIf(m1 -> m1.getOnlineTime()
+									+ MulticastListenerAgent.durationBeforeRemovingMulticastMessages < System
+									.currentTimeMillis());
+							if (datagramMessages.isEmpty()) {
+								taskIDToRemoveDatagramMessages.cancelTask(false);
+								taskIDToRemoveDatagramMessages = null;
 							}
-							return null;
+
 						}
+						return null;
 					}, MulticastListenerAgent.durationBeforeRemovingMulticastMessages+System.currentTimeMillis(),
 							MulticastListenerAgent.durationBeforeRemovingMulticastMessages));
 				}

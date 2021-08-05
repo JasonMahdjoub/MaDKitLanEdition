@@ -67,12 +67,12 @@ public class PointToPointTransferedBlockChecker extends TransferedBlockChecker {
 			SubBlock sb=_block;
 			if (_block.getOffset()!=Block.getHeadSize())
 				throw new IllegalAccessError();
-
 			for (ConnectionProtocol<?> cp : cpInput) {
 				//cp.getPacketCounter().incrementMyCounters();
-				SubBlockInfo checkedBlock = cp.getParser().checkIncomingPointToPointTransferedBlock(sb);
-				if (!checkedBlock.isValid())
+				SubBlockInfo checkedBlock = cp.getParser().checkIncomingPointToPointTransferredBlock(sb);
+				if (!checkedBlock.isValid()) {
 					return checkedBlock;
+				}
 				sb = checkedBlock.getSubBlock();
 			}
 			if (cpOutput==null)
@@ -84,7 +84,7 @@ public class PointToPointTransferedBlockChecker extends TransferedBlockChecker {
 				//Block.setCounterState(res.getBytes(), Block.getCounterState(_block.getBytes()));
 				return new SubBlockInfo(res, true, false);
 			}
-			return new SubBlockInfo(prepareBlock(new SubBlock(sb.getBytes(), Block.getHeadSize(), sb.getBytes().length-Block.getHeadSize()), sb.getOffset()-Block.getHeadSize(), new Block(_block.getBytes()).getTransferID()), true, false);
+			return new SubBlockInfo(prepareBlock(sb, sb.getOffset()-Block.getHeadSize(), Block.getTransferID(_block.getBytes())), true, false);
 		}
 		catch (PacketException e)
 		{
@@ -96,34 +96,37 @@ public class PointToPointTransferedBlockChecker extends TransferedBlockChecker {
 	{
 		if (cpOutput==null)
 			throw new NullPointerException();
-		
-		int totalOutputHeadSize=0;
 
-		for (ConnectionProtocol<?> cp : cpOutput) {
-			totalOutputHeadSize += cp.getParser().getSizeHead();
+		int totalOutputSize=Block.getHeadSize();
+		int totalOutputHeadSize=0;
+		int size=_block.getSize();
+		for (ConnectionProtocol<?> cp : cpOutput){
+			int hs=cp.getParser().getHeadSize();
+			totalOutputHeadSize += hs;
+			totalOutputSize+=(size=(cp.getParser().getBodyOutputSizeForSignature(size)+hs));
 		}
+
 		SubBlock res;
-		if (_block.getOffset()!=Block.getHeadSize())
-			throw new IllegalAccessError();
-		if (totalInputHeadSize>=totalOutputHeadSize)
+		/*if (_block.getOffset()!=Block.getHeadSize())
+			throw new IllegalAccessError();*/
+		if (totalInputHeadSize==totalOutputHeadSize && totalOutputSize<=_block.getBytes().length)
 		{
-			res=new SubBlock(_block.getBytes(), Block.getHeadSize()+totalOutputHeadSize, _block.getBytes().length-Block.getHeadSize()-totalInputHeadSize);
+			res=new SubBlock(_block.getBytes(), Block.getHeadSize()+totalOutputHeadSize, _block.getSize());
 		}
 		else
 		{
-			res=new SubBlock(new Block(_block.getBytes().length-totalInputHeadSize+totalOutputHeadSize, transferType));
-			res=new SubBlock(res.getBytes(), res.getOffset()+totalOutputHeadSize, _block.getBytes().length-Block.getHeadSize()-totalInputHeadSize);
-			System.arraycopy(_block.getBytes(), Block.getHeadSize()+totalInputHeadSize, res.getBytes(), res.getOffset(), res.getSize());
+			res=new SubBlock(new Block(totalOutputSize, transferType), Block.getHeadSize()+totalOutputHeadSize, _block.getSize());
+			System.arraycopy(_block.getBytes(), Block.getHeadSize()+totalInputHeadSize, res.getBytes(), res.getOffset(), _block.getSize());
 			//Block.setCounterState(res.getBytes(), Block.getCounterState(_block.getBytes()));
 		}
-		
+
 		for (java.util.Iterator<ConnectionProtocol<?>> it=cpOutput.reverseIterator();it.hasNext();)
 		{
 			ConnectionProtocol<?> cp=it.next();
 			//cp.getPacketCounter().incrementOtherCounters();
-			res=cp.getParser().signIfPossibleOutgoingPointToPointTransferedBlock(res);
+			res=cp.getParser().signIfPossibleOutgoingPointToPointTransferredBlock(res);
 		}
-		
+
 		return res;
 	}
 	

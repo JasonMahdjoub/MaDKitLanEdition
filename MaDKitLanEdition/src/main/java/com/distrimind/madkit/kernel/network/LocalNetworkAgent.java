@@ -82,7 +82,7 @@ class LocalNetworkAgent extends AgentFakeThread {
 	private final ArrayList<BindInetSocketAddressMessage> socket_binds = new ArrayList<>();
 	protected volatile ArrayList<BindInetSocketAddressMessage> effective_socket_binds = new ArrayList<>();
 	private boolean upnpIGDEnabled = false;
-	private HashMap<InetAddress, Router> routers = new HashMap<>();
+	private final HashMap<InetAddress, Router> routers = new HashMap<>();
 	private final Stack<AskForConnectionMessage> standby_connections = new Stack<>();
 	private final ArrayList<ConnectionStatusMessage> effective_connections = new ArrayList<>();
 	private final ArrayList<AskForConnectionMessage> connections_to_differ =new ArrayList<>();
@@ -361,12 +361,7 @@ class LocalNetworkAgent extends AgentFakeThread {
 			if (m.include(bind_message))
 				return false;
 		}
-		for (Iterator<BindInetSocketAddressMessage> it = socket_binds.iterator(); it.hasNext();) {
-			BindInetSocketAddressMessage m = it.next();
-			if (bind_message.include(m)) {
-				it.remove();
-			}
-		}
+		socket_binds.removeIf(bind_message::include);
 		socket_binds.add(bind_message);
 		if (logger != null && logger.isLoggable(Level.FINER))
 			logger.finer("Bind added : " + bind_message);
@@ -414,7 +409,7 @@ class LocalNetworkAgent extends AgentFakeThread {
 		} else if (_message.getClass() == PortMappingAnswerMessage.class) {
 			PortMappingAnswerMessage m = (PortMappingAnswerMessage) _message;
 			if (getMadkitConfig().networkProperties.portsToBindForAutomaticLocalConnections == m.getInternalPort()
-					&& m.getReturnCode().equals(MappingReturnCode.SUCESS)) {
+					&& m.getReturnCode().equals(MappingReturnCode.SUCCESS)) {
 				Router r = routers.get(m.getConcernedRouter());
 				if (r != null) {
 					if (logger != null && logger.isLoggable(Level.FINEST))
@@ -539,18 +534,14 @@ class LocalNetworkAgent extends AgentFakeThread {
 								}
 
 								connections_to_differ.add(i, con);
-								taskIDThatDifferConnections=scheduleTask(new Task<>(new Callable<Void>(){
-
-									@Override
-									public Void call() {
-										synchronized (connections_to_differ) {
-											if (connections_to_differ.size()>0)
-											{
-												receiveMessage(connections_to_differ.remove(connections_to_differ.size()-1));
-											}
+								taskIDThatDifferConnections=scheduleTask(new Task<>((Callable<Void>) () -> {
+									synchronized (connections_to_differ) {
+										if (connections_to_differ.size()>0)
+										{
+											receiveMessage(connections_to_differ.remove(connections_to_differ.size()-1));
 										}
-										return null;
 									}
+									return null;
 								}, Math.min(0, 1000L+ connections_to_differ.get(connections_to_differ.size()-1).getTimeUTCOfConnection()-System.currentTimeMillis())));
 							}
 
@@ -560,8 +551,8 @@ class LocalNetworkAgent extends AgentFakeThread {
 							boolean found = false;
 							con = con.clone();
 							con.chooseIP(isIPV6ConnectionPossible());
-							if (con.choosenIP != null) {
-								boolean local = isConcernedBy(con.getChoosenIP().getAddress());
+							if (con.chosenIP != null) {
+								boolean local = isConcernedBy(con.getChosenIP().getAddress());
 								for (BindInetSocketAddressMessage b : effective_socket_binds) {
 									found = isConcernedBy(b, con, local);
 									if (found) {
@@ -593,7 +584,7 @@ class LocalNetworkAgent extends AgentFakeThread {
 				 * //found=true; break; } }
 				 */
 				if (logger != null && logger.isLoggable(Level.FINER))
-					logger.finer("Ask for deconnection : " + con);
+					logger.finer("Ask for disconnection : " + con);
 
 				this.broadcastMessageWithRole(LocalCommunity.Groups.LOCAL_NETWORKS, LocalCommunity.Roles.NIO_ROLE, con,
 						LocalCommunity.Roles.LOCAL_NETWORK_ROLE);
@@ -613,7 +604,7 @@ class LocalNetworkAgent extends AgentFakeThread {
 				if (!found)
 					effective_connections.add(cs);
 				if (logger != null && logger.isLoggable(Level.FINER))
-					logger.finer("Receving : " + cs);
+					logger.finer("Receiving : " + cs);
 
 			} else if (cs.type.equals(ConnectionStatusMessage.Type.DISCONNECT)) {
 				boolean retry=false;
@@ -644,7 +635,7 @@ class LocalNetworkAgent extends AgentFakeThread {
 				}
 
 				if (logger != null && logger.isLoggable(Level.FINER))
-					logger.finer("Receving : " + cs);
+					logger.finer("Receiving : " + cs);
 
 			}
 		} else if (_message instanceof NetworkAgent.StopNetworkMessage) {
@@ -660,41 +651,26 @@ class LocalNetworkAgent extends AgentFakeThread {
 		return false;
 	}
 
-	/*
-	 * private boolean isConcernedBy(ConnectionStatusMessage con, boolean local) {
-	 * if ((this.network_interface_ipv6!=null && (con.getChoosenIP().getAddress()
-	 * instanceof Inet6Address)) || (this.network_interface_ipv4!=null &&
-	 * con.getChoosenIP().getAddress() instanceof Inet4Address)) { InetSocketAddress
-	 * choosenIP=con.getChoosenIP(); if (choosenIP.getAddress().isAnyLocalAddress()
-	 * || choosenIP.getAddress().isMulticastAddress()) { return false; } else if
-	 * (local) { return true; } else if (choosenIP.getAddress().isLinkLocalAddress()
-	 * || choosenIP.getAddress().isSiteLocalAddress() ||
-	 * con.getChoosenIP().getAddress().isLoopbackAddress()) { return false; } else
-	 * if (upnpIGDEnabled) { for (Router r : routers.values()) { if
-	 * (r.getStatus().equals(Status.Connected)) { return true; } } } else { return
-	 * true; } } return false; }
-	 */
 
 	private boolean isConcernedBy(BindInetSocketAddressMessage b, ConnectionStatusMessage con, boolean local) {
-		InetSocketAddress choosenIP = con.getChoosenIP();
-		if (choosenIP == null)
+		InetSocketAddress chosenIP = con.getChosenIP();
+		if (chosenIP == null)
 			return false;
-		if (/*
-			 * b.getInetSocketAddress().getPort()==con.getChoosenIP().getPort() &&
-			 */((b.getInetSocketAddress().getAddress() instanceof Inet4Address)
-				&& (choosenIP.getAddress() instanceof Inet4Address)
+		if (
+				((b.getInetSocketAddress().getAddress() instanceof Inet4Address)
+				&& (chosenIP.getAddress() instanceof Inet4Address)
 				|| (b.getInetSocketAddress().getAddress() instanceof Inet6Address)
-						&& (choosenIP.getAddress() instanceof Inet6Address))) {
+						&& (chosenIP.getAddress() instanceof Inet6Address))) {
 
-			if (choosenIP.getAddress().isAnyLocalAddress() || choosenIP.getAddress().isMulticastAddress()) {
+			if (chosenIP.getAddress().isAnyLocalAddress() || chosenIP.getAddress().isMulticastAddress()) {
 				return false;
 			} else if (b.getInetSocketAddress().getAddress().isLoopbackAddress()
-					&& !choosenIP.getAddress().isLoopbackAddress()) {
+					&& !chosenIP.getAddress().isLoopbackAddress()) {
 				return false;
 			} else if (local) {
 				return true;
-			} else if (choosenIP.getAddress().isLinkLocalAddress() || choosenIP.getAddress().isSiteLocalAddress()
-					|| con.getChoosenIP().getAddress().isLoopbackAddress()) {
+			} else if (chosenIP.getAddress().isLinkLocalAddress() || chosenIP.getAddress().isSiteLocalAddress()
+					|| con.getChosenIP().getAddress().isLoopbackAddress()) {
 				return false;
 			} else if (upnpIGDEnabled) {
 				for (Router r : routers.values()) {
@@ -722,12 +698,7 @@ class LocalNetworkAgent extends AgentFakeThread {
 
 	private void addStandbyAskedConnection(AskForConnectionMessage m) {
 
-		for (Iterator<AskForConnectionMessage> it = standby_connections.iterator(); it.hasNext();) {
-			AskForConnectionMessage afcm = it.next();
-			if (afcm.getIP().equals(m.getIP())) {
-				it.remove();
-			}
-		}
+		standby_connections.removeIf(afcm -> afcm.getIP().equals(m.getIP()));
 		if (m.getType().equals(ConnectionStatusMessage.Type.CONNECT))
 			standby_connections.add(m);
 		if (logger != null && logger.isLoggable(Level.FINER))
@@ -739,10 +710,10 @@ class LocalNetworkAgent extends AgentFakeThread {
 			ArrayList<BindInetSocketAddressMessage> removed_binds) {
 		for (BindInetSocketAddressMessage newBind : added_binds) {
 			for (ConnectionStatusMessage ask : effective_connections) {
-				if (isConcernedBy(newBind, ask, isConcernedBy(ask.getChoosenIP().getAddress()))) {
+				if (isConcernedBy(newBind, ask, isConcernedBy(ask.getChosenIP().getAddress()))) {
 					BindInetSocketAddressMessage bestBind = newBind;
 					for (BindInetSocketAddressMessage b : effective_socket_binds) {
-						if (isConcernedBy(b, ask, isConcernedBy(ask.getChoosenIP().getAddress()))) {
+						if (isConcernedBy(b, ask, isConcernedBy(ask.getChosenIP().getAddress()))) {
 							if (!removed_binds.contains(b)) {
 								if (b.networkInterfaceSpeed >= bestBind.networkInterfaceSpeed) {
 									bestBind = b;
@@ -758,7 +729,7 @@ class LocalNetworkAgent extends AgentFakeThread {
 								LocalCommunity.Roles.NIO_ROLE,
 								new AskForConnectionMessage(
 										com.distrimind.madkit.kernel.network.ConnectionStatusMessage.Type.CONNECT,
-										ask.getIP(), ask.getChoosenIP(), newBind.getInetSocketAddress()),
+										ask.getIP(), ask.getChosenIP(), newBind.getInetSocketAddress()),
 								LocalCommunity.Roles.LOCAL_NETWORK_ROLE);
 					}
 
@@ -815,21 +786,17 @@ class LocalNetworkAgent extends AgentFakeThread {
 			checkConnectionsToAdd(added_binds, removed_binds);
 			checkStandbyConnections();
 		}
-		scheduleTask(new Task<>(new Callable<Void>() {
-
-			@Override
-			public Void call() {
-				synchronized (LocalNetworkAgent.class) {
-					if (isAlive()) {
-						for (BindInetSocketAddressMessage o : removed_binds) {
-							if (!effective_socket_binds.contains(o))
-								broadcastMessage(LocalCommunity.Groups.LOCAL_NETWORKS, LocalCommunity.Roles.NIO_ROLE,
-										new BindInetSocketAddressMessage(Type.DISCONNECT, o.getInetSocketAddress()),
-										false);
-						}
+		scheduleTask(new Task<>((Callable<Void>) () -> {
+			synchronized (LocalNetworkAgent.class) {
+				if (isAlive()) {
+					for (BindInetSocketAddressMessage o : removed_binds) {
+						if (!effective_socket_binds.contains(o))
+							broadcastMessage(LocalCommunity.Groups.LOCAL_NETWORKS, LocalCommunity.Roles.NIO_ROLE,
+									new BindInetSocketAddressMessage(Type.DISCONNECT, o.getInetSocketAddress()),
+									false);
 					}
-					return null;
 				}
+				return null;
 			}
 		}, getMadkitConfig().networkProperties.maxDurationBeforeClosingObsoleteNetworkInterfaces
 				+ System.currentTimeMillis()));
@@ -854,22 +821,7 @@ class LocalNetworkAgent extends AgentFakeThread {
 		}
 	}
 	
-	/*public static void main(String[] args) throws SocketException
-	{
-		Enumeration<NetworkInterface> nis=NetworkInterface.getNetworkInterfaces();
-		for (;nis.hasMoreElements();)
-		{
-			NetworkInterface ni=nis.nextElement();
-			System.out.println(ni.getDisplayName()+", index="+ni.getIndex()+", loopback="+ni.isLoopback()+", pointtopoint="+ni.isPointToPoint()+", up="+ni.isUp()+", virtual="+ni.isVirtual()+", support multicast="+ni.supportsMulticast());
-			for (InterfaceAddress ia : ni.getInterfaceAddresses()) {
-				if (isValid(ia))
-				{
-					System.out.println("\t"+ia.getAddress()+" anylocaladdress="+ia.getAddress().isAnyLocalAddress()+", sitelocaladdress="+ia.getAddress().isSiteLocalAddress()+", linklocaladdress"+ia.getAddress().isLinkLocalAddress()+", loopback="+ia.getAddress().isLoopbackAddress()+
-							", multicast="+ia.getAddress().isMulticastAddress()+", mgcglobal="+ia.getAddress().isMCGlobal()+", mcorglocal"+ia.getAddress().isMCOrgLocal()+", mcnodelocal="+ia.getAddress().isMCNodeLocal()+", mcsitelocal="+ia.getAddress().isMCSiteLocal()+", mclinklocal="+ia.getAddress().isMCLinkLocal());
-				}
-			}
-		}
-	}*/
+
 
 	private ArrayList<BindInetSocketAddressMessage> selectNetworkInterfaces(BindInetSocketAddressMessage bind,
 			ArrayList<NetworkInterface> nis) {
@@ -910,10 +862,10 @@ class LocalNetworkAgent extends AgentFakeThread {
 		return res;
 	}
 
-	public class PossibleAddressForDirectConnnection {
+	public class PossibleAddressForDirectConnection {
 		private final AbstractIP IP;
 
-		protected PossibleAddressForDirectConnnection(AbstractIP isa) {
+		protected PossibleAddressForDirectConnection(AbstractIP isa) {
 			if (isa == null)
 				throw new NullPointerException("isa");
 			IP = isa;
@@ -936,8 +888,8 @@ class LocalNetworkAgent extends AgentFakeThread {
 		public boolean equals(Object o) {
 			if (o == null)
 				return false;
-			if (o.getClass() == PossibleAddressForDirectConnnection.class)
-				return ((PossibleAddressForDirectConnnection) o).IP.equals(IP);
+			if (o.getClass() == PossibleAddressForDirectConnection.class)
+				return ((PossibleAddressForDirectConnection) o).IP.equals(IP);
 
 			return false;
 		}
@@ -949,10 +901,10 @@ class LocalNetworkAgent extends AgentFakeThread {
 				InetSocketAddress newIP) {
 			if (oldIP != null)
 				getMadkitConfig().networkProperties.removePossibleAddressForDirectConnection(
-						new PossibleAddressForDirectConnnection(new DoubleIP(oldIP)));
+						new PossibleAddressForDirectConnection(new DoubleIP(oldIP)));
 			if (newIP != null)
 				getMadkitConfig().networkProperties.addPossibleAddressForDirectConnection(
-						new PossibleAddressForDirectConnnection(new DoubleIP(newIP)));
+						new PossibleAddressForDirectConnection(new DoubleIP(newIP)));
 		}
 
 		@SuppressWarnings("MethodDoesntCallSuperMethod")

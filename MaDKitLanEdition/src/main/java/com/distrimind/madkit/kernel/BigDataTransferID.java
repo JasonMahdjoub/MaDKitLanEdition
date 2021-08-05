@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel;
 
-import com.distrimind.madkit.kernel.network.RealTimeTransfertStat;
+import com.distrimind.madkit.kernel.network.RealTimeTransferStat;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
 
@@ -54,7 +54,7 @@ import java.util.Map;
  */
 public class BigDataTransferID extends ConversationID {
 
-	private transient RealTimeTransfertStat stat;
+	private transient RealTimeTransferStat stat;
 
 	@SuppressWarnings("unused")
 	BigDataTransferID() {
@@ -77,7 +77,7 @@ public class BigDataTransferID extends ConversationID {
 	}
 	
 	
-	BigDataTransferID(ConversationID cid, RealTimeTransfertStat stat) {
+	BigDataTransferID(ConversationID cid, RealTimeTransferStat stat) {
 		super(-1, null);
 		//super(cid);
 		if (cid == null)
@@ -85,7 +85,7 @@ public class BigDataTransferID extends ConversationID {
 		this.stat = stat;
 		this.cid = cid;
 	}
-	BigDataTransferID(int id, KernelAddress kernelAddress, RealTimeTransfertStat stat) {
+	BigDataTransferID(int id, KernelAddress kernelAddress, RealTimeTransferStat stat) {
 		super(id, kernelAddress);
 		this.stat = stat;
 	}
@@ -147,7 +147,7 @@ public class BigDataTransferID extends ConversationID {
 	 * @return statistics in bytes per seconds related to the concerned big data
 	 *         transfer
 	 */
-	public RealTimeTransfertStat getBytePerSecondsStat() {
+	public RealTimeTransferStat getBytePerSecondsStat() {
 		return stat;
 	}
 }

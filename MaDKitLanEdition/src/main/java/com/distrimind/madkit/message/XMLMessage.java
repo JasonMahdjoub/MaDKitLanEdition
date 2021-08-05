@@ -70,20 +70,20 @@ public class XMLMessage extends Message {
 	/**
 	 * The xml content as a Document (null if the content is defined as a string)
 	 */
-	protected Document docContent = null;
+	protected Document docContent;
 	/**
 	 * The xml content as a String (null if the content is defined as a Document)
 	 */
-	protected String strcontent = null;
+	protected String strContent;
 	
-	private boolean excludeFromEncryption;
+	private final boolean excludeFromEncryption;
 
 	/**
 	 * Setup an XMLMessage with the xml document setup as a string. The string is
 	 * not validated at construction
 	 * 
 	 * @param s
-	 *            A valid (i.e. parseable) text XML document
+	 *            A valid (i.e. parsable) text XML document
 	 */
 	public XMLMessage(String s) {
 		this(s, false);
@@ -94,11 +94,11 @@ public class XMLMessage extends Message {
 	 * not validated at construction
 	 * 
 	 * @param s
-	 *            A valid (i.e. parseable) text XML document
+	 *            A valid (i.e. parsable) text XML document
 	 * @param excludeFromEncryption tells if this message can be excluded from the lan encryption process
 	 */
 	public XMLMessage(String s, boolean excludeFromEncryption) {
-		strcontent = s;
+		strContent = s;
 		docContent = null;
 		this.excludeFromEncryption=excludeFromEncryption;
 	}
@@ -121,7 +121,7 @@ public class XMLMessage extends Message {
 	 * @param excludeFromEncryption tells if this message can be excluded from the lan encryption process
 	 */
 	public XMLMessage(Document d, boolean excludeFromEncryption) {
-		strcontent = null;
+		strContent = null;
 		docContent = d;
 		this.excludeFromEncryption=excludeFromEncryption;
 	}
@@ -134,8 +134,8 @@ public class XMLMessage extends Message {
 	 * @return A stringified version of the message content
 	 */
 	public String getString() {
-		if (strcontent != null)
-			return strcontent;
+		if (strContent != null)
+			return strContent;
 		// Serialization through Transform.
 		DOMSource domSource = new DOMSource(docContent);
 		StreamResult streamResult = new StreamResult(new StringWriter());
@@ -161,7 +161,7 @@ public class XMLMessage extends Message {
 			return docContent;
 		try {
 			return DocumentBuilderFactory.newInstance().newDocumentBuilder()
-					.parse((new InputSource(new StringReader(strcontent))));
+					.parse((new InputSource(new StringReader(strContent))));
 		} catch (SAXException | IOException | ParserConfigurationException e) {
 			e.printStackTrace();
 		}
@@ -176,8 +176,8 @@ public class XMLMessage extends Message {
 	 * @return A stringified version of the document
 	 */
 	public String toString() {
-		if (strcontent != null)
-			return strcontent;
+		if (strContent != null)
+			return strContent;
 		return docContent.toString();
 	}
 

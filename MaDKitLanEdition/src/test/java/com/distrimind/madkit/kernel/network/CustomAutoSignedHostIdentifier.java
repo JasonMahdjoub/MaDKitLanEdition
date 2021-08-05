@@ -38,12 +38,12 @@ knowledge of the CeCILL-C license and that you accept its terms.
 import com.distrimind.madkit.kernel.network.connection.access.HostIdentifier;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.crypto.*;
+import com.distrimind.util.data_buffers.WrappedData;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
 import com.distrimind.util.io.SerializationTools;
 
 import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 
@@ -54,7 +54,7 @@ import java.security.NoSuchProviderException;
  */
 public class CustomAutoSignedHostIdentifier extends HostIdentifier {
 
-	private AbstractKeyPair keyPair;
+	private AbstractKeyPair<?, ?> keyPair;
 	private IASymmetricPublicKey publicKey;
 
 	@SuppressWarnings("unused")
@@ -77,11 +77,11 @@ public class CustomAutoSignedHostIdentifier extends HostIdentifier {
 		oos.writeObject(publicKey, false);
 	}
 
-	CustomAutoSignedHostIdentifier(AbstractSecureRandom random, ASymmetricAuthenticatedSignatureType type) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
+	CustomAutoSignedHostIdentifier(AbstractSecureRandom random, ASymmetricAuthenticatedSignatureType type) throws IOException, NoSuchAlgorithmException, NoSuchProviderException {
 		keyPair=type.getKeyPairGenerator(random).generateKeyPair();
 		publicKey=keyPair.getASymmetricPublicKey();
 	}
-	CustomAutoSignedHostIdentifier(AbstractSecureRandom random, ASymmetricAuthenticatedSignatureType type, ASymmetricAuthenticatedSignatureType typePQC) throws InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchProviderException {
+	CustomAutoSignedHostIdentifier(AbstractSecureRandom random, ASymmetricAuthenticatedSignatureType type, ASymmetricAuthenticatedSignatureType typePQC) throws IOException, NoSuchAlgorithmException, NoSuchProviderException {
 		keyPair=new HybridASymmetricAuthenticatedSignatureType(type, typePQC).generateKeyPair(random);
 		publicKey=keyPair.getASymmetricPublicKey();
 	}
@@ -108,7 +108,7 @@ public class CustomAutoSignedHostIdentifier extends HostIdentifier {
 	}
 
 	@Override
-	public byte[] getBytesTabToEncode() {
+	public WrappedData getBytesTabToEncode() {
 		return publicKey.encode();
 	}
 
@@ -118,7 +118,7 @@ public class CustomAutoSignedHostIdentifier extends HostIdentifier {
 	}
 
 	@Override
-	public AbstractKeyPair getAuthenticationKeyPair() {
+	public AbstractKeyPair<?, ?> getAuthenticationKeyPair() {
 		return keyPair;
 	}
 
@@ -129,6 +129,11 @@ public class CustomAutoSignedHostIdentifier extends HostIdentifier {
 
 	@Override
 	public DecentralizedValue getDecentralizedDatabaseID() {
-		return (DecentralizedValue)getAuthenticationPublicKey();
+		return getAuthenticationPublicKey();
+	}
+
+	@Override
+	public DecentralizedValue getCentralDecentralizedDatabaseID() {
+		return getAuthenticationPublicKey();
 	}
 }

@@ -38,7 +38,7 @@
 package com.distrimind.madkit.kernel.network.connection.access;
 
 import com.distrimind.util.crypto.AbstractSecureRandom;
-import com.distrimind.util.crypto.SymmetricAuthentifiedSignatureType;
+import com.distrimind.util.crypto.SymmetricAuthenticatedSignatureType;
 import com.distrimind.util.crypto.SymmetricSecretKey;
 
 import java.security.NoSuchAlgorithmException;
@@ -127,7 +127,7 @@ public abstract class PasswordKey {
 				if (secretKey==null)
 				{
 					try {
-						secretKey= SymmetricAuthentifiedSignatureType.DEFAULT.getKeyGenerator(random, (short)(defaultFakePasswordSecretKeySizeBytes*8)).generateKey();
+						secretKey= SymmetricAuthenticatedSignatureType.DEFAULT.getKeyGenerator(random, (short)(defaultFakePasswordSecretKeySizeBytes*8)).generateKey();
 					} catch (NoSuchAlgorithmException | NoSuchProviderException e) {
 						e.printStackTrace();
 					}

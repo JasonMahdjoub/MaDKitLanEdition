@@ -50,6 +50,7 @@ import com.distrimind.madkit.kernel.network.connection.secured.*;
 import com.distrimind.madkit.kernel.network.connection.unsecured.CheckSumConnectionProtocolProperties;
 import com.distrimind.madkit.kernel.network.connection.unsecured.UnsecuredConnectionProtocolProperties;
 import com.distrimind.ood.database.DatabaseConfiguration;
+import com.distrimind.ood.database.DatabaseSchema;
 import com.distrimind.ood.database.EmbeddedH2DatabaseWrapper;
 import com.distrimind.ood.database.InMemoryEmbeddedH2DatabaseFactory;
 import com.distrimind.util.crypto.*;
@@ -66,7 +67,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
-import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.ArrayList;
@@ -92,13 +92,17 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		try {
 
 			if (dbasker.exists())
-				EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(dbasker);
+				EmbeddedH2DatabaseWrapper.deleteDatabasesFiles(dbasker);
 			if (dbreceiver.exists())
-				EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(dbreceiver);
+				EmbeddedH2DatabaseWrapper.deleteDatabasesFiles(dbreceiver);
 			asker = new InMemoryEmbeddedH2DatabaseFactory(dbasker.getName()).getDatabaseWrapperSingleton();
 			receiver = new InMemoryEmbeddedH2DatabaseFactory(dbreceiver.getName()).getDatabaseWrapperSingleton();
-			asker.loadDatabase(new DatabaseConfiguration(KeysPairs.class.getPackage()), true);
-			receiver.loadDatabase(new DatabaseConfiguration(KeysPairs.class.getPackage()), true);
+			asker.getDatabaseConfigurationsBuilder()
+					.addConfiguration(new DatabaseConfiguration(new DatabaseSchema(KeysPairs.class.getPackage())), true, true )
+					.commit();
+			receiver.getDatabaseConfigurationsBuilder()
+					.addConfiguration(new DatabaseConfiguration(new DatabaseSchema(KeysPairs.class.getPackage())), true, true )
+					.commit();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -110,14 +114,15 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 	public static void removeDatabase() {
 		sql_connection_asker.close();
 		sql_connection_recveiver.close();
-		EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(dbasker);
-		EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(dbreceiver);
+		EmbeddedH2DatabaseWrapper.deleteDatabasesFiles(dbasker);
+		EmbeddedH2DatabaseWrapper.deleteDatabasesFiles(dbreceiver);
 	}
 
 	private static final int numberMaxExchange = 100;
 	private ConnectionProtocol<?> cpasker;
 	private ConnectionProtocol<?> cpreceiver;
-	private NetworkProperties npasker, npreceiver;
+	private final NetworkProperties npasker;
+	private final NetworkProperties npreceiver;
     private final MadkitProperties mkPropertiesAsker;
     private final MadkitProperties mkPropertiesReceiver;
 	private final static AbstractSecureRandom rand ;
@@ -134,9 +139,9 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 	}
 
 	private static ArrayList<ConnectionProtocolProperties<?>[]> dataWithSubLevel()
-			throws SecurityException, IllegalArgumentException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, ConnectionException {
-		ArrayList<ConnectionProtocolProperties<?>[]> res = new ArrayList<>();
+			throws SecurityException, IllegalArgumentException, NoSuchAlgorithmException, NoSuchProviderException, ConnectionException, IOException {
 		ArrayList<ConnectionProtocolProperties<?>[]> l=dataOneLevel();
+		ArrayList<ConnectionProtocolProperties<?>[]> res = new ArrayList<>(l);
 		@SuppressWarnings("unchecked")
 		ArrayList<ConnectionProtocolProperties<?>[]>[] firstLevel = new ArrayList[l.size()];
 		firstLevel[0]=l;
@@ -158,17 +163,17 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 	}
 
 	private static ArrayList<ConnectionProtocolProperties<?>[]> dataOneLevel()
-			throws SecurityException, IllegalArgumentException, NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException, ConnectionException {
+			throws SecurityException, IllegalArgumentException, NoSuchAlgorithmException, NoSuchProviderException, ConnectionException, IOException {
 		ArrayList<ConnectionProtocolProperties<?>[]> res = new ArrayList<>();
 
 		ConnectionProtocolProperties<?>[] o = new ConnectionProtocolProperties<?>[2];
 		P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties p2pp = new P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties();
-		p2pp.aSymetricKeySize = 2048;
+		p2pp.aSymmetricKeySize = 2048;
 		p2pp.symmetricEncryptionType = SymmetricEncryptionType.AES_GCM;
 		p2pp.enableEncryption=true;
 		o[0] = p2pp;
 		p2pp = new P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties();
-		p2pp.aSymetricKeySize = 2048;
+		p2pp.aSymmetricKeySize = 2048;
 		p2pp.enableEncryption=true;
 		p2pp.symmetricEncryptionType = SymmetricEncryptionType.AES_GCM;
 		o[1] = p2pp;
@@ -176,12 +181,12 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		
 		o = new ConnectionProtocolProperties<?>[2];
 		p2pp = new P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties();
-		p2pp.aSymetricKeySize = 2048;
+		p2pp.aSymmetricKeySize = 2048;
 		p2pp.symmetricEncryptionType = SymmetricEncryptionType.AES_CBC_PKCS5Padding;
 		p2pp.enableEncryption=true;
 		o[0] = p2pp;
 		p2pp = new P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties();
-		p2pp.aSymetricKeySize = 2048;
+		p2pp.aSymmetricKeySize = 2048;
 		p2pp.symmetricEncryptionType = SymmetricEncryptionType.AES_CBC_PKCS5Padding;
 		p2pp.enableEncryption=true;
 		o[1] = p2pp;
@@ -191,12 +196,12 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 
 		o = new ConnectionProtocolProperties<?>[2];
 		p2pp = new P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties();
-		p2pp.aSymetricKeySize = 2048;
+		p2pp.aSymmetricKeySize = 2048;
 		p2pp.enableEncryption = false;
 		p2pp.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
 		o[0] = p2pp;
 		p2pp = new P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties();
-		p2pp.aSymetricKeySize = 2048;
+		p2pp.aSymmetricKeySize = 2048;
 		p2pp.enableEncryption = false;
 		p2pp.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
 		o[1] = p2pp;
@@ -205,44 +210,32 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		o = new ConnectionProtocolProperties<?>[2];
 		P2PSecuredConnectionProtocolPropertiesWithKeyAgreement p2pp_ecdh = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.AES_CBC_PKCS5Padding;
-		p2pp_ecdh.keyAgreementType=KeyAgreementType.BC_XDH_X448_WITH_SHA512CKDF;
+		p2pp_ecdh.keyAgreementType=KeyAgreementType.BC_FIPS_XDH_X448_WITH_SHA512CKDF;
 		p2pp_ecdh.enableEncryption=true;
 		o[0] = p2pp_ecdh;
 		p2pp_ecdh = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.AES_CBC_PKCS5Padding;
-		p2pp_ecdh.keyAgreementType=KeyAgreementType.BC_XDH_X448_WITH_SHA512CKDF;
+		p2pp_ecdh.keyAgreementType=KeyAgreementType.BC_FIPS_XDH_X448_WITH_SHA512CKDF;
 		p2pp_ecdh.enableEncryption=true;
 		o[1] = p2pp_ecdh;
 		res.add(o);
 
 		o = new ConnectionProtocolProperties<?>[2];
-		AbstractKeyPair<?, ?> keyPairForSignature=new HybridASymmetricAuthenticatedSignatureType(ASymmetricAuthenticatedSignatureType.BC_Ed25519, ASymmetricAuthenticatedSignatureType.BCPQC_SPHINCS256_SHA3_512).generateKeyPair(rand);
+		AbstractKeyPair<?, ?> keyPairForSignature=new HybridASymmetricAuthenticatedSignatureType(ASymmetricAuthenticatedSignatureType.BC_FIPS_Ed25519, ASymmetricAuthenticatedSignatureType.BCPQC_SPHINCS256_SHA3_512).generateKeyPair(rand);
 		p2pp_ecdh = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.AES_GCM;
-		p2pp_ecdh.keyAgreementType=KeyAgreementType.BC_XDH_X448_WITH_SHA512CKDF;
+		p2pp_ecdh.keyAgreementType=KeyAgreementType.BC_FIPS_XDH_X448_WITH_SHA512CKDF;
 		p2pp_ecdh.enableEncryption=true;
 		int profile=p2pp_ecdh.addServerSideProfile(keyPairForSignature );
 		o[0] = p2pp_ecdh;
 		p2pp_ecdh = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.AES_GCM;
-		p2pp_ecdh.keyAgreementType=KeyAgreementType.BC_XDH_X448_WITH_SHA512CKDF;
+		p2pp_ecdh.keyAgreementType=KeyAgreementType.BC_FIPS_XDH_X448_WITH_SHA512CKDF;
 		p2pp_ecdh.enableEncryption=true;
 		p2pp_ecdh.setClientSideProfile(profile, keyPairForSignature.getASymmetricPublicKey());
 		o[1] = p2pp_ecdh;
 		res.add(o);
 
-		o = new ConnectionProtocolProperties<?>[2];
-		p2pp_ecdh = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
-		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
-		p2pp_ecdh.keyAgreementType=KeyAgreementType.BC_ECCDH_512_CURVE_25519;
-		p2pp_ecdh.enableEncryption=false;
-		o[0] = p2pp_ecdh;
-		p2pp_ecdh = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
-		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
-		p2pp_ecdh.keyAgreementType=KeyAgreementType.BC_ECCDH_512_CURVE_25519;
-		p2pp_ecdh.enableEncryption=false;
-		o[1] = p2pp_ecdh;
-		res.add(o);
 
 		o = new ConnectionProtocolProperties<?>[2];
 		p2pp_ecdh = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
@@ -279,9 +272,9 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		res.add(o);
 
 		SymmetricSecretKey secretKeyForEncryption=SymmetricEncryptionType.AES_CTR.getKeyGenerator(rand).generateKey();
-		SymmetricSecretKey secretKeyForSignature=SymmetricAuthentifiedSignatureType.BC_FIPS_HMAC_SHA2_256.getKeyGenerator(rand).generateKey();
+		SymmetricSecretKey secretKeyForSignature=SymmetricAuthenticatedSignatureType.BC_FIPS_HMAC_SHA2_256.getKeyGenerator(rand).generateKey();
 		SymmetricSecretKey secretKeyForEncryption2=SymmetricEncryptionType.AES_CTR.getKeyGenerator(rand).generateKey();
-		SymmetricSecretKey secretKeyForSignature2=SymmetricAuthentifiedSignatureType.BC_FIPS_HMAC_SHA2_256.getKeyGenerator(rand).generateKey();
+		SymmetricSecretKey secretKeyForSignature2=SymmetricAuthenticatedSignatureType.BC_FIPS_HMAC_SHA2_256.getKeyGenerator(rand).generateKey();
 
 
 		o = new ConnectionProtocolProperties<?>[2];
@@ -326,7 +319,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		cpnp.addConnectionProtocol(p2pp_ecdh, 1);
 		p2pp_ecdh = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
-		p2pp_ecdh.keyAgreementType=KeyAgreementType.BC_ECCDH_512_CURVE_25519;
+		p2pp_ecdh.keyAgreementType=KeyAgreementType.BC_FIPS_XDH_X25519_WITH_SHA384CKDF;
 		p2pp_ecdh.enableEncryption=true;
 		cpnp.addConnectionProtocol(p2pp_ecdh, 0);
 		o[0] = cpnp;
@@ -341,7 +334,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		cpnp.addConnectionProtocol(p2pp_ecdh, 1);
 		p2pp_ecdh = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
-		p2pp_ecdh.keyAgreementType=KeyAgreementType.BC_ECCDH_512_CURVE_25519;
+		p2pp_ecdh.keyAgreementType=KeyAgreementType.BC_FIPS_XDH_X25519_WITH_SHA384CKDF;
 		p2pp_ecdh.enableEncryption=true;
 		cpnp.addConnectionProtocol(p2pp_ecdh, 0);
 		o[1] = cpnp;
@@ -359,7 +352,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		cpnp.addConnectionProtocol(p2pp_ecdh, 0);
 		p2pp_ecdh = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
-		p2pp_ecdh.keyAgreementType=KeyAgreementType.BC_ECCDH_512_CURVE_25519;
+		p2pp_ecdh.keyAgreementType=KeyAgreementType.BC_FIPS_XDH_X25519_WITH_SHA512CKDF;
 		p2pp_ecdh.enableEncryption=true;
 		cpnp.addConnectionProtocol(p2pp_ecdh, 1);
 		o[0] = cpnp;
@@ -374,7 +367,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		cpnp.addConnectionProtocol(p2pp_ecdh, 0);
 		p2pp_ecdh = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 		p2pp_ecdh.symmetricEncryptionType = SymmetricEncryptionType.DEFAULT;
-		p2pp_ecdh.keyAgreementType=KeyAgreementType.BC_ECCDH_512_CURVE_25519;
+		p2pp_ecdh.keyAgreementType=KeyAgreementType.BC_FIPS_XDH_X25519_WITH_SHA512CKDF;
 		p2pp_ecdh.enableEncryption=true;
 		cpnp.addConnectionProtocol(p2pp_ecdh, 1);
 		o[1] = cpnp;
@@ -385,7 +378,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		ClientSecuredProtocolPropertiesWithKnownPublicKey cp = new ClientSecuredProtocolPropertiesWithKnownPublicKey();
 		ASymmetricKeyPair kpe = ASymmetricEncryptionType.DEFAULT
 				.getKeyPairGenerator(SecureRandomType.DEFAULT.getSingleton(null), (short) 2048).generateKeyPair();
-		sp.addEncryptionProfile(kpe, SymmetricEncryptionType.AES_CBC_PKCS5Padding, ASymmetricKeyWrapperType.DEFAULT);
+		sp.addEncryptionProfile(kpe, SymmetricEncryptionType.AES_CBC_PKCS5Padding, ASymmetricKeyWrapperType.DEFAULT, MessageDigestType.DEFAULT);
 		cp.setEncryptionProfile(sp);
 		sp.enableEncryption = true;
 		cp.enableEncryption = true;
@@ -398,7 +391,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		sp = new ServerSecuredProtocolPropertiesWithKnownPublicKey();
 		cp = new ClientSecuredProtocolPropertiesWithKnownPublicKey();
 		HybridASymmetricKeyPair kpepqc=new HybridASymmetricEncryptionType(ASymmetricEncryptionType.RSA_OAEPWithSHA384AndMGF1Padding, ASymmetricEncryptionType.BCPQC_MCELIECE_FUJISAKI_CCA2_SHA256).generateKeyPair(SecureRandomType.DEFAULT.getSingleton(null), 2048);
-		sp.addEncryptionProfile(kpepqc, SymmetricEncryptionType.AES_GCM, ASymmetricKeyWrapperType.DEFAULT);
+		sp.addEncryptionProfile(kpepqc, SymmetricEncryptionType.AES_GCM, ASymmetricKeyWrapperType.DEFAULT, MessageDigestType.DEFAULT);
 		cp.setEncryptionProfile(sp);
 		sp.enableEncryption = true;
 		cp.enableEncryption = true;
@@ -409,7 +402,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		o = new ConnectionProtocolProperties<?>[2];
 		sp = new ServerSecuredProtocolPropertiesWithKnownPublicKey();
 		cp = new ClientSecuredProtocolPropertiesWithKnownPublicKey();
-		sp.addEncryptionProfile(kpe, SymmetricEncryptionType.DEFAULT, ASymmetricKeyWrapperType.DEFAULT);
+		sp.addEncryptionProfile(kpe, SymmetricEncryptionType.DEFAULT, ASymmetricKeyWrapperType.DEFAULT, MessageDigestType.DEFAULT);
 		cp.setEncryptionProfile(sp);
 		sp.enableEncryption = false;
 		cp.enableEncryption = false;
@@ -420,7 +413,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		o = new ConnectionProtocolProperties<?>[2];
 		sp = new ServerSecuredProtocolPropertiesWithKnownPublicKey();
 		cp = new ClientSecuredProtocolPropertiesWithKnownPublicKey();
-		sp.addEncryptionProfile(kpepqc, SymmetricEncryptionType.DEFAULT, ASymmetricKeyWrapperType.DEFAULT);
+		sp.addEncryptionProfile(kpepqc, SymmetricEncryptionType.DEFAULT, ASymmetricKeyWrapperType.DEFAULT, MessageDigestType.DEFAULT);
 		cp.setEncryptionProfile(sp);
 		sp.enableEncryption = false;
 		cp.enableEncryption = false;
@@ -448,7 +441,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 	}
 
 	public static Collection<Object[]> data(boolean enableDatabase) throws SecurityException, IllegalArgumentException,
-			UnknownHostException, NoSuchAlgorithmException, NIOException, NoSuchProviderException, InvalidAlgorithmParameterException, ConnectionException {
+			IOException, NoSuchAlgorithmException, NIOException, NoSuchProviderException, ConnectionException {
 		ArrayList<ConnectionProtocolProperties<?>[]> data = dataOneLevel();
 		data.addAll(dataWithSubLevel());
 		Collection<Object[]> res = new ArrayList<>();
@@ -473,8 +466,8 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 	}
 
 	@Parameters
-	public static Collection<Object[]> data() throws SecurityException, IllegalArgumentException, UnknownHostException,
-			NoSuchAlgorithmException, NIOException, NoSuchProviderException, InvalidAlgorithmParameterException, ConnectionException {
+	public static Collection<Object[]> data() throws SecurityException, IllegalArgumentException, IOException,
+			NoSuchAlgorithmException, NIOException, NoSuchProviderException, ConnectionException {
 		Collection<Object[]> res = data(false);
 		res.addAll(data(true));
 		return res;
@@ -514,7 +507,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 					+ cpasker.getSubProtocol().isCrypted() + ")");
 		/*this.cpasker.setCounterSelector(new CounterSelector(this.cpasker));
 		this.cpreceiver.setCounterSelector(new CounterSelector(this.cpreceiver));*/
-		TransferedBlockChecker 	tbcasker = this.cpasker.getTransferedBlockChecker();
+		TransferedBlockChecker 	tbcasker = this.cpasker.getTransferredBlockChecker();
 		if (tbcasker.isCompletelyInoperant())
 		{
 			tbcasker=new PointToPointTransferedBlockChecker();
@@ -526,7 +519,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 			tbcasker = (TransferedBlockChecker) unserialize(serialize(tbcasker));
 		}
 
-		TransferedBlockChecker tbreceiver = this.cpreceiver.getTransferedBlockChecker();
+		TransferedBlockChecker tbreceiver = this.cpreceiver.getTransferredBlockChecker();
 		if (tbreceiver.isCompletelyInoperant())
 		{
 			tbreceiver=new PointToPointTransferedBlockChecker();
@@ -556,7 +549,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 
 			if (this.cpasker.isTransferBlockCheckerChanged())
 			{
-				tbcasker = this.cpasker.getTransferedBlockChecker();
+				tbcasker = this.cpasker.getTransferredBlockChecker();
 				if (tbcasker.isCompletelyInoperant())
 				{
 					tbcasker=new PointToPointTransferedBlockChecker();
@@ -585,7 +578,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 					mreceiver = cpreceiver.setAndGetNextMessage(masker);
 					if (this.cpreceiver.isTransferBlockCheckerChanged())
 					{
-						tbreceiver = this.cpreceiver.getTransferedBlockChecker();
+						tbreceiver = this.cpreceiver.getTransferredBlockChecker();
 						if (tbreceiver.isCompletelyInoperant())
 						{
 							tbreceiver=new PointToPointTransferedBlockChecker();
@@ -622,7 +615,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 					masker = cpasker.setAndGetNextMessage(mreceiver);
 					if (this.cpasker.isTransferBlockCheckerChanged())
 					{
-						tbcasker = this.cpasker.getTransferedBlockChecker();
+						tbcasker = this.cpasker.getTransferredBlockChecker();
 						if (tbcasker.isCompletelyInoperant())
 						{
 							tbcasker=new PointToPointTransferedBlockChecker();
@@ -808,6 +801,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 
 			do {
 				if (cycles == index && asker) {
+					assert masker != null;
 					masker.corrupt();
 				}
 				byte[] message = serialize(masker);

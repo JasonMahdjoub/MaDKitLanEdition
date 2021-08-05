@@ -38,7 +38,7 @@
 package com.distrimind.madkit.kernel;
 
 import com.distrimind.madkit.kernel.network.Block;
-import com.distrimind.madkit.kernel.network.RealTimeTransfertStat;
+import com.distrimind.madkit.kernel.network.RealTimeTransferStat;
 import com.distrimind.madkit.util.NetworkMessage;
 import com.distrimind.util.crypto.MessageDigestType;
 import com.distrimind.util.io.*;
@@ -76,7 +76,7 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 
 	protected final transient RandomInputStream inputStream;
 	protected transient RandomOutputStream outputStream = null;
-	private transient RealTimeTransfertStat stat = null;
+	private transient RealTimeTransferStat stat = null;
 	protected long pos;
 	protected long length;
 	private SecureExternalizable attachedData;
@@ -140,7 +140,7 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 
 	
 	BigDataPropositionMessage(RandomInputStream stream, long pos, long length, SecureExternalizable attachedData, boolean local,
-			int maxBufferSize, RealTimeTransfertStat stat, MessageDigestType messageDigestType, boolean excludedFromEncryption) throws IOException {
+							  int maxBufferSize, RealTimeTransferStat stat, MessageDigestType messageDigestType, boolean excludedFromEncryption) throws IOException {
 		if (stream == null)
 			throw new NullPointerException("stream");
 		if (pos >= stream.length())
@@ -218,10 +218,10 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 	 * @return statistics in bytes per seconds related to the concerned big data
 	 *         transfer
 	 */
-	public RealTimeTransfertStat getStatistics() {
+	public RealTimeTransferStat getStatistics() {
 		if (stat == null) {
 			final AbstractAgent receiver = getReceiver().getAgent();
-			stat = new RealTimeTransfertStat(receiver.getMadkitConfig().networkProperties.bigDataStatDurationMean,
+			stat = new RealTimeTransferStat(receiver.getMadkitConfig().networkProperties.bigDataStatDurationMean,
 					receiver.getMadkitConfig().networkProperties.bigDataStatDurationMean / 10);
 		}
 		return stat;
@@ -245,34 +245,30 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		if (isLocal()) {
 			try {
 
-				receiver.scheduleTask(new Task<>(new Callable<Void>() {
-
-					@Override
-					public Void call() throws Exception {
-						long remaining = length;
-						try {
-							byte[] buffer = new byte[(int) Math.min(length, (long) maxBufferSize)];
-							inputStream.seek(pos);
-							outputStream.setLength(length);
-							while (remaining > 0) {
-								int s = (int) Math.min(buffer.length, remaining);
-								if (inputStream.read(buffer, 0, s)!=s)
-								    throw new IOException();
-								outputStream.write(buffer, 0, s);
-								remaining -= s;
-							}
-						} catch(MessageExternalizationException e)
-						{
-							dataCorrupted(length - remaining, e);
+				receiver.scheduleTask(new Task<>((Callable<Void>) () -> {
+					long remaining = length;
+					try {
+						byte[] buffer = new byte[(int) Math.min(length, maxBufferSize)];
+						inputStream.seek(pos);
+						outputStream.setLength(length);
+						while (remaining > 0) {
+							int s = (int) Math.min(buffer.length, remaining);
+							if (inputStream.read(buffer, 0, s)!=s)
+								throw new IOException();
+							outputStream.write(buffer, 0, s);
+							remaining -= s;
 						}
-						catch (Exception e) {
-							sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_PARTIALLY_TRANSFERED,
-									length - remaining);
-							throw e;
-						}
-						sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_TRANSFERED, length);
-						return null;
+					} catch(MessageExternalizationException e)
+					{
+						dataCorrupted(length - remaining, e);
 					}
+					catch (Exception e) {
+						sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_PARTIALLY_TRANSFERRED,
+								length - remaining);
+						throw e;
+					}
+					sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_TRANSFERRED, length);
+					return null;
 				})).waitTaskFinished();
 			} catch (ExecutionException e) {
 				e.printStackTrace();
@@ -286,9 +282,9 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 				{
 					dataCorrupted(0, e);
 				}catch (IOException e) {
-					sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_PARTIALLY_TRANSFERED, 0);
+					sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_PARTIALLY_TRANSFERRED, 0);
 				}
-				sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_TRANSFERED, length);
+				sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_TRANSFERRED, length);
 			} else {
 
 				receiver.getKernel().acceptDistantBigDataTransfer(receiver, this);
@@ -298,7 +294,7 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 
 	/**
 	 * 
-	 * @return the message digest type used for check the validity of the transfered
+	 * @return the message digest type used for check the validity of the transferred
 	 *         data
 	 */
 	public MessageDigestType getMessageDigestType() {
@@ -315,18 +311,14 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 	public void denyTransfer() throws InterruptedException {
 		final AbstractAgent receiver = getReceiver().getAgent();
 		try {
-			receiver.scheduleTask(new Task<>(new Callable<Void>() {
-
-				@Override
-				public Void call() {
-					if (receiver.isAlive()) {
-						Message m = new BigDataResultMessage(BigDataResultMessage.Type.BIG_DATA_TRANSFER_DENIED, 0,
-								idPacket, System.currentTimeMillis() - timeUTC);
-						m.setIDFrom(BigDataPropositionMessage.this);
-						receiver.sendMessage(getSender(), m);
-					}
-					return null;
+			receiver.scheduleTask(new Task<>((Callable<Void>) () -> {
+				if (receiver.isAlive()) {
+					Message m = new BigDataResultMessage(BigDataResultMessage.Type.BIG_DATA_TRANSFER_DENIED, 0,
+							idPacket, System.currentTimeMillis() - timeUTC);
+					m.setIDFrom(BigDataPropositionMessage.this);
+					receiver.sendMessage(getSender(), m);
 				}
+				return null;
 			})).waitTaskFinished();
 		} catch (ExecutionException e) {
 			e.printStackTrace();
@@ -334,12 +326,12 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 
 	}
 
-	void connectionLost(long dataTransfered) {
-		sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_PARTIALLY_TRANSFERED, dataTransfered);
+	void connectionLost(long dataTransferred) {
+		sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_PARTIALLY_TRANSFERRED, dataTransferred);
 	}
 
-	void dataCorrupted(long dataTransfered, MessageExternalizationException e) {
-		sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_CORRUPTED, dataTransfered);
+	void dataCorrupted(long dataTransferred, MessageExternalizationException e) {
+		sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_CORRUPTED, dataTransferred);
 		final AbstractAgent receiver = getReceiver().getAgent();
 		KernelAddress senderKernelAddress=getSender().getKernelAddress();
 		if (e!=null && !senderKernelAddress.equals(receiver.getKernelAddress())) {
@@ -347,22 +339,18 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		}
 	}
 
-	void transferCompleted(long dataTransfered) {
-		sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_TRANSFERED, dataTransfered);
+	void transferCompleted(long dataTransferred) {
+		sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_TRANSFERRED, dataTransferred);
 	}
 
 	protected void sendBidirectionalReply(final BigDataResultMessage.Type type, final long length) {
 		final AbstractAgent receiver = getReceiver().getAgent();
 
-		receiver.scheduleTask(new Task<>(new Callable<Void>() {
-
-			@Override
-			public Void call() {
-				Message m = new BigDataResultMessage(type, length, idPacket, System.currentTimeMillis() - timeUTC);
-				m.setIDFrom(BigDataPropositionMessage.this);
-				receiver.sendMessage(getSender(), m);
-				return null;
-			}
+		receiver.scheduleTask(new Task<>((Callable<Void>) () -> {
+			Message m = new BigDataResultMessage(type, length, idPacket, System.currentTimeMillis() - timeUTC);
+			m.setIDFrom(BigDataPropositionMessage.this);
+			receiver.sendMessage(getSender(), m);
+			return null;
 		}));
 
 		Message m = new BigDataResultMessage(type, length, idPacket, System.currentTimeMillis() - timeUTC);

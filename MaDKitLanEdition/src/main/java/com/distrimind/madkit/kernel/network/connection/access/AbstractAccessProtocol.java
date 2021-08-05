@@ -40,6 +40,9 @@ package com.distrimind.madkit.kernel.network.connection.access;
 import com.distrimind.madkit.agr.CloudCommunity;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.MadkitProperties;
+import com.distrimind.ood.database.DatabaseWrapper;
+import com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupCertificate;
+import com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupReceiver;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedValue;
 
@@ -62,7 +65,7 @@ public abstract class AbstractAccessProtocol {
 	protected final MadkitProperties properties;
 
 
-	private AtomicReference<ListGroupsRoles> groups_access = new AtomicReference<>();
+	private final AtomicReference<ListGroupsRoles> groups_access = new AtomicReference<>();
 	private boolean other_can_takes_initiative;
 
 	private Set<CloudIdentifier> cloudIdentifiers = null;
@@ -74,7 +77,7 @@ public abstract class AbstractAccessProtocol {
 	// private final InetSocketAddress local_interface_address;
 	private KernelAddress kernel_address = null;
 	
-	private LinkedList<AccessMessage> differedAccessMessages = new LinkedList<>();
+	private final LinkedList<AccessMessage> differedAccessMessages = new LinkedList<>();
 	private boolean accessFinalizedMessageReceived = false;
 	private boolean thisAskForConnection;
 
@@ -156,8 +159,7 @@ public abstract class AbstractAccessProtocol {
 	}
 
 	public abstract AccessMessage subSetAndGetNextMessage(AccessMessage _m) throws AccessException;
-
-	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
+	
 	protected boolean differAccessMessage(AccessMessage m) {
 		if (((m instanceof NewLocalLoginAddedMessage) || (m instanceof NewLocalLoginRemovedMessage))) {
 
@@ -187,26 +189,14 @@ public abstract class AbstractAccessProtocol {
 
 	protected abstract AccessMessage manageDifferableAccessMessage(AccessMessage _m) throws AccessException;
 
-	/*
-	 * private final LinkedList<LocalLogingAccessMessage>
-	 * new_login_events_waiting=new LinkedList<>();
-	 * 
-	 * private void addNewLocalLoginEvent(LocalLogingAccessMessage loginEvent) {
-	 * new_login_events_waiting.add(loginEvent); }
-	 * 
-	 * private LocalLogingAccessMessage popLocalLogingEvent() { if
-	 * (new_login_events_waiting.size()==0) return null;
-	 * 
-	 * return new_login_events_waiting.removeFirst(); }
-	 */
 
 	//private KernelAddress distant_kernel_address;
 	private ArrayList<PairOfIdentifiers> last_accepted_identifiers = new ArrayList<>();
-	private ArrayList<PairOfIdentifiers> all_accepted_identifiers = new ArrayList<>();
+	private final ArrayList<PairOfIdentifiers> all_accepted_identifiers = new ArrayList<>();
 	private ArrayList<Identifier> last_denied_identifiers_from_other = new ArrayList<>();
 	private ArrayList<Identifier> last_denied_identifiers_to_other = new ArrayList<>();
 	private ArrayList<CloudIdentifier> last_denied_cloud_to_other = new ArrayList<>();
-	private ArrayList<PairOfIdentifiers> last_unlogged_identifiers = new ArrayList<>();
+	private ArrayList<PairOfIdentifiers> last_un_logged_identifiers = new ArrayList<>();
 
 	/*public KernelAddress getDistantKernelAddress() {
 		return distant_kernel_address;
@@ -238,7 +228,7 @@ public abstract class AbstractAccessProtocol {
 					{
 						it.remove();
 						last_accepted_identifiers.remove(poiAccepted);
-						last_unlogged_identifiers.add(poiAccepted);
+						last_un_logged_identifiers.add(poiAccepted);
 					}
 					else
 						doNotAdd=true;
@@ -256,7 +246,7 @@ public abstract class AbstractAccessProtocol {
 
 	}
 
-	protected UnlogMessage removeAcceptedIdentifiers(ArrayList<Identifier> _identifiers) {
+	protected UnLogMessage removeAcceptedIdentifiers(ArrayList<Identifier> _identifiers) {
 
 		ArrayList<PairOfIdentifiers> toRemove = new ArrayList<>(_identifiers.size());
 		ArrayList<Identifier> res = new ArrayList<>(_identifiers.size());
@@ -266,14 +256,14 @@ public abstract class AbstractAccessProtocol {
 				if (id2.equalsLocalIdentifier(id)) {
 					toRemove.add(id2);
 					it.remove();
-					res.add(id2.generateDistantIdentifier());
+					res.add(id2.getDistantIdentifier());
 					break;
 				}
 			}
 		}
 		last_accepted_identifiers.removeAll(toRemove);
-		last_unlogged_identifiers.addAll(toRemove);
-		return new UnlogMessage(res);
+		last_un_logged_identifiers.addAll(toRemove);
+		return new UnLogMessage(res);
 	}
 
 	public void updateGroupAccess() throws AccessException {
@@ -285,21 +275,53 @@ public abstract class AbstractAccessProtocol {
 
 			for (PairOfIdentifiers id : all_accepted_identifiers) {
 				listGroupsRoles.addListGroupsRoles(lp.getGroupsAccess(id));
+
 				if (id.isLocallyAuthenticatedCloud() && id.isDistantlyAuthenticatedCloud()) {
 					try {
-						String localDatabaseHostID=properties.getLocalDatabaseHostIDString();
-						if (localDatabaseHostID!=null)
-						{
-							DecentralizedValue dvDistant = lp.getDecentralizedDatabaseID(id.generateDistantIdentifier());
-							if (dvDistant!=null)
-							{
-								listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getDistributedDatabaseGroup(localDatabaseHostID, dvDistant));
+						DatabaseWrapper wrapper=properties.getDatabaseWrapper();
+						if (wrapper!=null) {
+							DecentralizedValue localDatabaseHostID=wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer();
+							String localDatabaseHostIDString = wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString();
+							CentralDatabaseBackupReceiver centralDatabaseBackupReceiver = properties.getCentralDatabaseBackupReceiver();
+							CentralDatabaseBackupCertificate certificate = wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getCentralDatabaseBackupCertificate();
+							final DecentralizedValue dvCentral = ((localDatabaseHostIDString != null && certificate!=null) || centralDatabaseBackupReceiver!=null)?lp.getCentralDatabaseID(id.getDistantIdentifier(), properties):null;
+
+							final DecentralizedValue dvDistant = (localDatabaseHostIDString != null || centralDatabaseBackupReceiver!=null)?lp.getDecentralizedDatabaseID(id.getDistantIdentifier(), properties):null;
+
+							if (localDatabaseHostIDString != null) {
+
+								if (dvDistant != null && !dvDistant.equals(localDatabaseHostID)) {
+									listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getDistributedDatabaseGroup(localDatabaseHostIDString, dvDistant));
+								}
+
+								if (certificate != null) {
+									if (dvCentral!=null)
+									{
+										if (!dvCentral.equals(localDatabaseHostID)) {
+											listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getCentralDatabaseGroup(localDatabaseHostIDString, dvCentral));
+										}
+
+									}
+
+								}
+
 							}
+							if (centralDatabaseBackupReceiver != null) {
+								if (dvCentral!=null)
+								{
+									listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP);
+								}
+
+								if (dvDistant != null && !centralDatabaseBackupReceiver.getCentralID().equals(dvDistant)) {
+									listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getCentralDatabaseGroup(centralDatabaseBackupReceiver.getCentralID(), dvDistant));
+								}
+							}
+
+
 						}
 					} catch (DatabaseException e) {
 						e.printStackTrace();
 					}
-
 				}
 			}
 
@@ -339,9 +361,9 @@ public abstract class AbstractAccessProtocol {
 		return res;
 	}
 
-	public ArrayList<PairOfIdentifiers> getLastUnloggedIdentifiers() {
-		ArrayList<PairOfIdentifiers> res = last_unlogged_identifiers;
-		last_unlogged_identifiers = new ArrayList<>();
+	public ArrayList<PairOfIdentifiers> getLastUnLoggedIdentifiers() {
+		ArrayList<PairOfIdentifiers> res = last_un_logged_identifiers;
+		last_un_logged_identifiers = new ArrayList<>();
 		return res;
 	}
 

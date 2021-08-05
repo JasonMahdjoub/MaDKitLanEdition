@@ -72,7 +72,7 @@ class TransferAgent extends AgentFakeThread {
 	private int numberOfIntermediatePeers = 0;
 	private State state = State.TRANSFER_NOT_ACTIVE;
 	protected IDTransfer idTransfer = null;
-	// private boolean oneconnectionalreadydone=false;
+
 	protected AtomicReference<TaskID> timeElapsedTask = new AtomicReference<>(null);
 	protected final AtomicLong timeElapsed = new AtomicLong(-1);
 	private boolean stopNetwork = false;
@@ -150,7 +150,7 @@ class TransferAgent extends AgentFakeThread {
 									originalAskMessage,
 									TransferEventType.CONNECTION_IMPOSSIBLE_BECAUSE_NOT_ENOUGH_CANDIDATES));
 					if (logger != null && logger.isLoggable(Level.FINER))
-						logger.finer("Not enougth candidates for transfer connection : " + originalAskMessage);
+						logger.finer("Not enough candidates for transfer connection : " + originalAskMessage);
 					resetTransfer();
 					this.killAgent(this);
 				} else {
@@ -238,7 +238,7 @@ class TransferAgent extends AgentFakeThread {
 										confirmation2.getMyIDTransfer(), idTransfer,
 										confirmation2.getNumberOfSubBlocks(), true, candidate1.getInetAddress(), null)),
 								LocalCommunity.Roles.TRANSFER_AGENT_ROLE);
-						// oneconnectionalreadydone=true;
+
 						state = State.TRANSFER_ACTIVE;
 						MadkitKernelAccess.informHooks(this, new TransferEventMessage(idTransfer.getID(),
 								originalAskMessage, TransferEventType.TRANSFER_EFFECTIVE));
@@ -293,8 +293,6 @@ class TransferAgent extends AgentFakeThread {
 						ok = true;
 					}
 					if (ok) {
-						// stopTransfer(oneconnectionalreadydone);//TODO check if reconnection is
-						// possible
 						stopTransfer(false, t.isLastPass(), _message.getSender());
 					} else {
 
@@ -324,8 +322,8 @@ class TransferAgent extends AgentFakeThread {
 						launchTimeElapsedTask();
 					}
 				}
-			} else if (om.getContent().getClass() == DirectConnectionSuceeded.class) {
-				DirectConnectionSuceeded d = (DirectConnectionSuceeded) om.getContent();
+			} else if (om.getContent().getClass() == DirectConnectionSucceeded.class) {
+				DirectConnectionSucceeded d = (DirectConnectionSucceeded) om.getContent();
 				if (d.getIDTransfer().equals(idTransfer) && state == State.TRANSFER_CONNEXION_IN_PROGRESS) {
 					MadkitKernelAccess.informHooks(this, new TransferEventMessage(idTransfer.getID(),
 							originalAskMessage, TransferEventType.DIRECT_CONNECTION_EFFECTIVE));
@@ -353,21 +351,17 @@ class TransferAgent extends AgentFakeThread {
 		long d = System.currentTimeMillis()
 				+ getMadkitConfig().networkProperties.durationBeforeCancelingTransferConnection;
 		timeElapsed.set(d);
-		timeElapsedTask.set(scheduleTask(new Task<>(new Callable<Void>() {
-
-			@Override
-			public Void call() {
-				if (timeElapsedTask.getAndSet(null) != null) {
-					long duration = timeElapsed.getAndSet(-1);
-					if (duration != -1 && duration >= System.currentTimeMillis()) {
-						MadkitKernelAccess.informHooks(TransferAgent.this, new TransferEventMessage(idTransfer.getID(),
-								originalAskMessage, TransferEventType.CONNECTION_IMPOSSIBLE_BECAUSE_TIME_ELAPSED));
-						resetTransfer();
-						TransferAgent.this.killAgent(TransferAgent.this);
-					}
+		timeElapsedTask.set(scheduleTask(new Task<>((Callable<Void>) () -> {
+			if (timeElapsedTask.getAndSet(null) != null) {
+				long duration = timeElapsed.getAndSet(-1);
+				if (duration != -1 && duration >= System.currentTimeMillis()) {
+					MadkitKernelAccess.informHooks(TransferAgent.this, new TransferEventMessage(idTransfer.getID(),
+							originalAskMessage, TransferEventType.CONNECTION_IMPOSSIBLE_BECAUSE_TIME_ELAPSED));
+					resetTransfer();
+					TransferAgent.this.killAgent(TransferAgent.this);
 				}
-				return null;
 			}
+			return null;
 		}, d)));
 	}
 
@@ -411,12 +405,12 @@ class TransferAgent extends AgentFakeThread {
 		
 		sendMessageWithRole(candidate2.getAgentAddress(),
 				new ObjectMessage<>(
-						originalAskMessage.getIntiateConnectionMessage(candidate1.getAgentAddress(),
+						originalAskMessage.getInitiateConnectionMessage(candidate1.getAgentAddress(),
 								candidate1.getKernelAddress(), idTransfer, numberOfIntermediatePeers, false)),
 				LocalCommunity.Roles.TRANSFER_AGENT_ROLE);
 		sendMessageWithRole(candidate1.getAgentAddress(),
 				new ObjectMessage<>(
-						originalAskMessage.getIntiateConnectionMessage(candidate2.getAgentAddress(),
+						originalAskMessage.getInitiateConnectionMessage(candidate2.getAgentAddress(),
 								candidate2.getKernelAddress(), idTransfer, numberOfIntermediatePeers, true)),
 				LocalCommunity.Roles.TRANSFER_AGENT_ROLE);
 
@@ -430,7 +424,7 @@ class TransferAgent extends AgentFakeThread {
 		numberOfIntermediatePeers = 0;
 		idTransfer = null;
 		directConnection2Tried = false;
-		// oneconnectionalreadydone=false;
+
 		state = State.TRANSFER_NOT_ACTIVE;
 	}
 
@@ -467,7 +461,7 @@ class TransferAgent extends AgentFakeThread {
 								tryReconnection ? TransferEventType.TRANSFER_DISCONNECTED_BUT_TRYING_RECONNECTION
 										: TransferEventType.TRANSFER_DISCONNECTED));
 				if (logger != null)
-					logger.info(originalAskMessage + " STOPED !");
+					logger.info(originalAskMessage + " STOPPED !");
 				if (getState().compareTo(AbstractAgent.State.ENDING) < 0) {
 					if (tryReconnection) {
 						askForTransferCandidate();
@@ -482,32 +476,32 @@ class TransferAgent extends AgentFakeThread {
 
 	final static class IDTransfer implements SecureExternalizable {
 
-		private final transient IDGeneratorInt generator_id_transfert;
+		private final transient IDGeneratorInt generator_id_transfer;
 		private int id;
 
 		private IDTransfer() {
-			generator_id_transfert = null;
+			generator_id_transfer = null;
 			id = -1;
 		}
 
 		boolean isGenerated() {
-			return generator_id_transfert != null;
+			return generator_id_transfer != null;
 		}
 
-		public static IDTransfer generateIDTransfer(IDGeneratorInt generator_id_transfert) throws OverflowException {
-			return new IDTransfer(generator_id_transfert);
+		public static IDTransfer generateIDTransfer(IDGeneratorInt generator_id_transfer) throws OverflowException {
+			return new IDTransfer(generator_id_transfer);
 		}
 
-		private IDTransfer(IDGeneratorInt generator_id_transfert) throws OverflowException {
+		private IDTransfer(IDGeneratorInt generator_id_transfer) throws OverflowException {
 
-			this.generator_id_transfert = generator_id_transfert;
+			this.generator_id_transfer = generator_id_transfer;
 			this.id = getNewIDTransfer();
 		}
 
 		@SuppressWarnings("deprecation")
 		@Override
 		public void finalize() {
-			if (generator_id_transfert != null)
+			if (generator_id_transfer != null)
 				removeIDTransfer(id);
 		}
 
@@ -540,18 +534,12 @@ class TransferAgent extends AgentFakeThread {
 			return this.id == id;
 		}
 
-		/*int numberOfValidGeneratedID() {
-			synchronized (generator_id_transfert) {
-				return generator_id_transfert.getNumberOfMemorizedIds();
-			}
-		}*/
-
 		private int getNewIDTransfer() throws OverflowException {
-			synchronized (generator_id_transfert) {
+			synchronized (generator_id_transfer) {
 				try {
-					int res = generator_id_transfert.getNewID();
+					int res = generator_id_transfer.getNewID();
 					if (res == -1) {
-						res = generator_id_transfert.getNewID();
+						res = generator_id_transfer.getNewID();
 					}
 					return res;
 				} catch (OutOfMemoryError e) {
@@ -563,8 +551,8 @@ class TransferAgent extends AgentFakeThread {
 
 		@SuppressWarnings("UnusedReturnValue")
 		private boolean removeIDTransfer(int _id) {
-			synchronized (generator_id_transfert) {
-				return generator_id_transfert.removeID(_id);
+			synchronized (generator_id_transfer) {
+				return generator_id_transfer.removeID(_id);
 			}
 		}
 
@@ -593,7 +581,7 @@ class TransferAgent extends AgentFakeThread {
 		private AgentAddress transferToAgentAddress;
 		private final KernelAddress transferToKernelAddress;
 		private TransferedBlockChecker transferBlockChecker;
-		private PointToPointTransferedBlockChecker lastPointToPointTransferedBlockChecker;
+		private PointToPointTransferedBlockChecker lastPointToPointTransferredBlockChecker;
 		private long lastAccessUTC;
 
 		InterfacedIDTransfer(IDTransfer local_id, AgentAddress transferToAgentAddress,
@@ -613,7 +601,7 @@ class TransferAgent extends AgentFakeThread {
 			this.transferToKernelAddress = id.transferToKernelAddress;
 			this.transferBlockChecker = id.transferBlockChecker;
 			this.lastAccessUTC = id.lastAccessUTC;
-			this.lastPointToPointTransferedBlockChecker=null;
+			this.lastPointToPointTransferredBlockChecker =null;
 		}
 
 		@Override
@@ -667,14 +655,14 @@ class TransferAgent extends AgentFakeThread {
 			lastAccessUTC = System.currentTimeMillis();
 			transferBlockChecker = _transferBlockChecker;
 		}
-		void setLastPointToPointTransferedBlockChecker(PointToPointTransferedBlockChecker lastPointToPointTransferedBlockChecker) {
+		void setLastPointToPointTransferredBlockChecker(PointToPointTransferedBlockChecker lastPointToPointTransferredBlockChecker) {
 			lastAccessUTC = System.currentTimeMillis();
-			this.lastPointToPointTransferedBlockChecker = lastPointToPointTransferedBlockChecker;
+			this.lastPointToPointTransferredBlockChecker = lastPointToPointTransferredBlockChecker;
 		}
 		
-		PointToPointTransferedBlockChecker getLastPointToPointTransferedBlockChecker()
+		PointToPointTransferedBlockChecker getLastPointToPointTransferredBlockChecker()
 		{
-			return lastPointToPointTransferedBlockChecker;
+			return lastPointToPointTransferredBlockChecker;
 		}
 		
 		
@@ -793,13 +781,13 @@ class TransferAgent extends AgentFakeThread {
 
 	}
 
-	static class DirectConnectionSuceeded extends DirectConnection {
+	static class DirectConnectionSucceeded extends DirectConnection {
 
-		DirectConnectionSuceeded(IDTransfer _idTransfer) {
+		DirectConnectionSucceeded(IDTransfer _idTransfer) {
 			super(_idTransfer);
 		}
 		@SuppressWarnings("unused")
-        DirectConnectionSuceeded()
+		DirectConnectionSucceeded()
 		{
 			
 		}

@@ -129,10 +129,10 @@ public enum KernelAction {
 	 * For connecting/disconnecting two kernels directly in a wide area network. It
 	 * requires a parameter of type {@link AskForConnectionMessage}.
 	 */
-	MANAGE_DIRECT_DONNECTION(VK_DOLLAR),
+	MANAGE_DIRECT_CONNECTION(VK_DOLLAR),
 
 	/**
-	 * For connecting/disconnecting two kernels indirectly by making data transfered
+	 * For connecting/disconnecting two kernels indirectly by making data transferred
 	 * by the current kernel to constitute a meshed network. It requires a parameter
 	 * of type {@link AskForTransferMessage}.
 	 */

@@ -46,7 +46,7 @@ import com.distrimind.util.crypto.MessageDigestType;
 import com.distrimind.util.io.RandomOutputStream;
 
 /**
- * It a reader that transfert a {@link PacketPart} to an
+ * It a reader that transfer a {@link PacketPart} to an
  * {@link RandomOutputStream}
  * 
  * @author Jason Mahdjoub
@@ -59,7 +59,7 @@ final class ReadPacket {
 		VALID, TEMPORARY_INVALID, INVALID
 	}
 
-	private AbstractMessageDigest messageDigest;
+	private final AbstractMessageDigest messageDigest;
 	private final byte[] digestResult;
 	private final byte[] digestResultTransmitted;
 	private int digestResultPos = -1;
@@ -90,7 +90,7 @@ final class ReadPacket {
 			} else {
 				messageDigest = messageDigestType.getMessageDigestInstance();
 				messageDigest.reset();
-				digestResult = new byte[messageDigest.getDigestLength()];
+				digestResult = new byte[messageDigest.getDigestLengthInBytes()];
 				digestResultTransmitted = new byte[digestResult.length];
 			}
 		} catch (Exception e) {
@@ -162,22 +162,22 @@ final class ReadPacket {
 			int offset = _part.getHead().getHeadSize();
 
 			if (isValid()) {
-				int attempted_lenth = _part.getHead().getDataSize();
-				if (attempted_lenth < 1) {
+				int attempted_length = _part.getHead().getDataSize();
+				if (attempted_length < 1) {
 					processTemporaryInvalid();
 					throw new PacketException("Invalid packet (negative packet size).");
 				}
 				long waiting_data = data_length_with_message_digest - current_pos;
-				if (attempted_lenth > waiting_data
-						|| (attempted_lenth == waiting_data && !_part.getHead().isLastPacket())
-						|| (_part.getHead().isLastPacket() && attempted_lenth != waiting_data)) {
+				if (attempted_length > waiting_data
+						|| (attempted_length == waiting_data && !_part.getHead().isLastPacket())
+						|| (_part.getHead().isLastPacket() && attempted_length != waiting_data)) {
 					processTemporaryInvalid();
 					throw new PacketException(
-							"Invalid packet. Unexpected size, or packet coherence invalid : attempted_lenght="
-									+ attempted_lenth + ", waiting_data=" + waiting_data + ", isLastPacket="
+							"Invalid packet. Unexpected size, or packet coherence invalid : attempted_length="
+									+ attempted_length + ", waiting_data=" + waiting_data + ", isLastPacket="
 									+ _part.getHead().isLastPacket());
 				}
-				int currentPacketDataSize = (int) Math.max(Math.min(attempted_lenth, length - current_pos), 0);
+				int currentPacketDataSize = (int) Math.max(Math.min(attempted_length, length - current_pos), 0);
 				SubBlock subBlock=_part.getSubBlock();
 				byte[] bytes = subBlock.getBytes();
 				
@@ -204,7 +204,7 @@ final class ReadPacket {
 						if (digestResultPos < 0) {
 							throw new PacketException("digest message not initialized !");
 						}
-						int currentDigestSize = attempted_lenth - currentPacketDataSize;
+						int currentDigestSize = attempted_length - currentPacketDataSize;
 						if (currentDigestSize > 0) {
 							System.arraycopy(bytes, offset + currentPacketDataSize, digestResultTransmitted,
 									digestResultPos, currentDigestSize);
@@ -283,7 +283,7 @@ final class ReadPacket {
 		return id_packet;
 	}
 
-	public long getWritedDataLength() {
+	public long getWroteDataLength() {
 		return Math.max(length - current_pos, length - start_position);
 	}
 
@@ -343,8 +343,8 @@ final class ReadPacket {
 				int shiftTabLength=subBlock.getOffset()+subBlock.getSize();
 				int tabResCursor = 0;
 				while (cursor < shiftTabLength) {
-					byte nbrand = WritePacket.decodeLocalNumberRandomVal(tab[cursor++]);
-					cursor += nbrand;
+					byte nbRand = WritePacket.decodeLocalNumberRandomVal(tab[cursor++]);
+					cursor += nbRand;
 					if (cursor >= shiftTabLength)
 						break;
 					byte nextRandVals = tab[cursor++];

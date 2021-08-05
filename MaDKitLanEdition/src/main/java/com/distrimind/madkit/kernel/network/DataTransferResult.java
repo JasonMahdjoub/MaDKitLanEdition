@@ -37,17 +37,92 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import com.distrimind.util.io.SecureExternalizable;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
+
+import java.io.IOException;
+
 /**
+ * Represent a data transfer report
  * 
  * @author Jason Mahdjoub
- * @version 1.1
+ * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-abstract class KernelAddressNegociationMessage implements SystemMessageWithoutInnerSizeControl {
+public class DataTransferResult implements SecureExternalizable {
+
+	/**
+	 * Represents the data size (in bytes) from the source
+	 */
+	private long data_input_size;
+
+	/**
+	 * Represents the data size (in bytes) to send
+	 */
+	private long data_to_send_size;
+
+	/**
+	 * Represents the data sent (in bytes)
+	 */
+	private long data_sent_size;
+
+	DataTransferResult(long _data_input_size, long _data_to_send_size, long _data_sent_size) {
+		data_input_size = _data_input_size;
+		data_to_send_size = _data_to_send_size;
+		data_sent_size = _data_sent_size;
+	}
+	@Override
+	public int getInternalSerializedSize() {
+		return 24;
+	}
 
 	@Override
-	public String toString() {
-		return getClass().getSimpleName();
+	public void writeExternal(SecuredObjectOutputStream out) throws IOException {
+		out.writeLong(data_input_size);
+		out.writeLong(data_to_send_size);
+		out.writeLong(data_sent_size);
+
+	}
+
+	@Override
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+		data_input_size=in.readLong();
+		data_to_send_size=in.readLong();
+		data_sent_size=in.readLong();
+
+	}
+
+	/**
+	 * 
+	 * @return the data size (in bytes) from the source
+	 */
+	public long getDataInputSize() {
+		return data_input_size;
+	}
+
+	/**
+	 * 
+	 * @return the data size (in bytes) to send
+	 */
+	public long getDataToSendSize() {
+		return data_to_send_size;
+	}
+
+	/**
+	 * 
+	 * @return the data sent (in bytes)
+	 */
+	public long getDataSent() {
+		return data_sent_size;
+	}
+
+	/**
+	 * 
+	 * @return true if the transfer has been completed
+	 */
+	public boolean hasFinishedTransfer() {
+		return data_sent_size == data_to_send_size;
 	}
 
 }

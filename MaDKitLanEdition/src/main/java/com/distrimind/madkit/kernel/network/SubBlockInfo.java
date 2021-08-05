@@ -47,8 +47,8 @@ import com.distrimind.madkit.exceptions.BlockParserException;
  */
 public final class SubBlockInfo {
 	private final SubBlock sub_block;
-	private boolean valid;
-	private boolean candidate_to_ban;
+	private final boolean valid;
+	private final boolean candidate_to_ban;
 
 	public SubBlockInfo(SubBlock _sub_block, boolean _valid, boolean _candidate_to_ban) throws BlockParserException {
 		sub_block = _sub_block;

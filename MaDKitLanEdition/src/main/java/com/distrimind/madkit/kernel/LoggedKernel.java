@@ -44,7 +44,6 @@ import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.ood.database.exceptions.DatabaseException;
-import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.concurrent.ScheduledPoolExecutor;
@@ -97,7 +96,7 @@ final class LoggedKernel extends MadkitKernel {
 						Influence.CREATE_GROUP.successString() + getCGRString(group) + "distribution "
 								+ (group.isDistributed() ? "ON" : "OFF") + " with "
 								+ (group.getGateKeeper() == null ? "no access control "
-										: group.getGateKeeper().toString() + " as gatekeeper, with " + passKey
+										: group.getGateKeeper() + " as gatekeeper, with " + passKey
 												+ " as pass key"));
 			}
 			return SUCCESS;
@@ -153,8 +152,8 @@ final class LoggedKernel extends MadkitKernel {
 
 
 	@Override
-	ReturnCode leaveRole(AbstractAgent requester, Group group, String role, boolean manual_request) {
-		ReturnCode r = kernel.leaveRole(requester, group, role, manual_request);
+	ReturnCode leaveRole(AbstractAgent requester, Group group, String role, boolean manualRequested) {
+		ReturnCode r = kernel.leaveRole(requester, group, role, manualRequested);
 		if (r == SUCCESS) {
 			if (requester.isFinestLogOn()) {
 				requester.logger.log(Level.FINEST, Influence.LEAVE_ROLE.successString() + getCGRString(group, role));
@@ -610,8 +609,8 @@ final class LoggedKernel extends MadkitKernel {
 	 */
 
 	@Override
-	boolean cancelTask(AbstractAgent requester, TaskID task_id, boolean mayInteruptTask) {
-		boolean rc = kernel.cancelTask(requester, task_id, mayInteruptTask);
+	boolean cancelTask(AbstractAgent requester, TaskID task_id, boolean mayInterruptTask) {
+		boolean rc = kernel.cancelTask(requester, task_id, mayInterruptTask);
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST,
 					"Canceling task " + task_id + " with default task manager agent : " + rc);
@@ -699,11 +698,11 @@ final class LoggedKernel extends MadkitKernel {
 	}
 
 	@Override
-	void autoRequesteRole(AbstractAgent requester, AbstractGroup group, String role, SecureExternalizable passKey) {
-		kernel.autoRequesteRole(requester, group, role, passKey);
+	void autoRequestRole(AbstractAgent requester, AbstractGroup group, String role, SecureExternalizable passKey) {
+		kernel.autoRequestRole(requester, group, role, passKey);
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST,
-					"autoRequesteRole (Agent " + requester + ", Group " + group + ", Role " + role + ")");
+					"autoRequestRole (Agent " + requester + ", Group " + group + ", Role " + role + ")");
 	}
 
 	@Override
@@ -876,8 +875,8 @@ final class LoggedKernel extends MadkitKernel {
 	}
 
 	@Override
-	ReturnCode requestHookEvents(AbstractAgent requester, AgentActionEvent hookType, boolean autoremove) {
-		ReturnCode rc = kernel.requestHookEvents(requester, hookType, autoremove);
+	ReturnCode requestHookEvents(AbstractAgent requester, AgentActionEvent hookType, boolean autoRemove) {
+		ReturnCode rc = kernel.requestHookEvents(requester, hookType, autoRemove);
 
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST,
@@ -976,11 +975,11 @@ final class LoggedKernel extends MadkitKernel {
 	}
 
 	@Override
-	Object weakSetBlackboard(AbstractAgent requester, Group group, String name, Object data) {
-		Object res = kernel.weakSetBlackboard(requester, group, name, data);
+	Object weakSetBoard(AbstractAgent requester, Group group, String name, Object data) {
+		Object res = kernel.weakSetBoard(requester, group, name, data);
 
 		if (requester.isFinestLogOn())
-			requester.logger.log(Level.FINEST, "weakSetBlackboard (Requester=" + requester + ", group=" + group
+			requester.logger.log(Level.FINEST, "weakSetBoard (Requester=" + requester + ", group=" + group
 					+ ", name=" + name + ", data=" + data + ", res=" + res + ")");
 
 		return res;
@@ -988,11 +987,11 @@ final class LoggedKernel extends MadkitKernel {
 	}
 
 	@Override
-	Object setBlackboard(AbstractAgent requester, Group group, String name, Object data) {
-		Object res = kernel.setBlackboard(requester, group, name, data);
+	Object setBoard(AbstractAgent requester, Group group, String name, Object data) {
+		Object res = kernel.setBoard(requester, group, name, data);
 
 		if (requester.isFinestLogOn())
-			requester.logger.log(Level.FINEST, "setBlackboard (Requester=" + requester + ", group=" + group + ", name="
+			requester.logger.log(Level.FINEST, "setBoard (Requester=" + requester + ", group=" + group + ", name="
 					+ name + ", data=" + data + ", res=" + res + ")");
 
 		return res;
@@ -1000,22 +999,22 @@ final class LoggedKernel extends MadkitKernel {
 	}
 
 	@Override
-	Object getBlackboard(AbstractAgent requester, Group group, String name) {
-		Object res = kernel.getBlackboard(requester, group, name);
+	Object getBoard(AbstractAgent requester, Group group, String name) {
+		Object res = kernel.getBoard(requester, group, name);
 
 		if (requester.isFinestLogOn())
-			requester.logger.log(Level.FINEST, "getBlackboard (Requester=" + requester + ", group=" + group + ", name="
+			requester.logger.log(Level.FINEST, "getBoard (Requester=" + requester + ", group=" + group + ", name="
 					+ name + ", res=" + res + ")");
 
 		return res;
 	}
 
 	@Override
-	Object removeBlackboard(AbstractAgent requester, Group group, String name) {
-		Object res = kernel.removeBlackboard(requester, group, name);
+	Object removeBoard(AbstractAgent requester, Group group, String name) {
+		Object res = kernel.removeBoard(requester, group, name);
 
 		if (requester.isFinestLogOn())
-			requester.logger.log(Level.FINEST, "removeBlackboard (Requester=" + requester + ", group=" + group
+			requester.logger.log(Level.FINEST, "removeBoard (Requester=" + requester + ", group=" + group
 					+ ", name=" + name + ", res=" + res + ")");
 
 		return res;
@@ -1033,6 +1032,16 @@ final class LoggedKernel extends MadkitKernel {
 	}
 
 	@Override
+	ReturnCode setCentralDatabaseBackupReceiverFactory(AbstractAgent requester, CentralDatabaseBackupReceiverFactory<?> centralDatabaseBackupReceiverFactory) throws DatabaseException {
+		ReturnCode res = kernel.setCentralDatabaseBackupReceiverFactory(requester, centralDatabaseBackupReceiverFactory);
+
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "setCentralDatabaseBackupReceiverFactory (requester="+requester+", centralDatabaseBackupReceiverFactory="+centralDatabaseBackupReceiverFactory+", res=" + res + ")");
+
+		return res;
+	}
+
+	/*@Override
 	void setIfNotPresentLocalDatabaseHostIdentifier(AbstractAgent requester, DecentralizedValue localDatabaseHostID, Package ...packages) throws DatabaseException
 	{
 		kernel.setIfNotPresentLocalDatabaseHostIdentifier(requester, localDatabaseHostID, packages);
@@ -1060,7 +1069,7 @@ final class LoggedKernel extends MadkitKernel {
 		kernel.removeDistantDatabaseHostFromDatabaseSynchronizer(requester, hostIdentifier, packages);
 		if (kernel.isFinestLogOn())
 			kernel.logger.log(Level.FINEST, "removeDistantDatabaseHostFromDatabaseSynchronizer (requester=" + requester + ", hostIdentifier="+hostIdentifier+", packages="+Arrays.toString(packages)+")");
-	}
+	}*/
 
 	@Override
 	int numberOfValidGeneratedID() {

@@ -59,7 +59,7 @@ public class ConnectionStatusMessage extends Message {
 	final Type type;
 	InetSocketAddress interface_address;
 	final ConnectionClosedReason connection_closed_reason;
-	protected InetSocketAddress choosenIP;
+	protected InetSocketAddress chosenIP;
 	protected transient int numberOfAnomalies=0;
 	protected final transient Set<InetAddress> rejectedIps=new HashSet<>();
 	protected transient long timeUTCOfAnomaliesCycle=-1;
@@ -68,38 +68,38 @@ public class ConnectionStatusMessage extends Message {
 	public String toString() {
 		if (type.equals(Type.DISCONNECT))
 			return getClass().getSimpleName() + "[address=" + address + ", type=" + type + ", interface_address="
-					+ interface_address + ", choosen ip=" + choosenIP + ", connectionCloseReason"
+					+ interface_address + ", chosen ip=" + chosenIP + ", connectionCloseReason"
 					+ connection_closed_reason + "]";
 		else
 			return getClass().getSimpleName() + "[address=" + address + ", type=" + type + ", interface_address="
-					+ interface_address + ", choosen ip=" + choosenIP + "]";
+					+ interface_address + ", chosen ip=" + chosenIP + "]";
 	}
 
-	public InetSocketAddress getChoosenIP() {
-		return choosenIP;
+	public InetSocketAddress getChosenIP() {
+		return chosenIP;
 	}
 
 	public ConnectionStatusMessage(Type _type, AbstractIP _address) {
 		this(_type, _address, null, null, null);
 	}
 
-	ConnectionStatusMessage(Type _type, AbstractIP _address, InetSocketAddress choosenIP,
+	ConnectionStatusMessage(Type _type, AbstractIP _address, InetSocketAddress chosenIP,
 			InetSocketAddress _interface_address) {
-		this(_type, _address, choosenIP, _interface_address, null);
+		this(_type, _address, chosenIP, _interface_address, null);
 	}
 
-	ConnectionStatusMessage(Type _type, AbstractIP _address, InetSocketAddress choosenIP,
+	ConnectionStatusMessage(Type _type, AbstractIP _address, InetSocketAddress chosenIP,
 			InetSocketAddress _interface_address, ConnectionClosedReason _connection_closed_reason) {
 		address = _address;
 		type = _type;
 		interface_address = _interface_address;
 		connection_closed_reason = _connection_closed_reason;
-		this.choosenIP = choosenIP;
+		this.chosenIP = chosenIP;
 	}
 
-	ConnectionStatusMessage(Type _type, AbstractIP _address, InetSocketAddress choosenIP,
+	ConnectionStatusMessage(Type _type, AbstractIP _address, InetSocketAddress chosenIP,
 							InetSocketAddress _interface_address, ConnectionClosedReason _connection_closed_reason, int numberOfAnomalies, long timeUTCOfAnomaliesCycle){
-		this(_type, _address, choosenIP, _interface_address, _connection_closed_reason);
+		this(_type, _address, chosenIP, _interface_address, _connection_closed_reason);
 		this.numberOfAnomalies=numberOfAnomalies;
 		this.timeUTCOfAnomaliesCycle=timeUTCOfAnomaliesCycle;
 	}
@@ -122,7 +122,7 @@ public class ConnectionStatusMessage extends Message {
 		type = m.type;
 		interface_address = m.interface_address;
 		connection_closed_reason = m.connection_closed_reason;
-		this.choosenIP = m.choosenIP;
+		this.chosenIP = m.chosenIP;
 		this.numberOfAnomalies=m.numberOfAnomalies;
 		this.timeUTCOfAnomaliesCycle=m.timeUTCOfAnomaliesCycle;
 
@@ -157,7 +157,7 @@ public class ConnectionStatusMessage extends Message {
 			return false;
 		if (anomalyPresent)
 		{
-			rejectedIps.add(choosenIP.getAddress());
+			rejectedIps.add(chosenIP.getAddress());
 			if (numberOfAnomalies==0)
 				timeUTCOfAnomaliesCycle=System.currentTimeMillis();
 

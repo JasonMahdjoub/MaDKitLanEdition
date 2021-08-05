@@ -45,6 +45,7 @@ import java.security.NoSuchProviderException;
 import java.util.Date;
 import java.util.Random;
 
+import com.distrimind.util.Bits;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -135,12 +136,12 @@ public class DatagramDataTest {
 		Assert.assertFalse(m.isCompatibleWith(0, programVersion, madkitVersion, programVersion, madkitVersion, kernelAddress));
 		Assert.assertNull(d2.getUnusedReceivedData());
 		Assert.assertNull(d2.getNextDatagramData());
-        programVersion=new Version(programVersion.getProgramName(), programVersion.getShortProgramName(), programVersion.getMajor(), (short)(programVersion.getMinor()+1), programVersion.getRevision(), programVersion.getType(), programVersion.getAlphaBetaVersion(), programVersion.getProjectStartDate(), programVersion.getProjectEndDate());
+        programVersion=new Version(programVersion.getProgramName(), programVersion.getShortProgramName(), programVersion.getMajor(), (short)(programVersion.getMinor()+1), programVersion.getRevision(), programVersion.getType(), programVersion.getAlphaBetaRCVersion(), programVersion.getProjectStartDate(), programVersion.getProjectEndDate());
 
 
 		Assert.assertFalse(m.isCompatibleWith(0, programVersion, madkitVersion, programVersion, madkitVersion, kernelAddressReceiver));
 		programVersion = getVersionBase(programName);
-        madkitVersion=new Version(madkitVersion.getProgramName(), madkitVersion.getShortProgramName(), madkitVersion.getMajor(), (short)(madkitVersion.getMinor()+1), madkitVersion.getRevision(), madkitVersion.getType(), madkitVersion.getAlphaBetaVersion(), madkitVersion.getProjectStartDate(), madkitVersion.getProjectEndDate());
+        madkitVersion=new Version(madkitVersion.getProgramName(), madkitVersion.getShortProgramName(), madkitVersion.getMajor(), (short)(madkitVersion.getMinor()+1), madkitVersion.getRevision(), madkitVersion.getType(), madkitVersion.getAlphaBetaRCVersion(), madkitVersion.getProjectStartDate(), madkitVersion.getProjectEndDate());
 		Assert.assertFalse(m.isCompatibleWith(0, programVersion, madkitVersion, programVersion, madkitVersion, kernelAddressReceiver));
 
 	}
@@ -167,7 +168,7 @@ public class DatagramDataTest {
 		Assert.assertFalse(d2.isComplete());
 		Assert.assertTrue(d2.isValid());
 		byte[] shortInt=new byte[Block.getBlockSizeLength()];
-		Block.putShortInt(shortInt, 0, 10000);
+		Bits.putUnsignedInt24Bits(shortInt, 0, 10000);
 		d2.getByteBuffer().put(shortInt);
 		d2.put(d.getByteBuffer().array(), 0, d.getByteBuffer().array().length);
 		Assert.assertFalse(d2.isValid());
@@ -233,30 +234,30 @@ public class DatagramDataTest {
 		Assert.assertFalse(d2.isComplete());
 		Assert.assertTrue(d2.isValid());
 		byte[] data = d.getByteBuffer().array();
-		Assert.assertEquals(data.length, Block.getShortInt(data, 0));
+		Assert.assertEquals(data.length, Bits.getUnsignedInt24Bits(data, 0));
 		d2.put(data, 0, data.length);
-		Assert.assertEquals(data.length, Block.getShortInt(d2.getByteBuffer().array(), 0));
+		Assert.assertEquals(data.length, Bits.getUnsignedInt24Bits(d2.getByteBuffer().array(), 0));
 		Random rand = new Random(System.currentTimeMillis());
 		byte[] randData = new byte[rand.nextInt(500) + 600];
 		rand.nextBytes(randData);
 		d2.put(randData, 0, randData.length);
-		Assert.assertEquals(data.length, Block.getShortInt(d2.getByteBuffer().array(), 0));
+		Assert.assertEquals(data.length, Bits.getUnsignedInt24Bits(d2.getByteBuffer().array(), 0));
 		
 		Assert.assertTrue(d2.isComplete());
 		Assert.assertTrue(d2.isValid());
 		Assert.assertTrue(d2.getDatagramLocalNetworkPresenceMessage().isCompatibleWith(0, programVersion, madkitVersion,programVersion, madkitVersion,
 				kernelAddressReceiver));
 		Assert.assertEquals(randData.length, d2.getByteBuffer().position()
-				- (Block.getShortInt(d2.getByteBuffer().array(), 0)));
+				- (Bits.getUnsignedInt24Bits(d2.getByteBuffer().array(), 0)));
 		Assert.assertEquals(randData.length,
-				d2.getByteBuffer().position() - (Block.getShortInt(d2.getByteBuffer().array(), 0)));
+				d2.getByteBuffer().position() - (Bits.getUnsignedInt24Bits(d2.getByteBuffer().array(), 0)));
 		ByteBuffer randDataReceived = d2.getUnusedReceivedData();
 		Assert.assertNotNull(randDataReceived);
 		Assert.assertArrayEquals(randData, randDataReceived.array());
 	}
 
 	Version getVersionBase(String programeName) {
-		Version res = new Version(programName + "long", programName, (short)1, (short)0, (short)0, Version.Type.Stable, (short)0,
+		Version res = new Version(programName + "long", programName, (short)1, (short)0, (short)0, Version.Type.STABLE, (short)0,
 				new Date(System.currentTimeMillis()), new Date(System.currentTimeMillis()));
 		res.setBuildNumber(0);
 		return res;

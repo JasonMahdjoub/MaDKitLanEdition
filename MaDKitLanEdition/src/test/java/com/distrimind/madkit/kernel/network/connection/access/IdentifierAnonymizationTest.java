@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import java.security.DigestException;
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.Random;
@@ -59,8 +59,7 @@ import com.distrimind.util.crypto.SecureRandomType;
  */
 public class IdentifierAnonymizationTest {
 	@Test
-	public void testEncryptedJPakeIdentifier() throws DigestException, NoSuchAlgorithmException, NoSuchProviderException
-	{
+	public void testEncryptedJPakeIdentifier() throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
 
 		for (int i=0;i<100;i++)
 		{
@@ -68,41 +67,38 @@ public class IdentifierAnonymizationTest {
 			Random rand=new Random(System.currentTimeMillis());
 			byte[] id=new byte[rand.nextInt(2000)+20];
 			rand.nextBytes(id);
-			byte[] salt=new byte[messageDigest.getDigestLength()];
+			byte[] salt=new byte[messageDigest.getDigestLengthInBytes()];
 			rand.nextBytes(salt);
 			
 			
 			AbstractSecureRandom srand=SecureRandomType.DEFAULT.getSingleton(null);
 
 			byte[] encryptedID= AccessProtocolWithP2PAgreement.anonymizeIdentifier(id,srand , messageDigest, salt);
-			Assert.assertTrue(AccessProtocolWithP2PAgreement.compareAnonymizedIdentifier(id, encryptedID, messageDigest, salt));
+			Assert.assertTrue(AccessProtocolWithP2PAgreement.compareAnonymousIdentifier(id, encryptedID, messageDigest, salt));
 		}		
 	}
 	@Test
-	public void testEncryptedJPakeIdentifierWithInterfacedOriginalKernel() throws DigestException, NoSuchAlgorithmException, NoSuchProviderException
-	{
+	public void testEncryptedJPakeIdentifierWithInterfacedOriginalKernel() throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
 		testEncryptedJPakeIdentifierWithInterfaced(true);
 	}
 	@Test
-	public void testEncryptedJPakeIdentifierWithInterfacedNonOriginalKernel() throws DigestException, NoSuchAlgorithmException, NoSuchProviderException
-	{
+	public void testEncryptedJPakeIdentifierWithInterfacedNonOriginalKernel() throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
 		testEncryptedJPakeIdentifierWithInterfaced(false);
 	}
-	public void testEncryptedJPakeIdentifierWithInterfaced(boolean keepOriginal) throws DigestException, NoSuchAlgorithmException, NoSuchProviderException
-	{
+	public void testEncryptedJPakeIdentifierWithInterfaced(boolean keepOriginal) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
 		for (int i=0;i<100;i++)
 		{
 			AbstractMessageDigest messageDigest=MessageDigestType.DEFAULT.getMessageDigestInstance();
 			Random rand=new Random(System.currentTimeMillis());
 			byte[] id=new byte[rand.nextInt(2000)+20];
 			rand.nextBytes(id);
-			byte[] salt=new byte[messageDigest.getDigestLength()];
+			byte[] salt=new byte[messageDigest.getDigestLengthInBytes()];
 			rand.nextBytes(salt);
 			
 			AbstractSecureRandom srand=SecureRandomType.DEFAULT.getSingleton(null);
 
 			byte[] encryptedID= AccessProtocolWithP2PAgreement.anonymizeIdentifier(id,srand , messageDigest, salt);
-			Assert.assertTrue(AccessProtocolWithP2PAgreement.compareAnonymizedIdentifier(id, encryptedID, messageDigest, salt));
+			Assert.assertTrue(AccessProtocolWithP2PAgreement.compareAnonymousIdentifier(id, encryptedID, messageDigest, salt));
 		}		
 	}
 }

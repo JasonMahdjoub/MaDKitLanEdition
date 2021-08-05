@@ -242,14 +242,12 @@ public class ObjectMessage<T> extends Message {
 		}
 	}
 
-	/**
-	 * @see com.distrimind.madkit.kernel.Message#toString()
-	 */
 	@Override
 	public String toString() {
-		String s = super.toString();
-		s += "\n" + (getClass().getSimpleName() + getConversationID()).replaceAll("\\.", " ");
-		return s + "    content: {" + content + "}";
+		return this.getClass().getSimpleName()+"{" +
+				"content=" + content +
+				", excludeFromEncryption=" + excludeFromEncryption +
+				'}';
 	}
 
 	@Override

@@ -42,12 +42,13 @@ import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
 import com.distrimind.util.crypto.*;
+import com.distrimind.util.sizeof.ObjectSizer;
 
 /**
  * 
  * 
  * @author Jason Mahdjoub
- * @version 1.1
+ * @version 2.0
  * @since MadkitLanEdition 1.0
  */
 public class ClientSecuredProtocolPropertiesWithKnownPublicKey
@@ -82,11 +83,11 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	 * @param keyWrapper
 	 *            the key wrapper type
 	 */
-	public void setEncryptionProfile(int identifier, IASymmetricPublicKey publicKeyForEncryption, SymmetricEncryptionType symmetricEncryptionType, ASymmetricKeyWrapperType keyWrapper) {
+	public void setEncryptionProfile(int identifier, IASymmetricPublicKey publicKeyForEncryption, SymmetricEncryptionType symmetricEncryptionType, ASymmetricKeyWrapperType keyWrapper, MessageDigestType messageDigestType) {
 		assert symmetricEncryptionType != null;
 		this.setEncryptionProfile(identifier, publicKeyForEncryption, symmetricEncryptionType,
-				symmetricEncryptionType.getDefaultKeySizeBits(), keyWrapper, symmetricEncryptionType.getDefaultSignatureAlgorithm()
-						);
+				symmetricEncryptionType.getDefaultKeySizeBits(), keyWrapper, symmetricEncryptionType.getDefaultSignatureAlgorithm(),
+				messageDigestType);
 	}
 
 	/**
@@ -108,15 +109,15 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	 *            the signature type (if null, use default signature type)
 	 */
 	public void setEncryptionProfile(int identifier, IASymmetricPublicKey publicKeyForEncryption, SymmetricEncryptionType symmetricEncryptionType,
-			short symmetricKeySizeBits, ASymmetricKeyWrapperType keyWrapper, SymmetricAuthentifiedSignatureType signatureType) {
+			short symmetricKeySizeBits, ASymmetricKeyWrapperType keyWrapper, SymmetricAuthenticatedSignatureType signatureType, MessageDigestType messageDigestType) {
 		synchronized (this) {
 			if (publicKeyForEncryption == null)
 				throw new NullPointerException("publicKey");
 			int s;
 			if (publicKeyForEncryption instanceof HybridASymmetricPublicKey) {
-				if (((HybridASymmetricPublicKey)publicKeyForEncryption).getNonPQCPublicKey().getEncryptionAlgorithmType()==null)
+				if (publicKeyForEncryption.getNonPQCPublicKey().getEncryptionAlgorithmType()==null)
 					throw new IllegalArgumentException();
-				s = ((HybridASymmetricPublicKey) publicKeyForEncryption).getNonPQCPublicKey().getKeySizeBits();
+				s = publicKeyForEncryption.getNonPQCPublicKey().getKeySizeBits();
 
 			}
 			else {
@@ -124,15 +125,15 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 					throw new IllegalArgumentException();
 				s = ((ASymmetricPublicKey) publicKeyForEncryption).getKeySizeBits();
 			}
-			if (s < minASymetricKeySizeBits)
-				throw new IllegalArgumentException("The public key size must be greater than " + minASymetricKeySizeBits);
+			if (s < minASymmetricKeySizeBits)
+				throw new IllegalArgumentException("The public key size must be greater than " + minASymmetricKeySizeBits);
 
 			if (signatureType == null)
-				throw new NullPointerException("signatureType");
+				signatureType=SymmetricAuthenticatedSignatureType.DEFAULT;
 			this.publicKeyForEncryption = publicKeyForEncryption;
 			this.signatureType = signatureType;
 			keyIdentifier = identifier;
-			this.maxAlgo=null;
+			this.maximumBodyOutputSizeComputer=null;
 			this.maxSizeHead=null;
 			if (symmetricEncryptionType != null) {
 				this.symmetricEncryptionType = symmetricEncryptionType;
@@ -145,6 +146,7 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 				this.keyWrapper = ASymmetricKeyWrapperType.DEFAULT;
 			else
 				this.keyWrapper = keyWrapper;
+			this.messageDigestType=messageDigestType;
 		}
 	}
 
@@ -163,7 +165,7 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 					serverProperties.getDefaultSymmetricEncryptionType(),
 					serverProperties.getDefaultSymmetricEncryptionKeySizeBits(),
 					serverProperties.getDefaultKeyWrapper(),
-					serverProperties.getDefaultSignatureType());
+					serverProperties.getDefaultSignatureType(), serverProperties.getDefaultMessageDigestType());
 		}
 	}
 
@@ -183,7 +185,7 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	 * 
 	 * @return the signature attached to this connection protocol
 	 */
-	public SymmetricAuthentifiedSignatureType getSignatureType() {
+	public SymmetricAuthenticatedSignatureType getSignatureType() {
 
 		return signatureType;
 	}
@@ -193,7 +195,7 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	 * 
 	 * @return the encryption profile attached to this connection protocol
 	 */
-	public int getEncryptionProfileIndentifier() {
+	public int getEncryptionProfileIdentifier() {
 		return keyIdentifier;
 	}
 
@@ -223,14 +225,19 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	private IASymmetricPublicKey publicKeyForEncryption;
 
 	/**
+	 * Message digest type used to check message validity
+	 */
+	public MessageDigestType messageDigestType=MessageDigestType.SHA2_384;
+
+	/**
 	 * key identifier
 	 */
 	private int keyIdentifier = 0;
 
 	/**
-	 * The minimum asymetric cipher RSA Key size
+	 * The minimum asymmetric cipher RSA Key size
 	 */
-	public final int minASymetricKeySizeBits = 2048;
+	public final int minASymmetricKeySizeBits = 2048;
 
 	/**
 	 * Symmetric encryption algorithm
@@ -245,7 +252,7 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	/**
 	 * Signature type
 	 */
-	public SymmetricAuthentifiedSignatureType signatureType = null;
+	public SymmetricAuthenticatedSignatureType signatureType = null;
 
 	/**
 	 * Key wrapper
@@ -260,10 +267,10 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 			throw new ConnectionException("The public key must defined");
 		int s;
 		if (publicKeyForEncryption instanceof HybridASymmetricPublicKey) {
-			if (((HybridASymmetricPublicKey)publicKeyForEncryption).getNonPQCPublicKey().getEncryptionAlgorithmType()==null)
+			if (publicKeyForEncryption.getNonPQCPublicKey().getEncryptionAlgorithmType()==null)
 				throw new IllegalArgumentException();
 
-			s = ((HybridASymmetricPublicKey) publicKey).getNonPQCPublicKey().getKeySizeBits();
+			s = publicKey.getNonPQCPublicKey().getKeySizeBits();
 		}
 		else
 		{
@@ -272,8 +279,8 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 			s=((ASymmetricPublicKey)publicKey).getKeySizeBits();
 		}
 
-		if (s < minASymetricKeySizeBits)
-			throw new ConnectionException("_rsa_key_size must be greater or equal than " + minASymetricKeySizeBits
+		if (s < minASymmetricKeySizeBits)
+			throw new ConnectionException("_rsa_key_size must be greater or equal than " + minASymmetricKeySizeBits
 					+ " . Moreover, this number must correspond to this schema : _rsa_key_size=2^x.");
 		if (publicKey.getTimeExpirationUTC() < System.currentTimeMillis()) {
 			throw new ConnectionException("The distant public key has expired !");
@@ -310,31 +317,23 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	public boolean isEncrypted() {
 		return enableEncryption;
 	}
-	private transient SymmetricEncryptionAlgorithm maxAlgo=null;
+	private transient MaximumBodyOutputSizeComputer maximumBodyOutputSizeComputer=null;
 
 	@Override
 	public int getMaximumBodyOutputSizeForEncryption(int size) throws BlockParserException {
-		if (!isEncrypted())
-			return size;
-		else
-		{
-
-			try {
-				if (maxAlgo==null)
-					maxAlgo=new SymmetricEncryptionAlgorithm(SecureRandomType.DEFAULT.getSingleton(null), symmetricEncryptionType.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), getSymmetricKeySizeBits()).generateKey());
-				return maxAlgo.getOutputSizeForEncryption(size)+4;
-			} catch (Exception e) {
-				throw new BlockParserException(e);
-			}
-
-		}
+		if (maximumBodyOutputSizeComputer==null)
+			maximumBodyOutputSizeComputer=new MaximumBodyOutputSizeComputer(isEncrypted(), symmetricEncryptionType, getSymmetricKeySizeBits(), getSignatureType(), messageDigestType);
+		return maximumBodyOutputSizeComputer.getMaximumBodyOutputSizeForEncryption(size);
 	}
-    private transient Integer maxSizeHead=null;
+
+	private transient Integer maxSizeHead=null;
 
     @Override
-    public int getMaximumSizeHead() {
+    public int getMaximumHeadSize() {
         if (maxSizeHead==null)
-            maxSizeHead=signatureType.getSignatureSizeInBits()/8;
+		{
+            maxSizeHead=Math.max(ObjectSizer.sizeOf(getEncryptionProfileIdentifier()), EncryptionSignatureHashEncoder.headSize);
+		}
         return maxSizeHead;
     }
 

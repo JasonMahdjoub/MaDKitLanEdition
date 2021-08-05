@@ -65,13 +65,13 @@ public class MadkitToolBar extends JToolBar {
 	 * <li>{@link KernelAction#LAUNCH_NETWORK}
 	 * <li>{@link KernelAction#STOP_NETWORK}
 	 * <li>{@link GUIManagerAction#CONNECT_TO_IP}
-	 * <li>{@link GlobalAction#JCONSOLE}
+	 * <li>{@link GlobalAction#JConsole}
 	 * <li>{@link KernelAction#CONSOLE}
 	 * <li>{@link GlobalAction#DEBUG}
 	 * <li>{@link GlobalAction#LOAD_LOCAL_DEMOS}
 	 * <li>{@link GlobalAction#LOAD_JAR_FILE}
 	 * <li>{@link GUIManagerAction#ICONIFY_ALL}
-	 * <li>{@link GUIManagerAction#DEICONIFY_ALL}
+	 * <li>{@link GUIManagerAction#DE_ICONIFY_ALL}
 	 * <li>{@link GUIManagerAction#KILL_AGENTS}
 	 * </ul>
 	 * 

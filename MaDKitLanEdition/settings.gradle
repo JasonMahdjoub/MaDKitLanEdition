@@ -16,5 +16,7 @@ include 'services:webservice'
 */
 
 rootProject.name = 'MaDKitLanEdition'
-/*include ':JDKRewriteUtils'
-project(":JDKRewriteUtils").projectDir = file("../../JDKRewriteUtils/JDKRewriteUtils")*/
+/*include ':OOD'
+project(":OOD").projectDir = file("../../OOD/OOD")*/
+/*include ':Utils'
+project(":Utils").projectDir = file("../../Utils/Utils")*/

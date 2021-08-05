@@ -95,12 +95,12 @@ import com.distrimind.madkit.message.KernelMessage;
 class GUIManagerAgent extends Agent {
 
 	final private ConcurrentMap<AbstractAgent, JFrame> guis;
-	private boolean shuttedDown = false;
+	private boolean shutDown = false;
 
 	JDesktopPane desktopPane;
 
 	private MDKDesktopFrame myFrame;
-	private Constructor<? extends AgentFrame> agentFrameConstrutor;
+	private Constructor<? extends AgentFrame> agentFrameConstructor;
 
 
 	@SuppressWarnings("unused")
@@ -113,12 +113,12 @@ class GUIManagerAgent extends Agent {
 	@Override
 	protected void activate() {// TODO parallelize that
 		try {
-			agentFrameConstrutor = (Constructor<? extends AgentFrame>) getMadkitConfig().agentFrameClass
+			agentFrameConstructor = (Constructor<? extends AgentFrame>) getMadkitConfig().agentFrameClass
 					.getDeclaredConstructor(AbstractAgent.class);
 		} catch (NoSuchMethodException | SecurityException | ClassCastException | NullPointerException e1) {
 			e1.printStackTrace();
 			try {
-				agentFrameConstrutor = AgentFrame.class.getDeclaredConstructor(AbstractAgent.class);
+				agentFrameConstructor = AgentFrame.class.getDeclaredConstructor(AbstractAgent.class);
 			} catch (NoSuchMethodException | SecurityException ignored) {
 			}
 		}
@@ -146,7 +146,7 @@ class GUIManagerAgent extends Agent {
 
 	private void headlessLog(HeadlessException e) {
 		getLogger().severe("\t" + e.getMessage() + "\n\tNo graphic environment, quitting");
-		shuttedDown = true;
+		shutDown = true;
 	}
 
 	@Override
@@ -166,7 +166,7 @@ class GUIManagerAgent extends Agent {
 	 */
 	@Override
 	public boolean isAlive() {
-		return super.isAlive() && !shuttedDown;
+		return super.isAlive() && !shutDown;
 	}
 
 	private void proceedCommandMessage(GUIMessage cm) {
@@ -206,21 +206,22 @@ class GUIManagerAgent extends Agent {
 	
 	@SuppressWarnings("unused")
 	private void exit() {
-		shuttedDown = true;
+		shutDown = true;
 	}
 
 	private void setupAgentGui(final AbstractAgent agent) {
-		if (!shuttedDown && agent.isAlive()) {
+		if (!shutDown && agent.isAlive()) {
 			if (logger != null && logger.isLoggable(Level.FINE))
 				logger.fine("Setting up GUI for " + agent);
 			AgentFrame f = null;
 			try {
-				f = agentFrameConstrutor.newInstance(agent);
+				f = agentFrameConstructor.newInstance(agent);
 			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException e1) {
 				e1.printStackTrace();
 			}
 			try {
+				assert f != null;
 				agent.setupFrame(f);
 			} catch (Exception e) {
 				agent.getLogger().severeLog("Frame setup problem -> default GUI settings", e);
@@ -228,32 +229,27 @@ class GUIManagerAgent extends Agent {
 			}
 			guis.put(agent, f);
 			final AgentFrame af = f;
-			SwingUtilities.invokeLater(new Runnable() {
-
-				public void run() {
-					if (desktopPane != null) {
-						final JInternalFrame jf = buildInternalFrame(af);
-						desktopPane.add(jf);
-						jf.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-						jf.addInternalFrameListener(new InternalFrameAdapter() {
-							@Override
-							public void internalFrameClosing(InternalFrameEvent e) {
-								if (agent.isAlive()) {
-									jf.setTitle("Closing " + agent.getName());
-									AgentFrame.killAgent(agent, 2);
-								} else {
-									jf.dispose();
-								}
+			SwingUtilities.invokeLater(() -> {
+				if (desktopPane != null) {
+					final JInternalFrame jf = buildInternalFrame(af);
+					desktopPane.add(jf);
+					jf.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+					jf.addInternalFrameListener(new InternalFrameAdapter() {
+						@Override
+						public void internalFrameClosing(InternalFrameEvent e) {
+							if (agent.isAlive()) {
+								jf.setTitle("Closing " + agent.getName());
+								AgentFrame.killAgent(agent, 2);
+							} else {
+								jf.dispose();
 							}
-						});
-						jf.setLocation(checkLocation(jf));
-						jf.setVisible(true);
-					} else {
-                        if (af==null)
-                        	throw new NullPointerException();
-                        af.setLocation(checkLocation(af));
-						af.setVisible(true);
-					}
+						}
+					});
+					jf.setLocation(checkLocation(jf));
+					jf.setVisible(true);
+				} else {
+					af.setLocation(checkLocation(af));
+					af.setVisible(true);
 				}
 			});
 		}
@@ -293,7 +289,7 @@ class GUIManagerAgent extends Agent {
 	}
 
 	@SuppressWarnings("unused")
-	private void deiconifyAll() {
+	private void deIconifyAll() {
 		iconifyAll(false);
 	}
 

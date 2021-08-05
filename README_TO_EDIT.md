@@ -88,6 +88,7 @@ All described features are tested and considered as stable.
 * Possibility to define a blackboard for agents
 * when broadcasting a message, possibility for an agent to get all answers in one time.
 * Auto-request roles are possible. Agents can request roles only if they are requested by other agents.
+* Compatible with Java 8 and newer
 
 
 ###### Madkit Group extension futures

@@ -236,72 +236,63 @@ public abstract class AgentFakeThread extends AbstractAgent {
 			schedule = true;
 		}
 		if (schedule) {
-			getMadkitKernel().getMaDKitServiceExecutor().submit(new Callable<Void>() {
-
-				@Override
-				public Void call() {
-					if (canContinueToManageMessages()) {
-						messageBox.getLocker().lock();
-						Message m;
+			getMadkitKernel().getMaDKitServiceExecutor().submit((Callable<Void>) () -> {
+				if (canContinueToManageMessages()) {
+					messageBox.getLocker().lock();
+					Message m;
+					try {
+						messageReadAlreadyInProgress = true;
+						m = nextMessage();
+					} finally {
+						messageBox.getLocker().unlock();
+					}
+					if (m != null) {
 						try {
-							messageReadAlreadyInProgress = true;
-							m = nextMessage();
+							AgentFakeThread.this.setMyThread(Thread.currentThread());
+							liveByStep(m);
+						} catch (final SelfKillException e) {
+							if (e.killing_type
+									.equals(KillingType.WAIT_AGENT_PURGE_ITS_MESSAGES_BOX_BEFORE_KILLING_IT)) {
+
+								getMadkitKernel().getMaDKitServiceExecutor().execute(() -> getKernel().killAgent(AgentFakeThread.this, AgentFakeThread.this,
+										e.timeOutSeconds, e.killing_type));
+							} else
+								getKernel().killAgent(AgentFakeThread.this, AgentFakeThread.this, e.timeOutSeconds,e.killing_type);
+
+						} catch (InterruptedException ignored) {
+
+						} catch (Throwable e) {
+							logLifeException(e);
 						} finally {
-							messageBox.getLocker().unlock();
-						}
-						if (m != null) {
-							try {
-								AgentFakeThread.this.setMyThread(Thread.currentThread());
-								liveByStep(m);
-							} catch (final SelfKillException e) {
-								if (e.killing_type
-										.equals(KillingType.WAIT_AGENT_PURGE_ITS_MESSAGES_BOX_BEFORE_KILLING_IT)) {
-
-									getMadkitKernel().getMaDKitServiceExecutor().execute(new Runnable() {
-										@Override
-										public void run() {
-											getKernel().killAgent(AgentFakeThread.this, AgentFakeThread.this,
-													e.timeOutSeconds, e.killing_type);
-										}
-									});
-								} else
-									getKernel().killAgent(AgentFakeThread.this, AgentFakeThread.this, e.timeOutSeconds,e.killing_type);
-
-							} catch (InterruptedException ignored) {
-
-							} catch (Throwable e) {
-								logLifeException(e);
-							} finally {
-								messageBox.getLocker().lock();
-								try {
-									messageReadAlreadyInProgress = false;
-									if (canContinueToManageMessages()) {
-										manageTaskMessage(true);
-									}
-								} finally {
-									messageBox.getLocker().unlock();
-								}
-
-							}
-						} else {
 							messageBox.getLocker().lock();
 							try {
 								messageReadAlreadyInProgress = false;
+								if (canContinueToManageMessages()) {
+									manageTaskMessage(true);
+								}
 							} finally {
 								messageBox.getLocker().unlock();
 							}
-						}
-						if (state.get().equals(State.LIVING_BUT_WAIT_FOR_KILL)) {
-							synchronized (state) {
-								state.notify();
-							}
-						}
 
-					} else
-						System.err.println(AgentFakeThread.this
-								+ "------------cannot manage task message !!!!!!!!!!!!!! : " + getState());
-					return null;
-				}
+						}
+					} else {
+						messageBox.getLocker().lock();
+						try {
+							messageReadAlreadyInProgress = false;
+						} finally {
+							messageBox.getLocker().unlock();
+						}
+					}
+					if (state.get().equals(State.LIVING_BUT_WAIT_FOR_KILL)) {
+						synchronized (state) {
+							state.notify();
+						}
+					}
+
+				} else
+					System.err.println(AgentFakeThread.this
+							+ "------------cannot manage task message !!!!!!!!!!!!!! : " + getState());
+				return null;
 			});
 		}
 	}

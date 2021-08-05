@@ -41,10 +41,10 @@ import java.util.Arrays;
 
 
 /**
- * This class represents an average of bytes transfered during the last elapsed
+ * This class represents an average of bytes transferred during the last elapsed
  * duration. The time elapsed is the real time. So the statistic change with the
  * time. If no transfer has been done during the last elapsed duration, the
- * number of transfered bytes is equal to 0.
+ * number of transferred bytes is equal to 0.
  * 
  * This class is thread safe.
  * 
@@ -52,7 +52,7 @@ import java.util.Arrays;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-public class RealTimeTransfertStat {
+public class RealTimeTransferStat {
 	private final long[] stats;
 	private long totalBytes;
 	private int cursor;
@@ -62,7 +62,7 @@ public class RealTimeTransfertStat {
 	private volatile boolean one_cycle_done ;
 
 	/**
-	 * Construct a metric that computes number of transfered bytes during the last
+	 * Construct a metric that computes number of transferred bytes during the last
 	 * elapsed duration, specified with the next arguments.
 	 * 
 	 * @param _duration
@@ -73,7 +73,7 @@ public class RealTimeTransfertStat {
 	 *            more memory place (array of
 	 *            <code>(_duration-_duration%_segment)/_segment</code>).
 	 */
-	public RealTimeTransfertStat(long _duration, long _segment) {
+	public RealTimeTransferStat(long _duration, long _segment) {
 		if (_duration < _segment)
 			throw new IllegalArgumentException("_duration must be greater or equal than _segment");
 		if (_duration < 3)
@@ -84,7 +84,7 @@ public class RealTimeTransfertStat {
 		segment = _segment;
 		duration = _duration;
 		if (duration / segment > Integer.MAX_VALUE)
-			throw new IllegalArgumentException("The value '_duration/_segment' must be lower than Interger.MAX_VALUE");
+			throw new IllegalArgumentException("The value '_duration/_segment' must be lower than Integer.MAX_VALUE");
 		if (duration / segment < 3)
 			throw new IllegalArgumentException("The value '_duration/_segment' must be greater than 3");
 		stats = new long[(int) (duration / segment)];
@@ -94,9 +94,9 @@ public class RealTimeTransfertStat {
 	}
 
 	/**
-	 * The duration in milliseconds used to computed the average of transfered bytes.
+	 * The duration in milliseconds used to computed the average of transferred bytes.
 	 * 
-	 * @return the duration in milliseconds used to computed the average of transfered bytes.
+	 * @return the duration in milliseconds used to computed the average of transferred bytes.
 	 */
 	public long getDurationMilli() {
 		return duration;
@@ -131,12 +131,12 @@ public class RealTimeTransfertStat {
 	}
 
 	/**
-	 * Inform that new bytes have been transfered
+	 * Inform that new bytes have been transferred
 	 * 
 	 * @param number
-	 *            the number of transfered bytes
+	 *            the number of transferred bytes
 	 */
-	public void newBytesIndentified(int number) {
+	public void newBytesIdentified(int number) {
 		synchronized (this) {
 			update();
 			stats[cursor] += number;
@@ -146,9 +146,9 @@ public class RealTimeTransfertStat {
 
 	/**
 	 * 
-	 * @return the average of bytes transfered during the given duration
+	 * @return the average of bytes transferred during the given duration
 	 */
-	public long getNumberOfIndentifiedBytes() {
+	public long getNumberOfIdentifiedBytes() {
 		synchronized (this) {
 			update();
 			return totalBytes;

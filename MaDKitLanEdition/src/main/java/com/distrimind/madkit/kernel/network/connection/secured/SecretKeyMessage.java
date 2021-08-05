@@ -39,6 +39,7 @@ package com.distrimind.madkit.kernel.network.connection.secured;
 
 import com.distrimind.madkit.kernel.network.connection.AskConnection;
 import com.distrimind.madkit.kernel.network.connection.ConnectionMessage;
+import com.distrimind.util.crypto.WrappedEncryptedSymmetricSecretKey;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
 
@@ -52,9 +53,9 @@ import java.io.IOException;
  */
 class SecretKeyMessage extends ConnectionMessage {
 
-	public byte[] secret_key;
+	public WrappedEncryptedSymmetricSecretKey secret_key;
 
-	public SecretKeyMessage(byte[] _secret_key) {
+	public SecretKeyMessage(WrappedEncryptedSymmetricSecretKey _secret_key) {
 		secret_key = _secret_key;
 	}
 
@@ -73,13 +74,13 @@ class SecretKeyMessage extends ConnectionMessage {
 
 	@Override
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
-		secret_key=in.readBytesArray(false, AskConnection.MAX_SECRET_KEY_LENGTH);
+		secret_key=new WrappedEncryptedSymmetricSecretKey(in.readBytesArray(false, AskConnection.MAX_SECRET_KEY_LENGTH));
 		
 	}
 
 	@Override
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
-		oos.writeBytesArray(secret_key, false, AskConnection.MAX_SECRET_KEY_LENGTH);
+		oos.writeBytesArray(secret_key.getBytes(), false, AskConnection.MAX_SECRET_KEY_LENGTH);
 		
 	}
 	

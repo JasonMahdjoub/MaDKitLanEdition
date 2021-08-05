@@ -97,7 +97,7 @@ public class JunitMadkit {
 
 	public static String testTitle;
 	//protected Madkit madkit;
-	private final List<Madkit> madkits=Collections.synchronizedList(new ArrayList<Madkit>());
+	private final List<Madkit> madkits=Collections.synchronizedList(new ArrayList<>());
 	private static final ArrayList<Madkit> helperInstances = new ArrayList<>();
 
 
@@ -154,22 +154,14 @@ public class JunitMadkit {
 	private static final List<Process> externalProcesses = new ArrayList<>();
 
 	public Madkit launchTest(AbstractAgent a, ReturnCode expected, boolean gui) {
-		return launchTest(a, expected, gui, new MadkitEventListener() {
+		return launchTest(a, expected, gui, _properties -> {
 
-			@Override
-			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
-
-			}
 		});
 	}
 
 	public Madkit launchTest(AbstractAgent a, ReturnCode expected, boolean gui, Runnable postTest) {
-		return launchTest(a, expected, gui, new MadkitEventListener() {
+		return launchTest(a, expected, gui, _properties -> {
 
-			@Override
-			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
-
-			}
 		}, postTest);
 	}
 
@@ -261,11 +253,7 @@ public class JunitMadkit {
 	}
 
 	public Madkit launchTest(AbstractAgent a) {
-		return launchTest(a, new MadkitEventListener() {
-
-			@Override
-			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
-			}
+		return launchTest(a, _properties -> {
 		});
 	}
 
@@ -283,11 +271,7 @@ public class JunitMadkit {
 	}
 
 	public Madkit launchTest(AbstractAgent a, ReturnCode expected) {
-		return launchTest(a, expected, false, new MadkitEventListener() {
-
-			@Override
-			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
-			}
+		return launchTest(a, expected, false, _properties -> {
 		});
 	}
 
@@ -442,13 +426,7 @@ public class JunitMadkit {
 	public void launchThreadedMKNetworkInstance(final Level l, final Class<? extends AbstractAgent> agentClass,
 			final AbstractAgent agentToLaunch, final NetworkEventListener networkEventListener,
 			final KernelAddress kernelAddress) {
-		Thread t=new Thread(new Runnable() {
-			@Override
-			public void run() {
-
-				launchCustomNetworkInstance(l, agentClass, agentToLaunch, networkEventListener, kernelAddress);
-			}
-		});
+		Thread t=new Thread(() -> launchCustomNetworkInstance(l, agentClass, agentToLaunch, networkEventListener, kernelAddress));
 		t.setName("Madkit thread launcher");
 		t.start();
 	}
@@ -473,7 +451,7 @@ public class JunitMadkit {
 		if (m.getKernel().isAlive())
 			m.doAction(KernelAction.EXIT);
 
-		checkKilledKernelsNb(null, m, 10000);
+		checkKilledKernelsNb(null, m, 30000);
 
 		checkEmptyConversationIDTraces(null, m, 10000);
 
@@ -614,19 +592,15 @@ public class JunitMadkit {
 	public Madkit launchCustomNetworkInstance(final Level l, final Class<? extends AbstractAgent> agentTolaunch,
 			final AbstractAgent agentToLaunch, final NetworkEventListener networkEventListener,
 			KernelAddress kernelAddress) {
-		Madkit m = new Madkit(Madkit.generateDefaultMadkitConfig(), kernelAddress, new MadkitEventListener() {
+		Madkit m = new Madkit(Madkit.generateDefaultMadkitConfig(), kernelAddress, _properties -> {
+			_properties.networkProperties.network = true;
+			_properties.networkProperties.networkLogLevel = l;
+			_properties.launchAgents = new ArrayList<>();
+			_properties.launchAgents.add(new AgentToLaunch(agentTolaunch, false, 1));
+			_properties.kernelLogLevel = l;
+			_properties.networkProperties.upnpIGDEnabled = false;
+			networkEventListener.onMaDKitPropertiesLoaded(_properties);
 
-			@Override
-			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
-				_properties.networkProperties.network = true;
-				_properties.networkProperties.networkLogLevel = l;
-				_properties.launchAgents = new ArrayList<>();
-				_properties.launchAgents.add(new AgentToLaunch(agentTolaunch, false, 1));
-				_properties.kernelLogLevel = l;
-				_properties.networkProperties.upnpIGDEnabled = false;
-				networkEventListener.onMaDKitPropertiesLoaded(_properties);
-
-			}
 		});
 
 		if (agentToLaunch != null)
@@ -687,9 +661,9 @@ public class JunitMadkit {
 
 			} else
 				System.out.println("others =0");
-			if (t.getMili() < timeout && (l == null || l.size() != nb))
+			if (t.getMilli() < timeout && (l == null || l.size() != nb))
 				pause(agent, 1000);
-		} while (t.getMili() < timeout && (l == null || l.size() != nb));
+		} while (t.getMilli() < timeout && (l == null || l.size() != nb));
 		assert l != null;
 		assertEquals(nb, l.size());
 	}
@@ -704,9 +678,9 @@ public class JunitMadkit {
 				System.out.println(m.getKernel() + " : connected kernels=" + l.size() + " (expected=" + nb + ")");
 			} else
 				System.out.println("others =0");
-			if (t.getMili() < timeout && (l == null || l.size() != nb))
+			if (t.getMilli() < timeout && (l == null || l.size() != nb))
 				pause(agent, 1000);
-		} while (t.getMili() < timeout && (l == null || l.size() != nb));
+		} while (t.getMilli() < timeout && (l == null || l.size() != nb));
 		assert l != null;
 		assertEquals(nb, l.size());
 	}
@@ -722,9 +696,9 @@ public class JunitMadkit {
 						m.getKernel() + " : connected network agents=" + nb + " (expected=" + nbExpected + ")");
 			} else
 				System.out.println("others =0");
-			if (t.getMili() < timeout && nb != nbExpected)
+			if (t.getMilli() < timeout && nb != nbExpected)
 				pause(agent, 1000);
-		} while (t.getMili() < timeout && nb != nbExpected);
+		} while (t.getMilli() < timeout && nb != nbExpected);
 		assertEquals(nb, nbExpected);
 	}
 
@@ -741,11 +715,11 @@ public class JunitMadkit {
 		Timer t = new Timer(true);
 
 		do {
-			if (t.getMili() < timeout && m.getKernel().getState()!= TERMINATED) {
+			if (t.getMilli() < timeout && m.getKernel().getState()!= TERMINATED) {
 				System.out.println(m+" : state="+m.getKernel().getState());
 				pause(agent, 1000);
 			}
-		} while (t.getMili() < timeout && m.getKernel().getState()!= TERMINATED);
+		} while (t.getMilli() < timeout && m.getKernel().getState()!= TERMINATED);
 		assertSame(TERMINATED, m.getKernel().getState());
 	}
 
@@ -754,13 +728,13 @@ public class JunitMadkit {
 		Timer t = new Timer(true);
 		System.gc();
 		do {
-			if (t.getMili() < timeout && !m.getKernel().isGlobalInterfacedIDsEmpty()) {
+			if (t.getMilli() < timeout && !m.getKernel().isGlobalInterfacedIDsEmpty()) {
 				System.out.println(m.getKernel() + " : global conversation ID interfaces empty = false");
 				System.gc();
 				System.gc();
 				pause(agent, 1000);
 			}
-		} while (t.getMili() < timeout && !m.getKernel().isGlobalInterfacedIDsEmpty());
+		} while (t.getMilli() < timeout && !m.getKernel().isGlobalInterfacedIDsEmpty());
 		assertTrue(m.getKernel().getGlobalInterfacedIDs().isEmpty());
 	}
 

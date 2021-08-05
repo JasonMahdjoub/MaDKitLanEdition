@@ -38,10 +38,7 @@
 package com.distrimind.madkit.database;
 
 import com.distrimind.madkit.kernel.network.NetworkProperties;
-import com.distrimind.ood.database.DatabaseConfiguration;
-import com.distrimind.ood.database.DatabaseWrapper;
-import com.distrimind.ood.database.EmbeddedH2DatabaseWrapper;
-import com.distrimind.ood.database.InMemoryEmbeddedH2DatabaseFactory;
+import com.distrimind.ood.database.*;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.crypto.ASymmetricEncryptionType;
 import com.distrimind.util.crypto.ASymmetricKeyPair;
@@ -59,20 +56,22 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.Collection;
 
-public class DatabaseTests {
+public class MKDatabaseTests {
 	static final File databaseFile = new File("tmpfortest.database");
 	static DatabaseWrapper databaseWrapper;
 	static IPBanned ipbanned;
 	static IPBanStat ipbanstat;
 	static IPExpulsedStat ipExpulsedStat;
 	static KeysPairs keysPairs;
-	final Collection<InetAddress> whiteInetAddressesList = new NetworkProperties().getWhiteInetAddressesList();
+	final Collection<InetAddress> allowInetAddressesList = new NetworkProperties().getAllowInetAddressesList();
 
 	@BeforeClass
 	public static void loadDatabase() throws IllegalArgumentException, DatabaseException {
 		closeAndDeleleteDatabase();
 		databaseWrapper = new InMemoryEmbeddedH2DatabaseFactory(databaseFile.getName()).getDatabaseWrapperSingleton();
-		databaseWrapper.loadDatabase(new DatabaseConfiguration(KeysPairs.class.getPackage()), true);
+		databaseWrapper.getDatabaseConfigurationsBuilder()
+				.addConfiguration(new DatabaseConfiguration(new DatabaseSchema(KeysPairs.class.getPackage())), false, true)
+				.commit();
 		ipbanned = databaseWrapper.getTableInstance(IPBanned.class);
 		ipbanstat = databaseWrapper.getTableInstance(IPBanStat.class);
 		ipExpulsedStat = databaseWrapper.getTableInstance(IPExpulsedStat.class);
@@ -83,7 +82,7 @@ public class DatabaseTests {
 	public static void closeAndDeleleteDatabase() {
 		if (databaseWrapper != null)
 			databaseWrapper.close();
-		EmbeddedH2DatabaseWrapper.deleteDatabaseFiles(databaseFile);
+		EmbeddedH2DatabaseWrapper.deleteDatabasesFiles(databaseFile);
 		databaseWrapper = null;
 		ipbanned = null;
 		ipbanstat = null;
@@ -128,12 +127,12 @@ public class DatabaseTests {
 
 		InetAddress ia1 = InetAddress.getByName("192.168.0.15");
 		InetAddress ia2 = InetAddress.getByName("0.15.0.2");
-		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia1, whiteInetAddressesList));
-		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, whiteInetAddressesList));
+		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia1, allowInetAddressesList));
+		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, allowInetAddressesList));
 		ipbanstat.processExpulsion(ia1, false, 200, (short) 2, (short) 2, 200, (short) 1, (short) 2, 500, 500,
-				whiteInetAddressesList);
-		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia1, whiteInetAddressesList));
-		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, whiteInetAddressesList));
+				allowInetAddressesList);
+		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia1, allowInetAddressesList));
+		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, allowInetAddressesList));
 		Assert.assertEquals(0, ipbanstat.getRecords().size());
 		Assert.assertEquals(1, ipExpulsedStat.getRecords().size());
 		Assert.assertEquals(0, ipbanned.getRecords().size());
@@ -144,9 +143,9 @@ public class DatabaseTests {
 			Assert.assertEquals(1, ipbs.number_hits);
 		}
 		ipbanstat.processExpulsion(ia1, false, 200, (short) 2, (short) 2, 200, (short) 1, (short) 2, 500, 500,
-				whiteInetAddressesList);
-		Assert.assertTrue(ipbanstat.isBannedOrExpulsed(ia1, whiteInetAddressesList));
-		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, whiteInetAddressesList));
+				allowInetAddressesList);
+		Assert.assertTrue(ipbanstat.isBannedOrExpulsed(ia1, allowInetAddressesList));
+		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, allowInetAddressesList));
 		Assert.assertEquals(0, ipbanstat.getRecords().size());
 		Assert.assertEquals(1, ipExpulsedStat.getRecords().size());
 		Assert.assertEquals(1, ipbanned.getRecords().size());
@@ -162,17 +161,17 @@ public class DatabaseTests {
 		}
 
 		Thread.sleep(200);
-		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia1, whiteInetAddressesList));
-		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, whiteInetAddressesList));
+		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia1, allowInetAddressesList));
+		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, allowInetAddressesList));
 		ipbanstat.processExpulsion(ia1, false, 200, (short) 2, (short) 2, 200, (short) 1, (short) 2, 500, 500,
-				whiteInetAddressesList);
+				allowInetAddressesList);
 		ipbanstat.processExpulsion(ia1, false, 200, (short) 2, (short) 2, 200, (short) 1, (short) 2, 500, 500,
-				whiteInetAddressesList);
+				allowInetAddressesList);
 		ipbanstat.processExpulsion(ia1, false, 200, (short) 2, (short) 2, 200, (short) 1, (short) 2, 500, 500,
-				whiteInetAddressesList);
+				allowInetAddressesList);
 		ipbanstat.processExpulsion(ia1, false, 200, (short) 2, (short) 2, 200, (short) 1, (short) 2, 500, 500,
-				whiteInetAddressesList);
-		Assert.assertTrue(ipbanstat.isBannedOrExpulsed(ia1, whiteInetAddressesList));
+				allowInetAddressesList);
+		Assert.assertTrue(ipbanstat.isBannedOrExpulsed(ia1, allowInetAddressesList));
 		for (IPExpulsedStat.Record ipbs : ipExpulsedStat.getRecords()) {
 			Assert.assertArrayEquals(ia1.getAddress(), ipbs.inet_address);
 			Assert.assertTrue(ipbs.last_update_time < System.currentTimeMillis());
@@ -191,8 +190,8 @@ public class DatabaseTests {
 		}
 		Thread.sleep(500);
 		ipbanstat.updateDatabase(500, 500, (short) 2, (short) 1);
-		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia1, whiteInetAddressesList));
-		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, whiteInetAddressesList));
+		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia1, allowInetAddressesList));
+		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, allowInetAddressesList));
 
 		Assert.assertEquals(0, ipbanstat.getRecords().size());
 		Assert.assertEquals(1, ipExpulsedStat.getRecords().size());
@@ -211,7 +210,7 @@ public class DatabaseTests {
 		}
 
 		ipbanstat.processExpulsion(ia1, true, 200, (short) 2, (short) 2, 200, (short) 1, (short) 2, 500, 500,
-				whiteInetAddressesList);
+				allowInetAddressesList);
 		for (IPExpulsedStat.Record ipbs : ipExpulsedStat.getRecords()) {
 			Assert.assertArrayEquals(ia1.getAddress(), ipbs.inet_address);
 			Assert.assertTrue(ipbs.last_update_time < System.currentTimeMillis());
@@ -229,7 +228,7 @@ public class DatabaseTests {
 			Assert.assertTrue(ipb.expiration_time < System.currentTimeMillis() + 200);
 		}
 		ipbanstat.processExpulsion(ia1, true, 200, (short) 2, (short) 2, 200, (short) 1, (short) 2, 500, 500,
-				whiteInetAddressesList);
+				allowInetAddressesList);
 		for (IPExpulsedStat.Record ipbs : ipExpulsedStat.getRecords()) {
 			Assert.assertArrayEquals(ia1.getAddress(), ipbs.inet_address);
 			Assert.assertTrue(ipbs.last_update_time < System.currentTimeMillis());
@@ -248,11 +247,11 @@ public class DatabaseTests {
 		}
 
 		Thread.sleep(500);
-		Assert.assertTrue(ipbanstat.isBannedOrExpulsed(ia1, whiteInetAddressesList));
-		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, whiteInetAddressesList));
+		Assert.assertTrue(ipbanstat.isBannedOrExpulsed(ia1, allowInetAddressesList));
+		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, allowInetAddressesList));
 		ipbanstat.accept(ia1);
-		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia1, whiteInetAddressesList));
-		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, whiteInetAddressesList));
+		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia1, allowInetAddressesList));
+		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, allowInetAddressesList));
 		Assert.assertEquals(0, ipbanstat.getRecords().size());
 		Assert.assertEquals(0, ipExpulsedStat.getRecords().size());
 		Assert.assertEquals(0, ipbanned.getRecords().size());

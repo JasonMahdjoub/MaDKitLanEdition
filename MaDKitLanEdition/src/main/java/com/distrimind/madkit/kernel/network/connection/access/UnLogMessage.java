@@ -35,74 +35,72 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-package com.distrimind.madkit.kernel.network;
+package com.distrimind.madkit.kernel.network.connection.access;
 
-import java.io.Serializable;
+import com.distrimind.madkit.kernel.network.NetworkProperties;
+import com.distrimind.util.io.Integrity;
+import com.distrimind.util.io.MessageExternalizationException;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
+
+import java.io.IOException;
+import java.util.ArrayList;
 
 /**
- * Represent a data transfer report
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-public class DataTransfertResult implements Serializable {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -8100383752574021348L;
+class UnLogMessage extends AccessMessage {
 
-	/**
-	 * Represents the data size (in bytes) from the source
-	 */
-	private long data_input_size;
 
-	/**
-	 * Represents the data size (in bytes) to send
-	 */
-	private long data_to_send_size;
+	public ArrayList<Identifier> identifier_to_un_log;
 
-	/**
-	 * Represents the data sent (in bytes)
-	 */
-	private long data_sent_size;
-
-	DataTransfertResult(long _data_input_size, long _data_to_send_size, long _data_sent_size) {
-		data_input_size = _data_input_size;
-		data_to_send_size = _data_to_send_size;
-		data_sent_size = _data_sent_size;
+	public UnLogMessage(ArrayList<Identifier> _identifiers) {
+		identifier_to_un_log = _identifiers;
+	}
+	
+	@SuppressWarnings("unused")
+	UnLogMessage()
+	{
+		
+	}
+	@Override
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+		int size=in.readInt();
+		int totalSize=4;
+		int globalSize=NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE;
+		if (size<0 || totalSize+size*4>globalSize)
+			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+		identifier_to_un_log =new ArrayList<>(size);
+		for (int i=0;i<size;i++)
+		{
+			Identifier id=in.readObject(false, Identifier.class);
+			totalSize+=id.getInternalSerializedSize();
+			if (totalSize>globalSize)
+				throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
+			identifier_to_un_log.add(id);
+		}
 	}
 
-	/**
-	 * 
-	 * @return the data size (in bytes) from the source
-	 */
-	public long getDataInputSize() {
-		return data_input_size;
-	}
 
-	/**
-	 * 
-	 * @return the data size (in bytes) to send
-	 */
-	public long getDataToSendSize() {
-		return data_to_send_size;
-	}
+	@Override
+	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
+		oos.writeInt(identifier_to_un_log.size());
+		for (Identifier id : identifier_to_un_log)
+			oos.writeObject(id, false);
 
-	/**
-	 * 
-	 * @return the data sent (in bytes)
-	 */
-	public long getDataSent() {
-		return data_sent_size;
+		
+		
 	}
+	
 
-	/**
-	 * 
-	 * @return true if the transfert has been completed
-	 */
-	public boolean hasFinishedTransfert() {
-		return data_sent_size == data_to_send_size;
+	@Override
+	public boolean checkDifferedMessages() {
+		return true;
 	}
+	
+
 
 }

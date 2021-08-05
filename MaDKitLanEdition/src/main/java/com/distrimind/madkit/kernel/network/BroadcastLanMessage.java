@@ -126,7 +126,7 @@ final class BroadcastLanMessage extends LanMessage {
 
 	
 
-	void setAccetedGroups(AbstractGroup groups) {
+	void setAcceptedGroups(AbstractGroup groups) {
 		abstract_group = groups;
 	}
 

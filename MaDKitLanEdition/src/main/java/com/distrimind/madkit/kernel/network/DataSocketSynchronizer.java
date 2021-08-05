@@ -64,69 +64,8 @@ class DataSocketSynchronizer {
 			} catch (PacketException e) {
 				socketAgentInterface.processInvalidBlock(e, null, false);
 			}
-		socketAgentInterface.isBannedOrExpulsed();
-			/*if (buffer != null && buffer.length < Block.getHeadSize()) {
-				byte[] b = new byte[buffer.length + _bytes.length];
-				System.arraycopy(buffer, 0, b, 0, buffer.length);
-				System.arraycopy(_bytes, 0, b, buffer.length, _bytes.length);
-				if (b.length < Block.getHeadSize()) {
-					buffer = b;
-					return;
-				} else {
-					_bytes = b;
-					buffer = null;
-				}
-			}
+		socketAgentInterface.isBannedOrDefinitelyRejected();
 
-			int cursor_array = 0;
-
-			while (cursor_array < _bytes.length) {
-
-				if (buffer == null) {
-					int l = _bytes.length - cursor_array;
-					if (l >= Block.getHeadSize()) {
-						int size = Block.getBlockSize(_bytes, cursor_array);
-						if (size < Block.getHeadSize()) {
-							socketAgentInterface
-									.processInvalidBlock(
-											new PacketException("the block size (" + size
-													+ ") must be greater than getHeadSize(). data_size=" + _bytes.length
-													+ " cursor_array=" + cursor_array + " bufferLength=null"),
-											null, false);
-							return;
-						}
-						buffer = new byte[size];
-						cursor_buffer = 0;
-					} else {
-						if (l > 0) {
-							buffer = new byte[l];
-							cursor_buffer = 0;
-							System.arraycopy(_bytes, cursor_array, buffer, 0, l);
-						}
-						return;
-					}
-
-				}
-				int length = Math.min(buffer.length - cursor_buffer, _bytes.length - cursor_array);
-				System.arraycopy(_bytes, cursor_array, buffer, cursor_buffer, length);
-				cursor_buffer += length;
-				cursor_array += length;
-				if (cursor_buffer == buffer.length) {
-					try {
-						Block block = new Block(buffer);
-						socketAgentInterface.receivedBlock(block);
-					} catch (PacketException e) {
-						socketAgentInterface.processInvalidBlock(e, null, false);
-					} finally {
-						buffer = null;
-					}
-					if (socketAgentInterface.isBannedOrExpulsed())
-						return;
-				}
-			}
-		} finally {
-			dataInProgress.set(false);
-		}*/
 	}
 
 	@SuppressWarnings("UnusedReturnValue")
@@ -135,7 +74,7 @@ class DataSocketSynchronizer {
 
 		boolean processInvalidBlock(Exception _e, Block _block, boolean _candidate_to_ban);
 
-		boolean isBannedOrExpulsed();
+		boolean isBannedOrDefinitelyRejected();
 
 	}
 

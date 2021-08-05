@@ -89,9 +89,9 @@ public enum GUIManagerAction {
 	 */
 	ICONIFY_ALL(KeyEvent.VK_M),
 	/**
-	 * Deiconify all the agent frames
+	 * DeIconify all the agent frames
 	 */
-	DEICONIFY_ALL(KeyEvent.VK_I),
+	DE_ICONIFY_ALL(KeyEvent.VK_I),
 	/**
 	 * Kills all the agents having a GUI
 	 */
@@ -175,7 +175,7 @@ public enum GUIManagerAction {
 							final String ip = JOptionPane.showInputDialog(null, getActionInfo().getName() + " (IP) : ");
 							if (ip != null) {
 								agent.sendMessage(LocalCommunity.Groups.SYSTEM, Organization.GROUP_MANAGER_ROLE,
-										new KernelMessage(KernelAction.MANAGE_DIRECT_DONNECTION,
+										new KernelMessage(KernelAction.MANAGE_DIRECT_CONNECTION,
 												new AskForConnectionMessage(Type.CONNECT,
 														new DoubleIP(new InetSocketAddress(InetAddress.getByName(ip),
 																Integer.parseInt(port))), false)));

@@ -40,11 +40,13 @@ package com.distrimind.madkit.kernel.network;
 import com.distrimind.madkit.kernel.network.connection.access.HostIdentifier;
 import com.distrimind.util.crypto.AbstractKeyPair;
 import com.distrimind.util.crypto.IASymmetricPublicKey;
+import com.distrimind.util.data_buffers.WrappedData;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
 import com.distrimind.util.io.SerializationTools;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * 
@@ -101,8 +103,8 @@ public class CustumHostIdentifier extends HostIdentifier {
 	}
 
 	@Override
-	public byte[] getBytesTabToEncode() {
-		return name.getBytes();
+	public WrappedData getBytesTabToEncode() {
+		return new WrappedData(name.getBytes(StandardCharsets.UTF_8));
 	}
 
 	@Override
@@ -111,7 +113,7 @@ public class CustumHostIdentifier extends HostIdentifier {
 	}
 
 	@Override
-	public AbstractKeyPair getAuthenticationKeyPair() {
+	public AbstractKeyPair<?, ?> getAuthenticationKeyPair() {
 		return null;
 	}
 

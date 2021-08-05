@@ -105,12 +105,10 @@ public class Probe<A extends AbstractAgent> extends Overlooker<A> {
 		while (true) {
 			try {
 				f = agentClass.getDeclaredField(fieldName);
-				if (f != null) {
-					if (!f.isAccessible()) {// TODO seems to be always the case the first time
-						f.setAccessible(true);
-					}
-					return f;
-				}
+				//if (!f.isAccessible()) {// TODO seems to be always the case the first time
+				f.setAccessible(true);
+				//}
+				return f;
 			} catch (SecurityException e) {
 				e.printStackTrace();
 			} catch (NoSuchFieldException e) {
