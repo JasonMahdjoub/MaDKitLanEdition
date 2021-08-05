@@ -59,7 +59,7 @@ import java.util.logging.Level;
 public abstract class CentralDatabaseBackupReceiverPerPeer extends com.distrimind.ood.database.centraldatabaseapi.CentralDatabaseBackupReceiverPerPeer {
 
 	private final CentralDatabaseBackupReceiverAgent agent;
-	private BigDataTransferID currentBigDataTransferID=null;
+
 	private RandomCacheFileOutputStream currentBigDataOutputStream=null;
 	private final FileReferenceFactory fileReferenceFactory;
 
@@ -73,6 +73,7 @@ public abstract class CentralDatabaseBackupReceiverPerPeer extends com.distrimin
 		this.fileReferenceFactory=fileReferenceFactory;
 	}
 	private void sendMessage(MessageComingFromCentralDatabaseBackup message, AgentAddress aa, DecentralizedValue dest) {
+		BigDataTransferID currentBigDataTransferID=null;
 		try {
 			if (message instanceof BigDataEventToSendWithCentralDatabaseBackup) {
 				BigDataEventToSendWithCentralDatabaseBackup be = (BigDataEventToSendWithCentralDatabaseBackup) message;
@@ -80,6 +81,7 @@ public abstract class CentralDatabaseBackupReceiverPerPeer extends com.distrimin
 				be.getPartInputStream().transferTo(currentBigDataOutputStream);
 
 				currentBigDataTransferID = agent.sendBigDataWithRole(aa, currentBigDataOutputStream.getRandomInputStream(), message, CloudCommunity.Roles.CENTRAL_SYNCHRONIZER);
+				agent.currentBigDataSending.put(currentBigDataTransferID, new DatabaseSynchronizerAgent.BigDataMetaData(message, currentBigDataOutputStream));
 				if (currentBigDataTransferID == null) {
 					agent.getLogger().warning("Impossible to send message to host " + dest);
 					disconnect();
@@ -150,6 +152,7 @@ public abstract class CentralDatabaseBackupReceiverPerPeer extends com.distrimin
 						be.getPartInputStream().transferTo(currentBigDataOutputStream);
 
 						BigDataTransferID bdid=agent.sendBigData(aa, currentBigDataOutputStream.getRandomInputStream(), message);
+						agent.currentBigDataSending.put(bdid, new DatabaseSynchronizerAgent.BigDataMetaData(message, currentBigDataOutputStream));
 						if (bdid==null && agent.logger!=null)
 							agent.logger.warning("Message not sent to other central database backup : "+message);
 

@@ -41,6 +41,7 @@ import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.util.AbstractDecentralizedID;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
+import com.distrimind.util.io.SerializationTools;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -92,7 +93,10 @@ public class KernelAddressInterfaced extends KernelAddress {
 		original_external_kernel_address = _original_kernel_address;
 		interfaced = new AtomicBoolean(!identical_from_original_kernel_interface);
 		initName();
-		internalSize+=original_external_kernel_address.getInternalSerializedSize()+1;
+		int s=SerializationTools.getInternalSize(original_external_kernel_address)+1+internalSize;
+		if (s>Short.MAX_VALUE)
+			throw new IllegalAccessError();
+		internalSize=(short)s;
 	}
 
 	private KernelAddressInterfaced(KernelAddressInterfaced toClone) {
@@ -100,7 +104,10 @@ public class KernelAddressInterfaced extends KernelAddress {
 		original_external_kernel_address = toClone.original_external_kernel_address.clone();
 		interfaced = new AtomicBoolean(toClone.interfaced.get());
 		initName();
-		internalSize+=original_external_kernel_address.getInternalSerializedSize()+1;
+		int s=SerializationTools.getInternalSize(original_external_kernel_address)+1+internalSize;
+		if (s>Short.MAX_VALUE)
+			throw new IllegalAccessError();
+		internalSize=(short)s;
 	}
 
 	
@@ -109,9 +116,11 @@ public class KernelAddressInterfaced extends KernelAddress {
 		try {
 			super.readExternal(in, false);
 			original_external_kernel_address=in.readObject(false, KernelAddress.class);
-			internalSize+=original_external_kernel_address.getInternalSerializedSize();
+			int s= SerializationTools.getInternalSize(original_external_kernel_address)+internalSize+1;
+			if (s>Short.MAX_VALUE)
+				throw new IOException();
+			internalSize=(short)s;
 			interfaced=new AtomicBoolean(in.readBoolean());
-			
 			initName();
 			
 				

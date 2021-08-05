@@ -399,8 +399,8 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		Object[][] res=new Object[cycles*3][2];
 		int index=0;
 		for (int i=0;i<cycles;i++) {
-			for (boolean connectCentralDatabaseBackup : new boolean[]{true, false}) {
-				for (boolean indirectSynchronizationWithCentralDatabaseBackup : connectCentralDatabaseBackup?new boolean[]{false, true}:new boolean[]{false})
+			for (boolean connectCentralDatabaseBackup : new boolean[]{false, true}) {
+				for (boolean indirectSynchronizationWithCentralDatabaseBackup : connectCentralDatabaseBackup?new boolean[]{true, false}:new boolean[]{false})
 				{
 					res[index][0]=connectCentralDatabaseBackup;
 					res[index++][1]=indirectSynchronizationWithCentralDatabaseBackup;
@@ -414,6 +414,8 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 	public MKDatabaseSynchronizerTest(boolean connectCentralDatabaseBackup,
 									  boolean indirectSynchronizationWithCentralDatabaseBackup) throws IOException, DatabaseException, NoSuchAlgorithmException, NoSuchProviderException {
 		System.out.println("connectCentralDatabaseBackup="+connectCentralDatabaseBackup+", indirectSynchronizationWithCentralDatabaseBackup="+indirectSynchronizationWithCentralDatabaseBackup);
+		if(centralDatabaseFilesDirectory.exists())
+			FileTools.deleteDirectory(centralDatabaseFilesDirectory);
 		this.connectCentralDatabaseBackup=connectCentralDatabaseBackup;
 		indirectSynchronizationWithCentralDatabaseBackup=this.indirectSynchronizationWithCentralDatabaseBackup=indirectSynchronizationWithCentralDatabaseBackup & connectCentralDatabaseBackup;
 		random=SecureRandomType.DEFAULT.getInstance(null);
@@ -514,6 +516,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					super.onMaDKitPropertiesLoaded(_properties);
 					_properties.networkProperties.networkLogLevel = Level.INFO;
 					_properties.networkProperties.maxBufferSize = Short.MAX_VALUE * 4;
+					_properties.networkProperties.upnpIGDEnabled=false;
 					try {
 						_properties.setCentralDatabaseBackupReceiverFactory(centralDatabaseBackupReceiverFactory);
 					} catch (DatabaseException e) {
@@ -598,7 +601,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				super.onMaDKitPropertiesLoaded(_properties);
 				_properties.networkProperties.networkLogLevel = Level.INFO;
 				_properties.networkProperties.maxBufferSize=Short.MAX_VALUE*4;
-
+				_properties.networkProperties.upnpIGDEnabled=false;
 
 			}
 		};
@@ -648,7 +651,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				super.onMaDKitPropertiesLoaded(_properties);
 				_properties.networkProperties.networkLogLevel = Level.INFO;
 				_properties.networkProperties.maxBufferSize=Short.MAX_VALUE*4;
-
+				_properties.networkProperties.upnpIGDEnabled=false;
 
 			}
 		};
@@ -676,6 +679,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		final DatabaseConfiguration.SynchronizationType synchronizationType;
 		final boolean indirect;
 		final CentralDatabaseBackupCertificate centralDatabaseBackupCertificate;
+		final CentralDatabaseBackupReceiver centralDatabaseBackupReceiver;
 
 
 
@@ -684,7 +688,8 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 							 boolean isIntegrator,
 							 boolean central,
 							 boolean indirect,
-							 final CentralDatabaseBackupCertificate centralDatabaseBackupCertificate) {
+							 final CentralDatabaseBackupCertificate centralDatabaseBackupCertificate,
+							 CentralDatabaseBackupReceiver centralDatabaseBackupReceiver) {
 			this.localIdentifier = localIdentifier;
 			this.localIdentifierOtherSide = localIdentifierOtherSide;
 			this.myListToAdd = myListToAdd;
@@ -694,6 +699,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 			this.indirect=indirect;
 			this.synchronizationType=central?DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE:DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION;
 			this.centralDatabaseBackupCertificate=centralDatabaseBackupCertificate;
+			this.centralDatabaseBackupReceiver=centralDatabaseBackupReceiver;
 		}
 
 		@Override
@@ -716,11 +722,13 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 							new DatabaseConfiguration(new DatabaseSchema(Table1.class.getPackage()), synchronizationType,
 									null, synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE?new BackupConfiguration(10000, 30000, 32000,1000, null):null),false, true )
 						.commit();
+				Table1 table=wrapper.getTableInstance(Table1.class);
+				table.addRecord(myListToAdd.get(0));
 				Assert.assertFalse(wrapper.getSynchronizer().isInitialized(localIdentifierOtherSide));
 
 				Assert.assertNotNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
 				Assert.assertNotNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString());
-				sleep(300);
+				sleep(1200);
 				Assert.assertEquals(localIdentifier, wrapper.getSynchronizer().getLocalHostID());
 
 				if (integrator) {
@@ -772,7 +780,8 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					DatabaseConfiguration dc = wrapper.getDatabaseConfigurationsBuilder().getDatabaseConfiguration(Table1.class.getPackage());
 					if (synchronizationType==dc.getSynchronizationType()
 						&& dc.getDistantPeersThatCanBeSynchronizedWithThisDatabase()!=null
-						&& dc.getDistantPeersThatCanBeSynchronizedWithThisDatabase().contains(localIdentifierOtherSide))
+						&& dc.getDistantPeersThatCanBeSynchronizedWithThisDatabase().contains(localIdentifierOtherSide)
+					 	&& (synchronizationType!= DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE || centralDatabaseBackupReceiver.isConnectedIntoOneOfCentralDatabaseBackupServers(this.localIdentifier)))
 						break;
 					sleep(1000);
 					++nb;
@@ -782,9 +791,9 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					finished.set(false);
 					return;
 				}
-				Table1 table=wrapper.getTableInstance(Table1.class);
+
 				System.out.println("add records");
-				int total=0;
+				int total=1;
 				while(total<myListToAdd.size())
 				{
 					nb=(int)(Math.random()*(myListToAdd.size()-total)+1);
@@ -796,7 +805,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					total+=nb;
 					sleep(1000);
 				}
-				if (checkDistantRecords(this, table, otherListToAdd, finished))
+				if (checkDistantRecords(this, table, otherListToAdd))
 				{
 					System.err.println("Distant records not synchronized with peers");
 					finished.set(false);
@@ -824,7 +833,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					total+=nb;
 					sleep(1000);
 				}
-				if (checkDistantRecords(this, table, otherListToAdd, finished))
+				if (checkDistantRecords(this, table, otherListToAdd))
 				{
 					System.err.println("Distant records not synchronized after updating records");
 					finished.set(false);
@@ -836,6 +845,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					finished.set(false);
 					return;
 				}
+				sleep(1000);
 				finished.set(true);
 			} catch (DatabaseException | InterruptedException e) {
 				e.printStackTrace();
@@ -853,8 +863,9 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		boolean checkSynchronizationWithCentralDB() throws DatabaseException, InterruptedException {
 			if (synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE)
 			{
-				sleep(500);
+
 				BackupRestoreManager brm=getMadkitConfig().getDatabaseWrapper().getBackupRestoreManager(Table1.class.getPackage());
+				sleep(brm.getBackupConfiguration().getMaxBackupFileAgeInMs()+10);
 				int number=brm.getFinalFiles().size();
 				File f=FileReferenceFactory.getPackageFolder(1, getMadkitConfig().getDatabaseWrapper().getSynchronizer().getLocalHostID(), Table1.class.getPackage().getName());
 				if (!f.exists()) {
@@ -872,8 +883,8 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 			return false;
 		}
 	}
-	private static boolean checkDistantRecords(AbstractAgent agent, Table1 table, ArrayList<Table1.Record> otherListToAdd, AtomicReference<Boolean> finished) throws DatabaseException, InterruptedException {
-		System.out.println("check synchronization");
+	private static boolean checkDistantRecords(AbstractAgent agent, Table1 table, ArrayList<Table1.Record> otherListToAdd) throws DatabaseException, InterruptedException {
+		System.out.println("check synchronization, lacking = "+otherListToAdd.size()+", table.recordsNumber="+table.getRecordsNumber());
 		ArrayList<Table1.Record> l=new ArrayList<>(otherListToAdd);
 		int nb=0;
 		do {
@@ -888,8 +899,10 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					it.remove();
 				}
 			}
-			if (l.size()>0)
+			if (l.size()>0) {
+				System.out.println("lacking = "+l.size()+", table.recordsNumber="+table.getRecordsNumber());
 				agent.sleep(1000);
+			}
 			++nb;
 		} while(l.size()>0 && nb<10);
 		return l.size()>0;
@@ -915,13 +928,15 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		final boolean indirect;
 		final DatabaseConfiguration.SynchronizationType synchronizationType;
 		final CentralDatabaseBackupCertificate centralDatabaseBackupCertificate;
+		final CentralDatabaseBackupReceiver centralDatabaseBackupReceiver;
 
 
 		public SecondConnexionAgent(DecentralizedValue localIdentifier, DecentralizedValue localIdentifierOtherSide, ArrayList<Table1.Record> myListToAdd,
 									ArrayList<Table1.Record> otherListToAdd, AtomicReference<Boolean> finished,
 									boolean central,
 									boolean indirect,
-									final CentralDatabaseBackupCertificate centralDatabaseBackupCertificate) {
+									final CentralDatabaseBackupCertificate centralDatabaseBackupCertificate,
+									CentralDatabaseBackupReceiver centralDatabaseBackupReceiver) {
 			this.localIdentifier = localIdentifier;
 			this.localIdentifierOtherSide = localIdentifierOtherSide;
 			this.myListToAdd = myListToAdd;
@@ -930,10 +945,12 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 			this.indirect=indirect;
 			this.synchronizationType=central?DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE:DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION;
 			this.centralDatabaseBackupCertificate=centralDatabaseBackupCertificate;
+			this.centralDatabaseBackupReceiver=centralDatabaseBackupReceiver;
 		}
 		@Override
 		protected void liveCycle() {
 			try {
+				getMadkitConfig().getDatabaseWrapper().setNetworkLogLevel(Level.FINEST);
 				sleep(1900);
 				DatabaseWrapper wrapper=getMadkitConfig().getDatabaseWrapper();
 				Assert.assertNotNull(wrapper);
@@ -986,21 +1003,40 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					}
 					System.out.println("peer connected !");
 				}
+				System.out.println("check that database synchronization is connected with central database backup");
+				int nb=0;
+				do {
+					DatabaseConfiguration dc = wrapper.getDatabaseConfigurationsBuilder().getDatabaseConfiguration(Table1.class.getPackage());
+					if (synchronizationType==dc.getSynchronizationType()
+							&& dc.getDistantPeersThatCanBeSynchronizedWithThisDatabase()!=null
+							&& dc.getDistantPeersThatCanBeSynchronizedWithThisDatabase().contains(localIdentifierOtherSide)
+							&& (synchronizationType!= DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE || centralDatabaseBackupReceiver.isConnectedIntoOneOfCentralDatabaseBackupServers(this.localIdentifier)))
+						break;
+					sleep(1000);
+					++nb;
+				} while(nb<10);
+				if (nb==10) {
+					System.err.println("database synchronization is not connected with central database backup");
+					finished.set(false);
+					return;
+				}
 
 				Table1 table=wrapper.getTableInstance(Table1.class);
-				if (checkDistantRecords(this, table, otherListToAdd, finished))
+				if (checkDistantRecords(this, table, otherListToAdd))
 				{
 					finished.set(false);
 					return;
 				}
+
 				sleep(1000);
+				System.out.println("desynchronize distant peer");
 				wrapper.getDatabaseConfigurationsBuilder()
 						.desynchronizeDistantPeerWithGivenAdditionalPackages(localIdentifierOtherSide, Table1.class.getPackage().getName())
 						.removeDistantPeer(localIdentifierOtherSide)
 						.commit();
-				sleep(100);
+				sleep(1000);
 
-				int nb=0;
+				nb=0;
 				System.out.println("check peer disconnected ");
 				do {
 					if (!wrapper.getSynchronizer().isInitialized(localIdentifierOtherSide))
@@ -1013,10 +1049,25 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					finished.set(false);
 					return;
 				}
+
 				System.out.println("peer disconnected ");
 				wrapper.getDatabaseConfigurationsBuilder()
 						.resetSynchronizerAndRemoveAllHosts()
 						.commit();
+
+				System.out.println("check that database synchronization is not connected with central database backup");
+				nb=0;
+				do {
+					if (synchronizationType!= DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE || !centralDatabaseBackupReceiver.isConnectedIntoOneOfCentralDatabaseBackupServers(this.localIdentifier))
+						break;
+					sleep(1000);
+					++nb;
+				} while(nb<10);
+				if (nb==10) {
+					System.err.println("database synchronization is connected with central database backup");
+					finished.set(false);
+					return;
+				}
 
 				sleep(3000);
 				Assert.assertNull(wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
@@ -1039,17 +1090,24 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 	{
 		final DecentralizedValue localIdentifier;
 		final AtomicReference<Boolean> finished;
+		final DatabaseConfiguration.SynchronizationType synchronizationType;
+		final CentralDatabaseBackupReceiver centralDatabaseBackupReceiver;
 
 
-		public ThirdConnexionAgent(DecentralizedValue localIdentifier, AtomicReference<Boolean> finished) {
+		public ThirdConnexionAgent(DecentralizedValue localIdentifier, AtomicReference<Boolean> finished,
+								   boolean central,
+										   final CentralDatabaseBackupReceiver centralDatabaseBackupReceiver) {
 			this.localIdentifier = localIdentifier;
 			this.finished = finished;
+			this.synchronizationType=central?DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE:DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION;
+			this.centralDatabaseBackupReceiver=centralDatabaseBackupReceiver;
 
 		}
 
 		@Override
 		protected void liveCycle() throws InterruptedException {
 			try {
+				getMadkitConfig().getDatabaseWrapper().setNetworkLogLevel(Level.FINEST);
 				sleep(1500);
 				DatabaseWrapper wrapper=getMadkitConfig().getDatabaseWrapper();
 				Assert.assertNotNull(wrapper);
@@ -1057,9 +1115,22 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 						.addConfiguration(
 								new DatabaseConfiguration(new DatabaseSchema(Table1.class.getPackage())),false, true )
 						.commit();
-
+				sleep(800);
 				Assert.assertNull(wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
 				Assert.assertNull(wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString());
+				System.out.println("check that database synchronization is not connected with central database backup");
+				int nb=0;
+				do {
+					if (synchronizationType!= DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE || !centralDatabaseBackupReceiver.isConnectedIntoOneOfCentralDatabaseBackupServers(this.localIdentifier))
+						break;
+					sleep(1000);
+					++nb;
+				} while(nb<10);
+				if (nb==10) {
+					System.err.println("database synchronization is connected with central database backup");
+					finished.set(false);
+					return;
+				}
 				finished.set(true);
 			} catch (DatabaseException e) {
 				e.printStackTrace();
@@ -1091,91 +1162,119 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 
 				@Override
 				protected void activate() throws InterruptedException {
-					Assert.assertFalse(databaseFile1.exists());
-					Assert.assertFalse(databaseFile2.exists());
-					ArrayList<Table1.Record> recordsToAdd = getRecordsToAdd();
-					ArrayList<Table1.Record> recordsToAddOtherSide = getRecordsToAdd();
-					if (connectCentralDatabaseBackup) {
-						launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, new AbstractAgent(){
-							@Override
-							protected void activate() {
-								try {
-									centralDatabaseWrapper= getMadkitConfig().getDatabaseWrapper();
-									getMadkitConfig().getCentralDatabaseBackupReceiver().addClient((short)10, aSymmetricKeyPairForClientServerSignatures2.getASymmetricPublicKey());
-								} catch (DatabaseException e) {
-									e.printStackTrace();
+					try {
+						Assert.assertFalse(databaseFile1.exists());
+						Assert.assertFalse(databaseFile2.exists());
+						ArrayList<Table1.Record> recordsToAdd = getRecordsToAdd();
+						ArrayList<Table1.Record> recordsToAddOtherSide = getRecordsToAdd();
+						if (connectCentralDatabaseBackup) {
+							launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, new AbstractAgent() {
+								@Override
+								protected void activate() {
+									try {
+										centralDatabaseWrapper = getMadkitConfig().getDatabaseWrapper();
+										getMadkitConfig().getCentralDatabaseBackupReceiver().addClient((short) 10, aSymmetricKeyPairForClientServerSignatures2.getASymmetricPublicKey());
+									} catch (DatabaseException e) {
+										e.printStackTrace();
+									}
 								}
-							}
-						}, eventListenerServer);
+							}, eventListenerServer);
+							sleep(600);
+
+						}
+
+						AbstractAgent agentChecker = new DatabaseAgent(localIdentifier, localIdentifierOtherSide, recordsToAdd, recordsToAddOtherSide, finished1, true, connectCentralDatabaseBackup, indirectSynchronizationWithCentralDatabaseBackup, centralDatabaseBackupCertificate, centralDatabaseBackupReceiverFactory==null?null:centralDatabaseBackupReceiverFactory.getCentralDatabaseBackupReceiverInstance(centralDatabaseWrapper));
+						launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentChecker, eventListener1);
 						sleep(600);
+						AbstractAgent agentCheckerOtherSide = new DatabaseAgent(localIdentifierOtherSide, localIdentifier, recordsToAddOtherSide, recordsToAdd, finished2, false, connectCentralDatabaseBackup, indirectSynchronizationWithCentralDatabaseBackup, centralDatabaseBackupCertificate, centralDatabaseBackupReceiverFactory==null?null:centralDatabaseBackupReceiverFactory.getCentralDatabaseBackupReceiverInstance(centralDatabaseWrapper));
+						launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentCheckerOtherSide, eventListener2);
 
-					}
+						while (finished1.get() == null || finished2.get() == null) {
 
-					AbstractAgent agentChecker = new DatabaseAgent(localIdentifier, localIdentifierOtherSide, recordsToAdd, recordsToAddOtherSide, finished1, true, connectCentralDatabaseBackup, indirectSynchronizationWithCentralDatabaseBackup, centralDatabaseBackupCertificate);
-					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentChecker, eventListener1);
-					sleep(600);
-					AbstractAgent agentCheckerOtherSide = new DatabaseAgent(localIdentifierOtherSide, localIdentifier, recordsToAddOtherSide, recordsToAdd, finished2, false, connectCentralDatabaseBackup, indirectSynchronizationWithCentralDatabaseBackup, centralDatabaseBackupCertificate);
-					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentCheckerOtherSide, eventListener2);
+							sleep(1000);
+						}
 
-					while (finished1.get() == null || finished2.get() == null) {
+						Assert.assertEquals(true, finished1.get());
+						Assert.assertEquals(true, finished2.get());
 
-						sleep(1000);
-					}
+						cleanHelperMDKs(this);
+						Assert.assertEquals(getHelperInstances(this, 0).size(), 0);
+						finished1.set(null);
+						finished2.set(null);
 
-					Assert.assertEquals(true, finished1.get());
-					Assert.assertEquals(true, finished2.get());
+						System.out.println("Second step");
+						Assert.assertTrue(databaseFile1.exists());
+						Assert.assertTrue(databaseFile2.exists());
 
-					cleanHelperMDKs(this);
-					Assert.assertEquals(getHelperInstances(this, 0).size(), 0);
-					finished1.set(null);
-					finished2.set(null);
-					System.out.println("Second step");
-					Assert.assertTrue(databaseFile1.exists());
-					Assert.assertTrue(databaseFile2.exists());
-					if (connectCentralDatabaseBackup) {
-						launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, new AbstractAgent(), eventListenerServer);
+						if (connectCentralDatabaseBackup) {
+							Assert.assertTrue(centralDatabaseFilesDirectory.exists());
+							launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, new AbstractAgent() {
+								@Override
+								protected void activate() throws InterruptedException {
+									super.activate();
+									try {
+										centralDatabaseWrapper = getMadkitConfig().getDatabaseWrapper();
+									} catch (DatabaseException e) {
+										e.printStackTrace();
+									}
+								}
+							}, eventListenerServer);
+							sleep(600);
+						}
+						agentChecker = new SecondConnexionAgent(localIdentifier, localIdentifierOtherSide, recordsToAdd, recordsToAddOtherSide, finished1, connectCentralDatabaseBackup, indirectSynchronizationWithCentralDatabaseBackup, centralDatabaseBackupCertificate, centralDatabaseBackupReceiverFactory==null?null:centralDatabaseBackupReceiverFactory.getCentralDatabaseBackupReceiverInstance(centralDatabaseWrapper));
+						launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentChecker, eventListener1);
 						sleep(600);
+						agentCheckerOtherSide = new SecondConnexionAgent(localIdentifierOtherSide, localIdentifier, recordsToAddOtherSide, recordsToAdd, finished2, connectCentralDatabaseBackup, indirectSynchronizationWithCentralDatabaseBackup, centralDatabaseBackupCertificate, centralDatabaseBackupReceiverFactory==null?null:centralDatabaseBackupReceiverFactory.getCentralDatabaseBackupReceiverInstance(centralDatabaseWrapper));
+						launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentCheckerOtherSide, eventListener2);
+
+						while (finished1.get() == null || finished2.get() == null) {
+
+							sleep(1000);
+						}
+
+						Assert.assertEquals(true, finished1.get());
+						Assert.assertEquals(true, finished2.get());
+						cleanHelperMDKs(this);
+						Assert.assertEquals(getHelperInstances(this, 0).size(), 0);
+
+						finished1.set(null);
+						finished2.set(null);
+						System.out.println("Third step");
+						if (connectCentralDatabaseBackup) {
+							launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, new AbstractAgent() {
+								@Override
+								protected void activate() throws InterruptedException {
+									super.activate();
+									try {
+										centralDatabaseWrapper = getMadkitConfig().getDatabaseWrapper();
+									} catch (DatabaseException e) {
+										e.printStackTrace();
+									}
+								}
+							}, eventListenerServer);
+							sleep(600);
+						}
+						agentChecker = new ThirdConnexionAgent(localIdentifier, finished1, connectCentralDatabaseBackup, centralDatabaseBackupReceiverFactory==null?null:centralDatabaseBackupReceiverFactory.getCentralDatabaseBackupReceiverInstance(centralDatabaseWrapper));
+						launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentChecker, eventListener1);
+						sleep(400);
+						agentCheckerOtherSide = new ThirdConnexionAgent(localIdentifierOtherSide, finished2, connectCentralDatabaseBackup, centralDatabaseBackupReceiverFactory==null?null:centralDatabaseBackupReceiverFactory.getCentralDatabaseBackupReceiverInstance(centralDatabaseWrapper));
+						launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentCheckerOtherSide, eventListener2);
+
+						while (finished1.get() == null || finished2.get() == null) {
+
+							sleep(1000);
+						}
+
+						Assert.assertEquals(finished1.get(), true);
+						Assert.assertEquals(finished2.get(), true);
+
+						cleanHelperMDKs(this);
+						Assert.assertEquals(getHelperInstances(this, 0).size(), 0);
+					} catch (DatabaseException e) {
+						e.printStackTrace();
+						Assert.assertEquals(finished1.get(), false);
+						Assert.assertEquals(finished2.get(), false);
 					}
-					agentChecker = new SecondConnexionAgent(localIdentifier, localIdentifierOtherSide, recordsToAdd, recordsToAddOtherSide, finished1, connectCentralDatabaseBackup, indirectSynchronizationWithCentralDatabaseBackup, centralDatabaseBackupCertificate);
-					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentChecker, eventListener1);
-					sleep(400);
-					agentCheckerOtherSide = new SecondConnexionAgent(localIdentifierOtherSide, localIdentifier, recordsToAddOtherSide, recordsToAdd, finished2, connectCentralDatabaseBackup, indirectSynchronizationWithCentralDatabaseBackup, centralDatabaseBackupCertificate);
-					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentCheckerOtherSide, eventListener2);
-
-					while (finished1.get() == null || finished2.get() == null) {
-
-						sleep(1000);
-					}
-
-					Assert.assertEquals(true, finished1.get());
-					Assert.assertEquals(true, finished2.get());
-					cleanHelperMDKs(this);
-					Assert.assertEquals(getHelperInstances(this, 0).size(), 0);
-
-					finished1.set(null);
-					finished2.set(null);
-					System.out.println("Third step");
-					if (connectCentralDatabaseBackup) {
-						launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, new AbstractAgent(), eventListenerServer);
-						sleep(600);
-					}
-					agentChecker = new ThirdConnexionAgent(localIdentifier, finished1);
-					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentChecker, eventListener1);
-					sleep(400);
-					agentCheckerOtherSide = new ThirdConnexionAgent(localIdentifierOtherSide, finished2);
-					launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentCheckerOtherSide, eventListener2);
-
-					while (finished1.get() == null || finished2.get() == null) {
-
-						sleep(1000);
-					}
-
-					Assert.assertEquals(finished1.get(), true);
-					Assert.assertEquals(finished2.get(), true);
-
-					cleanHelperMDKs(this);
-					Assert.assertEquals(getHelperInstances(this, 0).size(), 0);
-
 				}
 			});
 		}

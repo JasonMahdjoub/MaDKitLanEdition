@@ -174,7 +174,7 @@ public class BigDataTransferSpeed extends JunitMadkit {
                                     delay=Math.max(60000, size/Math.min(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond)*1000+20000);
                                 else
                                     delay=60000;
-                                AgentAddress aa=getAgentsWithRole(GROUP, ROLE).iterator().next();
+                                AgentAddress aa=getAgentWithRole(GROUP, ROLE);
                                 if (aa==null)
                                     throw new NullPointerException();
 

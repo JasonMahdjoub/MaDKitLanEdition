@@ -693,11 +693,14 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 		}
 	}
 
-	boolean clearLocalAgents()
+	boolean clearLocalAgentsIfDistantAgentsArePresent()
 	{
 		synchronized (players) {
-			cleanAndRemove(false);
-			return distantAgentAddresses!=null && distantAgentAddresses.size()>0;
+			if (distantAgentAddresses!=null && distantAgentAddresses.size()>0) {
+				cleanAndRemove(false);
+				return true;
+			}
+			return false;
 		}
 	}
 	private void cleanAndRemove(boolean distantAgents) {
@@ -708,7 +711,7 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 		if (number_of_manually_requested_role.getAndSet(0) > 0) {
 			group.decrementMadKitReferences(this.kernelAddress);
 		}
-		if (!distantAgents)
+		if (distantAgents)
 			myGroup.removeRole(roleName);
 		removeOverlookers();
 		// overlookers = null;

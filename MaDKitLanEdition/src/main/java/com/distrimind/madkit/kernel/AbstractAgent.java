@@ -5029,6 +5029,15 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	}
 
 	/**
+	 * Tells if the network bandwidth is limited during download or during upload
+	 * @return true if the network bandwidth is limited
+	 */
+	public boolean hasNetworkSpeedLimitationDuringDownloadOrDuringUpload()
+	{
+		return getMadkitKernel().hasSpeedLimitation(this);
+	}
+
+	/**
 	 * Gets global network download speed in bytes per second.
 	 *
 	 * @see NetworkProperties#maximumGlobalDownloadSpeedInBytesPerSecond to get the persistant limit

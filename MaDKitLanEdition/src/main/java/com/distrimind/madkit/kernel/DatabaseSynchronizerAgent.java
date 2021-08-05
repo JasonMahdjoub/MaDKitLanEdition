@@ -397,6 +397,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 				DecentralizedValue d = CloudCommunity.Groups.extractDistantHostIDFromCentralDatabaseBackupGroup(g, localPeer);
 				if (d != null) {
 					KernelAddressAndDecentralizedValue dv=new KernelAddressAndDecentralizedValue(ka, d);
+
 					if (logger != null && logger.isLoggable(Level.INFO))
 						logger.info("Central database server available : " + dv);
 
@@ -431,6 +432,8 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 		if (centralDatabaseID!=null)
 		{
 			try {
+				if (logger!=null)
+					logger.info("Disconnect central database backup");
 				synchronizer.centralDatabaseBackupDisconnected();
 			} catch (DatabaseException ex) {
 				getLogger().severeLog("Impossible to disconnect central database backup " + centralDatabaseID, ex);
@@ -571,9 +574,10 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			/*if (currentBigDataTransferID!=null)
 				return ;*/
 			try {
-
+				Long utc=wrapper.getNextPossibleEventTimeUTC();
 
 				while ((e = synchronizer.nextEvent()) != null) {
+
 					if (e instanceof P2PDatabaseEventToSend) {
 						P2PDatabaseEventToSend es = (P2PDatabaseEventToSend) e;
 						try {
@@ -632,6 +636,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 						}
 					}
 					else if (e instanceof MessageDestinedToCentralDatabaseBackup) {
+
 						boolean sent=false;
 						if (centralDatabaseGroup!=null) {
 							if (e instanceof BigDataEventToSendWithCentralDatabaseBackup) {
@@ -662,16 +667,19 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 									getLogger().severeLog("Unexpected exception", ex);
 								}
 							}
-							else
-								sent=sendMessageWithRole(centralDatabaseGroup, CloudCommunity.Roles.CENTRAL_SYNCHRONIZER, new NetworkObjectMessage<>(e), CloudCommunity.Roles.SYNCHRONIZER).equals(ReturnCode.SUCCESS);
+							else {
+								sent = sendMessageWithRole(centralDatabaseGroup, CloudCommunity.Roles.CENTRAL_SYNCHRONIZER, new NetworkObjectMessage<>(e), CloudCommunity.Roles.SYNCHRONIZER).equals(ReturnCode.SUCCESS);
+								if (sent && e instanceof DistantBackupCenterConnexionInitialisation)
+									sleep(400);
+							}
 						}
 						if (!sent) {
-							getLogger().warning("Impossible to send message to central database group: " + centralDatabaseGroup);
+							getLogger().warning("Impossible to send message to central database backup: " + e+", central initialized into client side="+synchronizer.isInitializedWithCentralBackup());
 							disconnectCentralDatabaseBackup();
 						}
 					}
 				}
-				Long utc=wrapper.getNextPossibleEventTimeUTC();
+
 				if (utc!=null) {
 					scheduleTask(new Task<>((Callable<Void>) () -> {
 						receiveMessage(checkEvents);

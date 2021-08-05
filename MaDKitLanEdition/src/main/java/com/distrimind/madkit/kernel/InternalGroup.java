@@ -103,7 +103,7 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 
 	void clearLocalAgents()
 	{
-		entrySet().removeIf(e -> !e.getValue().clearLocalAgents());
+		entrySet().removeIf(e -> !e.getValue().clearLocalAgentsIfDistantAgentsArePresent());
 	}
 
 

@@ -153,17 +153,6 @@ final class NIOAgent extends Agent {
 		try {
 			selector = SelectorProvider.provider().openSelector();
 
-			/*
-			 * // Create a new non-blocking server socket channel serverChannel =
-			 * ServerSocketChannel.open(); serverChannel.configureBlocking(false);
-			 * 
-			 * // Bind the server socket to the specified address and port InetSocketAddress
-			 * isa = new InetSocketAddress(this.hostAddress, this.port);
-			 * 
-			 * serverChannel.socket().bind(isa); // Register the server socket channel,
-			 * indicating an interest in // accepting new connections
-			 * serverChannel.register(selector, SelectionKey.OP_ACCEPT);
-			 */
 
 		} catch (IOException e) {
 			throw new ConnectionException(e);
@@ -277,48 +266,45 @@ final class NIOAgent extends Agent {
 
 	private long getDownloadToWaitInMsToBecomeUnderBandwidthLimit()
     {
-        long res=0;
         long max=getMaximumGlobalDownloadSpeedInBytesPerSecond();
-        long limit=max*2L;
+
         if (max!=Integer.MAX_VALUE)
         {
-            @SuppressWarnings("UnnecessaryLocalVariable") double l=limit;
+			double l= (double)(max*2L);
 
             if (realTimeGlobalDownloadStat.isOneCycleDone()) {
                 double v = ((double) realTimeGlobalDownloadStat.getNumberOfIdentifiedBytes()) / realTimeDownloadStatDuration ;
                 if (v >= l) {
-                    res = (long) ((v - l) / l * 1000.0);
+                    return (long) ((v - l) / l * 1000.0);
                 }
             }
         }
 
-        return res;
+        return 0;
     }
 
     private long getUploadToWaitInMsToBecomeUnderBandwidthLimit()
     {
-        long res=0;
         long max=getMaximumGlobalUploadSpeedInBytesPerSecond();
-        long limit=max*2L;
+
 
         if (max!=Integer.MAX_VALUE)
         {
-            @SuppressWarnings("UnnecessaryLocalVariable") double l=limit;
+			double l= (double)(max*2L);
 
             if (realTimeGlobalUploadStat.isOneCycleDone()) {
 
                 double v = ((double) realTimeGlobalUploadStat.getNumberOfIdentifiedBytes()) / realTimeUploadStatDuration ;
                 if (v>=l)
                 {
-                    res=(long)((v-l)/l*1000.0);
+                    return (long)((v-l)/l*1000.0);
                 }
-
             }
 
         }
 
 
-        return res;
+        return 0;
     }
 
 
@@ -370,8 +356,10 @@ final class NIOAgent extends Agent {
                     }
                 }
             }
-            if (delay>0)
-                this.selector.select(delay);
+            if (delay>0) {
+				this.selector.select(delay);
+			}
+
 
 			ArrayList<PersonalSocket> connections_to_close = new ArrayList<>();
 			for (PersonalSocket ps : personal_sockets_list) {
@@ -431,7 +419,7 @@ final class NIOAgent extends Agent {
 						}
 					} catch (ConnectException e) {
 						if (logger != null)
-							logger.info(e.toString() + ", local_interface=" + pc.local_interface + ", ip="
+							logger.info(e + ", local_interface=" + pc.local_interface + ", ip="
 									+ pc.getInetSocketAddress());
 						pendingConnectionsCanceled.add(pc);
 					}
@@ -720,12 +708,13 @@ final class NIOAgent extends Agent {
 			}
 
             // Iterate over the set of keys for which events are available
-			Iterator<SelectionKey> selectedKeys = this.selector.selectedKeys().iterator();
-
+			Set<SelectionKey> selectedKeys=this.selector.selectedKeys();
+			Iterator<SelectionKey> selectedKeysIterator = selectedKeys.iterator();
+			boolean hasSpeedLimitation=hasNetworkSpeedLimitationDuringDownloadOrDuringUpload();
             long limitDownload=Long.MIN_VALUE;
             long limitUpload=Long.MIN_VALUE;
-			while (selectedKeys.hasNext()) {
-				SelectionKey key = selectedKeys.next();
+			while (selectedKeysIterator.hasNext()) {
+				SelectionKey key = selectedKeysIterator.next();
 
 				/*
 				 * if (((Map<?, ?>) key.attachment()).get(channelType).equals( serverChannel)) {
@@ -733,31 +722,28 @@ final class NIOAgent extends Agent {
 				 * }
 				 */
 				if (!key.channel().isOpen() || !key.isValid()) {
-                    selectedKeys.remove();
-					continue;
+					if (hasSpeedLimitation)
+                    	selectedKeysIterator.remove();
 				}
-				// Check what event is available and deal with it
-
-				/*
-				 * if (key.isConnectable()) { System.out.println(key); ///finishConnection(key);
-				 * } else
-				 */if (key.isAcceptable()) {
-                    selectedKeys.remove();
+				else if (key.isAcceptable()) {
+					if (hasSpeedLimitation)
+                    	selectedKeysIterator.remove();
 					this.accept(key);
 				} else {
 					if (key.isReadable()) {
-
-                        long ld=getDownloadToWaitInMsToBecomeUnderBandwidthLimit();
-                        if (ld>0) {
-                            long curTime=System.currentTimeMillis();
-                            limitDownload = ld+curTime;
-                            if (limitUpload > curTime) {
-                                this.delayToWaitToRespectGlobalBandwidthLimit = Math.min(limitDownload, limitUpload);
-                                return;
-                            }
-                            continue;
-                        }
-                        selectedKeys.remove();
+						if (hasSpeedLimitation) {
+							long ld = getDownloadToWaitInMsToBecomeUnderBandwidthLimit();
+							if (ld > 0) {
+								long curTime = System.currentTimeMillis();
+								limitDownload = ld + curTime;
+								if (limitUpload > curTime) {
+									this.delayToWaitToRespectGlobalBandwidthLimit = Math.min(limitDownload, limitUpload);
+									return;
+								}
+								continue;
+							}
+							selectedKeysIterator.remove();
+						}
 						SelectableChannel sc = key.channel();
 						if (sc instanceof SocketChannel)
 							((PersonalSocket) key.attachment()).read(key);
@@ -765,17 +751,20 @@ final class NIOAgent extends Agent {
 							personal_datagram_channels.get(sc).read(key);
 						}
 					} else if (key.isValid() && key.isWritable()) {
-                        long lu=getUploadToWaitInMsToBecomeUnderBandwidthLimit();
-                        if (lu>0) {
-                            long curTime = System.currentTimeMillis();
-                            limitUpload = lu+ curTime;
-                            if (limitDownload > curTime) {
-                                this.delayToWaitToRespectGlobalBandwidthLimit = Math.min(limitDownload, limitUpload);
-                                return;
-                            }
-                            continue;
-                        }
-                        selectedKeys.remove();
+						if (hasSpeedLimitation) {
+							long lu = getUploadToWaitInMsToBecomeUnderBandwidthLimit();
+
+							if (lu > 0) {
+								long curTime = System.currentTimeMillis();
+								limitUpload = lu + curTime;
+								if (limitDownload > curTime) {
+									this.delayToWaitToRespectGlobalBandwidthLimit = Math.min(limitDownload, limitUpload);
+									return;
+								}
+								continue;
+							}
+							selectedKeysIterator.remove();
+						}
 						SelectableChannel sc = key.channel();
 						if (sc instanceof SocketChannel) {
 							PersonalSocket ps = (PersonalSocket) key.attachment();
@@ -788,11 +777,13 @@ final class NIOAgent extends Agent {
 						}
 
 					}
-					else
-                        selectedKeys.remove();
+					else if (hasSpeedLimitation)
+                        selectedKeysIterator.remove();
 
 				}
 			}
+			if (!hasSpeedLimitation)
+				selectedKeys.clear();
             long curTime=System.currentTimeMillis();
 			if (limitDownload>curTime)
 			    this.delayToWaitToRespectGlobalBandwidthLimit=limitDownload;
@@ -800,7 +791,6 @@ final class NIOAgent extends Agent {
                 this.delayToWaitToRespectGlobalBandwidthLimit=limitUpload;
 			else
                 this.delayToWaitToRespectGlobalBandwidthLimit=0;
-
 
 		} catch (SelfKillException e) {
 			throw e;
@@ -924,7 +914,7 @@ final class NIOAgent extends Agent {
 			try {
 				sc.finishConnect();
 
-				SelectionKey clientKey = sc.register(this.selector, SelectionKey.OP_CONNECT | SelectionKey.OP_READ);
+				SelectionKey clientKey = sc.register(this.selector, SelectionKey.OP_READ);
 				addSocket(ip, sc, true, clientKey);
 			} catch (IOException e) {
 				if (logger != null)
@@ -957,8 +947,8 @@ final class NIOAgent extends Agent {
 					this.launchAgent(agent);
 					if (agent.getState().equals(State.LIVING) && dka.getState().equals(State.LIVING)) {
 
-						PersonalSocket ps = new PersonalSocket(socketChannel, agent);
-						clientKey.attach(ps);
+						PersonalSocket ps = new PersonalSocket(socketChannel, agent, clientKey);
+
 						personal_sockets.put(agent.getNetworkID(), ps);
 						personal_sockets_list.add(ps);
 						/*int max_block_size = agent.getMaxBlockSize();
@@ -1037,7 +1027,7 @@ final class NIOAgent extends Agent {
 				// we'd like to be notified when there's data waiting to be read
 
 				SelectionKey clientKey = socketChannel.register(this.selector,
-						SelectionKey.OP_CONNECT | SelectionKey.OP_READ);
+						SelectionKey.OP_READ);
 
 				addSocket(null, socketChannel, false, clientKey);
 			} catch (IOException e) {
@@ -1293,13 +1283,18 @@ final class NIOAgent extends Agent {
 		private ByteBuffer readBuffer = null; 
 		private final int maxBlockSize;
 		private volatile boolean canPrepareNextData=true;
+		private final SelectionKey clientKey;
 		public boolean isClosed() {
 			return is_closed;
 		}
 
-		public PersonalSocket(SocketChannel _socketChannel, AgentSocket _agent)
+		public PersonalSocket(SocketChannel _socketChannel, AgentSocket _agent, SelectionKey clientKey)
 				throws OverflowException, IOException, NoSuchAlgorithmException, NoSuchProviderException, TransferException {
+			if (clientKey==null)
+				throw new NullPointerException();
 			socketChannel = _socketChannel;
+			this.clientKey=clientKey;
+			clientKey.attach(this);
 			agentSocket = _agent;
 			agentAddress = agentSocket.getAgentAddressIn(LocalCommunity.Groups.NETWORK,
 					LocalCommunity.Roles.SOCKET_AGENT_ROLE);
@@ -1490,10 +1485,9 @@ final class NIOAgent extends Agent {
 				
 				checkValidTransferType();
 				prepareNextDataToNextIfNecessary();
-				
-				SelectionKey sk = socketChannel.keyFor(NIOAgent.this.selector);
-				if (!is_closed && (sk.interestOps() & SelectionKey.OP_WRITE) != SelectionKey.OP_WRITE)
-					sk.interestOps(SelectionKey.OP_CONNECT | SelectionKey.OP_WRITE | SelectionKey.OP_READ);
+
+				if (!is_closed && (clientKey.interestOps() & SelectionKey.OP_WRITE) != SelectionKey.OP_WRITE)
+					clientKey.interestOps(SelectionKey.OP_WRITE | SelectionKey.OP_READ);
 				
 				return true;
 			} else
@@ -1857,11 +1851,7 @@ final class NIOAgent extends Agent {
 				receivedData(key, readBuffer, data_read);
 				readBuffer=null;
 			}
-			/*
-			 * if (((key.interestOps() & SelectionKey.OP_WRITE) != SelectionKey.OP_WRITE) &&
-			 * (data_read==0 || hasRemaining) && hasDataToSend()) {
-			 * key.interestOps(SelectionKey.OP_WRITE | SelectionKey.OP_READ); }
-			 */
+
 
 		}
 
@@ -1923,7 +1913,7 @@ final class NIOAgent extends Agent {
 
 				NoBackData data = getNextNoBackData();
 
-				//while (data != null) {
+				if (data != null) {
 					boolean dataFinished;
 					int remaining = -1;
 					if ((dataFinished = data.isFinished()) || !data.isReady()) {
@@ -1988,9 +1978,9 @@ final class NIOAgent extends Agent {
 					if (data!=null)
 					    return;
 
-				//}
+				}
 				if (!is_closed)
-					key.interestOps(SelectionKey.OP_CONNECT | SelectionKey.OP_READ);
+					key.interestOps( SelectionKey.OP_READ);
 
 			} catch (IOException e) {
 				if (logger != null && logger.isLoggable(Level.FINER))
@@ -2054,10 +2044,10 @@ final class NIOAgent extends Agent {
 				isa = (InetSocketAddress) this.socketChannel.getRemoteAddress();
 				removeConnectedIP(isa.getAddress());
 
-				SelectionKey key = socketChannel.keyFor(selector);
-				if (key != null) {
-					key.cancel();
-					key.channel().close();
+
+				if (clientKey != null) {
+					clientKey.cancel();
+					clientKey.channel().close();
 					if (socketChannel.isConnected())
                         socketChannel.close();//TODO remove ?
 				} else
@@ -2137,11 +2127,12 @@ final class NIOAgent extends Agent {
 		private final InetAddress localAddress;
 		private final InetAddress groupIP;
 		private final int port;
+		private final SelectionKey selectionKey;
 
 		PersonalDatagramChannel(DatagramChannel datagramSocket, int maxDataSize, AgentAddress multicastAgent,
 				InetAddress localAddress, InetAddress groupIP, int port) throws ClosedChannelException {
 			this.datagramChannel = datagramSocket;
-			this.datagramChannel.register(NIOAgent.this.selector, SelectionKey.OP_READ);
+			selectionKey=this.datagramChannel.register(NIOAgent.this.selector, SelectionKey.OP_READ);
 			this.multicastAgent = multicastAgent;
 			this.localAddress = localAddress;
 			this.groupIP = groupIP;
@@ -2163,9 +2154,8 @@ final class NIOAgent extends Agent {
 		void addDataToSend(DatagramData data) {
 			messagesToSend.add(data);
 
-			SelectionKey sk = datagramChannel.keyFor(NIOAgent.this.selector);
-			if ((sk.interestOps() & SelectionKey.OP_WRITE) != SelectionKey.OP_WRITE)
-				sk.interestOps(SelectionKey.OP_WRITE | SelectionKey.OP_READ);
+			if ((selectionKey.interestOps() & SelectionKey.OP_WRITE) != SelectionKey.OP_WRITE)
+				selectionKey.interestOps(SelectionKey.OP_WRITE | SelectionKey.OP_READ);
 		}
 
 		void read(SelectionKey key) {

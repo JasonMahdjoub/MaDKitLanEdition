@@ -44,6 +44,7 @@ import com.distrimind.madkit.message.hook.NetworkGroupsAccessEvent;
 import com.distrimind.madkit.message.hook.OrganizationEvent;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.ood.database.messages.BigDataEventToSendWithCentralDatabaseBackup;
+import com.distrimind.ood.database.messages.DistantBackupCenterConnexionInitialisation;
 import com.distrimind.ood.database.messages.MessageComingFromCentralDatabaseBackup;
 import com.distrimind.ood.database.messages.MessageDestinedToCentralDatabaseBackup;
 import com.distrimind.util.DecentralizedValue;
@@ -65,8 +66,8 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 	private Map<DecentralizedValue, Group> distantGroupIdsPerID=new HashMap<>();
 	private CentralDatabaseBackupReceiver centralDatabaseBackupReceiver;
 	private WrappedString centralIDString;
-	private final HashMap<ConversationID, DatabaseSynchronizerAgent.BigDataMetaData> currentBigDataReceiving=new HashMap<>();
-	private final HashMap<ConversationID, DatabaseSynchronizerAgent.BigDataMetaData> currentBigDataSending=new HashMap<>();
+	final HashMap<ConversationID, DatabaseSynchronizerAgent.BigDataMetaData> currentBigDataReceiving=new HashMap<>();
+	final HashMap<ConversationID, DatabaseSynchronizerAgent.BigDataMetaData> currentBigDataSending=new HashMap<>();
 	static void updateGroupAccess(AbstractAgent agent) {
 		ReturnCode rc;
 		if (!(rc=agent.broadcastMessageWithRole(LocalCommunity.Groups.NETWORK,
@@ -78,6 +79,8 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 	@Override
 	protected void activate() throws InterruptedException {
 		try {
+			setLogLevel(getMadkitConfig().networkProperties.networkLogLevel);
+
 			if (logger!=null && logger.isLoggable(Level.INFO))
 				logger.info("Launch central database backup receiver");
 			centralDatabaseBackupReceiver= getMadkitConfig().getCentralDatabaseBackupReceiver();
@@ -109,8 +112,9 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 				&& role.equals(CloudCommunity.Roles.SYNCHRONIZER)) {
 			DatabaseSynchronizerAgent.KernelAddressAndDecentralizedValue res = distantGroupIdsPerGroup.get(group);
 			if (res == null) {
-				if (distantKernelAddress != null)
+				if (distantKernelAddress != null) {
 					anomalyDetectedWithOneDistantKernel(true, distantKernelAddress, "Invalided client ID " + group);
+				}
 
 				getLogger().severeLog("Invalided client ID " + group);
 				return null;
@@ -132,8 +136,9 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 			DatabaseSynchronizerAgent.KernelAddressAndDecentralizedValue res = distantGroupIdsPerGroup.get(group);
 			if (res == null) {
 				res=initDistantClient(distantGroupIdsPerGroup, distantGroupIdsPerID, distantKernelAddress, group);
-				if (res==null)
-					getLogger().severeLog("Invalided client ID " + group);
+				if (res==null) {
+					getLogger().severeLog("Invalided client ID on initialization " + group);
+				}
 				return res==null?null:res.decentralizedValue;
 			}
 			else
@@ -264,9 +269,9 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 			if (generateError) {
 				m.denyTransfer();
 				if (_message.getSender().isFrom(getKernelAddress()))
-					getLogger().warning("Invalid message received from " + _message.getSender());
+					getLogger().warning("Invalid received message: " + _message);
 				else
-					anomalyDetectedWithOneDistantKernel(false, _message.getSender().getKernelAddress(), "Invalid message received from " + _message.getSender());
+					anomalyDetectedWithOneDistantKernel(false, _message.getSender().getKernelAddress(), "Invalid received message: " + _message);
 			}
 		}
 		else if (_message instanceof BigDataResultMessage)
@@ -278,7 +283,7 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 				if (res.getType() != BigDataResultMessage.Type.BIG_DATA_TRANSFERRED) {
 					if (CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP_WITH_SUB_GROUPS.includes(res.getReceiver().getGroup()))
 					{
-						getLogger().warning("Impossible to send message to " + _message.getReceiver());
+						getLogger().warning("Impossible to send big data message to " + _message.getReceiver());
 					}
 					if (CloudCommunity.Groups.CLIENT_SERVER_DATABASE_WITH_SUB_GROUPS.includes(res.getReceiver().getGroup()))
 					{
@@ -286,7 +291,7 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 					}
 					else
 					{
-						getLogger().warning("Invalid message received from " + _message.getSender());
+						getLogger().warning("Big data not transferred " + _message.getSender());
 					}
 				}
 				try {
@@ -338,15 +343,15 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 							catch (IOException ex)
 							{
 								getLogger().severeLog("", ex);
-								anomalyDetectedWithOneDistantKernel(ex instanceof MessageExternalizationException && ((MessageExternalizationException) ex).getIntegrity()== Integrity.FAIL_AND_CANDIDATE_TO_BAN, _message.getSender().getKernelAddress(), "Invalid message received from " + _message.getSender());
+								anomalyDetectedWithOneDistantKernel(ex instanceof MessageExternalizationException && ((MessageExternalizationException) ex).getIntegrity()== Integrity.FAIL_AND_CANDIDATE_TO_BAN, _message.getSender().getKernelAddress(), "Invalid received message: " + _message);
 							}
 							catch (DatabaseException ex) {
 								getLogger().severeLog("", ex);
-								anomalyDetectedWithOneDistantKernel(false, _message.getSender().getKernelAddress(), "Invalid message received from " + _message.getSender());
+								anomalyDetectedWithOneDistantKernel(false, _message.getSender().getKernelAddress(), "Invalid received message: " + _message);
 							}
 
 						} else {
-							anomalyDetectedWithOneDistantKernel(false, _message.getSender().getKernelAddress(), "Invalid message received from " + _message.getSender());
+							anomalyDetectedWithOneDistantKernel(false, _message.getSender().getKernelAddress(), "Invalid received message: " + _message);
 
 						}
 					}
@@ -385,14 +390,16 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 
 			if (generateError && m.getContent() instanceof MessageDestinedToCentralDatabaseBackup) {
 				MessageDestinedToCentralDatabaseBackup b = (MessageDestinedToCentralDatabaseBackup) m.getContent();
+
 				try {
-					DecentralizedValue peerID = getDistantPeerID(_message.getSender());
+
+					DecentralizedValue peerID = (b instanceof DistantBackupCenterConnexionInitialisation)?getDistantPeerIDOrInitIt(_message.getSender()):getDistantPeerID(_message.getSender());
 					if (peerID != null) {
 						Integrity i=centralDatabaseBackupReceiver.received(b);
 						if (i!=Integrity.OK)
 						{
 							disconnectClient(_message.getSender());
-							anomalyDetectedWithOneDistantKernel(i==Integrity.FAIL_AND_CANDIDATE_TO_BAN, _message.getSender().getKernelAddress(), "Invalid message received from " + _message.getSender());
+							anomalyDetectedWithOneDistantKernel(i==Integrity.FAIL_AND_CANDIDATE_TO_BAN, _message.getSender().getKernelAddress(), "Invalid received message: " + _message);
 						}
 						generateError = false;
 					}
@@ -405,9 +412,9 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 			}
 			if (generateError) {
 				if (_message.getSender().isFrom(getKernelAddress()))
-					getLogger().warning("Invalid message received from " + _message.getSender());
+					getLogger().warning("Invalid received message: " + _message);
 				else
-					anomalyDetectedWithOneDistantKernel(false, _message.getSender().getKernelAddress(), "Invalid message received from " + _message.getSender());
+					anomalyDetectedWithOneDistantKernel(false, _message.getSender().getKernelAddress(), "Invalid received message: " + _message);
 			}
 
 		}
