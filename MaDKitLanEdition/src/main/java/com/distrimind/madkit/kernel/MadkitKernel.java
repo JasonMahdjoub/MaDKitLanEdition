@@ -774,10 +774,11 @@ class MadkitKernel extends Agent {
 					args.append(s).append(" ");
 				}
 
-				Process p=Runtime.getRuntime().exec(// TODO not used yet
-						System.getProperty("java.home") + File.separatorChar + "bin" + File.separatorChar + "java -cp "
-								+ System.getProperty("java.class.path") + " "
-								+ platform.getConfigOption().madkitMainClass.getCanonicalName() + " " + args);
+
+				Process p=Runtime.getRuntime().exec(new String[]{
+						System.getProperty("java.home") + File.separatorChar + "bin" + File.separatorChar + "java"
+						," -cp "+System.getProperty("java.class.path") + " "+platform.getConfigOption().madkitMainClass.getCanonicalName(),
+						args.toString()});
 				Utils.flushAndDestroyProcess(p);
 			} catch (IOException e) {
 				bugReport(e);
