@@ -148,32 +148,31 @@ public class InetAddressFilter extends MultiFormatProperties {
 		if (ia1.equals(ia2))
 			return true;
 		NetworkInterface ni1 = NetworkInterface.getByInetAddress(ia1);
-		NetworkInterface ni2 = NetworkInterface.getByInetAddress(ia2);
 
-		if (ni1.equals(ni2)) {
-			InterfaceAddress interA1 = null;
-			InterfaceAddress interA2 = null;
-			for (InterfaceAddress interA : ni1.getInterfaceAddresses()) {
-				if (interA.getAddress().equals(ia1)) {
-					interA1 = interA;
-					break;
-				}
-			}
-			for (InterfaceAddress interA : ni2.getInterfaceAddresses()) {
-				if (interA.getAddress().equals(ia2)) {
-					interA2 = interA;
-					break;
-				}
-			}
-			if (interA1 != null && InetAddressFilter.isSameLocalNetwork(ia1.getAddress(), ia2.getAddress(),
-					interA1.getNetworkPrefixLength())) {
-				return true;
-			}
 
-			return interA2 != null && InetAddressFilter.isSameLocalNetwork(ia1.getAddress(), ia2.getAddress(),
-					interA2.getNetworkPrefixLength());
+		InterfaceAddress interA1 = null;
+
+		for (InterfaceAddress interA : ni1.getInterfaceAddresses()) {
+			if (interA.getAddress().equals(ia1)) {
+				interA1 = interA;
+				break;
+			}
 		}
-		return false;
+
+		InterfaceAddress interA2 = null;
+		if (interA1 != null && InetAddressFilter.isSameLocalNetwork(ia1.getAddress(), ia2.getAddress(),
+				interA1.getNetworkPrefixLength())) {
+			return true;
+		}
+		NetworkInterface ni2 = NetworkInterface.getByInetAddress(ia2);
+		for (InterfaceAddress interA : ni2.getInterfaceAddresses()) {
+			if (interA.getAddress().equals(ia2)) {
+				interA2 = interA;
+				break;
+			}
+		}
+		return interA2 != null && InetAddressFilter.isSameLocalNetwork(ia1.getAddress(), ia2.getAddress(),
+				interA2.getNetworkPrefixLength());
 
 	}
 
