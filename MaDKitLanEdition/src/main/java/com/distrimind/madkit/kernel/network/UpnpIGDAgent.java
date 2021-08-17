@@ -840,6 +840,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 			synchronized (UpnpIGDAgent.class) {
 				if (upnpService == null) {
 					upnpService = new UpnpServiceImpl(new DefaultUpnpServiceConfiguration(getMadkitConfig().networkProperties.upnpStreamIDGPort, getMadkitConfig().networkProperties.upnpMulticastIDGPort));
+
 				}
 
 				pointedUpnpServiceNumber++;
@@ -1664,6 +1665,7 @@ class NONAndroidUpnpServiceConfiguration extends org.fourthline.cling.DefaultUpn
 	
 	@Override
     protected NetworkAddressFactory createNetworkAddressFactory(int streamListenPort) {
+
         return new NetworkAddressFactoryImpl(streamListenPort) {
         		@Override
         		public int getMulticastPort() {
@@ -1750,7 +1752,8 @@ class DefaultUpnpServiceConfiguration implements org.fourthline.cling.UpnpServic
 
 	@Override
 	public StreamServer<?> createStreamServer(NetworkAddressFactory _networkAddressFactory) {
-		return usc.createStreamServer(_networkAddressFactory);
+		return null;
+		//return usc.createStreamServer(_networkAddressFactory);
 	}
 
 	@Override
