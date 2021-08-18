@@ -37,7 +37,11 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import java.io.StringReader;
+import java.lang.reflect.Method;
 import java.net.*;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
@@ -53,20 +57,25 @@ import java.util.logging.Logger;
 
 import com.distrimind.util.OS;
 import com.distrimind.util.OSVersion;
+import com.distrimind.util.properties.DocumentBuilderFactoryWithNonDTD;
 import org.fourthline.cling.UpnpService;
 import org.fourthline.cling.UpnpServiceImpl;
 import org.fourthline.cling.android.AndroidNetworkAddressFactory;
-import org.fourthline.cling.binding.xml.DeviceDescriptorBinder;
-import org.fourthline.cling.binding.xml.ServiceDescriptorBinder;
+import org.fourthline.cling.binding.xml.*;
 import org.fourthline.cling.controlpoint.ControlPoint;
 import org.fourthline.cling.controlpoint.ControlPointImpl;
 import org.fourthline.cling.model.Namespace;
+import org.fourthline.cling.model.UnsupportedDataException;
+import org.fourthline.cling.model.ValidationException;
 import org.fourthline.cling.model.action.ActionInvocation;
 import org.fourthline.cling.model.message.UpnpHeaders;
+import org.fourthline.cling.model.message.UpnpMessage;
 import org.fourthline.cling.model.message.UpnpResponse;
-import org.fourthline.cling.model.meta.RemoteDevice;
-import org.fourthline.cling.model.meta.RemoteDeviceIdentity;
-import org.fourthline.cling.model.meta.RemoteService;
+import org.fourthline.cling.model.message.control.ActionRequestMessage;
+import org.fourthline.cling.model.message.control.ActionResponseMessage;
+import org.fourthline.cling.model.message.gena.OutgoingEventRequestMessage;
+import org.fourthline.cling.model.meta.*;
+import org.fourthline.cling.model.profile.RemoteClientInfo;
 import org.fourthline.cling.model.types.DeviceType;
 import org.fourthline.cling.model.types.ServiceType;
 import org.fourthline.cling.model.types.UDADeviceType;
@@ -83,7 +92,9 @@ import org.fourthline.cling.support.model.Connection.Status;
 import org.fourthline.cling.support.model.Connection.StatusInfo;
 import org.fourthline.cling.support.model.PortMapping;
 import org.fourthline.cling.support.model.PortMapping.Protocol;
+import org.fourthline.cling.transport.impl.GENAEventProcessorImpl;
 import org.fourthline.cling.transport.impl.NetworkAddressFactoryImpl;
+import org.fourthline.cling.transport.impl.SOAPActionProcessorImpl;
 import org.fourthline.cling.transport.spi.DatagramIO;
 import org.fourthline.cling.transport.spi.DatagramProcessor;
 import org.fourthline.cling.transport.spi.GENAEventProcessor;
@@ -102,6 +113,13 @@ import com.distrimind.madkit.kernel.NetworkAgent;
 import com.distrimind.madkit.kernel.Task;
 import com.distrimind.madkit.kernel.TaskID;
 import com.distrimind.madkit.message.KernelMessage;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.FactoryConfigurationError;
 
 /**
  * This class agent aims to analyze network interfaces, local networks, and
@@ -159,6 +177,198 @@ class UpnpIGDAgent extends AgentFakeThread {
 	private final HashMap<InetAddress, Router> upnp_igd_routers = new HashMap<>();
 	private final ArrayList<AskForRouterDetectionInformation> callers_for_router_detection = new ArrayList<>();
 
+	static DocumentBuilderFactory newDocumentBuilderFactoryWithNonDTDInstance()
+	{
+		return DocumentBuilderFactoryWithNonDTD.newDocumentBuilderFactoryWithNonDTDInstance();
+	}
+
+	/*
+	 * FIX XXE issue
+	 */
+	static GENAEventProcessor createGENAEventProcessor() {
+		return new GENAEventProcessorImpl(){
+			@Override
+			protected DocumentBuilderFactory createDocumentBuilderFactory() throws FactoryConfigurationError {
+				return UpnpIGDAgent.newDocumentBuilderFactoryWithNonDTDInstance();
+			}
+			@Override
+			public void writeBody(OutgoingEventRequestMessage requestMessage) throws UnsupportedDataException {
+
+				try {
+
+					DocumentBuilderFactory factory = createDocumentBuilderFactory();
+					factory.setNamespaceAware(true);
+					Document d = factory.newDocumentBuilder().newDocument();
+					Element propertysetElement = writePropertysetElement(d);
+
+					writeProperties(d, propertysetElement, requestMessage);
+
+					requestMessage.setBody(UpnpMessage.BodyType.STRING, toString(d));
+
+				} catch (Exception ex) {
+					throw new UnsupportedDataException("Can't transform message payload: " + ex.getMessage(), ex);
+				}
+			}
+
+		};
+	}
+	/*
+	 * FIX XXE issue
+	 */
+	static SOAPActionProcessor createSOAPActionProcessor() {
+		return new SOAPActionProcessorImpl()
+		{
+			@Override
+			protected DocumentBuilderFactory createDocumentBuilderFactory() throws FactoryConfigurationError {
+				return UpnpIGDAgent.newDocumentBuilderFactoryWithNonDTDInstance();
+			}
+			@Override
+			public void writeBody(ActionRequestMessage requestMessage, ActionInvocation actionInvocation) throws UnsupportedDataException {
+
+				try {
+
+					DocumentBuilderFactory factory = createDocumentBuilderFactory();
+					factory.setNamespaceAware(true);
+					Document d = factory.newDocumentBuilder().newDocument();
+					Element body = writeBodyElement(d);
+
+					writeBodyRequest(d, body, requestMessage, actionInvocation);
+
+
+				} catch (Exception ex) {
+					throw new UnsupportedDataException("Can't transform message payload: " + ex, ex);
+				}
+			}
+			@Override
+			public void writeBody(ActionResponseMessage responseMessage, ActionInvocation actionInvocation) throws UnsupportedDataException {
+
+				try {
+
+					DocumentBuilderFactory factory = createDocumentBuilderFactory();
+					factory.setNamespaceAware(true);
+					Document d = factory.newDocumentBuilder().newDocument();
+					Element body = writeBodyElement(d);
+
+					if (actionInvocation.getFailure() != null) {
+						writeBodyFailure(d, body, responseMessage, actionInvocation);
+					} else {
+						writeBodyResponse(d, body, responseMessage, actionInvocation);
+					}
+
+				} catch (Exception ex) {
+					throw new UnsupportedDataException("Can't transform message payload: " + ex, ex);
+				}
+			}
+		};
+	}
+	/*
+	 * FIX XXE issue
+	 */
+	static DeviceDescriptorBinder createDeviceDescriptorBinderUDA10() {
+		//noinspection rawtypes
+		return new UDA10DeviceDescriptorBinderImpl()
+		{
+			@Override
+			public <D extends Device> D describe(D undescribedDevice, String descriptorXml) throws DescriptorBindingException, ValidationException {
+
+				if (descriptorXml == null || descriptorXml.length() == 0) {
+					throw new DescriptorBindingException("Null or empty descriptor");
+				}
+
+				try {
+					DocumentBuilderFactory factory = newDocumentBuilderFactoryWithNonDTDInstance();
+					factory.setNamespaceAware(true);
+					DocumentBuilder documentBuilder = factory.newDocumentBuilder();
+					documentBuilder.setErrorHandler(this);
+
+					Document d = documentBuilder.parse(
+							new InputSource(
+									new StringReader(descriptorXml.trim())
+							)
+					);
+
+					return describe(undescribedDevice, d);
+
+				} catch (ValidationException ex) {
+					throw ex;
+				} catch (Exception ex) {
+					throw new DescriptorBindingException("Could not parse device descriptor: " + ex, ex);
+				}
+			}
+			@Override
+			public Document buildDOM(Device deviceModel, RemoteClientInfo info, Namespace namespace) throws DescriptorBindingException {
+
+				try {
+					DocumentBuilderFactory factory = newDocumentBuilderFactoryWithNonDTDInstance();
+					factory.setNamespaceAware(true);
+
+					Document d = factory.newDocumentBuilder().newDocument();
+					generateRoot(namespace, deviceModel, d, info);
+
+					return d;
+
+				} catch (Exception ex) {
+					throw new DescriptorBindingException("Could not generate device descriptor: " + ex.getMessage(), ex);
+				}
+			}
+		};
+	}
+
+	/*
+	 * FIX XXE issue
+	 */
+	static ServiceDescriptorBinder createServiceDescriptorBinderUDA10() {
+		//noinspection rawtypes
+		return new UDA10ServiceDescriptorBinderImpl(){
+			@Override
+			public <S extends Service> S describe(S undescribedService, String descriptorXml) throws DescriptorBindingException, ValidationException {
+				if (descriptorXml == null || descriptorXml.length() == 0) {
+					throw new DescriptorBindingException("Null or empty descriptor");
+				}
+
+				try {
+					DocumentBuilderFactory factory = newDocumentBuilderFactoryWithNonDTDInstance();
+					factory.setNamespaceAware(true);
+					DocumentBuilder documentBuilder = factory.newDocumentBuilder();
+					documentBuilder.setErrorHandler(this);
+
+					Document d = documentBuilder.parse(
+							new InputSource(
+									new StringReader(descriptorXml.trim())
+							)
+					);
+
+					return describe(undescribedService, d);
+
+				} catch (ValidationException ex) {
+					throw ex;
+				} catch (Exception ex) {
+					throw new DescriptorBindingException("Could not parse service descriptor: " + ex, ex);
+				}
+			}
+			@Override
+			public Document buildDOM(Service service) throws DescriptorBindingException {
+
+				try {
+					DocumentBuilderFactory factory = newDocumentBuilderFactoryWithNonDTDInstance();
+					factory.setNamespaceAware(true);
+
+					Document d = factory.newDocumentBuilder().newDocument();
+					Method m=UDA10ServiceDescriptorBinderImpl.class.getDeclaredMethod("generateScpd", Service.class, Document.class);
+					AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
+						m.setAccessible(true);
+						return null;
+					});
+
+					return d;
+
+				} catch (Exception ex) {
+					throw new DescriptorBindingException("Could not generate service descriptor: " + ex.getMessage(), ex);
+				}
+			}
+		};
+
+	}
 
 	protected void addRouter(InetAddress ia, Router router) {
 		if (ia == null)
@@ -1673,6 +1883,37 @@ class NONAndroidUpnpServiceConfiguration extends org.fourthline.cling.DefaultUpn
             }
         };
     }
+
+	/*
+	 * FIX XXE issue
+	 */
+    @Override
+	protected GENAEventProcessor createGENAEventProcessor() {
+		return UpnpIGDAgent.createGENAEventProcessor();
+	}
+	/*
+	 * FIX XXE issue
+	 */
+	@Override
+	protected SOAPActionProcessor createSOAPActionProcessor() {
+		return UpnpIGDAgent.createSOAPActionProcessor();
+	}
+
+	/*
+	 * FIX XXE issue
+	 */
+	@Override
+	public DeviceDescriptorBinder createDeviceDescriptorBinderUDA10() {
+		return UpnpIGDAgent.createDeviceDescriptorBinderUDA10();
+	}
+
+	/*
+	 * FIX XXE issue
+	 */
+	@Override
+	public ServiceDescriptorBinder createServiceDescriptorBinderUDA10() {
+		return UpnpIGDAgent.createServiceDescriptorBinderUDA10();
+	}
 }
 
 class AndroidUpnpServiceConfiguration extends org.fourthline.cling.android.AndroidUpnpServiceConfiguration {
@@ -1696,6 +1937,36 @@ class AndroidUpnpServiceConfiguration extends org.fourthline.cling.android.Andro
             }
         };
     }
+	/*
+	 * FIX XXE issue
+	 */
+	@Override
+	protected GENAEventProcessor createGENAEventProcessor() {
+		return UpnpIGDAgent.createGENAEventProcessor();
+	}
+	/*
+	 * FIX XXE issue
+	 */
+	@Override
+	protected SOAPActionProcessor createSOAPActionProcessor() {
+		return UpnpIGDAgent.createSOAPActionProcessor();
+	}
+
+	/*
+	 * FIX XXE issue
+	 */
+	@Override
+	public DeviceDescriptorBinder createDeviceDescriptorBinderUDA10() {
+		return UpnpIGDAgent.createDeviceDescriptorBinderUDA10();
+	}
+
+	/*
+	 * FIX XXE issue
+	 */
+	@Override
+	public ServiceDescriptorBinder createServiceDescriptorBinderUDA10() {
+		return UpnpIGDAgent.createServiceDescriptorBinderUDA10();
+	}
 }
 
 class DefaultUpnpServiceConfiguration implements org.fourthline.cling.UpnpServiceConfiguration {
