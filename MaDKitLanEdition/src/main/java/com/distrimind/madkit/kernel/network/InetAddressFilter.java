@@ -200,6 +200,10 @@ public class InetAddressFilter extends MultiFormatProperties {
 				return false;
 			}
 
+			if (ni.getName().toLowerCase(Locale.ROOT).startsWith("docker")) {
+				return false;
+			}
+
 			if (ni.getName().toLowerCase(Locale.ROOT).contains("virtual")) {
 				return false;
 			}

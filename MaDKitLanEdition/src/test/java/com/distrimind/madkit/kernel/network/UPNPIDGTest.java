@@ -119,7 +119,7 @@ public class UPNPIDGTest extends JunitMadkit {
 												.getNetworkInterfaces(); eni.hasMoreElements();) {
 											NetworkInterface ni = eni.nextElement();
 
-											if (!ni.isUp())
+											if (!InetAddressFilter.isValidNetworkInterface(ni))
 												continue;
 
 											for (Enumeration<InetAddress> eia = ni.getInetAddresses(); eia

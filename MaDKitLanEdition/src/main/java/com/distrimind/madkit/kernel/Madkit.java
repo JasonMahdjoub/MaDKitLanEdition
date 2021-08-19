@@ -149,6 +149,7 @@ final public class Madkit {
 					.addDescription(new Description((short)2, (short)2, (short)0, Version.Type.BETA, (short)2, "2021-08-17")
 							.addItem("Disable useless server stream into Upnp IGD")
 							.addItem("UPNP IGD test pass")
+							.addItem("Complete filter of network interfaces")
 							.addItem("Fix issue when determining if a local ip is compatible with another ip")
 							.addItem("Fix XXE security issue with Cling dependency : https://github.com/4thline/cling/issues/243")
 							.addItem("Fix DDOS and SSRF security issues with Cling dependency : https://github.com/4thline/cling/issues/253")
