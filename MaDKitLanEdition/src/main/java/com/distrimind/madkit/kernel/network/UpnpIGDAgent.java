@@ -37,30 +37,17 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.StringReader;
-import java.lang.reflect.Method;
-import java.net.*;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
+import com.distrimind.madkit.agr.LocalCommunity;
+import com.distrimind.madkit.kernel.*;
+import com.distrimind.madkit.message.KernelMessage;
 import com.distrimind.util.OS;
 import com.distrimind.util.OSVersion;
 import com.distrimind.util.properties.DocumentBuilderFactoryWithNonDTD;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
 import org.fourthline.cling.UpnpService;
 import org.fourthline.cling.UpnpServiceImpl;
-import org.fourthline.cling.android.AndroidNetworkAddressFactory;
 import org.fourthline.cling.binding.xml.*;
 import org.fourthline.cling.controlpoint.ControlPoint;
 import org.fourthline.cling.controlpoint.ControlPointImpl;
@@ -68,19 +55,18 @@ import org.fourthline.cling.model.Namespace;
 import org.fourthline.cling.model.UnsupportedDataException;
 import org.fourthline.cling.model.ValidationException;
 import org.fourthline.cling.model.action.ActionInvocation;
-import org.fourthline.cling.model.message.UpnpHeaders;
-import org.fourthline.cling.model.message.UpnpMessage;
-import org.fourthline.cling.model.message.UpnpResponse;
+import org.fourthline.cling.model.message.Connection;
+import org.fourthline.cling.model.message.*;
 import org.fourthline.cling.model.message.control.ActionRequestMessage;
 import org.fourthline.cling.model.message.control.ActionResponseMessage;
 import org.fourthline.cling.model.message.gena.OutgoingEventRequestMessage;
+import org.fourthline.cling.model.message.header.CallbackHeader;
+import org.fourthline.cling.model.message.header.HostHeader;
+import org.fourthline.cling.model.message.header.LocationHeader;
+import org.fourthline.cling.model.message.header.UpnpHeader;
 import org.fourthline.cling.model.meta.*;
 import org.fourthline.cling.model.profile.RemoteClientInfo;
-import org.fourthline.cling.model.types.DeviceType;
-import org.fourthline.cling.model.types.ServiceType;
-import org.fourthline.cling.model.types.UDADeviceType;
-import org.fourthline.cling.model.types.UDAServiceType;
-import org.fourthline.cling.model.types.UnsignedIntegerTwoBytes;
+import org.fourthline.cling.model.types.*;
 import org.fourthline.cling.protocol.ProtocolFactory;
 import org.fourthline.cling.registry.DefaultRegistryListener;
 import org.fourthline.cling.registry.Registry;
@@ -92,27 +78,8 @@ import org.fourthline.cling.support.model.Connection.Status;
 import org.fourthline.cling.support.model.Connection.StatusInfo;
 import org.fourthline.cling.support.model.PortMapping;
 import org.fourthline.cling.support.model.PortMapping.Protocol;
-import org.fourthline.cling.transport.impl.GENAEventProcessorImpl;
-import org.fourthline.cling.transport.impl.NetworkAddressFactoryImpl;
-import org.fourthline.cling.transport.impl.SOAPActionProcessorImpl;
-import org.fourthline.cling.transport.spi.DatagramIO;
-import org.fourthline.cling.transport.spi.DatagramProcessor;
-import org.fourthline.cling.transport.spi.GENAEventProcessor;
-import org.fourthline.cling.transport.spi.MulticastReceiver;
-import org.fourthline.cling.transport.spi.NetworkAddressFactory;
-import org.fourthline.cling.transport.spi.SOAPActionProcessor;
-import org.fourthline.cling.transport.spi.StreamClient;
-import org.fourthline.cling.transport.spi.StreamServer;
-
-import com.distrimind.madkit.agr.LocalCommunity;
-import com.distrimind.madkit.kernel.AgentAddress;
-import com.distrimind.madkit.kernel.AgentFakeThread;
-import com.distrimind.madkit.kernel.AgentLogger;
-import com.distrimind.madkit.kernel.Message;
-import com.distrimind.madkit.kernel.NetworkAgent;
-import com.distrimind.madkit.kernel.Task;
-import com.distrimind.madkit.kernel.TaskID;
-import com.distrimind.madkit.message.KernelMessage;
+import org.fourthline.cling.transport.impl.*;
+import org.fourthline.cling.transport.spi.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -120,6 +87,19 @@ import org.xml.sax.InputSource;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.FactoryConfigurationError;
+import java.io.IOException;
+import java.io.StringReader;
+import java.lang.reflect.Method;
+import java.net.*;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This class agent aims to analyze network interfaces, local networks, and
@@ -177,13 +157,268 @@ class UpnpIGDAgent extends AgentFakeThread {
 	private final HashMap<InetAddress, Router> upnp_igd_routers = new HashMap<>();
 	private final ArrayList<AskForRouterDetectionInformation> callers_for_router_detection = new ArrayList<>();
 
+
+
 	static DocumentBuilderFactory newDocumentBuilderFactoryWithNonDTDInstance()
 	{
 		return DocumentBuilderFactoryWithNonDTD.newDocumentBuilderFactoryWithNonDTDInstance();
 	}
+	/*
+	 * Fix DDOS and SSRF issue : https://github.com/4thline/cling/issues/253
+	 */
+	static NetworkAddressFactory createNetworkAddressFactory(int streamListenPort, int multicastPort) {
+
+		return new NetworkAddressFactoryImpl(streamListenPort) {
+			@Override
+			public int getMulticastPort() {
+				return multicastPort;
+			}
+			public InetAddress getLocalAddress(NetworkInterface networkInterface, boolean isIPv6, InetAddress remoteAddress) {
+
+				// First try to find a local IP that is in the same subnet as the remote IP
+				return getBindAddressInSubnetOf(remoteAddress);
+			}
+		};
+	}
+	/*
+	 * Fix DDOS and SSRF issue : https://github.com/4thline/cling/issues/253
+	 */
+	static IncomingDatagramMessage<?> getValidIncomingDatagramMessage(IncomingDatagramMessage<?> idm, NetworkAddressFactory networkAddressFactory)
+	{
+		@SuppressWarnings("rawtypes") List<UpnpHeader> luh=idm.getHeaders().get(UpnpHeader.Type.CALLBACK);
+
+		if (luh!=null) {
+			for (UpnpHeader<?> uh : luh) {
+				if (CallbackHeader.class.isAssignableFrom(uh.getClass())) {
+					CallbackHeader ch = (CallbackHeader) uh;
+					for (URL u : ch.getValue()) {
+						try {
+							InetAddress ia = InetAddress.getByName(u.getHost());
+							ia = networkAddressFactory.getLocalAddress(
+									null,
+									ia instanceof Inet6Address,
+									ia
+							);
+							if (ia == null)
+								return null;
+						} catch (Exception ignored) {
+
+						}
+					}
+				}
+			}
+		}
+		luh=idm.getHeaders().get(UpnpHeader.Type.HOST);
+		if (luh!=null) {
+			for (UpnpHeader<?> uh : luh) {
+				if (HostHeader.class.isAssignableFrom(uh.getClass())) {
+					HostHeader hh = (HostHeader) uh;
+					try {
+						InetAddress ia = InetAddress.getByName(hh.getValue().getHost());
+						ia = networkAddressFactory.getLocalAddress(
+								null,
+								ia instanceof Inet6Address,
+								ia
+						);
+						if (ia == null)
+							return null;
+					} catch (Exception ignored) {
+
+					}
+				}
+			}
+		}
+		luh=idm.getHeaders().get(UpnpHeader.Type.LOCATION);
+		if (luh!=null) {
+			for (UpnpHeader<?> uh : luh) {
+				if (LocationHeader.class.isAssignableFrom(uh.getClass())) {
+					LocationHeader hh = (LocationHeader) uh;
+					try {
+						InetAddress ia = InetAddress.getByName(hh.getValue().getHost());
+						ia = networkAddressFactory.getLocalAddress(
+								null,
+								ia instanceof Inet6Address,
+								ia
+						);
+						if (ia == null)
+							return null;
+					} catch (Exception ignored) {
+
+					}
+				}
+			}
+		}
+		return idm;
+	}
+
+	static MulticastReceiver<?> createMulticastReceiver(NetworkAddressFactory networkAddressFactory) {
+		return new MulticastReceiverImpl(
+				new MulticastReceiverConfigurationImpl(
+						networkAddressFactory.getMulticastGroup(),
+						networkAddressFactory.getMulticastPort()
+				)
+		){
+
+			public void run() {
+
+				while (true) {
+
+					try {
+						byte[] buf = new byte[getConfiguration().getMaxDatagramBytes()];
+						DatagramPacket datagram = new DatagramPacket(buf, buf.length);
+
+						socket.receive(datagram);
+						InetAddress receivedOnLocalAddress =
+								networkAddressFactory.getLocalAddress(
+										multicastInterface,
+										multicastAddress.getAddress() instanceof Inet6Address,
+										datagram.getAddress()
+								);
+						if (receivedOnLocalAddress==null)
+							continue;
+						/*
+						 * Fix DDOS and SSRF issue : https://github.com/4thline/cling/issues/253
+						 */
+						IncomingDatagramMessage<?> idm=getValidIncomingDatagramMessage(datagramProcessor.read(receivedOnLocalAddress, datagram), networkAddressFactory);
+						if (idm==null)
+							continue;
+						router.received(idm);
+
+					} catch (SocketException ex) {
+						break;
+					}
+					catch (UnsupportedDataException ignored)
+					{
+
+					}
+					catch (Exception ex) {
+						throw new RuntimeException(ex);
+					}
+				}
+				try {
+					if (!socket.isClosed()) {
+						socket.close();
+					}
+				} catch (Exception ex) {
+					throw new RuntimeException(ex);
+				}
+			}
+		};
+	}
+
+	static class RequestHttpHandler implements HttpHandler {
+
+		private final org.fourthline.cling.transport.Router router;
+		private final NetworkAddressFactory networkAddressFactory;
+
+		RequestHttpHandler(org.fourthline.cling.transport.Router router, NetworkAddressFactory networkAddressFactory) {
+			this.router = router;
+			this.networkAddressFactory=networkAddressFactory;
+		}
+
+		// This is executed in the request receiving thread!
+		public void handle(final HttpExchange httpExchange) throws IOException {
+			InetSocketAddress isa=httpExchange.getRemoteAddress();
+			if (isa==null)
+				return;
+			InetAddress receivedOnLocalAddress =
+					networkAddressFactory.getLocalAddress(
+							null,
+							isa.getAddress() instanceof Inet6Address,
+							isa.getAddress()
+					);
+			if (receivedOnLocalAddress==null)
+				return;
+			router.received(
+					new HttpExchangeUpnpStream(router.getProtocolFactory(), httpExchange) {
+						@Override
+						protected Connection createConnection() {
+							return new HttpServerConnection(httpExchange);
+						}
+					}
+			);
+		}
+	}
+	private static class HttpServerConnection implements Connection {
+
+		protected HttpExchange exchange;
+
+		public HttpServerConnection(HttpExchange exchange) {
+			this.exchange = exchange;
+		}
+
+		@Override
+		public boolean isOpen() {
+			return true;
+		}
+
+		@Override
+		public InetAddress getRemoteAddress() {
+			return exchange.getRemoteAddress() != null
+					? exchange.getRemoteAddress().getAddress()
+					: null;
+		}
+
+		@Override
+		public InetAddress getLocalAddress() {
+			return exchange.getLocalAddress() != null
+					? exchange.getLocalAddress().getAddress()
+					: null;
+		}
+	}
 
 	/*
-	 * FIX XXE issue
+	 * Fix DDOS and SSRF issue : https://github.com/4thline/cling/issues/253
+	 */
+	static DatagramIO<?> createDatagramIO(NetworkAddressFactory networkAddressFactory) {
+		return new DatagramIOImpl(new DatagramIOConfigurationImpl()){
+			@Override
+			public void run() {
+
+				while (true) {
+
+					try {
+						byte[] buf = new byte[getConfiguration().getMaxDatagramBytes()];
+						DatagramPacket datagram = new DatagramPacket(buf, buf.length);
+
+						socket.receive(datagram);
+						InetAddress receivedOnLocalAddress =
+								networkAddressFactory.getLocalAddress(
+										null,
+										datagram.getAddress() instanceof Inet6Address,
+										datagram.getAddress()
+								);
+						if (receivedOnLocalAddress==null)
+							continue;
+						/*
+						 * Fix DDOS and SSRF issue : https://github.com/4thline/cling/issues/253
+						 */
+						IncomingDatagramMessage<?> idm=getValidIncomingDatagramMessage(datagramProcessor.read(localAddress.getAddress(), datagram), networkAddressFactory);
+						if (idm==null)
+							continue;
+						router.received(idm);
+
+					} catch (SocketException ex) {
+						break;
+					} catch (UnsupportedDataException ignored) {
+
+					} catch (Exception ex) {
+						throw new RuntimeException(ex);
+					}
+				}
+				try {
+					if (!socket.isClosed()) {
+						socket.close();
+					}
+				} catch (Exception ex) {
+					throw new RuntimeException(ex);
+				}
+			}
+		};
+	}
+
+	/*
+	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
 	 */
 	static GENAEventProcessor createGENAEventProcessor() {
 		return new GENAEventProcessorImpl(){
@@ -213,7 +448,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 		};
 	}
 	/*
-	 * FIX XXE issue
+	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
 	 */
 	static SOAPActionProcessor createSOAPActionProcessor() {
 		return new SOAPActionProcessorImpl()
@@ -262,7 +497,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 		};
 	}
 	/*
-	 * FIX XXE issue
+	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
 	 */
 	static DeviceDescriptorBinder createDeviceDescriptorBinderUDA10() {
 		//noinspection rawtypes
@@ -315,7 +550,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 	}
 
 	/*
-	 * FIX XXE issue
+	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
 	 */
 	static ServiceDescriptorBinder createServiceDescriptorBinderUDA10() {
 		//noinspection rawtypes
@@ -1116,16 +1351,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 
 	}
 
-	public static long getHardwareAddress(byte[] hardwareAddress) {
-		long result = 0;
-		if (hardwareAddress != null) {
-			for (final byte value : hardwareAddress) {
-				result <<= 8;
-				result |= value & 255;
-			}
-		}
-		return result;
-	}
+
 
 	protected class NetworkInterfaceInfo {
 
@@ -1154,8 +1380,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 		}
 
 		boolean isValid(NetworkInterface ni) throws SocketException {
-			long addr = getHardwareAddress(ni.getHardwareAddress());
-			return ni.isUp() && (addr != 0 || ni.isLoopback()) && addr != 224;
+			return InetAddressFilter.isValidNetworkInterface(ni);
 		}
 
 		void addCaller(AskForNetworkInterfacesMessage _message) {
@@ -1875,24 +2100,18 @@ class NONAndroidUpnpServiceConfiguration extends org.fourthline.cling.DefaultUpn
 	
 	@Override
     protected NetworkAddressFactory createNetworkAddressFactory(int streamListenPort) {
-
-        return new NetworkAddressFactoryImpl(streamListenPort) {
-        		@Override
-        		public int getMulticastPort() {
-                return NONAndroidUpnpServiceConfiguration.this.multicastPort;
-            }
-        };
+		return UpnpIGDAgent.createNetworkAddressFactory(streamListenPort, NONAndroidUpnpServiceConfiguration.this.multicastPort);
     }
 
 	/*
-	 * FIX XXE issue
+	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
 	 */
     @Override
 	protected GENAEventProcessor createGENAEventProcessor() {
 		return UpnpIGDAgent.createGENAEventProcessor();
 	}
 	/*
-	 * FIX XXE issue
+	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
 	 */
 	@Override
 	protected SOAPActionProcessor createSOAPActionProcessor() {
@@ -1900,7 +2119,7 @@ class NONAndroidUpnpServiceConfiguration extends org.fourthline.cling.DefaultUpn
 	}
 
 	/*
-	 * FIX XXE issue
+	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
 	 */
 	@Override
 	public DeviceDescriptorBinder createDeviceDescriptorBinderUDA10() {
@@ -1908,11 +2127,41 @@ class NONAndroidUpnpServiceConfiguration extends org.fourthline.cling.DefaultUpn
 	}
 
 	/*
-	 * FIX XXE issue
+	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
 	 */
 	@Override
 	public ServiceDescriptorBinder createServiceDescriptorBinderUDA10() {
 		return UpnpIGDAgent.createServiceDescriptorBinderUDA10();
+	}
+
+	@Override
+	public MulticastReceiver<?> createMulticastReceiver(NetworkAddressFactory networkAddressFactory) {
+		return UpnpIGDAgent.createMulticastReceiver(networkAddressFactory);
+	}
+	@Override
+	public DatagramIO<?> createDatagramIO(NetworkAddressFactory networkAddressFactory) {
+		return UpnpIGDAgent.createDatagramIO(networkAddressFactory);
+	}
+	@Override
+	public StreamServer<?> createStreamServer(NetworkAddressFactory networkAddressFactory) {
+		return new StreamServerImpl(
+				new StreamServerConfigurationImpl(
+						networkAddressFactory.getStreamListenPort()
+				)
+		) {
+			@Override
+			synchronized public void init(InetAddress bindAddress, org.fourthline.cling.transport.Router router) throws InitializationException {
+				try {
+					InetSocketAddress socketAddress = new InetSocketAddress(bindAddress, configuration.getListenPort());
+
+					server = HttpServer.create(socketAddress, configuration.getTcpConnectionBacklog());
+					server.createContext("/", new UpnpIGDAgent.RequestHttpHandler(router, networkAddressFactory));
+
+				} catch (Exception ex) {
+					throw new InitializationException("Could not initialize " + getClass().getSimpleName() + ": " + ex.toString(), ex);
+				}
+			}
+		};
 	}
 }
 
@@ -1930,22 +2179,17 @@ class AndroidUpnpServiceConfiguration extends org.fourthline.cling.android.Andro
 	
 	@Override
     protected NetworkAddressFactory createNetworkAddressFactory(int streamListenPort) {
-        return new AndroidNetworkAddressFactory(streamListenPort) {
-        		@Override
-        		public int getMulticastPort() {
-                return AndroidUpnpServiceConfiguration.this.multicastPort;
-            }
-        };
+		return UpnpIGDAgent.createNetworkAddressFactory(streamListenPort, AndroidUpnpServiceConfiguration.this.multicastPort);
     }
 	/*
-	 * FIX XXE issue
+	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
 	 */
 	@Override
 	protected GENAEventProcessor createGENAEventProcessor() {
 		return UpnpIGDAgent.createGENAEventProcessor();
 	}
 	/*
-	 * FIX XXE issue
+	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
 	 */
 	@Override
 	protected SOAPActionProcessor createSOAPActionProcessor() {
@@ -1953,7 +2197,7 @@ class AndroidUpnpServiceConfiguration extends org.fourthline.cling.android.Andro
 	}
 
 	/*
-	 * FIX XXE issue
+	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
 	 */
 	@Override
 	public DeviceDescriptorBinder createDeviceDescriptorBinderUDA10() {
@@ -1961,12 +2205,21 @@ class AndroidUpnpServiceConfiguration extends org.fourthline.cling.android.Andro
 	}
 
 	/*
-	 * FIX XXE issue
+	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
 	 */
 	@Override
 	public ServiceDescriptorBinder createServiceDescriptorBinderUDA10() {
 		return UpnpIGDAgent.createServiceDescriptorBinderUDA10();
 	}
+	@Override
+	public MulticastReceiver<?> createMulticastReceiver(NetworkAddressFactory networkAddressFactory) {
+		return UpnpIGDAgent.createMulticastReceiver(networkAddressFactory);
+	}
+	@Override
+	public DatagramIO<?> createDatagramIO(NetworkAddressFactory networkAddressFactory) {
+		return UpnpIGDAgent.createDatagramIO(networkAddressFactory);
+	}
+
 }
 
 class DefaultUpnpServiceConfiguration implements org.fourthline.cling.UpnpServiceConfiguration {

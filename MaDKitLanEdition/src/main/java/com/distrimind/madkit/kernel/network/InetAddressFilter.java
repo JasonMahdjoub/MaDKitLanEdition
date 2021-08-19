@@ -41,6 +41,7 @@ import java.net.InetAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.util.Locale;
 
 import com.distrimind.util.properties.MultiFormatProperties;
 
@@ -175,5 +176,56 @@ public class InetAddressFilter extends MultiFormatProperties {
 				interA2.getNetworkPrefixLength());
 
 	}
+
+	public static boolean isValidNetworkInterface(NetworkInterface ni) {
+		try {
+			if (!ni.isUp()) {
+				return false;
+			}
+
+			if (!ni.getInetAddresses().hasMoreElements()) {
+				return false;
+			}
+
+			if (ni.getName().toLowerCase(Locale.ROOT).startsWith("vmnet") ||
+					(ni.getDisplayName() != null && ni.getDisplayName().toLowerCase(Locale.ROOT).contains("vmnet"))) {
+				return false;
+			}
+
+			if (ni.getName().toLowerCase(Locale.ROOT).startsWith("vnic")) {
+				return false;
+			}
+
+			if (ni.getName().toLowerCase(Locale.ROOT).startsWith("vboxnet")) {
+				return false;
+			}
+
+			if (ni.getName().toLowerCase(Locale.ROOT).contains("virtual")) {
+				return false;
+			}
+
+			if (ni.getName().toLowerCase(Locale.ROOT).startsWith("ppp")) {
+				return false;
+			}
+
+
+			long addr = getHardwareAddressIntoLongValue(ni.getHardwareAddress());
+			return (addr != 0 || ni.isLoopback()) && addr != 224;
+		} catch (SocketException e) {
+			return false;
+		}
+
+	}
+	public static long getHardwareAddressIntoLongValue(byte[] hardwareAddress) {
+		long result = 0;
+		if (hardwareAddress != null) {
+			for (final byte value : hardwareAddress) {
+				result <<= 8;
+				result |= value & 255;
+			}
+		}
+		return result;
+	}
+
 
 }
