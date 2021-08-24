@@ -132,21 +132,7 @@ class LocalNetworkAgent extends AgentFakeThread {
 
 	static ArrayList<LocalNetworkAgent> extractLocalNetworkAgents(NetworkInterface ni, ArrayList<InterfaceAddress> list) {
 		ArrayList<LocalNetworkAgent> res = new ArrayList<>();
-		if (list.size() == 1) {
-			res.add(new LocalNetworkAgent(ni, list.iterator().next()));
-		} else if (list.size() == 2) {
-			try {
-				Iterator<InterfaceAddress> it = list.iterator();
-				res.add(new LocalNetworkAgent(ni, it.next(), it.next()));
-			} catch (Exception e) {
-				res.clear();
-				Iterator<InterfaceAddress> it = list.iterator();
-				res.add(new LocalNetworkAgent(ni, it.next()));
-				res.add(new LocalNetworkAgent(ni, it.next()));
-			}
-		} else {
-			for (InterfaceAddress aList : list) res.add(new LocalNetworkAgent(ni, aList));
-		}
+		for (InterfaceAddress aList : list) res.add(new LocalNetworkAgent(ni, aList));
 		return res;
 	}
 
@@ -210,6 +196,7 @@ class LocalNetworkAgent extends AgentFakeThread {
 					not_found_addresses.add(ia);
 			}
 		}
+
 		if (found_lna_match.size() > 0) {
 			for (LocalNetworkAgent lna : found_lna_match)
 				lna.receiveMessage(new NetworkInterfaceAddedMessage(ni));
@@ -274,12 +261,22 @@ class LocalNetworkAgent extends AgentFakeThread {
 	 * 
 	 * } } }
 	 */
-	private boolean isConcernedBy(NetworkInterface ni) {
-		for (InterfaceAddress ia : ni.getInterfaceAddresses()) {
+
+
+
+
+
+	private boolean isConcernedBy(NetworkInterface iface) {
+		/*if (!InetAddressFilter.isValidNetworkInterface(iface)) {
+			return false;
+		}*/
+
+		for (InterfaceAddress ia : iface.getInterfaceAddresses()) {
 			if (isConcernedBy(ia))
 				return true;
 		}
 		return false;
+
 	}
 
 	private boolean isConcernedBy(InterfaceAddress ia) {

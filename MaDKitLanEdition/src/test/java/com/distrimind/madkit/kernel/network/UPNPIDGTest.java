@@ -118,11 +118,16 @@ public class UPNPIDGTest extends JunitMadkit {
 										for (Enumeration<NetworkInterface> eni = NetworkInterface
 												.getNetworkInterfaces(); eni.hasMoreElements();) {
 											NetworkInterface ni = eni.nextElement();
+
+											if (!InetAddressFilter.isValidNetworkInterface(ni))
+												continue;
+
 											for (Enumeration<InetAddress> eia = ni.getInetAddresses(); eia
 													.hasMoreElements();) {
 												ia = eia.nextElement();
+												System.out.println(ia+" ; "+m.getConcernedRouter());
 												if (!ia.isAnyLocalAddress() && !ia.isLoopbackAddress()
-														&& (ia instanceof Inet4Address) /*&& !ni.getName().startsWith("wlan")*/) {
+														&& (ia instanceof Inet4Address) && InetAddressFilter.isSameLocalNetwork(ia, m.getConcernedRouter())) {
 													break;
 												} else
 													ia = null;
@@ -136,7 +141,6 @@ public class UPNPIDGTest extends JunitMadkit {
 											for (int i = portStart; i <= portEnd; i++) {
 												list_ports.add(i);
 											}
-
 											final AskForPortMappingAddMessage a = new AskForPortMappingAddMessage(
 													m.getConcernedRouter(), ia, list_ports, internalPort, "",
 													Protocol.TCP);
