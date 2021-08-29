@@ -37,11 +37,10 @@
  */
 package com.distrimind.madkit.kernel;
 
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import com.distrimind.util.io.RandomByteArrayInputStream;
 import com.distrimind.util.io.RandomByteArrayOutputStream;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.io.IOException;
 
 
@@ -56,25 +55,25 @@ public class MultiGroupTest {
 	public void testMultiGroup() throws ClassNotFoundException, IOException {
 		MultiGroup mg = new MultiGroup(new Group("MGC1", "G1", "G2"), new Group("MGC1", "G1", "G3"),
 				new Group("MGC1", "G1", "G3", "G4"));
-		Assert.assertTrue(mg.includes(new Group("MGC1", "G1", "G2")));
-		Assert.assertFalse(mg.includes(new Group("MGC1", "G1", "G2", "G3")));
-		Assert.assertFalse(mg.includes(new Group("MGC2", "G1", "G2")));
-		Assert.assertTrue(mg.addGroup(new Group("MGC1", "G1", "G2", "G3")));
-		Assert.assertTrue(mg.includes(new Group("MGC1", "G1", "G2", "G3")));
+		AssertJUnit.assertTrue(mg.includes(new Group("MGC1", "G1", "G2")));
+		AssertJUnit.assertFalse(mg.includes(new Group("MGC1", "G1", "G2", "G3")));
+		AssertJUnit.assertFalse(mg.includes(new Group("MGC2", "G1", "G2")));
+		AssertJUnit.assertTrue(mg.addGroup(new Group("MGC1", "G1", "G2", "G3")));
+		AssertJUnit.assertTrue(mg.includes(new Group("MGC1", "G1", "G2", "G3")));
 		mg.addGroup(new Group(true, "MGC1", "G1", "G3"));
-		Assert.assertTrue(mg.includes(new Group("MGC1", "G1", "G3", "G5")));
+		AssertJUnit.assertTrue(mg.includes(new Group("MGC1", "G1", "G3", "G5")));
 		mg.addForbiddenGroup(new Group("MGC1", "G1", "G3", "G5"));
-		Assert.assertFalse(mg.includes(new Group("MGC1", "G1", "G3", "G5")));
-		Assert.assertTrue(mg.includes(new Group("MGC1", "G1", "G3", "G6")));
-		Assert.assertTrue(mg.getComplementary().includes(new Group("MGC1", "G1", "G3", "G5")));
-		Assert.assertTrue(AbstractGroup.getUniverse().includes(mg.union(mg.getComplementary())));
-		Assert.assertTrue(mg.union(mg.getComplementary()).includes(AbstractGroup.getUniverse()));
-		Assert.assertEquals(mg.union(mg.getComplementary()), AbstractGroup.getUniverse());
-		Assert.assertTrue(mg.union(new Group("MGC1", "G1", "G3", "G5")).includes(new Group("MGC1", "G1", "G3", "G5")));
-		Assert.assertTrue(mg.intersect(new Group(true, "MGC1", "G1", "G3")).includes(new Group("MGC1", "G1", "G3", "G10")));
-		Assert.assertTrue(mg.intersect(new Group(true, "MGC1", "G1", "G3")).includes(new Group("MGC1", "G1", "G3")));
-		Assert.assertTrue(mg.includes(new Group("MGC1", "G1", "G2")));
-		Assert.assertFalse(mg.intersect(new Group(true, "MGC1", "G1", "G3")).includes(new Group("MGC1", "G1", "G2")));
+		AssertJUnit.assertFalse(mg.includes(new Group("MGC1", "G1", "G3", "G5")));
+		AssertJUnit.assertTrue(mg.includes(new Group("MGC1", "G1", "G3", "G6")));
+		AssertJUnit.assertTrue(mg.getComplementary().includes(new Group("MGC1", "G1", "G3", "G5")));
+		AssertJUnit.assertTrue(AbstractGroup.getUniverse().includes(mg.union(mg.getComplementary())));
+		AssertJUnit.assertTrue(mg.union(mg.getComplementary()).includes(AbstractGroup.getUniverse()));
+		AssertJUnit.assertEquals(mg.union(mg.getComplementary()), AbstractGroup.getUniverse());
+		AssertJUnit.assertTrue(mg.union(new Group("MGC1", "G1", "G3", "G5")).includes(new Group("MGC1", "G1", "G3", "G5")));
+		AssertJUnit.assertTrue(mg.intersect(new Group(true, "MGC1", "G1", "G3")).includes(new Group("MGC1", "G1", "G3", "G10")));
+		AssertJUnit.assertTrue(mg.intersect(new Group(true, "MGC1", "G1", "G3")).includes(new Group("MGC1", "G1", "G3")));
+		AssertJUnit.assertTrue(mg.includes(new Group("MGC1", "G1", "G2")));
+		AssertJUnit.assertFalse(mg.intersect(new Group(true, "MGC1", "G1", "G3")).includes(new Group("MGC1", "G1", "G2")));
 		// Assert.assertTrue(mg.intersect(mg.getComplementary()).isEmpty());//TODO
 		new MultiGroup();
 		for(AbstractGroup[] ag : getGroups())
@@ -87,10 +86,11 @@ public class MultiGroupTest {
 		}
 	}
 
+
 	public void testCloneGroup(AbstractGroup... groups) {
 		MultiGroup g = new MultiGroup(groups);
 		MultiGroup g2 = g.clone();
-		Assert.assertEquals(g, g2);
+		AssertJUnit.assertEquals(g, g2);
 	}
 
 	public void testGroupSerialization(AbstractGroup... groups) throws IOException, ClassNotFoundException {
@@ -108,7 +108,7 @@ public class MultiGroupTest {
 			g2 = bais.readObject(false, MultiGroup.class);
 		}
 
-		Assert.assertEquals(g, g2);
+		AssertJUnit.assertEquals(g, g2);
 	}
 
 	AbstractGroup[][] getGroups() {

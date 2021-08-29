@@ -37,20 +37,18 @@
  */
 package com.distrimind.madkit.simulation;
 
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Test;
-
 import com.distrimind.madkit.kernel.AbstractAgent;
+import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.Watcher;
-import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
-import com.distrimind.madkit.simulation.SimulationException;
 import com.distrimind.madkit.simulation.probe.PropertyProbe;
 import com.distrimind.madkit.testing.util.agent.NormalAA;
 import com.distrimind.madkit.testing.util.agent.SimulatedAgent;
 import com.distrimind.madkit.testing.util.agent.SimulatedAgentBis;
+import org.testng.annotations.Test;
+
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
+import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * @author Fabien Michel
@@ -152,7 +150,7 @@ public class PropertyProbeTest extends JunitMadkit {
 				addProbe(fp);
                 NormalAA normalAA = new NormalAA() {
 
-                    String privatePrimitiveField = "test";
+                    final String privatePrimitiveField = "test";
                 };
                 System.err.println(fp.getPropertyValue(normalAA));
                 int i = fp.getPropertyValue(normalAA);
@@ -207,8 +205,8 @@ public class PropertyProbeTest extends JunitMadkit {
 				Watcher s = new Watcher();
 				assertEquals(SUCCESS, launchAgent(s));
 				s.addProbe(fp);
-				assertEquals(9d, fp.getMaxValue());
-				assertEquals(0d, fp.getMinValue());
+				assertEquals(9d, Double.parseDouble(fp.getMaxValue()));
+				assertEquals(0d, Double.parseDouble(fp.getMinValue()));
 			}
 		}, ReturnCode.SUCCESS);
 	}

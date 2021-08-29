@@ -37,15 +37,14 @@
  */
 package com.distrimind.madkit.kernel;
 
-import static org.junit.Assert.assertEquals;
+import org.testng.annotations.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.logging.Level;
 
-import org.junit.Test;
-
-import com.distrimind.madkit.kernel.AbstractAgent;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * @author Fabien Michel
@@ -68,7 +67,7 @@ public class OptionTestingTest extends JunitMadkit {
 			@Override
 			protected void activate() {
 				assertEquals(Level.INFO, getMadkitConfig().kernelLogLevel);
-				assertEquals(Boolean.TRUE, getMadkitConfig().autoConnectMadkitWebsite);
+				assertTrue(getMadkitConfig().autoConnectMadkitWebsite);
 			}
 		});
 	}

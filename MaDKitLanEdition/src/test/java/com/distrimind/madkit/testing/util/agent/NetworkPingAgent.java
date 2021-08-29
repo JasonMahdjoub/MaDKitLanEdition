@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.testing.util.agent;
 
-import org.junit.Assert;
+import org.testng.AssertJUnit;
 
 import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.kernel.JunitMadkit;
@@ -72,13 +72,13 @@ public class NetworkPingAgent extends AgentAddressAgentTester {
 	@Override
 	public void activate() {
 		System.out.println("Ping activating : " + getKernelAddress());
-		Assert.assertEquals(ReturnCode.SUCCESS,
+		AssertJUnit.assertEquals(ReturnCode.SUCCESS,
 				this.requestRole(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, pingRole));
 
 		ReturnCode rc = broadcastMessage(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, pongRole,
 				new NetworkObjectMessage<>(new Object[]{messagePing,
 						getAgentAddressIn(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, pingRole)}));
-		Assert.assertTrue(rc.toString(), ReturnCode.SUCCESS == rc || ReturnCode.TRANSFER_IN_PROGRESS == rc);
+		AssertJUnit.assertTrue(rc.toString(), ReturnCode.SUCCESS == rc || ReturnCode.TRANSFER_IN_PROGRESS == rc);
 		System.out.println("Ping activated : " + getKernelAddress());
 		/*
 		 * scheduleTask(new Task<>(new Callable<Void>() {
@@ -100,7 +100,7 @@ public class NetworkPingAgent extends AgentAddressAgentTester {
 			String message = (String) om.getContent()[0];
 			AgentAddress aa = (AgentAddress) om.getContent()[1];
 
-			Assert.assertEquals(message, messagePong);
+			AssertJUnit.assertEquals(message, messagePong);
 			if (_message.getSender().isFrom(getKernelAddress())) {
 				System.out.println("Receiving local pong message : " + getKernelAddress());
 				++localPongReceived;
@@ -117,7 +117,7 @@ public class NetworkPingAgent extends AgentAddressAgentTester {
 
 		} else {
 			System.out.println("Uncomprehensible message !");
-			Assert.fail();
+			AssertJUnit.fail();
 		}
 	}
 

@@ -38,9 +38,7 @@
 package com.distrimind.madkit.kernel;
 
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
-import static org.junit.Assert.assertEquals;
-
-import com.distrimind.madkit.kernel.AbstractAgent;
+import static org.testng.AssertJUnit.assertEquals;
 
 public class JUnitAgent extends AbstractAgent {
 

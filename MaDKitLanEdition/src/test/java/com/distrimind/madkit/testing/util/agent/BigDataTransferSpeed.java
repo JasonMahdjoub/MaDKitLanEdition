@@ -46,7 +46,7 @@ import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnect
 import com.distrimind.util.crypto.SymmetricAuthenticatedSignatureType;
 import com.distrimind.util.crypto.SymmetricEncryptionType;
 import com.distrimind.util.io.RandomByteArrayInputStream;
-import org.junit.Assert;
+import org.testng.AssertJUnit;
 
 import java.io.IOException;
 import java.net.Inet4Address;
@@ -180,7 +180,7 @@ public class BigDataTransferSpeed extends JunitMadkit {
 
                                 try {
 
-                                    Assert.assertNotNull(this.sendBigData(aa, new RandomByteArrayInputStream(new byte[size]), 0, size, null, null, true));
+                                    AssertJUnit.assertNotNull(this.sendBigData(aa, new RandomByteArrayInputStream(new byte[size]), 0, size, null, null, true));
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
@@ -191,16 +191,16 @@ public class BigDataTransferSpeed extends JunitMadkit {
                                     BigDataResultMessage br=(BigDataResultMessage)m;
                                     if (this.getMaximumGlobalUploadSpeedInBytesPerSecond() != Integer.MAX_VALUE){
                                         double speed=((double) br.getTransferredDataLength()) / ((double) br.getTransferDuration()) * 1000.0;
-                                        Assert.assertTrue(speed< getMaximumGlobalUploadSpeedInBytesPerSecond() * 2);
-                                        Assert.assertTrue(speed> getMaximumGlobalUploadSpeedInBytesPerSecond() / 2.0);
+                                        AssertJUnit.assertTrue(speed< getMaximumGlobalUploadSpeedInBytesPerSecond() * 2);
+                                        AssertJUnit.assertTrue(speed> getMaximumGlobalUploadSpeedInBytesPerSecond() / 2.0);
                                     }
                                 }
                                 transfered1.set(tr1);
 
-                                Assert.assertTrue(""+m, transfered1.get());
+                                AssertJUnit.assertTrue(""+m, transfered1.get());
 
                                 try {
-                                    Assert.assertNotNull(this.sendBigData(aa, new RandomByteArrayInputStream(new byte[size]), 0, size, null, null, false));
+                                    AssertJUnit.assertNotNull(this.sendBigData(aa, new RandomByteArrayInputStream(new byte[size]), 0, size, null, null, false));
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
@@ -210,13 +210,13 @@ public class BigDataTransferSpeed extends JunitMadkit {
                                     BigDataResultMessage br=(BigDataResultMessage)m;
                                     if (this.getMaximumGlobalUploadSpeedInBytesPerSecond() != Integer.MAX_VALUE) {
                                         double speed=((double) br.getTransferredDataLength()) / ((double) br.getTransferDuration()) * 1000.0;
-                                        Assert.assertTrue(speed< getMaximumGlobalUploadSpeedInBytesPerSecond() * 2);
-                                        Assert.assertTrue(speed> getMaximumGlobalUploadSpeedInBytesPerSecond() / 2.0);
+                                        AssertJUnit.assertTrue(speed< getMaximumGlobalUploadSpeedInBytesPerSecond() * 2);
+                                        AssertJUnit.assertTrue(speed> getMaximumGlobalUploadSpeedInBytesPerSecond() / 2.0);
                                     }
                                 }
                                 transfered2.set(tr2);
 
-                                Assert.assertTrue(""+m, transfered2.get());
+                                AssertJUnit.assertTrue(""+m, transfered2.get());
 
 
                             }
@@ -241,8 +241,8 @@ public class BigDataTransferSpeed extends JunitMadkit {
 
                     Thread.sleep(1000);
                 }
-                Assert.assertTrue(transfered1.get());
-                Assert.assertTrue(transfered2.get());
+                AssertJUnit.assertTrue(transfered1.get());
+                AssertJUnit.assertTrue(transfered2.get());
 
                 //noinspection UnusedAssignment
                 bigDataTransferAgent=null;
@@ -258,13 +258,13 @@ public class BigDataTransferSpeed extends JunitMadkit {
                 sleep(400);
 
                 cleanHelperMDKs(this);
-                Assert.assertEquals(getHelperInstances(this, 0).size(), 0);
+                AssertJUnit.assertEquals(getHelperInstances(this, 0).size(), 0);
 
 
             }
         });
-        Assert.assertTrue(transfered1.get());
-        Assert.assertTrue(transfered2.get());
+        AssertJUnit.assertTrue(transfered1.get());
+        AssertJUnit.assertTrue(transfered2.get());
 
 		cleanHelperMDKs();
 	}

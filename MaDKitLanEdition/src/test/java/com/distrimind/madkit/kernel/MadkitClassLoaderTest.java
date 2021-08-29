@@ -37,19 +37,16 @@
  */
 package com.distrimind.madkit.kernel;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.Arrays;
 
-import org.junit.Test;
-
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.MadkitClassLoader;
-import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author Fabien Michel
@@ -123,13 +120,13 @@ public class MadkitClassLoaderTest extends JunitMadkit {
 					assertNotNull(
 							MadkitClassLoader.getLoader().loadClass("com.distrimind.madkit.kernel.AbstractAgent"));
 				} catch (ClassNotFoundException e) {
-					fail(e.getMessage());
+					Assert.fail(e.getMessage());
 				}
 				try {
 					MadkitClassLoader.getLoader().loadClass(null);
-					fail("Not thrown");
+					Assert.fail("Not thrown");
 				} catch (ClassNotFoundException e) {
-					fail("Not the one");
+					Assert.fail("Not the one");
 					e.printStackTrace();
 				}
             }

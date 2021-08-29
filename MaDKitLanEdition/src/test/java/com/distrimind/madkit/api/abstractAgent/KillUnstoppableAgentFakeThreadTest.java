@@ -37,12 +37,10 @@
  */
 package com.distrimind.madkit.api.abstractAgent;
 
+import static org.testng.AssertJUnit.assertEquals;
+import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.TIMEOUT;
-import static org.junit.Assert.assertEquals;
-
 import java.util.logging.Level;
-
-import org.junit.Test;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.JunitMadkit;

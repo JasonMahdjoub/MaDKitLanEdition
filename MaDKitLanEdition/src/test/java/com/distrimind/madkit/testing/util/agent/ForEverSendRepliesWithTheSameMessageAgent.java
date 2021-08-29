@@ -73,8 +73,7 @@ public class ForEverSendRepliesWithTheSameMessageAgent extends Agent {
 		Message m = waitNextMessage();
 		logger.info("" + m.getSender().isFrom(getKernelAddress()));
 		pause(100);
-		if (m != null)
-			sendReply(m, m);
+		sendReply(m, m);
 		if (cycles-- == 0)
 			this.killAgent(this);
 	}

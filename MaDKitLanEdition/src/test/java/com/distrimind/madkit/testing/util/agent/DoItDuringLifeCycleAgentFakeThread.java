@@ -47,7 +47,9 @@ import com.distrimind.madkit.kernel.Message;
  * @since MadkitLanEdition 1.0
  */
 public class DoItDuringLifeCycleAgentFakeThread extends AgentFakeThread {
-	private boolean inActivate = false, inLive = false, inEnd = false;
+	private final boolean inActivate;
+	private final boolean inLive;
+	private final boolean inEnd;
 
 	public DoItDuringLifeCycleAgentFakeThread(boolean inActivate, boolean inLive, boolean inEnd) {
 		this.inActivate = inActivate;

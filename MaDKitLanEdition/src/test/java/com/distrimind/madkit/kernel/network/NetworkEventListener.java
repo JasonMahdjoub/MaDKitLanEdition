@@ -365,7 +365,7 @@ public class NetworkEventListener implements MadkitEventListener {
 		return res;
 	}
 
-	public static ArrayList<Object[]> getNetworkEventListenersForPeerToPeerConnectionsWithRandomProperties(
+	public static Object[][] getNetworkEventListenersForPeerToPeerConnectionsWithRandomProperties(
 			boolean network, boolean upnpIGDEnabled, boolean databaseEnabled, final boolean canTakeLoginInitiative,
 			boolean autoConnectWithLocalSitePeers, final Runnable invalidPassord,final Runnable invalidCloudIdentifier, int hostNumber, int... loginIndexes) {
 		ArrayList<ArrayList<NetworkEventListener>> col = new ArrayList<>();
@@ -386,6 +386,6 @@ public class NetworkEventListener implements MadkitEventListener {
 			res.add(params);
 		}
 
-		return res;
+		return res.toArray(new Object[res.size()][hostNumber]);
 	}
 }

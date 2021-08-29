@@ -47,13 +47,8 @@ import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.crypto.MessageDigestType;
 import com.distrimind.util.crypto.SecureRandomType;
 import com.distrimind.util.io.*;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.testng.AssertJUnit;
+import org.testng.annotations.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -64,7 +59,6 @@ import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Random;
 
 /**
@@ -74,7 +68,6 @@ import java.util.Random;
  * @since MadkitLanEdition 1.0
  */
 @SuppressWarnings("ResultOfMethodCallIgnored")
-@RunWith(Parameterized.class)
 public class ReadWritePacketTests extends JunitMadkit {
 	public static final int testsNumber = 300;
 	final AbstractSecureRandom rand;
@@ -94,7 +87,7 @@ public class ReadWritePacketTests extends JunitMadkit {
 
 		@Override
 		public void receivedBlock(Block _block) {
-			Assert.assertArrayEquals(originalBlock.getBytes(), _block.getBytes());
+			AssertJUnit.assertArrayEquals(originalBlock.getBytes(), _block.getBytes());
 			received = true;
 		}
 
@@ -102,7 +95,7 @@ public class ReadWritePacketTests extends JunitMadkit {
 		public boolean processInvalidBlock(Exception _e, Block _block, boolean _candidate_to_ban) {
 			_e.printStackTrace();
 			fail = true;
-			Assert.fail();
+			AssertJUnit.fail();
 			return true;
 		}
 
@@ -122,8 +115,8 @@ public class ReadWritePacketTests extends JunitMadkit {
 
 	}
 
-	@Parameters
-	public static Collection<Object[]> data() {
+	@DataProvider
+	public static Object[][] data() {
 		ArrayList<Object[]> res = new ArrayList<>(testsNumber);
 		for (int i = 0; i < testsNumber; i++) {
 			Object[] o = new Object[1];
@@ -131,9 +124,10 @@ public class ReadWritePacketTests extends JunitMadkit {
 
 			res.add(o);
 		}
-		return res;
+		return res.toArray(new Object[res.size()][res.get(0).length]);
 	}
 
+	@Factory(dataProvider = "data")
 	public ReadWritePacketTests(byte[] data) throws NIOException, UnknownHostException, NoSuchAlgorithmException, NoSuchProviderException {
 		this.rand=SecureRandomType.DEFAULT.getSingleton(null);
 		idPacket=Math.abs(rand.nextInt());
@@ -149,7 +143,7 @@ public class ReadWritePacketTests extends JunitMadkit {
 
 	}
 
-	@Before
+	@BeforeMethod
 	public void createFile() throws IOException {
 		data = originalData.clone();
 		fileInput = new File(System.getProperty("java.io.tmpdir"), "TEST_RANDOM_FILE_INPUT_STREAM");
@@ -159,7 +153,7 @@ public class ReadWritePacketTests extends JunitMadkit {
 		}
 	}
 
-	@After
+	@AfterMethod
 	public void deleteFile() {
 		fileInput.delete();
 	}
@@ -183,82 +177,83 @@ public class ReadWritePacketTests extends JunitMadkit {
 			testOutputInputStream(false);
 	}
 
+	@Test
 	public void testInputStream(boolean byteArray, byte[] dataIn, File fileInput) throws IOException {
 		try (RandomInputStream input = byteArray ? new RandomByteArrayInputStream(dataIn)
 				: new RandomFileInputStream(fileInput)) {
-			Assert.assertEquals(data.length, input.length());
+			AssertJUnit.assertEquals(data.length, input.length());
 			if (byteArray)
-				Assert.assertEquals(data.length, input.available());
+				AssertJUnit.assertEquals(data.length, input.available());
 			for (int i = 0; i < data.length; i++) {
-				Assert.assertEquals(i, input.currentPosition());
-				Assert.assertEquals(data[i], (byte) input.read());
-				Assert.assertEquals(i + 1, input.currentPosition());
+				AssertJUnit.assertEquals(i, input.currentPosition());
+				AssertJUnit.assertEquals(data[i], (byte) input.read());
+				AssertJUnit.assertEquals(i + 1, input.currentPosition());
 
 			}
-			Assert.assertEquals(data.length, input.length());
-			Assert.assertEquals(0, input.available());
-			Assert.assertEquals(-1, input.read());
-			Assert.assertEquals(data.length, input.currentPosition());
+			AssertJUnit.assertEquals(data.length, input.length());
+			AssertJUnit.assertEquals(0, input.available());
+			AssertJUnit.assertEquals(-1, input.read());
+			AssertJUnit.assertEquals(data.length, input.currentPosition());
 		}
 
 		try (RandomInputStream input = byteArray ? new RandomByteArrayInputStream(dataIn)
 				: new RandomFileInputStream(fileInput)) {
 			byte[] data2 = new byte[(int) input.length()];
 			input.read(data2);
-			Assert.assertEquals(data.length, data2.length);
+			AssertJUnit.assertEquals(data.length, data2.length);
 			for (int i = 0; i < data.length; i++)
-				Assert.assertEquals(data[i], data2[i]);
-			Assert.assertEquals(data.length, input.length());
-			Assert.assertEquals(0, input.available());
-			Assert.assertEquals(-1, input.read());
-			Assert.assertEquals(data.length, input.currentPosition());
+				AssertJUnit.assertEquals(data[i], data2[i]);
+			AssertJUnit.assertEquals(data.length, input.length());
+			AssertJUnit.assertEquals(0, input.available());
+			AssertJUnit.assertEquals(-1, input.read());
+			AssertJUnit.assertEquals(data.length, input.currentPosition());
 		}
 
 		if (byteArray) {
 			try (RandomByteArrayInputStream input = new RandomByteArrayInputStream(dataIn)) {
 				byte[] data2 = input.getBytes();
 				input.read(data2);
-				Assert.assertEquals(data.length, data2.length);
+				AssertJUnit.assertEquals(data.length, data2.length);
 				for (int i = 0; i < data.length; i++)
-					Assert.assertEquals(data[i], data2[i]);
-				Assert.assertEquals(data.length, input.length());
-				Assert.assertEquals(0, input.available());
-				Assert.assertEquals(-1, input.read());
-				Assert.assertEquals(data.length, input.currentPosition());
+					AssertJUnit.assertEquals(data[i], data2[i]);
+				AssertJUnit.assertEquals(data.length, input.length());
+				AssertJUnit.assertEquals(0, input.available());
+				AssertJUnit.assertEquals(-1, input.read());
+				AssertJUnit.assertEquals(data.length, input.currentPosition());
 			}
 		}
 		try (RandomInputStream input = byteArray ? new RandomByteArrayInputStream(dataIn)
 				: new RandomFileInputStream(fileInput)) {
 			for (int i = 0; i < 10; i++) {
-				Assert.assertEquals(i, input.currentPosition());
-				Assert.assertEquals(data[i], (byte) input.read());
-				Assert.assertEquals(i + 1, input.currentPosition());
+				AssertJUnit.assertEquals(i, input.currentPosition());
+				AssertJUnit.assertEquals(data[i], (byte) input.read());
+				AssertJUnit.assertEquals(i + 1, input.currentPosition());
 			}
 			input.mark(100);
 			for (int i = 10; i < 20; i++) {
-				Assert.assertEquals(i, input.currentPosition());
-				Assert.assertEquals(data[i], (byte) input.read());
-				Assert.assertEquals(i + 1, input.currentPosition());
+				AssertJUnit.assertEquals(i, input.currentPosition());
+				AssertJUnit.assertEquals(data[i], (byte) input.read());
+				AssertJUnit.assertEquals(i + 1, input.currentPosition());
 			}
 			input.reset();
 			for (int i = 10; i < data.length; i++) {
-				Assert.assertEquals(i, input.currentPosition());
-				Assert.assertEquals(data[i], (byte) input.read());
-				Assert.assertEquals(i + 1, input.currentPosition());
+				AssertJUnit.assertEquals(i, input.currentPosition());
+				AssertJUnit.assertEquals(data[i], (byte) input.read());
+				AssertJUnit.assertEquals(i + 1, input.currentPosition());
 			}
 		}
 		try (RandomInputStream input = byteArray ? new RandomByteArrayInputStream(dataIn)
 				: new RandomFileInputStream(fileInput)) {
 			for (int i = 0; i < 10; i++) {
-				Assert.assertEquals(i, input.currentPosition());
-				Assert.assertEquals(data[i], (byte) input.read());
-				Assert.assertEquals(i + 1, input.currentPosition());
+				AssertJUnit.assertEquals(i, input.currentPosition());
+				AssertJUnit.assertEquals(data[i], (byte) input.read());
+				AssertJUnit.assertEquals(i + 1, input.currentPosition());
 			}
 			input.mark(10);
 			for (int i = 10; i < 21; i++) {
-				Assert.assertEquals(i, input.currentPosition());
-				Assert.assertEquals(data[i], (byte) input.read());
-				Assert.assertEquals(i + 1, input.currentPosition());
+				AssertJUnit.assertEquals(i, input.currentPosition());
+				AssertJUnit.assertEquals(data[i], (byte) input.read());
+				AssertJUnit.assertEquals(i + 1, input.currentPosition());
 			}
 			try {
 				input.reset();
@@ -269,25 +264,26 @@ public class ReadWritePacketTests extends JunitMadkit {
 		}
 	}
 
+	@Test
 	public void testOutputInputStream(boolean byteArray) throws IOException {
 		if (fileOutput.exists())
 			fileOutput.delete();
 		byte[] dataout = null;
 		try (RandomOutputStream output = byteArray ? new RandomByteArrayOutputStream()
 				: new RandomFileOutputStream(fileOutput)) {
-			Assert.assertEquals(0, output.length());
+			AssertJUnit.assertEquals(0, output.length());
 			output.setLength(data.length);
-			Assert.assertEquals(0, output.currentPosition());
-			Assert.assertEquals(data.length, output.length());
+			AssertJUnit.assertEquals(0, output.currentPosition());
+			AssertJUnit.assertEquals(data.length, output.length());
 
 			for (int i = 0; i < data.length; i++) {
-				Assert.assertEquals(i, output.currentPosition());
+				AssertJUnit.assertEquals(i, output.currentPosition());
 				output.write(data[i]);
-				Assert.assertEquals(i + 1, output.currentPosition());
+				AssertJUnit.assertEquals(i + 1, output.currentPosition());
 
 			}
-			Assert.assertEquals(data.length, output.length());
-			Assert.assertEquals(data.length, output.currentPosition());
+			AssertJUnit.assertEquals(data.length, output.length());
+			AssertJUnit.assertEquals(data.length, output.currentPosition());
 			if (output instanceof RandomByteArrayOutputStream)
 				dataout = ((RandomByteArrayOutputStream) output).getBytes();
 		}
@@ -296,12 +292,12 @@ public class ReadWritePacketTests extends JunitMadkit {
 		dataout = null;
 		try (RandomOutputStream output = byteArray ? new RandomByteArrayOutputStream()
 				: new RandomFileOutputStream(fileOutput)) {
-			Assert.assertEquals(0, output.length());
+			AssertJUnit.assertEquals(0, output.length());
 			output.setLength(data.length);
-			Assert.assertEquals(data.length, output.length());
+			AssertJUnit.assertEquals(data.length, output.length());
 			output.write(data);
-			Assert.assertEquals(data.length, output.length());
-			Assert.assertEquals(data.length, output.currentPosition());
+			AssertJUnit.assertEquals(data.length, output.length());
+			AssertJUnit.assertEquals(data.length, output.currentPosition());
 			if (output instanceof RandomByteArrayOutputStream)
 				dataout = ((RandomByteArrayOutputStream) output).getBytes();
 		}
@@ -320,11 +316,12 @@ public class ReadWritePacketTests extends JunitMadkit {
 		testReadWritePacket(conProto, MessageDigestType.BC_BLAKE2B_512);
 	}
 
+	@Test
 	public void testReadWritePacket(ConnectionProtocol<?> conProto, MessageDigestType messageDigestType)
 			throws PacketException, NoSuchAlgorithmException, NIOException, NoSuchProviderException, IOException {
 		for (int i = 0; i < 100; i++) {
 			byte val = (byte) rand.nextInt(1 << WritePacket.getMaximumLocalRandomValuesBitsNumber());
-			Assert.assertEquals(val,
+			AssertJUnit.assertEquals(val,
 					WritePacket.decodeLocalNumberRandomVal(WritePacket.encodeLocalNumberRandomVal(val, rand)));
 		}
 		testReadWritePacket(conProto, PacketPartHead.TYPE_PACKET, (short) 50, (short) 0, 0, data.length, false,
@@ -394,20 +391,21 @@ public class ReadWritePacketTests extends JunitMadkit {
 
 	}
 
+	@Test(enabled = false)
 	private void testReadWritePacket(ConnectionProtocol<?> conProto, int _type, int _max_buffer_size, short random_values_size, long _start_position,
 			long length, boolean _transfert_as_big_data, MessageDigestType messageDigestType)
 			throws PacketException, NoSuchAlgorithmException, NIOException, NoSuchProviderException, IOException {
 		WritePacket output = new WritePacket(_type, idPacket, _max_buffer_size, random_values_size, rand,
 				new RandomByteArrayInputStream(data), _start_position, length, _transfert_as_big_data,
 				messageDigestType);
-		Assert.assertEquals(_transfert_as_big_data, output.concernsBigData());
-		Assert.assertEquals(length, output.getDataLength());
+		AssertJUnit.assertEquals(_transfert_as_big_data, output.concernsBigData());
+		AssertJUnit.assertEquals(length, output.getDataLength());
 		int messageDigestSize = messageDigestType == null ? 0
 				: messageDigestType.getMessageDigestInstance().getDigestLengthInBytes();
-		Assert.assertEquals(length + messageDigestSize, output.getDataLengthWithHashIncluded());
-		Assert.assertEquals(idPacket, output.getID());
-		Assert.assertEquals(0, output.getReadDataLengthIncludingHash());
-		Assert.assertFalse(output.isFinished());
+		AssertJUnit.assertEquals(length + messageDigestSize, output.getDataLengthWithHashIncluded());
+		AssertJUnit.assertEquals(idPacket, output.getID());
+		AssertJUnit.assertEquals(0, output.getReadDataLengthIncludingHash());
+		AssertJUnit.assertFalse(output.isFinished());
 		ReadPacket read = null;
 		RandomByteArrayOutputStream outputStream = new RandomByteArrayOutputStream();
 		
@@ -415,61 +413,58 @@ public class ReadWritePacketTests extends JunitMadkit {
 		do {
 			PacketPart pp = output.getNextPart(conProto);
 			assert pp != null;
-			Assert.assertTrue(pp.getHead().isPacketPart());
-			Assert.assertFalse(pp.isReadyToBeRead());
-			Assert.assertTrue(pp.isReadyToBeSent());
-			Assert.assertEquals(pp.getHead().getID(), idPacket);
-			Assert.assertTrue(pp.getHead().isPacketPart());
+			AssertJUnit.assertTrue(pp.getHead().isPacketPart());
+			AssertJUnit.assertFalse(pp.isReadyToBeRead());
+			AssertJUnit.assertTrue(pp.isReadyToBeSent());
+			AssertJUnit.assertEquals(pp.getHead().getID(), idPacket);
+			AssertJUnit.assertTrue(pp.getHead().isPacketPart());
 			if (read == null) {
-				Assert.assertTrue(pp.getHead().isFirstPacketPart());
-				Assert.assertEquals(length, pp.getHead().getTotalLength());
-				Assert.assertEquals(_start_position, pp.getHead().getStartPosition());
+				AssertJUnit.assertTrue(pp.getHead().isFirstPacketPart());
+				AssertJUnit.assertEquals(length, pp.getHead().getTotalLength());
+				AssertJUnit.assertEquals(_start_position, pp.getHead().getStartPosition());
 
 			}
 
 			SubBlock bpp = testDataSynchronizer(pp);
 
 			if (!output.isFinished())
-				Assert.assertTrue(bpp.getSize() >= _max_buffer_size);
+				AssertJUnit.assertTrue(bpp.getSize() >= _max_buffer_size);
 			pp = new PacketPart(bpp, _max_buffer_size, random_values_size);
-			Assert.assertTrue(pp.isReadyToBeRead());
-			Assert.assertFalse(pp.isReadyToBeSent());
-			Assert.assertTrue(pp.getHead().isPacketPart());
+			AssertJUnit.assertTrue(pp.isReadyToBeRead());
+			AssertJUnit.assertFalse(pp.isReadyToBeSent());
+			AssertJUnit.assertTrue(pp.getHead().isPacketPart());
 			if (read == null) {
-				Assert.assertTrue(pp.getHead().isFirstPacketPart());
+				AssertJUnit.assertTrue(pp.getHead().isFirstPacketPart());
 
-				Assert.assertEquals(length + messageDigestSize, pp.getHead().getTotalLength());
-				Assert.assertEquals(_start_position, pp.getHead().getStartPosition());
+				AssertJUnit.assertEquals(length + messageDigestSize, pp.getHead().getTotalLength());
+				AssertJUnit.assertEquals(_start_position, pp.getHead().getStartPosition());
 
 				read = new ReadPacket(pp, outputStream, messageDigestType);
 				// Assert.assertEquals(read.getCurrentPosition(), 0);
-				Assert.assertEquals(idPacket, read.getID());
-				if (output.isFinished())
-					Assert.assertTrue(read.isFinished());
-				else
-					Assert.assertFalse(read.isFinished());
+				AssertJUnit.assertEquals(idPacket, read.getID());
 			} else {
-				Assert.assertFalse(pp.getHead().isFirstPacketPart());
+				AssertJUnit.assertFalse(pp.getHead().isFirstPacketPart());
 				read.readNewPart(pp);
-				if (output.isFinished())
-					Assert.assertTrue(read.isFinished());
-				else
-					Assert.assertFalse(read.isFinished());
 			}
-			Assert.assertFalse(read.isTemporaryInvalid());
-			Assert.assertFalse(read.isInvalid());
-			Assert.assertTrue(read.isValid());
+			if (output.isFinished())
+				AssertJUnit.assertTrue(read.isFinished());
+			else
+				AssertJUnit.assertFalse(read.isFinished());
+			AssertJUnit.assertFalse(read.isTemporaryInvalid());
+			AssertJUnit.assertFalse(read.isInvalid());
+			AssertJUnit.assertTrue(read.isValid());
 
 		} while (!output.isFinished());
-		Assert.assertEquals(length + messageDigestSize, output.getReadDataLengthIncludingHash());
-		Assert.assertEquals(length, output.getReadDataLength());
-		Assert.assertTrue(read.isFinished());
+		AssertJUnit.assertEquals(length + messageDigestSize, output.getReadDataLengthIncludingHash());
+		AssertJUnit.assertEquals(length, output.getReadDataLength());
+		AssertJUnit.assertTrue(read.isFinished());
 		byte[] res = outputStream.getBytes();
-		Assert.assertEquals(_start_position + length, res.length);
+		AssertJUnit.assertEquals(_start_position + length, res.length);
 		for (int i = 0; i < length; i++)
-			Assert.assertEquals(data[(int) _start_position + i], res[(int) _start_position + i]);
+			AssertJUnit.assertEquals(data[(int) _start_position + i], res[(int) _start_position + i]);
 	}
 
+	@Test(enabled = false)
 	private SubBlock testDataSynchronizer(PacketPart pp) throws NIOException, PacketException {
 
 		SubBlocksStructure sbs = new SubBlocksStructure(pp, connectionProtocol);
@@ -478,16 +473,9 @@ public class ReadWritePacketTests extends JunitMadkit {
 		System.arraycopy(ppb, 0, b, Block.getHeadSize(), ppb.length);
 		final Block block = new Block(b, b.length, sbs, -1);
 		socketAgentInterface.setOriginalBlock(block);
-		/*int index = 0;
-		while (index < b.length) {
-			int nb = rand.nextInt(b.length - index) + 1;
-			byte tmpb[] = new byte[nb];
-			System.arraycopy(b, index, tmpb, 0, nb);
-			index += nb;
-			synchronizer.receiveData(tmpb, socketAgentInterface);
-		}*/
+
 		synchronizer.receiveData(b, socketAgentInterface);
-		Assert.assertTrue(socketAgentInterface.isReceived());
+		AssertJUnit.assertTrue(socketAgentInterface.isReceived());
 		return new SubBlock(ppb, 0, ppb.length);
 	}
 

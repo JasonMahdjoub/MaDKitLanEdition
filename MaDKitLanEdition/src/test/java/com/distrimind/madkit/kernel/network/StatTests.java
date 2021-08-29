@@ -37,10 +37,9 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import java.util.Random;
-
-import org.junit.Assert;
-import org.junit.Test;
 
 import com.distrimind.madkit.kernel.JunitMadkit;
 
@@ -58,15 +57,15 @@ public class StatTests extends JunitMadkit {
 			int bytesToMean = rand.nextInt(10000) + 500;
 			int duration = rand.nextInt(100) + 100;
 			TransferSpeedStat tss = new TransferSpeedStat(bytesToMean, bytesToMean / (rand.nextInt(100) + 3), duration);
-			Assert.assertFalse(tss.isOneCycleDone());
+			AssertJUnit.assertFalse(tss.isOneCycleDone());
 			tss.newBytesIdentified(bytesToMean, 1);
-			Assert.assertTrue(tss.isOneCycleDone());
+			AssertJUnit.assertTrue(tss.isOneCycleDone());
 			assertEpsilonEquals(((double) bytesToMean) / (0.001), tss.getBytesPerSecond(), 1);
 			tss.newBytesIdentified(bytesToMean, 1);
-			Assert.assertTrue(tss.isOneCycleDone());
+			AssertJUnit.assertTrue(tss.isOneCycleDone());
 			assertEpsilonEquals(((double) bytesToMean) / (0.001), tss.getBytesPerSecond(), 1);
 			pause(null, duration + 100);
-			Assert.assertFalse(tss.isOneCycleDone());
+			AssertJUnit.assertFalse(tss.isOneCycleDone());
 
 			assertEpsilonEquals(0, tss.getBytesPerSecond(), 0);
 			for (int j = 0; j < 10000; j++) {
@@ -78,11 +77,11 @@ public class StatTests extends JunitMadkit {
 	}
 
 	public void assertEpsilonEquals(double v1, double v2, double epsilon) {
-		Assert.assertTrue("expected " + v1 + " but found " + v2, Math.abs(v1 - v2) <= epsilon);
+		AssertJUnit.assertTrue("expected " + v1 + " but found " + v2, Math.abs(v1 - v2) <= epsilon);
 	}
 
 	public void assertEpsilonEquals(int v1, int v2, int epsilon) {
-		Assert.assertTrue("expected " + v1 + " but found " + v2, Math.abs(v1 - v2) <= epsilon);
+		AssertJUnit.assertTrue("expected " + v1 + " but found " + v2, Math.abs(v1 - v2) <= epsilon);
 	}
 
 	@Test
@@ -92,12 +91,12 @@ public class StatTests extends JunitMadkit {
 			int duration = rand.nextInt(100) + 100;
 			int segment = rand.nextInt(8) + 2;
 			RealTimeTransferStat rtts = new RealTimeTransferStat(duration, segment);
-			Assert.assertEquals(0, rtts.getNumberOfIdentifiedBytes());
+			AssertJUnit.assertEquals(0, rtts.getNumberOfIdentifiedBytes());
 			int numberBytes = rand.nextInt(500) + 500;
 			int totalBytes = numberBytes;
 			rtts.newBytesIdentified(numberBytes);
 
-			Assert.assertFalse(rtts.isOneCycleDone());
+			AssertJUnit.assertFalse(rtts.isOneCycleDone());
 			for (int j = 0; j < duration; j += segment) {
 				pause(null, segment);
 				numberBytes = rand.nextInt(500) + 500;
@@ -107,8 +106,8 @@ public class StatTests extends JunitMadkit {
 			pause(null, duration % segment);
 			rtts.newBytesIdentified(numberBytes);
 			totalBytes += numberBytes;
-			Assert.assertTrue(rtts.isOneCycleDone());
-			Assert.assertTrue(rtts.getNumberOfIdentifiedBytes() < totalBytes);
+			AssertJUnit.assertTrue(rtts.isOneCycleDone());
+			AssertJUnit.assertTrue(rtts.getNumberOfIdentifiedBytes() < totalBytes);
 
 			for (int j = 0; j < 10000; j++) {
 				rtts.newBytesIdentified(rand.nextInt(1000));

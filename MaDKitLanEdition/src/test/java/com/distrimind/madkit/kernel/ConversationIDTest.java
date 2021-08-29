@@ -37,12 +37,12 @@
  */
 package com.distrimind.madkit.kernel;
 
+import com.distrimind.madkit.JUnitFunctions;
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
 import com.distrimind.util.io.RandomByteArrayInputStream;
 import com.distrimind.util.io.RandomByteArrayOutputStream;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -84,16 +84,16 @@ public class ConversationIDTest extends JunitMadkit {
 					for (int i = 0; i < nb; i++) {
 						ConversationID id = ConversationID.getConversationIDInstance();
 
-						Assert.assertEquals(id, id);
+						AssertJUnit.assertEquals(id, id);
 						for (ConversationID other : ids)
-							Assert.assertNotEquals(id, other);
+							JUnitFunctions.assertNotEquals(id, other);
 						try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
 							baos.writeObject(id,false);
 							try (RandomByteArrayInputStream bais = new RandomByteArrayInputStream(baos.getBytes())) {
 								ConversationID deserializedID = bais.readObject(false, ConversationID.class);
-								Assert.assertEquals(id, deserializedID);
+								AssertJUnit.assertEquals(id, deserializedID);
 								for (ConversationID other : ids)
-									Assert.assertNotEquals(deserializedID, other);
+									JUnitFunctions.assertNotEquals(deserializedID, other);
 							}
 						}
 						ids.add(id);
@@ -123,16 +123,16 @@ public class ConversationIDTest extends JunitMadkit {
 							}
 						}
 
-						Assert.assertEquals(id, id);
+						AssertJUnit.assertEquals(id, id);
 						for (ConversationID other : ids)
-							Assert.assertNotEquals(id, other);
+							JUnitFunctions.assertNotEquals(id, other);
 						try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
 							baos.writeObject(id,false);
 							try (RandomByteArrayInputStream bais = new RandomByteArrayInputStream(baos.getBytes())) {
 								ConversationID deserializedID = bais.readObject(false, ConversationID.class);
-								Assert.assertEquals(id, deserializedID);
+								AssertJUnit.assertEquals(id, deserializedID);
 								for (ConversationID other : ids)
-									Assert.assertNotEquals(deserializedID, other);
+									JUnitFunctions.assertNotEquals(deserializedID, other);
 							}
 						}
 						ids.add(id);
@@ -149,18 +149,18 @@ public class ConversationIDTest extends JunitMadkit {
 						ConversationID interfacedToOther = id
 								.getInterfacedConversationIDToDistantPeer(globaInterfacedIDs1, ka1, ka2);
 
-						Assert.assertNotNull(interfacedToOther.getOrigin());
-						Assert.assertEquals(interfacedToOther, interfacedToOther);
+						AssertJUnit.assertNotNull(interfacedToOther.getOrigin());
+						AssertJUnit.assertEquals(interfacedToOther, interfacedToOther);
 						for (ConversationID other : interfacedToOtherIds) {
-							Assert.assertNotEquals(interfacedToOther, other);
+							JUnitFunctions.assertNotEquals(interfacedToOther, other);
 						}
 						try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
 							baos.writeObject(interfacedToOther,false);
 							try (RandomByteArrayInputStream bais = new RandomByteArrayInputStream(baos.getBytes())) {
 								ConversationID deserializedID = bais.readObject(false, ConversationID.class);
-								Assert.assertEquals(interfacedToOther, deserializedID);
+								AssertJUnit.assertEquals(interfacedToOther, deserializedID);
 								for (ConversationID other : interfacedToOtherIds)
-									Assert.assertNotEquals(deserializedID, other);
+									JUnitFunctions.assertNotEquals(deserializedID, other);
 								interfacedToOtherIdsSerialized.add(deserializedID);
 							}
 						}
@@ -172,18 +172,18 @@ public class ConversationIDTest extends JunitMadkit {
 						ConversationID interfacedByOther = id
 								.getInterfacedConversationIDFromDistantPeer(globaInterfacedIDs2, ka2, ka1);
 
-						Assert.assertNotNull("ka1?" + id.getOrigin().equals(ka1), interfacedByOther.getOrigin());
-						Assert.assertEquals(interfacedByOther, interfacedByOther);
+						AssertJUnit.assertNotNull("ka1?" + id.getOrigin().equals(ka1), interfacedByOther.getOrigin());
+						AssertJUnit.assertEquals(interfacedByOther, interfacedByOther);
 						for (ConversationID other : interfacedByOtherIds) {
-							Assert.assertNotEquals(interfacedByOther, other);
+							JUnitFunctions.assertNotEquals(interfacedByOther, other);
 						}
 						try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
 							baos.writeObject(interfacedByOther,false);
 							try (RandomByteArrayInputStream bais = new RandomByteArrayInputStream(baos.getBytes())) {
 								ConversationID deserializedID = bais.readObject(false, ConversationID.class);
-								Assert.assertEquals(interfacedByOther, deserializedID);
+								AssertJUnit.assertEquals(interfacedByOther, deserializedID);
 								for (ConversationID other : interfacedByOtherIds)
-									Assert.assertNotEquals(deserializedID, other);
+									JUnitFunctions.assertNotEquals(deserializedID, other);
 								interfacedByOtherIdsSerialized.add(deserializedID);
 							}
 						}
@@ -194,18 +194,18 @@ public class ConversationIDTest extends JunitMadkit {
 					for (ConversationID id : interfacedByOtherIdsSerialized) {
 						ConversationID interfacedFromOther = id
 								.getInterfacedConversationIDToDistantPeer(globaInterfacedIDs2, ka2, ka1);
-						Assert.assertNotNull(interfacedFromOther.getOrigin());
-						Assert.assertEquals(interfacedFromOther, interfacedFromOther);
+						AssertJUnit.assertNotNull(interfacedFromOther.getOrigin());
+						AssertJUnit.assertEquals(interfacedFromOther, interfacedFromOther);
 						for (ConversationID other : interfacedFromOtherIds) {
-							Assert.assertNotEquals(interfacedFromOther, other);
+							JUnitFunctions.assertNotEquals(interfacedFromOther, other);
 						}
 						try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
 							baos.writeObject(interfacedFromOther,false);
 							try (RandomByteArrayInputStream bais = new RandomByteArrayInputStream(baos.getBytes())) {
 								ConversationID deserializedID = bais.readObject(false, ConversationID.class);
-								Assert.assertEquals(interfacedFromOther, deserializedID);
+								AssertJUnit.assertEquals(interfacedFromOther, deserializedID);
 								for (ConversationID other : interfacedFromOtherIds)
-									Assert.assertNotEquals(deserializedID, other);
+									JUnitFunctions.assertNotEquals(deserializedID, other);
 								interfacedFromOtherIdsSerialized.add(deserializedID);
 							}
 						}
@@ -217,18 +217,18 @@ public class ConversationIDTest extends JunitMadkit {
 						ConversationID interfacedByCurrent = id
 								.getInterfacedConversationIDFromDistantPeer(globaInterfacedIDs1, ka1, ka2);
 
-						Assert.assertNotNull(interfacedByCurrent.getOrigin());
-						Assert.assertEquals(interfacedByCurrent, interfacedByCurrent);
+						AssertJUnit.assertNotNull(interfacedByCurrent.getOrigin());
+						AssertJUnit.assertEquals(interfacedByCurrent, interfacedByCurrent);
 						for (ConversationID other : interfacedByCurrentIds) {
-							Assert.assertNotEquals(interfacedByCurrent, other);
+							JUnitFunctions.assertNotEquals(interfacedByCurrent, other);
 						}
 						try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
 							baos.writeObject(interfacedByCurrent,false);
 							try (RandomByteArrayInputStream bais = new RandomByteArrayInputStream(baos.getBytes())) {
 								ConversationID deserializedID = bais.readObject(false, ConversationID.class);
-								Assert.assertEquals(interfacedByCurrent, deserializedID);
+								AssertJUnit.assertEquals(interfacedByCurrent, deserializedID);
 								for (ConversationID other : interfacedByCurrentIds)
-									Assert.assertNotEquals(deserializedID, other);
+									JUnitFunctions.assertNotEquals(deserializedID, other);
 								interfacedByCurrentIdsSerialized.add(deserializedID);
 							}
 						}
@@ -244,26 +244,26 @@ public class ConversationIDTest extends JunitMadkit {
                             continue;
 
                         int nbFound = 0;
-                        Assert.assertEquals(interfacedByCurrentIdsSerialized.get(i++), idOriginal);
+                        AssertJUnit.assertEquals(interfacedByCurrentIdsSerialized.get(i++), idOriginal);
 
                         for (ConversationID id : interfacedByCurrentIdsSerialized) {
                             if (id.equals(idOriginal))
                                 nbFound++;
                         }
-                        Assert.assertEquals(1, nbFound);
+                        AssertJUnit.assertEquals(1, nbFound);
                         BigDataTransferID bdtid = new BigDataTransferID(idOriginal, null);
 
                         bigDataTransferID.add(bdtid);
-                        Assert.assertEquals(idOriginal, bdtid);
-                        Assert.assertEquals(bdtid, idOriginal);
+                        AssertJUnit.assertEquals(idOriginal, bdtid);
+                        AssertJUnit.assertEquals(bdtid, idOriginal);
 
                     }
 
                     System.gc();
 					System.gc();
 
-					Assert.assertFalse("size=" + globaInterfacedIDs1.size(), globaInterfacedIDs1.isEmpty());
-					Assert.assertTrue("size=" + globaInterfacedIDs2.size(), globaInterfacedIDs2.isEmpty());
+					AssertJUnit.assertFalse("size=" + globaInterfacedIDs1.size(), globaInterfacedIDs1.isEmpty());
+					AssertJUnit.assertTrue("size=" + globaInterfacedIDs2.size(), globaInterfacedIDs2.isEmpty());
 					i=0;
 					for (ConversationID idOriginal : ids) {
 						if (idOriginal.getOrigin() == null)
@@ -272,16 +272,16 @@ public class ConversationIDTest extends JunitMadkit {
 							continue;
 
 						int nbFound = 0;
-						Assert.assertEquals(interfacedByCurrentIdsSerialized.get(i++), idOriginal);
+						AssertJUnit.assertEquals(interfacedByCurrentIdsSerialized.get(i++), idOriginal);
 
 						for (ConversationID id : interfacedByCurrentIdsSerialized) {
 							if (id.equals(idOriginal))
 								nbFound++;
 						}
-						Assert.assertEquals(1, nbFound);
+						AssertJUnit.assertEquals(1, nbFound);
 					}
-					Assert.assertFalse(interfacedByCurrentIds.isEmpty());
-					Assert.assertFalse(bigDataTransferID.isEmpty());
+					AssertJUnit.assertFalse(interfacedByCurrentIds.isEmpty());
+					AssertJUnit.assertFalse(bigDataTransferID.isEmpty());
 
 					ids = null;
 					interfacedByCurrentIds = null;
@@ -302,7 +302,7 @@ public class ConversationIDTest extends JunitMadkit {
 					System.gc();
 					Thread.sleep(200);
 					System.gc();
-					Assert.assertTrue("size=" + globaInterfacedIDs2.size(), globaInterfacedIDs2.isEmpty());
+					AssertJUnit.assertTrue("size=" + globaInterfacedIDs2.size(), globaInterfacedIDs2.isEmpty());
 
                     bigDataTransferID = null;
 					Thread.sleep(200);
@@ -315,12 +315,12 @@ public class ConversationIDTest extends JunitMadkit {
 						System.gc();
 					}
 
-					Assert.assertTrue("size=" + globaInterfacedIDs1.size(), globaInterfacedIDs1.isEmpty());
-					Assert.assertTrue("size=" + globaInterfacedIDs2.size(), globaInterfacedIDs2.isEmpty());
+					AssertJUnit.assertTrue("size=" + globaInterfacedIDs1.size(), globaInterfacedIDs1.isEmpty());
+					AssertJUnit.assertTrue("size=" + globaInterfacedIDs2.size(), globaInterfacedIDs2.isEmpty());
 
 				} catch (Exception e) {
 					e.printStackTrace();
-					Assert.fail();
+					AssertJUnit.fail();
 				}
 			//}
 

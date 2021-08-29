@@ -37,12 +37,10 @@
  */
 package com.distrimind.madkit.boot.process;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
+import org.testng.annotations.Test;
 import java.util.logging.Level;
-
-import org.junit.Test;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.JunitMadkit;
@@ -68,19 +66,6 @@ public class NullArgTest extends JunitMadkit {
 			}
 		});
 	}
-
-	// @Test
-	// public void noDesktop(){
-	// System.err.println(java.lang.management.ManagementFactory.getRuntimeMXBean().getName());
-	// Madkit m = new Madkit(BooleanOption.desktop.toString(),
-	// "false",Option.launchAgents.toString(),Agent.class.getName());
-	// try {
-	// Thread.sleep(1000000);
-	// } catch (InterruptedException e) {
-	// e.printStackTrace();
-	// }
-	// m.doAction(KernelAction.LAUNCH_NETWORK);
-	// }
 
 	@Test
 	public void LogLevels() {

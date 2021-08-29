@@ -37,17 +37,12 @@
  */
 package com.distrimind.madkit.kernel;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
-import org.junit.Before;
-import org.junit.Test;
-
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.KernelException;
-import com.distrimind.madkit.kernel.Message;
-import com.distrimind.madkit.kernel.Scheduler;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author Fabien Michel
@@ -61,7 +56,7 @@ public class FakeKernelTest {
 
 	AbstractAgent a;
 
-	@Before
+	@BeforeMethod
 	public void setUp() {
 		a = new AbstractAgent();
 	}
@@ -77,7 +72,7 @@ public class FakeKernelTest {
 	public final void testGetKernelAddress() {
 		try {
 			a.getKernelAddress();
-			fail("exception not thrown");
+			Assert.fail("exception not thrown");
 		} catch (KernelException e) {
 			assertEquals(a.getKernel(), AbstractAgent.FAKE_KERNEL);
 
@@ -89,7 +84,7 @@ public class FakeKernelTest {
 	public final void testGetAgentAddressIn() {
 		try {
 			a.getAgentAddressIn(new Group("t", "t"), "t");
-			fail("exception not thrown");
+			Assert.fail("exception not thrown");
 		} catch (KernelException e) {
 			assertEquals(a.getKernel(), AbstractAgent.FAKE_KERNEL);
 
@@ -101,7 +96,7 @@ public class FakeKernelTest {
 	public final void testIsKernelOnline() {
 		try {
 			a.isKernelOnline();
-			fail("exception not thrown");
+			Assert.fail("exception not thrown");
 		} catch (KernelException e) {
 			assertEquals(a.getKernel(), AbstractAgent.FAKE_KERNEL);
 
@@ -113,7 +108,7 @@ public class FakeKernelTest {
 	public final void testCreateGroupAbstractAgentStringStringStringGatekeeperBoolean() {
 		try {
 			a.createGroup(new Group("t", "t"), null);
-			fail("exception not thrown");
+			Assert.fail("exception not thrown");
 		} catch (KernelException e) {
 			assertEquals(a.getKernel(), AbstractAgent.FAKE_KERNEL);
 
@@ -125,7 +120,7 @@ public class FakeKernelTest {
 	public final void testRequestRoleAbstractAgentStringStringStringObject() {
 		try {
 			a.requestRole(new Group("t", "t"), "t", null);
-			fail("exception not thrown");
+			Assert.fail("exception not thrown");
 		} catch (KernelException e) {
 			assertEquals(a.getKernel(), AbstractAgent.FAKE_KERNEL);
 
@@ -138,7 +133,7 @@ public class FakeKernelTest {
 	public final void testLeaveGroupAbstractAgentStringString() {
 		try {
 			a.leaveGroup(new Group("t", "t"));
-			fail("exception not thrown");
+			Assert.fail("exception not thrown");
 		} catch (KernelException e) {
 			assertEquals(a.getKernel(), AbstractAgent.FAKE_KERNEL);
 
@@ -150,7 +145,7 @@ public class FakeKernelTest {
 	public final void testLeaveRoleAbstractAgentStringStringString() {
 		try {
 			a.leaveRole(new Group("t", "t"), "t");
-			fail("exception not thrown");
+			Assert.fail("exception not thrown");
 		} catch (KernelException e) {
 			assertEquals(a.getKernel(), AbstractAgent.FAKE_KERNEL);
 
@@ -162,7 +157,7 @@ public class FakeKernelTest {
 	public final void testGetAgentsWithRoleAbstractAgentStringStringStringBoolean() {
 		try {
 			a.getAgentsWithRole(new Group("t", "t"), "t");
-			fail("exception not thrown");
+			Assert.fail("exception not thrown");
 		} catch (KernelException e) {
 			assertEquals(a.getKernel(), AbstractAgent.FAKE_KERNEL);
 
@@ -174,7 +169,7 @@ public class FakeKernelTest {
 	public final void testGetAgentWithRoleAbstractAgentStringStringString() {
 		try {
 			a.getAgentWithRole(new Group("t", "t"), "t");
-			fail("exception not thrown");
+			Assert.fail("exception not thrown");
 		} catch (KernelException e) {
 			assertEquals(a.getKernel(), AbstractAgent.FAKE_KERNEL);
 
@@ -186,7 +181,7 @@ public class FakeKernelTest {
 	public final void testSendMessageAbstractAgentStringStringStringMessageString() {
 		try {
 			a.sendMessage(new Group("t", "t"), "t", new Message());
-			fail("exception not thrown");
+			Assert.fail("exception not thrown");
 		} catch (KernelException e) {
 			assertEquals(a.getKernel(), AbstractAgent.FAKE_KERNEL);
 
@@ -198,7 +193,7 @@ public class FakeKernelTest {
 	public final void testSendMessageAbstractAgentAgentAddressMessageString() {
 		try {
 			a.sendMessage(null, new Message());
-			fail("exception not thrown");
+			Assert.fail("exception not thrown");
 		} catch (KernelException e) {
 			assertEquals(a.getKernel(), AbstractAgent.FAKE_KERNEL);
 
@@ -210,7 +205,7 @@ public class FakeKernelTest {
 	public final void testBroadcastMessageWithRoleAbstractAgentStringStringStringMessageString() {
 		try {
 			a.broadcastMessage(new Group("t", "t"), "t", new Message());
-			fail("exception not thrown");
+			Assert.fail("exception not thrown");
 		} catch (KernelException e) {
 			assertEquals(a.getKernel(), AbstractAgent.FAKE_KERNEL);
 
@@ -222,7 +217,7 @@ public class FakeKernelTest {
 	public final void testBroadcastMessageWithRoleAndWaitForRepliesAbstractAgentStringStringStringMessageStringInteger() {
 		try {
 			a.broadcastMessageWithRole(new Group("t", "t"), "t", new Message(), null);
-			fail("exception not thrown");
+			Assert.fail("exception not thrown");
 		} catch (KernelException e) {
 			assertEquals(a.getKernel(), AbstractAgent.FAKE_KERNEL);
 
@@ -241,7 +236,7 @@ public class FakeKernelTest {
 	public final void testLaunchAgentBucketNoKernel() {
 		try {
 			a.launchAgentBucket(AbstractAgent.class.getName(), 20);
-			fail("exception not thrown");
+			Assert.fail("exception not thrown");
 		} catch (KernelException e) {
 			assertEquals(a.getKernel(), AbstractAgent.FAKE_KERNEL);
 		}
@@ -251,7 +246,7 @@ public class FakeKernelTest {
 	public final void testLaunchAgentAbstractAgentAbstractAgentIntBoolean() {
 		try {
 			a.launchAgent(new AbstractAgent(), true);
-			fail("exception not thrown");
+			Assert.fail("exception not thrown");
 		} catch (KernelException e) {
 			assertEquals(a.getKernel(), AbstractAgent.FAKE_KERNEL);
 
@@ -263,7 +258,7 @@ public class FakeKernelTest {
 	public final void testKillAgentAbstractAgentAbstractAgentInt() {
 		try {
 			a.killAgent(new AbstractAgent(), 1);
-			fail("exception not thrown");
+			Assert.fail("exception not thrown");
 		} catch (KernelException e) {
 			assertEquals(a.getKernel(), AbstractAgent.FAKE_KERNEL);
 
@@ -275,7 +270,7 @@ public class FakeKernelTest {
 	public final void testAddOverlooker() {
 		try {
 			new Scheduler().addActivator(null);
-			fail("exception not thrown");
+			Assert.fail("exception not thrown");
 		} catch (KernelException e) {
 			assertEquals(a.getKernel(), AbstractAgent.FAKE_KERNEL);
 
@@ -287,7 +282,7 @@ public class FakeKernelTest {
 	public final void testRemoveOverlooker() {
 		try {
 			new Scheduler().removeActivator(null);
-			fail("exception not thrown");
+			Assert.fail("exception not thrown");
 		} catch (KernelException e) {
 			assertEquals(a.getKernel(), AbstractAgent.FAKE_KERNEL);
 
@@ -299,7 +294,7 @@ public class FakeKernelTest {
 	public final void testIsCommunityAbstractAgentString() {
 		try {
 			a.isCommunity("t");
-			fail("exception not thrown");
+			Assert.fail("exception not thrown");
 		} catch (KernelException e) {
 			assertEquals(a.getKernel(), AbstractAgent.FAKE_KERNEL);
 
@@ -311,7 +306,7 @@ public class FakeKernelTest {
 	public final void testIsGroupAbstractAgentStringString() {
 		try {
 			a.isCreatedGroup(new Group("t", "t"));
-			fail("exception not thrown");
+			Assert.fail("exception not thrown");
 		} catch (KernelException e) {
 			assertEquals(a.getKernel(), AbstractAgent.FAKE_KERNEL);
 
@@ -323,7 +318,7 @@ public class FakeKernelTest {
 	public final void testIsRoleAbstractAgentStringStringString() {
 		try {
 			a.isCreatedRole(new Group("t", "t"), "t");
-			fail("exception not thrown");
+			Assert.fail("exception not thrown");
 		} catch (KernelException e) {
 			assertEquals(a.getKernel(), AbstractAgent.FAKE_KERNEL);
 
@@ -335,7 +330,7 @@ public class FakeKernelTest {
 	public final void testCreateGroupIfAbsentAbstractAgentStringStringStringGatekeeperBoolean() {
 		try {
 			a.createGroup(new Group("t", "t"), null);
-			fail("exception not thrown");
+			Assert.fail("exception not thrown");
 		} catch (KernelException e) {
 			assertEquals(a.getKernel(), AbstractAgent.FAKE_KERNEL);
 

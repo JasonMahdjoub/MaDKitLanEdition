@@ -51,13 +51,8 @@ import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.crypto.P2PLoginAgreementType;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.testng.AssertJUnit;
+import org.testng.annotations.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -72,7 +67,6 @@ import java.util.*;
  * @since MadkitLanEdition 1.0
  */
 @SuppressWarnings({"SameParameterValue"})
-@RunWith(Parameterized.class)
 public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier, LoginEventsTrigger {
 	private static final int numberMaxExchange = 100;
 	final ArrayList<AccessData> adasker;
@@ -94,8 +88,8 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 	static final File dbfilereceiver = new File("testaccessreceiver.database");
 
 
-	@Parameters
-	public static Collection<Object[]> data() {
+	@DataProvider(parallel = true)
+	public static Object[][] data() {
 		Collection<Object[]> res=null;
 		for (P2PLoginAgreementType agreement : P2PLoginAgreementType.values()) {
 			if (AccessProtocolWithP2PAgreementProperties.isIncompatibleP2PLoginAgreement(agreement))
@@ -118,7 +112,8 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 			}
 		}
 
-		return res;
+		assert res != null;
+		return res.toArray(new Object[res.size()][8]);
 	}
 	
 	
@@ -162,11 +157,11 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		adasker.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsAsker = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(0), 4, 5, 6, 10),
-				null, groupAccess, loginInitiativeAsker, Assert::fail, Assert::fail));
+				null, groupAccess, loginInitiativeAsker, AssertJUnit::fail, AssertJUnit::fail));
 		adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsReceiver = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(1), 2, 5, 6, 12),
-				null, groupAccess, loginInitiativeReceiver, Assert::fail, Assert::fail));
+				null, groupAccess, loginInitiativeReceiver, AssertJUnit::fail, AssertJUnit::fail));
 		if (loginInitiativeAsker || loginInitiativeReceiver) {
 			acceptedAskerIdentifiers
 					.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustomHostIdentifier(0), 5));
@@ -196,11 +191,11 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		adasker.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsAsker = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(0), 2, 5, 6, 7),
-				null, groupAccess, loginInitiativeAsker, Assert::fail, Assert::fail));
+				null, groupAccess, loginInitiativeAsker, AssertJUnit::fail, AssertJUnit::fail));
 		adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsReceiver = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(1), 3, 5, 6, 12),
-				null, groupAccess, loginInitiativeReceiver, Assert::fail, Assert::fail));
+				null, groupAccess, loginInitiativeReceiver, AssertJUnit::fail, AssertJUnit::fail));
 		if (loginInitiativeAsker || loginInitiativeReceiver) {
 			acceptedAskerIdentifiers
 					.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustomHostIdentifier(0), 5));
@@ -241,11 +236,11 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		adasker.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsAsker = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomAutoSignedHostIdentifier(2), AccessDataMKEventListener.CLOUD_ID_NUMBER, AccessDataMKEventListener.CLOUD_ID_NUMBER+2, AccessDataMKEventListener.CLOUD_ID_NUMBER+3),
-				null, groupAccess, loginInitiativeAsker, Assert::fail, Assert::fail));
+				null, groupAccess, loginInitiativeAsker, AssertJUnit::fail, AssertJUnit::fail));
 		adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsReceiver = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomAutoSignedHostIdentifier(3),  AccessDataMKEventListener.CLOUD_ID_NUMBER, AccessDataMKEventListener.CLOUD_ID_NUMBER+2, AccessDataMKEventListener.CLOUD_ID_NUMBER+1),
-				null, groupAccess, loginInitiativeReceiver, Assert::fail, Assert::fail));
+				null, groupAccess, loginInitiativeReceiver, AssertJUnit::fail, AssertJUnit::fail));
 		if (loginInitiativeAsker || loginInitiativeReceiver) {
 			acceptedAskerIdentifiers
 					.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustomAutoSignedHostIdentifier(2), AccessDataMKEventListener.CLOUD_ID_NUMBER));
@@ -286,11 +281,11 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		adasker.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsAsker = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(-1), 3),
-				null, groupAccess, loginInitiativeAsker, Assert::fail, Assert::fail));
+				null, groupAccess, loginInitiativeAsker, AssertJUnit::fail, AssertJUnit::fail));
 		adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsReceiver = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(-1)),
-				null, groupAccess, loginInitiativeReceiver, Assert::fail, Assert::fail));
+				null, groupAccess, loginInitiativeReceiver, AssertJUnit::fail, AssertJUnit::fail));
 		if (loginInitiativeAsker || loginInitiativeReceiver) {
 			if (loginInitiativeAsker)
 				acceptedAskerIdentifiers
@@ -318,12 +313,12 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 				identifierPassordsAsker = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(0), 2, 8, 6, 10),
 				defaultGroupAccess, groupAccess, loginInitiativeAsker,
-				Assert::fail, Assert::fail));
+				AssertJUnit::fail, AssertJUnit::fail));
 		adreceiver.add(AccessDataMKEventListener.getDefaultLoginData(
 				identifierPassordsReceiver = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(1), 0, 8, 6, 12),
 				defaultGroupAccess, groupAccess, loginInitiativeReceiver,
-				Assert::fail, Assert::fail));
+				AssertJUnit::fail, AssertJUnit::fail));
 		if (loginInitiativeAsker || loginInitiativeReceiver) {
 			acceptedAskerIdentifiers
 					.add(AccessDataMKEventListener.getIdentifier(AccessDataMKEventListener.getCustomHostIdentifier(0), 8));
@@ -352,6 +347,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		return res;
 	}
 
+	@Factory(dataProvider = "data")
 	public AccessProtocolWithP2PAgreementTests(ArrayList<AccessData> adasker, ArrayList<AccessData> adreceiver,
 											   ArrayList<Identifier> acceptedAskerIdentifiers, ArrayList<Identifier> acceptedReceiverIdentifiers,
 											   ArrayList<IdentifierPassword> identifierPassordsAsker,
@@ -390,7 +386,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		//System.out.println(accessProtocolProperties.getClass());
 	}
 
-	@Before
+	@BeforeMethod
 	public void activateDatabase() throws DatabaseException {
 		if (mpasker.isDatabaseEnabled()) {
 			mpasker.getDatabaseWrapper().close();
@@ -411,7 +407,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		}
 	}
 
-	@After
+	@AfterMethod
 	public void removeDatabase() throws DatabaseException {
 		if (mpasker.isDatabaseEnabled()) {
 			mpasker.getDatabaseWrapper().close();
@@ -495,6 +491,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		return res;
 	}
 	private boolean infoScreened=false;
+	@Test
 	public int testRegularAccessProtocol(int type, int index, boolean asker)
 			throws AccessException, ClassNotFoundException, IOException {
 		
@@ -548,8 +545,8 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		apreceiver.setKernelAddress(kareceiver, false);
 		//apasker.setDistantKernelAddress(kareceiver);
 
-		Assert.assertFalse(apasker.isAccessFinalized());
-		Assert.assertFalse(apreceiver.isAccessFinalized());
+		AssertJUnit.assertFalse(apasker.isAccessFinalized());
+		AssertJUnit.assertFalse(apreceiver.isAccessFinalized());
 
 		AccessMessage[] masker = getAccessMessages(apasker.setAndGetNextMessage(new AccessAskInitiliazation()));
 		AccessMessage[] mreceiver = getAccessMessages(apreceiver.setAndGetNextMessage(new AccessAskInitiliazation()));
@@ -617,18 +614,18 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 			}
 			cycles++;
 		} while ((masker.length>0 || mreceiver.length>0) && cycles < numberMaxExchange);
-		Assert.assertTrue(cycles < numberMaxExchange);
+		AssertJUnit.assertTrue(cycles < numberMaxExchange);
 		//Assert.assertTrue(masker.length==0 && mreceiver.length==0);
 		if (allCannotTakeInitiatives || type == 1) {
-			Assert.assertFalse(apreceiver.isAccessFinalized());
-			Assert.assertFalse(apasker.isAccessFinalized());
+			AssertJUnit.assertFalse(apreceiver.isAccessFinalized());
+			AssertJUnit.assertFalse(apasker.isAccessFinalized());
 			return -1;
 		}
-		Assert.assertTrue(apreceiver.isAccessFinalized());
-		Assert.assertTrue(apasker.isAccessFinalized());
+		AssertJUnit.assertTrue(apreceiver.isAccessFinalized());
+		AssertJUnit.assertTrue(apasker.isAccessFinalized());
 		if (type == 0) {
-			Assert.assertTrue(askerAsNotifiedGroupsChangements);
-			Assert.assertTrue(receiverAsNotifiedGroupsChangements);
+			AssertJUnit.assertTrue(askerAsNotifiedGroupsChangements);
+			AssertJUnit.assertTrue(receiverAsNotifiedGroupsChangements);
 		}
 		testExpectedLogins();
 		if (identifierPassordsAsker != null && ((LoginData) this.mpasker.networkProperties.getAccessData(
@@ -660,6 +657,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		return cycles;
 	}
 
+	@Test(enabled = false)
 	private void testAddingOneNewIdentifier(int newid) throws AccessException, ClassNotFoundException, IOException {
 		HostIdentifier hostIDAsker=AccessDataMKEventListener.getCustomHostIdentifier(0);
 		HostIdentifier hostIDReceiver=AccessDataMKEventListener.getCustomHostIdentifier(1);
@@ -678,6 +676,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 
 		testAddingNewIdentifier(addedForAsker/*, addedForReceiver*/);
 	}
+	@Test(enabled = false)
 	private void testAddingOneNewIdentifierNonUsable(int newid) throws AccessException, ClassNotFoundException, IOException {
 		IdentifierPassword idpwAsker = AccessDataMKEventListener
 				.getIdentifierPassword(AccessDataMKEventListener.getCustomHostIdentifier(0), newid);
@@ -688,6 +687,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		
 		testAddingNewIdentifier(addedForAsker/*, addedForReceiver*/);
 	}
+	@Test(enabled = false)
 	private void testAddingTwoNewIdentifierNonUsable(int newid1, int newid2, boolean differed) throws AccessException,
 	ClassNotFoundException, IOException {
 		IdentifierPassword idpwAsker = AccessDataMKEventListener
@@ -708,6 +708,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 			testAddingNewIdentifier(addedForAsker/*, addedForReceiver*/);
 }	
 
+	@Test(enabled = false)
 	private void testRemovingOneNewIdentifier(int newid) throws AccessException, ClassNotFoundException, IOException {
 		IdentifierPassword idpwAsker = AccessDataMKEventListener
 				.getIdentifierPassword(AccessDataMKEventListener.getCustomHostIdentifier(0), newid);
@@ -724,10 +725,11 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		testRemovingNewIdentifier(addedForAsker/*, addedForReceiver*/);
 	}
 
+	@Test(enabled = false)
 	private void testAddingNewIdentifier(ArrayList<Identifier> addedForAsker/*, ArrayList<Identifier> addedForReceiver*/)
 			throws AccessException, ClassNotFoundException, IOException {
-		Assert.assertTrue(apasker.isAccessFinalized());
-		Assert.assertTrue(apreceiver.isAccessFinalized());
+		AssertJUnit.assertTrue(apasker.isAccessFinalized());
+		AssertJUnit.assertTrue(apreceiver.isAccessFinalized());
 
 		AccessMessage[] masker = getAccessMessages(apasker.setAndGetNextMessage(new NewLocalLoginAddedMessage(addedForAsker)));
 		AccessMessage[] mreceiver = new AccessMessage[0];
@@ -735,16 +737,18 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 
 	}
 
+	@Test(enabled = false)
 	private void testRemovingNewIdentifier(ArrayList<Identifier> addedForAsker/*, ArrayList<Identifier> addedForReceiver*/)
 			throws AccessException, ClassNotFoundException, IOException {
-		Assert.assertTrue(apasker.isAccessFinalized());
-		Assert.assertTrue(apreceiver.isAccessFinalized());
+		AssertJUnit.assertTrue(apasker.isAccessFinalized());
+		AssertJUnit.assertTrue(apreceiver.isAccessFinalized());
 
 		AccessMessage[] masker = getAccessMessages(apasker.setAndGetNextMessage(new NewLocalLoginRemovedMessage(addedForAsker)));
 		AccessMessage[] mreceiver = new AccessMessage[0];
 		testSubNewAddingRemovingIdentifier(masker, mreceiver);
 	}
 
+	@Test(enabled = false)
 	private void testAddingTwoNewIdentifier(int newid1, int newid2, boolean differed) throws AccessException,
 			ClassNotFoundException, IOException {
 		HostIdentifier hostIDAsker=AccessDataMKEventListener.getCustomHostIdentifier(0);
@@ -785,6 +789,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 			testAddingNewIdentifier(addedForAsker/*, addedForReceiver*/);
 	}
 
+	@Test(enabled = false)
 	private void testRemovingTwoNewIdentifier(int newid1, int newid2, boolean differed) throws AccessException,
 			ClassNotFoundException, IOException {
 		IdentifierPassword idpwAsker = AccessDataMKEventListener
@@ -816,6 +821,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 			testRemovingNewIdentifier(addedForAsker/*, addedForReceiver*/);
 	}
 
+	@Test(enabled = false)
 	private void testSubNewAddingRemovingIdentifier(AccessMessage[] maskerl, AccessMessage[] mreceiverl)
 			throws ClassNotFoundException, IOException, AccessException {
 		int cycles = 0;
@@ -848,18 +854,18 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 			}
 			cycles++;
 		} while (maskerl.length > 0 && cycles < numberMaxExchange);
-		Assert.assertTrue(cycles < numberMaxExchange);
+		AssertJUnit.assertTrue(cycles < numberMaxExchange);
 		//Assert.assertTrue(maskerl.length == 0 && mreceiverl.length==0);
-		Assert.assertTrue(apreceiver.isAccessFinalizedMessage());
-		Assert.assertTrue(apasker.isAccessFinalizedMessage());
-		Assert.assertTrue(apreceiver.isAccessFinalized());
-		Assert.assertTrue(apasker.isAccessFinalized());
+		AssertJUnit.assertTrue(apreceiver.isAccessFinalizedMessage());
+		AssertJUnit.assertTrue(apasker.isAccessFinalizedMessage());
+		AssertJUnit.assertTrue(apreceiver.isAccessFinalized());
+		AssertJUnit.assertTrue(apasker.isAccessFinalized());
 		testExpectedLogins();
 	}
 	private void checkExpectedLogins(AbstractAccessProtocol ap, List<Identifier> expectedAcceptedIdentifiers, List<Identifier> expectedAcceptedIdentifiersOtherSide)
 	{
 		String message="\nexpected one side : "+expectedAcceptedIdentifiers.toString()+"\nexpected other side : "+expectedAcceptedIdentifiersOtherSide.toString()+"\nactual: "+ap.getAllAcceptedIdentifiers().toString();
-		Assert.assertEquals(message, expectedAcceptedIdentifiers.size(), ap.getAllAcceptedIdentifiers().size());
+		AssertJUnit.assertEquals(message, expectedAcceptedIdentifiers.size(), ap.getAllAcceptedIdentifiers().size());
 		for (PairOfIdentifiers poi : ap.getAllAcceptedIdentifiers()) {
 			boolean found = false;
 			for (Identifier id : expectedAcceptedIdentifiers) {
@@ -868,7 +874,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 					break;
 				}
 			}
-			Assert.assertTrue(""+poi, found);
+			AssertJUnit.assertTrue(""+poi, found);
 			found = false;
 			for (Identifier id : expectedAcceptedIdentifiersOtherSide) {
 				if (poi.equalsDistantIdentifier(id)) {
@@ -877,24 +883,20 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 				}
 			}
 
-			Assert.assertTrue(message+"\nNot found : "+poi, found);
+			AssertJUnit.assertTrue(message+"\nNot found : "+poi, found);
 			if (!poi.isLocalHostPartOfCloud() && !poi.isDistantHostPartOfCloud()) {
-				Assert.assertTrue(!poi.isLocallyAuthenticatedCloud() || !poi.isDistantlyAuthenticatedCloud());
+				AssertJUnit.assertTrue(!poi.isLocallyAuthenticatedCloud() || !poi.isDistantlyAuthenticatedCloud());
 			}
 			else{
 				if (poi.isLocalHostPartOfCloud())
-					Assert.assertTrue(""+poi, poi.isLocallyAuthenticatedCloud());
+					AssertJUnit.assertTrue(""+poi, poi.isLocallyAuthenticatedCloud());
 				else
-					Assert.assertFalse(""+poi, poi.isLocallyAuthenticatedCloud());
+					AssertJUnit.assertFalse(""+poi, poi.isLocallyAuthenticatedCloud());
 				if (poi.isDistantHostPartOfCloud())
-					Assert.assertTrue(""+poi,poi.isDistantlyAuthenticatedCloud());
+					AssertJUnit.assertTrue(""+poi,poi.isDistantlyAuthenticatedCloud());
 				else
-					Assert.assertFalse(""+poi, poi.isDistantlyAuthenticatedCloud());
+					AssertJUnit.assertFalse(""+poi, poi.isDistantlyAuthenticatedCloud());
 			}
-			/*if (!poi.getDistantIdentifier().getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
-				Assert.assertTrue(""+poi.getDistantIdentifier(), found);
-			else
-				Assert.assertTrue(""+poi.getDistantIdentifier(), !found);*/
 		}
 		for (Identifier id : expectedAcceptedIdentifiers) {
 			boolean found=false;
@@ -905,11 +907,12 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 				}
 			}
 			if (!found)
-				Assert.fail("Impossible to found : "+id);
+				AssertJUnit.fail("Impossible to found : "+id);
 		}
 
 
 	}
+	@Test(enabled = false)
 	private void testExpectedLogins() {
 
 		checkExpectedLogins(apasker, acceptedAskerIdentifiers, acceptedReceiverIdentifiers);
@@ -918,11 +921,12 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 
 	}
 
+	@Test(enabled = false)
 	private void testDifferedAddingNewIdentifier(ArrayList<Identifier> addedForAsker/*,
 			ArrayList<Identifier> addedForReceiver*/) throws AccessException, ClassNotFoundException, IOException
 	{
-		Assert.assertTrue(apasker.isAccessFinalized());
-		Assert.assertTrue(apreceiver.isAccessFinalized());
+		AssertJUnit.assertTrue(apasker.isAccessFinalized());
+		AssertJUnit.assertTrue(apreceiver.isAccessFinalized());
 
 		AccessMessage[] masker = new AccessMessage[0];
 		for (Identifier id : addedForAsker) {
@@ -930,19 +934,20 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 			l.add(id);
 			AccessMessage[] am = getAccessMessages(apasker.setAndGetNextMessage(new NewLocalLoginAddedMessage(l)));
 			if (masker.length==0)
-				Assert.assertTrue((masker = am).length>0);
+				AssertJUnit.assertTrue((masker = am).length>0);
 			else
-				Assert.assertEquals(""+Arrays.toString(am), 0, am.length);
+				AssertJUnit.assertEquals(""+Arrays.toString(am), 0, am.length);
 		}
 		AccessMessage[] mreceiver = new AccessMessage[0];
 		testSubNewAddingRemovingIdentifier(masker, mreceiver);
 	}
 
+	@Test(enabled = false)
 	private void testDifferedRemovingNewIdentifier(ArrayList<Identifier> addedForAsker/*,
 			ArrayList<Identifier> addedForReceiver*/) throws AccessException, ClassNotFoundException, IOException
 			{
-		Assert.assertTrue(apasker.isAccessFinalized());
-		Assert.assertTrue(apreceiver.isAccessFinalized());
+		AssertJUnit.assertTrue(apasker.isAccessFinalized());
+		AssertJUnit.assertTrue(apreceiver.isAccessFinalized());
 
 		AccessMessage[] masker = new AccessMessage[0];
 		for (Identifier id : addedForAsker) {
@@ -950,9 +955,9 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 			l.add(id);
 			AccessMessage[] am = getAccessMessages(apasker.setAndGetNextMessage(new NewLocalLoginRemovedMessage(l)));
 			if (masker.length==0)
-				Assert.assertTrue((masker = am).length>0);
+				AssertJUnit.assertTrue((masker = am).length>0);
 			else
-				Assert.assertEquals(""+ Arrays.toString(am), 0, am.length);
+				AssertJUnit.assertEquals(""+ Arrays.toString(am), 0, am.length);
 		}
 		AccessMessage[] mreceiver = new AccessMessage[0];
 		testSubNewAddingRemovingIdentifier(masker, mreceiver);

@@ -37,6 +37,11 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Factory;
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import com.distrimind.madkit.database.KeysPairs;
 import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.exceptions.ConnectionException;
@@ -55,12 +60,6 @@ import com.distrimind.ood.database.EmbeddedH2DatabaseWrapper;
 import com.distrimind.ood.database.InMemoryEmbeddedH2DatabaseFactory;
 import com.distrimind.util.crypto.*;
 import com.distrimind.util.io.*;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 
 import java.io.File;
 import java.io.IOException;
@@ -79,7 +78,6 @@ import java.util.Iterator;
  * @version 1.3
  * @since MadkitLanEdition 1.0
  */
-@RunWith(Parameterized.class)
 public class ConnectionsProtocolsTests extends JunitMadkit {
 	private static final EmbeddedH2DatabaseWrapper sql_connection_asker;
 	private static final EmbeddedH2DatabaseWrapper sql_connection_recveiver;
@@ -465,12 +463,12 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		return res;
 	}
 
-	@Parameters
-	public static Collection<Object[]> data() throws SecurityException, IllegalArgumentException, IOException,
+	@DataProvider(parallel = true)
+	public static Object[][] data() throws SecurityException, IllegalArgumentException, IOException,
 			NoSuchAlgorithmException, NIOException, NoSuchProviderException, ConnectionException {
 		Collection<Object[]> res = data(false);
 		res.addAll(data(true));
-		return res;
+		return res.toArray(new Object[res.size()][res.iterator().next().length]);
 	}
 
 	public static ConnectionProtocol<?> getConnectionProtocolInstance(MadkitProperties mkProperties, int database)
@@ -484,6 +482,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		// return cpp.getConnectionProtocolInstance(, , 5000), null, np);
 	}
 
+	@Factory(dataProvider = "data")
 	public ConnectionsProtocolsTests(ConnectionProtocol<?> cpasker, MadkitProperties mkPropertiesAsker,
 			ConnectionProtocol<?> cpreceiver, MadkitProperties mkPropertiesReceiver) {
 		this.cpasker = cpasker;
@@ -538,12 +537,12 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 
 		while (itasker.hasNext()) {
 			ConnectionProtocol<?> cpasker = itasker.next();
-			Assert.assertTrue(itreceiver.hasNext());
+			AssertJUnit.assertTrue(itreceiver.hasNext());
 			ConnectionProtocol<?> cpreceiver = itreceiver.next();
-			Assert.assertFalse(cpasker.isConnectionEstablished());
-			Assert.assertFalse(cpreceiver.isConnectionEstablished());
-			Assert.assertEquals(ConnectionState.NOT_CONNECTED, cpasker.getConnectionState());
-			Assert.assertEquals(ConnectionState.NOT_CONNECTED, cpreceiver.getConnectionState());
+			AssertJUnit.assertFalse(cpasker.isConnectionEstablished());
+			AssertJUnit.assertFalse(cpreceiver.isConnectionEstablished());
+			AssertJUnit.assertEquals(ConnectionState.NOT_CONNECTED, cpasker.getConnectionState());
+			AssertJUnit.assertEquals(ConnectionState.NOT_CONNECTED, cpreceiver.getConnectionState());
 
 			ConnectionMessage masker = cpasker.setAndGetNextMessage(new AskConnection(true));
 
@@ -611,7 +610,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 						throw e;
 					}
 					
-					Assert.assertFalse(cpasker.isConnectionEstablished());
+					AssertJUnit.assertFalse(cpasker.isConnectionEstablished());
 					masker = cpasker.setAndGetNextMessage(mreceiver);
 					if (this.cpasker.isTransferBlockCheckerChanged())
 					{
@@ -639,13 +638,13 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 
 				throw e;
 			}
-			Assert.assertTrue(cycles < numberMaxExchange);
-			Assert.assertNull(masker);
-			Assert.assertTrue(cpreceiver.isConnectionEstablished());
-			Assert.assertTrue(cpasker.isConnectionEstablished());
+			AssertJUnit.assertTrue(cycles < numberMaxExchange);
+			AssertJUnit.assertNull(masker);
+			AssertJUnit.assertTrue(cpreceiver.isConnectionEstablished());
+			AssertJUnit.assertTrue(cpasker.isConnectionEstablished());
 
-			Assert.assertEquals(ConnectionState.CONNECTION_ESTABLISHED, cpasker.getConnectionState());
-			Assert.assertEquals(ConnectionState.CONNECTION_ESTABLISHED, cpreceiver.getConnectionState());
+			AssertJUnit.assertEquals(ConnectionState.CONNECTION_ESTABLISHED, cpasker.getConnectionState());
+			AssertJUnit.assertEquals(ConnectionState.CONNECTION_ESTABLISHED, cpreceiver.getConnectionState());
 			/*if (!itasker.hasNext())
 			{
 				this.cpasker.getCounterSelector().setActivated();
@@ -672,6 +671,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		testIrregularConnectionWithCurruptedMessages(totalCycles, cpasker.getDatabaseWrapper() != null);
 	}
 
+	@Test
 	public void testIrregularConnectionWithUnkowMessages(int cyclesNumber, boolean enableDatabase)
 			throws ConnectionException, PacketException, NIOException, IOException, ClassNotFoundException,
 			BlockParserException, IllegalArgumentException, NoSuchAlgorithmException, NoSuchProviderException {
@@ -681,6 +681,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		}
 	}
 
+	@Test
 	public void testIrregularConnectionWithUnkowMessage(int index, boolean asker, boolean enableDatabase)
 			throws ConnectionException, PacketException, NIOException, IOException, ClassNotFoundException,
 			BlockParserException, IllegalArgumentException, NoSuchAlgorithmException, NoSuchProviderException {
@@ -689,10 +690,10 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		/*this.cpasker.setCounterSelector(new CounterSelector(this.cpasker));
 		this.cpreceiver.setCounterSelector(new CounterSelector(this.cpreceiver));*/
 
-		Assert.assertFalse(cpasker.isConnectionEstablished());
-		Assert.assertFalse(cpreceiver.isConnectionEstablished());
-		Assert.assertEquals(ConnectionState.NOT_CONNECTED, cpasker.getConnectionState());
-		Assert.assertEquals(ConnectionState.NOT_CONNECTED, cpreceiver.getConnectionState());
+		AssertJUnit.assertFalse(cpasker.isConnectionEstablished());
+		AssertJUnit.assertFalse(cpreceiver.isConnectionEstablished());
+		AssertJUnit.assertEquals(ConnectionState.NOT_CONNECTED, cpasker.getConnectionState());
+		AssertJUnit.assertEquals(ConnectionState.NOT_CONNECTED, cpreceiver.getConnectionState());
 
 		Iterator<ConnectionProtocol<?>> itasker = this.cpasker.reverseIterator();
 		Iterator<ConnectionProtocol<?>> itreceiver = this.cpreceiver.reverseIterator();
@@ -700,7 +701,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 
 		while (itasker.hasNext()) {
 			ConnectionProtocol<?> cpasker = itasker.next();
-			Assert.assertTrue(itreceiver.hasNext());
+			AssertJUnit.assertTrue(itreceiver.hasNext());
 			ConnectionProtocol<?> cpreceiver = itreceiver.next();
 
 			ConnectionMessage masker = cpasker.setAndGetNextMessage(new AskConnection(true));
@@ -726,7 +727,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 				} else {
 					if (cycles == index) {
 						if (asker) {
-							Assert.assertEquals(mreceiver.getClass(), UnexpectedMessage.class);
+							AssertJUnit.assertEquals(mreceiver.getClass(), UnexpectedMessage.class);
 							return;
 						} else
 							mreceiver = new UnknowConnectionMessage();
@@ -741,18 +742,18 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 				
 				masker = cpasker.setAndGetNextMessage(mreceiver);
 				if (masker != null && cycles == index) {
-					Assert.assertEquals(masker.getClass(), UnexpectedMessage.class);
+					AssertJUnit.assertEquals(masker.getClass(), UnexpectedMessage.class);
 					return;
 				}
 				cycles++;
 			} while ((masker != null && mreceiver != null) && cycles < numberMaxExchange);
-			Assert.assertTrue(cycles < numberMaxExchange);
-			Assert.assertNull(masker);
-			Assert.assertTrue(cpreceiver.isConnectionEstablished());
-			Assert.assertTrue(cpasker.isConnectionEstablished());
+			AssertJUnit.assertTrue(cycles < numberMaxExchange);
+			AssertJUnit.assertNull(masker);
+			AssertJUnit.assertTrue(cpreceiver.isConnectionEstablished());
+			AssertJUnit.assertTrue(cpasker.isConnectionEstablished());
 
-			Assert.assertEquals(ConnectionState.CONNECTION_ESTABLISHED, cpasker.getConnectionState());
-			Assert.assertEquals(ConnectionState.CONNECTION_ESTABLISHED, cpreceiver.getConnectionState());
+			AssertJUnit.assertEquals(ConnectionState.CONNECTION_ESTABLISHED, cpasker.getConnectionState());
+			AssertJUnit.assertEquals(ConnectionState.CONNECTION_ESTABLISHED, cpreceiver.getConnectionState());
 
 			testRandomPingPongMessage();
 			testRandomPingPongMessage();
@@ -766,6 +767,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		}
 	}
 
+	@Test
 	public void testIrregularConnectionWithCurruptedMessages(int cyclesNumber, boolean enableDatabase)
 			throws ConnectionException, PacketException, NIOException, IOException, ClassNotFoundException,
 			BlockParserException, IllegalArgumentException, NoSuchAlgorithmException, NoSuchProviderException {
@@ -775,15 +777,16 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		}
 	}
 
+	@Test
 	public void testIrregularConnectionWithCurrptedMessage(int index, boolean asker, boolean enableDatabase)
 			throws ConnectionException, PacketException, NIOException, IOException, ClassNotFoundException,
 			BlockParserException, NoSuchAlgorithmException, NoSuchProviderException {
 		cpasker = getConnectionProtocolInstance(mkPropertiesAsker, enableDatabase ? 1 : 0);
 		cpreceiver = getConnectionProtocolInstance(mkPropertiesReceiver, enableDatabase ? 2 : 0);
-		Assert.assertFalse(cpasker.isConnectionEstablished());
-		Assert.assertFalse(cpreceiver.isConnectionEstablished());
-		Assert.assertEquals(ConnectionState.NOT_CONNECTED, cpasker.getConnectionState());
-		Assert.assertEquals(ConnectionState.NOT_CONNECTED, cpreceiver.getConnectionState());
+		AssertJUnit.assertFalse(cpasker.isConnectionEstablished());
+		AssertJUnit.assertFalse(cpreceiver.isConnectionEstablished());
+		AssertJUnit.assertEquals(ConnectionState.NOT_CONNECTED, cpasker.getConnectionState());
+		AssertJUnit.assertEquals(ConnectionState.NOT_CONNECTED, cpreceiver.getConnectionState());
 
 		Iterator<ConnectionProtocol<?>> itasker = this.cpasker.reverseIterator();
 		Iterator<ConnectionProtocol<?>> itreceiver = this.cpreceiver.reverseIterator();
@@ -791,7 +794,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		int cycles = 0;
 		while (itasker.hasNext()) {
 			ConnectionProtocol<?> cpasker = itasker.next();
-			Assert.assertTrue(itreceiver.hasNext());
+			AssertJUnit.assertTrue(itreceiver.hasNext());
 			ConnectionProtocol<?> cpreceiver = itreceiver.next();
 
 			ConnectionMessage masker = cpasker.setAndGetNextMessage(new AskConnection(true));
@@ -831,13 +834,13 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 				masker = cpasker.setAndGetNextMessage(mreceiver);
 				cycles++;
 			} while ((masker != null && mreceiver != null) && cycles < numberMaxExchange);
-			Assert.assertTrue(cycles < numberMaxExchange);
-			Assert.assertNull(masker);
-			Assert.assertTrue(cpreceiver.isConnectionEstablished());
-			Assert.assertTrue(cpasker.isConnectionEstablished());
+			AssertJUnit.assertTrue(cycles < numberMaxExchange);
+			AssertJUnit.assertNull(masker);
+			AssertJUnit.assertTrue(cpreceiver.isConnectionEstablished());
+			AssertJUnit.assertTrue(cpasker.isConnectionEstablished());
 
-			Assert.assertEquals(ConnectionState.CONNECTION_ESTABLISHED, cpasker.getConnectionState());
-			Assert.assertEquals(ConnectionState.CONNECTION_ESTABLISHED, cpreceiver.getConnectionState());
+			AssertJUnit.assertEquals(ConnectionState.CONNECTION_ESTABLISHED, cpasker.getConnectionState());
+			AssertJUnit.assertEquals(ConnectionState.CONNECTION_ESTABLISHED, cpreceiver.getConnectionState());
 			testRandomPingPongMessage();
 			testRandomPingPongMessage();
 			testRandomPingPongMessage();
@@ -894,7 +897,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		ArrayList<Block> res = new ArrayList<>();
 		WritePacket wp = new WritePacket(PacketPartHead.TYPE_PACKET, idPacket, np.maxBufferSize,
 				excludeFromEncryption?0:np.maxRandomPacketValues, rand, new RandomByteArrayInputStream(message), MessageDigestType.BC_FIPS_SHA3_512);
-		Assert.assertEquals(idPacket, wp.getID());
+		AssertJUnit.assertEquals(idPacket, wp.getID());
 		while (!wp.isFinished()) {
 			if (tbc!=null)
 			{
@@ -916,10 +919,10 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 			Block b = cp.getBlock(wp, transferType,
 					np.maxRandomPacketValues > 0 ? SecureRandomType.DEFAULT.getSingleton(null) : null, excludeFromEncryption);
 			assert b != null;
-			Assert.assertEquals(transferType, b.getTransferID());
+			AssertJUnit.assertEquals(transferType, b.getTransferID());
 			
 			
-			Assert.assertTrue(b.isValid());
+			AssertJUnit.assertTrue(b.isValid());
 			res.add(b);
 		}
 		/*for (Block b : res)
@@ -950,8 +953,8 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 	public static byte[] getMessage(byte[] originalMessage, ArrayList<byte[]> receivedBytes, ConnectionProtocol<?> cp,
 			NetworkProperties np, int idPacket, int transferType, TransferedBlockChecker tbc) throws PacketException, NIOException, BlockParserException, IOException {
 		Block b = new Block(receivedBytes.get(0));
-		Assert.assertEquals(transferType, b.getTransferID());
-		Assert.assertTrue(b.isValid());
+		AssertJUnit.assertEquals(transferType, b.getTransferID());
+		AssertJUnit.assertTrue(b.isValid());
 		if (tbc != null) {
 			if (tbc instanceof PointToPointTransferedBlockChecker)
 			{
@@ -959,11 +962,11 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 				((PointToPointTransferedBlockChecker)tbc).setConnectionProtocolOutput(null);
 			}
 			SubBlockInfo sbi = tbc.recursiveCheckSubBlock(new SubBlock(b));
-			Assert.assertTrue(tbc.getClass().toString(), sbi.isValid());
-			Assert.assertFalse(sbi.isCandidateToBan());
+			AssertJUnit.assertTrue(tbc.getClass().toString(), sbi.isValid());
+			AssertJUnit.assertFalse(sbi.isCandidateToBan());
 			b=new Block(sbi.getSubBlock().getBytes());
-			Assert.assertEquals(transferType, b.getTransferID());
-			Assert.assertTrue(b.isValid());
+			AssertJUnit.assertEquals(transferType, b.getTransferID());
+			AssertJUnit.assertTrue(b.isValid());
 		}
 
 		PacketPart pp;
@@ -980,17 +983,17 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 			
 			throw e;
 		}
-		Assert.assertEquals("tbc = "+tbc, idPacket, pp.getHead().getID());
+		AssertJUnit.assertEquals("tbc = "+tbc, idPacket, pp.getHead().getID());
 		// Assert.assertEquals(originalMessage.length, pp.getHead().getTotalLength());
-		Assert.assertEquals(0, pp.getHead().getStartPosition());
+		AssertJUnit.assertEquals(0, pp.getHead().getStartPosition());
 		RandomByteArrayOutputStream output = new RandomByteArrayOutputStream();
 		ReadPacket rp = new ReadPacket(pp, output,
 				MessageDigestType.BC_FIPS_SHA3_512);
-		Assert.assertEquals(idPacket, rp.getID());
+		AssertJUnit.assertEquals(idPacket, rp.getID());
 		for (int i = 1; i < receivedBytes.size(); i++) {
 			b = new Block(receivedBytes.get(i));
-			Assert.assertEquals(transferType, b.getTransferID());
-			Assert.assertTrue(b.isValid());
+			AssertJUnit.assertEquals(transferType, b.getTransferID());
+			AssertJUnit.assertTrue(b.isValid());
 			if (tbc != null) {
 				if (tbc instanceof PointToPointTransferedBlockChecker)
 				{
@@ -998,11 +1001,11 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 					((PointToPointTransferedBlockChecker)tbc).setConnectionProtocolOutput(null);
 				}
 				SubBlockInfo sbi = tbc.recursiveCheckSubBlock(new SubBlock(b));
-				Assert.assertTrue(sbi.isValid());
-				Assert.assertFalse(sbi.isCandidateToBan());
+				AssertJUnit.assertTrue(sbi.isValid());
+				AssertJUnit.assertFalse(sbi.isCandidateToBan());
 				b=new Block(sbi.getSubBlock().getBytes());
-				Assert.assertEquals(transferType, b.getTransferID());
-				Assert.assertTrue(b.isValid());
+				AssertJUnit.assertEquals(transferType, b.getTransferID());
+				AssertJUnit.assertTrue(b.isValid());
 				
 			}
 			pp = cp.getPacketPart(b, np);
@@ -1012,11 +1015,13 @@ output.flush();
 		return output.getBytes();
 	}
 
+	@Test(enabled = false)
 	private void testRandomPingPongMessage() throws PacketException, NIOException, IOException, BlockParserException,
 			NoSuchAlgorithmException, NoSuchProviderException {
 		testRandomPingPongMessage(null, null);
 	}
 
+	@Test(enabled = false)
 	private void testRandomPingPongMessage(TransferedBlockChecker tbcasker, TransferedBlockChecker tbcreceiver)
 			throws PacketException, NIOException, IOException, BlockParserException, NoSuchAlgorithmException,
 			NoSuchProviderException {
@@ -1027,11 +1032,11 @@ output.flush();
 		byte[] receivedMessage = getMessage(message,
 				getBytesToSend(getBlocks(message, excludeFromEncryption, cpasker, npasker, idPacket, transferType, tbcasker)), cpreceiver,
 				npreceiver, idPacket, transferType, tbcasker);
-		Assert.assertArrayEquals(message, receivedMessage);
+		AssertJUnit.assertArrayEquals(message, receivedMessage);
 		receivedMessage = getMessage(message,
 				getBytesToSend(getBlocks(message, excludeFromEncryption, cpreceiver, npreceiver, idPacket, transferType, tbcreceiver)),
 				cpasker, npasker, idPacket, transferType, tbcreceiver);
-		Assert.assertArrayEquals(message, receivedMessage);
+		AssertJUnit.assertArrayEquals(message, receivedMessage);
 	}
 
 	public static byte[] serialize(SecureExternalizableWithoutInnerSizeControl message) throws IOException {

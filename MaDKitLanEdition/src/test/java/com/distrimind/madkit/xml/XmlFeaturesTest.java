@@ -37,16 +37,15 @@
  */
 package com.distrimind.madkit.xml;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
+import static org.testng.AssertJUnit.assertEquals;
+import org.testng.annotations.Test;
+import org.testng.Assert;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -81,7 +80,7 @@ public class XmlFeaturesTest extends JunitMadkit {
 					}
 					dom.getElementsByTagName("Agents");
 				} catch (SAXException | IOException | ParserConfigurationException e) {
-					fail();
+					Assert.fail();
 				}
 			}
 		});
@@ -141,7 +140,7 @@ public class XmlFeaturesTest extends JunitMadkit {
 					assertEquals(100100, getAgentsWithRole(GROUP, ROLE).size());
 				} catch (SAXException | IOException | ParserConfigurationException e) {
 					e.printStackTrace();
-					fail();
+					Assert.fail();
 				}
 			}
 		});
@@ -162,7 +161,7 @@ public class XmlFeaturesTest extends JunitMadkit {
 					}
 				} catch (SAXException | IOException | ParserConfigurationException e) {
 					e.printStackTrace();
-					fail();
+					Assert.fail();
 				}
 				assertKernelIsAlive(getKernelAddress());
 			}

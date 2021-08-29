@@ -37,22 +37,19 @@
  */
 package com.distrimind.madkit.api.abstractAgent;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import com.distrimind.madkit.JUnitFunctions;
+import com.distrimind.madkit.agr.Organization;
+import com.distrimind.madkit.kernel.*;
+import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
+import com.distrimind.madkit.kernel.AbstractAgent.State;
+import com.distrimind.madkit.testing.util.agent.SimulatedAgent;
+import org.testng.annotations.Test;
 
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 
-import com.distrimind.madkit.kernel.*;
-import org.junit.Assert;
-import org.junit.Test;
-
-import com.distrimind.madkit.agr.Organization;
-import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
-import com.distrimind.madkit.kernel.AbstractAgent.State;
-import com.distrimind.madkit.testing.util.agent.SimulatedAgent;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author Fabien Michel
@@ -126,55 +123,25 @@ public class LaunchAgentBucketTest extends JunitMadkit {
 
 					@Override
 					protected void liveCycle() throws InterruptedException {
-						long start = System.currentTimeMillis();
+						//long start = System.currentTimeMillis();
 						pause(10000);
 						this.killAgent(this);
 
 					}
 				}, true);
 
-				/*Thread t = new Thread(new Runnable() {
-					@Override
-					public void run() {
-						launchAgent(new Agent() {
-							@Override
-							protected void activate() throws InterruptedException {
-								setLogLevel(Level.ALL);
-								pause(100);
-								requestRole(GROUP, ROLE);
-							}
 
-							@Override
-							protected void liveCycle() throws InterruptedException {
-								long start=System.currentTimeMillis();
-								pause(10000);
-								this.killAgent(this);
-
-							}
-						}, true);
-					}
-				});
-				t.start();*/
 				System.err.println("begin");
 				startTimer();
 				launchAgentBucket(AbstractAgent.class.getName(), 1000000, new Role(GROUP, ROLE));
-				/*try {
-					t.join();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}*/
+
 				stopTimer("bucket launch time = ");
 				System.err.println("done\n\n");
 				requestRole(GROUP, ROLE);
 				setLogLevel(Level.OFF);
 				assertEquals(1000002, getAgentsWithRole(GROUP, ROLE, true).size());
 			}
-		}, ReturnCode.SUCCESS, false, new MadkitEventListener() {
-			@Override
-			public void onMaDKitPropertiesLoaded(MadkitProperties properties) {
-				properties.killAllNonThreadedAgentsDuringMaDKitClosing=false;
-			}
-		});
+		}, ReturnCode.SUCCESS, false, properties -> properties.killAllNonThreadedAgentsDuringMaDKitClosing=false);
 	}
 
 	@Test
@@ -202,6 +169,7 @@ public class LaunchAgentBucketTest extends JunitMadkit {
 		});
 	}
 
+	@Test
 	protected void testAgents(List<AbstractAgent> l) {
 		for (AbstractAgent abstractAgent : l) {
 			assertTrue(abstractAgent.isAlive());
@@ -263,13 +231,13 @@ public class LaunchAgentBucketTest extends JunitMadkit {
 	public void returnSuccessWithName() {
 		launchTest(new AbstractAgent() {
 			@Override
-			protected void activate() throws InterruptedException {
+			protected void activate()  {
 				List<AbstractAgent> l = launchAgentBucket(SimulatedAgent.class.getName(), size, new Role(GROUP, ROLE));
 				assertEquals(size, l.size());
 				assertEquals(size, getAgentsWithRole(GROUP, ROLE).size());
 				// I am the manager
 				assertEquals(0, getAgentsWithRole(GROUP, Organization.GROUP_MANAGER_ROLE).size());
-				Assert.assertNotEquals(0, getAgentsWithRole(GROUP, Organization.GROUP_MANAGER_ROLE, true).size());
+				JUnitFunctions.assertNotEquals(0, getAgentsWithRole(GROUP, Organization.GROUP_MANAGER_ROLE, true).size());
 				testAgents(l);
 			}
 		});

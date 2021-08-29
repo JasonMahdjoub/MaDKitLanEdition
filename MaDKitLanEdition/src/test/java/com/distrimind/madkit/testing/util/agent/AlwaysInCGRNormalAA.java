@@ -40,11 +40,11 @@ package com.distrimind.madkit.testing.util.agent;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import static com.distrimind.madkit.kernel.JunitMadkit.GROUP;
 import static com.distrimind.madkit.kernel.JunitMadkit.ROLE;
-import static org.junit.Assert.assertEquals;
 
 import java.util.logging.Level;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
+import org.testng.AssertJUnit;
 
 /**
  * @author Fabien Michel
@@ -57,7 +57,7 @@ public class AlwaysInCGRNormalAA extends AbstractAgent {
 	@Override
 	protected void activate() {
 		setLogLevel(Level.ALL);
-		assertEquals(SUCCESS, requestRole(GROUP, ROLE));
+		AssertJUnit.assertEquals(SUCCESS, requestRole(GROUP, ROLE));
 	}
 
 }

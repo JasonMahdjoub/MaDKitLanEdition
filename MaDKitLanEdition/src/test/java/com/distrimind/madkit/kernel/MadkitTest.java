@@ -37,13 +37,11 @@
  */
 package com.distrimind.madkit.kernel;
 
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.assertNull;
+import org.testng.annotations.Test;
 import com.distrimind.madkit.action.KernelAction;
-import org.junit.Test;
-
 import java.util.Arrays;
-
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Fabien Michel
@@ -55,7 +53,6 @@ import static org.junit.Assert.assertTrue;
  */
 public class MadkitTest {
 
-	//static Madkit mk;
 
 	// @Before
 	// public void before() {
@@ -65,6 +62,7 @@ public class MadkitTest {
 	/**
 	 * 
 	 */
+	@Test(enabled = false)
 	private void testMKlogLevelBoot(String MKLogLevel) {
 		System.err.println("\n\n\n\n\n--------------------MK log level = " + MKLogLevel + "-------------------");
 		String[] args = { "--madkitLogLevel", MKLogLevel };

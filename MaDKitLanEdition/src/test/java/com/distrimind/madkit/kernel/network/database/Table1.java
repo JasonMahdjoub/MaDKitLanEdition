@@ -50,6 +50,7 @@ import com.distrimind.util.AbstractDecentralizedID;
  */
 public final class Table1 extends Table<Table1.Record> {
 
+	@SuppressWarnings("ProtectedMemberInFinalClass")
 	protected Table1() throws DatabaseException {
 	}
 

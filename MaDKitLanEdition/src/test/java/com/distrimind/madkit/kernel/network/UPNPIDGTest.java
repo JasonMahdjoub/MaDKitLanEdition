@@ -37,6 +37,8 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -46,9 +48,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 import org.fourthline.cling.support.model.PortMapping.Protocol;
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.exceptions.SelfKillException;
 import com.distrimind.madkit.kernel.AbstractAgent;
@@ -151,18 +150,18 @@ public class UPNPIDGTest extends JunitMadkit {
 											
 										}
 										else
-											Assert.fail();
+											AssertJUnit.fail();
 									}
 
 								} else if (_message.getClass() == PortMappingAnswerMessage.class) {
 									if (portMapped.get())
 									{
 										PortMappingAnswerMessage m = (PortMappingAnswerMessage) _message;
-										Assert.assertEquals(Protocol.TCP, m.getProtocol());
-										Assert.assertEquals(internalPort, m.getInternalPort());
+										AssertJUnit.assertEquals(Protocol.TCP, m.getProtocol());
+										AssertJUnit.assertEquals(internalPort, m.getInternalPort());
 	
-										Assert.assertEquals("message="+m.getMessage()+", description="+m.getDescription()+", external port="+m.getExternalPort(), MappingReturnCode.REMOVED, m.getReturnCode());
-										Assert.assertTrue(
+										AssertJUnit.assertEquals("message="+m.getMessage()+", description="+m.getDescription()+", external port="+m.getExternalPort(), MappingReturnCode.REMOVED, m.getReturnCode());
+										AssertJUnit.assertTrue(
 												m.getExternalPort() <= portEnd && m.getExternalPort() >= portStart);
 	
 										portUnmapped.set(true);
@@ -172,11 +171,11 @@ public class UPNPIDGTest extends JunitMadkit {
 									else
 									{
 										PortMappingAnswerMessage m = (PortMappingAnswerMessage) _message;
-										Assert.assertEquals(Protocol.TCP, m.getProtocol());
-										Assert.assertEquals(internalPort, m.getInternalPort());
+										AssertJUnit.assertEquals(Protocol.TCP, m.getProtocol());
+										AssertJUnit.assertEquals(internalPort, m.getInternalPort());
 	
-										Assert.assertEquals("message="+m.getMessage()+", description="+m.getDescription()+", external port="+m.getExternalPort()+", concerned router ip="+m.getConcernedRouter(), MappingReturnCode.SUCCESS, m.getReturnCode());
-										Assert.assertTrue(
+										AssertJUnit.assertEquals("message="+m.getMessage()+", description="+m.getDescription()+", external port="+m.getExternalPort()+", concerned router ip="+m.getConcernedRouter(), MappingReturnCode.SUCCESS, m.getReturnCode());
+										AssertJUnit.assertTrue(
 												m.getExternalPort() <= portEnd && m.getExternalPort() >= portStart);
 	
 										portMapped.set(true);
@@ -193,7 +192,7 @@ public class UPNPIDGTest extends JunitMadkit {
 								throw e;
 							} catch (Exception e) {
 								e.printStackTrace();
-								Assert.fail();
+								AssertJUnit.fail();
 							}
 
 						}
@@ -209,7 +208,7 @@ public class UPNPIDGTest extends JunitMadkit {
 										LocalCommunity.Roles.LOCAL_NETWORK_ROLE);
 							} catch (Exception e) {
 								e.printStackTrace();
-								Assert.fail();
+								AssertJUnit.fail();
 							}
 						}
 
@@ -228,29 +227,25 @@ public class UPNPIDGTest extends JunitMadkit {
 
 					} while (!(externalIPReceived.get() && connectionStatus.get() && portMapped.get() && portUnmapped.get()));
 
-					Assert.assertTrue(externalIPReceived.get());
-					Assert.assertTrue(connectionStatus.get());
-					Assert.assertTrue(portMapped.get());
-					Assert.assertTrue(portUnmapped.get());
+					AssertJUnit.assertTrue(externalIPReceived.get());
+					AssertJUnit.assertTrue(connectionStatus.get());
+					AssertJUnit.assertTrue(portMapped.get());
+					AssertJUnit.assertTrue(portUnmapped.get());
 
 				} catch (Exception e) {
 					e.printStackTrace();
-					Assert.fail();
+					AssertJUnit.fail();
 				}
 
 			}
 
-		}, new MadkitEventListener() {
-
-			@Override
-			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
-				_properties.networkProperties.network = true;
-				_properties.networkProperties.upnpIGDEnabled = true;
-				_properties.madkitLogLevel = Level.INFO;
-				_properties.agentLogLevel = Level.INFO;
-				_properties.networkProperties.upnpIGDLogLevel = Level.INFO;
-				_properties.networkProperties.networkLogLevel = Level.INFO;
-			}
+		}, _properties -> {
+			_properties.networkProperties.network = true;
+			_properties.networkProperties.upnpIGDEnabled = true;
+			_properties.madkitLogLevel = Level.INFO;
+			_properties.agentLogLevel = Level.INFO;
+			_properties.networkProperties.upnpIGDLogLevel = Level.INFO;
+			_properties.networkProperties.networkLogLevel = Level.INFO;
 		});
 		cleanHelperMDKs();
 	}

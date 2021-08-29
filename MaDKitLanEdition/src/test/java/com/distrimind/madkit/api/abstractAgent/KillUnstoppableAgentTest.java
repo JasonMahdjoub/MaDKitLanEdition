@@ -37,18 +37,16 @@
  */
 package com.distrimind.madkit.api.abstractAgent;
 
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.TIMEOUT;
-import static org.junit.Assert.assertEquals;
-
-import java.util.logging.Level;
-
-import com.distrimind.madkit.kernel.Agent;
-import org.junit.Test;
-
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.testing.util.agent.DoItDuringLifeCycleAgent;
 import com.distrimind.madkit.testing.util.agent.UnstopableAgent;
+import org.testng.annotations.Test;
+
+import java.util.logging.Level;
+
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.TIMEOUT;
+import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * 

@@ -37,14 +37,12 @@
  */
 package com.distrimind.madkit.api.abstractAgent;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Test;
-import org.junit.Assert;
-
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.assertNull;
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.kernel.Group;
@@ -82,7 +80,7 @@ public class GetAgentAddressInTest extends JunitMadkit {
 				AgentAddress aa = getAgentAddressIn(GROUP, ROLE);
 				assertNotNull(aa);
 				assertTrue(checkAgentAddress(aa));
-				Assert.assertEquals(ReturnCode.SUCCESS, leaveRole(GROUP, ROLE));
+				AssertJUnit.assertEquals(ReturnCode.SUCCESS, leaveRole(GROUP, ROLE));
 				assertFalse(checkAgentAddress(aa));
 				aa = getAgentAddressIn(GROUP, ROLE);
 				assertNull(aa);
@@ -125,7 +123,8 @@ public class GetAgentAddressInTest extends JunitMadkit {
 			@Override
 			protected void activate() {
 				createDefaultCGR(this);
-                assertNotNull(getAgentAddressIn(null, ROLE));
+				//noinspection ConstantConditions
+				assertNotNull(getAgentAddressIn(null, ROLE));
                 noExceptionFailure();
             }
 		}, ReturnCode.AGENT_CRASH);

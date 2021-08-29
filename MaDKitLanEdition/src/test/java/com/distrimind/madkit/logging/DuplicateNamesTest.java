@@ -37,16 +37,16 @@
  */
 package com.distrimind.madkit.logging;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
+
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.io.File;
+import java.util.Objects;
 import java.util.logging.Level;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
 
 import com.distrimind.madkit.boot.process.CreateLogFilesTest;
 import com.distrimind.madkit.kernel.AbstractAgent;
@@ -63,7 +63,7 @@ public class DuplicateNamesTest extends JunitMadkit {
 
 	protected File f;
 
-	@Before
+	@BeforeMethod
 	public void init() {
 		addMadkitArgs("--agentLogLevel", Level.OFF.toString());
 	}
@@ -97,7 +97,7 @@ public class DuplicateNamesTest extends JunitMadkit {
 		System.err.println(f);
 		assertTrue(f.exists());
 		assertTrue(f.isDirectory());
-		Assert.assertEquals(2, f.listFiles(CreateLogFilesTest.filter).length);
+		AssertJUnit.assertEquals(2, Objects.requireNonNull(f.listFiles(CreateLogFilesTest.filter)).length);
 	}
 }
 

@@ -40,9 +40,9 @@ package com.distrimind.madkit.testing.util.agent;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import static com.distrimind.madkit.kernel.JunitMadkit.GROUP;
 import static com.distrimind.madkit.kernel.JunitMadkit.ROLE;
-import static org.junit.Assert.assertEquals;
 
 import com.distrimind.madkit.kernel.Agent;
+import org.testng.AssertJUnit;
 
 /**
  * @author Fabien Michel
@@ -57,7 +57,7 @@ public class ExecuteThisAgent extends Agent {
 
 	@Override
 	protected void liveCycle() throws InterruptedException {
-		assertEquals(SUCCESS, requestRole(GROUP, ROLE));
+		AssertJUnit.assertEquals(SUCCESS, requestRole(GROUP, ROLE));
 		pause(1000);
 
 		this.killAgent(this);

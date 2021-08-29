@@ -76,10 +76,7 @@ public class UnstopableAgent extends DoItDuringLifeCycleAgent {
 
 	public static void main(String[] args) {
 		executeThisAgent(args);
-		// String[] argss = { LevelOption.agentLogLevel.toString(), "ALL",
-		// LevelOption.kernelLogLevel.toString(), "ALL",
-		// "--launchAgents", UnstopableAgent.class.getName(), ",true" };
-		// Madkit.main(argss);
+
 	}
 
 }

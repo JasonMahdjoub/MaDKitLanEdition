@@ -37,6 +37,12 @@
  */
 package com.distrimind.madkit.api.abstractAgent;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotSame;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_COMMUNITY;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_GROUP;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_IN_GROUP;
@@ -44,13 +50,6 @@ import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_ROLE;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NO_RECIPIENT_FOUND;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ROLE_NOT_HANDLED;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-
-import org.junit.Test;
-import org.junit.Assert;
-
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Group;
 import com.distrimind.madkit.kernel.JunitMadkit;
@@ -101,10 +100,10 @@ public class BroadcastMessageTest extends JunitMadkit {
 			public void liveCycle() throws InterruptedException {
 				assertEquals(SUCCESS, broadcastMessage(GROUP, ROLE, new Message(), true));
 				Message m = waitNextMessage(1000);
-				Assert.assertNotNull(m);
+				AssertJUnit.assertNotNull(m);
 				System.out.println(m);
-				Assert.assertEquals(Replies.class, m.getClass());
-				Assert.assertEquals(2, ((Replies) m).getReplies().size());
+				AssertJUnit.assertEquals(Replies.class, m.getClass());
+				AssertJUnit.assertEquals(2, ((Replies) m).getReplies().size());
 				this.killAgent(this);
 			}
 		});
@@ -128,8 +127,8 @@ public class BroadcastMessageTest extends JunitMadkit {
 
 				assertEquals(SUCCESS, broadcastMessage(GROUP, ROLE, new Message(), true));
 				Message m = waitNextMessage(1000);
-				Assert.assertEquals(Replies.class, m.getClass());
-				Assert.assertEquals(1, ((Replies) m).getReplies().size());
+				AssertJUnit.assertEquals(Replies.class, m.getClass());
+				AssertJUnit.assertEquals(1, ((Replies) m).getReplies().size());
 				this.killAgent(this);
 			}
 		});
@@ -151,9 +150,9 @@ public class BroadcastMessageTest extends JunitMadkit {
 			public void liveCycle() throws InterruptedException {
 				assertEquals(SUCCESS, broadcastMessage(GROUP, ROLE, new Message(), true));
 				Message m = waitNextMessage(1000);
-				Assert.assertNotNull(m);
-				Assert.assertEquals(Replies.class, m.getClass());
-				Assert.assertEquals(0, ((Replies) m).getReplies().size());
+				AssertJUnit.assertNotNull(m);
+				AssertJUnit.assertEquals(Replies.class, m.getClass());
+				AssertJUnit.assertEquals(0, ((Replies) m).getReplies().size());
 				this.killAgent(this);
 			}
 		});

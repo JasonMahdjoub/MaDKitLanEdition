@@ -48,10 +48,11 @@ import com.distrimind.util.FileTools;
 import com.distrimind.util.crypto.*;
 import com.distrimind.util.data_buffers.WrappedData;
 import com.distrimind.util.io.*;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.testng.Assert;
+import org.testng.AssertJUnit;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Factory;
+import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -74,7 +75,6 @@ import java.util.logging.Level;
  * @version 1.0
  * @since MaDKitLanEdition 2.0.0
  */
-@RunWith(Parameterized.class)
 public class MKDatabaseSynchronizerTest extends JunitMadkit{
 	private static class EncryptionProfileCollection extends com.distrimind.util.crypto.EncryptionProfileCollection
 	{
@@ -392,7 +392,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 	DatabaseWrapper centralDatabaseWrapper=null;
 
 
-	@Parameterized.Parameters
+	@DataProvider
 	public static Object[][] data() {
 		int cycles=4;
 
@@ -411,6 +411,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		return res;
 	}
 
+	@Factory(dataProvider = "data")
 	public MKDatabaseSynchronizerTest(boolean connectCentralDatabaseBackup,
 									  boolean indirectSynchronizationWithCentralDatabaseBackup) throws IOException, DatabaseException, NoSuchAlgorithmException, NoSuchProviderException {
 		System.out.println("connectCentralDatabaseBackup="+connectCentralDatabaseBackup+", indirectSynchronizationWithCentralDatabaseBackup="+indirectSynchronizationWithCentralDatabaseBackup);
@@ -466,7 +467,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 			defaultGroupAccess.addGroupsRoles(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA);
 			loginDataClient1=AccessDataMKEventListener.getDefaultLoginData(
 					idpws,
-					null, defaultGroupAccess, true, Assert::fail, Assert::fail);
+					null, defaultGroupAccess, true, AssertJUnit::fail, AssertJUnit::fail);
 			loginDataClient1.getFilters().setDenyFilters(new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"), (Inet6Address) InetAddress.getByName("::1")));
 			AccessDataMKEventListener.databaseIdentifiers.put(idpws.get(0).getIdentifier(), hostID1);
 
@@ -476,7 +477,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 			defaultGroupAccess.addGroupsRoles(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA);
 			loginDataClient2=AccessDataMKEventListener.getDefaultLoginData(
 					idpws,
-					null, defaultGroupAccess, true, Assert::fail, Assert::fail);
+					null, defaultGroupAccess, true, AssertJUnit::fail, AssertJUnit::fail);
 			loginDataClient2.getFilters().setDenyFilters(new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"), (Inet6Address) InetAddress.getByName("::1")));
 			AccessDataMKEventListener.databaseIdentifiers.put(idpws.get(0).getIdentifier(), hostID2);
 
@@ -495,7 +496,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 
 			loginDataServer = AccessDataMKEventListener.getDefaultLoginData(
 					idpws,
-					null, defaultGroupAccess, false, Assert::fail, Assert::fail);
+					null, defaultGroupAccess, false, AssertJUnit::fail, AssertJUnit::fail);
 			this.centralDatabaseBackupKeyPair=ASymmetricAuthenticatedSignatureType.DEFAULT.getKeyPairGenerator(random).generateKeyPair();
 			AccessDataMKEventListener.centralIdentifiers.put(idpws.get(0).getIdentifier(), this.centralDatabaseBackupKeyPair.getASymmetricPublicKey());
 			serverIdentifier = this.centralDatabaseBackupKeyPair.getASymmetricPublicKey();
@@ -573,7 +574,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		}
 		loginData1=AccessDataMKEventListener.getDefaultLoginData(
 					idpws,
-				null, defaultGroupAccess, true, Assert::fail, Assert::fail);
+				null, defaultGroupAccess, true, AssertJUnit::fail, AssertJUnit::fail);
 		loginData1.getFilters().setDenyFilters(new DoubleIP(5001,(Inet4Address) InetAddress.getByName("127.0.0.1"),(Inet6Address) InetAddress.getByName("::1")) );
 		this.loginDataClient1=loginDataClient1;
 		AccessDataMKEventListener.databaseIdentifiers.put(idpws.get(0).getIdentifier(), hostID1);
@@ -634,7 +635,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 
 		loginData2=AccessDataMKEventListener.getDefaultLoginData(
 				idpws,
-				null, defaultGroupAccess, true, Assert::fail, Assert::fail);
+				null, defaultGroupAccess, true, AssertJUnit::fail, AssertJUnit::fail);
 		loginData2.getFilters().setDenyFilters(new DoubleIP(5001,(Inet4Address) InetAddress.getByName("127.0.0.1"),(Inet6Address) InetAddress.getByName("::1")) );
 		AccessDataMKEventListener.databaseIdentifiers.put(idpws.get(0).getIdentifier(), hostID2);
 		this.loginDataClient2=loginDataClient2;
@@ -708,11 +709,11 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				getMadkitConfig().getDatabaseWrapper().setNetworkLogLevel(Level.FINEST);
 				sleep(2500);
 				DatabaseWrapper wrapper=getMadkitConfig().getDatabaseWrapper();
-				Assert.assertNotNull(wrapper);
-				Assert.assertNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
-				Assert.assertNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString());
+				AssertJUnit.assertNotNull(wrapper);
+				AssertJUnit.assertNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
+				AssertJUnit.assertNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString());
 				if (synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE) {
-					Assert.assertNotNull(centralDatabaseBackupCertificate);
+					AssertJUnit.assertNotNull(centralDatabaseBackupCertificate);
 					wrapper.getDatabaseConfigurationsBuilder()
 							.setCentralDatabaseBackupCertificate(centralDatabaseBackupCertificate);
 				}
@@ -724,12 +725,12 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 						.commit();
 				Table1 table=wrapper.getTableInstance(Table1.class);
 				table.addRecord(myListToAdd.get(0));
-				Assert.assertFalse(wrapper.getSynchronizer().isInitialized(localIdentifierOtherSide));
+				AssertJUnit.assertFalse(wrapper.getSynchronizer().isInitialized(localIdentifierOtherSide));
 
-				Assert.assertNotNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
-				Assert.assertNotNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString());
+				AssertJUnit.assertNotNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
+				AssertJUnit.assertNotNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString());
 				sleep(1200);
-				Assert.assertEquals(localIdentifier, wrapper.getSynchronizer().getLocalHostID());
+				AssertJUnit.assertEquals(localIdentifier, wrapper.getSynchronizer().getLocalHostID());
 
 				if (integrator) {
 					wrapper.getDatabaseConfigurationsBuilder()
@@ -737,14 +738,14 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 							.commit();
 
 					DatabaseConfiguration dc = wrapper.getDatabaseConfigurationsBuilder().getDatabaseConfiguration(Table1.class.getPackage());
-					Assert.assertEquals(synchronizationType, dc.getSynchronizationType());
-					Assert.assertNotNull(dc.getDistantPeersThatCanBeSynchronizedWithThisDatabase());
-					Assert.assertTrue(dc.getDistantPeersThatCanBeSynchronizedWithThisDatabase().contains(localIdentifierOtherSide));
+					AssertJUnit.assertEquals(synchronizationType, dc.getSynchronizationType());
+					AssertJUnit.assertNotNull(dc.getDistantPeersThatCanBeSynchronizedWithThisDatabase());
+					AssertJUnit.assertTrue(dc.getDistantPeersThatCanBeSynchronizedWithThisDatabase().contains(localIdentifierOtherSide));
 				}
 
 				sleep(100);
 				if (!indirect) {
-					Assert.assertTrue(wrapper.getSynchronizer().isInitialized());
+					AssertJUnit.assertTrue(wrapper.getSynchronizer().isInitialized());
 					System.out.println("check paired");
 					int nb = 0;
 					do {
@@ -893,7 +894,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				Table1.Record r=it.next();
 				Table1.Record r2=table.getRecord("decentralizedID", r.getDecentralizedID());
 				if (r2!=null) {
-					Assert.assertEquals(r2.getDecentralizedID(), r.getDecentralizedID());
+					AssertJUnit.assertEquals(r2.getDecentralizedID(), r.getDecentralizedID());
 					if (!r2.getValue().equals(r.getValue()))
 						continue;
 					it.remove();
@@ -953,7 +954,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				getMadkitConfig().getDatabaseWrapper().setNetworkLogLevel(Level.FINEST);
 				sleep(1900);
 				DatabaseWrapper wrapper=getMadkitConfig().getDatabaseWrapper();
-				Assert.assertNotNull(wrapper);
+				AssertJUnit.assertNotNull(wrapper);
 
 				if (synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE)
 					wrapper.getDatabaseConfigurationsBuilder()
@@ -967,12 +968,12 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				wrapper.getDatabaseConfigurationsBuilder()
 						.commit();
 
-				Assert.assertNotNull(wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
-				Assert.assertNotNull(wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString());
-				Assert.assertEquals(wrapper.getSynchronizer().getLocalHostID(), localIdentifier);
-				Assert.assertTrue(wrapper.getSynchronizer().isPairedWith(localIdentifierOtherSide));
+				AssertJUnit.assertNotNull(wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
+				AssertJUnit.assertNotNull(wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString());
+				AssertJUnit.assertEquals(wrapper.getSynchronizer().getLocalHostID(), localIdentifier);
+				AssertJUnit.assertTrue(wrapper.getSynchronizer().isPairedWith(localIdentifierOtherSide));
 				sleep(100);
-				Assert.assertTrue(wrapper.getSynchronizer().isInitialized());
+				AssertJUnit.assertTrue(wrapper.getSynchronizer().isInitialized());
 				if (!indirect) {
 					System.out.println("check paired");
 					int nb = 0;
@@ -1070,8 +1071,8 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				}
 
 				sleep(3000);
-				Assert.assertNull(wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
-				Assert.assertNull(wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString());
+				AssertJUnit.assertNull(wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
+				AssertJUnit.assertNull(wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString());
 				finished.set(true);
 			} catch(AssertionError e)
 			{
@@ -1110,14 +1111,14 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				getMadkitConfig().getDatabaseWrapper().setNetworkLogLevel(Level.FINEST);
 				sleep(1500);
 				DatabaseWrapper wrapper=getMadkitConfig().getDatabaseWrapper();
-				Assert.assertNotNull(wrapper);
+				AssertJUnit.assertNotNull(wrapper);
 				wrapper.getDatabaseConfigurationsBuilder()
 						.addConfiguration(
 								new DatabaseConfiguration(new DatabaseSchema(Table1.class.getPackage())),false, true )
 						.commit();
 				sleep(800);
-				Assert.assertNull(wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
-				Assert.assertNull(wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString());
+				AssertJUnit.assertNull(wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
+				AssertJUnit.assertNull(wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString());
 				System.out.println("check that database synchronization is not connected with central database backup");
 				int nb=0;
 				do {
@@ -1163,8 +1164,8 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				@Override
 				protected void activate() throws InterruptedException {
 					try {
-						Assert.assertFalse(databaseFile1.exists());
-						Assert.assertFalse(databaseFile2.exists());
+						AssertJUnit.assertFalse(databaseFile1.exists());
+						AssertJUnit.assertFalse(databaseFile2.exists());
 						ArrayList<Table1.Record> recordsToAdd = getRecordsToAdd();
 						ArrayList<Table1.Record> recordsToAddOtherSide = getRecordsToAdd();
 						if (connectCentralDatabaseBackup) {
@@ -1194,20 +1195,20 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 							sleep(1000);
 						}
 
-						Assert.assertEquals(true, finished1.get());
-						Assert.assertEquals(true, finished2.get());
+						Assert.assertTrue(finished1.get());
+						Assert.assertTrue(finished2.get());
 
 						cleanHelperMDKs(this);
-						Assert.assertEquals(getHelperInstances(this, 0).size(), 0);
+						AssertJUnit.assertEquals(getHelperInstances(this, 0).size(), 0);
 						finished1.set(null);
 						finished2.set(null);
 
 						System.out.println("Second step");
-						Assert.assertTrue(databaseFile1.exists());
-						Assert.assertTrue(databaseFile2.exists());
+						AssertJUnit.assertTrue(databaseFile1.exists());
+						AssertJUnit.assertTrue(databaseFile2.exists());
 
 						if (connectCentralDatabaseBackup) {
-							Assert.assertTrue(centralDatabaseFilesDirectory.exists());
+							AssertJUnit.assertTrue(centralDatabaseFilesDirectory.exists());
 							launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, new AbstractAgent() {
 								@Override
 								protected void activate() throws InterruptedException {
@@ -1232,10 +1233,10 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 							sleep(1000);
 						}
 
-						Assert.assertEquals(true, finished1.get());
-						Assert.assertEquals(true, finished2.get());
+						Assert.assertTrue(finished1.get());
+						Assert.assertTrue(finished2.get());
 						cleanHelperMDKs(this);
-						Assert.assertEquals(getHelperInstances(this, 0).size(), 0);
+						AssertJUnit.assertEquals(getHelperInstances(this, 0).size(), 0);
 
 						finished1.set(null);
 						finished2.set(null);
@@ -1265,15 +1266,15 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 							sleep(1000);
 						}
 
-						Assert.assertEquals(finished1.get(), true);
-						Assert.assertEquals(finished2.get(), true);
+						Assert.assertTrue(finished1.get());
+						Assert.assertTrue(finished2.get());
 
 						cleanHelperMDKs(this);
-						Assert.assertEquals(getHelperInstances(this, 0).size(), 0);
+						AssertJUnit.assertEquals(getHelperInstances(this, 0).size(), 0);
 					} catch (DatabaseException e) {
 						e.printStackTrace();
-						Assert.assertEquals(finished1.get(), false);
-						Assert.assertEquals(finished2.get(), false);
+						Assert.assertFalse(finished1.get());
+						Assert.assertFalse(finished2.get());
 					}
 				}
 			});
@@ -1290,8 +1291,8 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 
 		}
 
-		Assert.assertTrue(finished1.get());
-		Assert.assertTrue(finished2.get());
+		AssertJUnit.assertTrue(finished1.get());
+		AssertJUnit.assertTrue(finished2.get());
 
 		cleanHelperMDKs();
 	}

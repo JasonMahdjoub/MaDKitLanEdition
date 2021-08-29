@@ -37,9 +37,8 @@
  */
 package com.distrimind.madkit.bench.networking;
 
+import org.testng.annotations.Test;
 import java.net.UnknownHostException;
-
-import org.junit.Test;
 
 
 /**

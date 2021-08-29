@@ -37,16 +37,14 @@
  */
 package com.distrimind.madkit.simulation;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.Assert;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-
-import org.junit.Before;
-import org.junit.Test;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Activator;
@@ -67,7 +65,7 @@ public class ActivatorTest {
 	Activator<AbstractAgent> a;
 	Agent agt;
 
-	@Before
+	@BeforeMethod
 	public void setUp() {
 		a = new EmptyActivator(new Group("t", "t"), "t");
 		agt = new Agent();
@@ -91,7 +89,7 @@ public class ActivatorTest {
 			m.invoke(new NormalLife());
 		} catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException e) {
 			e.printStackTrace();
-			fail("Oo");
+			Assert.fail("Oo");
 		} catch (InvocationTargetException ignored) {
 		}
 	}

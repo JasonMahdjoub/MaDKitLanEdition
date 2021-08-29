@@ -37,11 +37,9 @@
  */
 package com.distrimind.madkit.kernel;
 
-import org.junit.Test;
-
+import static org.testng.AssertJUnit.assertEquals;
+import org.testng.annotations.Test;
 import java.lang.reflect.InvocationTargetException;
-
-import static org.junit.Assert.assertEquals;
 
 public class MadkitKernelTest extends JunitMadkit {
 

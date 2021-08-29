@@ -37,15 +37,12 @@
  */
 package com.distrimind.madkit.kernel;
 
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Test;
-
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.Scheduler;
 import com.distrimind.madkit.simulation.EmptyActivator;
 import com.distrimind.madkit.testing.util.agent.NormalAgent;
 import com.distrimind.madkit.testing.util.agent.SimulatedAgent;
+import org.testng.annotations.Test;
+
+import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * @author Fabien Michel

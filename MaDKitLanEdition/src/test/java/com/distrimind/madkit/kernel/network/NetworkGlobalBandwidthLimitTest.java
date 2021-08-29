@@ -1,8 +1,7 @@
 package com.distrimind.madkit.kernel.network;
 
+import org.testng.annotations.Test;
 import com.distrimind.madkit.testing.util.agent.BigDataTransferSpeed;
-import org.junit.Test;
-
 import java.net.UnknownHostException;
 
 public class NetworkGlobalBandwidthLimitTest {

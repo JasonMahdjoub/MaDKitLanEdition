@@ -37,17 +37,15 @@
  */
 package com.distrimind.madkit.api.abstractAgent;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_COMMUNITY;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_GROUP;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_ROLE;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ROLE_NOT_HANDLED;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.distrimind.madkit.agr.Organization;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Group;
@@ -73,9 +71,9 @@ public class LeaveRoleTest extends JunitMadkit {
 				assertEquals(SUCCESS, createGroup(GROUP));
 				assertEquals(SUCCESS, requestRole(GROUP, ROLE));
 				assertEquals(SUCCESS, leaveRole(GROUP, ROLE));
-				Assert.assertTrue(isCreatedGroup(GROUP));
+				AssertJUnit.assertTrue(isCreatedGroup(GROUP));
 				assertEquals(ReturnCode.SUCCESS, leaveRole(GROUP, Organization.GROUP_MANAGER_ROLE));
-				Assert.assertFalse(isCreatedGroup(GROUP));
+				AssertJUnit.assertFalse(isCreatedGroup(GROUP));
 				// leaveGroup by leaving roles
 				assertFalse(isCommunity(C));
 				assertFalse(isCreatedGroup(GROUP));

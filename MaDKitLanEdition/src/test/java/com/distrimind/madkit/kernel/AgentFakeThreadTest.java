@@ -37,28 +37,21 @@
  */
 package com.distrimind.madkit.kernel;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.util.List;
-import java.util.logging.Level;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
+import com.distrimind.madkit.JUnitFunctions;
 import com.distrimind.madkit.kernel.AbstractAgent.State;
 import com.distrimind.madkit.message.MessageFilter;
 import com.distrimind.madkit.message.ObjectMessage;
 import com.distrimind.madkit.message.StringMessage;
 import com.distrimind.madkit.testing.util.agent.SimpleAgentFakeThread;
+import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import java.util.List;
+import java.util.logging.Level;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  * 
@@ -69,14 +62,14 @@ import com.distrimind.madkit.testing.util.agent.SimpleAgentFakeThread;
 public class AgentFakeThreadTest {
 	AgentFakeThread a, b;
 	Madkit m;
-	@Before
+	@BeforeMethod
 	public void setup() {
 		a = new SimpleAgentFakeThread();
 		b = new SimpleAgentFakeThread();
 		m=new Madkit("--launchAgents", "{" + SimpleAgentFakeThread.class.getName() + "}");
 	}
 
-	@After
+	@AfterMethod
 	public void after()
 	{
 		MadkitTest.closeMadkit(m);
@@ -89,7 +82,7 @@ public class AgentFakeThreadTest {
 			b.logger.info("" + b.getKernel());
 		try {
 			b.launchAgent(new SimpleAgentFakeThread(), 0, true);
-			fail("exception not thrown");
+			Assert.fail("exception not thrown");
 		} catch (KernelException ignored) {
 		}
 	}
@@ -116,7 +109,7 @@ public class AgentFakeThreadTest {
 		a.receiveMessage(m2 = new Message());
 		assertEquals(m2, a.getLastReceivedMessage());
 		assertEquals(m, a.getLastReceivedMessage());
-		assertNotEquals(m, a.nextMessage());
+		JUnitFunctions.assertNotEquals(m, a.nextMessage());
 		assertNull(a.nextMessage());
 	}
 
@@ -126,15 +119,9 @@ public class AgentFakeThreadTest {
 		Message m, m2;
 		a.receiveMessage(m = new ObjectMessage<>("test"));
 		a.receiveMessage(m2 = new Message());
-		assertEquals(m, a.getLastReceivedMessage(new MessageFilter() {
-
-			@Override
-			public boolean accept(Message om) {
-				return om instanceof ObjectMessage<?>;
-			}
-		}));
+		assertEquals(m, a.getLastReceivedMessage(om -> om instanceof ObjectMessage<?>));
 		assertEquals(m2, a.getLastReceivedMessage());
-		assertNotEquals(m, a.nextMessage());
+		JUnitFunctions.assertNotEquals(m, a.nextMessage());
 		assertNull(a.nextMessage());
 	}
 
@@ -156,12 +143,7 @@ public class AgentFakeThreadTest {
 		a.receiveMessage(new StringMessage(null));
 		a.receiveMessage(new Message());
 		a.receiveMessage(new StringMessage(null));
-		a.nextMessage(new MessageFilter() {
-			@Override
-			public boolean accept(Message m2) {
-				return m2 instanceof StringMessage;
-			}
-		});
+		a.nextMessage(m2 -> m2 instanceof StringMessage);
 		assertFalse(a.nextMessage() instanceof StringMessage);
 		assertFalse(a.nextMessage() instanceof StringMessage);
 		assertTrue(a.nextMessage() instanceof StringMessage);
@@ -176,12 +158,7 @@ public class AgentFakeThreadTest {
 		a.receiveMessage(new Message());
 		a.receiveMessage(new StringMessage(null));
 		a.receiveMessage(new StringMessage(null));
-		List<Message> l = a.nextMessages(new MessageFilter() {
-			@Override
-			public boolean accept(Message m2) {
-				return m2 instanceof StringMessage;
-			}
-		});
+		List<Message> l = a.nextMessages(m2 -> m2 instanceof StringMessage);
 		assertEquals(3, l.size());
 		System.err.println(l);
 		assertFalse(a.nextMessage() instanceof StringMessage);
@@ -190,7 +167,7 @@ public class AgentFakeThreadTest {
 	}
 
 	public void waitingAnswersTest() {
-		fail("not implemented");
+		Assert.fail("not implemented");
 		// Message m;
 		// a.receiveMessage(new Message());
 		// a.receiveMessage(m = new Message());
@@ -213,6 +190,7 @@ public class AgentFakeThreadTest {
 	public final void testCompareTo() {
 		assertTrue(a.compareTo(b) < 0);
 		assertTrue(b.compareTo(a) > 0);
+		//noinspection EqualsWithItself
 		assertEquals(0, a.compareTo(a));
 	}
 
@@ -222,7 +200,8 @@ public class AgentFakeThreadTest {
 	 */
 	@Test
 	public final void testEqualsObject() {
-		assertNotEquals(a, b);
+		JUnitFunctions.assertNotEquals(a, b);
+		//noinspection ConstantConditions
 		assertFalse(a.equals(null));
 		assertEquals(a, a);
 		assertEquals(b, b);
@@ -315,7 +294,7 @@ public class AgentFakeThreadTest {
 	 */
 	@Test
 	public final void testEqualsObject1() {
-		assertNotEquals(b, a);
+		JUnitFunctions.assertNotEquals(b, a);
 		assertEquals(a, a);
 	}
 

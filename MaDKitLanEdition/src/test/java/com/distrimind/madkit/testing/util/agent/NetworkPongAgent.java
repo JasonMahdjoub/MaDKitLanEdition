@@ -37,7 +37,6 @@
  */
 package com.distrimind.madkit.testing.util.agent;
 
-import org.junit.Assert;
 
 import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.kernel.JunitMadkit;
@@ -47,6 +46,7 @@ import com.distrimind.madkit.message.ObjectMessage;
 import com.distrimind.madkit.message.hook.DistantKernelAgentEventMessage;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.message.hook.OrganizationEvent;
+import org.testng.AssertJUnit;
 
 /**
  * 
@@ -77,10 +77,10 @@ public class NetworkPongAgent extends AgentAddressAgentTester {
 	@Override
 	public void activate() {
 
-		Assert.assertEquals(ReturnCode.SUCCESS, requestHookEvents(AgentActionEvent.REQUEST_ROLE));
-		Assert.assertEquals(ReturnCode.SUCCESS, requestHookEvents(AgentActionEvent.DISTANT_KERNEL_CONNECTED));
+		AssertJUnit.assertEquals(ReturnCode.SUCCESS, requestHookEvents(AgentActionEvent.REQUEST_ROLE));
+		AssertJUnit.assertEquals(ReturnCode.SUCCESS, requestHookEvents(AgentActionEvent.DISTANT_KERNEL_CONNECTED));
 
-		Assert.assertEquals(ReturnCode.SUCCESS,
+		AssertJUnit.assertEquals(ReturnCode.SUCCESS,
 				this.requestRole(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, NetworkPingAgent.pongRole));
 		System.out.println("Pong activated : " + getKernelAddress());
 	}
@@ -120,7 +120,7 @@ public class NetworkPongAgent extends AgentAddressAgentTester {
 			String message = (String) om.getContent()[0];
 			AgentAddress aa = (AgentAddress) om.getContent()[1];
 
-			Assert.assertEquals(NetworkPingAgent.messagePing, message);
+			AssertJUnit.assertEquals(NetworkPingAgent.messagePing, message);
 			if (_message.getSender().isFrom(getKernelAddress())) {
 				System.out.println("Receiving and replied to local ping message : " + getKernelAddress());
 			} else {
@@ -134,11 +134,11 @@ public class NetworkPongAgent extends AgentAddressAgentTester {
 						JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, NetworkPingAgent.pingRole);
 
 			}
-			Assert.assertEquals(ReturnCode.SUCCESS, sendReply(_message,
+			AssertJUnit.assertEquals(ReturnCode.SUCCESS, sendReply(_message,
 					new NetworkObjectMessage<>(new Object[]{NetworkPingAgent.messagePong, aa})));
 		} else {
 			System.out.println("incomprehensible message  : " + getKernelAddress());
-			Assert.fail();
+			AssertJUnit.fail();
 		}
 
 	}

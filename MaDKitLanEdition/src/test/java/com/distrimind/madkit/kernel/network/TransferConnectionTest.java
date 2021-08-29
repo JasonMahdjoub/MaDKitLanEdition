@@ -52,17 +52,15 @@ import com.distrimind.util.OS;
 import com.distrimind.util.io.SecureExternalizable;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.testng.AssertJUnit;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Factory;
+import org.testng.annotations.Test;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -74,13 +72,12 @@ import java.util.logging.Level;
  * 
  */
 
-@RunWith(Parameterized.class)
 public class TransferConnectionTest extends JunitMadkit {
 
 	public static final int HOST_NUMBERS = 4;
 
-	@Parameters
-	public static Collection<Object[]> data() {
+	@DataProvider
+	public static Object[][] data() {
 		try {
 			ArrayList<Object[]> res = NetworkEventListener.getNetworkEventListenersForLocalClientServerConnection(false,
 					true, false, false, true, true, null, null, HOST_NUMBERS - 1, 1, 2, 3, 4);
@@ -96,7 +93,7 @@ public class TransferConnectionTest extends JunitMadkit {
 				c[a.length] = b[0];
 				l.add(c);
 			}
-			return l;
+			return l.toArray(new Object[l.size()][l.get(0).length]);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
@@ -109,6 +106,7 @@ public class TransferConnectionTest extends JunitMadkit {
 	final NetworkEventListener eventListener4;
 	final NetworkEventListener eventListener5;
 
+	@Factory(dataProvider = "data")
 	public TransferConnectionTest(final NetworkEventListener eventListener1, final NetworkEventListener eventListener2,
 			final NetworkEventListener eventListener3, final NetworkEventListener eventListener4,
 			final NetworkEventListener eventListener5) {
@@ -135,7 +133,7 @@ public class TransferConnectionTest extends JunitMadkit {
 				break;
 			}
 		}
-		Assert.assertTrue(added);
+		AssertJUnit.assertTrue(added);
 		this.eventListener4.setLocalPortToBind(5100);
 		try {
 			this.eventListener4.addInetAddressesToBind(InetAddress.getByName("0.0.0.0"));
@@ -144,7 +142,7 @@ public class TransferConnectionTest extends JunitMadkit {
 					.addConnectionsToAttempt(new DoubleIP(5101, (Inet4Address) InetAddress.getByName("127.0.0.1")));
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
-			Assert.fail();
+			AssertJUnit.fail();
 		}
 
 	}
@@ -308,9 +306,6 @@ public class TransferConnectionTest extends JunitMadkit {
 				
 				AgentToLaunch a1 = new AgentToLaunch(connectionPerKernelAddress, false);
 				AgentToLaunch a2 = new AgentToLaunch(connectionPerKernelAddress, true);
-				// AgentToLaunch a3=new AgentToLaunch(connectionPerKernelAddress);
-				// AgentToLaunch a4=new AgentToLaunch(connectionPerKernelAddress);
-				// AgentToLaunch a5=new AgentToLaunch(connectionPerKernelAddress);
 
 				System.out.println("**************Launch kernels****************");
 				System.out.println(TransferConnectionTest.this.eventListener1.madkitEventListenerForConnectionProtocols.getConnectionProtocolProperties().toString());
@@ -509,7 +504,7 @@ public class TransferConnectionTest extends JunitMadkit {
 					checkConnectedKernelsNb(this, m, 0, timeOut);
 
 				cleanHelperMDKs(this);
-				Assert.assertEquals(getHelperInstances(this, 0).size(), 0);
+				AssertJUnit.assertEquals(getHelperInstances(this, 0).size(), 0);
 
 				sleep(400);
 				System.err.println("------------------------ Thread cound at end : " + Thread.activeCount());
@@ -520,6 +515,7 @@ public class TransferConnectionTest extends JunitMadkit {
 }
 
 class AgentToLaunch extends AgentFakeThread {
+
 	volatile KernelAddress kernelAddress1 = null;
 	volatile KernelAddress kernelAddress2 = null;
 	volatile KernelAddress kernelAddress3 = null;
@@ -542,10 +538,10 @@ class AgentToLaunch extends AgentFakeThread {
 
 	@Override
 	public void activate() {
-		Assert.assertEquals(ReturnCode.SUCCESS, requestHookEvents(AgentActionEvent.TRANSFER_CONNEXION_EVENT));
-		Assert.assertEquals(ReturnCode.SUCCESS, requestHookEvents(AgentActionEvent.DISTANT_KERNEL_CONNECTED));
+		AssertJUnit.assertEquals(ReturnCode.SUCCESS, requestHookEvents(AgentActionEvent.TRANSFER_CONNEXION_EVENT));
+		AssertJUnit.assertEquals(ReturnCode.SUCCESS, requestHookEvents(AgentActionEvent.DISTANT_KERNEL_CONNECTED));
 		if (!connectionPerKernelAddress)
-			Assert.assertEquals(ReturnCode.SUCCESS, requestHookEvents(AgentActionEvent.CONNEXION_ESTABLISHED));
+			AssertJUnit.assertEquals(ReturnCode.SUCCESS, requestHookEvents(AgentActionEvent.CONNEXION_ESTABLISHED));
 		System.out.println("Agent to launch OK");
 	}
 
@@ -586,17 +582,17 @@ class AgentToLaunch extends AgentFakeThread {
 			if (t.getEventType() == TransferEventType.DIRECT_CONNECTION_EFFECTIVE) {
 				directConnectionFinished++;
 				connectionOK &= attachedData.equals(t.getOriginalMessage().getAttachedData());
-				Assert.assertTrue(connectionOK);
+				AssertJUnit.assertTrue(connectionOK);
 			} else if (t.getEventType() == TransferEventType.TRANSFER_EFFECTIVE) {
 				transferConnectionFinished++;
 				connectionOK &= attachedData.equals(t.getOriginalMessage().getAttachedData());
-				Assert.assertTrue(connectionOK);
+				AssertJUnit.assertTrue(connectionOK);
 			} else if (t.getEventType() == TransferEventType.TRANSFER_DISCONNECTED) {
 				transferDeconnected++;
 			} else {
 				System.out.println(_message);
 				connectionOK = false;
-				Assert.fail();
+				AssertJUnit.fail();
 			}
 
 		} else
@@ -604,10 +600,10 @@ class AgentToLaunch extends AgentFakeThread {
 	}
 
 	public void assertConnection(int transferConnectionNb, int directConnectionNb, int transferDeconnectionNb) {
-		Assert.assertEquals(directConnectionNb, directConnectionFinished);
-		Assert.assertEquals(transferConnectionNb, transferConnectionFinished);
-		Assert.assertEquals(transferDeconnectionNb, transferDeconnected);
-		Assert.assertTrue(connectionOK);
+		AssertJUnit.assertEquals(directConnectionNb, directConnectionFinished);
+		AssertJUnit.assertEquals(transferConnectionNb, transferConnectionFinished);
+		AssertJUnit.assertEquals(transferDeconnectionNb, transferDeconnected);
+		AssertJUnit.assertTrue(connectionOK);
 	}
 
 	private void ensureTransferConnectionWithInetAddress() {
@@ -634,7 +630,7 @@ class AgentToLaunch extends AgentFakeThread {
 
 			} catch (Exception e) {
 				e.printStackTrace();
-				Assert.fail();
+				AssertJUnit.fail();
 			}
 			type = null;
 		}
@@ -658,7 +654,7 @@ class AgentToLaunch extends AgentFakeThread {
 
 			} catch (Exception e) {
 				e.printStackTrace();
-				Assert.fail();
+				AssertJUnit.fail();
 			}
 			type = null;
 		}
@@ -689,7 +685,7 @@ class AgentToLaunch extends AgentFakeThread {
 				System.out.println("Deconnection asked");
 			} catch (Exception e) {
 				e.printStackTrace();
-				Assert.fail();
+				AssertJUnit.fail();
 			}
 		}
 	}

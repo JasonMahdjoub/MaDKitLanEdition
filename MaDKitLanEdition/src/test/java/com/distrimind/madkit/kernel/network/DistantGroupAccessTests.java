@@ -35,6 +35,9 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL-C license and that you accept its terms.
  */
 
+import org.testng.annotations.Test;
+import org.testng.Assert;
+import org.testng.AssertJUnit;
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.network.connection.access.AbstractAccessProtocolProperties;
 import com.distrimind.madkit.kernel.network.connection.access.AccessProtocolWithP2PAgreementProperties;
@@ -46,9 +49,6 @@ import com.distrimind.madkit.message.hook.OrganizationEvent;
 import com.distrimind.madkit.testing.util.agent.NormalAgent;
 import com.distrimind.util.crypto.SymmetricAuthenticatedSignatureType;
 import com.distrimind.util.crypto.SymmetricEncryptionType;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -152,8 +152,6 @@ public class DistantGroupAccessTests extends JunitMadkit{
 				sleep(400);
 				launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agent2, eventListener2);
 				sleep(DistantGroupAccessTests.timeToWaitBeforeFinalTest);
-				/*agent1.killAgent(agent1);
-				agent2.killAgent(agent2);*/
 
 				for (Madkit mk : getHelperInstances(this, 2))
 					stopNetwork(mk);
@@ -165,7 +163,7 @@ public class DistantGroupAccessTests extends JunitMadkit{
 				sleep(400);
 
 				cleanHelperMDKs(this);
-				Assert.assertEquals(getHelperInstances(this, 0).size(), 0);
+				AssertJUnit.assertEquals(getHelperInstances(this, 0).size(), 0);
 
 
 			}
@@ -245,39 +243,39 @@ class GroupAccessTesterAgent extends NormalAgent
 	void validate()
 	{
 		try {
-			Assert.assertTrue(testOK==null || testOK);
-			Assert.assertTrue(distantAgentRequestGroupWithAllRoles);
-			Assert.assertFalse(distantAgentRequestGroupWithAllRolesInOnePeer);
-			Assert.assertTrue(distantAgentRequestGroupWithOneRole);
-			Assert.assertFalse(distantAgentRequestGroupNotAccepted);
-			Assert.assertFalse(distantAgentRequestGroupWithAllRolesNotDistributed);
+			AssertJUnit.assertTrue(testOK==null || testOK);
+			AssertJUnit.assertTrue(distantAgentRequestGroupWithAllRoles);
+			AssertJUnit.assertFalse(distantAgentRequestGroupWithAllRolesInOnePeer);
+			AssertJUnit.assertTrue(distantAgentRequestGroupWithOneRole);
+			AssertJUnit.assertFalse(distantAgentRequestGroupNotAccepted);
+			AssertJUnit.assertFalse(distantAgentRequestGroupWithAllRolesNotDistributed);
 
-			Assert.assertTrue(messageSentToGroupWithAllRoles);
-			Assert.assertTrue(messageReceivedFromGroupWithAllRoles);
+			AssertJUnit.assertTrue(messageSentToGroupWithAllRoles);
+			AssertJUnit.assertTrue(messageReceivedFromGroupWithAllRoles);
 
-			Assert.assertTrue(messageSentToGroupWithOneRoles);
-			Assert.assertTrue(messageReceivedFromGroupWithOneRoles);
+			AssertJUnit.assertTrue(messageSentToGroupWithOneRoles);
+			AssertJUnit.assertTrue(messageReceivedFromGroupWithOneRoles);
 
-			Assert.assertTrue(broadcastMessageSentToGroupWithAllRoles);
-			Assert.assertTrue(broadcastMessageReceivedFromGroupWithAllRoles);
+			AssertJUnit.assertTrue(broadcastMessageSentToGroupWithAllRoles);
+			AssertJUnit.assertTrue(broadcastMessageReceivedFromGroupWithAllRoles);
 
-			Assert.assertTrue(broadcastMessageSentToGroupWithOneRole);
-			Assert.assertTrue(broadcastMessageReceivedFromGroupWithOneRole);
+			AssertJUnit.assertTrue(broadcastMessageSentToGroupWithOneRole);
+			AssertJUnit.assertTrue(broadcastMessageReceivedFromGroupWithOneRole);
 
-			Assert.assertFalse(broadcastMessageSentToGroupWithOneRolesInOnePeer);
-			Assert.assertFalse(broadcastMessageReceivedFromGroupWithOneRolesInOnePeer);
+			AssertJUnit.assertFalse(broadcastMessageSentToGroupWithOneRolesInOnePeer);
+			AssertJUnit.assertFalse(broadcastMessageReceivedFromGroupWithOneRolesInOnePeer);
 
-			Assert.assertFalse(broadcastMessageSentToGroupNotAccepted);
-			Assert.assertFalse(broadcastMessageReceivedFromGroupNotAccepted);
+			AssertJUnit.assertFalse(broadcastMessageSentToGroupNotAccepted);
+			AssertJUnit.assertFalse(broadcastMessageReceivedFromGroupNotAccepted);
 
-			Assert.assertFalse(broadcastMessageSentToGroupNotDistributed);
-			Assert.assertFalse(broadcastMessageReceivedFromGroupNotDistributed);
+			AssertJUnit.assertFalse(broadcastMessageSentToGroupNotDistributed);
+			AssertJUnit.assertFalse(broadcastMessageReceivedFromGroupNotDistributed);
 
-			Assert.assertTrue(distantAgentLeaveGroupWithAllRoles);
-			Assert.assertFalse(distantAgentLeaveGroupWithAllRolesInOnePeer);
-			Assert.assertTrue(distantAgentLeaveGroupWithOneRole);
-			Assert.assertFalse(distantAgentLeaveGroupNotAccepted);
-			Assert.assertFalse(distantAgentLeaveGroupWithAllRolesNotDistributed);
+			AssertJUnit.assertTrue(distantAgentLeaveGroupWithAllRoles);
+			AssertJUnit.assertFalse(distantAgentLeaveGroupWithAllRolesInOnePeer);
+			AssertJUnit.assertTrue(distantAgentLeaveGroupWithOneRole);
+			AssertJUnit.assertFalse(distantAgentLeaveGroupNotAccepted);
+			AssertJUnit.assertFalse(distantAgentLeaveGroupWithAllRolesNotDistributed);
 
 
 			testOK=true;
@@ -367,12 +365,12 @@ class GroupAccessTesterAgent extends NormalAgent
 		}, System.currentTimeMillis()+DistantGroupAccessTests.timeToWaitBeforeBroadcast));
 	}
 
-	void fail()
+	/*void fail()
 	{
 		testOK=false;
 		new IllegalAccessError().printStackTrace();
 		this.killAgent(this);
-	}
+	}*/
 
 	@Override
 	protected void liveCycle() throws InterruptedException {
@@ -386,55 +384,55 @@ class GroupAccessTesterAgent extends NormalAgent
 			if (hm.getContent()== HookMessage.AgentActionEvent.REQUEST_ROLE) {
 				if (hm.getSourceAgent().getGroup().equals(DistantGroupAccessTests.groupNotAccepted)) {
 					distantAgentRequestGroupNotAccepted = true;
-					fail();
+					Assert.fail();
 				} else if (hm.getSourceAgent().getGroup().equals(DistantGroupAccessTests.groupWithAllRolesNotDistributed)) {
 					distantAgentRequestGroupWithAllRolesNotDistributed = true;
-					fail();
+					Assert.fail();
 				} else if (hm.getSourceAgent().getGroup().equals(DistantGroupAccessTests.groupWithAllRolesNotDistributed)) {
 					distantAgentRequestGroupWithAllRolesInOnePeer = true;
-					fail();
+					Assert.fail();
 				}
 				else if (hm.getSourceAgent().getGroup().equals(DistantGroupAccessTests.groupWithAllRoles)) {
 					if (hm.getSourceAgent().getRole().equals(distantAcceptedRoleNotRestricted)) {
 						distantAgentRequestGroupWithAllRoles = true;
 						ReturnCode rc=sendMessageWithRole(hm.getSourceAgent(), new StringMessage(distantAgentRequestGroupWithAllRolesMessage), localAcceptedRoleNotRestricted);
-						Assert.assertTrue(rc.equals(ReturnCode.SUCCESS) || rc.equals(ReturnCode.TRANSFER_IN_PROGRESS) );
+						AssertJUnit.assertTrue(rc.equals(ReturnCode.SUCCESS) || rc.equals(ReturnCode.TRANSFER_IN_PROGRESS) );
 						messageSentToGroupWithAllRoles = true;
 					}
 					else if (!hm.getSourceAgent().getRole().equals(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE)){
 						System.err.println(hm.getSourceAgent());
-						fail();
+						Assert.fail();
 					}
 				}
 				else if (hm.getSourceAgent().getGroup().equals(DistantGroupAccessTests.groupWithOneRole)) {
 					if (hm.getSourceAgent().getRole().equals(distantAcceptedRole)) {
 						distantAgentRequestGroupWithOneRole =true;
 						ReturnCode rc=sendMessageWithRole(hm.getSourceAgent(), new StringMessage(distantAgentRequestGroupWithOneRoleMessage), localAcceptedRole);
-						Assert.assertTrue(rc.equals(ReturnCode.SUCCESS) || rc.equals(ReturnCode.TRANSFER_IN_PROGRESS) );
+						AssertJUnit.assertTrue(rc.equals(ReturnCode.SUCCESS) || rc.equals(ReturnCode.TRANSFER_IN_PROGRESS) );
 						messageSentToGroupWithOneRoles=true;
 					}
 					else if (!hm.getSourceAgent().getRole().equals(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE)){
-						fail();
+						Assert.fail();
 					}
 				}
 			}
 			else if (hm.getContent()== HookMessage.AgentActionEvent.LEAVE_ROLE) {
 				if (hm.getSourceAgent().getGroup().equals(DistantGroupAccessTests.groupNotAccepted)) {
 					distantAgentLeaveGroupNotAccepted = true;
-					fail();
+					Assert.fail();
 				} else if (hm.getSourceAgent().getGroup().equals(DistantGroupAccessTests.groupWithAllRolesNotDistributed)) {
 					distantAgentLeaveGroupWithAllRolesNotDistributed = true;
-					fail();
+					Assert.fail();
 				} else if (hm.getSourceAgent().getGroup().equals(DistantGroupAccessTests.groupWithAllRolesNotDistributed)) {
 					distantAgentLeaveGroupWithAllRolesInOnePeer = true;
-					fail();
+					Assert.fail();
 				}
 				else if (hm.getSourceAgent().getGroup().equals(DistantGroupAccessTests.groupWithAllRoles)) {
 					if (hm.getSourceAgent().getRole().equals(distantAcceptedRoleNotRestricted)) {
 						distantAgentLeaveGroupWithAllRoles=true;
 					}
 					else if (!hm.getSourceAgent().getRole().equals(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE)){
-						fail();
+						Assert.fail();
 					}
 				}
 				else if (hm.getSourceAgent().getGroup().equals(DistantGroupAccessTests.groupWithOneRole)) {
@@ -442,7 +440,7 @@ class GroupAccessTesterAgent extends NormalAgent
 						distantAgentLeaveGroupWithOneRole =true;
 					}
 					else if (!hm.getSourceAgent().getRole().equals(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE)){
-						fail();
+						Assert.fail();
 					}
 				}
 			}
@@ -451,13 +449,13 @@ class GroupAccessTesterAgent extends NormalAgent
 			StringMessage sm=(StringMessage)m;
 			if (sm.getSender().getGroup().equals(DistantGroupAccessTests.groupNotAccepted)) {
 				broadcastMessageReceivedFromGroupNotAccepted = true;
-				fail();
+				Assert.fail();
 			} else if (sm.getSender().getGroup().equals(DistantGroupAccessTests.groupWithAllRolesNotDistributed)) {
 				broadcastMessageReceivedFromGroupNotDistributed = true;
-				fail();
+				Assert.fail();
 			} else if (sm.getSender().getGroup().equals(DistantGroupAccessTests.groupWithAllRolesNotDistributed)) {
 				broadcastMessageReceivedFromGroupWithOneRolesInOnePeer = true;
-				fail();
+				Assert.fail();
 			}
 			else if (sm.getSender().getGroup().equals(DistantGroupAccessTests.groupWithAllRoles)) {
 				if (sm.getSender().getRole().equals(distantAcceptedRoleNotRestricted) && sm.getReceiver().getRole().equals(localAcceptedRoleNotRestricted)) {
@@ -471,12 +469,12 @@ class GroupAccessTesterAgent extends NormalAgent
 					}
 					else if (!sm.getContent().equals(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE))
 					{
-						fail();
+						Assert.fail();
 					}
 				}
 				else {
 					System.err.println("Role : "+sm.getSender().getRole());
-					fail();
+					Assert.fail();
 				}
 			}
 			else if (sm.getSender().getGroup().equals(DistantGroupAccessTests.groupWithOneRole)) {
@@ -491,11 +489,11 @@ class GroupAccessTesterAgent extends NormalAgent
 					}
 					else if (!sm.getContent().equals(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE))
 					{
-						fail();
+						Assert.fail();
 					}
 				}
 				else {
-					fail();
+					Assert.fail();
 				}
 			}
 		}

@@ -37,14 +37,10 @@
  */
 package com.distrimind.madkit.kernel;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Test;
-
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
+import org.testng.annotations.Test;
 import com.distrimind.madkit.action.AgentAction;
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.Agent;
 import com.distrimind.madkit.message.EnumMessage;
 
 /**

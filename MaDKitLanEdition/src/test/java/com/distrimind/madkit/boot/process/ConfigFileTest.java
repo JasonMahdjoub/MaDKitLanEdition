@@ -37,12 +37,10 @@
  */
 package com.distrimind.madkit.boot.process;
 
-import static org.junit.Assert.assertEquals;
-
+import static org.testng.AssertJUnit.assertEquals;
+import org.testng.annotations.Test;
 import java.net.URL;
 import java.util.logging.Level;
-
-import org.junit.Test;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.JunitMadkit;
@@ -104,18 +102,6 @@ public class ConfigFileTest extends JunitMadkit {
 			}
 		});
 	}
-
-	// @Test
-	// public void xmlConfigFile() {
-	// addMadkitArgs(Madkit.Option.configFile.toString(),"madkit/boot/process/test.xml",Madkit.LevelOption.madkitLogLevel.toString(),Level.ALL.toString());
-	// launchTest(new AbstractAgent() {
-	// @Override
-	// protected void activate() {
-	// assertEquals("false",getMadkitProperty("test"));
-	// assertEquals("ok",getMadkitProperty("test2"));
-	// }
-	// });
-	// }
 
 	@Test
 	public void multiConfigOptionsXML() {

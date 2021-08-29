@@ -54,9 +54,6 @@ public class WorkingAgent extends DoItDuringLifeCycleAgent {
 		for (int i = 0; i < 150000000; i++) {
 			@SuppressWarnings("unused")
 			double d = Math.random() * 2;
-            // if(i % 10000000 == 0)
-			// if(logger != null)
-			// logger.info("yo");
 		}
 		super.doIt();
 	}

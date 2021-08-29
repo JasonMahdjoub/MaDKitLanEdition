@@ -1,8 +1,7 @@
 package com.distrimind.madkit.kernel;
 
+import org.testng.annotations.Test;
 import com.distrimind.util.CircularArrayList;
-import org.junit.Test;
-
 import java.util.Deque;
 
 /**
@@ -34,6 +33,7 @@ public abstract class TestDeque {
 	}
 
 	// Tests the addLast method.
+	@Test(enabled = false)
 	private void testAddLast(Deque<String> deque) {
 		System.out.println("addLast, toString:");
 		deque.addLast("seven");
@@ -45,6 +45,7 @@ public abstract class TestDeque {
 	}
 
 	// Tests the removeLast method.
+	@Test(enabled = false)
 	private void testRemoveLast(Deque<String> deque) {
 		System.out.println();
 		System.out.println("removeLast:");
@@ -57,6 +58,7 @@ public abstract class TestDeque {
 	}
 
 	// Tests the isEmpty and size methods.
+	@Test(enabled = false)
 	private void testIsEmptySize(Deque<String> deque) {
 		System.out.println();
 		System.out.println("isEmpty / size:");
@@ -74,6 +76,7 @@ public abstract class TestDeque {
 	}
 
 	// Tests the clear method.
+	@Test(enabled = false)
 	private void testClear() {
 		System.out.println();
 		System.out.println("clear:");
@@ -91,6 +94,7 @@ public abstract class TestDeque {
 	}
 
 	// Tests the addFirst method.
+	@Test(enabled = false)
 	private void testAddFirst(Deque<String> deque) {
 		System.out.println();
 		System.out.println("addFirst:");
@@ -110,6 +114,7 @@ public abstract class TestDeque {
 	}
 
 	// Tests the removeFirst method.
+	@Test(enabled = false)
 	private void testRemoveFirst(Deque<String> deque) {
 		System.out.println();
 		System.out.println("removeFirst:");
@@ -120,6 +125,7 @@ public abstract class TestDeque {
 	}
 
 	// Tests the addFirst, addLast, removeFirst, and removeLast methods together.
+	@Test(enabled = false)
 	private void testAddRemove(Deque<String> deque) {
 		System.out.println();
 		System.out.println("add/remove-First/Last together:");

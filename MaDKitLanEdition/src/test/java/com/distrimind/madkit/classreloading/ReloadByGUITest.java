@@ -37,11 +37,9 @@
  */
 package com.distrimind.madkit.classreloading;
 
-import static org.junit.Assert.fail;
-
+import org.testng.annotations.Test;
+import org.testng.Assert;
 import java.util.logging.Level;
-
-import org.junit.Test;
 
 import com.distrimind.madkit.action.AgentAction;
 import com.distrimind.madkit.kernel.AbstractAgent;
@@ -77,7 +75,7 @@ public class ReloadByGUITest extends JunitMadkit {
 					setLogLevel(Level.ALL);
 					AgentAction.RELOAD.getActionFor(a).actionPerformed(null);
 				} catch (Throwable e) {
-					fail(e.getMessage());
+					Assert.fail(e.getMessage());
 				}
 			}
 		});
@@ -94,7 +92,7 @@ public class ReloadByGUITest extends JunitMadkit {
 					launchAgent(a);
 					AgentAction.RELOAD.getActionFor(a).actionPerformed(null);
 				} catch (Throwable e) {
-					fail(e.getMessage());
+					Assert.fail(e.getMessage());
 				}
 			}
 		});

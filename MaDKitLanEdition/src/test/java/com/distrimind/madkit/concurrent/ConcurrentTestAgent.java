@@ -60,8 +60,6 @@ public class ConcurrentTestAgent extends Agent {
 
 	@Override
 	protected void liveCycle() {
-		// setLogLevel(Level.INFO);
-		// getLogger().setWarningLogLevel(Level.OFF);
 
 		if (Math.random() < .5) {
 			if (createGroup(GROUP) == ReturnCode.SUCCESS) {

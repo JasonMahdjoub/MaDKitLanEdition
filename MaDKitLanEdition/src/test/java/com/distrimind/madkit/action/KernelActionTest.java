@@ -37,15 +37,12 @@
  */
 package com.distrimind.madkit.action;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
+import static org.testng.AssertJUnit.assertEquals;
+import org.testng.annotations.Test;
+import org.testng.Assert;
 import java.io.File;
 import java.util.logging.Level;
 
-import org.junit.Test;
-
-import com.distrimind.madkit.action.GlobalAction;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.MadkitClassLoader;
@@ -67,7 +64,7 @@ public class KernelActionTest extends JunitMadkit {
 					MadkitClassLoader.loadUrl(new File("test/MaDKit-ping-pong-2.0.agents.jar").toURI().toURL());
 				} catch (Exception e) {
 					e.printStackTrace();
-					fail();
+					Assert.fail();
 				}
 				JunitMadkit.pause(this, 100);
 			}

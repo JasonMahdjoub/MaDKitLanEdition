@@ -37,8 +37,7 @@
  */
 package com.distrimind.madkit.scenari.deadlock;
 
-import org.junit.Test;
-
+import org.testng.annotations.Test;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Agent;
 import com.distrimind.madkit.kernel.JunitMadkit;

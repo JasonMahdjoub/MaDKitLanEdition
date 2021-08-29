@@ -37,14 +37,12 @@
  */
 package com.distrimind.madkit.simulation;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-
+import static org.testng.AssertJUnit.assertNotNull;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.Assert;
+import org.testng.AssertJUnit;
 import java.lang.reflect.Field;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Group;
@@ -64,7 +62,7 @@ public class ProbeTest {
 	Probe<TestAgent> a;
 	TestAgent agt;
 
-	@Before
+	@BeforeMethod
 	public void setUp() throws Exception {
 		a = new Probe<>(new Group("t", "t"), "t");
 		agt = new TestAgent() {
@@ -76,7 +74,7 @@ public class ProbeTest {
 	public void testActivator() {
 		try {
 			a = new Probe<>(null, null);
-			Assert.assertFalse(true);
+			AssertJUnit.assertFalse(true);
 		} catch (NullPointerException e) {
 
 		}
@@ -102,7 +100,7 @@ public class ProbeTest {
 	public void testFindFieldOnNotExist() {
 		try {
 			Field m = a.findFieldOn(agt.getClass(), "notExist");
-			fail("ex not thrown");
+			Assert.fail("ex not thrown");
 		} catch (NoSuchFieldException e) {
 			e.printStackTrace();
 		}

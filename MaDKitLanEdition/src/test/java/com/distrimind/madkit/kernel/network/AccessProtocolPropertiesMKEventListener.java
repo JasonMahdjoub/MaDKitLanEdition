@@ -90,11 +90,4 @@ public class AccessProtocolPropertiesMKEventListener implements MadkitEventListe
 		return accessProtocolProperties;
 	}
 
-	/*public boolean canUseAutoSignedLogin()
-	{
-		for (AbstractAccessProtocolProperties a : accessProtocolProperties)
-			if (a.getClass()== AccessProtocolWithASymmetricKeyExchangerProperties.class)
-				return false;
-		return true;
-	}*/
 }

@@ -57,7 +57,7 @@ public class ReloadClass extends Agent {
 	protected void liveCycle() throws InterruptedException {
 
 		if (logger != null)
-			logger.info("\n\n " + new Fake().toString());
+			logger.info("\n\n " + new Fake());
 		pause(8000);
 		try {
 			MadkitClassLoader.reloadClass(Fake.class.getName());

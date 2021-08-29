@@ -37,11 +37,10 @@
  */
 package com.distrimind.madkit.kernel;
 
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import com.distrimind.util.io.RandomByteArrayInputStream;
 import com.distrimind.util.io.RandomByteArrayOutputStream;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.io.IOException;
 
 
@@ -88,23 +87,25 @@ public class GroupTest {
 		testGroupsOperator();
 	}
 	
+
 	public void testGroupConstructor(String community, String... groups) {
 		Group g = new Group(community, groups);
-		Assert.assertEquals(g.getCommunity(), community);
+		AssertJUnit.assertEquals(g.getCommunity(), community);
 
 		for (int i = 0; i < groups.length; i++) {
 			assert g != null;
-			Assert.assertEquals(g.getName(), groups[groups.length - i - 1]);
+			AssertJUnit.assertEquals(g.getName(), groups[groups.length - i - 1]);
 			g = g.getParent();
 		}
 		new Group(community, groups);
 	}
 
+
 	public void testGroupConstructorDistributed(boolean isDistributed, Gatekeeper gateKeeper, boolean _isReserved,
 			String community, String... groups) {
 		Group g = new Group(isDistributed, gateKeeper, _isReserved, community, groups);
-		Assert.assertEquals(g.getCommunity(), community);
-		Assert.assertEquals(g.getGateKeeper(), gateKeeper);
+		AssertJUnit.assertEquals(g.getCommunity(), community);
+		AssertJUnit.assertEquals(g.getGateKeeper(), gateKeeper);
 
 		String gpath = g.getPath();
 
@@ -113,24 +114,24 @@ public class GroupTest {
 		}
 		StringBuilder path = new StringBuilder("/");
 		for (int i = groups.length - 1; i >= 0; i--) {
-			Assert.assertEquals(g.getName(), groups[i]);
+			AssertJUnit.assertEquals(g.getName(), groups[i]);
 			path.append(groups[groups.length - i - 1]).append("/");
 			Group g2 = g;
 			g = g.getParent();
 
 			assert g != null;
-			Assert.assertEquals(g.getSubGroup(g2.getName()), g2);
+			AssertJUnit.assertEquals(g.getSubGroup(g2.getName()), g2);
 		}
-		Assert.assertEquals(gpath, path.toString());
+		AssertJUnit.assertEquals(gpath, path.toString());
 		for (String group : groups) {
 			g = g.getSubGroup(group);
-			Assert.assertEquals(g.getName(), group);
+			AssertJUnit.assertEquals(g.getName(), group);
 		}
 
 		try {
 			new Group(community, groups);
 			if (_isReserved)
-				Assert.fail();
+				AssertJUnit.fail();
 		} catch (Exception e) {
 			if (!_isReserved)
 				throw e;
@@ -143,23 +144,24 @@ public class GroupTest {
 		try {
 			Group g = new Group(true, null, true, "CR", "GR");
 			Group g2 = new Group("CR", "GR");
-			Assert.fail();
+			AssertJUnit.fail();
 		} catch (IllegalArgumentException ignored) {
 
 		}
 
 	}
 
+	@Test
 	public void testGroupsOperator() {
 		Group g = new Group("C1", "G2");
-		Assert.assertTrue(AbstractGroup.getUniverse().includes(g));
-		Assert.assertTrue(new Group("C1", "G2").includes(g));
-		Assert.assertFalse(g.includes(new Group("C1", "G2", "G3")));
+		AssertJUnit.assertTrue(AbstractGroup.getUniverse().includes(g));
+		AssertJUnit.assertTrue(new Group("C1", "G2").includes(g));
+		AssertJUnit.assertFalse(g.includes(new Group("C1", "G2", "G3")));
 		g = new Group(true, "C1", "G2");
-		Assert.assertTrue(AbstractGroup.getUniverse().includes(g));
-		Assert.assertFalse(new Group("C1", "G2").includes(g));
-		Assert.assertTrue(g.includes(new Group("C1", "G2")));
-		Assert.assertTrue(g.includes(new Group("C1", "G2", "G3")));
+		AssertJUnit.assertTrue(AbstractGroup.getUniverse().includes(g));
+		AssertJUnit.assertFalse(new Group("C1", "G2").includes(g));
+		AssertJUnit.assertTrue(g.includes(new Group("C1", "G2")));
+		AssertJUnit.assertTrue(g.includes(new Group("C1", "G2", "G3")));
 
 	}
 
@@ -167,13 +169,13 @@ public class GroupTest {
 			String... groups) {
 		Group g = new Group(isDistributed, gateKeeper, _isReserved, community, groups);
 		Group g2 = g.clone();
-		Assert.assertEquals(g, g2);
+		AssertJUnit.assertEquals(g, g2);
 		if (groups.length == 1 && groups[0].contains("/")) {
 			groups = groups[0].split("/");
 		}
 		for (int i = groups.length - 1; i >= 0; i--) {
 			assert g2 != null;
-			Assert.assertEquals(g2.getName(), groups[i]);
+			AssertJUnit.assertEquals(g2.getName(), groups[i]);
 			g2 = g2.getParent();
 		}
 	}
@@ -194,13 +196,13 @@ public class GroupTest {
 			g2 = bais.readObject(false, Group.class);
 		}
 
-		Assert.assertEquals(g, g2);
+		AssertJUnit.assertEquals(g, g2);
 		if (groups.length == 1 && groups[0].contains("/")) {
 			groups = groups[0].split("/");
 		}
 		for (int i = groups.length - 1; i >= 0; i--) {
 			assert g2 != null;
-			Assert.assertEquals(g2.getName(), groups[i]);
+			AssertJUnit.assertEquals(g2.getName(), groups[i]);
 			g2 = g2.getParent();
 		}
 	}
@@ -209,13 +211,13 @@ public class GroupTest {
 	public void testNullEmptyAndInvalidArguments() {
 		try {
 			new Group(null, "GE1");
-			Assert.fail();
+			AssertJUnit.fail();
 		} catch (NullPointerException ignored) {
 
 		}
 		try {
 			new Group("", "GE1");
-			Assert.fail();
+			AssertJUnit.fail();
 		} catch (IllegalArgumentException ignored) {
 
 		}
@@ -223,29 +225,29 @@ public class GroupTest {
 		try {
 			new Group("CE1");
 		} catch (Exception e) {
-			Assert.fail();
+			AssertJUnit.fail();
 		}
 		try {
 			new Group("CE1", "GE1", null, "GE3");
-			Assert.fail();
+			AssertJUnit.fail();
 		} catch (NullPointerException ignored) {
 
 		}
 		try {
 			new Group("CE1", "GE1", "", "GE3");
-			Assert.fail();
+			AssertJUnit.fail();
 		} catch (IllegalArgumentException ignored) {
 
 		}
 		try {
 			new Group("CE1", "GE1", "sf;gs", "GE3");
-			Assert.fail();
+			AssertJUnit.fail();
 		} catch (IllegalArgumentException ignored) {
 
 		}
 		try {
 			new Group("CE1", "sf;gs", "GE3");
-			Assert.fail();
+			AssertJUnit.fail();
 		} catch (IllegalArgumentException ignored) {
 
 		}

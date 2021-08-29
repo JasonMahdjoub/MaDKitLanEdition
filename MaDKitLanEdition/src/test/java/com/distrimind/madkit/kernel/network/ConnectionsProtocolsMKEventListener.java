@@ -49,7 +49,7 @@ import com.distrimind.madkit.kernel.network.connection.secured.ServerSecuredProt
 import com.distrimind.madkit.kernel.network.connection.unsecured.CheckSumConnectionProtocolProperties;
 import com.distrimind.madkit.kernel.network.connection.unsecured.UnsecuredConnectionProtocolProperties;
 import com.distrimind.util.crypto.*;
-import org.junit.Assert;
+import org.testng.AssertJUnit;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -156,7 +156,7 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 
 		ConnectionProtocolProperties<?> cpp = new UnsecuredConnectionProtocolProperties();
 		s = new ServerSecuredProtocolPropertiesWithKnownPublicKey();
-		Assert.assertEquals(s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.DEFAULT, ASymmetricKeyWrapperType.DEFAULT, MessageDigestType.DEFAULT), encryptionProfileIdentifier);
+		AssertJUnit.assertEquals(s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.DEFAULT, ASymmetricKeyWrapperType.DEFAULT, MessageDigestType.DEFAULT), encryptionProfileIdentifier);
 		cpp.subProtocolProperties = s;
 		if (includeP2PConnectionPossibilityForClients) {
 			ConnectionProtocolProperties<?> cpp2 = new UnsecuredConnectionProtocolProperties();
@@ -183,10 +183,10 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 
 		ConnectionProtocolNegotiatorProperties cpnp=new ConnectionProtocolNegotiatorProperties();
 		s=new ServerSecuredProtocolPropertiesWithKnownPublicKey();
-		Assert.assertEquals(s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.AES_CTR, ASymmetricKeyWrapperType.BC_FIPS_RSA_OAEP_WITH_SHA3_384, MessageDigestType.DEFAULT), encryptionProfileIdentifier);
+		AssertJUnit.assertEquals(s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.AES_CTR, ASymmetricKeyWrapperType.BC_FIPS_RSA_OAEP_WITH_SHA3_384, MessageDigestType.DEFAULT), encryptionProfileIdentifier);
 		cpnp.addConnectionProtocol(s, 0);
 		s=new ServerSecuredProtocolPropertiesWithKnownPublicKey();
-		Assert.assertEquals(s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.AES_GCM, ASymmetricKeyWrapperType.BC_FIPS_RSA_OAEP_WITH_PARAMETERS_SHA3_512, MessageDigestType.DEFAULT), encryptionProfileIdentifier);
+		AssertJUnit.assertEquals(s.addEncryptionProfile(getKeyPairForSignature(), SymmetricEncryptionType.AES_GCM, ASymmetricKeyWrapperType.BC_FIPS_RSA_OAEP_WITH_PARAMETERS_SHA3_512, MessageDigestType.DEFAULT), encryptionProfileIdentifier);
 		cpnp.addConnectionProtocol(s, 1);
 
 		if (includeP2PConnectionPossibilityForClients) {

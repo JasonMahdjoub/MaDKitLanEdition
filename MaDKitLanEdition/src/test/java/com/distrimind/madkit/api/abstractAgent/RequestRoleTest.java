@@ -37,15 +37,14 @@
  */
 package com.distrimind.madkit.api.abstractAgent;
 
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import com.distrimind.madkit.agr.Organization;
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.util.io.SecureExternalizable;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
-import org.junit.Test;
-
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.*;
-import static org.junit.Assert.*;
 
 /**
  * @author Fabien Michel
@@ -62,16 +61,16 @@ public class RequestRoleTest extends JunitMadkit {
 	final AbstractAgent helper = new AbstractAgent() {
 		@Override
 		protected void activate() {
-			assertEquals(ROLE_ALREADY_HANDLED, requestRole(GROUP, Organization.GROUP_MANAGER_ROLE));
-			assertEquals(SUCCESS, requestRole(GROUP, ROLE));
+			AssertJUnit.assertEquals(ROLE_ALREADY_HANDLED, requestRole(GROUP, Organization.GROUP_MANAGER_ROLE));
+			AssertJUnit.assertEquals(SUCCESS, requestRole(GROUP, ROLE));
 		}
 	};
 
 	final AbstractAgent helper2 = new AbstractAgent() {
 		@Override
 		protected void activate() {
-			assertEquals(ROLE_ALREADY_HANDLED, requestRole(GROUP, Organization.GROUP_MANAGER_ROLE));
-			assertEquals(SUCCESS, requestRole(GROUP, ROLE));
+			AssertJUnit.assertEquals(ROLE_ALREADY_HANDLED, requestRole(GROUP, Organization.GROUP_MANAGER_ROLE));
+			AssertJUnit.assertEquals(SUCCESS, requestRole(GROUP, ROLE));
 		}
 	};
 
@@ -136,10 +135,10 @@ public class RequestRoleTest extends JunitMadkit {
 		launchTest(new AbstractAgent() {
 			@Override
 			protected void activate() {
-				assertEquals(SUCCESS, createGroup(GROUP));
-				assertEquals(SUCCESS, requestRole(GROUP, ROLE));
-				assertTrue(isCreatedRole(GROUP, Organization.GROUP_MANAGER_ROLE));
-				assertTrue(isCreatedRole(GROUP, ROLE));
+				AssertJUnit.assertEquals(SUCCESS, createGroup(GROUP));
+				AssertJUnit.assertEquals(SUCCESS, requestRole(GROUP, ROLE));
+				AssertJUnit.assertTrue(isCreatedRole(GROUP, Organization.GROUP_MANAGER_ROLE));
+				AssertJUnit.assertTrue(isCreatedRole(GROUP, ROLE));
 			}
 		});
 	}
@@ -149,10 +148,10 @@ public class RequestRoleTest extends JunitMadkit {
 		launchTest(new AbstractAgent() {
 			@Override
 			protected void activate() {
-				assertEquals(SUCCESS, createGroup(GROUP));
-				assertEquals(ROLE_ALREADY_HANDLED, requestRole(GROUP, Organization.GROUP_MANAGER_ROLE));
-				assertEquals(SUCCESS, requestRole(GROUP, ROLE));
-				assertEquals(ROLE_ALREADY_HANDLED, requestRole(GROUP, ROLE));
+				AssertJUnit.assertEquals(SUCCESS, createGroup(GROUP));
+				AssertJUnit.assertEquals(ROLE_ALREADY_HANDLED, requestRole(GROUP, Organization.GROUP_MANAGER_ROLE));
+				AssertJUnit.assertEquals(SUCCESS, requestRole(GROUP, ROLE));
+				AssertJUnit.assertEquals(ROLE_ALREADY_HANDLED, requestRole(GROUP, ROLE));
 			}
 		});
 	}
@@ -163,10 +162,10 @@ public class RequestRoleTest extends JunitMadkit {
 			@Override
 			protected void activate() {
 				Group g = new Group(false, alwaysDeny, false, GROUP.getCommunity(), "GD");
-				assertEquals(SUCCESS, createGroup(g));
+				AssertJUnit.assertEquals(SUCCESS, createGroup(g));
 				g = new Group(false, GROUP.getCommunity(), "GD");
-				assertEquals(ACCESS_DENIED, requestRole(g, ROLE));
-				assertEquals(ACCESS_DENIED, requestRole(g, ROLE, null));
+				AssertJUnit.assertEquals(ACCESS_DENIED, requestRole(g, ROLE));
+				AssertJUnit.assertEquals(ACCESS_DENIED, requestRole(g, ROLE, null));
 			}
 		});
 	}
@@ -177,10 +176,10 @@ public class RequestRoleTest extends JunitMadkit {
 			@Override
 			protected void activate() {
 				Group g = new Group(false, alwaysAccept, false, GROUP.getCommunity(), "GA");
-				assertEquals(SUCCESS, createGroup(g));
+				AssertJUnit.assertEquals(SUCCESS, createGroup(g));
 				g = new Group(GROUP.getCommunity(), "GA");
-				assertEquals(SUCCESS, requestRole(g, ROLE));
-				assertEquals(SUCCESS, requestRole(g, aa(), null));
+				AssertJUnit.assertEquals(SUCCESS, requestRole(g, ROLE));
+				AssertJUnit.assertEquals(SUCCESS, requestRole(g, aa(), null));
 			}
 		});
 	}
@@ -191,12 +190,12 @@ public class RequestRoleTest extends JunitMadkit {
 			@Override
 			protected void activate() {
 				Group g = new Group(false, buggyIdentifier, false, GROUP.getCommunity(), "GBuggy");
-				assertEquals(SUCCESS, createGroup(g));// TODO
+				AssertJUnit.assertEquals(SUCCESS, createGroup(g));// TODO
 				g = new Group(GROUP.getCommunity(), "GBuggy"); // think
 				// about
 				// that
 				// issue
-				assertEquals(SUCCESS, requestRole(g, aa(), null));
+				AssertJUnit.assertEquals(SUCCESS, requestRole(g, aa(), null));
 			}
 		}, AGENT_CRASH);
 	}
@@ -206,7 +205,7 @@ public class RequestRoleTest extends JunitMadkit {
 		launchTest(new AbstractAgent() {
 			@Override
 			protected void activate() {
-				assertEquals(SUCCESS, createGroup(GROUP, alwaysDeny));
+				AssertJUnit.assertEquals(SUCCESS, createGroup(GROUP, alwaysDeny));
 			}
 		});
 	}
@@ -216,11 +215,11 @@ public class RequestRoleTest extends JunitMadkit {
 		launchTest(new AbstractAgent() {
 			@Override
 			protected void activate() {
-				assertEquals(SUCCESS, createGroup(GROUP));
-				assertTrue(isCreatedGroup(GROUP));
-				assertTrue(isCreatedRole(GROUP, Organization.GROUP_MANAGER_ROLE));
-				assertEquals(SUCCESS, leaveGroup(GROUP));
-				assertFalse(isCreatedGroup(GROUP));
+				AssertJUnit.assertEquals(SUCCESS, createGroup(GROUP));
+				AssertJUnit.assertTrue(isCreatedGroup(GROUP));
+				AssertJUnit.assertTrue(isCreatedRole(GROUP, Organization.GROUP_MANAGER_ROLE));
+				AssertJUnit.assertEquals(SUCCESS, leaveGroup(GROUP));
+				AssertJUnit.assertFalse(isCreatedGroup(GROUP));
 			}
 		});
 	}
@@ -231,33 +230,33 @@ public class RequestRoleTest extends JunitMadkit {
 			@Override
 			protected void activate() {
 				try {
-					assertEquals(NOT_COMMUNITY, requestRole(null, null, null));
+					AssertJUnit.assertEquals(NOT_COMMUNITY, requestRole(null, null, null));
 					noExceptionFailure();
 				} catch (NullPointerException e) {
 					e.printStackTrace();
 				}
 
-				assertEquals(SUCCESS, createGroup(GROUP));
+				AssertJUnit.assertEquals(SUCCESS, createGroup(GROUP));
 				try {
-					assertEquals(SUCCESS, requestRole(GROUP, null, null));
+					AssertJUnit.assertEquals(SUCCESS, requestRole(GROUP, null, null));
 					noExceptionFailure();
 				} catch (NullPointerException e) {
 					e.printStackTrace();
 				}
 				try {
-					assertEquals(NOT_COMMUNITY, requestRole(new Group(null, G), null));
+					AssertJUnit.assertEquals(NOT_COMMUNITY, requestRole(new Group(null, G), null));
 					noExceptionFailure();
 				} catch (NullPointerException e) {
 					e.printStackTrace();
 				}
 				try {
-					assertEquals(NOT_COMMUNITY, requestRole(null, ROLE));
+					AssertJUnit.assertEquals(NOT_COMMUNITY, requestRole(null, ROLE));
 					noExceptionFailure();
 				} catch (NullPointerException e) {
 					e.printStackTrace();
 				}
 				try {
-					assertEquals(SUCCESS, requestRole(GROUP, null, new SecureExternalizable() {
+					AssertJUnit.assertEquals(SUCCESS, requestRole(GROUP, null, new SecureExternalizable() {
 						
 						@Override
 						public int getInternalSerializedSize() {
@@ -287,11 +286,11 @@ public class RequestRoleTest extends JunitMadkit {
 		launchTest(new AbstractAgent() {
 			@Override
 			protected void activate() {
-				assertEquals(SUCCESS, createGroup(GROUP));
-				assertEquals(ROLE_ALREADY_HANDLED, requestRole(GROUP, Organization.GROUP_MANAGER_ROLE));
-				assertEquals(SUCCESS, requestRole(GROUP, ROLE));
-				assertEquals(SUCCESS, launchAgent(helper));
-				assertEquals(SUCCESS, launchAgent(helper2));
+				AssertJUnit.assertEquals(SUCCESS, createGroup(GROUP));
+				AssertJUnit.assertEquals(ROLE_ALREADY_HANDLED, requestRole(GROUP, Organization.GROUP_MANAGER_ROLE));
+				AssertJUnit.assertEquals(SUCCESS, requestRole(GROUP, ROLE));
+				AssertJUnit.assertEquals(SUCCESS, launchAgent(helper));
+				AssertJUnit.assertEquals(SUCCESS, launchAgent(helper2));
 			}
 		});
 	}
@@ -301,10 +300,10 @@ public class RequestRoleTest extends JunitMadkit {
 		launchTest(new AbstractAgent() {
 			@Override
 			protected void activate() {
-				assertFalse(isCommunity(C));
-				assertFalse(isCreatedGroup(GROUP));
-				assertEquals(SUCCESS, createGroup(GROUP));
-				assertEquals(SUCCESS, requestRole(GROUP, ROLE));
+				AssertJUnit.assertFalse(isCommunity(C));
+				AssertJUnit.assertFalse(isCreatedGroup(GROUP));
+				AssertJUnit.assertEquals(SUCCESS, createGroup(GROUP));
+				AssertJUnit.assertEquals(SUCCESS, requestRole(GROUP, ROLE));
 			}
 		});
 	}

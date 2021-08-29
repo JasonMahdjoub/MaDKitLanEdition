@@ -37,10 +37,13 @@
  */
 package com.distrimind.madkit.boot.process;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
 
+import org.testng.AssertJUnit;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.Test;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
@@ -48,10 +51,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Test;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.JunitMadkit;
@@ -70,17 +69,11 @@ import com.distrimind.madkit.kernel.Madkit;
 public class CreateLogFilesTest extends JunitMadkit {
 
 	File f;
-	public static final FilenameFilter filter = new FilenameFilter() {
-
-		@Override
-		public boolean accept(File dir, String s) {
-			return !s.contains(".lck");
-		}
-	};
+	public static final FilenameFilter filter = (dir, s) -> !s.contains(".lck");
 
 	static void delete(File f) throws IOException {
 		if (f.isDirectory()) {
-			for (File c : f.listFiles())
+			for (File c : Objects.requireNonNull(f.listFiles()))
 				delete(c);
 		}
 		if (!f.delete())
@@ -91,7 +84,7 @@ public class CreateLogFilesTest extends JunitMadkit {
 	@Test
 	public void logDirectoryUniqueness() {
 		new JunitMadkit();
-		String dir = System.getProperty("java.io.tmpdir") + File.separatorChar + name.getMethodName();
+		String dir = System.getProperty("java.io.tmpdir") + File.separatorChar + testName;
 		try {
 			delete(new File(dir));
 		} catch (IOException ignored) {
@@ -105,7 +98,7 @@ public class CreateLogFilesTest extends JunitMadkit {
 				"--createLogFiles", "--kernelLogLevel", "INFO", "--logDirectory", dir };
 		List<Madkit> lm=new ArrayList<>();
 		for (int i = 0; i < 50; i++) {
-			new Madkit(args);
+			lm.add(new Madkit(args));
 		}
 		pause(null, 200);
 		assertEquals(50, Objects.requireNonNull(new File(dir).listFiles()).length);
@@ -129,7 +122,7 @@ public class CreateLogFilesTest extends JunitMadkit {
 		assertTrue(f.exists());
 		assertTrue(f.isDirectory());
 
-		assertEquals(3, f.listFiles(filter).length);
+		assertEquals(3, Objects.requireNonNull(f.listFiles(filter)).length);
 	}
 
 	@Test
@@ -193,7 +186,7 @@ public class CreateLogFilesTest extends JunitMadkit {
 		assertTrue(f.exists());
 		assertTrue(f.isDirectory());
 		pause(null, 500);
-		assertEquals(3, f.listFiles(filter).length);
+		assertEquals(3, Objects.requireNonNull(f.listFiles(filter)).length);
 	}
 
 	@Test
@@ -225,7 +218,7 @@ public class CreateLogFilesTest extends JunitMadkit {
 			}
 		});
 		pause(null, 500);
-		Assert.assertEquals(2, f.listFiles(filter).length);
+		AssertJUnit.assertEquals(2, Objects.requireNonNull(f.listFiles(filter)).length);
 	}
 
 	@AfterClass

@@ -56,8 +56,9 @@ public class MemoryLeak extends JunitMadkit {
 		launchTest(new NormalAgent() {
 			protected void activate() throws InterruptedException {
 				pause(2000);
-				while (true) {
-					for (int i = 0; i < 1000; i++) {
+				//while (true)
+				{
+					for (int i = 0; i < 100000; i++) {
 						launchAgent(new Agent(), true);
 						pause(100);
 					}

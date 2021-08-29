@@ -37,15 +37,13 @@
  */
 package com.distrimind.madkit.i18n;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import org.testng.annotations.Test;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.EnumSet;
 import java.util.Properties;
-
-import org.junit.Test;
 
 import com.distrimind.madkit.action.AgentAction;
 import com.distrimind.madkit.action.GUIManagerAction;
@@ -80,6 +78,7 @@ public class I18nFileTest {
 		testFilePresenceAndContent(SchedulingAction.class, "fr_FR");
 	}
 
+	@Test
 	public <E extends Enum<E>> void testFilePresenceAndContent(Class<E> e, String... languages) throws IOException {
 		EnumSet<E> set = EnumSet.allOf(e);
 		testKeys(e, set, "");
@@ -89,6 +88,7 @@ public class I18nFileTest {
 	}
 
 
+	@Test(enabled = false)
 	private <E extends Enum<E>> void testKeys(Class<E> e, EnumSet<E> set, String lang) throws IOException {
 		System.err.println("\n----------------testing " + e + lang);
 		Properties defaultConfig = new Properties();

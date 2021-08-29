@@ -37,12 +37,11 @@
  */
 package com.distrimind.madkit.kernel;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-
-import static org.junit.Assert.*;
+import com.distrimind.madkit.JUnitFunctions;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.AssertJUnit;
 
 /**
  * @author Fabien Michel
@@ -60,7 +59,7 @@ public class AgentAddressTest {
 	Madkit m;
 	AgentAddress aa;
 
-	@Before
+	@BeforeMethod
 	public void before() {
 		mk = (m=new Madkit("--desktop", "false", "--forceDesktop", "true")).getKernel();
 		a = new AbstractAgent();
@@ -73,12 +72,12 @@ public class AgentAddressTest {
 		} catch (CGRNotAvailable e) {
 			e.printStackTrace();
 		}
-		assertTrue(r.addMember(a, false));
+		AssertJUnit.assertTrue(r.addMember(a, false));
 		aa = r.getAgentAddressOf(a);
-		assertNotNull(aa);
+		AssertJUnit.assertNotNull(aa);
 	}
 
-	@After
+	@AfterMethod
 	public void after()
 	{
 		MadkitTest.closeMadkit(m);
@@ -87,8 +86,8 @@ public class AgentAddressTest {
 
 	@Test
 	public void testAgentAddress() {
-		assertTrue(a.checkAgentAddress(aa));
-		assertTrue(aa.isFrom(a.getKernelAddress()));
+		AssertJUnit.assertTrue(a.checkAgentAddress(aa));
+		AssertJUnit.assertTrue(aa.isFrom(a.getKernelAddress()));
 	}
 
 	/**
@@ -96,7 +95,7 @@ public class AgentAddressTest {
 	 */
 	@Test
 	public void testGetAgent() {
-		assertEquals(a, aa.getAgent());
+		AssertJUnit.assertEquals(a, aa.getAgent());
 	}
 
 	/**
@@ -105,15 +104,15 @@ public class AgentAddressTest {
 	 */
 	@Test
 	public void testCGRNames() {
-		assertEquals("c", aa.getCommunity());
-		assertEquals("g", aa.getGroup().getName());
-		assertEquals("r", aa.getRole());
-		assertEquals(AbstractAgent.ReturnCode.SUCCESS, r.removeMember(a, false));
-		assertFalse(a.checkAgentAddress(aa));
-		assertTrue(aa.isFrom(a.getKernelAddress()));
-		assertEquals("c", aa.getCommunity());
-		assertEquals("g", aa.getGroup().getName());
-		assertEquals("r", aa.getRole());
+		AssertJUnit.assertEquals("c", aa.getCommunity());
+		AssertJUnit.assertEquals("g", aa.getGroup().getName());
+		AssertJUnit.assertEquals("r", aa.getRole());
+		AssertJUnit.assertEquals(AbstractAgent.ReturnCode.SUCCESS, r.removeMember(a, false));
+		AssertJUnit.assertFalse(a.checkAgentAddress(aa));
+		AssertJUnit.assertTrue(aa.isFrom(a.getKernelAddress()));
+		AssertJUnit.assertEquals("c", aa.getCommunity());
+		AssertJUnit.assertEquals("g", aa.getGroup().getName());
+		AssertJUnit.assertEquals("r", aa.getRole());
 	}
 
 	/**
@@ -122,7 +121,7 @@ public class AgentAddressTest {
 	 */
 	@Test
 	public void testGetRoleObject() {
-		assertEquals(r, aa.getRoleObject());
+		AssertJUnit.assertEquals(r, aa.getRoleObject());
 	}
 
 	/**
@@ -131,7 +130,7 @@ public class AgentAddressTest {
 	 */
 	@Test
 	public void testGetKernelAddress() {
-		assertEquals(aa.getKernelAddress(), mk.getKernelAddress());
+		AssertJUnit.assertEquals(aa.getKernelAddress(), mk.getKernelAddress());
 	}
 
 	/**
@@ -141,14 +140,14 @@ public class AgentAddressTest {
 	public void testToString() {
 		System.err.println(aa.getKernelAddress());
 		System.err.println(aa);
-		assertTrue(aa.toString().contains("@(Group(c:/g/),r)"));
+		AssertJUnit.assertTrue(aa.toString().contains("@(Group(c:/g/),r)"));
 	}
 
 
 	@Test
 	public void testHashCode() {
-		assertEquals(a.hashCode(), aa.hashCode());
-		assertEquals(a.getAgentID(), aa.getAgentID());
+		AssertJUnit.assertEquals(a.hashCode(), aa.hashCode());
+		AssertJUnit.assertEquals(a.getAgentID(), aa.getAgentID());
 	}
 
 	/**
@@ -158,29 +157,27 @@ public class AgentAddressTest {
 	@Test
 	public void testEqualsObject() {
 		AgentAddress other = new AgentAddress(new AbstractAgent(), r, r.getKernelAddress(), true);
-        assertNotEquals(other, aa);
+        JUnitFunctions.assertNotEquals(other, aa);
 		other = new AgentAddress(a, r, r.getKernelAddress(), true);
 		System.err.println(aa.toString() + aa.getKernelAddress());
 		System.err.println(other.toString() + other.getKernelAddress());
-        assertEquals(other, aa);
+        AssertJUnit.assertEquals(other, aa);
 	}
 
 
 	@Test
 	public void testExists() {
-		assertTrue(a.checkAgentAddress(aa));
-		assertEquals(AbstractAgent.ReturnCode.SUCCESS, r.removeMember(a, false));
-		assertFalse(a.checkAgentAddress(aa));
+		AssertJUnit.assertTrue(a.checkAgentAddress(aa));
+		AssertJUnit.assertEquals(AbstractAgent.ReturnCode.SUCCESS, r.removeMember(a, false));
+		AssertJUnit.assertFalse(a.checkAgentAddress(aa));
 	}
 
 
 	@Test
 	public void testIsLocal() {
-		// AgentAddress other = new AgentAddress(new AbstractAgent(), r,
-		// r.getKernelAddress());
-		assertTrue(aa.isFrom(a.getKernelAddress()));
-		assertEquals(AbstractAgent.ReturnCode.SUCCESS, r.removeMember(a, false));
-		assertTrue(aa.isFrom(a.getKernelAddress()));
+		AssertJUnit.assertTrue(aa.isFrom(a.getKernelAddress()));
+		AssertJUnit.assertEquals(AbstractAgent.ReturnCode.SUCCESS, r.removeMember(a, false));
+		AssertJUnit.assertTrue(aa.isFrom(a.getKernelAddress()));
 	}
 
 }
