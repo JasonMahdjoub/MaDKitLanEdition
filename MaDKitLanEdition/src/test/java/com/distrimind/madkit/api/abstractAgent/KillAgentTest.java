@@ -38,6 +38,7 @@
 package com.distrimind.madkit.api.abstractAgent;
 
 import com.distrimind.madkit.JUnitFunctions;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.AGENT_CRASH;
@@ -133,16 +134,22 @@ public class KillAgentTest extends JunitMadkit {
 		}
 	};
 
-	final AbstractAgent timeOutAgent = new AbstractAgent() {
-		@Override
-		protected void activate() throws InterruptedException {
+	AbstractAgent timeOutAgent;
 
-			Thread.sleep(6000);
-			/*
-			 * try { sleep(4000); } catch(InterruptedException e) { sleep(3000); }
-			 */
-		}
-	};
+	@BeforeMethod
+	public void setTimeOutAgent()
+	{
+		timeOutAgent = new AbstractAgent() {
+			@Override
+			protected void activate() throws InterruptedException {
+
+				Thread.sleep(6000);
+				/*
+				 * try { sleep(4000); } catch(InterruptedException e) { sleep(3000); }
+				 */
+			}
+		};
+	}
 
 	@Test
 	public void returnSuccess() {

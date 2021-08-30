@@ -38,6 +38,7 @@
 package com.distrimind.madkit.api.abstractAgent;
 
 import com.distrimind.madkit.JUnitFunctions;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.AGENT_CRASH;
@@ -97,7 +98,13 @@ public class KillAgentFakeThreadTest extends JunitMadkit {
 		}
 	};
 
-	final SimpleAgentFakeThread timeOutAgent = new TimeOutAgentFakeThread();
+	SimpleAgentFakeThread timeOutAgent=null;
+
+	@BeforeMethod
+	public void setTimeOutAgent()
+	{
+		timeOutAgent=new TimeOutAgentFakeThread();
+	}
 
 	@Test
 	public void returnSuccess() {

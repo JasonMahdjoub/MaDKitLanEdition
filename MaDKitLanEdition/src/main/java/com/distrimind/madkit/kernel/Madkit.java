@@ -153,6 +153,7 @@ final public class Madkit {
 							.addItem("Fix issue when determining if a local ip is compatible with another ip")
 							.addItem("Fix XXE security issue with Cling dependency : https://github.com/4thline/cling/issues/243")
 							.addItem("Fix DDOS and SSRF security issues with Cling dependency : https://github.com/4thline/cling/issues/253")
+							.addItem("Fix issue with AgentExecutor when an agent is launched and terminated too quickly")
 					)
 					.addDescription(new Description((short)2, (short)2, (short)0, Version.Type.BETA, (short)1, "2021-07-07")
 							.addItem("Update Utils to 5.18.5 STABLE")
