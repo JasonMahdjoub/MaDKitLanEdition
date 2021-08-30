@@ -18,5 +18,5 @@ include 'services:webservice'
 rootProject.name = 'MaDKitLanEdition'
 include ':OOD'
 project(":OOD").projectDir = file("../../OOD/OOD")
-/*include ':Utils'
-project(":Utils").projectDir = file("../../Utils/Utils")*/
+include ':Utils'
+project(":Utils").projectDir = file("../../Utils/Utils")

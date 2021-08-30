@@ -97,7 +97,7 @@ task generateVersionsFile(type:JavaExec, dependsOn:classes) {
             }
         }
 
-        mainClass = 'com.distrimind.madkit.kernel.VersionsFileGenerator'
+        getMainClass().set( 'com.distrimind.madkit.kernel.VersionsFileGenerator' )
         classpath = sourceSets.main.runtimeClasspath
 
     }
