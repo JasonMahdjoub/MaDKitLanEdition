@@ -147,6 +147,7 @@ final public class Madkit {
 					.addDeveloper(new PersonDeveloper("Gutknecht", "Olivier", "1997-02-01"))
 					.addDeveloper(new PersonDeveloper("Ferber", "Jacques", "1997-02-01"))
 					.addDescription(new Description((short)2, (short)2, (short)0, Version.Type.BETA, (short)2, "2021-08-17")
+							.addItem("Update Utils to 5.19.2 STABLE")
 							.addItem("Disable useless server stream into Upnp IGD")
 							.addItem("UPNP IGD test pass")
 							.addItem("Complete filter of network interfaces")
