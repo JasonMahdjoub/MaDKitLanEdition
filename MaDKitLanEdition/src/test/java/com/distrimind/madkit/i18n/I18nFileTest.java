@@ -78,7 +78,6 @@ public class I18nFileTest {
 		testFilePresenceAndContent(SchedulingAction.class, "fr_FR");
 	}
 
-	@Test
 	public <E extends Enum<E>> void testFilePresenceAndContent(Class<E> e, String... languages) throws IOException {
 		EnumSet<E> set = EnumSet.allOf(e);
 		testKeys(e, set, "");
@@ -88,7 +87,6 @@ public class I18nFileTest {
 	}
 
 
-	@Test(enabled = false)
 	private <E extends Enum<E>> void testKeys(Class<E> e, EnumSet<E> set, String lang) throws IOException {
 		System.err.println("\n----------------testing " + e + lang);
 		Properties defaultConfig = new Properties();

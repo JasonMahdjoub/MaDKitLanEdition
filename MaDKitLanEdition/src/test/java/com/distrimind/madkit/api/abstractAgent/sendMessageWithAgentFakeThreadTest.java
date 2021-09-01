@@ -39,6 +39,8 @@ package com.distrimind.madkit.api.abstractAgent;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.INVALID_AGENT_ADDRESS;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_IN_GROUP;
@@ -63,7 +65,12 @@ import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
  * @since MadkitLanEdition 1.0
  */
 public class sendMessageWithAgentFakeThreadTest extends JunitMadkit {
-	final AgentFakeThreadReceiver target = new AgentFakeThreadReceiver();
+	AgentFakeThreadReceiver target ;
+	@BeforeMethod
+	public void setTarget()
+	{
+		target=new AgentFakeThreadReceiver();
+	}
 
 	@Test
 	public void returnSuccess() {

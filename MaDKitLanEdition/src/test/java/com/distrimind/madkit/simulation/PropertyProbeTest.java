@@ -45,6 +45,7 @@ import com.distrimind.madkit.simulation.probe.PropertyProbe;
 import com.distrimind.madkit.testing.util.agent.NormalAA;
 import com.distrimind.madkit.testing.util.agent.SimulatedAgent;
 import com.distrimind.madkit.testing.util.agent.SimulatedAgentBis;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
@@ -201,12 +202,12 @@ public class PropertyProbeTest extends JunitMadkit {
 					assertEquals(SUCCESS, launchAgent(agent = new SimulatedAgent()));
 					agent.publicPrimitiveField = i;
 				}
-				PropertyProbe<AbstractAgent, String> fp = new PropertyProbe<>(GROUP, ROLE, "publicPrimitiveField");
+				PropertyProbe<AbstractAgent, Double> fp = new PropertyProbe<>(GROUP, ROLE, "publicPrimitiveField");
 				Watcher s = new Watcher();
 				assertEquals(SUCCESS, launchAgent(s));
 				s.addProbe(fp);
-				assertEquals(9d, Double.parseDouble(fp.getMaxValue()));
-				assertEquals(0d, Double.parseDouble(fp.getMinValue()));
+				assertEquals(9d, fp.getMaxValue());
+				assertEquals(0d, fp.getMinValue());
 			}
 		}, ReturnCode.SUCCESS);
 	}
@@ -244,7 +245,7 @@ public class PropertyProbeTest extends JunitMadkit {
 				Watcher s = new Watcher();
 				assertEquals(SUCCESS, launchAgent(s));
 				s.addProbe(fp);
-				assertEquals(Double.NaN, fp.getAverageValue(), 0.0);
+				AssertJUnit.assertTrue(Double.isNaN(fp.getAverageValue()));
 			}
 		}, ReturnCode.SUCCESS);
 	}

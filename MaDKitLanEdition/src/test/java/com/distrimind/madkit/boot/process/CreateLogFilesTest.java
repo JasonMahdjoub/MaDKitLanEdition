@@ -206,11 +206,12 @@ public class CreateLogFilesTest extends JunitMadkit {
 
 	@Test
 	public void noKernelFile() {
-		addMadkitArgs("--createLogFiles", "--kernelLogLevel", "OFF");
+		addMadkitArgs("--createLogFiles", "TRUE", "--kernelLogLevel", "OFF");
 		launchTest(new AbstractAgent() {
 
 			@Override
 			protected void activate() {
+				assertTrue(getMadkitConfig().createLogFiles);
 				System.err.println("log directory : " + getMadkitConfig().logDirectory);
 				f = getMadkitConfig().logDirectory;
 				assertTrue(f.exists());

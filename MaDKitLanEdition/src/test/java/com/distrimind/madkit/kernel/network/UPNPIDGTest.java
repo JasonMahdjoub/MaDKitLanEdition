@@ -39,9 +39,9 @@ package com.distrimind.madkit.kernel.network;
 
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
+
+import java.lang.reflect.InvocationTargetException;
+import java.net.*;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -73,7 +73,8 @@ public class UPNPIDGTest extends JunitMadkit {
 	static final int portEnd = 55002;
 
 	@Test
-	public void testUPNPIGDAgent() {
+	public void testUPNPIGDAgent() throws ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+
 		launchTest(new AbstractAgent() {
 			final AtomicBoolean routerAlreadyFound = new AtomicBoolean(false);
 			final AtomicBoolean externalIPReceived = new AtomicBoolean(false);

@@ -54,12 +54,12 @@ import com.distrimind.util.concurrent.ScheduledPoolExecutor;
 import org.testng.Assert;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
@@ -141,12 +141,18 @@ public class JunitMadkit {
 		return new ArrayList<>(helperInstances);
 	}
 
-	protected List<String> mkArgs = new ArrayList<>(Arrays.asList(
-			// "--"+Madkit.warningLogLevel,"INFO",
-			"--desktop", "false", "--forceDesktop", "true", "--launchAgents",
-			"{com.distrimind.madkit.kernel.AbstractAgent}", // to not have the desktop mode by
-			// default
-			"--logDirectory", getBinTestDir(), "--agentLogLevel", "ALL", "--madkitLogLevel", "INFO"));
+	protected List<String> mkArgs;
+
+	@BeforeMethod
+	public void setMkArgs()
+	{
+		mkArgs = new ArrayList<>(Arrays.asList(
+				// "--"+Madkit.warningLogLevel,"INFO",
+				"--desktop", "false", "--forceDesktop", "true", "--launchAgents",
+				"{com.distrimind.madkit.kernel.AbstractAgent}", // to not have the desktop mode by
+				// default
+				"--logDirectory", getBinTestDir(), "--agentLogLevel", "ALL", "--madkitLogLevel", "INFO"));
+	}
 
 	private static final List<Process> externalProcesses = new ArrayList<>();
 
@@ -326,7 +332,6 @@ public class JunitMadkit {
 		return "bin";
 	}
 
-	@Test
 	public void test() {
 		launchTest(new AbstractAgent());
 	}
@@ -418,9 +423,21 @@ public class JunitMadkit {
 	public void launchThreadedMKNetworkInstance(final Level l, final Class<? extends AbstractAgent> agentClass,
 			final AbstractAgent agentToLaunch, final NetworkEventListener networkEventListener,
 			final KernelAddress kernelAddress) {
-		Thread t=new Thread(() -> launchCustomNetworkInstance(l, agentClass, agentToLaunch, networkEventListener, kernelAddress));
+		AtomicReference<Madkit> mkReference=new AtomicReference<>();
+		Thread t=new Thread(() -> launchCustomNetworkInstance(l, agentClass, agentToLaunch, networkEventListener, kernelAddress, mkReference));
 		t.setName("Madkit thread launcher");
 		t.start();
+		synchronized (helperInstances) {
+
+			while(!helperInstances.contains(mkReference.get()))
+			{
+				try {
+					helperInstances.wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 
 	public KernelAddress getKernelAddress(Madkit m) {
@@ -578,12 +595,12 @@ public class JunitMadkit {
 	}
 
 	public Madkit launchMKNetworkInstance(Level l, final NetworkEventListener networkEventListener) {
-		return launchCustomNetworkInstance(l, ForEverAgent.class, null, networkEventListener, null);
+		return launchCustomNetworkInstance(l, ForEverAgent.class, null, networkEventListener, null, null);
 	}
 
 	public Madkit launchCustomNetworkInstance(final Level l, final Class<? extends AbstractAgent> agentTolaunch,
 			final AbstractAgent agentToLaunch, final NetworkEventListener networkEventListener,
-			KernelAddress kernelAddress) {
+			KernelAddress kernelAddress, AtomicReference<Madkit> mkReference) {
 		Madkit m = new Madkit(Madkit.generateDefaultMadkitConfig(), kernelAddress, _properties -> {
 			_properties.networkProperties.network = true;
 			_properties.networkProperties.networkLogLevel = l;
@@ -594,7 +611,8 @@ public class JunitMadkit {
 			networkEventListener.onMaDKitPropertiesLoaded(_properties);
 
 		});
-
+		if (mkReference!=null)
+			mkReference.set(m);
 		if (agentToLaunch != null)
 			m.getKernel().launchAgent(agentToLaunch);
 		addHelperInstance(m);

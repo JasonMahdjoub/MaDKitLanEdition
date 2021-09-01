@@ -15,13 +15,13 @@ public class AutomaticLocalConnectionTest extends JunitMadkit {
 	final NetworkEventListener eventListener1;
 	final NetworkEventListener eventListener2;
 
-	@DataProvider
+	@DataProvider(name="data")
 	public static Object[][] data() {
 		return NetworkEventListener.getNetworkEventListenersForPeerToPeerConnectionsWithRandomProperties(true, false,
 				true, true, true, null,null, 2, 1, 2);
 	}
 
-	@Factory(dataProvider = "@DataProvider")
+	@Factory(dataProvider = "data")
 	public AutomaticLocalConnectionTest(NetworkEventListener eventListener1, NetworkEventListener eventListener2) {
 		this.eventListener1 = eventListener1;
 		this.eventListener2 = eventListener2;

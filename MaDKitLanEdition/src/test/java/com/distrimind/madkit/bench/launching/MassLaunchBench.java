@@ -210,14 +210,12 @@ public class MassLaunchBench extends JunitMadkit {
 					logger.info("\n******************* STARTING MASS LAUNCH *******************\n");
 				}
 				List<AbstractAgent> agents = new ArrayList<>(1_000_000);
-				for (int i = 0; i < 1_00_000; i++) {
+				for (int i = 0; i < 1_000_000; i++) {
 					agents.add(new AbstractAgent());
 				}
 				startTimer();
 				System.err.println("begin");
-				for (AbstractAgent abstractAgent : agents) {
-					launchAgent(abstractAgent);
-				}
+				launchAgentBucket(agents);
 				stopTimer("done ");
 				startTimer();
 				System.err.println("begin");
@@ -238,8 +236,8 @@ public class MassLaunchBench extends JunitMadkit {
 				if (logger != null) {
 					logger.info("\n******************* STARTING MASS LAUNCH *******************\n");
 				}
-				List<AbstractAgent> agents = new ArrayList<>(1_000_000);
-				for (int i = 0; i < 10_000; i++) {
+				List<AbstractAgent> agents = new ArrayList<>(1000);
+				for (int i = 0; i < 1000; i++) {
 					agents.add(new PongAgent());
 				}
 				startTimer();

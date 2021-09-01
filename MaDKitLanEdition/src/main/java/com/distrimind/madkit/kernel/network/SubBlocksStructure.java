@@ -200,7 +200,7 @@ public class SubBlocksStructure {
 		if (sub_block_index < 0 || sub_block_index >= sub_block_sizes.length)
 			throw new BlockParserException(new ArrayIndexOutOfBoundsException("sub_block_index is invalid"));
 		if (_block.getBytes().length != block_size)
-			throw new BlockParserException("Invalid block size");
+			throw new BlockParserException("Invalid block size (found="+_block.getBytes().length+", expected="+block_size+")");
 		if (_block.getOffset() != sub_block_offsets[sub_block_index])
 			throw new BlockParserException("Invalid block offset (found=" + _block.getOffset() + ", expected="
 					+ sub_block_offsets[sub_block_index] + ")");

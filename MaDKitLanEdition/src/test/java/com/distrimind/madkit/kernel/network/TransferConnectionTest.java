@@ -324,13 +324,14 @@ public class TransferConnectionTest extends JunitMadkit {
 					++index;
 					if (index == 2)
 					{
-						checkConnectedKernelsNb(this, m, 2, timeOut);
 						checkConnectedIntancesNb(this, m, 2, timeOut);
+						checkConnectedKernelsNb(this, m, 2, timeOut);
+
 					}
 					else
 					{
-						checkConnectedKernelsNb(this, m, 1, timeOut);
 						checkConnectedIntancesNb(this, m, 1, timeOut);
+						checkConnectedKernelsNb(this, m, 1, timeOut);
 					}
 				}
 				sleep(1000);

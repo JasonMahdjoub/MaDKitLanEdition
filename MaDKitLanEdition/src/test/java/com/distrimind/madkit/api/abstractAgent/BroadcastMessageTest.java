@@ -42,6 +42,7 @@ import static org.testng.AssertJUnit.assertNotSame;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_COMMUNITY;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_GROUP;
@@ -69,20 +70,27 @@ import com.distrimind.madkit.testing.util.agent.NormalAgent;
 
 public class BroadcastMessageTest extends JunitMadkit {
 
-	final AbstractAgent target = new AbstractAgent() {
-		@Override
-		protected void activate() {
-			assertEquals(SUCCESS, createGroup(GROUP));
-			assertEquals(SUCCESS, requestRole(GROUP, ROLE));
-		}
-	};
+	AbstractAgent target =null;
 
-	final AbstractAgent target2 = new AbstractAgent() {
-		@Override
-		protected void activate() {
-			assertEquals(SUCCESS, requestRole(GROUP, ROLE));
-		}
-	};
+	AbstractAgent target2 =null;
+
+	@BeforeMethod
+	public void setTargets()
+	{
+		target=new AbstractAgent() {
+			@Override
+			protected void activate() {
+				assertEquals(SUCCESS, createGroup(GROUP));
+				assertEquals(SUCCESS, requestRole(GROUP, ROLE));
+			}
+		};
+		target2=new AbstractAgent() {
+			@Override
+			protected void activate() {
+				assertEquals(SUCCESS, requestRole(GROUP, ROLE));
+			}
+		};
+	}
 
 	@Test
 	public void returnRepliesInOneBlockAllSuccess() {

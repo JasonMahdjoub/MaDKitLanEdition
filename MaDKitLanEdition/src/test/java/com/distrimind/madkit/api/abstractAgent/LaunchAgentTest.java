@@ -38,6 +38,8 @@
 package com.distrimind.madkit.api.abstractAgent;
 
 import static org.testng.AssertJUnit.assertEquals;
+
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.AGENT_CRASH;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ALREADY_LAUNCHED;
@@ -73,18 +75,22 @@ public class LaunchAgentTest extends JunitMadkit {
 		}
 	};
 
-	final AbstractAgent timeOutAgent = new Agent() {
-		@Override
-		protected void activate() throws InterruptedException {
-			pause(2000);
+	AbstractAgent timeOutAgent = null;
+	@BeforeMethod
+	public void setTimeOutAgent() {
+		timeOutAgent=new Agent() {
+			@Override
+			protected void activate() throws InterruptedException {
+				pause(2000);
 
-		}
+			}
 
-		@Override
-		public void liveCycle() {
-			this.killAgent(this);
-		}
-	};
+			@Override
+			public void liveCycle() {
+				this.killAgent(this);
+			}
+		};
+	}
 
 	final AbstractAgent faulty = new Agent() {
 		@SuppressWarnings("null")

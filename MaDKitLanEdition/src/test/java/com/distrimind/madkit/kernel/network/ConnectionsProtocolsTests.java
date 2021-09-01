@@ -37,10 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Factory;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 import org.testng.AssertJUnit;
 import com.distrimind.madkit.database.KeysPairs;
 import com.distrimind.madkit.exceptions.BlockParserException;
@@ -108,7 +105,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		sql_connection_recveiver = receiver;
 	}
 
-	@AfterClass
+	@AfterSuite
 	public static void removeDatabase() {
 		sql_connection_asker.close();
 		sql_connection_recveiver.close();
@@ -671,7 +668,6 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		testIrregularConnectionWithCurruptedMessages(totalCycles, cpasker.getDatabaseWrapper() != null);
 	}
 
-	@Test
 	public void testIrregularConnectionWithUnkowMessages(int cyclesNumber, boolean enableDatabase)
 			throws ConnectionException, PacketException, NIOException, IOException, ClassNotFoundException,
 			BlockParserException, IllegalArgumentException, NoSuchAlgorithmException, NoSuchProviderException {
@@ -681,7 +677,6 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		}
 	}
 
-	@Test
 	public void testIrregularConnectionWithUnkowMessage(int index, boolean asker, boolean enableDatabase)
 			throws ConnectionException, PacketException, NIOException, IOException, ClassNotFoundException,
 			BlockParserException, IllegalArgumentException, NoSuchAlgorithmException, NoSuchProviderException {
@@ -767,7 +762,6 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		}
 	}
 
-	@Test
 	public void testIrregularConnectionWithCurruptedMessages(int cyclesNumber, boolean enableDatabase)
 			throws ConnectionException, PacketException, NIOException, IOException, ClassNotFoundException,
 			BlockParserException, IllegalArgumentException, NoSuchAlgorithmException, NoSuchProviderException {
@@ -777,7 +771,6 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 		}
 	}
 
-	@Test
 	public void testIrregularConnectionWithCurrptedMessage(int index, boolean asker, boolean enableDatabase)
 			throws ConnectionException, PacketException, NIOException, IOException, ClassNotFoundException,
 			BlockParserException, NoSuchAlgorithmException, NoSuchProviderException {
@@ -1015,13 +1008,11 @@ output.flush();
 		return output.getBytes();
 	}
 
-	@Test(enabled = false)
 	private void testRandomPingPongMessage() throws PacketException, NIOException, IOException, BlockParserException,
 			NoSuchAlgorithmException, NoSuchProviderException {
 		testRandomPingPongMessage(null, null);
 	}
 
-	@Test(enabled = false)
 	private void testRandomPingPongMessage(TransferedBlockChecker tbcasker, TransferedBlockChecker tbcreceiver)
 			throws PacketException, NIOException, IOException, BlockParserException, NoSuchAlgorithmException,
 			NoSuchProviderException {

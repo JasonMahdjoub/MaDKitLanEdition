@@ -962,7 +962,7 @@ final public class Madkit {
 
 	@Override
 	public String toString() {
-		return myKernel.toString() + " @ " + myKernel.getKernelAddress();
+		return myKernel.toString() + myKernel.getKernelAddress();
 	}
 
 	/**
@@ -978,11 +978,11 @@ final public class Madkit {
 			Calendar c=new GregorianCalendar();
 			c.setTime(VERSION.getProjectEndDate());
 			System.out.println("\n-----------------------------------------------------------------------------"
-					+ "\n\t\t\t\t    MadkitLanEdition\n" + "\n\t Version: " + VERSION.getMajor() + "."
+					+ "\n\t\t\t\t\t\t\t    MadkitLanEdition\n" + "\n\t Version: " + VERSION.getMajor() + "."
 					+ VERSION.getMinor() + "." + VERSION.getRevision() + " " + VERSION.getType()
 					+ (VERSION.getType().equals(Version.Type.STABLE) ? "" : (" " + VERSION.getAlphaBetaRCVersion()))
-					+ "\n\t MaDKit Team (c) 1997-"+c.get(Calendar.YEAR)
 					+ "\n\t MadkitLanEdition Team (c) " + startCal.get(Calendar.YEAR) + "-" + endCal.get(Calendar.YEAR)
+					+ "\n\t Forked from MaDKit 1997-2016"
 					+ "\n\t Kernel " + myKernel.getNetworkID()
 					+ "\n-----------------------------------------------------------------------------\n");
 		}

@@ -105,7 +105,7 @@ class DatagramData {
 	}
 
 	ByteBuffer getUnusedReceivedData() {
-		if (isComplete() && isValid()) {
+		if (isComplete() && isValid(false)) {
 			ByteBuffer next = null;
 			int length = Bits.getUnsignedInt24Bits(data.array(), data.arrayOffset());
 			//length += Block.getBlockSizeLength();
@@ -128,16 +128,26 @@ class DatagramData {
 	}
 
 	DatagramLocalNetworkPresenceMessage getDatagramLocalNetworkPresenceMessage() throws IOException {
-		if (isComplete() && isValid()) {
+		if (isComplete() && isValid(false)) {
 			return DatagramLocalNetworkPresenceMessage.readFrom(data.array(), Block.getBlockSizeLength()+data.arrayOffset(), Block.getBlockSize(data.array(), data.arrayOffset())-Block.getBlockSizeLength());
 		} else
 			throw new IOException("Invalid or incomplete buffer !");
 	}
-
 	boolean isValid() {
-		int sizeInt = Block.getBlockSizeLength();
-
-		return data.position() < sizeInt
-				|| Bits.getUnsignedInt24Bits(data.array(), data.arrayOffset())-sizeInt <= DatagramLocalNetworkPresenceMessage.getMaxDatagramMessageLength();
+		return isValid(false);
 	}
+	boolean isValid(boolean recursive) {
+		int sizeInt = Block.getBlockSizeLength();
+		int pos=0;
+		while(pos<data.position()-sizeInt) {
+			int length=Bits.getUnsignedInt24Bits(data.array(), data.arrayOffset()+pos)-sizeInt;
+			if (length<1 || length > DatagramLocalNetworkPresenceMessage.getMaxDatagramMessageLength())
+				return false;
+			if (!recursive)
+				return true;
+			pos+=length;
+		}
+		return true;
+	}
+
 }

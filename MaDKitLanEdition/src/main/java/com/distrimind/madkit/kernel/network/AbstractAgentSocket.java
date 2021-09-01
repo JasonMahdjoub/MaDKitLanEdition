@@ -704,7 +704,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			waitingPongMessage = true;
 			sendData(new PingMessage(), true, false);
 		} else if (_message instanceof DataReceivedMessage) {
-			receiveData(((DataReceivedMessage) _message).received_data);
+			receiveData(((DataReceivedMessage) _message).getReceivedData());
 		} else if (_message instanceof ConnectionClosed) {
 			ConnectionClosed cc = (ConnectionClosed) _message;
 			disconnected(cc.reason, cc.data_not_sent, cc.bigDataNotSent, cc.dataToTransferNotSent);

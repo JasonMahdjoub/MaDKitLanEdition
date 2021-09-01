@@ -52,13 +52,16 @@ import com.distrimind.util.crypto.P2PLoginAgreementType;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
 import org.testng.AssertJUnit;
-import org.testng.annotations.*;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Factory;
+import org.testng.annotations.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 
@@ -83,9 +86,6 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 	final ArrayList<Identifier> initialAcceptedReceiverIdentifiers;
 	final ArrayList<IdentifierPassword> initialIdentifierPassordsAsker;
 	final ArrayList<IdentifierPassword> initialIdentifierPassordsReceiver;
-
-	static final File dbfileasker = new File("testaccessasker.database");
-	static final File dbfilereceiver = new File("testaccessreceiver.database");
 
 
 	@DataProvider(parallel = true)
@@ -380,42 +380,24 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 			initialIdentifierPassordsReceiver.addAll(identifierPassordsReceiver);
 		}
 		if (databaseEnabled) {
-			mpasker.setDatabaseFactory(new InMemoryEmbeddedH2DatabaseFactory(dbfileasker.getName()));
-			mpreceiver.setDatabaseFactory(new InMemoryEmbeddedH2DatabaseFactory(dbfilereceiver.getName()));
-		}
-		//System.out.println(accessProtocolProperties.getClass());
-	}
-
-	@BeforeMethod
-	public void activateDatabase() throws DatabaseException {
-		if (mpasker.isDatabaseEnabled()) {
-			mpasker.getDatabaseWrapper().close();
-			mpreceiver.getDatabaseWrapper().close();
-			if (dbfileasker.exists())
-				mpasker.getDatabaseWrapper().deleteDatabasesFiles();
-			if (dbfilereceiver.exists())
-				mpreceiver.getDatabaseWrapper().deleteDatabasesFiles();
-			JunitMadkit.setDatabaseFactory(mpasker, new InMemoryEmbeddedH2DatabaseFactory(dbfileasker.getName()));
+			mpasker.setDatabaseFactory(new InMemoryEmbeddedH2DatabaseFactory("testaccessasker"+suiteCounter.incrementAndGet()+".database"));
+			mpreceiver.setDatabaseFactory(new InMemoryEmbeddedH2DatabaseFactory("testaccessreceiver"+suiteCounter.get()+".database"));
 			mpasker.getDatabaseWrapper().getDatabaseConfigurationsBuilder()
 					.addConfiguration(new DatabaseConfiguration(new DatabaseSchema(KeysPairs.class.getPackage())), false, true)
 					.commit();
-
-			JunitMadkit.setDatabaseFactory(mpreceiver, new InMemoryEmbeddedH2DatabaseFactory(dbfilereceiver.getName()));
 			mpreceiver.getDatabaseWrapper().getDatabaseConfigurationsBuilder()
 					.addConfiguration(new DatabaseConfiguration(new DatabaseSchema(KeysPairs.class.getPackage())), false, true)
 					.commit();
 		}
+		//System.out.println(accessProtocolProperties.getClass());
 	}
+	private static final AtomicInteger suiteCounter=new AtomicInteger(1);
 
 	@AfterMethod
 	public void removeDatabase() throws DatabaseException {
 		if (mpasker.isDatabaseEnabled()) {
-			mpasker.getDatabaseWrapper().close();
-			mpreceiver.getDatabaseWrapper().close();
-			if (dbfileasker.exists())
-				mpasker.getDatabaseWrapper().deleteDatabasesFiles();
-			if (dbfilereceiver.exists())
-				mpreceiver.getDatabaseWrapper().deleteDatabasesFiles();
+			mpasker.getDatabaseWrapper().deleteDatabasesFiles();
+			mpreceiver.getDatabaseWrapper().deleteDatabasesFiles();
 		}
 
 	}
@@ -491,7 +473,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		return res;
 	}
 	private boolean infoScreened=false;
-	@Test
+
 	public int testRegularAccessProtocol(int type, int index, boolean asker)
 			throws AccessException, ClassNotFoundException, IOException {
 		
@@ -657,7 +639,6 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		return cycles;
 	}
 
-	@Test(enabled = false)
 	private void testAddingOneNewIdentifier(int newid) throws AccessException, ClassNotFoundException, IOException {
 		HostIdentifier hostIDAsker=AccessDataMKEventListener.getCustomHostIdentifier(0);
 		HostIdentifier hostIDReceiver=AccessDataMKEventListener.getCustomHostIdentifier(1);
@@ -676,7 +657,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 
 		testAddingNewIdentifier(addedForAsker/*, addedForReceiver*/);
 	}
-	@Test(enabled = false)
+
 	private void testAddingOneNewIdentifierNonUsable(int newid) throws AccessException, ClassNotFoundException, IOException {
 		IdentifierPassword idpwAsker = AccessDataMKEventListener
 				.getIdentifierPassword(AccessDataMKEventListener.getCustomHostIdentifier(0), newid);
@@ -687,7 +668,6 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		
 		testAddingNewIdentifier(addedForAsker/*, addedForReceiver*/);
 	}
-	@Test(enabled = false)
 	private void testAddingTwoNewIdentifierNonUsable(int newid1, int newid2, boolean differed) throws AccessException,
 	ClassNotFoundException, IOException {
 		IdentifierPassword idpwAsker = AccessDataMKEventListener
@@ -708,7 +688,7 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 			testAddingNewIdentifier(addedForAsker/*, addedForReceiver*/);
 }	
 
-	@Test(enabled = false)
+
 	private void testRemovingOneNewIdentifier(int newid) throws AccessException, ClassNotFoundException, IOException {
 		IdentifierPassword idpwAsker = AccessDataMKEventListener
 				.getIdentifierPassword(AccessDataMKEventListener.getCustomHostIdentifier(0), newid);
@@ -725,7 +705,6 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		testRemovingNewIdentifier(addedForAsker/*, addedForReceiver*/);
 	}
 
-	@Test(enabled = false)
 	private void testAddingNewIdentifier(ArrayList<Identifier> addedForAsker/*, ArrayList<Identifier> addedForReceiver*/)
 			throws AccessException, ClassNotFoundException, IOException {
 		AssertJUnit.assertTrue(apasker.isAccessFinalized());
@@ -737,7 +716,6 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 
 	}
 
-	@Test(enabled = false)
 	private void testRemovingNewIdentifier(ArrayList<Identifier> addedForAsker/*, ArrayList<Identifier> addedForReceiver*/)
 			throws AccessException, ClassNotFoundException, IOException {
 		AssertJUnit.assertTrue(apasker.isAccessFinalized());
@@ -748,7 +726,6 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		testSubNewAddingRemovingIdentifier(masker, mreceiver);
 	}
 
-	@Test(enabled = false)
 	private void testAddingTwoNewIdentifier(int newid1, int newid2, boolean differed) throws AccessException,
 			ClassNotFoundException, IOException {
 		HostIdentifier hostIDAsker=AccessDataMKEventListener.getCustomHostIdentifier(0);
@@ -789,7 +766,6 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 			testAddingNewIdentifier(addedForAsker/*, addedForReceiver*/);
 	}
 
-	@Test(enabled = false)
 	private void testRemovingTwoNewIdentifier(int newid1, int newid2, boolean differed) throws AccessException,
 			ClassNotFoundException, IOException {
 		IdentifierPassword idpwAsker = AccessDataMKEventListener
@@ -821,7 +797,6 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 			testRemovingNewIdentifier(addedForAsker/*, addedForReceiver*/);
 	}
 
-	@Test(enabled = false)
 	private void testSubNewAddingRemovingIdentifier(AccessMessage[] maskerl, AccessMessage[] mreceiverl)
 			throws ClassNotFoundException, IOException, AccessException {
 		int cycles = 0;
@@ -912,7 +887,6 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 
 
 	}
-	@Test(enabled = false)
 	private void testExpectedLogins() {
 
 		checkExpectedLogins(apasker, acceptedAskerIdentifiers, acceptedReceiverIdentifiers);
@@ -921,7 +895,6 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 
 	}
 
-	@Test(enabled = false)
 	private void testDifferedAddingNewIdentifier(ArrayList<Identifier> addedForAsker/*,
 			ArrayList<Identifier> addedForReceiver*/) throws AccessException, ClassNotFoundException, IOException
 	{
@@ -942,7 +915,6 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		testSubNewAddingRemovingIdentifier(masker, mreceiver);
 	}
 
-	@Test(enabled = false)
 	private void testDifferedRemovingNewIdentifier(ArrayList<Identifier> addedForAsker/*,
 			ArrayList<Identifier> addedForReceiver*/) throws AccessException, ClassNotFoundException, IOException
 			{

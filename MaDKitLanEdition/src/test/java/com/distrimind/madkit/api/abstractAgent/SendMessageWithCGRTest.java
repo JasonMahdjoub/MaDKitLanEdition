@@ -39,6 +39,8 @@ package com.distrimind.madkit.api.abstractAgent;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.AGENT_CRASH;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.INVALID_AGENT_ADDRESS;
@@ -67,13 +69,17 @@ import com.distrimind.madkit.kernel.Message;
 
 public class SendMessageWithCGRTest extends JunitMadkit {
 
-	final AbstractAgent target = new AbstractAgent() {
-		@Override
-		protected void activate() {
-			assertEquals(SUCCESS, createGroup(GROUP));
-			assertEquals(SUCCESS, requestRole(GROUP, ROLE));
-		}
-	};
+	AbstractAgent target =null;
+	@BeforeMethod
+	public void setTarget() {
+		target = new AbstractAgent() {
+			@Override
+			protected void activate() {
+				assertEquals(SUCCESS, createGroup(GROUP));
+				assertEquals(SUCCESS, requestRole(GROUP, ROLE));
+			}
+		};
+	}
 
 	@Test
 	public void returnSuccess() {

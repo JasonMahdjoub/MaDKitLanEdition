@@ -169,7 +169,6 @@ public class LaunchAgentBucketTest extends JunitMadkit {
 		});
 	}
 
-	@Test
 	protected void testAgents(List<AbstractAgent> l) {
 		for (AbstractAgent abstractAgent : l) {
 			assertTrue(abstractAgent.isAlive());

@@ -46,9 +46,14 @@ package com.distrimind.madkit.kernel.network;
 class DataReceivedMessage extends NIOMessage {
 
 
-	public final byte[] received_data;
+	private final byte[] received_data;
 
-	public DataReceivedMessage(byte[] _received_data) {
+	DataReceivedMessage(byte[] _received_data) {
 		received_data = _received_data;
 	}
+
+	public byte[] getReceivedData() {
+		return received_data;
+	}
+
 }

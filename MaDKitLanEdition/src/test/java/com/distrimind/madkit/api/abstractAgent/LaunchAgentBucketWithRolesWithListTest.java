@@ -185,7 +185,6 @@ public class LaunchAgentBucketWithRolesWithListTest extends JunitMadkit {
 		}, ReturnCode.SUCCESS);
 	}
 
-	@Test
 	public static void testAgents(List<? extends AbstractAgent> l) {
 		for (AbstractAgent abstractAgent : l) {
 			assertTrue(abstractAgent.isAlive());
@@ -194,7 +193,6 @@ public class LaunchAgentBucketWithRolesWithListTest extends JunitMadkit {
 		}
 	}
 
-	@Test
 	public static void testAgentsRoles(List<? extends AbstractAgent> l) {
 		for (AbstractAgent abstractAgent : l) {
 			abstractAgent.setLogLevel(Level.ALL);

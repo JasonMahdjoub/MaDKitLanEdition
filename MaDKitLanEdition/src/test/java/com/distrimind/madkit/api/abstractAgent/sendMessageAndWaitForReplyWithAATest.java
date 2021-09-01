@@ -41,6 +41,8 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
+
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.INVALID_AGENT_ADDRESS;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
@@ -65,81 +67,87 @@ import com.distrimind.madkit.testing.util.agent.NormalAgent;
  */
 public class sendMessageAndWaitForReplyWithAATest extends JunitMadkit {
 
-	final Agent target = new Agent() {
-		AgentAddress aa;
+	Agent target ;
+	@BeforeMethod
+	public void setTargets() {
+		target = new Agent() {
+			AgentAddress aa;
 
-		@Override
-		protected void activate() {
-			assertEquals(SUCCESS, requestRole(GROUP, ROLE));
-			aa = getAgentWithRole(GROUP, ROLE);
-			assertNotNull(aa);
-			assertEquals(SUCCESS, sendMessage(aa, new Message()));
-			assertEquals(SUCCESS, sendMessage(aa, new Message()));
-		}
-
-		@Override
-		protected void liveCycle() throws InterruptedException {
-			waitNextMessage(2000);// waiting the start signal
-			Message m = waitNextMessage(2000);
-			if (m != null) {
-				sendReply(m, new StringMessage("reply"));
+			@Override
+			protected void activate() {
+				assertEquals(SUCCESS, requestRole(GROUP, ROLE));
+				aa = getAgentWithRole(GROUP, ROLE);
+				assertNotNull(aa);
 				assertEquals(SUCCESS, sendMessage(aa, new Message()));
 				assertEquals(SUCCESS, sendMessage(aa, new Message()));
-				m = waitNextMessage(2000);
-				if (m != null)
-					sendReply(m, new StringMessage("reply2"));
-				else
-					this.killAgent(this);
 			}
 
-			this.killAgent(this);
-		}
+			@Override
+			protected void liveCycle() throws InterruptedException {
+				waitNextMessage(2000);// waiting the start signal
+				Message m = waitNextMessage(2000);
+				if (m != null) {
+					sendReply(m, new StringMessage("reply"));
+					assertEquals(SUCCESS, sendMessage(aa, new Message()));
+					assertEquals(SUCCESS, sendMessage(aa, new Message()));
+					m = waitNextMessage(2000);
+					if (m != null)
+						sendReply(m, new StringMessage("reply2"));
+					else
+						this.killAgent(this);
+				}
 
-	};
+				this.killAgent(this);
+			}
+
+		};
+		target3=new Agent() {
+			@Override
+			protected void activate() {
+				assertEquals(SUCCESS, requestRole(GROUP, ROLE));
+			}
+
+			@Override
+			protected void liveCycle() throws InterruptedException {
+				Message m = waitNextMessage(2000);
+				if (m != null) {
+					sendReply(m, m);
+					waitNextMessage(2000);// do not die !
+				}
+				this.killAgent(this);
+			}
+		};
+		target2=new Agent() {
+			private int cycles = 10;
+
+			@Override
+			protected void activate() {
+				assertEquals(SUCCESS, createGroup(GROUP));
+			}
+
+			@Override
+			protected void liveCycle() throws InterruptedException {
+				Message m = waitNextMessage(2000);
+				if (m != null) {
+					sendReply(m, new StringMessage("reply"));
+					m = waitNextMessage(2000);
+					if (m != null)
+						sendReply(m, new StringMessage("reply2"));
+					else
+						this.killAgent(this);
+				} else
+					this.killAgent(this);
+				if (cycles-- == 0)
+					this.killAgent(this);
+
+			}
+		};
+	}
 
 	// sends the same message as reply
-	final Agent target3 = new Agent() {
-		@Override
-		protected void activate() {
-			assertEquals(SUCCESS, requestRole(GROUP, ROLE));
-		}
+	Agent target3 = null;
 
-		@Override
-		protected void liveCycle() throws InterruptedException {
-			Message m = waitNextMessage(2000);
-			if (m != null) {
-				sendReply(m, m);
-				waitNextMessage(2000);// do not die !
-			}
-			this.killAgent(this);
-		}
-	};
-
-	final Agent target2 = new Agent() {
-		private int cycles = 10;
-
-		@Override
-		protected void activate() {
-			assertEquals(SUCCESS, createGroup(GROUP));
-		}
-
-		@Override
-		protected void liveCycle() throws InterruptedException {
-			Message m = waitNextMessage(2000);
-			if (m != null) {
-				sendReply(m, new StringMessage("reply"));
-				m = waitNextMessage(2000);
-				if (m != null)
-					sendReply(m, new StringMessage("reply2"));
-				else
-					this.killAgent(this);
-			} else
-				this.killAgent(this);
-			if (cycles-- == 0)
-				this.killAgent(this);
-
-		}
-	};
+	Agent target2 =null;
 
 	@Test
 	public void replyWithSameMessage() {

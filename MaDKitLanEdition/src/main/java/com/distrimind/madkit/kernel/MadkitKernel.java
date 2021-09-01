@@ -114,6 +114,7 @@ class MadkitKernel extends Agent {
 	final ThreadGroup SYSTEM = new ThreadGroup("MK_SYSTEM") {
 		public void uncaughtException(Thread t, Throwable e) {
 			System.err.println("\n------------uncaught exception on " + t);
+			e.printStackTrace();
 		}
 	};
 

@@ -38,6 +38,8 @@
 package com.distrimind.madkit.api.abstractAgent;
 
 import static org.testng.AssertJUnit.assertEquals;
+
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.AGENT_CRASH;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
@@ -59,31 +61,37 @@ import com.distrimind.madkit.testing.util.agent.NormalAgent;
  */
 public class BroadcastMessageAndWaitForRepliesTest extends JunitMadkit {
 
-	final Agent target = new NormalAgent() {
-		int cycles = 10;
+	Agent target =null;
 
-		@Override
-		protected void activate() {
-			assertEquals(SUCCESS, requestRole(GROUP, ROLE));
-		}
+	@BeforeMethod
+	public void setTarget() {
 
-		@Override
-		protected void liveCycle() throws InterruptedException {
-			Message m = waitNextMessage(2000);
-			if (m != null) {
-				sendReply(m, new StringMessage("reply"));
-				m = waitNextMessage(2000);
-				if (m != null)
-					sendReply(m, new StringMessage("reply2"));
-				else
+		target = new NormalAgent() {
+			int cycles = 10;
+
+			@Override
+			protected void activate() {
+				assertEquals(SUCCESS, requestRole(GROUP, ROLE));
+			}
+
+			@Override
+			protected void liveCycle() throws InterruptedException {
+				Message m = waitNextMessage(2000);
+				if (m != null) {
+					sendReply(m, new StringMessage("reply"));
+					m = waitNextMessage(2000);
+					if (m != null)
+						sendReply(m, new StringMessage("reply2"));
+					else
+						this.killAgent(this);
+				} else
 					this.killAgent(this);
-			} else
-				this.killAgent(this);
 
-			if (cycles-- == 0)
-				this.killAgent(this);
-		}
-	};
+				if (cycles-- == 0)
+					this.killAgent(this);
+			}
+		};
+	}
 
 	// sends the same message as reply
 	final Agent target3 = new NormalAgent() {

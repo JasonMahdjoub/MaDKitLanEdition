@@ -39,6 +39,8 @@ package com.distrimind.madkit.api.abstractAgent;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
+
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.AGENT_CRASH;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ALREADY_LAUNCHED;
@@ -62,25 +64,35 @@ import com.distrimind.madkit.testing.util.agent.SelfLaunchAA;
 
 public class LaunchAbstractAgentTest extends JunitMadkit {
 
-	final AbstractAgent target = new AbstractAgent() {
-		@Override
-		protected void activate() {
-			assertEquals(SUCCESS, createGroup(GROUP));
-			assertEquals(SUCCESS, requestRole(GROUP, ROLE));
-			assertEquals(ALREADY_LAUNCHED, launchAgent(this));
-		}
-	};
-
-	final AbstractAgent timeOutAgent = new AbstractAgent() {
-		@Override
-		protected void activate() {
-			try {
-				Thread.sleep(2000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+	AbstractAgent target=null;
+	@BeforeMethod
+	public void setTarget()
+	{
+		target= new AbstractAgent() {
+			@Override
+			protected void activate() {
+				assertEquals(SUCCESS, createGroup(GROUP));
+				assertEquals(SUCCESS, requestRole(GROUP, ROLE));
+				assertEquals(ALREADY_LAUNCHED, launchAgent(this));
 			}
-		}
-	};
+		};
+	}
+
+
+	AbstractAgent timeOutAgent = null;
+	@BeforeMethod
+	public void setTimeOutAgent() {
+		timeOutAgent = new AbstractAgent() {
+			@Override
+			protected void activate() {
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		};
+	}
 
 	final AbstractAgent faulty = new AbstractAgent() {
 		@SuppressWarnings("null")

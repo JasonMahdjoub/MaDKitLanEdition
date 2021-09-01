@@ -812,12 +812,6 @@ class UpnpIGDAgent extends AgentFakeThread {
 				return false;
 		}
 
-		/*public boolean concerns(RemoteDevice device) {
-			if (device == null)
-				return false;
-			return this.device.equals(device);
-		}*/
-
 		@Override
 		public int hashCode() {
 			return internal_address.hashCode();
@@ -1856,10 +1850,6 @@ class UpnpIGDAgent extends AgentFakeThread {
 			this.setMessage(message);
 		}
 
-		/*public InetAddress getConcernedLocalAddress() {
-			return concerned_local_ip;
-		}*/
-
 		public int getInternalPort() {
 			return internal_port;
 		}
@@ -1906,10 +1896,6 @@ class UpnpIGDAgent extends AgentFakeThread {
 
 	public static class AskForConnectionStatusMessage extends RepetitiveRouterRequest {
 
-		/*public AskForConnectionStatusMessage(InetAddress _concerned_router) {
-			super(_concerned_router);
-		}*/
-
 		public AskForConnectionStatusMessage(InetAddress _concerned_router, long _delay_between_each_check) {
 			super(_concerned_router, _delay_between_each_check);
 		}
@@ -1930,10 +1916,6 @@ class UpnpIGDAgent extends AgentFakeThread {
 		public StatusInfo getStatus() {
 			return status;
 		}
-
-		/*public StatusInfo getOldStatus() {
-			return old_status;
-		}*/
 
 		@Override
 		public String toString() {
@@ -1963,10 +1945,6 @@ class UpnpIGDAgent extends AgentFakeThread {
 		public InetAddress getExternalIP() {
 			return external_ip;
 		}
-
-		/*public InetAddress getOldIP() {
-			return old_ip;
-		}*/
 
 		@Override
 		public String toString() {
@@ -2010,10 +1988,6 @@ class UpnpIGDAgent extends AgentFakeThread {
 			new_connected_interfaces = _new_connected_interfaces;
 			new_disconnected_interfaces = _new_disconnected_interfaces;
 		}
-
-		/*public Collection<NetworkInterface> getConnectedInterfaces() {
-			return connected_interfaces;
-		}*/
 
 		public Collection<NetworkInterface> getNewConnectedInterfaces() {
 			return new_connected_interfaces;
@@ -2085,9 +2059,6 @@ class NONAndroidUpnpServiceConfiguration extends org.fourthline.cling.DefaultUpn
 	 * Defaults to port '0', ephemeral.
 	 */
 	private final int multicastPort;
-	/*public NONAndroidUpnpServiceConfiguration() {
-		this(0, Constants.UPNP_MULTICAST_PORT);
-	}*/
 
 	public NONAndroidUpnpServiceConfiguration(int streamListenPort, int multicastPort) {
 		super(streamListenPort);
@@ -2158,7 +2129,7 @@ class NONAndroidUpnpServiceConfiguration extends org.fourthline.cling.DefaultUpn
 					server.createContext("/", new UpnpIGDAgent.RequestHttpHandler(router, networkAddressFactory));
 
 				} catch (Exception ex) {
-					throw new InitializationException("Could not initialize " + getClass().getSimpleName() + ": " + ex.toString(), ex);
+					throw new InitializationException("Could not initialize " + getClass().getSimpleName() + ": " + ex, ex);
 				}
 			}
 		};
@@ -2228,9 +2199,6 @@ class DefaultUpnpServiceConfiguration implements org.fourthline.cling.UpnpServic
 	/**
 	 * Defaults to port '0', ephemeral.
 	 */
-	/*public DefaultUpnpServiceConfiguration() {
-		this(0, 1900);
-	}*/
 
 	public DefaultUpnpServiceConfiguration(int streamListenPort, int multicastPort) {
 		if (OSVersion.getCurrentOSVersion().getOS()==OS.ANDROID) {

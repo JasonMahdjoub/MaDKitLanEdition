@@ -40,6 +40,8 @@ package com.distrimind.madkit.api.abstractAgent;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotSame;
 import static org.testng.AssertJUnit.assertNotNull;
+
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_COMMUNITY;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_GROUP;
@@ -61,9 +63,16 @@ import com.distrimind.madkit.message.StringMessage;
  * @since MadkitLanEdition 1.0
  */
 public class BroadcastMessageForAgentFakeThread extends JunitMadkit {
-	final AgentFakeThreadReceiver target = new AgentFakeThreadReceiver();
+	AgentFakeThreadReceiver target ;
 
-	final AgentFakeThreadReceiver target2 = new AgentFakeThreadReceiver();
+	AgentFakeThreadReceiver target2 ;
+
+	@BeforeMethod
+	public void setTargets()
+	{
+		target=new AgentFakeThreadReceiver();
+		target2=new AgentFakeThreadReceiver();
+	}
 
 	@Test
 	public void returnSuccess() {

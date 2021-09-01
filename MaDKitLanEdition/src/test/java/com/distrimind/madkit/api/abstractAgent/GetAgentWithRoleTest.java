@@ -40,6 +40,8 @@ package com.distrimind.madkit.api.abstractAgent;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
+
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import com.distrimind.madkit.agr.Organization;
@@ -58,12 +60,16 @@ import com.distrimind.madkit.kernel.JunitMadkit;
 
 public class GetAgentWithRoleTest extends JunitMadkit {
 
-	final AbstractAgent target = new AbstractAgent() {
-		@Override
-		protected void activate() {
-			assertEquals(SUCCESS, createGroup(GROUP));
-		}
-	};
+	AbstractAgent target = null;
+	@BeforeMethod
+	public void setTarget() {
+		target = new AbstractAgent() {
+			@Override
+			protected void activate() {
+				assertEquals(SUCCESS, createGroup(GROUP));
+			}
+		};
+	}
 
 	@Test
 	public void nullArgs() {

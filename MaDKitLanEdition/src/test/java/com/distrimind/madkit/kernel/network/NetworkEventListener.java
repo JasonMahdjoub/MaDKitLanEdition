@@ -280,7 +280,7 @@ public class NetworkEventListener implements MadkitEventListener {
 					else
 						o[0] = new NetworkEventListener(network, upnpIGDEnabled, false,
 								databaseEnabled ? new File("tmpfortest0.database") : null, cp, app, ad, 5001, null,
-								InetAddress.getByName("0.0.0.0"));
+								InetAddress.getByName("127.0.0.1"));
 					res.add(o);
 				}
 			}
@@ -312,8 +312,7 @@ public class NetworkEventListener implements MadkitEventListener {
 									databaseFile, cp,
                                     app, ad, 5001+h,
 									Collections.singletonList(new DoubleIP(5001,
-											(Inet4Address) InetAddress.getByName("127.0.0.1"),
-											(Inet6Address) InetAddress.getByName("::1"))));
+											(Inet4Address) InetAddress.getByName("127.0.0.1"))));
 
 
                     }

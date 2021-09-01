@@ -51,7 +51,6 @@ import com.distrimind.util.io.*;
 import org.testng.Assert;
 import org.testng.AssertJUnit;
 import org.testng.annotations.DataProvider;
-import org.testng.annotations.Factory;
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -374,21 +373,21 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		}
 	}
 
-	final NetworkEventListener eventListener1;
-	final NetworkEventListener eventListener2;
-	final NetworkEventListener eventListenerServer;
-	final DecentralizedValue localIdentifier;
-	final DecentralizedValue localIdentifierOtherSide;
-	final DecentralizedValue serverIdentifier;
-	final LoginData loginData1, loginData2, loginDataClient1, loginDataClient2, loginDataServer;
-	final File databaseFile1, databaseFile2, databaseFileServer;
-	final SymmetricSecretKey secretKeyForSignature1,secretKeyForSignature2, secretKeyForE2EEncryption1, secretKeyForE2EEncryption2;
-	final AbstractKeyPair<?, ?> aSymmetricKeyPairForClientServerSignatures1, aSymmetricKeyPairForClientServerSignatures2, centralDatabaseBackupKeyPair;
-	final AbstractSecureRandom random;
-	final boolean connectCentralDatabaseBackup;
-	final boolean indirectSynchronizationWithCentralDatabaseBackup;
-	final CentralDatabaseBackupReceiverFactory centralDatabaseBackupReceiverFactory;
-	private final CentralDatabaseBackupCertificate centralDatabaseBackupCertificate;
+	NetworkEventListener eventListener1;
+	NetworkEventListener eventListener2;
+	NetworkEventListener eventListenerServer;
+	DecentralizedValue localIdentifier;
+	DecentralizedValue localIdentifierOtherSide;
+	DecentralizedValue serverIdentifier;
+	LoginData loginData1, loginData2, loginDataClient1, loginDataClient2, loginDataServer;
+	File databaseFile1, databaseFile2, databaseFileServer;
+	SymmetricSecretKey secretKeyForSignature1,secretKeyForSignature2, secretKeyForE2EEncryption1, secretKeyForE2EEncryption2;
+	AbstractKeyPair<?, ?> aSymmetricKeyPairForClientServerSignatures1, aSymmetricKeyPairForClientServerSignatures2, centralDatabaseBackupKeyPair;
+	AbstractSecureRandom random;
+	boolean connectCentralDatabaseBackup;
+	boolean indirectSynchronizationWithCentralDatabaseBackup;
+	CentralDatabaseBackupReceiverFactory centralDatabaseBackupReceiverFactory;
+	private CentralDatabaseBackupCertificate centralDatabaseBackupCertificate;
 	DatabaseWrapper centralDatabaseWrapper=null;
 
 
@@ -411,8 +410,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		return res;
 	}
 
-	@Factory(dataProvider = "data")
-	public MKDatabaseSynchronizerTest(boolean connectCentralDatabaseBackup,
+	public void init(boolean connectCentralDatabaseBackup,
 									  boolean indirectSynchronizationWithCentralDatabaseBackup) throws IOException, DatabaseException, NoSuchAlgorithmException, NoSuchProviderException {
 		System.out.println("connectCentralDatabaseBackup="+connectCentralDatabaseBackup+", indirectSynchronizationWithCentralDatabaseBackup="+indirectSynchronizationWithCentralDatabaseBackup);
 		if(centralDatabaseFilesDirectory.exists())
@@ -1149,8 +1147,10 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 	}
 
 
-	@Test
-	public void testDatabaseSynchronization() {
+	@Test(dataProvider = "data")
+	public void testDatabaseSynchronization(boolean connectCentralDatabaseBackup,
+											boolean indirectSynchronizationWithCentralDatabaseBackup) throws IOException, NoSuchAlgorithmException, NoSuchProviderException, DatabaseException {
+		init(connectCentralDatabaseBackup, indirectSynchronizationWithCentralDatabaseBackup);
 		final AtomicReference<Boolean> finished1=new AtomicReference<>(null);
 		final AtomicReference<Boolean> finished2=new AtomicReference<>(null);
 		// addMadkitArgs("--kernelLogLevel",Level.INFO.toString(),"--networkLogLevel",Level.FINEST.toString());
