@@ -110,7 +110,7 @@ public class SingleAgentProbe<A extends AbstractAgent, T> extends Probe<A>// TOD
 				field = findFieldOn(agent.getClass(), fieldName);
 				probedAgent = agent;
 			} catch (NoSuchFieldException e) {
-				throw new SimulationException(toString() + " on " + agent, e);
+				throw new SimulationException(this + " on " + agent, e);
 			}
 		}
 	}
@@ -140,7 +140,7 @@ public class SingleAgentProbe<A extends AbstractAgent, T> extends Probe<A>// TOD
 		try {
 			return (T) field.get(probedAgent);
 		} catch (IllegalAccessException e) {
-			throw new SimulationException(toString() + " on " + probedAgent, e);
+			throw new SimulationException(this + " on " + probedAgent, e);
 		}
 	}
 
@@ -159,7 +159,7 @@ public class SingleAgentProbe<A extends AbstractAgent, T> extends Probe<A>// TOD
 		try {
 			field.set(probedAgent, value);
 		} catch (IllegalArgumentException | IllegalAccessException e) {
-			throw new SimulationException(toString() + " on " + probedAgent, e);
+			throw new SimulationException(this + " on " + probedAgent, e);
 		}
 	}
 

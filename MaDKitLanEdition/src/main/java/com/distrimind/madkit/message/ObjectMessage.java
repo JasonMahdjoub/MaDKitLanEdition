@@ -82,7 +82,7 @@ public class ObjectMessage<T> extends Message {
 		super.readExternal(in);
 		try
 		{
-			content=(T)in.readObject(true, maxContentLength );
+			content= in.readObject(true, maxContentLength );
 		}
 		catch(IOException e)
 		{

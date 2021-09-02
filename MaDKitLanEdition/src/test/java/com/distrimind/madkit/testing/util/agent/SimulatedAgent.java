@@ -58,7 +58,7 @@ public class SimulatedAgent extends AbstractAgent {
 	private int privatePrimitiveField = 1;
 	public double publicPrimitiveField = 2;
 	@SuppressWarnings("unused")
-	private Object objectField = new Object();
+	private final Object objectField = new Object();
 	private boolean activated = false;
 
 	@Override

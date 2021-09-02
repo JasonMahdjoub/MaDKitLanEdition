@@ -14,13 +14,13 @@ import com.distrimind.madkitdemos.marketorg.Client;
 import com.distrimind.madkitdemos.pingpong.PingPongDemoLauncherAgent;
 
 public class MKLEDemos {
-	public static void main(String args[]) {
+	public static void main(String[] args) {
 		final JFrame frame = new JFrame();
 
 		frame.setLayout(new FlowLayout(FlowLayout.CENTER));
 		frame.setTitle("MaDKitLanEdition Demos");
 		frame.setSize(new Dimension(300, 100));
-		String demos[] = { "Ping pong demo", "Bees demo", "Market Demo" };
+		String[] demos = { "Ping pong demo", "Bees demo", "Market Demo" };
 		final JList<String> list = new JList<>(demos);
 		list.setSelectedIndex(1);
 		frame.add(list);

@@ -49,7 +49,7 @@ public class Broker extends Agent {
 
 	static int nbOfBrokersOnScreen = 0;
 
-	private static ImageIcon brokerImage = new ImageIcon(new ImageIcon(Broker.class.getResource("images/broker.png"))
+	private static final ImageIcon brokerImage = new ImageIcon(new ImageIcon(Broker.class.getResource("images/broker.png"))
 			.getImage().getScaledInstance(70, 70, Image.SCALE_SMOOTH));
 	private JPanel blinkPanel;
 

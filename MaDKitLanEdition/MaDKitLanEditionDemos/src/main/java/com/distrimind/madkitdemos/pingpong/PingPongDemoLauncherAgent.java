@@ -34,7 +34,7 @@ public class PingPongDemoLauncherAgent extends Agent {
 	/**
 	 * 
 	 */
-	private List<AbstractAgent> agentsList = new ArrayList<>();
+	private final List<AbstractAgent> agentsList = new ArrayList<>();
 
 	@Override
 	protected void activate() throws InterruptedException {

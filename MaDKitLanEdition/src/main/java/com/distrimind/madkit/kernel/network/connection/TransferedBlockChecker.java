@@ -90,7 +90,7 @@ public abstract class TransferedBlockChecker implements SecureExternalizable {
 
 	@Override
 	public String toString() {
-		return this.getClass().getName() + (subChecker == null ? "" : " with sub checker" + subChecker.toString());
+		return this.getClass().getName() + (subChecker == null ? "" : " with sub checker" + subChecker);
 	}
 
 	@Override

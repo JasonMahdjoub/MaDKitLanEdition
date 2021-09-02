@@ -304,7 +304,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 				ConversationID myTransferID = inputStream == null ? null : m.getConversationID();
 				ConversationID otherConversationID = otherStat == null ? null : m.getConversationID();
 				ok &= myTransferID != otherConversationID;
-				AssertJUnit.assertNotSame(m.toString()+" ; myTransferID="+myTransferID+" ; otherConversationID="+otherConversationID+" ; isLocal="+isLocal+" ; shortData="+sendShortData, myTransferID, otherConversationID);
+				AssertJUnit.assertNotSame(m +" ; myTransferID="+myTransferID+" ; otherConversationID="+otherConversationID+" ; isLocal="+isLocal+" ; shortData="+sendShortData, myTransferID, otherConversationID);
 
 				if (accept) {
 
@@ -411,7 +411,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 		if (myTransferFinished && otherTransferFinished && ok
 			&& (otherBigTransferAgent==null || (otherBigTransferAgent.myTransferFinished && otherBigTransferAgent.otherTransferFinished && otherBigTransferAgent.ok))
 				&& nextBigTransfer != null)
-			return "Agent " + this.thisPeerNumber + ", Sub " + nextBigTransfer.toString();
+			return "Agent " + this.thisPeerNumber + ", Sub " + nextBigTransfer;
 		else
 			return "Agent " + this.thisPeerNumber + otherLocalAgent+getStatString();
 	}

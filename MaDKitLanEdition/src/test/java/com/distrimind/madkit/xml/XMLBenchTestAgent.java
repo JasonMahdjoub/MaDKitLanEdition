@@ -54,9 +54,9 @@ public class XMLBenchTestAgent extends AbstractAgent {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private int speed = 0;
-	private Integer i = 10;
-	private String s = "t";
+	private final int speed = 0;
+	private final Integer i = 10;
+	private final String s = "t";
 
 	@Override
 	protected void activate() {

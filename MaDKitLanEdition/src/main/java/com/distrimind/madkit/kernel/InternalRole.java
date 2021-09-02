@@ -138,7 +138,7 @@ class InternalRole implements SecureExternalizable {// TODO test with arraylist
 		number_of_manually_distant_requested_role = new HashMap<>();
 		if (logger != null) {
 			// logger.setLevel(Level.ALL);
-			logger.finer(toString() + " created");
+			logger.finer(this + " created");
 		}
 		overlookers.set(new LinkedHashSet<>());
 

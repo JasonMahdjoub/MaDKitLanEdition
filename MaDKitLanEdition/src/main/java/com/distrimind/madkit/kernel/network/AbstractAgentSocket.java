@@ -317,7 +317,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		try {
 			setLogLevel(getMadkitConfig().networkProperties.networkLogLevel);
 			if (logger != null && logger.isLoggable(Level.FINE))
-				logger.fine("Starting " + toString() + " (" + this.distant_inet_address + ")... !");
+				logger.fine("Starting " + this + " (" + this.distant_inet_address + ")... !");
 			if (logger != null)
 				logger.info("Starting connection (distant_inet_address=" + distant_inet_address + ", local_interface="
 						+ local_interface_address + ")");
@@ -1195,7 +1195,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 							processInvalidTransferConnectionProtocol(
 									"Received a message to broadcast trough each transfer node, but impossible to found the corresponding TransferID "
 											+ t.getIdTransferDestination() + " in the receiving router agent "
-											+ this.toString());
+											+ this);
 						} else {
 
 							try {
@@ -1237,7 +1237,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						processInvalidTransferConnectionProtocol(
 								"Received a message to broadcast through each transfer node, but impossible to found the corresponding TransferID "
 										+ t.getIdTransferDestination() + " in the middle router agent "
-										+ this.toString());
+										+ this);
 					} else {
 						InterfacedIDTransfer interfacedIDTransfer = new InterfacedIDTransfer(t.getIdTransfer(),
 								idLocal.getTransferToAgentAddress(), t.getKernelAddressDestination());// TODO check
@@ -1265,7 +1265,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						processInvalidTransferConnectionProtocol(
 								"Received a message to broadcast trough each transfer node, but impossible to found the corresponding TransferID "
 										+ t.getIdTransferDestination() + " in the receiving router agent "
-										+ this.toString());
+										+ this);
 					} else {
 						InterfacedIDTransfer idRemoved = removeInterfacedIDTransferToFinalize(sender,
 								t.getYourIDTransfer(), true);
@@ -1274,7 +1274,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 							processInvalidTransferConnectionProtocol(
 									"Received TransferImpossibleSystemMessage, but impossible to found the corresponding TransferID "
 											+ t.getYourIDTransfer() + " in the receiving router agent "
-											+ this.toString());
+											+ this);
 						} else {
 							TransferImpossibleSystemMessage ti = new TransferImpossibleSystemMessage(
 									idDist.getLocalID(), t.getKernelAddressDestination(), t.getYourIDTransfer());
@@ -1289,7 +1289,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					if (idRemoved == null) {
 						processInvalidTransferConnectionProtocol(
 								"Received TransferImpossibleSystemMessage, but impossible to found the corresponding TransferID "
-										+ t.getYourIDTransfer() + " in the sender router agent " + this.toString());
+										+ t.getYourIDTransfer() + " in the sender router agent " + this);
 					} else {
 						TransferImpossibleSystemMessage ti = new TransferImpossibleSystemMessage(
 								t.getIdTransferDestination(), t.getKernelAddressDestination(),
@@ -1316,7 +1316,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						processInvalidTransferConnectionProtocol(
 								"Received a message to broadcast trough each transfer node, but impossible to found the corresponding TransferID "
 										+ t.getIdTransferDestination() + " in the receiving router agent "
-										+ this.toString());
+										+ this);
 					} else {
 						InterfacedIDTransfer idRemoved = removeValidatedInterfacedIDTransfer(sender,
 								t.getYourIDTransfer(), true);
@@ -1331,7 +1331,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						} else
 							processInvalidTransferConnectionProtocol(
 									"Received TransferImpossibleSystemMessage, but impossible to found the corresponding TransferID "
-											+ t.getYourIDTransfer() + " in the sender router agent " + this.toString());
+											+ t.getYourIDTransfer() + " in the sender router agent " + this);
 					}
 				} else {
 					InterfacedIDTransfer idLocal = getValidatedInterfacedIDTransfer(sender,
@@ -1344,7 +1344,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					if (idRemoved == null) {
 						processInvalidTransferConnectionProtocol(
 								"Received TransferImpossibleSystemMessage, but impossible to found the corresponding TransferID "
-										+ t.getYourIDTransfer() + " in the sender router agent " + this.toString());
+										+ t.getYourIDTransfer() + " in the sender router agent " + this);
 					} else {
 						TransferImpossibleSystemMessageFromMiddlePeer ti = new TransferImpossibleSystemMessageFromMiddlePeer(
 								idLocal.getLocalID(), t.getKernelAddressDestination(), idRemoved.getDistantID(),
@@ -1369,7 +1369,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						processInvalidTransferConnectionProtocol(
 								"Received a message to broadcast trough each transfer node, but impossible to found the corresponding TransferID "
 										+ t.getIdTransferDestination() + " in the receiving router agent "
-										+ this.toString());
+										+ this);
 					} else {
 						if (t.getPointToPointBlockChecker()!=null)
 						{
@@ -1428,7 +1428,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						removeInterfacedIDTransferToFinalize(sender, t.getYourIDTransfer());
 						processInvalidTransferConnectionProtocol(
 								"Received TransferConfirmationSystemMessage to transfer for internal use 1, but impossible to found the corresponding TransferID "
-										+ t.getYourIDTransfer() + " in the middle router agent " + this.toString());
+										+ t.getYourIDTransfer() + " in the middle router agent " + this);
 					} else {
 						if (t.getPointToPointBlockChecker()!=null)
 						{
@@ -1485,7 +1485,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						processInvalidTransferConnectionProtocol(
 								"Received a message to broadcast trough each transfer node, but impossible to found the corresponding TransferID "
 										+ t.getIdTransferDestination() + " in the receiving router agent "
-										+ this.toString());
+										+ this);
 					} else {
 						if (!t.getKernelAddressDestination().equals(getKernelAddress())) {
 							idDist.setTransferBlockChecker(t.getTransferBlockChecker());
@@ -1523,7 +1523,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						processInvalidTransferConnectionProtocol(
 								"Received TransferBlockCheckerSystemMessage, but impossible to found the corresponding TransferID "
 										+ t.getIdTransferDestination() + " in the middle router agent "
-										+ this.toString());
+										+ this);
 
 				}
 			}
@@ -1559,7 +1559,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			if (idt == null && !t.getIdTransferDestination().equals(TransferAgent.NullIDTransfer)) {
 				processInvalidTransferConnectionProtocol(
 						"Received a message to broadcast trough each transfer node (1), but impossible to found the corresponding TransferID "
-								+ t.getIdTransferDestination() + " in the receiving router agent " + this.toString());
+								+ t.getIdTransferDestination() + " in the receiving router agent " + this);
 				return;
 			}
 			id = idt == null ? t.getIdTransferDestination() : idt.getLocalID();
@@ -1688,7 +1688,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		if (aat == null) {
 			processInvalidTransferConnectionProtocol(
 					"Received TransferImpossibleSystemMessage, but impossible to found the corresponding TransferID "
-							+ ti.getYourIDTransfer() + " in the peer agent " + this.toString());
+							+ ti.getYourIDTransfer() + " in the peer agent " + this);
 		} else {
 			sendMessageWithRole(aat, new ObjectMessage<>(ti), LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 		}
@@ -1707,7 +1707,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		if (aat == null) {
 			processInvalidTransferConnectionProtocol(
 					"Received TransferImpossibleSystemMessageFromMiddlePeer, but impossible to found the corresponding TransferID "
-							+ ti.getYourIDTransfer() + " in the peer agent " + this.toString());
+							+ ti.getYourIDTransfer() + " in the peer agent " + this);
 		} else {
 			sendMessageWithRole(aat, new ObjectMessage<>(ti), LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 		}
@@ -1856,7 +1856,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			if (idDist == null)
 				processInvalidTransferConnectionProtocol(
 						"Broadcasting TransferConfirmationSystemMessage, but impossible to found the corresponding TransferID "
-								+ t.getMyIDTransfer() + " in the peer agent " + this.toString());
+								+ t.getMyIDTransfer() + " in the peer agent " + this);
 			else {
 				AgentAddress aa = transfer_ids.getTransferAgentAddress(idDist.getLocalID());
 				if (aa == null) {
@@ -1875,7 +1875,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			if (idMiddle == null) {
 				processInvalidTransferConnectionProtocol(
 						"Broadcasting TransferConfirmationSystemMessage, but impossible to found the corresponding TransferID "
-								+ t.getMyIDTransfer() + " in the middle peer agent " + this.toString());
+								+ t.getMyIDTransfer() + " in the middle peer agent " + this);
 			} else {
 				AgentAddress aa = transfer_ids.getTransferAgentAddress(idMiddle);
 				if (aa == null) {

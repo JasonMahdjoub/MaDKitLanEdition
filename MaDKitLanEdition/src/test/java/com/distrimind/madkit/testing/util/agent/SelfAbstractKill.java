@@ -52,7 +52,7 @@ import static org.testng.AssertJUnit.assertEquals;
  */
 public class SelfAbstractKill extends DoItDuringLifeCycleAbstractAgent {
 
-	private int timeOut;
+	private final int timeOut;
 
 	public SelfAbstractKill(boolean inActivate, boolean inEnd, int noTimeOut) {
 		super(inActivate, inEnd);
