@@ -163,12 +163,13 @@ class UpnpIGDAgent extends AgentFakeThread {
 	{
 		return DocumentBuilderFactoryWithNonDTD.newDocumentBuilderFactoryWithNonDTDInstance();
 	}
+	private static NetworkAddressFactory networkAddressFactory=null;
 	/*
 	 * Fix DDOS and SSRF issue : https://github.com/4thline/cling/issues/253
 	 */
 	static NetworkAddressFactory createNetworkAddressFactory(int streamListenPort, int multicastPort) {
 
-		return new NetworkAddressFactoryImpl(streamListenPort) {
+		return networkAddressFactory=new NetworkAddressFactoryImpl(streamListenPort) {
 			@Override
 			public int getMulticastPort() {
 				return multicastPort;
@@ -180,11 +181,41 @@ class UpnpIGDAgent extends AgentFakeThread {
 			}
 		};
 	}
+	static boolean isNotValidRemoteAddress(URL u)
+	{
+		if (u==null)
+			return false;
+		return isNotValidRemoteAddress(u.getHost());
+	}
+	static boolean isNotValidRemoteAddress(String host)
+	{
+		try {
+			InetAddress ia = InetAddress.getByName(host);
+			ia = networkAddressFactory.getLocalAddress(
+					null,
+					ia instanceof Inet6Address,
+					ia
+			);
+			if (ia == null)
+				return true;
+		} catch (Exception ignored) {
+			return true;
+		}
+		return false;
+	}
+
+	private static final Set<UpnpHeader.Type> allowedUpnpHeaders=new HashSet<>(Arrays.asList(UpnpHeader.Type.EXT, UpnpHeader.Type.ST, UpnpHeader.Type.SERVER, UpnpHeader.Type.USN, UpnpHeader.Type.LOCATION, UpnpHeader.Type.MAX_AGE));
 	/*
 	 * Fix DDOS and SSRF issue : https://github.com/4thline/cling/issues/253
 	 */
 	static IncomingDatagramMessage<?> getValidIncomingDatagramMessage(IncomingDatagramMessage<?> idm, NetworkAddressFactory networkAddressFactory)
 	{
+		for (UpnpHeader.Type t : UpnpHeader.Type.values()) {
+			if (allowedUpnpHeaders.contains(t))
+				continue;
+			if (idm.getHeaders().containsKey(t))
+				return null;
+		}
 		@SuppressWarnings("rawtypes") List<UpnpHeader> luh=idm.getHeaders().get(UpnpHeader.Type.CALLBACK);
 
 		if (luh!=null) {
@@ -192,18 +223,8 @@ class UpnpIGDAgent extends AgentFakeThread {
 				if (CallbackHeader.class.isAssignableFrom(uh.getClass())) {
 					CallbackHeader ch = (CallbackHeader) uh;
 					for (URL u : ch.getValue()) {
-						try {
-							InetAddress ia = InetAddress.getByName(u.getHost());
-							ia = networkAddressFactory.getLocalAddress(
-									null,
-									ia instanceof Inet6Address,
-									ia
-							);
-							if (ia == null)
-								return null;
-						} catch (Exception ignored) {
-
-						}
+						if (isNotValidRemoteAddress(u))
+							return null;
 					}
 				}
 			}
@@ -213,18 +234,8 @@ class UpnpIGDAgent extends AgentFakeThread {
 			for (UpnpHeader<?> uh : luh) {
 				if (HostHeader.class.isAssignableFrom(uh.getClass())) {
 					HostHeader hh = (HostHeader) uh;
-					try {
-						InetAddress ia = InetAddress.getByName(hh.getValue().getHost());
-						ia = networkAddressFactory.getLocalAddress(
-								null,
-								ia instanceof Inet6Address,
-								ia
-						);
-						if (ia == null)
-							return null;
-					} catch (Exception ignored) {
-
-					}
+					if (isNotValidRemoteAddress(hh.getValue().getHost()))
+						return null;
 				}
 			}
 		}
@@ -233,18 +244,8 @@ class UpnpIGDAgent extends AgentFakeThread {
 			for (UpnpHeader<?> uh : luh) {
 				if (LocationHeader.class.isAssignableFrom(uh.getClass())) {
 					LocationHeader hh = (LocationHeader) uh;
-					try {
-						InetAddress ia = InetAddress.getByName(hh.getValue().getHost());
-						ia = networkAddressFactory.getLocalAddress(
-								null,
-								ia instanceof Inet6Address,
-								ia
-						);
-						if (ia == null)
-							return null;
-					} catch (Exception ignored) {
-
-					}
+					if (isNotValidRemoteAddress(hh.getValue().getHost()))
+						return null;
 				}
 			}
 		}
@@ -522,8 +523,11 @@ class UpnpIGDAgent extends AgentFakeThread {
 							)
 					);
 
-					return describe(undescribedDevice, d);
+					D res=describe(undescribedDevice, d);
+					if (res.getDetails()!=null && isNotValidRemoteAddress(res.getDetails().getBaseURL()))
+						return null;
 
+					return res;
 				} catch (ValidationException ex) {
 					throw ex;
 				} catch (Exception ex) {
@@ -573,7 +577,10 @@ class UpnpIGDAgent extends AgentFakeThread {
 							)
 					);
 
-					return describe(undescribedService, d);
+					S res= describe(undescribedService, d);
+					if (res.getDevice()!=null && res.getDevice().getDetails()!=null && isNotValidRemoteAddress(res.getDevice().getDetails().getBaseURL()))
+						return null;
+					return res;
 
 				} catch (ValidationException ex) {
 					throw ex;
