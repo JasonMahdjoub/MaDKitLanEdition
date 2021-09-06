@@ -292,7 +292,7 @@ public abstract class Activator<A extends AbstractAgent> extends Overlooker<A> {
 			try {
 				ske.agent.tryToCompleteKill(ske);
 			} catch (Exception e2) {
-				throw new SimulationException(toString() + " on kill process of agent " + ske.agent, e2);
+				throw new SimulationException(this + " on kill process of agent " + ske.agent, e2);
 			}
 			return true;
 		} else

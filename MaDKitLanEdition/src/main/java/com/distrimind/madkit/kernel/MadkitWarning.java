@@ -68,7 +68,7 @@ class MadkitWarning extends Exception {
 	@Override
 	public String getMessage() {
 		String msg = super.getMessage();
-		return code.name() + ": " + (msg == null ? "" : msg + " ") + code.toString();
+		return code.name() + ": " + (msg == null ? "" : msg + " ") + code;
 	}
 
 }

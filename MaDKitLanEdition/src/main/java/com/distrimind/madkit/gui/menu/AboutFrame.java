@@ -118,7 +118,7 @@ final class AboutFrame extends JDialog {
 		Version VERSION=Madkit.getVersion();
 		try (BufferedReader in = new BufferedReader(
 				new InputStreamReader(new URL(Madkit.getWEB() + "/LAST").openStream()))) {
-			version = "\n\n   " + Words.LAST_AVAILABLE.toString() + ": " + in.readLine() + "\n";
+			version = "\n\n   " + Words.LAST_AVAILABLE + ": " + in.readLine() + "\n";
 		} catch (IOException e) {// just offline
 		}
 		try {

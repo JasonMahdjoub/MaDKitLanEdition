@@ -118,7 +118,7 @@ public class PropertyProbe<A extends AbstractAgent, T> extends Probe<A>// TODO
 					cachedField = findFieldOn(cachedClass, fieldName);
 					fields.put(cachedClass, cachedField);
 				} catch (NoSuchFieldException e) {
-					throw new SimulationException(toString() + " on " + agent, e);
+					throw new SimulationException(this + " on " + agent, e);
 				}
 			}
 		}
@@ -137,7 +137,7 @@ public class PropertyProbe<A extends AbstractAgent, T> extends Probe<A>// TODO
 		try {
 			return (T) cachedField.get(agent);
 		} catch (IllegalAccessException e) {
-			throw new SimulationException(toString() + " on " + agent, e);
+			throw new SimulationException(this + " on " + agent, e);
 		}
 	}
 
@@ -153,7 +153,7 @@ public class PropertyProbe<A extends AbstractAgent, T> extends Probe<A>// TODO
 		try {
 			cachedField.set(agent, value);
 		} catch (IllegalArgumentException | IllegalAccessException e) {
-			throw new SimulationException(toString() + " on " + agent, e);
+			throw new SimulationException(this + " on " + agent, e);
 		}
 	}
 
@@ -176,7 +176,7 @@ public class PropertyProbe<A extends AbstractAgent, T> extends Probe<A>// TODO
 					max = val;
 				}
 			} catch (ClassCastException e) {
-				throw new SimulationException(toString() + " on " + a, e);
+				throw new SimulationException(this + " on " + a, e);
 			}
 		}
 		return max;
@@ -201,7 +201,7 @@ public class PropertyProbe<A extends AbstractAgent, T> extends Probe<A>// TODO
 					min = val;
 				}
 			} catch (ClassCastException e) {
-				throw new SimulationException(toString() + " on " + a, e);
+				throw new SimulationException(this + " on " + a, e);
 			}
 		}
 		return min;
@@ -219,7 +219,7 @@ public class PropertyProbe<A extends AbstractAgent, T> extends Probe<A>// TODO
 			try {
 				total += ((Number) getPropertyValue(a)).doubleValue();
 			} catch (ClassCastException e) {
-				throw new SimulationException(toString() + " on " + a, e);
+				throw new SimulationException(this + " on " + a, e);
 			}
 		}
 		return total / size();

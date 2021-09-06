@@ -44,7 +44,7 @@ public class Client extends Agent {
 	static int nbOfClientsOnScreen = 0;
 
 	private JPanel blinkPanel;
-	private static ImageIcon clientImage = new ImageIcon(new ImageIcon(Client.class.getResource("images/client.png"))
+	private static final ImageIcon clientImage = new ImageIcon(new ImageIcon(Client.class.getResource("images/client.png"))
 			.getImage().getScaledInstance(70, 70, Image.SCALE_SMOOTH));
 	private final String product = Provider.availableTransports
 			.get((int) (Math.random() * Provider.availableTransports.size()));
