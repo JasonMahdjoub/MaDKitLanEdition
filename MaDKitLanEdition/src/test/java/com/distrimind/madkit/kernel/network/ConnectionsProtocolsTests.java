@@ -106,7 +106,7 @@ public class ConnectionsProtocolsTests extends JunitMadkit {
 	}
 
 	@AfterSuite
-	public static void removeDatabase() {
+	public void removeDatabase() {
 		sql_connection_asker.close();
 		sql_connection_recveiver.close();
 		EmbeddedH2DatabaseWrapper.deleteDatabasesFiles(dbasker);
