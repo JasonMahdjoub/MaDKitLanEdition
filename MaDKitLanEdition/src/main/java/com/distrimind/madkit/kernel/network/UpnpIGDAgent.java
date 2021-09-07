@@ -163,13 +163,12 @@ class UpnpIGDAgent extends AgentFakeThread {
 	{
 		return DocumentBuilderFactoryWithNonDTD.newDocumentBuilderFactoryWithNonDTDInstance();
 	}
-	private static NetworkAddressFactory networkAddressFactory=null;
 	/*
 	 * Fix DDOS and SSRF issue : https://github.com/4thline/cling/issues/253
 	 */
 	static NetworkAddressFactory createNetworkAddressFactory(int streamListenPort, int multicastPort) {
 
-		return networkAddressFactory=new NetworkAddressFactoryImpl(streamListenPort) {
+		return new NetworkAddressFactoryImpl(streamListenPort) {
 			@Override
 			public int getMulticastPort() {
 				return multicastPort;
@@ -181,13 +180,13 @@ class UpnpIGDAgent extends AgentFakeThread {
 			}
 		};
 	}
-	static boolean isNotValidRemoteAddress(URL u)
+	static boolean isNotValidRemoteAddress(URL u, NetworkAddressFactory networkAddressFactory)
 	{
 		if (u==null)
 			return false;
-		return isNotValidRemoteAddress(u.getHost());
+		return isNotValidRemoteAddress(u.getHost(), networkAddressFactory);
 	}
-	static boolean isNotValidRemoteAddress(String host)
+	static boolean isNotValidRemoteAddress(String host, NetworkAddressFactory networkAddressFactory)
 	{
 		try {
 			InetAddress ia = InetAddress.getByName(host);
@@ -223,7 +222,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 				if (CallbackHeader.class.isAssignableFrom(uh.getClass())) {
 					CallbackHeader ch = (CallbackHeader) uh;
 					for (URL u : ch.getValue()) {
-						if (isNotValidRemoteAddress(u))
+						if (isNotValidRemoteAddress(u, networkAddressFactory))
 							return null;
 					}
 				}
@@ -234,7 +233,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 			for (UpnpHeader<?> uh : luh) {
 				if (HostHeader.class.isAssignableFrom(uh.getClass())) {
 					HostHeader hh = (HostHeader) uh;
-					if (isNotValidRemoteAddress(hh.getValue().getHost()))
+					if (isNotValidRemoteAddress(hh.getValue().getHost(), networkAddressFactory))
 						return null;
 				}
 			}
@@ -244,7 +243,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 			for (UpnpHeader<?> uh : luh) {
 				if (LocationHeader.class.isAssignableFrom(uh.getClass())) {
 					LocationHeader hh = (LocationHeader) uh;
-					if (isNotValidRemoteAddress(hh.getValue().getHost()))
+					if (isNotValidRemoteAddress(hh.getValue().getHost(), networkAddressFactory))
 						return null;
 				}
 			}
@@ -280,7 +279,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 						/*
 						 * Fix DDOS and SSRF issue : https://github.com/4thline/cling/issues/253
 						 */
-						IncomingDatagramMessage<?> idm=getValidIncomingDatagramMessage(datagramProcessor.read(receivedOnLocalAddress, datagram), networkAddressFactory);
+						IncomingDatagramMessage<?> idm=getValidIncomingDatagramMessage(datagramProcessor.read(receivedOnLocalAddress, datagram),networkAddressFactory);
 						if (idm==null)
 							continue;
 						router.received(idm);
@@ -500,7 +499,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 	/*
 	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
 	 */
-	static DeviceDescriptorBinder createDeviceDescriptorBinderUDA10() {
+	static DeviceDescriptorBinder createDeviceDescriptorBinderUDA10(NetworkAddressFactory networkAddressFactory) {
 		//noinspection rawtypes
 		return new UDA10DeviceDescriptorBinderImpl()
 		{
@@ -524,7 +523,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 					);
 
 					D res=describe(undescribedDevice, d);
-					if (res.getDetails()!=null && isNotValidRemoteAddress(res.getDetails().getBaseURL()))
+					if (res.getDetails()!=null && isNotValidRemoteAddress(res.getDetails().getBaseURL(), networkAddressFactory))
 						return null;
 
 					return res;
@@ -556,7 +555,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 	/*
 	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
 	 */
-	static ServiceDescriptorBinder createServiceDescriptorBinderUDA10() {
+	static ServiceDescriptorBinder createServiceDescriptorBinderUDA10(NetworkAddressFactory networkAddressFactory) {
 		//noinspection rawtypes
 		return new UDA10ServiceDescriptorBinderImpl(){
 			@Override
@@ -578,7 +577,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 					);
 
 					S res= describe(undescribedService, d);
-					if (res.getDevice()!=null && res.getDevice().getDetails()!=null && isNotValidRemoteAddress(res.getDevice().getDetails().getBaseURL()))
+					if (res.getDevice()!=null && res.getDevice().getDetails()!=null && isNotValidRemoteAddress(res.getDevice().getDetails().getBaseURL(), networkAddressFactory))
 						return null;
 					return res;
 
@@ -2066,6 +2065,7 @@ class NONAndroidUpnpServiceConfiguration extends org.fourthline.cling.DefaultUpn
 	 * Defaults to port '0', ephemeral.
 	 */
 	private final int multicastPort;
+	private NetworkAddressFactory networkAddressFactory=null;
 
 	public NONAndroidUpnpServiceConfiguration(int streamListenPort, int multicastPort) {
 		super(streamListenPort);
@@ -2078,7 +2078,7 @@ class NONAndroidUpnpServiceConfiguration extends org.fourthline.cling.DefaultUpn
 	
 	@Override
     protected NetworkAddressFactory createNetworkAddressFactory(int streamListenPort) {
-		return UpnpIGDAgent.createNetworkAddressFactory(streamListenPort, NONAndroidUpnpServiceConfiguration.this.multicastPort);
+		return networkAddressFactory=UpnpIGDAgent.createNetworkAddressFactory(streamListenPort, NONAndroidUpnpServiceConfiguration.this.multicastPort);
     }
 
 	/*
@@ -2101,7 +2101,7 @@ class NONAndroidUpnpServiceConfiguration extends org.fourthline.cling.DefaultUpn
 	 */
 	@Override
 	public DeviceDescriptorBinder createDeviceDescriptorBinderUDA10() {
-		return UpnpIGDAgent.createDeviceDescriptorBinderUDA10();
+		return UpnpIGDAgent.createDeviceDescriptorBinderUDA10(networkAddressFactory);
 	}
 
 	/*
@@ -2109,7 +2109,7 @@ class NONAndroidUpnpServiceConfiguration extends org.fourthline.cling.DefaultUpn
 	 */
 	@Override
 	public ServiceDescriptorBinder createServiceDescriptorBinderUDA10() {
-		return UpnpIGDAgent.createServiceDescriptorBinderUDA10();
+		return UpnpIGDAgent.createServiceDescriptorBinderUDA10(networkAddressFactory);
 	}
 
 	@Override
@@ -2145,6 +2145,7 @@ class NONAndroidUpnpServiceConfiguration extends org.fourthline.cling.DefaultUpn
 
 class AndroidUpnpServiceConfiguration extends org.fourthline.cling.android.AndroidUpnpServiceConfiguration {
 	private final int multicastPort;
+	private NetworkAddressFactory networkAddressFactory=null;
 
 	public AndroidUpnpServiceConfiguration(int streamListenPort, int multicastPort) {
 		super(streamListenPort);
@@ -2157,7 +2158,7 @@ class AndroidUpnpServiceConfiguration extends org.fourthline.cling.android.Andro
 	
 	@Override
     protected NetworkAddressFactory createNetworkAddressFactory(int streamListenPort) {
-		return UpnpIGDAgent.createNetworkAddressFactory(streamListenPort, AndroidUpnpServiceConfiguration.this.multicastPort);
+		return networkAddressFactory=UpnpIGDAgent.createNetworkAddressFactory(streamListenPort, AndroidUpnpServiceConfiguration.this.multicastPort);
     }
 	/*
 	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
@@ -2179,7 +2180,8 @@ class AndroidUpnpServiceConfiguration extends org.fourthline.cling.android.Andro
 	 */
 	@Override
 	public DeviceDescriptorBinder createDeviceDescriptorBinderUDA10() {
-		return UpnpIGDAgent.createDeviceDescriptorBinderUDA10();
+
+		return UpnpIGDAgent.createDeviceDescriptorBinderUDA10(networkAddressFactory);
 	}
 
 	/*
@@ -2187,7 +2189,7 @@ class AndroidUpnpServiceConfiguration extends org.fourthline.cling.android.Andro
 	 */
 	@Override
 	public ServiceDescriptorBinder createServiceDescriptorBinderUDA10() {
-		return UpnpIGDAgent.createServiceDescriptorBinderUDA10();
+		return UpnpIGDAgent.createServiceDescriptorBinderUDA10(networkAddressFactory);
 	}
 	@Override
 	public MulticastReceiver<?> createMulticastReceiver(NetworkAddressFactory networkAddressFactory) {
