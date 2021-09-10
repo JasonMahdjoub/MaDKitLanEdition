@@ -1175,6 +1175,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 								protected void activate() {
 									try {
 										centralDatabaseWrapper = getMadkitConfig().getDatabaseWrapper();
+										centralDatabaseWrapper.setCentralDatabaseLogLevel(Level.FINER);
 										getMadkitConfig().getCentralDatabaseBackupReceiver().addClient((short) 10, aSymmetricKeyPairForClientServerSignatures2.getASymmetricPublicKey());
 									} catch (DatabaseException e) {
 										e.printStackTrace();
