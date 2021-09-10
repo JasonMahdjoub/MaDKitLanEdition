@@ -722,8 +722,11 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 									null, synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE?new BackupConfiguration(10000, 30000, 32000,1000, null):null),false, true )
 						.commit();
 				Table1 table=wrapper.getTableInstance(Table1.class);
-				if (!integrator && indirect && synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE)
+				boolean firstRecordAdded=!(!integrator && indirect && synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE);
+				if (firstRecordAdded)
 					table.addRecord(myListToAdd.get(0));
+				if (indirect && synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE)
+					sleep(2000);
 				AssertJUnit.assertFalse(wrapper.getSynchronizer().isInitialized(localIdentifierOtherSide));
 
 				AssertJUnit.assertNotNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
@@ -791,9 +794,19 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					finished.set(false);
 					return;
 				}
+				if (indirect && synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE) {
+					if (!integrator) {
+						if (checkDistantRecords(this, table, Collections.singletonList(otherListToAdd.get(0)))) {
+							System.err.println("Single distant record not synchronized with peers");
+							finished.set(false);
+							return;
+						}
+					}
+					sleep(2000);
+				}
 
 				System.out.println("add records");
-				int total=1;
+				int total=firstRecordAdded?1:0;
 				while(total<myListToAdd.size())
 				{
 					nb=(int)(Math.random()*(myListToAdd.size()-total)+1);
@@ -883,7 +896,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 			return false;
 		}
 	}
-	private static boolean checkDistantRecords(AbstractAgent agent, Table1 table, ArrayList<Table1.Record> otherListToAdd) throws DatabaseException, InterruptedException {
+	private static boolean checkDistantRecords(AbstractAgent agent, Table1 table, List<Table1.Record> otherListToAdd) throws DatabaseException, InterruptedException {
 		System.out.println("check synchronization, lacking = "+otherListToAdd.size()+", table.recordsNumber="+table.getRecordsNumber());
 		ArrayList<Table1.Record> l=new ArrayList<>(otherListToAdd);
 		int nb=0;
