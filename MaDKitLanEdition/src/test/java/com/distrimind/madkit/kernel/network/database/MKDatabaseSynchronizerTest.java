@@ -802,7 +802,8 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 							return;
 						}
 					}
-					sleep(2000);
+					else
+						sleep(2000);
 				}
 
 				System.out.println("add records");
@@ -918,6 +919,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 			}
 			++nb;
 		} while(l.size()>0 && nb<10);
+		System.out.println("check synchronization, lacking = "+0+", table.recordsNumber="+table.getRecordsNumber());
 		return l.size()>0;
 	}
 
