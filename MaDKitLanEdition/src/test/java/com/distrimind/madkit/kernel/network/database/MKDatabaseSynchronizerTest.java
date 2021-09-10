@@ -722,7 +722,8 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 									null, synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE?new BackupConfiguration(10000, 30000, 32000,1000, null):null),false, true )
 						.commit();
 				Table1 table=wrapper.getTableInstance(Table1.class);
-				table.addRecord(myListToAdd.get(0));
+				if (!integrator && indirect && synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE)
+					table.addRecord(myListToAdd.get(0));
 				AssertJUnit.assertFalse(wrapper.getSynchronizer().isInitialized(localIdentifierOtherSide));
 
 				AssertJUnit.assertNotNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
