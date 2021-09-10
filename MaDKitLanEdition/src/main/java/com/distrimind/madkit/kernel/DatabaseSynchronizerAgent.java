@@ -574,7 +574,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			/*if (currentBigDataTransferID!=null)
 				return ;*/
 			try {
-				Long utc=wrapper.getNextPossibleEventTimeUTC();
+
 
 				while ((e = synchronizer.nextEvent()) != null) {
 
@@ -679,7 +679,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 						}
 					}
 				}
-
+				Long utc=wrapper.getNextPossibleEventTimeUTC();
 				if (utc!=null) {
 					scheduleTask(new Task<>((Callable<Void>) () -> {
 						receiveMessage(checkEvents);
