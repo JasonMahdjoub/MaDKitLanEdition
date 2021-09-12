@@ -83,9 +83,8 @@ public class BigDataTransferSpeed extends JunitMadkit {
         this.eventListener1 = new NetworkEventListener(true, false, false, null,
                 new ConnectionsProtocolsMKEventListener(p2pprotocol), new AccessProtocolPropertiesMKEventListener(app),
                 new AccessDataMKEventListener(AccessDataMKEventListener.getDefaultAccessData(defaultGroupAccess)), 5000,
-                Collections.singletonList(new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"),
-                        (Inet6Address) InetAddress.getByName("::1"))),
-                InetAddress.getByName("0.0.0.0")) {
+                Collections.emptyList(),
+                InetAddress.getByName("127.0.0.1"), InetAddress.getByName("::1")) {
 
             @Override
             public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
@@ -133,9 +132,8 @@ public class BigDataTransferSpeed extends JunitMadkit {
 		this.eventListener2 = new NetworkEventListener(true, false, false, null,
 				new ConnectionsProtocolsMKEventListener(u), new AccessProtocolPropertiesMKEventListener(app),
 				new AccessDataMKEventListener(AccessDataMKEventListener.getDefaultAccessData(defaultGroupAccess)), 5000,
-				Collections.singletonList(new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"),
-						(Inet6Address) InetAddress.getByName("::1"))),
-				InetAddress.getByName("0.0.0.0")) {
+                Collections.singletonList(new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"), (Inet6Address) InetAddress.getByName("::1")))
+				) {
 
 			@Override
 			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
@@ -165,7 +163,14 @@ public class BigDataTransferSpeed extends JunitMadkit {
             protected void activate() throws InterruptedException {
                 AbstractAgent bigDataSenderAgent=new NormalAgent() {
                             @Override
-                            protected void activate() throws InterruptedException {
+                            protected void activate() {
+
+
+
+                            }
+
+                            @Override
+                            protected void liveCycle() throws InterruptedException {
                                 requestRole(GROUP, ROLE);
                                 sleep(2000);
                                 int size=400000000;
@@ -217,12 +222,6 @@ public class BigDataTransferSpeed extends JunitMadkit {
                                 transfered2.set(tr2);
 
                                 AssertJUnit.assertTrue(""+m, transfered2.get());
-
-
-                            }
-
-                            @Override
-                            protected void liveCycle() {
                                 this.killAgent(this);
                             }
 
