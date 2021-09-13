@@ -93,7 +93,7 @@ class DatagramLocalNetworkPresenceMessage extends Message {
 				+ new String(programName) + ", inetAddress=" + ia;
 	}
 
-	private static long getVersionLong(Version version)
+	static long getVersionLong(Version version)
     {
         if (version.getMajor()>0xFFF)
             throw new IllegalArgumentException();
@@ -268,10 +268,12 @@ class DatagramLocalNetworkPresenceMessage extends Message {
 		if (kernelAddress == null)
 			throw new NullPointerException("kernelAddress");
 
-		if (isNotCompatibleWith(localProgramVersion == null ? -1 : getVersionLong(localProgramVersion), getVersionLong(localMadkitVersion), this.programMinimumBuildNumber, this.madkitMinimumBuildNumber))
-		    return false;
-        if (isNotCompatibleWith(this.programBuildNumber, this.madkitBuildNumber, localProgramVersionMinimum == null ? -1 : getVersionLong(localProgramVersionMinimum), getVersionLong(localMadkitVersionMinimum)))
-            return false;
+		if (isNotCompatibleWith(localProgramVersion == null ? -1 : getVersionLong(localProgramVersion), getVersionLong(localMadkitVersion), this.programMinimumBuildNumber, this.madkitMinimumBuildNumber)) {
+			return false;
+		}
+        if (isNotCompatibleWith(this.programBuildNumber, this.madkitBuildNumber, localProgramVersionMinimum == null ? -1 : getVersionLong(localProgramVersionMinimum), getVersionLong(localMadkitVersionMinimum))) {
+			return false;
+		}
 
 		byte[] lpn;
 		if (localProgramVersionMinimum == null)
@@ -281,7 +283,6 @@ class DatagramLocalNetworkPresenceMessage extends Message {
 
 		if (lpn.length != programName.length)
 		{
-
 			return false;
 		}
 
@@ -290,7 +291,6 @@ class DatagramLocalNetworkPresenceMessage extends Message {
 			{
 				return false;
 			}
-
 		byte[] ka = digestMessage(kernelAddress.getAbstractDecentralizedID().encode());
         return !Arrays.equals(ka, this.kernelAddress);
     }

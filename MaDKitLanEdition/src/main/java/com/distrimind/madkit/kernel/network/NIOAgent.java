@@ -63,14 +63,7 @@ import com.distrimind.madkit.exceptions.OverflowException;
 import com.distrimind.madkit.exceptions.PacketException;
 import com.distrimind.madkit.exceptions.SelfKillException;
 import com.distrimind.madkit.exceptions.TransferException;
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.Agent;
-import com.distrimind.madkit.kernel.AgentAddress;
-import com.distrimind.madkit.kernel.AgentNetworkID;
-import com.distrimind.madkit.kernel.Group;
-import com.distrimind.madkit.kernel.Message;
-import com.distrimind.madkit.kernel.NetworkAgent;
-import com.distrimind.madkit.kernel.Task;
+import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.network.AbstractData.DataTransferType;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
 import com.distrimind.madkit.kernel.network.TransferAgent.TryDirectConnection;
@@ -1863,7 +1856,15 @@ final class NIOAgent extends Agent {
 							}
 						} else {
 							if (logger != null && logger.isLoggable(Level.INFO))
-								logger.info("Incompatible peers" );
+								logger.info("Incompatible peers : "
+										+"\n\tDefault project code name: "+ MadkitProperties.defaultProjectCodeName
+										+"\n\tLocal MaDKit build number: "
+										+DatagramLocalNetworkPresenceMessage.getVersionLong(getMadkitConfig().madkitVersion)
+										+"\n\tLocal project build number: "+(getMadkitConfig().projectVersion==null?null:DatagramLocalNetworkPresenceMessage.getVersionLong(getMadkitConfig().projectVersion))
+										+"\n\tMinimum MaDKit build number: "+DatagramLocalNetworkPresenceMessage.getVersionLong(getMadkitConfig().minimumMadkitVersion)
+										+"\n\tMinimum project build number: "+(getMadkitConfig().minimumProjectVersion==null?null:DatagramLocalNetworkPresenceMessage.getVersionLong(getMadkitConfig().minimumProjectVersion))
+										+"\n\tLocal kernel address: "+getKernelAddress());
+
 							firstReceivedData = null;
 							closeConnection(ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED);
 							key.cancel();
