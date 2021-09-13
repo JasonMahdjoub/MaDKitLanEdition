@@ -508,7 +508,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					databaseFileServer,
 					new ConnectionsProtocolsMKEventListener(serverProtocol), new AccessProtocolPropertiesMKEventListener(app),
 					new AccessDataMKEventListener(loginDataServer), 5001, Collections.emptyList(),
-					InetAddress.getByName("0.0.0.0")) {
+					InetAddress.getByName("127.0.0.1"), InetAddress.getByName("::1")) {
 
 				@Override
 				public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
@@ -538,7 +538,8 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 
 		P2PSecuredConnectionProtocolPropertiesWithKeyAgreement p2pprotocol1=new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 		p2pprotocol1.filtersForDistantPeers=new InetAddressFilters();
-		p2pprotocol1.filtersForDistantPeers.setDenyFilters(new DoubleIP(5001,(Inet4Address) InetAddress.getByName("127.0.0.1"),(Inet6Address) InetAddress.getByName("::1")) );
+		p2pprotocol1.filtersForDistantPeers.setDenyFilters(new DoubleIP(5001,
+				(Inet4Address) InetAddress.getByName("127.0.0.1"),(Inet6Address) InetAddress.getByName("::1")) );
 		p2pprotocol1.isServer = true;
 		p2pprotocol1.symmetricEncryptionType= SymmetricEncryptionType.AES_CTR;
 		p2pprotocol1.symmetricSignatureType= SymmetricAuthenticatedSignatureType.HMAC_SHA2_384;
@@ -592,8 +593,8 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				clientProtocol1==null?new ConnectionsProtocolsMKEventListener(p2pprotocol1):new ConnectionsProtocolsMKEventListener(p2pprotocol1, clientProtocol1),
 				new AccessProtocolPropertiesMKEventListener(new AccessProtocolWithP2PAgreementProperties()),
 				loginDataClient1==null?new AccessDataMKEventListener(loginData1):new AccessDataMKEventListener(loginData1, loginDataClient1), 5000,
-				listIpToConnect,
-				InetAddress.getByName("0.0.0.0")) {
+				Collections.emptyList(),
+				InetAddress.getByName("127.0.0.1"), InetAddress.getByName("::1")) {
 
 			@Override
 			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
@@ -642,8 +643,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				clientProtocol2==null?new ConnectionsProtocolsMKEventListener(p2pprotocol2):new ConnectionsProtocolsMKEventListener(p2pprotocol2, clientProtocol2),
 				new AccessProtocolPropertiesMKEventListener(new AccessProtocolWithP2PAgreementProperties()),
 				loginDataClient2==null?new AccessDataMKEventListener(loginData2):new AccessDataMKEventListener(loginData2, loginDataClient2), 5000,
-				listIpToConnect,
-				InetAddress.getByName("0.0.0.0")) {
+				listIpToConnect) {
 
 			@Override
 			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
@@ -738,6 +738,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					wrapper.getDatabaseConfigurationsBuilder()
 							.synchronizeDistantPeersWithGivenAdditionalPackages(Collections.singletonList(localIdentifierOtherSide), Table1.class.getPackage().getName())
 							.commit();
+					System.out.println("------------here");
 
 					DatabaseConfiguration dc = wrapper.getDatabaseConfigurationsBuilder().getDatabaseConfiguration(Table1.class.getPackage());
 					AssertJUnit.assertEquals(synchronizationType, dc.getSynchronizationType());
@@ -1169,6 +1170,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		init(connectCentralDatabaseBackup, indirectSynchronizationWithCentralDatabaseBackup);
 		final AtomicReference<Boolean> finished1=new AtomicReference<>(null);
 		final AtomicReference<Boolean> finished2=new AtomicReference<>(null);
+
 		// addMadkitArgs("--kernelLogLevel",Level.INFO.toString(),"--networkLogLevel",Level.FINEST.toString());
 		try {
 			launchTest(new AbstractAgent() {
