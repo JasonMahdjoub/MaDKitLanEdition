@@ -1,13 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <bytecodeTargetLevel>
-      <module name="MaDKitLanEdition.Utils" target="15" />
-      <module name="MaDKitLanEdition.Utils.main" target="15" />
-      <module name="MaDKitLanEdition.Utils.test" target="15" />
-      <module name="OOD.Utils" target="15" />
-      <module name="OOD.Utils.main" target="15" />
-      <module name="OOD.Utils.test" target="15" />
-    </bytecodeTargetLevel>
+    <bytecodeTargetLevel target="8" />
   </component>
 </project>

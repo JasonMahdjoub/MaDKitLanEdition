@@ -184,7 +184,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 			setCertificateExpirationTimeUTCInMsArray();
 		}
 	}
-	public static class FileReference implements com.distrimind.ood.database.centraldatabaseapi.FileReference
+	public static class FileReference extends com.distrimind.ood.database.filemanager.FileReference
 	{
 		private transient File file;
 		private static final int MAX_FILE_NAME_LENGTH=2000;
@@ -198,7 +198,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		}
 
 		@Override
-		public boolean equals(Object o) {
+		protected boolean equalsImplementation(Object o) {
 			return (o==this || (o instanceof FileReference && ((FileReference) o).file.equals(file)));
 		}
 
@@ -220,17 +220,17 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		}
 
 		@Override
-		public boolean delete() {
+		protected boolean deleteImplementation() {
 			return file.delete();
 		}
 
 		@Override
-		public RandomInputStream getRandomInputStream() throws IOException {
+		protected RandomInputStream getRandomInputStreamImplementation() throws IOException {
 			return new RandomFileInputStream(file);
 		}
 
 		@Override
-		public RandomOutputStream getRandomOutputStream() throws IOException {
+		protected RandomOutputStream getRandomOutputStreamImplementation() throws IOException {
 			return new RandomFileOutputStream(file);
 		}
 
