@@ -580,8 +580,6 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		localIdentifier=loginData1.getDecentralizedDatabaseID(idpws.get(0).getIdentifier(), null);
 
 		List<AbstractIP> listIpToConnect=new ArrayList<>();
-		if (!indirectSynchronizationWithCentralDatabaseBackup)
-			listIpToConnect.add(new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"),(Inet6Address) InetAddress.getByName("::1")));
 		if (connectCentralDatabaseBackup)
 		{
 			listIpToConnect.add(new DoubleIP(5001, (Inet4Address) InetAddress.getByName("127.0.0.1"),(Inet6Address) InetAddress.getByName("::1")));
@@ -593,7 +591,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				clientProtocol1==null?new ConnectionsProtocolsMKEventListener(p2pprotocol1):new ConnectionsProtocolsMKEventListener(p2pprotocol1, clientProtocol1),
 				new AccessProtocolPropertiesMKEventListener(new AccessProtocolWithP2PAgreementProperties()),
 				loginDataClient1==null?new AccessDataMKEventListener(loginData1):new AccessDataMKEventListener(loginData1, loginDataClient1), 5000,
-				Collections.emptyList(),
+				listIpToConnect,
 				InetAddress.getByName("127.0.0.1"), InetAddress.getByName("::1")) {
 
 			@Override
@@ -638,6 +636,13 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		loginData2.getFilters().setDenyFilters(new DoubleIP(5001,(Inet4Address) InetAddress.getByName("127.0.0.1"),(Inet6Address) InetAddress.getByName("::1")) );
 		AccessDataMKEventListener.databaseIdentifiers.put(idpws.get(0).getIdentifier(), hostID2);
 		this.loginDataClient2=loginDataClient2;
+		listIpToConnect=new ArrayList<>();
+		if (!indirectSynchronizationWithCentralDatabaseBackup)
+			listIpToConnect.add(new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"),(Inet6Address) InetAddress.getByName("::1")));
+		if (connectCentralDatabaseBackup)
+		{
+			listIpToConnect.add(new DoubleIP(5001, (Inet4Address) InetAddress.getByName("127.0.0.1"),(Inet6Address) InetAddress.getByName("::1")));
+		}
 		this.eventListener2 = new NetworkEventListener(true, false, false, databaseFile2,
 				clientServerProfileCollection2, encryptionProfileCollectionForE2EEncryption2, encryptionProfileCollectionForP2PSignature2,SecureRandomType.DEFAULT,
 				clientProtocol2==null?new ConnectionsProtocolsMKEventListener(p2pprotocol2):new ConnectionsProtocolsMKEventListener(p2pprotocol2, clientProtocol2),
@@ -738,7 +743,6 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					wrapper.getDatabaseConfigurationsBuilder()
 							.synchronizeDistantPeersWithGivenAdditionalPackages(Collections.singletonList(localIdentifierOtherSide), Table1.class.getPackage().getName())
 							.commit();
-					System.out.println("------------here");
 
 					DatabaseConfiguration dc = wrapper.getDatabaseConfigurationsBuilder().getDatabaseConfiguration(Table1.class.getPackage());
 					AssertJUnit.assertEquals(synchronizationType, dc.getSynchronizationType());

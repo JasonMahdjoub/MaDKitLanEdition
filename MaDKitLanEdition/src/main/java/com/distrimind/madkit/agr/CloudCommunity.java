@@ -293,7 +293,7 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 			return Base64.encodeBase64URLSafeString(identifier.encodeWithDefaultParameters());
 		}*/
 
-		public static final String SYNCHRONIZER="SYNCHRONIZER";
-		public static final String CENTRAL_SYNCHRONIZER="CENTRAL_SYNCHRONIZER";
+		public static final String SYNCHRONIZER="~~SYNCHRONIZER";
+		public static final String CENTRAL_SYNCHRONIZER="~~CENTRAL_SYNCHRONIZER";
 	}
 }
