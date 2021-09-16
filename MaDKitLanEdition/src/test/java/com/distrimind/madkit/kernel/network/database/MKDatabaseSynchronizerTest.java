@@ -728,8 +728,10 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 						.commit();
 				Table1 table=wrapper.getTableInstance(Table1.class);
 				boolean firstRecordAdded=!(!integrator && indirect && synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE);
-				if (firstRecordAdded)
+				if (firstRecordAdded) {
+					System.out.println(table.getDatabaseWrapper().getSynchronizer().getLocalHostID()+", add first record : "+myListToAdd.get(0));
 					table.addRecord(myListToAdd.get(0));
+				}
 				if (indirect && synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE)
 					sleep(2000);
 				AssertJUnit.assertFalse(wrapper.getSynchronizer().isInitialized(localIdentifierOtherSide));

@@ -87,5 +87,13 @@ public final class Table1 extends Table<Table1.Record> {
 		public void setValue(String value) {
 			this.value = value;
 		}
+
+		@Override
+		public String toString() {
+			return "Record{" +
+					"decentralizedID=" + decentralizedID +
+					", value='" + value + '\'' +
+					'}';
+		}
 	}
 }
