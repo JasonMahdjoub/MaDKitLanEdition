@@ -684,6 +684,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		final CentralDatabaseBackupReceiver centralDatabaseBackupReceiver;
 		static volatile int numberOfInitialBackupFilesIntoIntegrator=0;
 		final int numberOfRecordsFirstAdded;
+		static boolean addSeveralFirstRecords=false;
 
 
 
@@ -707,7 +708,18 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 			this.synchronizationType=central?DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE:DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION;
 			this.centralDatabaseBackupCertificate=centralDatabaseBackupCertificate;
 			this.centralDatabaseBackupReceiver=centralDatabaseBackupReceiver;
-			this.numberOfRecordsFirstAdded=!(!integrator && indirect && synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE)?1:0;
+			if (!integrator && indirect && synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE)
+				this.numberOfRecordsFirstAdded=0;
+			else {
+				if (addSeveralFirstRecords) {
+					addSeveralFirstRecords=false;
+					this.numberOfRecordsFirstAdded = 3;
+				}
+				else {
+					addSeveralFirstRecords=true;
+					this.numberOfRecordsFirstAdded = 1;
+				}
+			}
 		}
 
 		@Override
@@ -746,7 +758,8 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				}
 				if (indirect && synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE)
 					sleep(2000);
-				AssertJUnit.assertFalse(wrapper.getSynchronizer().isInitialized(localIdentifierOtherSide));
+
+				AssertJUnit.assertFalse("integrator="+integrator, wrapper.getSynchronizer().isInitialized(localIdentifierOtherSide));
 
 				AssertJUnit.assertNotNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeer());
 				AssertJUnit.assertNotNull(getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder().getConfigurations().getLocalPeerString());
@@ -754,6 +767,8 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				AssertJUnit.assertEquals(localIdentifier, wrapper.getSynchronizer().getLocalHostID());
 
 				if (integrator) {
+					if (!indirect)
+						sleep(2000);
 					wrapper.getDatabaseConfigurationsBuilder()
 							.synchronizeDistantPeersWithGivenAdditionalPackages(Collections.singletonList(localIdentifierOtherSide), Table1.class.getPackage().getName())
 							.commit();
