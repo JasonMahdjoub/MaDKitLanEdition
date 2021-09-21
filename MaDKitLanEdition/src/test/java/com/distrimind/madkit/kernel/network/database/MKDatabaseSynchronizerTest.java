@@ -683,10 +683,15 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		final CentralDatabaseBackupCertificate centralDatabaseBackupCertificate;
 		final CentralDatabaseBackupReceiver centralDatabaseBackupReceiver;
 		static volatile int numberOfInitialBackupFilesIntoIntegrator=0;
+		final int numberOfRecordsFirstAdded;
 
 
 
-		public DatabaseAgent(DecentralizedValue localIdentifier, DecentralizedValue localIdentifierOtherSide, ArrayList<Table1.Record> myListToAdd, ArrayList<Table1.Record> otherListToAdd, AtomicReference<Boolean> finished,
+		public DatabaseAgent(DecentralizedValue localIdentifier,
+							 DecentralizedValue localIdentifierOtherSide,
+							 ArrayList<Table1.Record> myListToAdd,
+							 ArrayList<Table1.Record> otherListToAdd,
+							 AtomicReference<Boolean> finished,
 							 boolean isIntegrator,
 							 boolean central,
 							 boolean indirect,
@@ -702,6 +707,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 			this.synchronizationType=central?DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE:DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION;
 			this.centralDatabaseBackupCertificate=centralDatabaseBackupCertificate;
 			this.centralDatabaseBackupReceiver=centralDatabaseBackupReceiver;
+			this.numberOfRecordsFirstAdded=!(!integrator && indirect && synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE)?1:0;
 		}
 
 		@Override
@@ -725,11 +731,18 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 									null, synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE?new BackupConfiguration(10000, 30000, 32000,1000, null):null),false, true )
 						.commit();
 				Table1 table=wrapper.getTableInstance(Table1.class);
-				boolean firstRecordAdded=!(!integrator && indirect && synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE);
-				if (firstRecordAdded) {
+				if (numberOfRecordsFirstAdded>0) {
 					System.out.println(table.getDatabaseWrapper().getSynchronizer().getLocalHostID()+", add first record : "+myListToAdd.get(0));
-					table.addRecord(myListToAdd.get(0));
-					numberOfInitialBackupFilesIntoIntegrator=table.getDatabaseWrapper().getBackupRestoreManager(Table1.class.getPackage()).getFileTimeStamps().size();
+					Long maxBackupFileAge=synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE?wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getDatabaseConfiguration(table.getClass().getPackage()).getBackupConfiguration().getMaxBackupFileAgeInMs():null;
+					for (int i=0;i<numberOfRecordsFirstAdded;i++) {
+						table.addRecord(myListToAdd.get(i));
+						if (maxBackupFileAge!=null && i+1<numberOfRecordsFirstAdded)
+							sleep(maxBackupFileAge);
+					}
+					if (synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE)
+						numberOfInitialBackupFilesIntoIntegrator=table.getDatabaseWrapper().getBackupRestoreManager(Table1.class.getPackage()).getFileTimeStamps().size();
+					else
+						numberOfInitialBackupFilesIntoIntegrator=0;
 				}
 				if (indirect && synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE)
 					sleep(2000);
@@ -817,11 +830,11 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					finished.set(false);
 					return;
 				}
-				System.out.println("add records");
-				int total=firstRecordAdded?1:0;
+				System.out.println(getMadkitConfig().getDatabaseWrapper().getSynchronizer().getLocalHostID()+" : add records");
+				int total=numberOfRecordsFirstAdded;
 				while(total<myListToAdd.size())
 				{
-					nb=(int)(Math.random()*(myListToAdd.size()-total)+1);
+					nb=(int)((Math.random()*((double)(myListToAdd.size()-total)))+1);
 
 					for (int j=total;j<nb+total;j++)
 					{
@@ -962,7 +975,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 			}
 			++nb;
 		} while(l.size()>0 && nb<10);
-		System.out.println("check synchronization, lacking = "+0+", table.recordsNumber="+table.getRecordsNumber());
+		System.out.println("check synchronization, lacking = "+l.size()+", table.recordsNumber="+table.getRecordsNumber());
 		return l.size()>0;
 	}
 
