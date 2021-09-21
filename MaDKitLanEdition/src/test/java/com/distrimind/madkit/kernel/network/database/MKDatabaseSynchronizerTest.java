@@ -743,6 +743,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 									null, synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE?new BackupConfiguration(10000, 30000, 32000,1000, null):null),false, true )
 						.commit();
 				Table1 table=wrapper.getTableInstance(Table1.class);
+
 				if (numberOfRecordsFirstAdded>0) {
 					System.out.println(table.getDatabaseWrapper().getSynchronizer().getLocalHostID()+", add first record : "+myListToAdd.get(0));
 					Long maxBackupFileAge=synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE?wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getDatabaseConfiguration(table.getClass().getPackage()).getBackupConfiguration().getMaxBackupFileAgeInMs():null;
@@ -757,7 +758,10 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 						numberOfInitialBackupFilesIntoIntegrator=0;
 				}
 				if (indirect && synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE)
-					sleep(2000);
+				{
+					long maxBackupFileAge=wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getDatabaseConfiguration(table.getClass().getPackage()).getBackupConfiguration().getMaxBackupFileAgeInMs();
+					sleep(2000+(Math.min(0,numberOfInitialBackupFilesIntoIntegrator-1)*maxBackupFileAge));
+				}
 
 				AssertJUnit.assertFalse("integrator="+integrator, wrapper.getSynchronizer().isInitialized(localIdentifierOtherSide));
 
