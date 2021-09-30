@@ -40,7 +40,6 @@ import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.access.*;
 import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolPropertiesWithKeyAgreement;
 import com.distrimind.ood.database.*;
-import com.distrimind.ood.database.centraldatabaseapi.EncryptedBackupPartReferenceTable;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.Bits;
 import com.distrimind.util.DecentralizedIDGenerator;
@@ -391,16 +390,19 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 
 	@DataProvider
 	public static Object[][] data() {
-		int cycles=4;
+		int cycles=1;
 
-		Object[][] res=new Object[cycles*3][2];
+		Object[][] res=new Object[cycles*9][3];
 		int index=0;
 		for (int i=0;i<cycles;i++) {
-			for (boolean connectCentralDatabaseBackup : new boolean[]{false, true}) {
-				for (boolean indirectSynchronizationWithCentralDatabaseBackup : connectCentralDatabaseBackup?new boolean[]{true, false}:new boolean[]{false})
-				{
-					res[index][0]=connectCentralDatabaseBackup;
-					res[index++][1]=indirectSynchronizationWithCentralDatabaseBackup;
+			for (int numberOfRecordsFirstAdded : new int[]{0, 1, 3})
+			{
+				for (boolean connectCentralDatabaseBackup : new boolean[]{false, true}) {
+					for (boolean indirectSynchronizationWithCentralDatabaseBackup : connectCentralDatabaseBackup ? new boolean[]{true, false} : new boolean[]{false}) {
+						res[index][0] = connectCentralDatabaseBackup;
+						res[index][1] = indirectSynchronizationWithCentralDatabaseBackup;
+						res[index++][2] = numberOfRecordsFirstAdded;
+					}
 				}
 			}
 		}
@@ -409,8 +411,9 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 	}
 
 	public void init(boolean connectCentralDatabaseBackup,
-									  boolean indirectSynchronizationWithCentralDatabaseBackup) throws IOException, DatabaseException, NoSuchAlgorithmException, NoSuchProviderException {
-		System.out.println("connectCentralDatabaseBackup="+connectCentralDatabaseBackup+", indirectSynchronizationWithCentralDatabaseBackup="+indirectSynchronizationWithCentralDatabaseBackup);
+									  boolean indirectSynchronizationWithCentralDatabaseBackup,
+					 int numberOfRecordsFirstAdded) throws IOException, DatabaseException, NoSuchAlgorithmException, NoSuchProviderException {
+		System.out.println("connectCentralDatabaseBackup="+connectCentralDatabaseBackup+", indirectSynchronizationWithCentralDatabaseBackup="+indirectSynchronizationWithCentralDatabaseBackup+", numberOfRecordsFirstAdded="+numberOfRecordsFirstAdded);
 		if(centralDatabaseFilesDirectory.exists())
 			FileTools.deleteDirectory(centralDatabaseFilesDirectory);
 		this.connectCentralDatabaseBackup=connectCentralDatabaseBackup;
@@ -684,7 +687,6 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		final CentralDatabaseBackupReceiver centralDatabaseBackupReceiver;
 		static volatile int numberOfInitialBackupFilesIntoIntegrator=0;
 		final int numberOfRecordsFirstAdded;
-		static boolean addSeveralFirstRecords=false;
 
 
 
@@ -697,7 +699,8 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 							 boolean central,
 							 boolean indirect,
 							 final CentralDatabaseBackupCertificate centralDatabaseBackupCertificate,
-							 CentralDatabaseBackupReceiver centralDatabaseBackupReceiver) {
+							 CentralDatabaseBackupReceiver centralDatabaseBackupReceiver,
+							 int numberOfRecordsFirstAdded) {
 			this.localIdentifier = localIdentifier;
 			this.localIdentifierOtherSide = localIdentifierOtherSide;
 			this.myListToAdd = myListToAdd;
@@ -709,16 +712,12 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 			this.centralDatabaseBackupCertificate=centralDatabaseBackupCertificate;
 			this.centralDatabaseBackupReceiver=centralDatabaseBackupReceiver;
 			if (!integrator && indirect && synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE)
+			{
 				this.numberOfRecordsFirstAdded=0;
+			}
 			else {
-				if (addSeveralFirstRecords) {
-					addSeveralFirstRecords=false;
-					this.numberOfRecordsFirstAdded = 3;
-				}
-				else {
-					addSeveralFirstRecords=true;
-					this.numberOfRecordsFirstAdded = 1;
-				}
+				this.numberOfRecordsFirstAdded=numberOfRecordsFirstAdded;
+
 			}
 		}
 
@@ -834,7 +833,10 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				}
 				if (indirect && synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE) {
 					if (!integrator) {
-						if (checkDistantRecords(this, table, Collections.singletonList(otherListToAdd.get(0)))) {
+						ArrayList<Table1.Record> l=new ArrayList<>();
+						for (int i=0;i<numberOfRecordsFirstAdded;i++)
+							l.add(otherListToAdd.get(i));
+						if (checkDistantRecords(this, table, l)) {
 							System.err.println("Single distant record not synchronized with peers");
 							finished.set(false);
 							return;
@@ -932,7 +934,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 
 					File f=FileReferenceFactory.getPackageFolder(1, getMadkitConfig().getDatabaseWrapper().getSynchronizer().getLocalHostID(), Table1.class.getPackage().getName());
 					if (!f.exists()) {
-						if (!(indirect && !integrator))
+						if (numberOfRecordsFirstAdded>0)
 						{
 							System.out.println(getMadkitConfig().getDatabaseWrapper().getSynchronizer().getLocalHostID() + ", Synchronization with central database backup has not started ! ");
 							ok = false;
@@ -1240,8 +1242,9 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 
 	@Test(dataProvider = "data")
 	public void testDatabaseSynchronization(boolean connectCentralDatabaseBackup,
-											boolean indirectSynchronizationWithCentralDatabaseBackup) throws IOException, NoSuchAlgorithmException, NoSuchProviderException, DatabaseException {
-		init(connectCentralDatabaseBackup, indirectSynchronizationWithCentralDatabaseBackup);
+											boolean indirectSynchronizationWithCentralDatabaseBackup,
+											int numberOfRecordsFirstAdded) throws IOException, NoSuchAlgorithmException, NoSuchProviderException, DatabaseException {
+		init(connectCentralDatabaseBackup, indirectSynchronizationWithCentralDatabaseBackup, numberOfRecordsFirstAdded);
 		final AtomicReference<Boolean> finished1=new AtomicReference<>(null);
 		final AtomicReference<Boolean> finished2=new AtomicReference<>(null);
 
@@ -1277,10 +1280,10 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 
 						}
 
-						AbstractAgent agentChecker = new DatabaseAgent(localIdentifier, localIdentifierOtherSide, recordsToAdd, recordsToAddOtherSide, finished1, true, connectCentralDatabaseBackup, indirectSynchronizationWithCentralDatabaseBackup, centralDatabaseBackupCertificate, centralDatabaseBackupReceiverFactory==null?null:centralDatabaseBackupReceiverFactory.getCentralDatabaseBackupReceiverInstance(centralDatabaseWrapper));
+						AbstractAgent agentChecker = new DatabaseAgent(localIdentifier, localIdentifierOtherSide, recordsToAdd, recordsToAddOtherSide, finished1, true, connectCentralDatabaseBackup, indirectSynchronizationWithCentralDatabaseBackup, centralDatabaseBackupCertificate, centralDatabaseBackupReceiverFactory==null?null:centralDatabaseBackupReceiverFactory.getCentralDatabaseBackupReceiverInstance(centralDatabaseWrapper), numberOfRecordsFirstAdded);
 						launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentChecker, eventListener1);
 						sleep(600);
-						AbstractAgent agentCheckerOtherSide = new DatabaseAgent(localIdentifierOtherSide, localIdentifier, recordsToAddOtherSide, recordsToAdd, finished2, false, connectCentralDatabaseBackup, indirectSynchronizationWithCentralDatabaseBackup, centralDatabaseBackupCertificate, centralDatabaseBackupReceiverFactory==null?null:centralDatabaseBackupReceiverFactory.getCentralDatabaseBackupReceiverInstance(centralDatabaseWrapper));
+						AbstractAgent agentCheckerOtherSide = new DatabaseAgent(localIdentifierOtherSide, localIdentifier, recordsToAddOtherSide, recordsToAdd, finished2, false, connectCentralDatabaseBackup, indirectSynchronizationWithCentralDatabaseBackup, centralDatabaseBackupCertificate, centralDatabaseBackupReceiverFactory==null?null:centralDatabaseBackupReceiverFactory.getCentralDatabaseBackupReceiverInstance(centralDatabaseWrapper), numberOfRecordsFirstAdded);
 						launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, agentCheckerOtherSide, eventListener2);
 
 						while (finished1.get() == null || finished2.get() == null) {
