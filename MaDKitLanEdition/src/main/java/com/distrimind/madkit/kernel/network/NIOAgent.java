@@ -2009,7 +2009,7 @@ final class NIOAgent extends Agent {
 					else
 						finishCloseConnection();
 					return null;
-				}, getMadkitConfig().networkProperties.delayInMsBeforeClosingConnectionNormally + System.currentTimeMillis()));
+				}, getMadkitConfig().networkProperties.delayInMsBeforeClosingConnectionNormally + System.currentTimeMillis(), true));
 			else
 				finishCloseConnection();
 
