@@ -159,6 +159,7 @@ final public class Madkit {
 							.addItem("Add the possibility for a scheduled task to be executed even if the agent who launched the task was killed")
 							.addItem("Finish closing connexions even if NIO agent was killed")
 							.addItem("Fix issue with agent fake thread and avoid reception of two messages (or more) at the same time")
+							.addItem("Fix issue with i18n encoding")
 					)
 					.addDescription(new Description((short)2, (short)2, (short)0, Version.Type.BETA, (short)1, "2021-07-07")
 							.addItem("Update Utils to 5.18.5 STABLE")
