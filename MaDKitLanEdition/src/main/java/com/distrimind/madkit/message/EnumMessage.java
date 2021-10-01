@@ -72,7 +72,7 @@ public class EnumMessage<E extends Enum<E>> extends ObjectMessage<Object[]> impl
 		super.readExternal(in, MAX_PARAMETERS_LENGTH);
 		try
 		{
-			code=(E)in.readObject(true);
+			code= in.readObject(true);
 		}
 		catch(Exception e)
 		{

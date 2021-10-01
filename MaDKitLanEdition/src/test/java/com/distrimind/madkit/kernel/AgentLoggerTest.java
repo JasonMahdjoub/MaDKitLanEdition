@@ -37,23 +37,16 @@
  */
 package com.distrimind.madkit.kernel;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.fail;
+import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 import java.io.File;
-import java.io.FilenameFilter;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.junit.Test;
-
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.AgentLogger;
-import com.distrimind.madkit.kernel.KernelException;
-import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author Fabien Michel
@@ -88,7 +81,7 @@ public class AgentLoggerTest extends JunitMadkit {
 		assertNotNull(a.logger);
 		try {
 			a.createGroup(new Group("test", "test"));
-			fail();
+			Assert.fail();
 		} catch (KernelException e) {
 			e.printStackTrace();
 		}
@@ -96,7 +89,7 @@ public class AgentLoggerTest extends JunitMadkit {
 		assertNull(a.logger);
 		try {
 			a.createGroup(new Group("test", "test"));
-			fail();
+			Assert.fail();
 		} catch (KernelException e) {
 			e.printStackTrace();
 		}
@@ -134,7 +127,7 @@ public class AgentLoggerTest extends JunitMadkit {
 		assertNull(a.logger);
 		a.setLogLevel(Level.ALL);
 		assertNotNull(a.logger);
-		assertEquals(l, a.logger);
+		Assert.assertNotEquals(l, a.logger);
 	}
 
 	@Test
@@ -160,12 +153,7 @@ public class AgentLoggerTest extends JunitMadkit {
 				if (logger != null)
 					logger.fine(getName());
 				File f = getMadkitConfig().logDirectory;
-				assertEquals(1, f.listFiles(new FilenameFilter() {
-					@Override
-					public boolean accept(File arg0, String s) {
-						return s.contains(getName()) && !s.contains(".lck");
-					}
-				}).length);
+				assertEquals(1, Objects.requireNonNull(f.listFiles((arg0, s) -> s.contains(getName()) && !s.contains(".lck"))).length);
 			}
 		}, ReturnCode.SUCCESS, true);
 

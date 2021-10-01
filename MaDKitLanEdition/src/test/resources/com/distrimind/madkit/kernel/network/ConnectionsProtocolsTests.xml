@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="ConnectionsProtocolsTests"
+       data-provider-thread-count="16" parallel="instances" thread-count="16"
+       group-by-instances="true">
+
+    <test name="ConnectionsProtocolsTests" parallel="instances"
+          thread-count="16">
+        <classes>
+            <class name="com.distrimind.madkit.kernel.network.ConnectionsProtocolsTests" />
+        </classes>
+    </test>
+
+</suite>

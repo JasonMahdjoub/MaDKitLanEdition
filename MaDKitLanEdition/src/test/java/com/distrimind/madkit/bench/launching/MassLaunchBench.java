@@ -37,14 +37,13 @@
  */
 package com.distrimind.madkit.bench.launching;
 
+import org.testng.annotations.Test;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
 import com.distrimind.madkit.kernel.*;
-import org.junit.Test;
-
 import com.distrimind.madkit.performance.MiniAgent;
 import com.distrimind.madkit.testing.util.agent.NormalAA;
 import com.distrimind.madkit.testing.util.agent.PongAgent;
@@ -68,25 +67,8 @@ public class MassLaunchBench extends JunitMadkit {
 				System.err.println("begin");
 				for (int i = 0; i < 10; i++) {
 					startTimer();
-					// launchAgentBucket("madkit.agentLifeCycle.NormalAbstractLife",
-					// 3000100);
 					launchAgentBucket(AbstractAgent.class.getName(), 10_000_000, 11);
 					stopTimer("bucket launch time = ");
-					// JUnitBooter.stopTimer("old launch time = "); // 6000000 min = 7s
-					// startTimer();
-					// ArrayList<AbstractAgent> agents = new
-					// ArrayList<AbstractAgent>(6000000);
-					// for (int i = 6000000-1; i >=0 ; i--) {
-					// if(i%1000000==0)
-					// System.err.println("launched "+i);
-					// agents.add(new AbstractAgent());
-					// }
-					// ArrayList<AbstractAgent> agents = new
-					// ArrayList<AbstractAgent>(6000000);
-					// for (int i = 6000000-1; i >=0 ; i--) {
-					// agents.add(new AbstractAgent());
-					// }
-					// stopTimer("old launch time = ");
 				}
 			}
 		});
@@ -123,12 +105,7 @@ public class MassLaunchBench extends JunitMadkit {
 				System.err.println("done\n\n");
 				System.err.println(l.get(0).requestRole(GROUP, ROLE));
 			}
-		}, AbstractAgent.ReturnCode.SUCCESS, false, new MadkitEventListener() {
-			@Override
-			public void onMaDKitPropertiesLoaded(MadkitProperties properties) {
-				properties.killAllNonThreadedAgentsDuringMaDKitClosing=false;
-			}
-		});
+		}, AbstractAgent.ReturnCode.SUCCESS, false, properties -> properties.killAllNonThreadedAgentsDuringMaDKitClosing=false);
 	}
 
 	@Test
@@ -233,14 +210,12 @@ public class MassLaunchBench extends JunitMadkit {
 					logger.info("\n******************* STARTING MASS LAUNCH *******************\n");
 				}
 				List<AbstractAgent> agents = new ArrayList<>(1_000_000);
-				for (int i = 0; i < 1_00_000; i++) {
+				for (int i = 0; i < 1_000_000; i++) {
 					agents.add(new AbstractAgent());
 				}
 				startTimer();
 				System.err.println("begin");
-				for (AbstractAgent abstractAgent : agents) {
-					launchAgent(abstractAgent);
-				}
+				launchAgentBucket(agents);
 				stopTimer("done ");
 				startTimer();
 				System.err.println("begin");
@@ -261,8 +236,8 @@ public class MassLaunchBench extends JunitMadkit {
 				if (logger != null) {
 					logger.info("\n******************* STARTING MASS LAUNCH *******************\n");
 				}
-				List<AbstractAgent> agents = new ArrayList<>(1_000_000);
-				for (int i = 0; i < 10_000; i++) {
+				List<AbstractAgent> agents = new ArrayList<>(1000);
+				for (int i = 0; i < 1000; i++) {
 					agents.add(new PongAgent());
 				}
 				startTimer();

@@ -42,7 +42,7 @@ import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.TIMEOUT;
 import static com.distrimind.madkit.kernel.JunitMadkit.GROUP;
 import static com.distrimind.madkit.kernel.JunitMadkit.aa;
-import static org.junit.Assert.assertEquals;
+import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * @author Fabien Michel
@@ -52,7 +52,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class SelfAbstractKill extends DoItDuringLifeCycleAbstractAgent {
 
-	private int timeOut;
+	private final int timeOut;
 
 	public SelfAbstractKill(boolean inActivate, boolean inEnd, int noTimeOut) {
 		super(inActivate, inEnd);

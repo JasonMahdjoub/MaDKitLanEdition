@@ -37,14 +37,12 @@
  */
 package com.distrimind.madkit.testing.util.agent;
 
-import org.junit.Assert;
-
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.kernel.AgentFakeThread;
 import com.distrimind.madkit.kernel.Group;
 import com.distrimind.madkit.kernel.Message;
-
-import static org.junit.Assert.*;
 
 /**
  * 
@@ -54,14 +52,15 @@ import static org.junit.Assert.*;
  */
 public abstract class AgentAddressAgentTester extends AgentFakeThread {
 
+	@Test
 	public boolean testAgentAddressReceiver(Message _message, Group group, String role) {
 		try {
 			AgentAddress local = getAgentAddressIn(group, role);
-			assertTrue(local.isFrom(getKernelAddress()));
+			AssertJUnit.assertTrue(local.isFrom(getKernelAddress()));
 			final AgentAddress receiver = _message.getReceiver();
-            assertEquals(receiver, local);
-			assertTrue(receiver.isFrom(getKernelAddress()));
-			Assert.assertTrue(checkAgentAddress(_message.getReceiver()));
+            AssertJUnit.assertEquals(receiver, local);
+			AssertJUnit.assertTrue(receiver.isFrom(getKernelAddress()));
+			AssertJUnit.assertTrue(checkAgentAddress(_message.getReceiver()));
 			return true;
 		} catch (Throwable e) {
 			e.printStackTrace();
@@ -69,18 +68,19 @@ public abstract class AgentAddressAgentTester extends AgentFakeThread {
 		}
 	}
 
+	@Test
 	public boolean testAgentAddressSender(Message _message, Group group, String role) {
 		try {
-			assertFalse(_message.getSender().isFrom(getKernelAddress()));
+			AssertJUnit.assertFalse(_message.getSender().isFrom(getKernelAddress()));
 
 			AgentAddress distant = null;
 			for (AgentAddress aa : getAgentsWithRole(group, role)) {
 				if (aa.equals(_message.getSender()))
 					distant = aa;
 			}
-			Assert.assertNotNull(distant);
-			assertFalse(_message.getSender().isFrom(getKernelAddress()));
-			Assert.assertTrue(checkAgentAddress(_message.getSender()));
+			AssertJUnit.assertNotNull(distant);
+			AssertJUnit.assertFalse(_message.getSender().isFrom(getKernelAddress()));
+			AssertJUnit.assertTrue(checkAgentAddress(_message.getSender()));
 			return true;
 		} catch (Throwable e) {
 			e.printStackTrace();
@@ -88,20 +88,23 @@ public abstract class AgentAddressAgentTester extends AgentFakeThread {
 		}
 	}
 
+	@Test
 	public boolean testTraveledAgentAddress(AgentAddress aa, boolean returnToSender, Group group, String role) {
 		try {
-			Assert.assertTrue(checkAgentAddress(aa));
+			AssertJUnit.assertTrue(checkAgentAddress(aa));
 			if (returnToSender) {
-				Assert.assertEquals(getAgentAddressIn(group, role), aa);
-				assertTrue(aa.isFrom(getKernelAddress()));
+				AssertJUnit.assertEquals(getAgentAddressIn(group, role), aa);
+				AssertJUnit.assertTrue(aa.isFrom(getKernelAddress()));
 			} else {
 				AgentAddress distant = null;
 				for (AgentAddress aa2 : getAgentsWithRole(group, role)) {
-					if (aa2.equals(aa))
+					if (aa2.equals(aa)) {
 						distant = aa;
+						break;
+					}
 				}
-				Assert.assertNotNull(distant);
-				assertFalse(aa.isFrom(getKernelAddress()));
+				AssertJUnit.assertNotNull(distant);
+				AssertJUnit.assertFalse(aa.isFrom(getKernelAddress()));
 			}
 			return true;
 		} catch (Throwable e) {

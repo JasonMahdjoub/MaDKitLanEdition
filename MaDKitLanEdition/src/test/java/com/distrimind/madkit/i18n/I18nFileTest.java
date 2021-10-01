@@ -37,15 +37,13 @@
  */
 package com.distrimind.madkit.i18n;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import org.testng.annotations.Test;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.EnumSet;
 import java.util.Properties;
-
-import org.junit.Test;
 
 import com.distrimind.madkit.action.AgentAction;
 import com.distrimind.madkit.action.GUIManagerAction;

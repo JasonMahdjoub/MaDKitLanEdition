@@ -33,12 +33,12 @@
  */
 package com.distrimind.madkit.i18n;
 
-import java.io.File;
-import java.util.ResourceBundle;
-
 import com.distrimind.madkit.kernel.AbstractGroup;
 import com.distrimind.madkit.kernel.Group;
 import com.distrimind.madkit.kernel.Role;
+
+import java.io.File;
+import java.util.ResourceBundle;
 
 /**
  * Internationalization help class containing only static methods.
@@ -51,9 +51,39 @@ import com.distrimind.madkit.kernel.Role;
 public class I18nUtilities {
 
 	public static File i18nDirectory = new File("com/distrimind/madkit/i18n/");
+	//public static File relativeI18nDirectory = new File("i18n/");
 
 	public static ResourceBundle getResourceBundle(String baseName) {
+
+		// The below is a copy of the default implementation.
+
+		/*try (InputStream stream  = MadkitClassLoader.getLoader().getResourceAsStream(relativeI18nDirectory.toString() + File.separator + baseName)) {
+			if (stream != null)
+				return new PropertyResourceBundle(new InputStreamReader(stream, StandardCharsets.UTF_8));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;*/
+
 		return ResourceBundle.getBundle(i18nDirectory.toString() + File.separator + baseName);
+
+		/*if (rb==null)
+			return null;
+
+		HashMap<String, String> res=new HashMap<>();
+		for (String k: rb.keySet())
+			res.put(k, new String(rb.getString(k).getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8));
+		return new ResourceBundle() {
+			@Override
+			protected Object handleGetObject(String key) {
+				return res.get(key);
+			}
+
+			@Override
+			public Enumeration<String> getKeys() {
+				return Collections.enumeration(res.keySet());
+			}
+		};*/
 	}
 
 	public static String getCGRString(final String community) {

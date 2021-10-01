@@ -37,9 +37,7 @@
  */
 package com.distrimind.madkit.simulation.viewer;
 
-import java.awt.Graphics;
-
-import com.distrimind.madkit.simulation.viewer.SwingViewer;
+import java.awt.*;
 
 public class TestSwingViewer extends SwingViewer {
 

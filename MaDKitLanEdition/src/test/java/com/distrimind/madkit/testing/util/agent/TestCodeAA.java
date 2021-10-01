@@ -108,16 +108,11 @@ public class TestCodeAA extends AbstractAgent {
 		} catch (SecurityException | NoSuchMethodException e) {
 			e.printStackTrace();
 		}
-		// proceedCommandMessage(new EnumMessage<AgentAction>(AgentAction.RELOAD));
-		// proceedCommandMessage(new
-		// EnumMessage<AgentAction>(AgentAction.LAUNCH_AGENT,"madkit.testing.util.agent.SelfLaunch"));
+
 	}
 
 	public static void main(String[] args) {
 		executeThisAgent(args);
-		// String[] argss =
-		// {Option.launchAgents.toString(),"madkit.kernel.AbstractAgent"};
-		// Madkit.main(argss);
 	}
 
 }

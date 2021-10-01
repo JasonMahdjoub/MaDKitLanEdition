@@ -37,11 +37,9 @@
  */
 package com.distrimind.madkit.boot.process;
 
-import static org.junit.Assert.assertEquals;
-
+import static org.testng.AssertJUnit.assertEquals;
+import org.testng.annotations.Test;
 import java.util.logging.Level;
-
-import org.junit.Test;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.AgentLogger;

@@ -169,3 +169,6 @@ How to get demos ?
 To get MaDKitLanEditions demos, please download the lastest [repository](https://artifactory.distri-mind.fr/artifactory/DistriMind-Public/com/distrimind/madkitdemos/MaDKitLanEditionDemos/)
 
 [1]: http://www.lirmm.fr/~fmichel/publi/pdfs/ferber04ocmas.pdf
+
+###### Requirements under Ubuntu/Debian :
+  * Please install the package ethtool, rng-tools, mtr(only debian), libcanberra-gtk-module

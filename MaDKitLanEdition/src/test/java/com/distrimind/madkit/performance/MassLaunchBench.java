@@ -37,14 +37,12 @@
  */
 package com.distrimind.madkit.performance;
 
-import static org.junit.Assert.assertNotNull;
-
+import static org.testng.AssertJUnit.assertNotNull;
+import org.testng.annotations.Test;
 import java.util.List;
 import java.util.logging.Level;
 
 import com.distrimind.madkit.kernel.*;
-import org.junit.Test;
-
 import com.distrimind.madkit.testing.util.agent.NormalAA;
 
 /**
@@ -75,12 +73,7 @@ public class MassLaunchBench extends JunitMadkit {
 				if (logger != null)
 					logger.info("average launch time = " + (total / (tries * 1000000)) + " ms");
 			}
-		}, AbstractAgent.ReturnCode.SUCCESS, false, new MadkitEventListener() {
-			@Override
-			public void onMaDKitPropertiesLoaded(MadkitProperties properties) {
-				properties.killAllNonThreadedAgentsDuringMaDKitClosing=false;
-			}
-		});
+		}, AbstractAgent.ReturnCode.SUCCESS, false, properties -> properties.killAllNonThreadedAgentsDuringMaDKitClosing=false);
 	}
 
 	@Test
@@ -100,12 +93,7 @@ public class MassLaunchBench extends JunitMadkit {
 				if (logger != null)
 					logger.info("average launch time = " + (total / (tries * 1000000)) + " ms");
 			}
-		}, AbstractAgent.ReturnCode.SUCCESS, false, new MadkitEventListener() {
-			@Override
-			public void onMaDKitPropertiesLoaded(MadkitProperties properties) {
-				properties.killAllNonThreadedAgentsDuringMaDKitClosing=false;
-			}
-		});
+		}, AbstractAgent.ReturnCode.SUCCESS, false, properties -> properties.killAllNonThreadedAgentsDuringMaDKitClosing=false);
 	}
 
 	@Test
@@ -120,12 +108,7 @@ public class MassLaunchBench extends JunitMadkit {
 				System.err.println("done\n\n");
 				System.err.println(l.get(0).requestRole(GROUP, ROLE));
 			}
-		}, AbstractAgent.ReturnCode.SUCCESS, false, new MadkitEventListener() {
-			@Override
-			public void onMaDKitPropertiesLoaded(MadkitProperties properties) {
-				properties.killAllNonThreadedAgentsDuringMaDKitClosing=false;
-			}
-		});;
+		}, AbstractAgent.ReturnCode.SUCCESS, false, properties -> properties.killAllNonThreadedAgentsDuringMaDKitClosing=false);
 	}
 
 	@Test
@@ -146,7 +129,7 @@ public class MassLaunchBench extends JunitMadkit {
 					}
 					total += stopTimer("launch time = ");
 				}
-				System.err.println("done\n\naverage time is " + (total / (j * 1000000)) + " ms");
+				System.err.println("done\n\naverage time is " + (total / (j * 1000000L)) + " ms");
 			}
 		});
 	}

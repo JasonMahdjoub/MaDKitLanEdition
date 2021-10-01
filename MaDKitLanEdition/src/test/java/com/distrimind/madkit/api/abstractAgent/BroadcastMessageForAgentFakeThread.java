@@ -37,6 +37,12 @@
  */
 package com.distrimind.madkit.api.abstractAgent;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotSame;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_COMMUNITY;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_GROUP;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_IN_GROUP;
@@ -44,12 +50,6 @@ import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_ROLE;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NO_RECIPIENT_FOUND;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ROLE_NOT_HANDLED;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-
-import org.junit.Test;
-
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Group;
 import com.distrimind.madkit.kernel.JunitMadkit;
@@ -63,9 +63,16 @@ import com.distrimind.madkit.message.StringMessage;
  * @since MadkitLanEdition 1.0
  */
 public class BroadcastMessageForAgentFakeThread extends JunitMadkit {
-	final AgentFakeThreadReceiver target = new AgentFakeThreadReceiver();
+	AgentFakeThreadReceiver target ;
 
-	final AgentFakeThreadReceiver target2 = new AgentFakeThreadReceiver();
+	AgentFakeThreadReceiver target2 ;
+
+	@BeforeMethod
+	public void setTargets()
+	{
+		target=new AgentFakeThreadReceiver();
+		target2=new AgentFakeThreadReceiver();
+	}
 
 	@Test
 	public void returnSuccess() {
@@ -78,16 +85,16 @@ public class BroadcastMessageForAgentFakeThread extends JunitMadkit {
 				// Without role
 				assertEquals(SUCCESS, broadcastMessage(GROUP, ROLE, new Message()));
 				JunitMadkit.pause(this, 100);
-				Message m = target.messagesReaded.get(0);
+				Message m = target.messagesRead.get(0);
 				assertEquals(SUCCESS, broadcastMessage(GROUP, ROLE, new StringMessage("test")));
 				JunitMadkit.pause(this, 100);
-				assertEquals(2, target.messagesReaded.size());
+				assertEquals(2, target.messagesRead.size());
 				assertEquals(ROLE, m.getReceiver().getRole());
 
 				// With role
 				assertEquals(SUCCESS, broadcastMessageWithRole(GROUP, ROLE, new Message(), ROLE));
 				JunitMadkit.pause(this, 100);
-				m = target.messagesReaded.get(2);
+				m = target.messagesRead.get(2);
 				assertNotNull(m);
 				assertEquals(ROLE, m.getReceiver().getRole());
 
@@ -95,9 +102,9 @@ public class BroadcastMessageForAgentFakeThread extends JunitMadkit {
 				launchAgent(target2);
 				assertEquals(SUCCESS, broadcastMessageWithRole(GROUP, ROLE, new Message(), ROLE));
 				JunitMadkit.pause(this, 100);
-				m = target.messagesReaded.get(3);
+				m = target.messagesRead.get(3);
 				assertNotNull(m);
-				Message m2 = target2.messagesReaded.get(0);
+				Message m2 = target2.messagesRead.get(0);
 				assertEquals(ROLE, m2.getReceiver().getRole());
 				assertEquals(m.getConversationID(), m2.getConversationID());
 				assertNotSame(m2, m);

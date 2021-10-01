@@ -45,7 +45,7 @@ import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.message.hook.OrganizationEvent;
 import com.distrimind.util.crypto.MessageDigestType;
 import com.distrimind.util.io.*;
-import org.junit.Assert;
+import org.testng.AssertJUnit;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -84,9 +84,9 @@ public class AgentBigTransfer extends AgentFakeThread {
 			return o.getClass()==this.getClass();
 		}
 	};
-	private final Map<AgentAddress, Boolean> otherConnected = Collections.synchronizedMap(new HashMap<AgentAddress, Boolean>());
-	private final Map<ConversationID, RandomByteArrayInputStream> inputStreams = Collections.synchronizedMap(new HashMap<ConversationID, RandomByteArrayInputStream>());
-	private final Map<ConversationID, RealTimeTransferStat> myStats = Collections.synchronizedMap(new HashMap<ConversationID, RealTimeTransferStat>()),
+	private final Map<AgentAddress, Boolean> otherConnected = Collections.synchronizedMap(new HashMap<>());
+	private final Map<ConversationID, RandomByteArrayInputStream> inputStreams = Collections.synchronizedMap(new HashMap<>());
+	private final Map<ConversationID, RealTimeTransferStat> myStats = Collections.synchronizedMap(new HashMap<>()),
 			otherStats = new HashMap<>();
 	// private final HashMap<String, ConversationID> otherConversationIDs=new
 	// HashMap<>();
@@ -153,7 +153,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 	public void activate() {
 		try {
 
-			Assert.assertEquals(ReturnCode.SUCCESS, requestHookEvents(AgentActionEvent.REQUEST_ROLE));
+			AssertJUnit.assertEquals(ReturnCode.SUCCESS, requestHookEvents(AgentActionEvent.REQUEST_ROLE));
 
 			requestRole(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, thisRole);
 
@@ -167,12 +167,12 @@ public class AgentBigTransfer extends AgentFakeThread {
 					// agb.otherNumber++;
 					launchAgent(otherBigTransferAgent);
 					ok &= otherBigTransferAgent.getKernelAddress().equals(this.getKernelAddress());
-					Assert.assertTrue(ok);
+					AssertJUnit.assertTrue(ok);
 
 					AgentAddress otherAgentAddress = otherBigTransferAgent
 							.getAgentAddressIn(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, thisRole);
 					ok &= otherAgentAddress != null;
-					Assert.assertNotNull(otherAgentAddress);
+					AssertJUnit.assertNotNull(otherAgentAddress);
 					otherConnected.put(otherAgentAddress, Boolean.TRUE);
 					/*
 					 * if (otherSendData) otherNumber++;
@@ -187,7 +187,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 		} catch (Exception e) {
 			e.printStackTrace();
 			ok = false;
-			Assert.fail();
+			AssertJUnit.fail();
 		}
 	}
 
@@ -204,10 +204,10 @@ public class AgentBigTransfer extends AgentFakeThread {
 
 				myTransferID = sendBigDataWithRole(destination, inputStream, 0, inputStream.length(), attachedData,
 						useMessageDigest ? MessageDigestType.BC_FIPS_SHA3_512 : null, thisRole, false);
-				Assert.assertTrue(ok);
+				AssertJUnit.assertTrue(ok);
 				ok &= myTransferID != null;
 				if (!ok)
-					Assert.assertTrue(""+thisPeerNumber, ok);
+					AssertJUnit.assertTrue(""+thisPeerNumber, ok);
 
 				inputStreams.put(myTransferID, inputStream);
 				myStats.put(myTransferID, myTransferID.getBytePerSecondsStat());
@@ -216,7 +216,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 			} catch (Exception e) {
 				e.printStackTrace();
 				ok = false;
-				Assert.fail();
+				AssertJUnit.fail();
 			}
 		}
 	}
@@ -251,7 +251,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 			}
 		} else if (_message instanceof BigDataPropositionMessage) {
 			if (!_message.getSender().getRole().equals(thisRole))
-				Assert.fail();
+				AssertJUnit.fail();
 			BigDataPropositionMessage m = (BigDataPropositionMessage) _message;
 
 			if (otherConnected.get(m.getSender()) != null) {
@@ -260,8 +260,8 @@ public class AgentBigTransfer extends AgentFakeThread {
 				if (accept) {
 
 					ok &= m.getAttachedData().equals(attachedData);
-					Assert.assertEquals(attachedData, m.getAttachedData());
-					Assert.assertTrue(ok);
+					AssertJUnit.assertEquals(attachedData, m.getAttachedData());
+					AssertJUnit.assertTrue(ok);
 					otherStats.put(m.getConversationID(), m.getStatistics());
 					// otherConversationIDs.put(m.getSender().getRole(), m.getConversationID());
 					m.acceptTransfer(new RandomByteArrayOutputStream());
@@ -287,12 +287,12 @@ public class AgentBigTransfer extends AgentFakeThread {
 					System.err.println(otherConnected.keySet().iterator().next() + " ; " + m.getSender());
 				m.denyTransfer();
 				ok = false;
-				Assert.fail();
+				AssertJUnit.fail();
 
 			}
 		} else if (_message instanceof BigDataResultMessage) {
 			if (!_message.getSender().getRole().equals(thisRole)) {
-				Assert.fail();
+				AssertJUnit.fail();
 			}
 
 			BigDataResultMessage m = (BigDataResultMessage) _message;
@@ -304,7 +304,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 				ConversationID myTransferID = inputStream == null ? null : m.getConversationID();
 				ConversationID otherConversationID = otherStat == null ? null : m.getConversationID();
 				ok &= myTransferID != otherConversationID;
-				Assert.assertNotSame(m.toString()+" ; myTransferID="+myTransferID+" ; otherConversationID="+otherConversationID+" ; isLocal="+isLocal+" ; shortData="+sendShortData, myTransferID, otherConversationID);
+				AssertJUnit.assertNotSame(m +" ; myTransferID="+myTransferID+" ; otherConversationID="+otherConversationID+" ; isLocal="+isLocal+" ; shortData="+sendShortData, myTransferID, otherConversationID);
 
 				if (accept) {
 
@@ -316,7 +316,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 								+ ", inputStreamLength=" + (inputStream == null ? -1 : inputStream.length()) + ", type="
 								+ m.getType());
 
-					Assert.assertTrue(ok);
+					AssertJUnit.assertTrue(ok);
 
 					System.out.println("---------------------");
 					if (m.getConversationID().equals(myTransferID)) {
@@ -328,7 +328,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 					} else {
 						System.err.println("unexpected message : " + m.getConversationID());
 						ok = false;
-						Assert.fail();
+						AssertJUnit.fail();
 					}
 
 					System.out.println("\tTransfer Type=" + m.getType() + ", Transfer duration="
@@ -357,18 +357,18 @@ public class AgentBigTransfer extends AgentFakeThread {
 									/ ((double) globalStatDown.getDurationMilli()) * 1000.0));
 
 					if (inputStream != null)
-						Assert.assertEquals(inputStream.length(), m.getTransferredDataLength());
-					Assert.assertEquals(BigDataResultMessage.Type.BIG_DATA_TRANSFERRED, m.getType());
+						AssertJUnit.assertEquals(inputStream.length(), m.getTransferredDataLength());
+					AssertJUnit.assertEquals(BigDataResultMessage.Type.BIG_DATA_TRANSFERRED, m.getType());
 
 				} else {
 					ok &= m.getType() == BigDataResultMessage.Type.BIG_DATA_TRANSFER_DENIED;
-					Assert.assertTrue(ok);
+					AssertJUnit.assertTrue(ok);
 					ok &= m.getConversationID().equals(myTransferID);
-					Assert.assertTrue("myTransferID=" + myTransferID + ", conversationID=" + m.getConversationID(), ok);
+					AssertJUnit.assertTrue("myTransferID=" + myTransferID + ", conversationID=" + m.getConversationID(), ok);
 					ok &= m.getTransferredDataLength() == 0;
-					Assert.assertTrue(ok);
+					AssertJUnit.assertTrue(ok);
 					ok &= otherConversationID == null;
-					Assert.assertTrue(ok);
+					AssertJUnit.assertTrue(ok);
 					++otherRepliedManaged;
 					//myTransferFinished=true;
 					/*otherTransferFinished=true;*/
@@ -395,7 +395,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 			} catch (Exception e) {
 				e.printStackTrace();
 				ok = false;
-				Assert.fail();
+				AssertJUnit.fail();
 			}
 		}
 	}
@@ -411,7 +411,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 		if (myTransferFinished && otherTransferFinished && ok
 			&& (otherBigTransferAgent==null || (otherBigTransferAgent.myTransferFinished && otherBigTransferAgent.otherTransferFinished && otherBigTransferAgent.ok))
 				&& nextBigTransfer != null)
-			return "Agent " + this.thisPeerNumber + ", Sub " + nextBigTransfer.toString();
+			return "Agent " + this.thisPeerNumber + ", Sub " + nextBigTransfer;
 		else
 			return "Agent " + this.thisPeerNumber + otherLocalAgent+getStatString();
 	}

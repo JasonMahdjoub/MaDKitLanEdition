@@ -574,7 +574,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			/*if (currentBigDataTransferID!=null)
 				return ;*/
 			try {
-				Long utc=wrapper.getNextPossibleEventTimeUTC();
+
 
 				while ((e = synchronizer.nextEvent()) != null) {
 
@@ -679,7 +679,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 						}
 					}
 				}
-
+				Long utc=wrapper.getNextPossibleEventTimeUTC();
 				if (utc!=null) {
 					scheduleTask(new Task<>((Callable<Void>) () -> {
 						receiveMessage(checkEvents);
@@ -943,8 +943,9 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 		ReturnCode rc;
 		if (!(rc=agent.broadcastMessageWithRole(LocalCommunity.Groups.NETWORK,
 				LocalCommunity.Roles.SOCKET_AGENT_ROLE, new ObjectMessage<>(NetworkAgent.REFRESH_GROUPS_ACCESS), CloudCommunity.Roles.SYNCHRONIZER)).equals(ReturnCode.SUCCESS))
+
 			if (agent.logger!=null && agent.logger.isLoggable(Level.WARNING))
-				agent.logger.warning("Impossible to broadcast group rights update order : "+rc);
+				agent.logger.warning("Impossible to broadcast group rights update order : "+rc+", kernel="+ agent.getKernelAddress());
 	}
 
 

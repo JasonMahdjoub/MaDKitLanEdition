@@ -49,7 +49,9 @@ import com.distrimind.madkit.kernel.Agent;
  */
 public abstract class DoItDuringLifeCycleAgent extends Agent {
 
-	private boolean inActivate = false, inLive = false, inEnd = false;
+	private final boolean inActivate;
+	private final boolean inLive;
+	private final boolean inEnd;
 
 	public DoItDuringLifeCycleAgent(boolean inActivate, boolean inLive, boolean inEnd) {
 		this.inActivate = inActivate;

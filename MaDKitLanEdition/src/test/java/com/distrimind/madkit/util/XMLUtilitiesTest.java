@@ -37,19 +37,16 @@
  */
 package com.distrimind.madkit.util;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import com.distrimind.madkit.kernel.JunitMadkit;
+import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.junit.Test;
-import org.xml.sax.SAXException;
-
-import com.distrimind.madkit.kernel.JunitMadkit;
-import com.distrimind.madkit.util.XMLUtilities;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
 
 /**
  * @author Fabien Michel

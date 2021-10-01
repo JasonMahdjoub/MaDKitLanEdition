@@ -40,13 +40,13 @@ package com.distrimind.madkit.testing.util.agent;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import static com.distrimind.madkit.kernel.JunitMadkit.GROUP;
 import static com.distrimind.madkit.kernel.JunitMadkit.ROLE;
-import static org.junit.Assert.assertEquals;
 
 import java.util.logging.Level;
 
 import com.distrimind.madkit.kernel.Agent;
 import com.distrimind.madkit.kernel.Madkit;
 import com.distrimind.madkit.kernel.Message;
+import org.testng.AssertJUnit;
 
 /**
  * @author Fabien Michel
@@ -64,7 +64,7 @@ public class ForEverAgent extends Agent {
 	@Override
 	protected void activate() {
 		setLogLevel(Level.ALL);
-		assertEquals(SUCCESS, requestRole(GROUP, ROLE));
+		AssertJUnit.assertEquals(SUCCESS, requestRole(GROUP, ROLE));
 		sendMessage(GROUP, ROLE, new Message());
 	}
 

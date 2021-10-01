@@ -42,7 +42,7 @@ import com.distrimind.madkit.kernel.BigDataPropositionMessage;
 import com.distrimind.madkit.kernel.BigDataResultMessage;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.util.io.RandomByteArrayOutputStream;
-import org.junit.Assert;
+import org.testng.AssertJUnit;
 
 import static com.distrimind.madkit.kernel.JunitMadkit.GROUP;
 import static com.distrimind.madkit.kernel.JunitMadkit.ROLE;
@@ -55,7 +55,8 @@ import static com.distrimind.madkit.kernel.JunitMadkit.ROLE;
  */
 public class BigDataTransferReceiverAgent extends Agent {
 	private int dataToReceiveNumber;
-	private int uploadLimitInBytesPerSecond, downloadLimitInBytesPerSecond;
+	private final int uploadLimitInBytesPerSecond;
+	private int downloadLimitInBytesPerSecond;
 
 	public BigDataTransferReceiverAgent(int dataToReceiveNumber, int uploadLimitInBytesPerSecond) {
 		this.dataToReceiveNumber=dataToReceiveNumber;
@@ -94,8 +95,8 @@ public class BigDataTransferReceiverAgent extends Agent {
 					if (getMaximumGlobalDownloadSpeedInBytesPerSecond()!=Integer.MAX_VALUE) {
 
                         double speed=((double) rm.getTransferredDataLength()) / ((double) rm.getTransferDuration()) * 1000.0;
-                        Assert.assertTrue(speed< getMaximumGlobalDownloadSpeedInBytesPerSecond() * 2);
-                        Assert.assertTrue(speed> getMaximumGlobalDownloadSpeedInBytesPerSecond() / 2.0);
+						AssertJUnit.assertTrue(speed< getMaximumGlobalDownloadSpeedInBytesPerSecond() * 2);
+						AssertJUnit.assertTrue(speed> getMaximumGlobalDownloadSpeedInBytesPerSecond() / 2.0);
                     }
 				}
 				else

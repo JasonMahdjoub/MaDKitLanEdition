@@ -37,11 +37,9 @@
  */
 package com.distrimind.madkit.kernel;
 
-import static org.junit.Assert.assertEquals;
+import org.testng.annotations.Test;
 
-import org.junit.Test;
-
-import com.distrimind.madkit.kernel.Scheduler;
+import static org.testng.AssertJUnit.assertEquals;
 
 public class SchedulerTest {
 

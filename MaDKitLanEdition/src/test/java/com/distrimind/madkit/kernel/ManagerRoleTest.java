@@ -37,14 +37,11 @@
  */
 package com.distrimind.madkit.kernel;
 
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Test;
-
 import com.distrimind.madkit.agr.Organization;
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.CGRNotAvailable;
+import org.testng.annotations.Test;
+
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
+import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * @author Fabien Michel

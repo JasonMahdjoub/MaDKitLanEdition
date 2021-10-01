@@ -37,9 +37,8 @@
  */
 package com.distrimind.madkit.simulation;
 
-import org.junit.Before;
-import org.junit.Test;
-
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.Scheduler;
@@ -64,7 +63,7 @@ public class GenericBehaviorActivatorTest extends JunitMadkit {
 
 	protected static GenericBehaviorActivator<AbstractAgent> buggy;
 
-	@Before
+	@BeforeMethod
 	public void setUp() {
 		buggy = new GenericBehaviorActivator<>(GROUP, ROLE, "doIt");
 	}

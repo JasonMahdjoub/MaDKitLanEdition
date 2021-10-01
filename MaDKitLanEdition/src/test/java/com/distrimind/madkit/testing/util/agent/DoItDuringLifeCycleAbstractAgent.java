@@ -47,7 +47,7 @@ import com.distrimind.madkit.kernel.AbstractAgent;
  */
 public abstract class DoItDuringLifeCycleAbstractAgent extends AbstractAgent {
 
-	protected boolean inActivate = false, inEnd = false;
+	protected boolean inActivate, inEnd;
 
 	public DoItDuringLifeCycleAbstractAgent(boolean inActivate, boolean inEnd) {
 		this.inActivate = inActivate;

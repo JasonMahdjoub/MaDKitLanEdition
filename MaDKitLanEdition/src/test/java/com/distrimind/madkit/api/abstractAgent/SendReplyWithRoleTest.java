@@ -37,14 +37,12 @@
  */
 package com.distrimind.madkit.api.abstractAgent;
 
+import static org.testng.AssertJUnit.assertEquals;
+import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.INVALID_AGENT_ADDRESS;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_IN_GROUP;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ROLE_NOT_HANDLED;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Test;
-
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.Message;

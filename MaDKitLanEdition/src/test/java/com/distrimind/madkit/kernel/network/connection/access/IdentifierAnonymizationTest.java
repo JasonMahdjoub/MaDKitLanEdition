@@ -37,13 +37,12 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.Random;
-
-import org.junit.Assert;
-import org.junit.Test;
 
 import com.distrimind.util.crypto.AbstractMessageDigest;
 import com.distrimind.util.crypto.AbstractSecureRandom;
@@ -74,7 +73,7 @@ public class IdentifierAnonymizationTest {
 			AbstractSecureRandom srand=SecureRandomType.DEFAULT.getSingleton(null);
 
 			byte[] encryptedID= AccessProtocolWithP2PAgreement.anonymizeIdentifier(id,srand , messageDigest, salt);
-			Assert.assertTrue(AccessProtocolWithP2PAgreement.compareAnonymousIdentifier(id, encryptedID, messageDigest, salt));
+			AssertJUnit.assertTrue(AccessProtocolWithP2PAgreement.compareAnonymousIdentifier(id, encryptedID, messageDigest, salt));
 		}		
 	}
 	@Test
@@ -85,6 +84,7 @@ public class IdentifierAnonymizationTest {
 	public void testEncryptedJPakeIdentifierWithInterfacedNonOriginalKernel() throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
 		testEncryptedJPakeIdentifierWithInterfaced(false);
 	}
+
 	public void testEncryptedJPakeIdentifierWithInterfaced(boolean keepOriginal) throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
 		for (int i=0;i<100;i++)
 		{
@@ -98,7 +98,7 @@ public class IdentifierAnonymizationTest {
 			AbstractSecureRandom srand=SecureRandomType.DEFAULT.getSingleton(null);
 
 			byte[] encryptedID= AccessProtocolWithP2PAgreement.anonymizeIdentifier(id,srand , messageDigest, salt);
-			Assert.assertTrue(AccessProtocolWithP2PAgreement.compareAnonymousIdentifier(id, encryptedID, messageDigest, salt));
+			AssertJUnit.assertTrue(AccessProtocolWithP2PAgreement.compareAnonymousIdentifier(id, encryptedID, messageDigest, salt));
 		}		
 	}
 }

@@ -50,6 +50,7 @@ import com.distrimind.util.AbstractDecentralizedID;
  */
 public final class Table1 extends Table<Table1.Record> {
 
+	@SuppressWarnings("ProtectedMemberInFinalClass")
 	protected Table1() throws DatabaseException {
 	}
 
@@ -85,6 +86,14 @@ public final class Table1 extends Table<Table1.Record> {
 
 		public void setValue(String value) {
 			this.value = value;
+		}
+
+		@Override
+		public String toString() {
+			return "Record{" +
+					"decentralizedID=" + decentralizedID +
+					", value='" + value + '\'' +
+					'}';
 		}
 	}
 }

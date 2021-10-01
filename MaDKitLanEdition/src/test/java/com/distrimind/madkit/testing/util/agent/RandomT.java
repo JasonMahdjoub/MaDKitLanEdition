@@ -77,8 +77,7 @@ public class RandomT extends Agent {
 			AbstractAgent a = agents.get((int) (Math.random() * agents.size()));
 			if (a.getState().equals(State.NOT_LAUNCHED)) {
 				ReturnCode res = launchAgent(a, Math.random() > .5 ? 0 : 1);
-				// launchAgent(agents.get((int)
-				// (Math.random()*agents.size())),Math.random()>.5?0:1);
+
 				if (logger != null)
 					logger.info("launching result is : " + res);
 			}
@@ -116,8 +115,7 @@ public class RandomT extends Agent {
 				AbstractAgent a = agents.get((int) (Math.random() * agents.size()));
 				if (a.getState().equals(State.NOT_LAUNCHED)) {
 					ReturnCode res = launchAgent(a, Math.random() > .5 ? 0 : 1);
-					// launchAgent(agents.get((int)
-					// (Math.random()*agents.size())),Math.random()>.5?0:1);
+
 					if (logger != null)
 						logger.info("launching result is : " + res);
 				}

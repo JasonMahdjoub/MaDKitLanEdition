@@ -36,7 +36,7 @@ knowledge of the CeCILL-C license and that you accept its terms.
  */
 
 import com.distrimind.ood.database.EncryptedDatabaseBackupMetaDataPerFile;
-import com.distrimind.ood.database.centraldatabaseapi.FileReference;
+import com.distrimind.ood.database.filemanager.FileReference;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.crypto.IASymmetricPublicKey;
 

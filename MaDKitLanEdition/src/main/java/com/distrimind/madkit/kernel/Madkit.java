@@ -146,6 +146,20 @@ final public class Madkit {
 					.addDeveloper(new PersonDeveloper("michel", "fabien", "1997-02-01"))
 					.addDeveloper(new PersonDeveloper("Gutknecht", "Olivier", "1997-02-01"))
 					.addDeveloper(new PersonDeveloper("Ferber", "Jacques", "1997-02-01"))
+					.addDescription(new Description((short)2, (short)2, (short)0, Version.Type.STABLE, (short)1, "2021-10-01")
+							.addItem("Update Utils to 5.19.7 STABLE")
+							.addItem("Update OOD to 3.1.1 STABLE")
+							.addItem("Disable useless server stream into Upnp IGD")
+							.addItem("UPNP IGD test pass")
+							.addItem("Complete filter of network interfaces")
+							.addItem("Fix issue when determining if a local ip is compatible with another ip")
+							.addItem("Fix XXE security issue with Cling dependency : https://github.com/4thline/cling/issues/243")
+							.addItem("Fix DDOS and SSRF security issues with Cling dependency : https://github.com/4thline/cling/issues/253")
+							.addItem("Fix issue with AgentExecutor when an agent is launched and terminated too quickly")
+							.addItem("Add the possibility for a scheduled task to be executed even if the agent who launched the task was killed")
+							.addItem("Finish closing connexions even if NIO agent was killed")
+							.addItem("Fix issue with agent fake thread and avoid reception of two messages (or more) at the same time")
+					)
 					.addDescription(new Description((short)2, (short)2, (short)0, Version.Type.BETA, (short)1, "2021-07-07")
 							.addItem("Update Utils to 5.18.5 STABLE")
 							.addItem("Update OOD to 3.1.0 Beta 2")
@@ -953,7 +967,7 @@ final public class Madkit {
 
 	@Override
 	public String toString() {
-		return myKernel.toString() + " @ " + myKernel.getKernelAddress();
+		return myKernel.toString() + myKernel.getKernelAddress();
 	}
 
 	/**
@@ -969,11 +983,11 @@ final public class Madkit {
 			Calendar c=new GregorianCalendar();
 			c.setTime(VERSION.getProjectEndDate());
 			System.out.println("\n-----------------------------------------------------------------------------"
-					+ "\n\t\t\t\t    MadkitLanEdition\n" + "\n\t Version: " + VERSION.getMajor() + "."
+					+ "\n\t\t\t\t\t\t\t    MadkitLanEdition\n" + "\n\t Version: " + VERSION.getMajor() + "."
 					+ VERSION.getMinor() + "." + VERSION.getRevision() + " " + VERSION.getType()
 					+ (VERSION.getType().equals(Version.Type.STABLE) ? "" : (" " + VERSION.getAlphaBetaRCVersion()))
-					+ "\n\t MaDKit Team (c) 1997-"+c.get(Calendar.YEAR)
 					+ "\n\t MadkitLanEdition Team (c) " + startCal.get(Calendar.YEAR) + "-" + endCal.get(Calendar.YEAR)
+					+ "\n\t Forked from MaDKit 1997-2016"
 					+ "\n\t Kernel " + myKernel.getNetworkID()
 					+ "\n-----------------------------------------------------------------------------\n");
 		}

@@ -1,29 +1,27 @@
 package com.distrimind.madkit.kernel.network;
 
-import java.util.Collection;
-import java.util.logging.Level;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
-import org.junit.Assert;
-
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.Madkit;
+import org.testng.AssertJUnit;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Factory;
+import org.testng.annotations.Test;
 
-@RunWith(Parameterized.class)
+import java.util.logging.Level;
+
 public class AutomaticLocalConnectionTest extends JunitMadkit {
+
 	final NetworkEventListener eventListener1;
 	final NetworkEventListener eventListener2;
 
-	@Parameters
-	public static Collection<Object[]> data() {
+	@DataProvider(name="data")
+	public static Object[][] data() {
 		return NetworkEventListener.getNetworkEventListenersForPeerToPeerConnectionsWithRandomProperties(true, false,
 				true, true, true, null,null, 2, 1, 2);
 	}
 
+	@Factory(dataProvider = "data")
 	public AutomaticLocalConnectionTest(NetworkEventListener eventListener1, NetworkEventListener eventListener2) {
 		this.eventListener1 = eventListener1;
 		this.eventListener2 = eventListener2;
@@ -51,7 +49,7 @@ public class AutomaticLocalConnectionTest extends JunitMadkit {
 				}
 				sleep(400);
 				cleanHelperMDKs(this);
-				Assert.assertEquals(getHelperInstances(this, 0).size(), 0);
+				AssertJUnit.assertEquals(getHelperInstances(this, 0).size(), 0);
 
 			}
 		});

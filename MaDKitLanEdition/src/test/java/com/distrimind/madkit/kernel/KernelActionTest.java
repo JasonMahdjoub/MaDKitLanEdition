@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel;
 
-import org.junit.Test;
+import org.testng.annotations.Test;
 
 public class KernelActionTest extends JunitMadkit {
 

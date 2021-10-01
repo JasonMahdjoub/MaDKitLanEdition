@@ -37,6 +37,13 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.KernelAddress;
+import com.distrimind.util.Bits;
+import com.distrimind.util.version.Version;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
@@ -44,14 +51,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.Date;
 import java.util.Random;
-
-import com.distrimind.util.Bits;
-import org.junit.Assert;
-import org.junit.Test;
-
-import com.distrimind.madkit.kernel.JunitMadkit;
-import com.distrimind.madkit.kernel.KernelAddress;
-import com.distrimind.util.version.Version;
 
 
 /**
@@ -92,8 +91,8 @@ public class DatagramDataTest {
 
 	@Test
 	public void testOneMessageDatagramData() throws IOException, NoSuchAlgorithmException, NoSuchProviderException {
-		Assert.assertNotNull(inet4);
-		Assert.assertNotNull(inet6);
+		AssertJUnit.assertNotNull(inet4);
+		AssertJUnit.assertNotNull(inet6);
 		testValidOneMessageDatagramData(
 				new DatagramLocalNetworkPresenceMessage(System.currentTimeMillis(), getVersionBase(programName),
 						getVersionBase(programName), getVersionBase(programName), getVersionBase(programName), inet4, kernelAddress),
@@ -120,36 +119,37 @@ public class DatagramDataTest {
 				getVersionBase(programName));
 	}
 
+	@Test(enabled = false)
 	private void testValidOneMessageDatagramData(DatagramLocalNetworkPresenceMessage message, Version programVersion,
 			Version madkitVersion) throws IOException, NoSuchAlgorithmException, NoSuchProviderException {
 
 		DatagramData d = new DatagramData(message);
 
 		DatagramData d2 = new DatagramData();
-		Assert.assertFalse(d2.isComplete());
-		Assert.assertTrue(d2.isValid());
+		AssertJUnit.assertFalse(d2.isComplete());
+		AssertJUnit.assertTrue(d2.isValid());
 		d2.put(d.getByteBuffer().array(), 0, d.getByteBuffer().array().length);
-		Assert.assertTrue(d2.isComplete());
-		Assert.assertTrue(d2.isValid());
+		AssertJUnit.assertTrue(d2.isComplete());
+		AssertJUnit.assertTrue(d2.isValid());
 		DatagramLocalNetworkPresenceMessage m = d2.getDatagramLocalNetworkPresenceMessage();
-		Assert.assertTrue(m.isCompatibleWith(0, programVersion, madkitVersion, programVersion, madkitVersion, kernelAddressReceiver));
-		Assert.assertFalse(m.isCompatibleWith(0, programVersion, madkitVersion, programVersion, madkitVersion, kernelAddress));
-		Assert.assertNull(d2.getUnusedReceivedData());
-		Assert.assertNull(d2.getNextDatagramData());
+		AssertJUnit.assertTrue(m.isCompatibleWith(0, programVersion, madkitVersion, programVersion, madkitVersion, kernelAddressReceiver));
+		AssertJUnit.assertFalse(m.isCompatibleWith(0, programVersion, madkitVersion, programVersion, madkitVersion, kernelAddress));
+		AssertJUnit.assertNull(d2.getUnusedReceivedData());
+		AssertJUnit.assertNull(d2.getNextDatagramData());
         programVersion=new Version(programVersion.getProgramName(), programVersion.getShortProgramName(), programVersion.getMajor(), (short)(programVersion.getMinor()+1), programVersion.getRevision(), programVersion.getType(), programVersion.getAlphaBetaRCVersion(), programVersion.getProjectStartDate(), programVersion.getProjectEndDate());
 
 
-		Assert.assertFalse(m.isCompatibleWith(0, programVersion, madkitVersion, programVersion, madkitVersion, kernelAddressReceiver));
+		AssertJUnit.assertFalse(m.isCompatibleWith(0, programVersion, madkitVersion, programVersion, madkitVersion, kernelAddressReceiver));
 		programVersion = getVersionBase(programName);
         madkitVersion=new Version(madkitVersion.getProgramName(), madkitVersion.getShortProgramName(), madkitVersion.getMajor(), (short)(madkitVersion.getMinor()+1), madkitVersion.getRevision(), madkitVersion.getType(), madkitVersion.getAlphaBetaRCVersion(), madkitVersion.getProjectStartDate(), madkitVersion.getProjectEndDate());
-		Assert.assertFalse(m.isCompatibleWith(0, programVersion, madkitVersion, programVersion, madkitVersion, kernelAddressReceiver));
+		AssertJUnit.assertFalse(m.isCompatibleWith(0, programVersion, madkitVersion, programVersion, madkitVersion, kernelAddressReceiver));
 
 	}
 
 	@Test
 	public void testInvalidOneMessageDatagramData() throws IOException, NoSuchAlgorithmException, NoSuchProviderException {
-		Assert.assertNotNull(inet4);
-		Assert.assertNotNull(inet6);
+		AssertJUnit.assertNotNull(inet4);
+		AssertJUnit.assertNotNull(inet6);
 		testInvalidOneMessageDatagramData(
 				new DatagramLocalNetworkPresenceMessage(System.currentTimeMillis(), getVersionBase(programName),
 						getVersionBase(programName), getVersionBase(programName), getVersionBase(programName), inet4, kernelAddress),
@@ -160,25 +160,26 @@ public class DatagramDataTest {
 				getVersionBase(programName), getVersionBase(programName));
 	}
 
+	@Test(enabled = false)
 	private void testInvalidOneMessageDatagramData(DatagramLocalNetworkPresenceMessage message, Version programVersion,
 			Version madkitVersion) throws IOException {
 		DatagramData d = new DatagramData(message);
 
 		DatagramData d2 = new DatagramData();
-		Assert.assertFalse(d2.isComplete());
-		Assert.assertTrue(d2.isValid());
+		AssertJUnit.assertFalse(d2.isComplete());
+		AssertJUnit.assertTrue(d2.isValid());
 		byte[] shortInt=new byte[Block.getBlockSizeLength()];
 		Bits.putUnsignedInt24Bits(shortInt, 0, 10000);
 		d2.getByteBuffer().put(shortInt);
 		d2.put(d.getByteBuffer().array(), 0, d.getByteBuffer().array().length);
-		Assert.assertFalse(d2.isValid());
-		Assert.assertFalse(d2.isComplete());
+		AssertJUnit.assertFalse(d2.isValid());
+		AssertJUnit.assertFalse(d2.isComplete());
 	}
 
 	@Test
 	public void testMultipleMessageDatagramData() throws IOException, NoSuchAlgorithmException, NoSuchProviderException {
-		Assert.assertNotNull(inet4);
-		Assert.assertNotNull(inet6);
+		AssertJUnit.assertNotNull(inet4);
+		AssertJUnit.assertNotNull(inet6);
 		testMultipleMessageDatagramData(
 				new DatagramLocalNetworkPresenceMessage(System.currentTimeMillis(), getVersionBase(programName),
 						getVersionBase(programName), getVersionBase(programName), getVersionBase(programName), inet4, kernelAddress),
@@ -189,33 +190,34 @@ public class DatagramDataTest {
 				getVersionBase(programName), getVersionBase(programName));
 	}
 
+	@Test(enabled = false)
 	private void testMultipleMessageDatagramData(DatagramLocalNetworkPresenceMessage message, Version programVersion,
 			Version madkitVersion) throws IOException, NoSuchAlgorithmException, NoSuchProviderException {
 		DatagramData d = new DatagramData(message);
 
 		DatagramData d2 = new DatagramData();
-		Assert.assertFalse(d2.isComplete());
-		Assert.assertTrue(d2.isValid());
+		AssertJUnit.assertFalse(d2.isComplete());
+		AssertJUnit.assertTrue(d2.isValid());
 		d2.put(d.getByteBuffer().array(), 0, d.getByteBuffer().array().length);
 		d2.put(d.getByteBuffer().array(), 0, d.getByteBuffer().array().length);
-		Assert.assertTrue(d2.isComplete());
-		Assert.assertTrue(d2.isValid());
-		Assert.assertTrue(d2.getDatagramLocalNetworkPresenceMessage().isCompatibleWith(0, programVersion, madkitVersion,programVersion, madkitVersion,
+		AssertJUnit.assertTrue(d2.isComplete());
+		AssertJUnit.assertTrue(d2.isValid());
+		AssertJUnit.assertTrue(d2.getDatagramLocalNetworkPresenceMessage().isCompatibleWith(0, programVersion, madkitVersion,programVersion, madkitVersion,
 				kernelAddressReceiver));
-		Assert.assertFalse(d2.getDatagramLocalNetworkPresenceMessage().isCompatibleWith(0, programVersion,
+		AssertJUnit.assertFalse(d2.getDatagramLocalNetworkPresenceMessage().isCompatibleWith(0, programVersion,
 				madkitVersion, programVersion, madkitVersion, kernelAddress));
 		d2 = d2.getNextDatagramData();
-		Assert.assertNotNull(d2);
-		Assert.assertTrue(d2.isComplete());
-		Assert.assertTrue(d2.isValid());
-		Assert.assertTrue(d2.getDatagramLocalNetworkPresenceMessage().isCompatibleWith(0, programVersion, madkitVersion,programVersion, madkitVersion,
+		AssertJUnit.assertNotNull(d2);
+		AssertJUnit.assertTrue(d2.isComplete());
+		AssertJUnit.assertTrue(d2.isValid());
+		AssertJUnit.assertTrue(d2.getDatagramLocalNetworkPresenceMessage().isCompatibleWith(0, programVersion, madkitVersion,programVersion, madkitVersion,
 				kernelAddressReceiver));
 	}
 
 	@Test
 	public void testOneMessageDatagramDataAndRandomData() throws IOException, NoSuchAlgorithmException, NoSuchProviderException {
-		Assert.assertNotNull(inet4);
-		Assert.assertNotNull(inet6);
+		AssertJUnit.assertNotNull(inet4);
+		AssertJUnit.assertNotNull(inet6);
 		testOneMessageDatagramDataAndRandomData(
 				new DatagramLocalNetworkPresenceMessage(System.currentTimeMillis(), getVersionBase(programName),
 						getVersionBase(programName), getVersionBase(programName), getVersionBase(programName), inet4, kernelAddress),
@@ -226,38 +228,39 @@ public class DatagramDataTest {
 				getVersionBase(programName), getVersionBase(programName));
 	}
 
+	@Test(enabled = false)
 	private void testOneMessageDatagramDataAndRandomData(DatagramLocalNetworkPresenceMessage message,
 			Version programVersion, Version madkitVersion) throws IOException, NoSuchProviderException, NoSuchAlgorithmException {
 		DatagramData d = new DatagramData(message);
 
 		DatagramData d2 = new DatagramData();
-		Assert.assertFalse(d2.isComplete());
-		Assert.assertTrue(d2.isValid());
+		AssertJUnit.assertFalse(d2.isComplete());
+		AssertJUnit.assertTrue(d2.isValid());
 		byte[] data = d.getByteBuffer().array();
-		Assert.assertEquals(data.length, Bits.getUnsignedInt24Bits(data, 0));
+		AssertJUnit.assertEquals(data.length, Bits.getUnsignedInt24Bits(data, 0));
 		d2.put(data, 0, data.length);
-		Assert.assertEquals(data.length, Bits.getUnsignedInt24Bits(d2.getByteBuffer().array(), 0));
+		AssertJUnit.assertEquals(data.length, Bits.getUnsignedInt24Bits(d2.getByteBuffer().array(), 0));
 		Random rand = new Random(System.currentTimeMillis());
 		byte[] randData = new byte[rand.nextInt(500) + 600];
 		rand.nextBytes(randData);
 		d2.put(randData, 0, randData.length);
-		Assert.assertEquals(data.length, Bits.getUnsignedInt24Bits(d2.getByteBuffer().array(), 0));
+		AssertJUnit.assertEquals(data.length, Bits.getUnsignedInt24Bits(d2.getByteBuffer().array(), 0));
 		
-		Assert.assertTrue(d2.isComplete());
-		Assert.assertTrue(d2.isValid());
-		Assert.assertTrue(d2.getDatagramLocalNetworkPresenceMessage().isCompatibleWith(0, programVersion, madkitVersion,programVersion, madkitVersion,
+		AssertJUnit.assertTrue(d2.isComplete());
+		AssertJUnit.assertTrue(d2.isValid());
+		AssertJUnit.assertTrue(d2.getDatagramLocalNetworkPresenceMessage().isCompatibleWith(0, programVersion, madkitVersion,programVersion, madkitVersion,
 				kernelAddressReceiver));
-		Assert.assertEquals(randData.length, d2.getByteBuffer().position()
+		AssertJUnit.assertEquals(randData.length, d2.getByteBuffer().position()
 				- (Bits.getUnsignedInt24Bits(d2.getByteBuffer().array(), 0)));
-		Assert.assertEquals(randData.length,
+		AssertJUnit.assertEquals(randData.length,
 				d2.getByteBuffer().position() - (Bits.getUnsignedInt24Bits(d2.getByteBuffer().array(), 0)));
 		ByteBuffer randDataReceived = d2.getUnusedReceivedData();
-		Assert.assertNotNull(randDataReceived);
-		Assert.assertArrayEquals(randData, randDataReceived.array());
+		AssertJUnit.assertNotNull(randDataReceived);
+		AssertJUnit.assertArrayEquals(randData, randDataReceived.array());
 	}
 
-	Version getVersionBase(String programeName) {
-		Version res = new Version(programName + "long", programName, (short)1, (short)0, (short)0, Version.Type.STABLE, (short)0,
+	Version getVersionBase(String programName) {
+		Version res = new Version(DatagramDataTest.programName + "long", DatagramDataTest.programName, (short)1, (short)0, (short)0, Version.Type.STABLE, (short)0,
 				new Date(System.currentTimeMillis()), new Date(System.currentTimeMillis()));
 		res.setBuildNumber(0);
 		return res;

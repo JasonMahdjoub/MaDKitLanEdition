@@ -63,14 +63,7 @@ import com.distrimind.madkit.exceptions.OverflowException;
 import com.distrimind.madkit.exceptions.PacketException;
 import com.distrimind.madkit.exceptions.SelfKillException;
 import com.distrimind.madkit.exceptions.TransferException;
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.Agent;
-import com.distrimind.madkit.kernel.AgentAddress;
-import com.distrimind.madkit.kernel.AgentNetworkID;
-import com.distrimind.madkit.kernel.Group;
-import com.distrimind.madkit.kernel.Message;
-import com.distrimind.madkit.kernel.NetworkAgent;
-import com.distrimind.madkit.kernel.Task;
+import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.network.AbstractData.DataTransferType;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
 import com.distrimind.madkit.kernel.network.TransferAgent.TryDirectConnection;
@@ -951,9 +944,6 @@ final class NIOAgent extends Agent {
 
 						personal_sockets.put(agent.getNetworkID(), ps);
 						personal_sockets_list.add(ps);
-						/*int max_block_size = agent.getMaxBlockSize();
-						if (readBuffer == null || readBuffer.capacity() < max_block_size)
-							readBuffer = ByteBuffer.allocate(max_block_size);*/
 
 						broadcastMessageWithRole(LocalCommunity.Groups.LOCAL_NETWORKS,
 								LocalCommunity.Roles.LOCAL_NETWORK_ROLE,
@@ -1127,12 +1117,7 @@ final class NIOAgent extends Agent {
 			data.clear();
 		}
 
-		/*@Override
-		boolean isCurrentByteBufferStarted() {
-			return data.position() > 0;
-		}*/
-		
-		@Override 
+		@Override
 		Object getLocker()
 		{
 			return null;
@@ -1300,8 +1285,6 @@ final class NIOAgent extends Agent {
 					LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 			last_data_wrote_utc = time_sending_ping_message = System.currentTimeMillis();
 			maxBlockSize=_agent.getMaxBlockSize();
-			/*socketChannel.setOption(StandardSocketOptions.SO_SNDBUF, maxBlockSize);
-			socketChannel.setOption(StandardSocketOptions.SO_RCVBUF, maxBlockSize);*/
 
 			addDataToSend(new FirstData(NIOAgent.this,
 					new DatagramLocalNetworkPresenceMessage(System.currentTimeMillis(),
@@ -1404,10 +1387,7 @@ final class NIOAgent extends Agent {
 			}
 		}
 
-		/*
-		 * public void lockRead() { ++read_locked; } public void unlockRead() {
-		 * --read_locked; }
-		 */
+
 		public boolean isReadLocked() {
 			return /* read_locked>1 || */ agentSocket.isTransferReadPaused();
 		}
@@ -1613,12 +1593,6 @@ final class NIOAgent extends Agent {
 				if (!change)
 					return true;
 				boolean valid_data=hasDataToSend();
-				//boolean valid_data = waitDataReady();
-				// boolean valid_data=(shortDataToSend.size()>0 &&
-				// shortDataToSend.getFirst().isReady()) ||
-				// (bigDataToSend.size()>bigDataToSendIndex &&
-				// bigDataToSend.get(bigDataToSendIndex).isReady()) || (dataToTransfer.size()>0
-				// && dataToTransfer.getFirst().isReady());
 				if (!valid_data || is_closed || hasPriorityDataToSend()) {
 					dataTransferType = DataTransferType.SHORT_DATA;
 					return !is_closed;
@@ -1795,11 +1769,11 @@ final class NIOAgent extends Agent {
 				if (this.readBuffer==null)
 				{
 					data_read = socketChannel.read(readSizeBlock);
-					
+
 					if (!readSizeBlock.hasRemaining())
 					{
 						int size=Block.getBlockSize(readSizeBlock.array(), 0);
-						if (size<=0 || size>maxBlockSize)
+						if (size<=Block.getBlockSizeLength() || size>maxBlockSize)
 						{
 							if (logger != null)
 								logger.severe("Invalid block size "+size+" (max="+maxBlockSize+"). Impossible to receive new bytes (connection closed).");
@@ -1808,7 +1782,7 @@ final class NIOAgent extends Agent {
 							key.cancel();
 							return;
 						}
-						readBuffer=ByteBuffer.allocate(size);
+						readBuffer = ByteBuffer.allocate(size);
 						readBuffer.put(readSizeBlock.array());
 						readSizeBlock.clear();
 						int s=socketChannel.read(readBuffer);
@@ -1848,18 +1822,18 @@ final class NIOAgent extends Agent {
 			
 			// boolean hasRemaining=readBuffer.hasRemaining();
 			if (readBuffer!=null && !readBuffer.hasRemaining()) {
-				receivedData(key, readBuffer, data_read);
+				receivedData(key, readBuffer);
 				readBuffer=null;
 			}
 
 
 		}
 
-		private void receivedData(SelectionKey key, ByteBuffer data, int data_read) {
+		private void receivedData(SelectionKey key, ByteBuffer data) {
 			data.clear();
 			if (firstReceivedData != null) {
-				firstReceivedData.put(data.array(), 0, data_read);
-				if (!firstReceivedData.isValid()) {
+				firstReceivedData.put(data.array(), 0, data.limit());
+				if (!firstReceivedData.isValid(false)) {
 					if (logger != null && logger.isLoggable(Level.FINER))
 						logger.finer("first received data invalid : " + firstReceivedData);
 					this.agentSocket.proceedEventualBan(true);
@@ -1875,11 +1849,22 @@ final class NIOAgent extends Agent {
 							ByteBuffer bb = firstReceivedData.getUnusedReceivedData();
 							firstReceivedData = null;
 							if (bb != null) {
-								receivedData(key, bb, bb.capacity());
+								closeConnection(ConnectionClosedReason.CONNECTION_ANOMALY);
+								key.cancel();
+								return;
+								//receivedData(key, bb, bb.position());
 							}
 						} else {
 							if (logger != null && logger.isLoggable(Level.INFO))
-								logger.info("Incompatible peers" );
+								logger.info("Incompatible peers : "
+										+"\n\tDefault project code name: "+ MadkitProperties.defaultProjectCodeName
+										+"\n\tLocal MaDKit build number: "
+										+DatagramLocalNetworkPresenceMessage.getVersionLong(getMadkitConfig().madkitVersion)
+										+"\n\tLocal project build number: "+(getMadkitConfig().projectVersion==null?null:DatagramLocalNetworkPresenceMessage.getVersionLong(getMadkitConfig().projectVersion))
+										+"\n\tMinimum MaDKit build number: "+DatagramLocalNetworkPresenceMessage.getVersionLong(getMadkitConfig().minimumMadkitVersion)
+										+"\n\tMinimum project build number: "+(getMadkitConfig().minimumProjectVersion==null?null:DatagramLocalNetworkPresenceMessage.getVersionLong(getMadkitConfig().minimumProjectVersion))
+										+"\n\tLocal kernel address: "+getKernelAddress());
+
 							firstReceivedData = null;
 							closeConnection(ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED);
 							key.cancel();
@@ -1896,7 +1881,7 @@ final class NIOAgent extends Agent {
 				}
 
 				if (logger != null && logger.isLoggable(Level.FINEST))
-					logger.finest("Receiving new initial bytes (" + data_read + " bytes) from "
+					logger.finest("Receiving new initial bytes (" + data.limit() + " bytes) from "
 							+ this.agentSocket.getDistantInetSocketAddress());
 			} else {
 				NIOAgent.this.sendMessage(agentAddress, new DataReceivedMessage(data.array()));
@@ -2024,7 +2009,7 @@ final class NIOAgent extends Agent {
 					else
 						finishCloseConnection();
 					return null;
-				}, getMadkitConfig().networkProperties.delayInMsBeforeClosingConnectionNormally + System.currentTimeMillis()));
+				}, getMadkitConfig().networkProperties.delayInMsBeforeClosingConnectionNormally + System.currentTimeMillis(), true));
 			else
 				finishCloseConnection();
 
@@ -2166,7 +2151,7 @@ final class NIOAgent extends Agent {
 
 				datagramChannel.receive(currentDatagramData.getByteBuffer());
 
-				if (!currentDatagramData.isValid())
+				if (!currentDatagramData.isValid(true))
 					currentDatagramData = null;
 				else if (currentDatagramData.isComplete()) {
 

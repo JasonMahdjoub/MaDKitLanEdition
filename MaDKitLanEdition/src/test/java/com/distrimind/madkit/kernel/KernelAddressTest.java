@@ -37,20 +37,20 @@
  */
 package com.distrimind.madkit.kernel;
 
+import com.distrimind.madkit.JUnitFunctions;
 import com.distrimind.madkit.kernel.network.KernelAddressInterfaced;
 import com.distrimind.util.io.RandomByteArrayInputStream;
 import com.distrimind.util.io.RandomByteArrayOutputStream;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.testng.Assert;
+import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.fail;
 
 /**
  * @author Fabien Michel
@@ -98,16 +98,13 @@ public class KernelAddressTest {
 	public void createKASimultaneously() throws InterruptedException {
 		List<Thread> ts = new ArrayList<>();
 		for (int i = 0; i < 5; i++) {
-			Thread t = new Thread(new Runnable() {
-				@Override
-				public void run() {
-					for (int j = 0; j < 1000; j++) {
-						synchronized (kas) {
-							kas.add(new KernelAddress(true));
-						}
+			Thread t = new Thread(() -> {
+				for (int j = 0; j < 1000; j++) {
+					synchronized (kas) {
+						kas.add(new KernelAddress(true));
 					}
-
 				}
+
 			});
 			ts.add(t);
 			t.start();
@@ -120,12 +117,12 @@ public class KernelAddressTest {
 	@Test
 	public void testUniqueness() throws InterruptedException {
 		for (int i = 0; i < 1000; i++) {
-            assertNotEquals(new KernelAddress(true), new KernelAddress(true));
+            JUnitFunctions.assertNotEquals(new KernelAddress(true), new KernelAddress(true));
 		}
 		for (KernelAddress ka : kas) {
 			for (KernelAddress other : simultaneous) {
 				if (other.hashCode() == ka.hashCode()) {
-					fail("two addresses with identical hashCode");
+					Assert.fail("two addresses with identical hashCode");
 				}
 			}
 		}
@@ -137,7 +134,7 @@ public class KernelAddressTest {
 			l.remove(ka);
 			for (KernelAddress other : l) {
 				if (other.hashCode() == ka.hashCode()) {
-					fail("two addresses with identical hashCode");
+					Assert.fail("two addresses with identical hashCode");
 				}
 			}
 			iterator.remove();
@@ -158,7 +155,7 @@ public class KernelAddressTest {
 		for (KernelAddress ka : kas) {
 			for (KernelAddress other : kas) {
 				if (ka != other && other.equals(ka)) {
-					fail("two addresses equals");
+					Assert.fail("two addresses equals");
 				}
 			}
 		}
@@ -171,8 +168,8 @@ public class KernelAddressTest {
 
 				}
 			}
-			Assert.assertEquals(ka, ka);
-			Assert.assertEquals(ka, kas);
+			AssertJUnit.assertEquals(ka, ka);
+			AssertJUnit.assertEquals(ka, kas);
 			KernelAddressInterfaced kai = new KernelAddressInterfaced(ka, true);
 			KernelAddressInterfaced kais;
 			try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
@@ -181,20 +178,20 @@ public class KernelAddressTest {
 					kais=bais.readObject(false, KernelAddressInterfaced.class);
 				}
 			}
-			Assert.assertEquals(kai, kai);
-			Assert.assertEquals(kai, kais);
-			Assert.assertEquals(kai.getOriginalKernelAddress(), kai.getOriginalKernelAddress());
-			Assert.assertEquals(kai.getOriginalKernelAddress(), kais.getOriginalKernelAddress());
-			Assert.assertEquals(kais.getOriginalKernelAddress(), kai.getOriginalKernelAddress());
-			Assert.assertEquals(kais, kai);
-			Assert.assertEquals(kai, ka);
-			Assert.assertEquals(ka, kai);
-			Assert.assertEquals(kai, kas);
-			Assert.assertEquals(kas, kai);
-			Assert.assertEquals(kais, kas);
-			Assert.assertEquals(kas, kais);
-			Assert.assertEquals(kais, ka);
-			Assert.assertEquals(ka, kais);
+			AssertJUnit.assertEquals(kai, kai);
+			AssertJUnit.assertEquals(kai, kais);
+			AssertJUnit.assertEquals(kai.getOriginalKernelAddress(), kai.getOriginalKernelAddress());
+			AssertJUnit.assertEquals(kai.getOriginalKernelAddress(), kais.getOriginalKernelAddress());
+			AssertJUnit.assertEquals(kais.getOriginalKernelAddress(), kai.getOriginalKernelAddress());
+			AssertJUnit.assertEquals(kais, kai);
+			AssertJUnit.assertEquals(kai, ka);
+			AssertJUnit.assertEquals(ka, kai);
+			AssertJUnit.assertEquals(kai, kas);
+			AssertJUnit.assertEquals(kas, kai);
+			AssertJUnit.assertEquals(kais, kas);
+			AssertJUnit.assertEquals(kas, kais);
+			AssertJUnit.assertEquals(kais, ka);
+			AssertJUnit.assertEquals(ka, kais);
 			kai = new KernelAddressInterfaced(ka, false);
 			try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
 				baos.writeObject(kai, false);
@@ -203,12 +200,12 @@ public class KernelAddressTest {
 
 				}
 			}
-			Assert.assertEquals(kai, kai);
-			Assert.assertEquals(kai.getOriginalKernelAddress(), kai.getOriginalKernelAddress());
-			Assert.assertEquals(kai.getOriginalKernelAddress(), kais.getOriginalKernelAddress());
-			Assert.assertEquals(kais.getOriginalKernelAddress(), kai.getOriginalKernelAddress());
-			Assert.assertEquals(kai, kais);
-			Assert.assertEquals(kais, kai);
+			AssertJUnit.assertEquals(kai, kai);
+			AssertJUnit.assertEquals(kai.getOriginalKernelAddress(), kai.getOriginalKernelAddress());
+			AssertJUnit.assertEquals(kai.getOriginalKernelAddress(), kais.getOriginalKernelAddress());
+			AssertJUnit.assertEquals(kais.getOriginalKernelAddress(), kai.getOriginalKernelAddress());
+			AssertJUnit.assertEquals(kai, kais);
+			AssertJUnit.assertEquals(kais, kai);
 			Assert.assertNotEquals(kai, ka);
 			Assert.assertNotEquals(ka, kai);
 			Assert.assertNotEquals(kais, ka);
@@ -221,14 +218,14 @@ public class KernelAddressTest {
 		for (KernelAddress ka : simultaneous) {
 			for (KernelAddress other : simultaneous) {
 				if (ka != other && other.equals(ka)) {
-					fail("two addresses equals");
+					Assert.fail("two addresses equals");
 				}
 			}
 		}
 		for (KernelAddress ka : kas) {
 			for (KernelAddress other : simultaneous) {
 				if (ka != other && other.equals(ka)) {
-					fail("two addresses equals");
+					Assert.fail("two addresses equals");
 				}
 			}
 		}

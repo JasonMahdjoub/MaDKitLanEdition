@@ -36,16 +36,15 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-import static org.junit.Assert.fail;
 
 import java.awt.Component;
 
 import javax.swing.AbstractButton;
 
-import org.junit.Test;
-
 import com.distrimind.madkit.gui.menu.LaunchAgentsMenu;
 import com.distrimind.madkit.kernel.JunitMadkit;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 /**
  * @author Fabien Michel
@@ -68,7 +67,7 @@ public class NoPackageTest extends JunitMadkit {
 					if (((AbstractButton) iterable_element).getText().equals(NoPackageAgent.class.getName()))
 						return;
 				}
-				fail("not in menu");
+				Assert.fail("not in menu");
 			}
 		});
 	}

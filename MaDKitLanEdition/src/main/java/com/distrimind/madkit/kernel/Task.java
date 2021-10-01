@@ -109,6 +109,7 @@ public final class Task<V> implements Cloneable {
 	private long time;
 
 	final long duration_between_each_repetition;
+	private boolean executeEvenIfLauncherAgentIsKilled =false;
 
 	/**
 	 * Construct a task to execute at the current time
@@ -138,6 +139,39 @@ public final class Task<V> implements Cloneable {
 	 */
 	public Task(Callable<V> _callable, long _time) {
 		this(_callable, _time, -1);
+	}
+
+	/**
+	 * Construct a task to execute at the current time
+	 *
+	 * @param _callable
+	 *            the runnable to execute
+	 * @param executeEvenIfLauncherAgentIsKilled execute the task even if the agent is killed (only available for non-repetitive tasks)
+	 * @throws NullPointerException
+	 *             if _runnable is null
+	 * @see AbstractAgent#scheduleTask(Task, boolean)
+	 * @see AbstractAgent#cancelTask(TaskID, boolean)
+	 */
+	public Task(Callable<V> _callable, boolean executeEvenIfLauncherAgentIsKilled) {
+		this(_callable);
+		this.executeEvenIfLauncherAgentIsKilled = executeEvenIfLauncherAgentIsKilled;
+	}
+	/**
+	 * Construct a task to execute at the given time
+	 *
+	 * @param _callable
+	 *            the runnable to execute
+	 * @param _time
+	 *            the moment in UTC when the TaskAgent must execute this task
+	 * @param executeEvenIfLauncherAgentIsKilled execute the task even if the agent is killed (only available for non-repetitive tasks)
+	 * @throws NullPointerException
+	 *             if _runnable is null
+	 * @see AbstractAgent#scheduleTask(Task, boolean)
+	 * @see AbstractAgent#cancelTask(TaskID, boolean)
+	 */
+	public Task(Callable<V> _callable, long _time, boolean executeEvenIfLauncherAgentIsKilled) {
+		this(_callable, _time);
+		this.executeEvenIfLauncherAgentIsKilled = executeEvenIfLauncherAgentIsKilled;
 	}
 
 	/**
@@ -191,5 +225,9 @@ public final class Task<V> implements Cloneable {
 	void renewTask() {
 		if (isRepetitive())
 			time = System.currentTimeMillis() + duration_between_each_repetition;
+	}
+
+	public boolean isExecuteEvenIfLauncherAgentIsKilled() {
+		return executeEvenIfLauncherAgentIsKilled;
 	}
 }

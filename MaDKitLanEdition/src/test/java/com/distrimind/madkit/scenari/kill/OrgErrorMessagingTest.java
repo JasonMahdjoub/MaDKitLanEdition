@@ -37,6 +37,11 @@
  */
 package com.distrimind.madkit.scenari.kill;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
+import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.INVALID_AGENT_ADDRESS;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_COMMUNITY;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_GROUP;
@@ -46,13 +51,6 @@ import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NO_RECIPIENT
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ROLE_ALREADY_HANDLED;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ROLE_NOT_HANDLED;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import org.junit.Test;
-
 import com.distrimind.madkit.agr.Organization;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Group;

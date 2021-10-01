@@ -37,16 +37,14 @@
  */
 package com.distrimind.madkit.classreloading;
 
-import static org.junit.Assert.assertNotSame;
-
+import static org.testng.AssertJUnit.assertNotSame;
+import org.testng.annotations.Test;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
-
-import org.junit.Test;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.JunitMadkit;

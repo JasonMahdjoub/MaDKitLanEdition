@@ -130,7 +130,7 @@ Adapt into your build.gradle file, the next code :
 	...
 	dependencies {
 		...
-		compile(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.2.0-BETA1')
+		compile(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.2.0-STABLE')
 		...
 	}
 	...
@@ -146,7 +146,7 @@ Adapt into your pom.xml file, the next code :
 			<dependency>
 				<groupId>com.distrimind.madkit</groupId>
 				<artifactId>MaDKitLanEdition</artifactId>
-				<version>2.2.0-BETA1</version>
+				<version>2.2.0-STABLE</version>
 			</dependency>
 			...
 		</dependencies>
@@ -169,3 +169,6 @@ How to get demos ?
 To get MaDKitLanEditions demos, please download the lastest [repository](https://artifactory.distri-mind.fr/artifactory/DistriMind-Public/com/distrimind/madkitdemos/MaDKitLanEditionDemos/)
 
 [1]: http://www.lirmm.fr/~fmichel/publi/pdfs/ferber04ocmas.pdf
+
+###### Requirements under Ubuntu/Debian :
+  * Please install the package ethtool, rng-tools, mtr(only debian), libcanberra-gtk-module

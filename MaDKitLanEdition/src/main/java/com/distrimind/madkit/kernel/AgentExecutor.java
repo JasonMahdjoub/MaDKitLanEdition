@@ -91,7 +91,7 @@ final class AgentExecutor {
 
 	Future<ReturnCode> start()
 	{
-		List<Future<?>> list=myAgent.getMadkitKernel().getMaDKitServiceExecutor().launchDedicatedThread(myAgent.isDaemon()?myAgent.getMadkitKernel().getDaemonAgentThreadFactory():myAgent.getMadkitKernel().getNormalAgentThreadFactory(),
+		List<Future<?>> list=myAgent.getMadkitKernel().getMaDKitServiceExecutor().getFutures(
 				Arrays.asList(
 						(Callable<ReturnCode>) () -> {
 							myAgent.myThread = Thread.currentThread();
@@ -145,6 +145,7 @@ final class AgentExecutor {
 		activate=(Future<ReturnCode>)list.get(0);
 		live=list.get(1);
 		end=list.get(2);
+		myAgent.getMadkitKernel().getMaDKitServiceExecutor().launchDedicatedThreadWithFutures(myAgent.isDaemon()?myAgent.getMadkitKernel().getDaemonAgentThreadFactory():myAgent.getMadkitKernel().getNormalAgentThreadFactory(), list);
 		return activate;
 	}
 

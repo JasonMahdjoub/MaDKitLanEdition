@@ -37,15 +37,13 @@
  */
 package com.distrimind.madkit.scenari.bug;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
+import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ALREADY_KILLED;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import com.distrimind.madkit.kernel.KernelAddress;
-import org.junit.Test;
-
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
@@ -75,17 +73,13 @@ public class RuntimeExceptionTest extends JunitMadkit {
 
 			}
 		};
-		launchTest(a, ReturnCode.AGENT_CRASH, true, new Runnable() {
+		launchTest(a, ReturnCode.AGENT_CRASH, true, () -> {
 
-			@Override
-			public void run() {
-
-				System.err.println(getKernel(
-						kernelAddress.get())
-						.getOrganizationSnapShot(false));
-				assertAgentIsTerminated(a);
-				assertFalse(getKernel(kernelAddress.get()).isCommunity(C));
-			}
+			System.err.println(getKernel(
+					kernelAddress.get())
+					.getOrganizationSnapShot(false));
+			assertAgentIsTerminated(a);
+			assertFalse(getKernel(kernelAddress.get()).isCommunity(C));
 		});
 	}
 

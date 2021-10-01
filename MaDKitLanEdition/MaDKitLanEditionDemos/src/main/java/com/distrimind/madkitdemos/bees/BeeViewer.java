@@ -175,7 +175,7 @@ public class BeeViewer extends SwingViewer {
 		int defaultBeesNb = 10000;
 		for (int i = 1000; i <= 1000000; i *= 10) {
 			JRadioButtonMenuItem item = new JRadioButtonMenuItem("Launch " + i + " bees");
-			item.setActionCommand(new Integer(i).toString().toString());
+			item.setActionCommand(new Integer(i).toString());
 			item.addActionListener(new ActionListener() {
 
 				@Override

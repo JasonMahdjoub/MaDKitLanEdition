@@ -37,16 +37,15 @@
  */
 package com.distrimind.madkit.scenari.kill;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
+
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ALREADY_KILLED;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.TIMEOUT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.util.logging.Level;
-
-import org.junit.Assert;
-import org.junit.Test;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Agent;
@@ -240,7 +239,7 @@ public class KillingWorkingThreadedAgentsTest extends JunitMadkit {
 				ReturnCode r = launchAgent(a, 1);
 				assertTrue(TIMEOUT == r || r == SUCCESS);
 				r = killAgent(a, 0);
-				Assert.assertEquals(TIMEOUT, r);
+				AssertJUnit.assertEquals(TIMEOUT, r);
 				assertAgentIsZombie(a);
 				JunitMadkit.pause(this, 10000);
 				assertAgentIsTerminated(a);

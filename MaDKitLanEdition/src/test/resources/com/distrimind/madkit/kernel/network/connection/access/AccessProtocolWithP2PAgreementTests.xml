@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="AccessProtocolWithP2PAgreementTests"
+       data-provider-thread-count="16" parallel="instances" thread-count="16"
+       group-by-instances="true">
+
+    <test name="AccessProtocolWithP2PAgreementTests" parallel="instances"
+          thread-count="16">
+        <classes>
+            <class name="com.distrimind.madkit.kernel.network.connection.access.AccessProtocolWithP2PAgreementTests" />
+        </classes>
+    </test>
+
+</suite>

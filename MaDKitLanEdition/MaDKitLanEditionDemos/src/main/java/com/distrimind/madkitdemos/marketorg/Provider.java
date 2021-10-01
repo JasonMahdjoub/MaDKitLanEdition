@@ -56,7 +56,7 @@ public class Provider extends Agent {
 
 	private static int nbOfProvidersOnScreen = 0;
 
-	private String competence;
+	private final String competence;
 	private JPanel blinkPanel;
 
 	public Provider() {

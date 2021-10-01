@@ -37,13 +37,11 @@
  */
 package com.distrimind.madkit.api.abstractAgent;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNull;
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import java.util.Enumeration;
-
-import org.junit.Assert;
-import org.junit.Test;
 
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.kernel.AbstractAgent;
@@ -68,7 +66,7 @@ public class GetExistingGroupsTest extends JunitMadkit {
 			protected void activate() {
 				System.err.println(getExistingGroups(LocalCommunity.NAME));
 				assertEquals(4, getSize(getExistingGroups(LocalCommunity.NAME)));
-				Assert.assertTrue(contains(getExistingGroups(LocalCommunity.NAME), LocalCommunity.Groups.GUI));
+				AssertJUnit.assertTrue(contains(getExistingGroups(LocalCommunity.NAME), LocalCommunity.Groups.GUI));
 			}
 		});
 	}

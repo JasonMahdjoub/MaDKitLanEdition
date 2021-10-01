@@ -37,15 +37,15 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import com.distrimind.madkit.JUnitFunctions;
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import com.distrimind.madkit.exceptions.OverflowException;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
 import com.distrimind.util.io.RandomByteArrayInputStream;
 import com.distrimind.util.io.RandomByteArrayOutputStream;
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.io.IOException;
 
 /**
@@ -69,21 +69,21 @@ public class IDTransferTest extends JunitMadkit {
 					for (int i = 0; i < idNumber; i++) {
 						ids[i] = IDTransfer.generateIDTransfer(MadkitKernelAccess.getIDTransferGenerator(this));
 					}
-					Assert.assertEquals(100, MadkitKernelAccess.numberOfValidGeneratedID(this));
+					AssertJUnit.assertEquals(100, MadkitKernelAccess.numberOfValidGeneratedID(this));
 					for (int i = 0; i < idNumber; i++) {
 						for (int j = 0; j < idNumber; j++) {
 							if (i == j) {
-                                Assert.assertEquals(ids[i], ids[j]);
+                                AssertJUnit.assertEquals(ids[i], ids[j]);
 							} else
-								Assert.assertNotEquals(ids[i], ids[j]);
+								JUnitFunctions.assertNotEquals(ids[i], ids[j]);
 						}
 						try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
-							Assert.assertTrue(ids[i].isGenerated());
+							AssertJUnit.assertTrue(ids[i].isGenerated());
 							baos.writeObject(ids[i], false);
 							try (RandomByteArrayInputStream bais = new RandomByteArrayInputStream(baos.getBytes())) {
 								IDTransfer id = bais.readObject(false, IDTransfer.class);
-								Assert.assertFalse(id.isGenerated());
-								Assert.assertEquals(id, ids[i]);
+								AssertJUnit.assertFalse(id.isGenerated());
+								AssertJUnit.assertEquals(id, ids[i]);
 							}
 						}
 					}
@@ -91,16 +91,16 @@ public class IDTransferTest extends JunitMadkit {
                     System.gc();
 					System.gc();
 					Thread.sleep(500);
-					Assert.assertEquals(0, MadkitKernelAccess.numberOfValidGeneratedID(this));
+					AssertJUnit.assertEquals(0, MadkitKernelAccess.numberOfValidGeneratedID(this));
 					IDTransfer id = IDTransfer.generateIDTransfer(MadkitKernelAccess.getIDTransferGenerator(this));
 					//noinspection ResultOfMethodCallIgnored
 					id.getID();
 					// Assert.assertEquals(0, id.getID());
-					Assert.assertEquals(1, MadkitKernelAccess.numberOfValidGeneratedID(this));
+					AssertJUnit.assertEquals(1, MadkitKernelAccess.numberOfValidGeneratedID(this));
 
 				} catch (OverflowException | IOException | ClassNotFoundException e) {
 					e.printStackTrace();
-					Assert.fail();
+					AssertJUnit.fail();
 				}
 			}
 		});

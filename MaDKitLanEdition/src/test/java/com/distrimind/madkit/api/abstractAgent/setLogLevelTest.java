@@ -37,11 +37,9 @@
  */
 package com.distrimind.madkit.api.abstractAgent;
 
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
-
-import org.junit.Test;
-
+import static org.testng.AssertJUnit.assertNull;
+import org.testng.annotations.Test;
+import org.testng.Assert;
 import com.distrimind.madkit.kernel.AbstractAgent;
 
 /**
@@ -62,7 +60,7 @@ public class setLogLevelTest extends com.distrimind.madkit.kernel.JunitMadkit {
 				assertNull(logger);
 				try {
 					setLogLevel(null);
-					fail("execption not launched");
+					Assert.fail("execption not launched");
 				} catch (NullPointerException ignored) {
 				}
 			}

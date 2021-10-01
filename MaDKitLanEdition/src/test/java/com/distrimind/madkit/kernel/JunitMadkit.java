@@ -51,18 +51,19 @@ import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.Timer;
 import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.concurrent.ScheduledPoolExecutor;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.rules.TestName;
+import org.testng.Assert;
+import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeMethod;
 
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import static com.distrimind.madkit.kernel.AbstractAgent.State.TERMINATED;
-import static org.junit.Assert.*;
 
 /**
  * @author Fabien Michel
@@ -74,8 +75,13 @@ import static org.junit.Assert.*;
  */
 public class JunitMadkit {
 
-	@Rule
-	public TestName name = new TestName();
+	public String testName = "";
+
+	@BeforeMethod
+	public void handleTestMethodName(Method method)
+	{
+		testName = method.getName();
+	}
 
 	/**
 	 * 	 */
@@ -131,25 +137,22 @@ public class JunitMadkit {
 		} catch (TimeoutException ignored) {
 
 		}
-		Assert.assertEquals(nb, helperInstances.size());
+		AssertJUnit.assertEquals(nb, helperInstances.size());
 		return new ArrayList<>(helperInstances);
 	}
 
-	// static{
-	// Runtime.getRuntime().addShutdownHook(new Thread(){
-	// @Override
-	// public void run() {
-	// cleanHelperMDKs();
-	// }
-	// });
-	// }
+	protected List<String> mkArgs;
 
-	protected List<String> mkArgs = new ArrayList<>(Arrays.asList(
-			// "--"+Madkit.warningLogLevel,"INFO",
-			"--desktop", "false", "--forceDesktop", "true", "--launchAgents",
-			"{com.distrimind.madkit.kernel.AbstractAgent}", // to not have the desktop mode by
-			// default
-			"--logDirectory", getBinTestDir(), "--agentLogLevel", "ALL", "--madkitLogLevel", "INFO"));
+	@BeforeMethod
+	public void setMkArgs()
+	{
+		mkArgs = new ArrayList<>(Arrays.asList(
+				// "--"+Madkit.warningLogLevel,"INFO",
+				"--desktop", "false", "--forceDesktop", "true", "--launchAgents",
+				"{com.distrimind.madkit.kernel.AbstractAgent}", // to not have the desktop mode by
+				// default
+				"--logDirectory", getBinTestDir(), "--agentLogLevel", "ALL", "--madkitLogLevel", "INFO"));
+	}
 
 	private static final List<Process> externalProcesses = new ArrayList<>();
 
@@ -165,7 +168,7 @@ public class JunitMadkit {
 		}, postTest);
 	}
 
-	public static void setDatabaseFactory(MadkitProperties p, DatabaseFactory df) throws DatabaseException {
+	public static void setDatabaseFactory(MadkitProperties p, DatabaseFactory<?> df) throws DatabaseException {
 		p.setDatabaseFactory(df);
 	}
 
@@ -182,7 +185,7 @@ public class JunitMadkit {
 	public Madkit launchTest(AbstractAgent a, ReturnCode expected, boolean gui, MadkitEventListener eventListener,
 			Runnable postTest) {
 		System.err
-				.println("\n\n------------------------ " + name.getMethodName() + " TEST START ---------------------");
+				.println("\n\n------------------------ " + testName + " TEST START ---------------------");
 		Madkit madkit = null;
 		try {
 			String[] args = null;
@@ -193,10 +196,8 @@ public class JunitMadkit {
 			madkits.add(madkit = new Madkit(eventListener, args));
 			AbstractAgent kernelAgent = madkit.getKernel()
 					.getAgentWithRole(null, LocalCommunity.Groups.SYSTEM, Organization.GROUP_MANAGER_ROLE).getAgent();
-			// kernelAgent.receiveMessage(new
-			// KernelMessage(MadkitAction.LAUNCH_AGENT, a, false));
-			a.setName(name.getMethodName());
-			assertEquals(expected, kernelAgent.launchAgent(a, gui));
+			a.setName(testName);
+			AssertJUnit.assertEquals(expected, kernelAgent.launchAgent(a, gui));
 			if (postTest != null)
 				postTest.run();
 			if (testFailed) {
@@ -204,26 +205,26 @@ public class JunitMadkit {
 					testException.printStackTrace();
 				}
 				oneFailed = true;
-				fail();
+				Assert.fail();
 			}
 		} catch (Throwable e) {
+			Throwable throwable = e;
 			System.err.println("\n\n\n------------------------------------");
-			while (e.getCause() != null)
-				e = e.getCause();
-			e.printStackTrace();
+			while (throwable.getCause() != null)
+				throwable = throwable.getCause();
+			throwable.printStackTrace();
 			System.err.println("------------------------------------\n\n\n");
 			oneFailed = true;
 
-			Assert.fail(JunitMadkit.class.getSimpleName()+" ; "+e.getMessage());
+			AssertJUnit.fail(JunitMadkit.class.getSimpleName()+" ; "+ throwable.getMessage());
 
 		} finally {
-			System.err.println("\n\n------------------------ " + name.getMethodName()
+			System.err.println("\n\n------------------------ " + testName
 					+ " TEST FINISHED ---------------------\n\n");
 
 			cleanHelperMDKs(a);
 			closeMadkit(madkit);
 			madkits.remove(madkit);
-			madkit = null;
 
 		}
 		/*
@@ -238,7 +239,7 @@ public class JunitMadkit {
 	}
 
 	public void assertKernelIsAlive(MadkitKernel m) {
-		assertTrue(m.isAlive());
+		AssertJUnit.assertTrue(m.isAlive());
 	}
 
 	public void assertKernelIsAlive(KernelAddress ka) {
@@ -249,11 +250,11 @@ public class JunitMadkit {
 	}
 
 	public static void noExceptionFailure() {
-		fail("Exception not thrown");
+		Assert.fail("Exception not thrown");
 	}
 
 	public Madkit launchTest(AbstractAgent a) {
-		return launchTest(a, _properties -> {
+		return launchTest(a, _properties -> {if (_properties.configFiles==null) _properties.configFiles=new ArrayList<>();
 		});
 	}
 
@@ -294,7 +295,7 @@ public class JunitMadkit {
 			if (testException != null) {
 				testException.printStackTrace();
 			}
-			fail();
+			Assert.fail();
 		}
 	}
 
@@ -309,10 +310,6 @@ public class JunitMadkit {
 		}
 		return launchTest(a, SUCCESS);
 	}
-
-	/*public AbstractAgent getKernel() {
-		return madkit.getKernel();
-	}*/
 
 	public AbstractAgent getKernel(Madkit m) {
 		return m.getKernel();
@@ -362,13 +359,13 @@ public class JunitMadkit {
 
 	public void assertAgentIsTerminated(AbstractAgent a) {
 		System.err.println(a);
-		assertEquals(TERMINATED, a.getState());
-		assertFalse(a.isAlive());
+		AssertJUnit.assertEquals(TERMINATED, a.getState());
+		AssertJUnit.assertFalse(a.isAlive());
 	}
 
 	public void assertAgentIsZombie(AbstractAgent a) {
 		System.err.println(a);
-		assertEquals(State.ZOMBIE, a.getState());
+		AssertJUnit.assertEquals(State.ZOMBIE, a.getState());
 		// assertFalse(a.isAlive());
 	}
 
@@ -403,7 +400,7 @@ public class JunitMadkit {
 	public static void createDefaultCGR(AbstractAgent a) {
 		a.createGroup(GROUP, null);
 		try {
-			assertEquals(SUCCESS, a.requestRole(GROUP, ROLE, null));
+			AssertJUnit.assertEquals(SUCCESS, a.requestRole(GROUP, ROLE, null));
 		} catch (AssertionError e) {
 			JunitMadkit.testFails(e);
 		}
@@ -426,9 +423,21 @@ public class JunitMadkit {
 	public void launchThreadedMKNetworkInstance(final Level l, final Class<? extends AbstractAgent> agentClass,
 			final AbstractAgent agentToLaunch, final NetworkEventListener networkEventListener,
 			final KernelAddress kernelAddress) {
-		Thread t=new Thread(() -> launchCustomNetworkInstance(l, agentClass, agentToLaunch, networkEventListener, kernelAddress));
+		AtomicReference<Madkit> mkReference=new AtomicReference<>();
+		Thread t=new Thread(() -> launchCustomNetworkInstance(l, agentClass, agentToLaunch, networkEventListener, kernelAddress, mkReference));
 		t.setName("Madkit thread launcher");
 		t.start();
+		synchronized (helperInstances) {
+
+			while(!helperInstances.contains(mkReference.get()))
+			{
+				try {
+					helperInstances.wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 
 	public KernelAddress getKernelAddress(Madkit m) {
@@ -442,7 +451,7 @@ public class JunitMadkit {
 			m.doAction(KernelAction.STOP_NETWORK);
 
 		checkConnectedKernelsNb(null, m, 0, 20000);
-		Assert.assertTrue(checkMemoryLeakAfterNetworkStopped(m));
+		AssertJUnit.assertTrue(checkMemoryLeakAfterNetworkStopped(m));
 
 		checkConnectedIntancesNb(null, m, 0, 20000);
 
@@ -469,7 +478,7 @@ public class JunitMadkit {
 					for (Madkit m : helperInstances) {
 
 						checkConnectedKernelsNb(agent, m, 0, 20000);
-						Assert.assertTrue(checkMemoryLeakAfterNetworkStopped(m));
+						AssertJUnit.assertTrue(checkMemoryLeakAfterNetworkStopped(m));
 					}
 					for (Madkit m : helperInstances) {
 						checkConnectedIntancesNb(agent, m, 0, 20000);
@@ -586,12 +595,12 @@ public class JunitMadkit {
 	}
 
 	public Madkit launchMKNetworkInstance(Level l, final NetworkEventListener networkEventListener) {
-		return launchCustomNetworkInstance(l, ForEverAgent.class, null, networkEventListener, null);
+		return launchCustomNetworkInstance(l, ForEverAgent.class, null, networkEventListener, null, null);
 	}
 
 	public Madkit launchCustomNetworkInstance(final Level l, final Class<? extends AbstractAgent> agentTolaunch,
 			final AbstractAgent agentToLaunch, final NetworkEventListener networkEventListener,
-			KernelAddress kernelAddress) {
+			KernelAddress kernelAddress, AtomicReference<Madkit> mkReference) {
 		Madkit m = new Madkit(Madkit.generateDefaultMadkitConfig(), kernelAddress, _properties -> {
 			_properties.networkProperties.network = true;
 			_properties.networkProperties.networkLogLevel = l;
@@ -602,7 +611,8 @@ public class JunitMadkit {
 			networkEventListener.onMaDKitPropertiesLoaded(_properties);
 
 		});
-
+		if (mkReference!=null)
+			mkReference.set(m);
 		if (agentToLaunch != null)
 			m.getKernel().launchAgent(agentToLaunch);
 		addHelperInstance(m);
@@ -665,7 +675,7 @@ public class JunitMadkit {
 				pause(agent, 1000);
 		} while (t.getMilli() < timeout && (l == null || l.size() != nb));
 		assert l != null;
-		assertEquals(nb, l.size());
+		AssertJUnit.assertEquals(nb, l.size());
 	}
 
 	public void checkConnectedKernelsNb(AbstractAgent agent, Madkit m, int nb, long timeout) {
@@ -682,7 +692,7 @@ public class JunitMadkit {
 				pause(agent, 1000);
 		} while (t.getMilli() < timeout && (l == null || l.size() != nb));
 		assert l != null;
-		assertEquals(nb, l.size());
+		AssertJUnit.assertEquals(nb, l.size());
 	}
 
 	public void checkNumberOfNetworkAgents(AbstractAgent agent, Madkit m, int nbExpected, long timeout) {
@@ -699,7 +709,7 @@ public class JunitMadkit {
 			if (t.getMilli() < timeout && nb != nbExpected)
 				pause(agent, 1000);
 		} while (t.getMilli() < timeout && nb != nbExpected);
-		assertEquals(nb, nbExpected);
+		AssertJUnit.assertEquals(nb, nbExpected);
 	}
 
 	private int getNumberOfNetworkAgents(Madkit m) {
@@ -720,7 +730,7 @@ public class JunitMadkit {
 				pause(agent, 1000);
 			}
 		} while (t.getMilli() < timeout && m.getKernel().getState()!= TERMINATED);
-		assertSame(TERMINATED, m.getKernel().getState());
+		AssertJUnit.assertSame(TERMINATED, m.getKernel().getState());
 	}
 
 	public void checkEmptyConversationIDTraces(AbstractAgent agent, Madkit m, long timeout) {
@@ -735,25 +745,25 @@ public class JunitMadkit {
 				pause(agent, 1000);
 			}
 		} while (t.getMilli() < timeout && !m.getKernel().isGlobalInterfacedIDsEmpty());
-		assertTrue(m.getKernel().getGlobalInterfacedIDs().isEmpty());
+		AssertJUnit.assertTrue(m.getKernel().getGlobalInterfacedIDs().isEmpty());
 	}
 
 	public void checkReleasedGroups(AbstractAgent agent, Madkit m) {
-		Assert.assertFalse(LocalCommunity.Groups.AGENTS_SOCKET_GROUPS.hasMadKitTraces(m.kernelAddress));
-		Assert.assertFalse(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS.hasMadKitTraces(m.kernelAddress));
-		Assert.assertFalse(LocalCommunity.Groups.GUI.hasMadKitTraces(m.kernelAddress));
-		Assert.assertFalse(LocalCommunity.Groups.KERNELS.hasMadKitTraces(m.kernelAddress));
-		Assert.assertFalse(LocalCommunity.Groups.LOCAL_NETWORKS.hasMadKitTraces(m.kernelAddress));
-		Assert.assertFalse(LocalCommunity.Groups.NETWORK.hasMadKitTraces(m.kernelAddress));
-		Assert.assertFalse(LocalCommunity.Groups.NETWORK_INTERFACES.hasMadKitTraces(m.kernelAddress));
-		Assert.assertFalse(LocalCommunity.Groups.SYSTEM.hasMadKitTraces(m.kernelAddress));
-		Assert.assertFalse(LocalCommunity.Groups.SYSTEM_ROOT.hasMadKitTraces(m.kernelAddress));
-		Assert.assertFalse(LocalCommunity.Groups.TASK_AGENTS.hasMadKitTraces(m.kernelAddress));
+		AssertJUnit.assertFalse(LocalCommunity.Groups.AGENTS_SOCKET_GROUPS.hasMadKitTraces(m.kernelAddress));
+		AssertJUnit.assertFalse(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS.hasMadKitTraces(m.kernelAddress));
+		AssertJUnit.assertFalse(LocalCommunity.Groups.GUI.hasMadKitTraces(m.kernelAddress));
+		AssertJUnit.assertFalse(LocalCommunity.Groups.KERNELS.hasMadKitTraces(m.kernelAddress));
+		AssertJUnit.assertFalse(LocalCommunity.Groups.LOCAL_NETWORKS.hasMadKitTraces(m.kernelAddress));
+		AssertJUnit.assertFalse(LocalCommunity.Groups.NETWORK.hasMadKitTraces(m.kernelAddress));
+		AssertJUnit.assertFalse(LocalCommunity.Groups.NETWORK_INTERFACES.hasMadKitTraces(m.kernelAddress));
+		AssertJUnit.assertFalse(LocalCommunity.Groups.SYSTEM.hasMadKitTraces(m.kernelAddress));
+		AssertJUnit.assertFalse(LocalCommunity.Groups.SYSTEM_ROOT.hasMadKitTraces(m.kernelAddress));
+		AssertJUnit.assertFalse(LocalCommunity.Groups.TASK_AGENTS.hasMadKitTraces(m.kernelAddress));
 
-		Assert.assertFalse(JunitMadkit.GROUP.hasMadKitTraces(m.kernelAddress));
-		Assert.assertFalse(JunitMadkit.GROUP2.hasMadKitTraces(m.kernelAddress));
-		Assert.assertFalse(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA.hasMadKitTraces(m.kernelAddress));
-		Assert.assertFalse(JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA.hasMadKitTraces(m.kernelAddress));
+		AssertJUnit.assertFalse(JunitMadkit.GROUP.hasMadKitTraces(m.kernelAddress));
+		AssertJUnit.assertFalse(JunitMadkit.GROUP2.hasMadKitTraces(m.kernelAddress));
+		AssertJUnit.assertFalse(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA.hasMadKitTraces(m.kernelAddress));
+		AssertJUnit.assertFalse(JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA.hasMadKitTraces(m.kernelAddress));
 
 	}
 

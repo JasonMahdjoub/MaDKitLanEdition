@@ -37,23 +37,12 @@
  */
 package com.distrimind.madkit.kernel;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.distrimind.madkit.agr.Organization;
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.AgentAddress;
-import com.distrimind.madkit.kernel.CGRNotAvailable;
-import com.distrimind.madkit.kernel.InternalRole;
-import com.distrimind.madkit.kernel.Madkit;
-import com.distrimind.madkit.kernel.MadkitKernel;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author Fabien Michel
@@ -70,7 +59,7 @@ public class RoleTest {
 	MadkitKernel mk;
 	Madkit m;
 
-	@Before
+	@BeforeMethod
 	public void before() {
 		String[] args = { "--desktop", "false", "--forceDesktop", "true", "--platformLogLevel", "ALL" };
 		mk = (m=new Madkit(args)).getKernel();
@@ -84,7 +73,7 @@ public class RoleTest {
 			e.printStackTrace();
 		}
 	}
-	@After
+	@AfterMethod
 	public void after()
 	{
 		MadkitTest.closeMadkit(m);

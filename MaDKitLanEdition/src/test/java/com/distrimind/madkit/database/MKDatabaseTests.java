@@ -37,6 +37,11 @@
  */
 package com.distrimind.madkit.database;
 
+import com.distrimind.madkit.JUnitFunctions;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeClass;
+import org.testng.AssertJUnit;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.ood.database.*;
 import com.distrimind.ood.database.exceptions.DatabaseException;
@@ -44,11 +49,6 @@ import com.distrimind.util.crypto.ASymmetricEncryptionType;
 import com.distrimind.util.crypto.ASymmetricKeyPair;
 import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.crypto.SecureRandomType;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -100,26 +100,26 @@ public class MKDatabaseTests {
 				random, 500, (short) 100);
 		ASymmetricKeyPair kp2 = keysPairs.getKeyPair(ia1, (byte) 0, ASymmetricEncryptionType.DEFAULT, (short) 1024,
 				random, 500, (short) 100);
-		Assert.assertEquals(kp1, kp2);
+		AssertJUnit.assertEquals(kp1, kp2);
 		Thread.sleep(500);
 		kp2 = keysPairs.getKeyPair(ia1, (byte) 0, ASymmetricEncryptionType.DEFAULT, (short) 1024, random, 500,
 				(short) 100);
-		Assert.assertNotEquals(kp1, kp2);
+		JUnitFunctions.assertNotEquals(kp1, kp2);
 		kp1 = keysPairs.getKeyPair(ia2, (byte) 0, ASymmetricEncryptionType.DEFAULT, (short) 1024, random, 10000,
 				(short) 100);
-		Assert.assertNotEquals(kp1, kp2);
+		JUnitFunctions.assertNotEquals(kp1, kp2);
 		kp2 = keysPairs.getKeyPair(ia2, (byte) 1, ASymmetricEncryptionType.DEFAULT, (short) 1024, random, 10000,
 				(short) 100);
-		Assert.assertNotEquals(kp1, kp2);
+		JUnitFunctions.assertNotEquals(kp1, kp2);
 		kp1 = keysPairs.getKeyPair(ia2, (byte) 1, ASymmetricEncryptionType.DEFAULT, (short) 2048, random, 10000,
 				(short) 100);
-		Assert.assertNotEquals(kp1, kp2);
+		JUnitFunctions.assertNotEquals(kp1, kp2);
 		kp2 = keysPairs.getKeyPair(ia2, (byte) 1, ASymmetricEncryptionType.DEFAULT, (short) 2048, random, 10000,
 				(short) 100);
-		Assert.assertEquals(kp1, kp2);
+		AssertJUnit.assertEquals(kp1, kp2);
 		kp1 = keysPairs.getNewKeyPair(ia2, (byte) 1, ASymmetricEncryptionType.DEFAULT, (short) 2048, random, 10000,
 				(short) 100);
-		Assert.assertNotEquals(kp1, kp2);
+		JUnitFunctions.assertNotEquals(kp1, kp2);
 	}
 
 	@Test
@@ -127,42 +127,42 @@ public class MKDatabaseTests {
 
 		InetAddress ia1 = InetAddress.getByName("192.168.0.15");
 		InetAddress ia2 = InetAddress.getByName("0.15.0.2");
-		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia1, allowInetAddressesList));
-		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, allowInetAddressesList));
+		AssertJUnit.assertFalse(ipbanstat.isBannedOrExpulsed(ia1, allowInetAddressesList));
+		AssertJUnit.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, allowInetAddressesList));
 		ipbanstat.processExpulsion(ia1, false, 200, (short) 2, (short) 2, 200, (short) 1, (short) 2, 500, 500,
 				allowInetAddressesList);
-		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia1, allowInetAddressesList));
-		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, allowInetAddressesList));
-		Assert.assertEquals(0, ipbanstat.getRecords().size());
-		Assert.assertEquals(1, ipExpulsedStat.getRecords().size());
-		Assert.assertEquals(0, ipbanned.getRecords().size());
+		AssertJUnit.assertFalse(ipbanstat.isBannedOrExpulsed(ia1, allowInetAddressesList));
+		AssertJUnit.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, allowInetAddressesList));
+		AssertJUnit.assertEquals(0, ipbanstat.getRecords().size());
+		AssertJUnit.assertEquals(1, ipExpulsedStat.getRecords().size());
+		AssertJUnit.assertEquals(0, ipbanned.getRecords().size());
 		for (IPExpulsedStat.Record ipbs : ipExpulsedStat.getRecords()) {
-			Assert.assertArrayEquals(ia1.getAddress(), ipbs.inet_address);
-			Assert.assertTrue(ipbs.last_update_time < System.currentTimeMillis());
-			Assert.assertEquals(0, ipbs.expulsed_number);
-			Assert.assertEquals(1, ipbs.number_hits);
+			AssertJUnit.assertArrayEquals(ia1.getAddress(), ipbs.inet_address);
+			AssertJUnit.assertTrue(ipbs.last_update_time < System.currentTimeMillis());
+			AssertJUnit.assertEquals(0, ipbs.expulsed_number);
+			AssertJUnit.assertEquals(1, ipbs.number_hits);
 		}
 		ipbanstat.processExpulsion(ia1, false, 200, (short) 2, (short) 2, 200, (short) 1, (short) 2, 500, 500,
 				allowInetAddressesList);
-		Assert.assertTrue(ipbanstat.isBannedOrExpulsed(ia1, allowInetAddressesList));
-		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, allowInetAddressesList));
-		Assert.assertEquals(0, ipbanstat.getRecords().size());
-		Assert.assertEquals(1, ipExpulsedStat.getRecords().size());
-		Assert.assertEquals(1, ipbanned.getRecords().size());
+		AssertJUnit.assertTrue(ipbanstat.isBannedOrExpulsed(ia1, allowInetAddressesList));
+		AssertJUnit.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, allowInetAddressesList));
+		AssertJUnit.assertEquals(0, ipbanstat.getRecords().size());
+		AssertJUnit.assertEquals(1, ipExpulsedStat.getRecords().size());
+		AssertJUnit.assertEquals(1, ipbanned.getRecords().size());
 		for (IPExpulsedStat.Record ipbs : ipExpulsedStat.getRecords()) {
-			Assert.assertArrayEquals(ia1.getAddress(), ipbs.inet_address);
-			Assert.assertTrue(ipbs.last_update_time < System.currentTimeMillis());
-			Assert.assertEquals(1, ipbs.expulsed_number);
-			Assert.assertEquals(0, ipbs.number_hits);
+			AssertJUnit.assertArrayEquals(ia1.getAddress(), ipbs.inet_address);
+			AssertJUnit.assertTrue(ipbs.last_update_time < System.currentTimeMillis());
+			AssertJUnit.assertEquals(1, ipbs.expulsed_number);
+			AssertJUnit.assertEquals(0, ipbs.number_hits);
 		}
 		for (IPBanned.Record ipb : ipbanned.getRecords()) {
-			Assert.assertArrayEquals(ia1.getAddress(), ipb.inet_address);
-			Assert.assertTrue(ipb.expiration_time < System.currentTimeMillis() + 200);
+			AssertJUnit.assertArrayEquals(ia1.getAddress(), ipb.inet_address);
+			AssertJUnit.assertTrue(ipb.expiration_time < System.currentTimeMillis() + 200);
 		}
 
 		Thread.sleep(200);
-		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia1, allowInetAddressesList));
-		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, allowInetAddressesList));
+		AssertJUnit.assertFalse(ipbanstat.isBannedOrExpulsed(ia1, allowInetAddressesList));
+		AssertJUnit.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, allowInetAddressesList));
 		ipbanstat.processExpulsion(ia1, false, 200, (short) 2, (short) 2, 200, (short) 1, (short) 2, 500, 500,
 				allowInetAddressesList);
 		ipbanstat.processExpulsion(ia1, false, 200, (short) 2, (short) 2, 200, (short) 1, (short) 2, 500, 500,
@@ -171,90 +171,90 @@ public class MKDatabaseTests {
 				allowInetAddressesList);
 		ipbanstat.processExpulsion(ia1, false, 200, (short) 2, (short) 2, 200, (short) 1, (short) 2, 500, 500,
 				allowInetAddressesList);
-		Assert.assertTrue(ipbanstat.isBannedOrExpulsed(ia1, allowInetAddressesList));
+		AssertJUnit.assertTrue(ipbanstat.isBannedOrExpulsed(ia1, allowInetAddressesList));
 		for (IPExpulsedStat.Record ipbs : ipExpulsedStat.getRecords()) {
-			Assert.assertArrayEquals(ia1.getAddress(), ipbs.inet_address);
-			Assert.assertTrue(ipbs.last_update_time < System.currentTimeMillis());
-			Assert.assertEquals(2, ipbs.expulsed_number);
-			Assert.assertEquals(0, ipbs.number_hits);
+			AssertJUnit.assertArrayEquals(ia1.getAddress(), ipbs.inet_address);
+			AssertJUnit.assertTrue(ipbs.last_update_time < System.currentTimeMillis());
+			AssertJUnit.assertEquals(2, ipbs.expulsed_number);
+			AssertJUnit.assertEquals(0, ipbs.number_hits);
 		}
 		for (IPBanStat.Record ipbs : ipbanstat.getRecords()) {
-			Assert.assertArrayEquals(ia1.getAddress(), ipbs.inet_address);
-			Assert.assertTrue(ipbs.last_update_time < System.currentTimeMillis());
-			Assert.assertEquals(1, ipbs.ban_number);
-			Assert.assertEquals(0, ipbs.number_hits);
+			AssertJUnit.assertArrayEquals(ia1.getAddress(), ipbs.inet_address);
+			AssertJUnit.assertTrue(ipbs.last_update_time < System.currentTimeMillis());
+			AssertJUnit.assertEquals(1, ipbs.ban_number);
+			AssertJUnit.assertEquals(0, ipbs.number_hits);
 		}
 		for (IPBanned.Record ipb : ipbanned.getRecords()) {
-			Assert.assertArrayEquals(ia1.getAddress(), ipb.inet_address);
-			Assert.assertTrue(ipb.expiration_time < System.currentTimeMillis() + 200);
+			AssertJUnit.assertArrayEquals(ia1.getAddress(), ipb.inet_address);
+			AssertJUnit.assertTrue(ipb.expiration_time < System.currentTimeMillis() + 200);
 		}
 		Thread.sleep(500);
 		ipbanstat.updateDatabase(500, 500, (short) 2, (short) 1);
-		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia1, allowInetAddressesList));
-		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, allowInetAddressesList));
+		AssertJUnit.assertFalse(ipbanstat.isBannedOrExpulsed(ia1, allowInetAddressesList));
+		AssertJUnit.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, allowInetAddressesList));
 
-		Assert.assertEquals(0, ipbanstat.getRecords().size());
-		Assert.assertEquals(1, ipExpulsedStat.getRecords().size());
-		Assert.assertEquals(0, ipbanned.getRecords().size());
+		AssertJUnit.assertEquals(0, ipbanstat.getRecords().size());
+		AssertJUnit.assertEquals(1, ipExpulsedStat.getRecords().size());
+		AssertJUnit.assertEquals(0, ipbanned.getRecords().size());
 		for (IPExpulsedStat.Record ipbs : ipExpulsedStat.getRecords()) {
-			Assert.assertArrayEquals(ia1.getAddress(), ipbs.inet_address);
-			Assert.assertTrue(ipbs.last_update_time < System.currentTimeMillis());
-			Assert.assertEquals(1, ipbs.expulsed_number);
-			Assert.assertEquals(1, ipbs.number_hits);
+			AssertJUnit.assertArrayEquals(ia1.getAddress(), ipbs.inet_address);
+			AssertJUnit.assertTrue(ipbs.last_update_time < System.currentTimeMillis());
+			AssertJUnit.assertEquals(1, ipbs.expulsed_number);
+			AssertJUnit.assertEquals(1, ipbs.number_hits);
 		}
 		for (IPBanStat.Record ipbs : ipbanstat.getRecords()) {
-			Assert.assertArrayEquals(ia1.getAddress(), ipbs.inet_address);
-			Assert.assertTrue(ipbs.last_update_time < System.currentTimeMillis());
-			Assert.assertEquals(0, ipbs.ban_number);
-			Assert.assertEquals(0, ipbs.number_hits);
+			AssertJUnit.assertArrayEquals(ia1.getAddress(), ipbs.inet_address);
+			AssertJUnit.assertTrue(ipbs.last_update_time < System.currentTimeMillis());
+			AssertJUnit.assertEquals(0, ipbs.ban_number);
+			AssertJUnit.assertEquals(0, ipbs.number_hits);
 		}
 
 		ipbanstat.processExpulsion(ia1, true, 200, (short) 2, (short) 2, 200, (short) 1, (short) 2, 500, 500,
 				allowInetAddressesList);
 		for (IPExpulsedStat.Record ipbs : ipExpulsedStat.getRecords()) {
-			Assert.assertArrayEquals(ia1.getAddress(), ipbs.inet_address);
-			Assert.assertTrue(ipbs.last_update_time < System.currentTimeMillis());
-			Assert.assertEquals(1, ipbs.expulsed_number);
-			Assert.assertEquals(1, ipbs.number_hits);
+			AssertJUnit.assertArrayEquals(ia1.getAddress(), ipbs.inet_address);
+			AssertJUnit.assertTrue(ipbs.last_update_time < System.currentTimeMillis());
+			AssertJUnit.assertEquals(1, ipbs.expulsed_number);
+			AssertJUnit.assertEquals(1, ipbs.number_hits);
 		}
 		for (IPBanStat.Record ipbs : ipbanstat.getRecords()) {
-			Assert.assertArrayEquals(ia1.getAddress(), ipbs.inet_address);
-			Assert.assertTrue(ipbs.last_update_time < System.currentTimeMillis());
-			Assert.assertEquals(1, ipbs.ban_number);
-			Assert.assertEquals(0, ipbs.number_hits);
+			AssertJUnit.assertArrayEquals(ia1.getAddress(), ipbs.inet_address);
+			AssertJUnit.assertTrue(ipbs.last_update_time < System.currentTimeMillis());
+			AssertJUnit.assertEquals(1, ipbs.ban_number);
+			AssertJUnit.assertEquals(0, ipbs.number_hits);
 		}
 		for (IPBanned.Record ipb : ipbanned.getRecords()) {
-			Assert.assertArrayEquals(ia1.getAddress(), ipb.inet_address);
-			Assert.assertTrue(ipb.expiration_time < System.currentTimeMillis() + 200);
+			AssertJUnit.assertArrayEquals(ia1.getAddress(), ipb.inet_address);
+			AssertJUnit.assertTrue(ipb.expiration_time < System.currentTimeMillis() + 200);
 		}
 		ipbanstat.processExpulsion(ia1, true, 200, (short) 2, (short) 2, 200, (short) 1, (short) 2, 500, 500,
 				allowInetAddressesList);
 		for (IPExpulsedStat.Record ipbs : ipExpulsedStat.getRecords()) {
-			Assert.assertArrayEquals(ia1.getAddress(), ipbs.inet_address);
-			Assert.assertTrue(ipbs.last_update_time < System.currentTimeMillis());
-			Assert.assertEquals(1, ipbs.expulsed_number);
-			Assert.assertEquals(1, ipbs.number_hits);
+			AssertJUnit.assertArrayEquals(ia1.getAddress(), ipbs.inet_address);
+			AssertJUnit.assertTrue(ipbs.last_update_time < System.currentTimeMillis());
+			AssertJUnit.assertEquals(1, ipbs.expulsed_number);
+			AssertJUnit.assertEquals(1, ipbs.number_hits);
 		}
 		for (IPBanStat.Record ipbs : ipbanstat.getRecords()) {
-			Assert.assertArrayEquals(ia1.getAddress(), ipbs.inet_address);
-			Assert.assertTrue(ipbs.last_update_time < System.currentTimeMillis());
-			Assert.assertEquals(2, ipbs.ban_number);
-			Assert.assertEquals(0, ipbs.number_hits);
+			AssertJUnit.assertArrayEquals(ia1.getAddress(), ipbs.inet_address);
+			AssertJUnit.assertTrue(ipbs.last_update_time < System.currentTimeMillis());
+			AssertJUnit.assertEquals(2, ipbs.ban_number);
+			AssertJUnit.assertEquals(0, ipbs.number_hits);
 		}
 		for (IPBanned.Record ipb : ipbanned.getRecords()) {
-			Assert.assertArrayEquals(ia1.getAddress(), ipb.inet_address);
-			Assert.assertEquals(ipb.expiration_time, Long.MAX_VALUE);
+			AssertJUnit.assertArrayEquals(ia1.getAddress(), ipb.inet_address);
+			AssertJUnit.assertEquals(ipb.expiration_time, Long.MAX_VALUE);
 		}
 
 		Thread.sleep(500);
-		Assert.assertTrue(ipbanstat.isBannedOrExpulsed(ia1, allowInetAddressesList));
-		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, allowInetAddressesList));
+		AssertJUnit.assertTrue(ipbanstat.isBannedOrExpulsed(ia1, allowInetAddressesList));
+		AssertJUnit.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, allowInetAddressesList));
 		ipbanstat.accept(ia1);
-		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia1, allowInetAddressesList));
-		Assert.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, allowInetAddressesList));
-		Assert.assertEquals(0, ipbanstat.getRecords().size());
-		Assert.assertEquals(0, ipExpulsedStat.getRecords().size());
-		Assert.assertEquals(0, ipbanned.getRecords().size());
+		AssertJUnit.assertFalse(ipbanstat.isBannedOrExpulsed(ia1, allowInetAddressesList));
+		AssertJUnit.assertFalse(ipbanstat.isBannedOrExpulsed(ia2, allowInetAddressesList));
+		AssertJUnit.assertEquals(0, ipbanstat.getRecords().size());
+		AssertJUnit.assertEquals(0, ipExpulsedStat.getRecords().size());
+		AssertJUnit.assertEquals(0, ipbanned.getRecords().size());
 
 	}
 }

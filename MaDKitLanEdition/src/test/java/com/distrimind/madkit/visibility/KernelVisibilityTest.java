@@ -37,9 +37,8 @@
  */
 package com.distrimind.madkit.visibility;
 
-import org.junit.Assert;
-import org.junit.Test;
-
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.kernel.AgentLogger;
 import com.distrimind.madkit.kernel.KernelAddress;
@@ -56,27 +55,27 @@ public class KernelVisibilityTest {
 
 	@Test
 	public void testKernelAddressVisibility() {
-		Assert.assertEquals(0, KernelAddress.class.getConstructors().length);
+		AssertJUnit.assertEquals(0, KernelAddress.class.getConstructors().length);
 	}
 
 	@Test
 	public void testMadkitVisibility() {
-		Assert.assertEquals(4, Madkit.class.getConstructors().length);
+		AssertJUnit.assertEquals(4, Madkit.class.getConstructors().length);
 	}
 
 	@Test
 	public void testAgentAddressVisibility() {
-		Assert.assertEquals(0, AgentAddress.class.getConstructors().length);
+		AssertJUnit.assertEquals(0, AgentAddress.class.getConstructors().length);
 	}
 
 	@Test
 	public void testAgentLoggerVisibility() {
-		Assert.assertEquals(0, AgentLogger.class.getConstructors().length);
+		AssertJUnit.assertEquals(0, AgentLogger.class.getConstructors().length);
 	}
 
 	@Test
 	public void testMessageVisibility() {
-		Assert.assertEquals(1, Message.class.getConstructors().length);
+		AssertJUnit.assertEquals(1, Message.class.getConstructors().length);
 	}
 
 }

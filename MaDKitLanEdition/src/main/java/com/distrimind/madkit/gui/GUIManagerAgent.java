@@ -137,7 +137,7 @@ class GUIManagerAgent extends Agent {
 				headlessLog(e);
 				return;
 			} catch (InstantiationException | IllegalAccessException | NullPointerException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-				getLogger().severeLog(Words.FAILED.toString() + " : UI creation", e);
+				getLogger().severeLog(Words.FAILED + " : UI creation", e);
 			} 
 		}
 		requestRole(Groups.GUI,Roles.GUI);

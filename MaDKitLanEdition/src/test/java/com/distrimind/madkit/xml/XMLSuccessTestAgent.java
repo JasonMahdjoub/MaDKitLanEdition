@@ -39,10 +39,9 @@ package com.distrimind.madkit.xml;
 
 import static com.distrimind.madkit.kernel.JunitMadkit.GROUP;
 import static com.distrimind.madkit.kernel.JunitMadkit.ROLE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
+import org.testng.AssertJUnit;
 
 /**
  * @author Fabien Michel
@@ -78,12 +77,12 @@ public class XMLSuccessTestAgent extends AbstractAgent {
 
 	@Override
 	protected void activate() {
-		assertEquals(3, speed);
+		AssertJUnit.assertEquals(3, speed);
 		if (logger != null)
 			logger.info("speed = " + speed);
-		assertEquals(5, i.intValue());
-		assertEquals("blabla", s);
-		assertTrue(hasGUI());
+		AssertJUnit.assertEquals(5, i.intValue());
+		AssertJUnit.assertEquals("blabla", s);
+		AssertJUnit.assertTrue(hasGUI());
 		bucketModeRequestRole(GROUP, ROLE, null);
 	}
 }

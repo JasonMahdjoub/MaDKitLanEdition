@@ -114,6 +114,7 @@ class MadkitKernel extends Agent {
 	final ThreadGroup SYSTEM = new ThreadGroup("MK_SYSTEM") {
 		public void uncaughtException(Thread t, Throwable e) {
 			System.err.println("\n------------uncaught exception on " + t);
+			e.printStackTrace();
 		}
 	};
 
@@ -3584,8 +3585,10 @@ class MadkitKernel extends Agent {
 
 				@Override
 				public void run() {
+					boolean killed=agent.state.get().compareTo(State.WAIT_FOR_KILL) >= 0 || !agent.isAlive();
 					try {
-						if (agent.state.get().compareTo(State.WAIT_FOR_KILL) >= 0 || !agent.isAlive()) {
+
+						if (!_task.isExecuteEvenIfLauncherAgentIsKilled() && killed) {
 							cancelTask(agent, taskID, false);
 							return;
 						}
@@ -3594,7 +3597,7 @@ class MadkitKernel extends Agent {
 						_task.run();
 						if (_task.isRepetitive())
 							_task.renewTask();
-						if (ask_for_execution_confirmation) {
+						if (ask_for_execution_confirmation && !killed) {
 							Message m = new TasksExecutionConfirmationMessage(taskID, _task, date_begin,
 									System.currentTimeMillis());
 							m.setIDFrom(taskID);
@@ -3602,7 +3605,7 @@ class MadkitKernel extends Agent {
 							agent.receiveMessage(m);
 						}
 					} catch (Exception e) {
-						if (agent.logger != null)
+						if (agent.logger != null && !killed)
 							agent.logger.severeLog("Exception in task execution : ", e);
 						else
 							e.printStackTrace();

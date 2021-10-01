@@ -37,20 +37,19 @@
  */
 package com.distrimind.madkit.simulation;
 
-import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Test;
-
 import com.distrimind.madkit.kernel.AbstractAgent;
+import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.Watcher;
-import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
-import com.distrimind.madkit.simulation.SimulationException;
 import com.distrimind.madkit.simulation.probe.PropertyProbe;
 import com.distrimind.madkit.testing.util.agent.NormalAA;
 import com.distrimind.madkit.testing.util.agent.SimulatedAgent;
 import com.distrimind.madkit.testing.util.agent.SimulatedAgentBis;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
+import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
+import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * @author Fabien Michel
@@ -152,7 +151,7 @@ public class PropertyProbeTest extends JunitMadkit {
 				addProbe(fp);
                 NormalAA normalAA = new NormalAA() {
 
-                    String privatePrimitiveField = "test";
+                    final String privatePrimitiveField = "test";
                 };
                 System.err.println(fp.getPropertyValue(normalAA));
                 int i = fp.getPropertyValue(normalAA);
@@ -203,7 +202,7 @@ public class PropertyProbeTest extends JunitMadkit {
 					assertEquals(SUCCESS, launchAgent(agent = new SimulatedAgent()));
 					agent.publicPrimitiveField = i;
 				}
-				PropertyProbe<AbstractAgent, String> fp = new PropertyProbe<>(GROUP, ROLE, "publicPrimitiveField");
+				PropertyProbe<AbstractAgent, Double> fp = new PropertyProbe<>(GROUP, ROLE, "publicPrimitiveField");
 				Watcher s = new Watcher();
 				assertEquals(SUCCESS, launchAgent(s));
 				s.addProbe(fp);
@@ -246,7 +245,7 @@ public class PropertyProbeTest extends JunitMadkit {
 				Watcher s = new Watcher();
 				assertEquals(SUCCESS, launchAgent(s));
 				s.addProbe(fp);
-				assertEquals(Double.NaN, fp.getAverageValue(), 0.0);
+				AssertJUnit.assertTrue(Double.isNaN(fp.getAverageValue()));
 			}
 		}, ReturnCode.SUCCESS);
 	}

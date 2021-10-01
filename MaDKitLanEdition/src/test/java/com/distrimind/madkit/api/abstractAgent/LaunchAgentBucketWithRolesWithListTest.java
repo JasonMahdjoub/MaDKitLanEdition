@@ -37,17 +37,15 @@
  */
 package com.distrimind.madkit.api.abstractAgent;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
 import com.distrimind.madkit.kernel.*;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.kernel.AbstractAgent.State;
 import com.distrimind.madkit.simulation.SimulationException;
@@ -70,7 +68,7 @@ public class LaunchAgentBucketWithRolesWithListTest extends JunitMadkit {
 	GenericBehaviorActivator<AbstractAgent> buggy;
 	static final int size = 1001;
 
-	@Before
+	@BeforeMethod
 	public void setUp() {
 		buggy = new GenericBehaviorActivator<>(GROUP, ROLE, "doIt");
 	}
@@ -82,12 +80,7 @@ public class LaunchAgentBucketWithRolesWithListTest extends JunitMadkit {
 			protected void activate() {
 				launchAgentBucket(FaultyAA.class.getName(), size, new Role(GROUP, ROLE));
 			}
-		}, ReturnCode.SUCCESS, false, new MadkitEventListener() {
-			@Override
-			public void onMaDKitPropertiesLoaded(MadkitProperties properties) {
-				properties.killAllNonThreadedAgentsDuringMaDKitClosing=false;
-			}
-		});;
+		}, ReturnCode.SUCCESS, false, properties -> properties.killAllNonThreadedAgentsDuringMaDKitClosing=false);
 	}
 
 	@Test
@@ -113,12 +106,7 @@ public class LaunchAgentBucketWithRolesWithListTest extends JunitMadkit {
 				launchAgentBucket(FaultyAA.class.getName(), size, new Role(GROUP, ROLE));
 				JunitMadkit.noExceptionFailure();
 			}
-		}, ReturnCode.AGENT_CRASH, false, new MadkitEventListener() {
-			@Override
-			public void onMaDKitPropertiesLoaded(MadkitProperties properties) {
-				properties.killAllNonThreadedAgentsDuringMaDKitClosing=false;
-			}
-		});
+		}, ReturnCode.AGENT_CRASH, false, properties -> properties.killAllNonThreadedAgentsDuringMaDKitClosing=false);
 	}
 
 	@Test

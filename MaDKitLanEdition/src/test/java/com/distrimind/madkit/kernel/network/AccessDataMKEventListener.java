@@ -41,7 +41,6 @@ import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.MadkitEventListener;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.connection.access.*;
-import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.DecentralizedIDGenerator;
 import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.crypto.*;
@@ -306,7 +305,7 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 			}
 
 			@Override
-			public DecentralizedValue getCentralDatabaseID(Identifier identifier, MadkitProperties properties) throws DatabaseException {
+			public DecentralizedValue getCentralDatabaseID(Identifier identifier, MadkitProperties properties) {
 				synchronized (databaseIdentifiers) {
 					return centralIdentifiers.get(identifier);
 				}

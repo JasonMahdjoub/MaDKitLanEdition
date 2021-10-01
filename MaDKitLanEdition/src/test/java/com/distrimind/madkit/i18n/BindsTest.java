@@ -37,8 +37,8 @@
  */
 package com.distrimind.madkit.i18n;
 
-import static org.junit.Assert.fail;
-
+import org.testng.annotations.Test;
+import org.testng.Assert;
 import java.awt.event.KeyEvent;
 import java.lang.reflect.Field;
 import java.util.EnumSet;
@@ -46,8 +46,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.Action;
-
-import org.junit.Test;
 
 import com.distrimind.madkit.action.AgentAction;
 import com.distrimind.madkit.action.GUIManagerAction;
@@ -104,11 +102,12 @@ public class BindsTest {
 	}
 
 
+	@Test(enabled = false)
 	private void testKey(int i, String name) {
 		if (i != KeyEvent.VK_DOLLAR) {
 			String e = keys.put(i, name);
 			if (e != null) {
-				fail(name + " has same key (" + i + ") as " + e);
+				Assert.fail(name + " has same key (" + i + ") as " + e);
 			}
 		}
 	}

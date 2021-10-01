@@ -37,11 +37,9 @@
  */
 package com.distrimind.madkit.roles.manager;
 
-import static org.junit.Assert.assertNotNull;
-
+import static org.testng.AssertJUnit.assertNotNull;
+import org.testng.annotations.Test;
 import java.util.logging.Level;
-
-import org.junit.Test;
 
 import com.distrimind.madkit.agr.Organization;
 import com.distrimind.madkit.kernel.AbstractAgent;

@@ -37,9 +37,8 @@
  */
 package com.distrimind.madkit.concurrent;
 
+import org.testng.annotations.Test;
 import java.util.logging.Level;
-
-import org.junit.Test;
 
 import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.testing.util.agent.NormalAgent;

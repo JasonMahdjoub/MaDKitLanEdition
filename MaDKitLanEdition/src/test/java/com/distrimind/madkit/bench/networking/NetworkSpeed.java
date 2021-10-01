@@ -38,34 +38,23 @@
 
 package com.distrimind.madkit.bench.networking;
 
+import com.distrimind.madkit.kernel.*;
+import com.distrimind.madkit.kernel.network.*;
+import com.distrimind.madkit.kernel.network.connection.access.AbstractAccessProtocolProperties;
+import com.distrimind.madkit.kernel.network.connection.access.AccessProtocolWithP2PAgreementProperties;
+import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
+import com.distrimind.madkit.kernel.network.connection.unsecured.UnsecuredConnectionProtocolProperties;
+import com.distrimind.madkit.message.StringMessage;
+import com.distrimind.madkit.testing.util.agent.ForEverOnTheSameAASenderAgent;
+import com.distrimind.madkit.testing.util.agent.NormalAgent;
+import org.testng.annotations.Test;
+
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.logging.Level;
-
-import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
-import com.distrimind.madkit.message.StringMessage;
-import org.junit.Test;
-
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.AgentAddress;
-import com.distrimind.madkit.kernel.JunitMadkit;
-import com.distrimind.madkit.kernel.MadkitEventListener;
-import com.distrimind.madkit.kernel.MadkitProperties;
-import com.distrimind.madkit.kernel.Message;
-import com.distrimind.madkit.kernel.network.AbstractIP;
-import com.distrimind.madkit.kernel.network.AccessDataMKEventListener;
-import com.distrimind.madkit.kernel.network.AccessProtocolPropertiesMKEventListener;
-import com.distrimind.madkit.kernel.network.ConnectionsProtocolsMKEventListener;
-import com.distrimind.madkit.kernel.network.DoubleIP;
-import com.distrimind.madkit.kernel.network.NetworkEventListener;
-import com.distrimind.madkit.kernel.network.connection.access.AbstractAccessProtocolProperties;
-import com.distrimind.madkit.kernel.network.connection.access.AccessProtocolWithP2PAgreementProperties;
-import com.distrimind.madkit.kernel.network.connection.unsecured.UnsecuredConnectionProtocolProperties;
-import com.distrimind.madkit.testing.util.agent.ForEverOnTheSameAASenderAgent;
-import com.distrimind.madkit.testing.util.agent.NormalAgent;
 
 /**
  * @author Fabien Michel
@@ -86,23 +75,19 @@ public class NetworkSpeed extends JunitMadkit {
 		final ListGroupsRoles defaultGroupAccess=new ListGroupsRoles();
 		defaultGroupAccess.addGroupsRoles(JunitMadkit.GROUP);
 
-		this.eventListener1 = new MadkitEventListener() {
+		this.eventListener1 = _properties -> {
+			AbstractAccessProtocolProperties app = new AccessProtocolWithP2PAgreementProperties();
 
-			@Override
-			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
-				AbstractAccessProtocolProperties app = new AccessProtocolWithP2PAgreementProperties();
-
-				try {
-					new NetworkEventListener(true, false, false, null,
-							new ConnectionsProtocolsMKEventListener(new UnsecuredConnectionProtocolProperties()),
-							new AccessProtocolPropertiesMKEventListener(app),
-							new AccessDataMKEventListener(AccessDataMKEventListener.getDefaultAccessData(defaultGroupAccess)), 5000,
-							null, InetAddress.getByName("0.0.0.0")).onMaDKitPropertiesLoaded(_properties);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				_properties.networkProperties.networkLogLevel = Level.INFO;
+			try {
+				new NetworkEventListener(true, false, false, null,
+						new ConnectionsProtocolsMKEventListener(new UnsecuredConnectionProtocolProperties()),
+						new AccessProtocolPropertiesMKEventListener(app),
+						new AccessDataMKEventListener(AccessDataMKEventListener.getDefaultAccessData(defaultGroupAccess)), 5000,
+						null, InetAddress.getByName("0.0.0.0")).onMaDKitPropertiesLoaded(_properties);
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
+			_properties.networkProperties.networkLogLevel = Level.INFO;
 		};
 
 		UnsecuredConnectionProtocolProperties u = new UnsecuredConnectionProtocolProperties();
@@ -113,7 +98,7 @@ public class NetworkSpeed extends JunitMadkit {
 		this.eventListener2 = new NetworkEventListener(true, false, false, null,
 				new ConnectionsProtocolsMKEventListener(u), new AccessProtocolPropertiesMKEventListener(app),
 				new AccessDataMKEventListener(AccessDataMKEventListener.getDefaultAccessData(defaultGroupAccess)), 5000,
-                Collections.singletonList((AbstractIP) new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"),
+                Collections.singletonList(new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"),
                         (Inet6Address) InetAddress.getByName("::1"))),
 				InetAddress.getByName("0.0.0.0"));
 		forEventAgent1 = new ForEverOnTheSameAASenderAgent(1000, 1500);

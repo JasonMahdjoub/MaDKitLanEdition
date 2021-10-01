@@ -161,7 +161,7 @@ public abstract class AbstractIP extends MultiFormatProperties implements System
 		if (ia == null)
 			return "null:" + port;
 		else
-			return ia.toString() + ":" + port;
+			return ia + ":" + port;
 	}
 
 	@SuppressWarnings("MethodDoesntCallSuperMethod")

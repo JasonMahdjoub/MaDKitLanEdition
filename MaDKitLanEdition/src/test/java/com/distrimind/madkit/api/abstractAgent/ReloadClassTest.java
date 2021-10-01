@@ -37,10 +37,8 @@
  */
 package com.distrimind.madkit.api.abstractAgent;
 
-import static org.junit.Assert.fail;
-
-import org.junit.Test;
-
+import org.testng.annotations.Test;
+import org.testng.Assert;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.MadkitClassLoader;
@@ -64,7 +62,7 @@ public class ReloadClassTest extends JunitMadkit {
 						MadkitClassLoader.reloadClass(null);
 						noExceptionFailure();
 					} catch (ClassNotFoundException e) {
-						fail("wrong exception");
+						Assert.fail("wrong exception");
 					}
 				} catch (NullPointerException e) {
 					e.printStackTrace();
@@ -102,7 +100,7 @@ public class ReloadClassTest extends JunitMadkit {
 				try {
 					MadkitClassLoader.reloadClass(getClass().getName());
 				} catch (ClassNotFoundException e) {
-					fail("exception thrown");
+					Assert.fail("exception thrown");
 					e.printStackTrace();
 				}
 			}

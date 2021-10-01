@@ -59,18 +59,6 @@ public class TestAgent extends Agent {
 	 */
 	public TestAgent() {
 		setLogLevel(Level.ALL);
-		// Activator<AbstractAgent> a = new Activator<AbstractAgent>("test", "r", "r") {
-		// public void adding(AbstractAgent theAgent) {
-		// ActionListener al = new ActionListener() {
-		// @Override
-		// public void actionPerformed(ActionEvent e) {
-		// TestAgent.this.activate();
-		// }
-		// };
-		// al.actionPerformed(null);
-		// }
-		// };
-		// a.execute();
 	}
 
 	/*
@@ -86,24 +74,24 @@ public class TestAgent extends Agent {
 			logger.info("\n\na\n\n");
 			FakeObject o = new FakeObject();
 			logger.info("\nfake is " + o);
-			logger.info("\nfake2 is " + (new Fake().toString()));
+			logger.info("\nfake2 is " + (new Fake()));
 			pause(8000);
 			try {
 				System.err.println(System.getProperty("java.class.path"));
 				MadkitClassLoader.reloadClass("madkit.classreloading.anotherPackage.Fake");
 				logger.info("after reload : " + MadkitClassLoader.getLoader()
-						.loadClass("madkit.classreloading.anotherPackage.Fake").getDeclaredConstructor().newInstance().toString());
+						.loadClass("madkit.classreloading.anotherPackage.Fake").getDeclaredConstructor().newInstance());
 			} catch (ClassNotFoundException | SecurityException | NoSuchMethodException | InvocationTargetException | IllegalArgumentException | IllegalAccessException | InstantiationException e) {
 				e.printStackTrace();
 			}
-            logger.info("\nfake3 is " + (new Fake().toString()));
+            logger.info("\nfake3 is " + (new Fake()));
 			pause(8000);
 			try {
 				MadkitClassLoader.reloadClass("madkit.classreloading.anotherPackage.Fake");
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
 			}
-			logger.info("\nfake4 is " + (new Fake().toString()));
+			logger.info("\nfake4 is " + (new Fake()));
 		}
 	}
 

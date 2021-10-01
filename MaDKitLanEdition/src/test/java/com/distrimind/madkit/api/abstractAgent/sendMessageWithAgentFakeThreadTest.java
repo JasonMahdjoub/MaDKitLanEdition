@@ -37,18 +37,18 @@
  */
 package com.distrimind.madkit.api.abstractAgent;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.INVALID_AGENT_ADDRESS;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_IN_GROUP;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ROLE_NOT_HANDLED;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import org.junit.Test;
 
 import com.distrimind.madkit.agr.Organization;
 import com.distrimind.madkit.kernel.AbstractAgent;
@@ -65,7 +65,12 @@ import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
  * @since MadkitLanEdition 1.0
  */
 public class sendMessageWithAgentFakeThreadTest extends JunitMadkit {
-	final AgentFakeThreadReceiver target = new AgentFakeThreadReceiver();
+	AgentFakeThreadReceiver target ;
+	@BeforeMethod
+	public void setTarget()
+	{
+		target=new AgentFakeThreadReceiver();
+	}
 
 	@Test
 	public void returnSuccess() {
@@ -81,14 +86,14 @@ public class sendMessageWithAgentFakeThreadTest extends JunitMadkit {
 				// Without role
 				assertEquals(SUCCESS, sendMessage(aa, new Message()));
 				JunitMadkit.pause(this, 100);
-				Message m = target.messagesReaded.get(0);
+				Message m = target.messagesRead.get(0);
 				assertNotNull(m);
 				assertEquals(ROLE, m.getReceiver().getRole());
 
 				// With role
 				assertEquals(SUCCESS, sendMessageWithRole(aa, new Message(), ROLE));
 				JunitMadkit.pause(this, 100);
-				m = target.messagesReaded.get(1);
+				m = target.messagesRead.get(1);
 				assertNotNull(m);
 				assertEquals(ROLE, m.getReceiver().getRole());
 			}
@@ -107,7 +112,7 @@ public class sendMessageWithAgentFakeThreadTest extends JunitMadkit {
 				assertNotNull(aa);
 				assertEquals(SUCCESS, sendMessage(aa, new Message()));
 				JunitMadkit.pause(this, 100);
-				Message m = target.messagesReaded.get(0);
+				Message m = target.messagesRead.get(0);
 				assertNotNull(m);
 				assertEquals(Organization.GROUP_MANAGER_ROLE, m.getReceiver().getRole());
 				assertEquals(Organization.GROUP_CANDIDATE_ROLE, m.getSender().getRole());
@@ -117,7 +122,7 @@ public class sendMessageWithAgentFakeThreadTest extends JunitMadkit {
 				assertNotNull(aa);
 				assertEquals(SUCCESS, sendMessageWithRole(aa, new Message(), Organization.GROUP_CANDIDATE_ROLE));
 				JunitMadkit.pause(this, 100);
-				m = target.messagesReaded.get(1);
+				m = target.messagesRead.get(1);
 				assertNotNull(m);
 				assertEquals(Organization.GROUP_MANAGER_ROLE, m.getReceiver().getRole());
 				assertEquals(Organization.GROUP_CANDIDATE_ROLE, m.getSender().getRole());
@@ -213,7 +218,7 @@ public class sendMessageWithAgentFakeThreadTest extends JunitMadkit {
 }
 
 class AgentFakeThreadReceiver extends SimpleAgentFakeThread {
-	final List<Message> messagesReaded = Collections.synchronizedList(new ArrayList<Message>());
+	final List<Message> messagesRead = Collections.synchronizedList(new ArrayList<>());
 
 	@Override
 	protected void activate() throws InterruptedException {
@@ -224,6 +229,6 @@ class AgentFakeThreadReceiver extends SimpleAgentFakeThread {
 	@Override
 	protected void liveByStep(Message m) throws InterruptedException {
 		super.liveByStep(m);
-		messagesReaded.add(m);
+		messagesRead.add(m);
 	}
 }

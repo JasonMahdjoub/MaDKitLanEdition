@@ -39,8 +39,8 @@ package com.distrimind.madkit.xml;
 
 import static com.distrimind.madkit.kernel.JunitMadkit.GROUP;
 import static com.distrimind.madkit.kernel.JunitMadkit.ROLE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
 
 /**
  * @author Fabien Michel

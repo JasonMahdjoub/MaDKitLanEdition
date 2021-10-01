@@ -42,6 +42,7 @@ import com.distrimind.madkit.exceptions.SelfKillException;
 import com.distrimind.util.concurrent.LockerCondition;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * This type of agent is between an AbstractAgent type and an Agent type. It is
@@ -92,7 +93,7 @@ public abstract class AgentFakeThread extends AbstractAgent {
 	 * private final String agent_task_name; private ExecutorProperties
 	 * executorProperties;
 	 */
-	boolean messageReadAlreadyInProgress = false;
+	final AtomicBoolean messageReadAlreadyInProgress = new AtomicBoolean(false);
 
 	/**
 	 * Construct an AgentFakeThread with the default task manager agent. All agents
@@ -230,18 +231,19 @@ public abstract class AgentFakeThread extends AbstractAgent {
 	void manageTaskMessage(boolean force) {
 
 		boolean schedule = false;
-		if (!messageReadAlreadyInProgress && (messageBox.size() == 1 || (force && messageBox.size() > 0))) {
-		//if (!messageReadAlreadyInProgress && messageBox.size() > 0) {
-			messageReadAlreadyInProgress = true;
-			schedule = true;
+		if ((messageBox.size() == 1 || (force && messageBox.size() > 0))) {
+			if (messageReadAlreadyInProgress.weakCompareAndSet(false, true)) {
+				//if (!messageReadAlreadyInProgress && messageBox.size() > 0) {
+				schedule = true;
+			}
 		}
 		if (schedule) {
 			getMadkitKernel().getMaDKitServiceExecutor().submit((Callable<Void>) () -> {
 				if (canContinueToManageMessages()) {
 					messageBox.getLocker().lock();
 					Message m;
-					try {
-						messageReadAlreadyInProgress = true;
+					try
+					{
 						m = nextMessage();
 					} finally {
 						messageBox.getLocker().unlock();
@@ -250,6 +252,7 @@ public abstract class AgentFakeThread extends AbstractAgent {
 						try {
 							AgentFakeThread.this.setMyThread(Thread.currentThread());
 							liveByStep(m);
+
 						} catch (final SelfKillException e) {
 							if (e.killing_type
 									.equals(KillingType.WAIT_AGENT_PURGE_ITS_MESSAGES_BOX_BEFORE_KILLING_IT)) {
@@ -266,7 +269,7 @@ public abstract class AgentFakeThread extends AbstractAgent {
 						} finally {
 							messageBox.getLocker().lock();
 							try {
-								messageReadAlreadyInProgress = false;
+								messageReadAlreadyInProgress.set(false);
 								if (canContinueToManageMessages()) {
 									manageTaskMessage(true);
 								}
@@ -278,7 +281,7 @@ public abstract class AgentFakeThread extends AbstractAgent {
 					} else {
 						messageBox.getLocker().lock();
 						try {
-							messageReadAlreadyInProgress = false;
+							messageReadAlreadyInProgress.set(false);
 						} finally {
 							messageBox.getLocker().unlock();
 						}
