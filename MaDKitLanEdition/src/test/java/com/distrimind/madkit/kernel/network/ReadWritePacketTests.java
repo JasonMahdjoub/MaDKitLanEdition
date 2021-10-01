@@ -177,7 +177,7 @@ public class ReadWritePacketTests extends JunitMadkit {
 			testOutputInputStream(false);
 	}
 
-	@Test
+
 	public void testInputStream(boolean byteArray, byte[] dataIn, File fileInput) throws IOException {
 		try (RandomInputStream input = byteArray ? new RandomByteArrayInputStream(dataIn)
 				: new RandomFileInputStream(fileInput)) {
@@ -264,7 +264,6 @@ public class ReadWritePacketTests extends JunitMadkit {
 		}
 	}
 
-	@Test
 	public void testOutputInputStream(boolean byteArray) throws IOException {
 		if (fileOutput.exists())
 			fileOutput.delete();
@@ -316,7 +315,6 @@ public class ReadWritePacketTests extends JunitMadkit {
 		testReadWritePacket(conProto, MessageDigestType.BC_BLAKE2B_512);
 	}
 
-	@Test
 	public void testReadWritePacket(ConnectionProtocol<?> conProto, MessageDigestType messageDigestType)
 			throws PacketException, NoSuchAlgorithmException, NIOException, NoSuchProviderException, IOException {
 		for (int i = 0; i < 100; i++) {

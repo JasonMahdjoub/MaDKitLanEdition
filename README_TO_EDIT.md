@@ -171,4 +171,4 @@ To get MaDKitLanEditions demos, please download the lastest [repository](https:/
 [1]: http://www.lirmm.fr/~fmichel/publi/pdfs/ferber04ocmas.pdf
 
 ###### Requirements under Ubuntu/Debian :
-  * Please install the package ethtool, rng-tools, mtr(only debian)
+  * Please install the package ethtool, rng-tools, mtr(only debian), libcanberra-gtk-module

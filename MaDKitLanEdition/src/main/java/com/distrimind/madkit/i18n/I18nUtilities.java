@@ -35,15 +35,10 @@ package com.distrimind.madkit.i18n;
 
 import com.distrimind.madkit.kernel.AbstractGroup;
 import com.distrimind.madkit.kernel.Group;
-import com.distrimind.madkit.kernel.MadkitClassLoader;
 import com.distrimind.madkit.kernel.Role;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ResourceBundle;
 
 /**
  * Internationalization help class containing only static methods.
@@ -70,9 +65,9 @@ public class I18nUtilities {
 		}
 		return null;*/
 
-		ResourceBundle rb= ResourceBundle.getBundle(i18nDirectory.toString() + File.separator + baseName);
+		return ResourceBundle.getBundle(i18nDirectory.toString() + File.separator + baseName);
 
-		if (rb==null)
+		/*if (rb==null)
 			return null;
 
 		HashMap<String, String> res=new HashMap<>();
@@ -88,7 +83,7 @@ public class I18nUtilities {
 			public Enumeration<String> getKeys() {
 				return Collections.enumeration(res.keySet());
 			}
-		};
+		};*/
 	}
 
 	public static String getCGRString(final String community) {

@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-2.2.0 BETA 1 (Build: 2881) (from 22/05/2015 to 07/07/2021)
+2.2.0 STABLE (Build: 3479) (from 22/05/2015 to 01/10/2021)
 
 # Creator(s):
 Jason MAHDJOUB
@@ -10,6 +10,21 @@ Fabien MICHEL (Entered in the team at 01/02/1997)
 Jason MAHDJOUB (Entered in the team at 22/05/2015)
 
 # Modifications:
+
+
+### 2.2.0 STABLE (01/10/2021)
+* Update Utils to 5.19.7 STABLE
+* Update OOD to 3.1.1 STABLE
+* Disable useless server stream into Upnp IGD
+* UPNP IGD test pass
+* Complete filter of network interfaces
+* Fix issue when determining if a local ip is compatible with another ip
+* Fix XXE security issue with Cling dependency : https://github.com/4thline/cling/issues/243
+* Fix DDOS and SSRF security issues with Cling dependency : https://github.com/4thline/cling/issues/253
+* Fix issue with AgentExecutor when an agent is launched and terminated too quickly
+* Add the possibility for a scheduled task to be executed even if the agent who launched the task was killed
+* Finish closing connexions even if NIO agent was killed
+* Fix issue with agent fake thread and avoid reception of two messages (or more) at the same time
 
 
 ### 2.2.0 BETA 1 (07/07/2021)

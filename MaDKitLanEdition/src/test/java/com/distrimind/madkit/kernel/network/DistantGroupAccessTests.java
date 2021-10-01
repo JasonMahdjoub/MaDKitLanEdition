@@ -90,9 +90,8 @@ public class DistantGroupAccessTests extends JunitMadkit{
 		this.eventListener1 = new NetworkEventListener(true, false, false, null,
 				new ConnectionsProtocolsMKEventListener(p2pprotocol), new AccessProtocolPropertiesMKEventListener(app),
 				new AccessDataMKEventListener(AccessDataMKEventListener.getDefaultAccessData(defaultGroupAccess)), 5000,
-				Collections.singletonList(new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"),
-						(Inet6Address) InetAddress.getByName("::1"))),
-				InetAddress.getByName("0.0.0.0")) {
+				Collections.emptyList(),
+				InetAddress.getByName("127.0.0.1"), InetAddress.getByName("::1")) {
 
 			@Override
 			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
@@ -118,8 +117,7 @@ public class DistantGroupAccessTests extends JunitMadkit{
 				new ConnectionsProtocolsMKEventListener(u), new AccessProtocolPropertiesMKEventListener(app),
 				new AccessDataMKEventListener(AccessDataMKEventListener.getDefaultAccessData(defaultGroupAccess)), 5000,
 				Collections.singletonList(new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"),
-						(Inet6Address) InetAddress.getByName("::1"))),
-				InetAddress.getByName("0.0.0.0")) {
+						(Inet6Address) InetAddress.getByName("::1")))) {
 
 			@Override
 			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {

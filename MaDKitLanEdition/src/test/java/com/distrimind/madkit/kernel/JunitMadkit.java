@@ -254,7 +254,7 @@ public class JunitMadkit {
 	}
 
 	public Madkit launchTest(AbstractAgent a) {
-		return launchTest(a, _properties -> {
+		return launchTest(a, _properties -> {if (_properties.configFiles==null) _properties.configFiles=new ArrayList<>();
 		});
 	}
 
