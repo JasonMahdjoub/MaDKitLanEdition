@@ -148,6 +148,7 @@ final public class Madkit {
 					.addDeveloper(new PersonDeveloper("Ferber", "Jacques", "1997-02-01"))
 					.addDescription(new Description((short)2, (short)2, (short)1, Version.Type.STABLE, (short)1, "2021-10-07")
 							.addItem("Update logger formatter")
+							.addItem("Fix possible infinite loop between peer and server, when an error occurs")
 					)
 					.addDescription(new Description((short)2, (short)2, (short)0, Version.Type.STABLE, (short)1, "2021-10-01")
 							.addItem("Update Utils to 5.19.7 STABLE")

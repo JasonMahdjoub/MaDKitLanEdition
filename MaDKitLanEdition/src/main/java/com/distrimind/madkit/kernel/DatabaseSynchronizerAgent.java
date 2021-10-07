@@ -427,7 +427,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			getLogger().severeLog("Impossible to connect central database backup" + id, ex);
 		}
 	}
-	private void disconnectCentralDatabaseBackup()
+	private void disconnectCentralDatabaseBackup(boolean initCentralPeerIfAvailable)
 	{
 		if (centralDatabaseID!=null)
 		{
@@ -440,15 +440,16 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			}
 			centralDatabaseID = null;
 			centralDatabaseGroup = null;
-			if (centralGroupIdsPerGroup.size()>0)
-			{
-				for (Map.Entry<Group, KernelAddressAndDecentralizedValue> e : centralGroupIdsPerGroup.entrySet()) {
-					if (hasRole(e.getKey(), CloudCommunity.Roles.SYNCHRONIZER)) {
-						initCentralPeer(e.getKey(), e.getValue().decentralizedValue);
-						break;
+			if (initCentralPeerIfAvailable) {
+				if (centralGroupIdsPerGroup.size() > 0) {
+					for (Map.Entry<Group, KernelAddressAndDecentralizedValue> e : centralGroupIdsPerGroup.entrySet()) {
+						if (hasRole(e.getKey(), CloudCommunity.Roles.SYNCHRONIZER)) {
+							initCentralPeer(e.getKey(), e.getValue().decentralizedValue);
+							break;
+						}
 					}
-				}
 
+				}
 			}
 		}
 	}
@@ -484,7 +485,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 								initCentralPeer(aa.getGroup(), centralPeerID);
 							}
 						} else if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.LEAVE_ROLE) && centralPeerID.equals(this.centralDatabaseID)) {
-							disconnectCentralDatabaseBackup();
+							disconnectCentralDatabaseBackup(true);
 						}
 					}
 
@@ -652,7 +653,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 											currentBigDataTransferID = sendBigDataWithRole(aa, in, be, CloudCommunity.Roles.SYNCHRONIZER);
 											if (currentBigDataTransferID == null) {
 												getLogger().warning("Impossible to send message to host " + aa);
-												disconnectCentralDatabaseBackup();
+												disconnectCentralDatabaseBackup(false);
 											} else {
 												currentBigDataSending.put(currentBigDataTransferID, new BigDataMetaData(be, in));
 												sent=true;
@@ -675,7 +676,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 						}
 						if (!sent) {
 							getLogger().warning("Impossible to send message to central database backup: " + e+", central initialized into client side="+synchronizer.isInitializedWithCentralBackup());
-							disconnectCentralDatabaseBackup();
+							disconnectCentralDatabaseBackup(false);
 						}
 					}
 				}
