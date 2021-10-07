@@ -92,10 +92,11 @@ public class NetworkEventListener implements MadkitEventListener {
 		this.gatewayDepth = gatewayDepth;
 	}
 
+
 	public NetworkEventListener(boolean network, boolean upnpIGDEnabled, boolean autoConnectWithLocalSitePeers,
-			File databaseFile, ConnectionsProtocolsMKEventListener madkitEventListenerForConnectionProtocols,
-			AccessProtocolPropertiesMKEventListener madkitEventListenerForAccessProtocols,
-			AccessDataMKEventListener madkitEventListenerForAccessData, List<AbstractIP> connectionsToAttempt) {
+								File databaseFile, ConnectionsProtocolsMKEventListener madkitEventListenerForConnectionProtocols,
+								AccessProtocolPropertiesMKEventListener madkitEventListenerForAccessProtocols,
+								AccessDataMKEventListener madkitEventListenerForAccessData, List<AbstractIP> connectionsToAttempt) {
 		this(network, upnpIGDEnabled, autoConnectWithLocalSitePeers, databaseFile,
 				madkitEventListenerForConnectionProtocols, madkitEventListenerForAccessProtocols,
 				madkitEventListenerForAccessData, 5001, connectionsToAttempt);
@@ -164,8 +165,18 @@ public class NetworkEventListener implements MadkitEventListener {
 		this.protectedEncryptionProfileFactoryProviderForAuthenticatedP2PMessages=protectedEncryptionProfileFactoryProviderForAuthenticatedP2PMessages;
 		this.randomType=randomType;
 	}
+	private static DatabaseFactory<?> getDatabaseFactory(File databaseFile) {
+		try {
+			return databaseFile!=null?new InFileEmbeddedH2DatabaseFactory(databaseFile):null;
+		} catch (DatabaseException e) {
+			e.printStackTrace();
+			System.exit(-1);
+			return null;
+		}
+	}
+
 	public NetworkEventListener(boolean network, boolean upnpIGDEnabled, boolean autoConnectWithLocalSitePeers,
-			File databaseFile, ConnectionsProtocolsMKEventListener madkitEventListenerForConnectionProtocols,
+								File databaseFile, ConnectionsProtocolsMKEventListener madkitEventListenerForConnectionProtocols,
 			AccessProtocolPropertiesMKEventListener madkitEventListenerForAccessProtocols,
 			AccessDataMKEventListener madkitEventListenerForAccessData, int localPortToBind,
 			List<AbstractIP> connectionsToAttempt, InetAddress... inetAddressesToBind) {
@@ -201,14 +212,15 @@ public class NetworkEventListener implements MadkitEventListener {
 
 		try {
 			if (databaseFile != null) {
-				DatabaseFactory<?> df=new InFileEmbeddedH2DatabaseFactory(databaseFile);
+				DatabaseFactory<?> databaseFactory=getDatabaseFactory(databaseFile);
 				if (protectedEncryptionProfileFactoryProviderForAuthenticatedP2PMessages!=null) {
-					df.setEncryptionProfileProviders(signatureProfileProviderForAuthenticatedMessagesDestinedToCentralDatabaseBackup,
+
+					databaseFactory.setEncryptionProfileProviders(signatureProfileProviderForAuthenticatedMessagesDestinedToCentralDatabaseBackup,
 							encryptionProfileProviderForE2EDataDestinedCentralDatabaseBackup,
 							protectedEncryptionProfileFactoryProviderForAuthenticatedP2PMessages,
 							randomType);
 				}
-				_properties.setDatabaseFactory(df);
+				_properties.setDatabaseFactory(databaseFactory);
 			}
 		} catch (DatabaseException e) {
 			e.printStackTrace();
