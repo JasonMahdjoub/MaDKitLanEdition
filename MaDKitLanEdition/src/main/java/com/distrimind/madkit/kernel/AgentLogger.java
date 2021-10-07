@@ -46,9 +46,10 @@ final public class AgentLogger extends Logger {
 	 */
 	final public static Formatter AGENT_FILE_FORMATTER = new AgentFormatter() {
 		@Override
-		protected String getHeader(final LogRecord record) {
-			return "";
+		protected void setHeader(StringBuilder s, LogRecord record) {
+
 		}
+
 	};
 	final static AgentLogger defaultAgentLogger = new AgentLogger();
 
@@ -400,18 +401,32 @@ final public class AgentLogger extends Logger {
 }
 
 class AgentFormatter extends Formatter {
-
+	private static final int HEADER_SIZE=56;
 	@Override
 	public String format(final LogRecord record) {
+
 		final Level lvl = record.getLevel();
 		if (lvl.equals(AgentLogger.talkLevel)) {
 			return record.getMessage();
 		}
-		return getHeader(record) + lvl.getLocalizedName() + " : " + record.getMessage() + "\n";
+		StringBuilder s=new StringBuilder();
+		setHeader(s, record);
+		s.append(lvl.getLocalizedName());
+		s.append(" : ");
+		s.append(record.getMessage());
+		s.append("\n");
+		return s.toString();
 	}
-
-	protected String getHeader(final LogRecord record) {
-		return record.getLoggerName() + " ";
+	protected void setHeader(StringBuilder s, final LogRecord record) {
+		s.append(record.getLoggerName());
+		if (s.length()<HEADER_SIZE)
+		{
+			while (s.length()<HEADER_SIZE)
+				s.append(" ");
+		}
+		else if (s.length()>HEADER_SIZE)
+			s.delete(HEADER_SIZE, s.length());
+		s.append(" ");
 	}
 
 }
