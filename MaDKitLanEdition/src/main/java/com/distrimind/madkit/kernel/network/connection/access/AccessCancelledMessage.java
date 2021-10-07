@@ -44,9 +44,12 @@ package com.distrimind.madkit.kernel.network.connection.access;
  * @since MadkitLanEdition 1.0
  */
 public class AccessCancelledMessage extends AccessErrorMessage {
+	AccessCancelledMessage()
+	{
 
-	public AccessCancelledMessage() {
-		super(false);
+	}
+	public AccessCancelledMessage(String logMessage) {
+		super(logMessage, false);
 	}
 
 

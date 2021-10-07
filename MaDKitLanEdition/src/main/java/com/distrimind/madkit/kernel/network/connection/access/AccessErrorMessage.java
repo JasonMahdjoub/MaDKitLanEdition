@@ -52,15 +52,17 @@ public class AccessErrorMessage extends AccessMessage {
 
 
 	public boolean candidate_to_ban;
-
-	@SuppressWarnings("unused")
+	private transient String logMessage;
 	AccessErrorMessage()
 	{
-		
+		this(null, false);
 	}
-	
-	
+
 	AccessErrorMessage(boolean _candidate_to_ban) {
+		this(null, _candidate_to_ban);
+	}
+	AccessErrorMessage(String logMessage, boolean _candidate_to_ban) {
+		this.logMessage=logMessage;
 		candidate_to_ban = _candidate_to_ban;
 	}
 
@@ -85,4 +87,7 @@ public class AccessErrorMessage extends AccessMessage {
 		
 	}
 
+	public String getLogMessage() {
+		return logMessage;
+	}
 }

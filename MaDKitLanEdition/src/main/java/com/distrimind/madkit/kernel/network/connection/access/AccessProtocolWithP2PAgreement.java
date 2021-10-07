@@ -213,7 +213,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 					distantGeneratedSalt=m.getGeneratedSalt();
 					if (distantGeneratedSalt==null || distantGeneratedSalt.length!=localGeneratedSalt.length) {
 						access_state=AccessState.ACCESS_NOT_INITIALIZED;
-						return new AccessErrorMessage(true);
+						return new AccessErrorMessage("Incompatible JPakeAccessInitialized message ", true);
 					}
 					if (access_data instanceof LoginData) {
 						LoginData lp = (LoginData) access_data;
@@ -233,7 +233,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 						} else {
 							if (!isOtherCanTakesInitiative()) {
 								access_state = AccessState.ACCESS_NOT_INITIALIZED;
-								return new AccessCancelledMessage();
+								return new AccessCancelledMessage("The two peers can't take login initiative. Impossible to initiate login !");
 							} else {
 								access_state = AccessState.WAITING_FOR_CLOUD_IDENTIFIERS;
 								return new NullAccessMessage();
