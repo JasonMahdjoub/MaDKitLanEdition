@@ -43,9 +43,9 @@ import com.distrimind.madkit.kernel.Gatekeeper;
 import com.distrimind.madkit.kernel.Group;
 import com.distrimind.util.Bits;
 import com.distrimind.util.DecentralizedValue;
+import com.distrimind.util.InvalidEncodedValue;
 import com.distrimind.util.data_buffers.WrappedString;
 
-import java.io.IOException;
 
 /**
  * Defines the default groups and roles used for networking.
@@ -105,7 +105,7 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 		{
 			return identifier.encode().toWrappedString();
 		}
-		public static DecentralizedValue decodeDecentralizedValue(String value) throws IOException {
+		public static DecentralizedValue decodeDecentralizedValue(String value) throws InvalidEncodedValue {
 			return DecentralizedValue.decode(new WrappedString(value).toWrappedData());
 		}
 		public static Group getDistributedDatabaseGroup(String localIdentifier, WrappedString distantIdentifier)
@@ -170,7 +170,7 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 
 			return CLIENT_SERVER_DATABASE.getSubGroup(true, databaseGateKeeper, false, subgroup);
 		}
-		public static DecentralizedValue extractDistantHostID(Group group, DecentralizedValue localHostID) throws IOException {
+		public static DecentralizedValue extractDistantHostID(Group group, DecentralizedValue localHostID) throws InvalidEncodedValue {
 			return extractDistantHostID(group, encodeDecentralizedValue(localHostID));
 		}
 		public static String extractDistantHostIDString(Group group, String localHostID)
@@ -194,15 +194,15 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 			return null;
 
 		}
-		public static DecentralizedValue extractDistantHostIDFromCentralDatabaseBackupGroup(Group group, DecentralizedValue centralID) throws IOException {
+		public static DecentralizedValue extractDistantHostIDFromCentralDatabaseBackupGroup(Group group, DecentralizedValue centralID) throws InvalidEncodedValue {
 			return extractDistantHostIDFromCentralDatabaseBackupGroup(group, encodeDecentralizedValue(centralID));
 		}
-		public static DecentralizedValue extractDistantHostIDFromCentralDatabaseBackupGroup(Group group, WrappedString centralID) throws IOException {
+		public static DecentralizedValue extractDistantHostIDFromCentralDatabaseBackupGroup(Group group, WrappedString centralID) throws InvalidEncodedValue {
 			return extractDistantHostIDFromCentralDatabaseBackupGroup(group, centralID.toString());
 		}
-		public static DecentralizedValue extractDistantHostIDFromCentralDatabaseBackupGroup(Group group, String centralID) throws IOException {
-			String res=extractDistantHostIDStringFromCentralDatabaseBackupGroup(group, centralID);
-			if (res==null)
+		public static DecentralizedValue extractDistantHostIDFromCentralDatabaseBackupGroup(Group group, String centralID) throws InvalidEncodedValue {
+			String res = extractDistantHostIDStringFromCentralDatabaseBackupGroup(group, centralID);
+			if (res == null)
 				return null;
 			return DecentralizedValue.decode(Bits.toBytesArrayFromBase64String(res, true));
 		}
@@ -234,12 +234,12 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 			}
 			return null;
 		}
-		public static DecentralizedValue extractDistantHostID(Group group, WrappedString localHostID) throws IOException {
+		public static DecentralizedValue extractDistantHostID(Group group, WrappedString localHostID) throws InvalidEncodedValue {
 			return extractDistantHostID(group, localHostID.toString());
 		}
-		public static DecentralizedValue extractDistantHostID(Group group, String localHostID) throws IOException {
-			String res=extractDistantHostIDString(group, localHostID);
-			if (res==null)
+		public static DecentralizedValue extractDistantHostID(Group group, String localHostID) throws InvalidEncodedValue {
+			String res = extractDistantHostIDString(group, localHostID);
+			if (res == null)
 				return null;
 			return DecentralizedValue.decode(Bits.toBytesArrayFromBase64String(res, true));
 		}
