@@ -121,7 +121,6 @@ public abstract class CentralDatabaseBackupReceiverPerPeer extends com.distrimin
 				sendMessage(message, aa, dest);
 			}
 			else {
-				new IllegalAccessError().printStackTrace();
 				agent.getLogger().warning("Impossible to send message to host " + dest);
 				disconnect();
 			}
@@ -134,14 +133,15 @@ public abstract class CentralDatabaseBackupReceiverPerPeer extends com.distrimin
 	@Override
 	protected void sendMessageFromOtherCentralDatabaseBackup(DecentralizedValue centralDatabaseBackupID, MessageComingFromCentralDatabaseBackup message) {
 		DecentralizedValue dest=message.getHostDestination();
-		AgentAddress aa = agent.getAgentWithRole(agent.getDistantGroupPerID(dest), CloudCommunity.Roles.SYNCHRONIZER);
+		Group g=agent.getDistantGroupPerID(dest);
+		AgentAddress aa = g==null?null:agent.getAgentWithRole(g, CloudCommunity.Roles.SYNCHRONIZER);
 		if (aa!=null)
 		{
 			sendMessage(message, aa, dest);
 		}
 		else {
 			String roleDest = CloudCommunity.Groups.encodeDecentralizedValue(centralDatabaseBackupID).toString();
-			aa = agent.getAgentAddressIn(CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP, roleDest);
+			aa = agent.getAgentWithRole(CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP, roleDest);
 			if (aa != null) {
 				try {
 
