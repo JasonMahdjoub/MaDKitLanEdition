@@ -577,8 +577,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				loginDataServer2a = AccessDataMKEventListener.getDefaultLoginData(
 						idpws,
 						null, defaultGroupAccess, false, AssertJUnit::fail, AssertJUnit::fail);
-				loginDataServer2a.getFilters().setDenyFilters(new DoubleIP(5001, (Inet4Address) InetAddress.getByName("127.0.0.1"), (Inet6Address) InetAddress.getByName("::1")),
-										new DoubleIP(5002, (Inet4Address) InetAddress.getByName("127.0.0.1"), (Inet6Address) InetAddress.getByName("::1")));
+				loginDataServer2a.getFilters().setDenyFilters(new DoubleIP(5001, (Inet4Address) InetAddress.getByName("127.0.0.1"), (Inet6Address) InetAddress.getByName("::1")));
 				loginDataServer2b = AccessDataMKEventListener.getDefaultLoginData(
 						idpws,
 						null, defaultGroupAccess, true, AssertJUnit::fail, AssertJUnit::fail);

@@ -121,6 +121,7 @@ public abstract class CentralDatabaseBackupReceiverPerPeer extends com.distrimin
 				sendMessage(message, aa, dest);
 			}
 			else {
+				new IllegalAccessError().printStackTrace();
 				agent.getLogger().warning("Impossible to send message to host " + dest);
 				disconnect();
 			}

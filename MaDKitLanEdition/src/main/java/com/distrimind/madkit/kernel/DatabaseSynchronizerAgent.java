@@ -78,7 +78,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 		public String toString() {
 			return "{" +
 					"kernelAddress=" + kernelAddress +
-					", decentralizedValue=" + decentralizedValue +
+					", decentralizedValue=" + DatabaseWrapper.toString(decentralizedValue) +
 					'}';
 		}
 	}
