@@ -402,6 +402,21 @@ final public class AgentLogger extends Logger {
 
 class AgentFormatter extends Formatter {
 	private static final int HEADER_SIZE=56;
+	private final int MAX_LEVEL_SIZE;
+	public AgentFormatter()
+	{
+		int m=Level.ALL.getLocalizedName().length();
+		m=Math.max(m, Level.OFF.getLocalizedName().length());
+		m=Math.max(m, Level.CONFIG.getLocalizedName().length());
+		m=Math.max(m, Level.FINE.getLocalizedName().length());
+		m=Math.max(m, Level.FINEST.getLocalizedName().length());
+		m=Math.max(m, Level.FINER.getLocalizedName().length());
+		m=Math.max(m, Level.INFO.getLocalizedName().length());
+		m=Math.max(m, Level.SEVERE.getLocalizedName().length());
+		m=Math.max(m, Level.WARNING.getLocalizedName().length());
+		MAX_LEVEL_SIZE=m;
+
+	}
 	@Override
 	public String format(final LogRecord record) {
 
@@ -411,7 +426,11 @@ class AgentFormatter extends Formatter {
 		}
 		StringBuilder s=new StringBuilder();
 		setHeader(s, record);
-		s.append(lvl.getLocalizedName());
+		String l=lvl.getLocalizedName();
+		s.append(l);
+		int rl=MAX_LEVEL_SIZE-l.length();
+		while (rl-->0)
+			s.append(" ");
 		s.append(" : ");
 		s.append(record.getMessage());
 		s.append("\n");
