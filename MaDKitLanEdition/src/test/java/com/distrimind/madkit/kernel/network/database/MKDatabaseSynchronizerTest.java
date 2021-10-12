@@ -568,11 +568,13 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 
 				}
 			};
+			System.out.println("Central ID 1 : "+DatabaseWrapper.toString(centralDatabaseBackupKeyPair1.getASymmetricPublicKey()));
 			if (useTwoServers) {
 				app = new AccessProtocolWithP2PAgreementProperties();
 				idpws = AccessDataMKEventListener
 						.getClientOrPeerToPeerLogins(serverHostIdentifier2, 6);
 				this.centralDatabaseBackupKeyPair2=ASymmetricAuthenticatedSignatureType.DEFAULT.getKeyPairGenerator(random).generateKeyPair();
+				System.out.println("Central ID 1 : "+DatabaseWrapper.toString(centralDatabaseBackupKeyPair2.getASymmetricPublicKey()));
 				AccessDataMKEventListener.centralIdentifiers.put(idpws.get(0).getIdentifier(), this.centralDatabaseBackupKeyPair2.getASymmetricPublicKey());
 				centralDatabaseBackupReceiverFactory2=new CentralDatabaseBackupReceiverFactory(centralDatabaseBackupKeyPair2.getASymmetricPublicKey(),
 						1000, 1000, 1000, 5000,
@@ -667,6 +669,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		loginData1.getFilters().setDenyFilters(new DoubleIP(5001,(Inet4Address) InetAddress.getByName("127.0.0.1"),(Inet6Address) InetAddress.getByName("::1")),
 				new DoubleIP(5002,(Inet4Address) InetAddress.getByName("127.0.0.1"),(Inet6Address) InetAddress.getByName("::1")));
 		this.loginDataClient1=loginDataClient1;
+		System.out.println("P2P ID 1 : "+DatabaseWrapper.toString(hostID1));
 		AccessDataMKEventListener.databaseIdentifiers.put(idpws.get(0).getIdentifier(), hostID1);
 		localIdentifier=loginData1.getDecentralizedDatabaseID(idpws.get(0).getIdentifier(), null);
 
@@ -727,6 +730,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				null, defaultGroupAccess, true, AssertJUnit::fail, AssertJUnit::fail);
 		loginData2.getFilters().setDenyFilters(new DoubleIP(5001,(Inet4Address) InetAddress.getByName("127.0.0.1"),(Inet6Address) InetAddress.getByName("::1")),
 				new DoubleIP(5002,(Inet4Address) InetAddress.getByName("127.0.0.1"),(Inet6Address) InetAddress.getByName("::1")));
+		System.out.println("P2P ID 2 : "+DatabaseWrapper.toString(hostID2));
 		AccessDataMKEventListener.databaseIdentifiers.put(idpws.get(0).getIdentifier(), hostID2);
 		this.loginDataClient2=loginDataClient2;
 		listIpToConnect=new ArrayList<>();
@@ -1341,6 +1345,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 											int numberOfRecordsFirstAdded,
 											boolean useTwoServers) throws IOException, NoSuchAlgorithmException, NoSuchProviderException, DatabaseException {
 		init(connectCentralDatabaseBackup, indirectSynchronizationWithCentralDatabaseBackup, numberOfRecordsFirstAdded, useTwoServers);
+
 		final AtomicReference<Boolean> finished1=new AtomicReference<>(null);
 		final AtomicReference<Boolean> finished2=new AtomicReference<>(null);
 
