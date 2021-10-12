@@ -287,7 +287,7 @@ public abstract class AbstractAccessProtocol {
 							final DecentralizedValue dvCentral = ((localDatabaseHostIDString != null && certificate!=null) || centralDatabaseBackupReceiver!=null)?lp.getCentralDatabaseID(id.getDistantIdentifier(), properties):null;
 
 							final DecentralizedValue dvDistant = (localDatabaseHostIDString != null || centralDatabaseBackupReceiver!=null)?lp.getDecentralizedDatabaseID(id.getDistantIdentifier(), properties):null;
-							if (dvCentral==null || centralDatabaseBackupReceiver==null || dvCentral.equals(centralDatabaseBackupReceiver.getCentralID())) {
+							if (dvCentral==null || centralDatabaseBackupReceiver==null || !dvCentral.equals(centralDatabaseBackupReceiver.getCentralID())) {
 								if (localDatabaseHostIDString != null) {
 
 									if (dvDistant != null && !dvDistant.equals(localDatabaseHostID)) {

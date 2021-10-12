@@ -839,7 +839,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				Table1 table=wrapper.getTableInstance(Table1.class);
 
 				if (numberOfRecordsFirstAdded>0) {
-					System.out.println(table.getDatabaseWrapper().getSynchronizer().getLocalHostID()+", add first record : "+myListToAdd.get(0));
+					System.out.println(DatabaseWrapper.toString(table.getDatabaseWrapper().getSynchronizer().getLocalHostID())+", add first record : "+myListToAdd.get(0));
 					Long maxBackupFileAge=synchronizationType== DatabaseConfiguration.SynchronizationType.DECENTRALIZED_SYNCHRONIZATION_AND_SYNCHRONIZATION_WITH_CENTRAL_BACKUP_DATABASE?wrapper.getDatabaseConfigurationsBuilder().getConfigurations().getDatabaseConfiguration(table.getClass().getPackage()).getBackupConfiguration().getMaxBackupFileAgeInMs():null;
 					for (int i=0;i<numberOfRecordsFirstAdded;i++) {
 						table.addRecord(myListToAdd.get(i));
@@ -946,7 +946,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					finished.set(false);
 					return;
 				}
-				System.out.println(getMadkitConfig().getDatabaseWrapper().getSynchronizer().getLocalHostID()+" : add records");
+				System.out.println(DatabaseWrapper.toString(getMadkitConfig().getDatabaseWrapper().getSynchronizer().getLocalHostID())+" : add records");
 				int total=numberOfRecordsFirstAdded;
 				while(total<myListToAdd.size())
 				{
@@ -1031,7 +1031,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 					if (!f.exists()) {
 						if (numberOfRecordsFirstAdded>0)
 						{
-							System.out.println(getMadkitConfig().getDatabaseWrapper().getSynchronizer().getLocalHostID() + ", Synchronization with central database backup has not started ! ");
+							System.out.println(DatabaseWrapper.toString(getMadkitConfig().getDatabaseWrapper().getSynchronizer().getLocalHostID()) + ", Synchronization with central database backup has not started ! ");
 							ok = false;
 						}
 					}
@@ -1040,7 +1040,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 						int number2 = fs == null ? 0 : fs.length;
 						if (number != number2) {
 							if (!(indirect && !integrator && (number==number2+numberOfInitialBackupFilesIntoIntegrator))) {
-								System.out.println(getMadkitConfig().getDatabaseWrapper().getSynchronizer().getLocalHostID() + ", Bad synchronized files number (peer files number=" + number + ", central database backup files number=" + number2
+								System.out.println(DatabaseWrapper.toString(getMadkitConfig().getDatabaseWrapper().getSynchronizer().getLocalHostID()) + ", Bad synchronized files number (peer files number=" + number + ", central database backup files number=" + number2
 										+ "\n\tPeer side : " + brm.getFinalFiles().stream()
 										.map(File::getName)
 										.reduce((s1, s2) -> s1 + " ; " + s2)
@@ -1059,9 +1059,9 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 						sleep(brm.getBackupConfiguration().getMaxBackupFileAgeInMs());
 				} while (++count<5 && !ok);
 				if (ok)
-					System.out.println(getMadkitConfig().getDatabaseWrapper().getSynchronizer().getLocalHostID()+" : synchronization with central database ok !");
+					System.out.println(DatabaseWrapper.toString(getMadkitConfig().getDatabaseWrapper().getSynchronizer().getLocalHostID())+" : synchronization with central database ok !");
 				else
-					System.out.println(getMadkitConfig().getDatabaseWrapper().getSynchronizer().getLocalHostID()+" : synchronization with central database NOT ok !");
+					System.out.println(DatabaseWrapper.toString(getMadkitConfig().getDatabaseWrapper().getSynchronizer().getLocalHostID())+" : synchronization with central database NOT ok !");
 
 				return !ok;
 			}
@@ -1070,7 +1070,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 		}
 	}
 	private static boolean checkDistantRecords(AbstractAgent agent, Table1 table, List<Table1.Record> otherListToAdd) throws DatabaseException, InterruptedException {
-		System.out.println("check synchronization, "+table.getDatabaseWrapper().getSynchronizer().getLocalHostID()+", lacking = "+otherListToAdd.size()+", table.recordsNumber="+table.getRecordsNumber());
+		System.out.println("check synchronization, "+DatabaseWrapper.toString(table.getDatabaseWrapper().getSynchronizer().getLocalHostID())+", lacking = "+otherListToAdd.size()+", table.recordsNumber="+table.getRecordsNumber());
 		ArrayList<Table1.Record> l=new ArrayList<>(otherListToAdd);
 		int nb=0;
 		do {
@@ -1086,7 +1086,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 				}
 			}
 			if (l.size()>0) {
-				System.out.println(table.getDatabaseWrapper().getSynchronizer().getLocalHostID()+", lacking = "+l.size()+", table.recordsNumber="+table.getRecordsNumber());
+				System.out.println(DatabaseWrapper.toString(table.getDatabaseWrapper().getSynchronizer().getLocalHostID())+", lacking = "+l.size()+", table.recordsNumber="+table.getRecordsNumber());
 				agent.sleep(1000);
 			}
 			++nb;
