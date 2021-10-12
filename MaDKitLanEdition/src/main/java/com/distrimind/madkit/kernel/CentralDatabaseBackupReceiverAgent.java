@@ -42,6 +42,7 @@ import com.distrimind.madkit.message.ObjectMessage;
 import com.distrimind.madkit.message.hook.HookMessage;
 import com.distrimind.madkit.message.hook.NetworkGroupsAccessEvent;
 import com.distrimind.madkit.message.hook.OrganizationEvent;
+import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.ood.database.messages.BigDataEventToSendWithCentralDatabaseBackup;
 import com.distrimind.ood.database.messages.DistantBackupCenterConnexionInitialisation;
@@ -66,8 +67,34 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 	private Map<DecentralizedValue, Group> distantGroupIdsPerID=new HashMap<>();
 	private CentralDatabaseBackupReceiver centralDatabaseBackupReceiver;
 	private WrappedString centralIDString;
+	private String agentName=null;
 	final HashMap<ConversationID, DatabaseSynchronizerAgent.BigDataMetaData> currentBigDataReceiving=new HashMap<>();
 	final HashMap<ConversationID, DatabaseSynchronizerAgent.BigDataMetaData> currentBigDataSending=new HashMap<>();
+
+	CentralDatabaseBackupReceiverAgent() {
+		initAgentName();
+	}
+
+	private void initAgentName() {
+		String old=agentName;
+		try {
+			if (getMadkitConfig().getCentralDatabaseBackupReceiver()==null) {
+				agentName = super.getName();
+			}
+			else
+				agentName="CentralDbAgent-"+ DatabaseWrapper.toString(getMadkitConfig().getCentralDatabaseBackupReceiver().getCentralID());
+
+		} catch (DatabaseException e) {
+			e.printStackTrace();
+			agentName=super.getName();
+		}
+		if (logger!=null && !agentName.equals(old)) {
+			Level l=logger.getLevel();
+			setLogLevel(Level.OFF);
+			setLogLevel(l);
+		}
+	}
+
 	static void updateGroupAccess(AbstractAgent agent) {
 		ReturnCode rc;
 		if (!(rc=agent.broadcastMessageWithRole(LocalCommunity.Groups.NETWORK,
@@ -87,6 +114,7 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 			if (centralDatabaseBackupReceiver==null)
 				throw DatabaseException.getDatabaseException(new IllegalAccessException());
 			centralIDString=CloudCommunity.Groups.encodeDecentralizedValue(centralDatabaseBackupReceiver.getCentralID());
+			initAgentName();
 			centralDatabaseBackupReceiver.setAgent(this);
 			if (!requestRole(LocalCommunity.Groups.NETWORK, CloudCommunity.Roles.CENTRAL_SYNCHRONIZER).equals(ReturnCode.SUCCESS))
 				getLogger().warning("Impossible to enter in the group LocalCommunity.Groups.NETWORK");
@@ -482,4 +510,8 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 		return getCentralPeerID(aa.isFrom(getKernelAddress())?null:aa.getKernelAddress(), aa.getGroup(), aa.getRole());
 	}
 
+	@Override
+	public String getName() {
+		return agentName;
+	}
 }
