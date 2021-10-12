@@ -307,10 +307,14 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 
 	AgentAddress getAgentAddressInGroupOrInParentGroups(AbstractAgent abstractAgent) {
 		for (final InternalRole r : values()) {
+			if (r.isGroupManagerRole())
+				continue;
 			final AgentAddress aa = r.getAgentAddressOf(abstractAgent);
-			if (aa != null)
+			if (aa != null) {
 				return aa;
+			}
 		}
+
 		if (!group.equals(AbstractGroup.getRootGroup(group.getCommunity()))) {
 			Group parent = group.getParent();
 			if (parent == null)

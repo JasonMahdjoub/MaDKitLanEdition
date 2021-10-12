@@ -151,6 +151,7 @@ final public class Madkit {
 							.addItem("Update OOD to 3.1.2 STABLE")
 							.addItem("Better log formatting")
 							.addItem("Fix possible infinite loop between peer and server, when an error occurs")
+							.addItem("Do not use group manager role when sending message without specifying role")
 					)
 					.addDescription(new Description((short)2, (short)2, (short)0, Version.Type.STABLE, (short)1, "2021-10-01")
 							.addItem("Update Utils to 5.19.7 STABLE")
