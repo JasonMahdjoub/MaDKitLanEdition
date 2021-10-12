@@ -315,6 +315,8 @@ public abstract class AbstractAccessProtocol {
 									}
 								}
 							}
+							else
+								throw new AccessException("Two servers cannot have the same central ID");
 
 						}
 					} catch (DatabaseException e) {
