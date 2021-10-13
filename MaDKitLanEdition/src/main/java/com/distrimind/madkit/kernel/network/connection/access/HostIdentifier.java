@@ -37,10 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import com.distrimind.util.AbstractDecentralizedID;
-import com.distrimind.util.DecentralizedValue;
-import com.distrimind.util.RenforcedDecentralizedIDGenerator;
-import com.distrimind.util.SecuredDecentralizedID;
+import com.distrimind.util.*;
 import com.distrimind.util.crypto.*;
 import com.distrimind.util.data_buffers.WrappedData;
 import com.distrimind.util.io.SecureExternalizable;
@@ -117,11 +114,11 @@ public abstract class HostIdentifier implements SecureExternalizable {
 		return new DefaultHostIdentifier();
 	}
 
-	public HostIdentifier getDefaultHostIdentifier(byte[] bytes) {
+	public HostIdentifier getDefaultHostIdentifier(byte[] bytes) throws InvalidEncodedValue {
 		return getDefaultHostIdentifier(bytes, 0, bytes.length);
 	}
 
-	public static HostIdentifier getDefaultHostIdentifier(byte[] bytes, int off, int len) {
+	public static HostIdentifier getDefaultHostIdentifier(byte[] bytes, int off, int len) throws InvalidEncodedValue {
 		return new DefaultHostIdentifier(bytes, off, len);
 	}
 
@@ -200,7 +197,7 @@ public abstract class HostIdentifier implements SecureExternalizable {
 			}
 		}
 
-		DefaultHostIdentifier(byte[] bytes, int off, int len) {
+		DefaultHostIdentifier(byte[] bytes, int off, int len) throws InvalidEncodedValue {
 			id = (SecuredDecentralizedID) AbstractDecentralizedID.decode(bytes, off, len);
 		}
 

@@ -46,9 +46,10 @@ final public class AgentLogger extends Logger {
 	 */
 	final public static Formatter AGENT_FILE_FORMATTER = new AgentFormatter() {
 		@Override
-		protected String getHeader(final LogRecord record) {
-			return "";
+		protected void setHeader(StringBuilder s, LogRecord record) {
+
 		}
+
 	};
 	final static AgentLogger defaultAgentLogger = new AgentLogger();
 
@@ -400,18 +401,51 @@ final public class AgentLogger extends Logger {
 }
 
 class AgentFormatter extends Formatter {
+	private static final int HEADER_SIZE=56;
+	private final int MAX_LEVEL_SIZE;
+	public AgentFormatter()
+	{
+		int m=Level.ALL.getLocalizedName().length();
+		m=Math.max(m, Level.OFF.getLocalizedName().length());
+		m=Math.max(m, Level.CONFIG.getLocalizedName().length());
+		m=Math.max(m, Level.FINE.getLocalizedName().length());
+		m=Math.max(m, Level.FINEST.getLocalizedName().length());
+		m=Math.max(m, Level.FINER.getLocalizedName().length());
+		m=Math.max(m, Level.INFO.getLocalizedName().length());
+		m=Math.max(m, Level.SEVERE.getLocalizedName().length());
+		m=Math.max(m, Level.WARNING.getLocalizedName().length());
+		MAX_LEVEL_SIZE=m;
 
+	}
 	@Override
 	public String format(final LogRecord record) {
+
 		final Level lvl = record.getLevel();
 		if (lvl.equals(AgentLogger.talkLevel)) {
 			return record.getMessage();
 		}
-		return getHeader(record) + lvl.getLocalizedName() + " : " + record.getMessage() + "\n";
+		StringBuilder s=new StringBuilder();
+		setHeader(s, record);
+		String l=lvl.getLocalizedName();
+		s.append(l);
+		int rl=MAX_LEVEL_SIZE-l.length();
+		while (rl-->0)
+			s.append(" ");
+		s.append(" : ");
+		s.append(record.getMessage());
+		s.append("\n");
+		return s.toString();
 	}
-
-	protected String getHeader(final LogRecord record) {
-		return record.getLoggerName() + " ";
+	protected void setHeader(StringBuilder s, final LogRecord record) {
+		s.append(record.getLoggerName());
+		if (s.length()<HEADER_SIZE)
+		{
+			while (s.length()<HEADER_SIZE)
+				s.append(" ");
+		}
+		else if (s.length()>HEADER_SIZE)
+			s.delete(HEADER_SIZE, s.length());
+		s.append(" ");
 	}
 
 }

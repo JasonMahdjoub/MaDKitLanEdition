@@ -78,7 +78,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 		public String toString() {
 			return "{" +
 					"kernelAddress=" + kernelAddress +
-					", decentralizedValue=" + decentralizedValue +
+					", decentralizedValue=" + DatabaseWrapper.toString(decentralizedValue) +
 					'}';
 		}
 	}
@@ -95,7 +95,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 	//private Map<DecentralizedValue, Group> centralGroupIdsPerID=new HashMap<>();
 	private final HashMap<ConversationID, BigDataMetaData> currentBigDataReceiving=new HashMap<>();
 	private final HashMap<ConversationID, BigDataMetaData> currentBigDataSending=new HashMap<>();
-
+	private String agentName=null;
 
 	static final int FILE_BUFFER_LENGTH_BYTES=4096;
 
@@ -143,9 +143,32 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 		}
 	}
 
-	DatabaseSynchronizerAgent()
-	{
+	DatabaseSynchronizerAgent() {
+		initAgentName();
+	}
 
+	private void initAgentName() {
+		String old=agentName;
+		try {
+			if (getMadkitConfig().getDatabaseWrapper()==null || getMadkitConfig().getDatabaseWrapper().getSynchronizer()==null)
+				agentName=super.getName();
+			else
+				agentName="DbSynchronizerP2PAgent-"+ DatabaseWrapper.toString(getMadkitConfig().getDatabaseWrapper().getSynchronizer().getLocalHostID());
+
+		} catch (DatabaseException e) {
+			e.printStackTrace();
+			agentName=super.getName();
+		}
+		if (logger!=null && !agentName.equals(old)) {
+			Level l=logger.getLevel();
+			setLogLevel(Level.OFF);
+			setLogLevel(l);
+		}
+	}
+
+	@Override
+	public String getName() {
+		return agentName;
 	}
 
 	private static class CheckEvents extends Message
@@ -188,7 +211,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			logger.info("Launch database synchronizer");
 		this.requestRole(LocalCommunity.Groups.DATABASE, LocalCommunity.Roles.DATABASE_SYNCHRONIZER_LISTENER);
 		requestRole(LocalCommunity.Groups.NETWORK, CloudCommunity.Roles.SYNCHRONIZER);
-
+		initAgentName();
 		try {
 			wrapper = getMadkitConfig().getDatabaseWrapper();
 			synchronizer= wrapper.getSynchronizer();
@@ -225,6 +248,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 				public void localHostInitialized(DecentralizedValue hostID) {
 					removeUnusedDistantGroups();
 					updateGroupAccess(DatabaseSynchronizerAgent.this);
+					initAgentName();
 				}
 
 				@Override
@@ -427,7 +451,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			getLogger().severeLog("Impossible to connect central database backup" + id, ex);
 		}
 	}
-	private void disconnectCentralDatabaseBackup()
+	private void disconnectCentralDatabaseBackup(boolean initCentralPeerIfAvailable)
 	{
 		if (centralDatabaseID!=null)
 		{
@@ -440,15 +464,16 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			}
 			centralDatabaseID = null;
 			centralDatabaseGroup = null;
-			if (centralGroupIdsPerGroup.size()>0)
-			{
-				for (Map.Entry<Group, KernelAddressAndDecentralizedValue> e : centralGroupIdsPerGroup.entrySet()) {
-					if (hasRole(e.getKey(), CloudCommunity.Roles.SYNCHRONIZER)) {
-						initCentralPeer(e.getKey(), e.getValue().decentralizedValue);
-						break;
+			if (initCentralPeerIfAvailable) {
+				if (centralGroupIdsPerGroup.size() > 0) {
+					for (Map.Entry<Group, KernelAddressAndDecentralizedValue> e : centralGroupIdsPerGroup.entrySet()) {
+						if (hasRole(e.getKey(), CloudCommunity.Roles.SYNCHRONIZER)) {
+							initCentralPeer(e.getKey(), e.getValue().decentralizedValue);
+							break;
+						}
 					}
-				}
 
+				}
 			}
 		}
 	}
@@ -484,7 +509,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 								initCentralPeer(aa.getGroup(), centralPeerID);
 							}
 						} else if (((OrganizationEvent) _message).getContent().equals(HookMessage.AgentActionEvent.LEAVE_ROLE) && centralPeerID.equals(this.centralDatabaseID)) {
-							disconnectCentralDatabaseBackup();
+							disconnectCentralDatabaseBackup(true);
 						}
 					}
 
@@ -652,7 +677,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 											currentBigDataTransferID = sendBigDataWithRole(aa, in, be, CloudCommunity.Roles.SYNCHRONIZER);
 											if (currentBigDataTransferID == null) {
 												getLogger().warning("Impossible to send message to host " + aa);
-												disconnectCentralDatabaseBackup();
+												disconnectCentralDatabaseBackup(false);
 											} else {
 												currentBigDataSending.put(currentBigDataTransferID, new BigDataMetaData(be, in));
 												sent=true;
@@ -675,7 +700,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 						}
 						if (!sent) {
 							getLogger().warning("Impossible to send message to central database backup: " + e+", central initialized into client side="+synchronizer.isInitializedWithCentralBackup());
-							disconnectCentralDatabaseBackup();
+							disconnectCentralDatabaseBackup(false);
 						}
 					}
 				}

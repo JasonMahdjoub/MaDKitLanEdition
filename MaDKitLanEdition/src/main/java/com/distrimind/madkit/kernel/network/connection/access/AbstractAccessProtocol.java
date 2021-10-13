@@ -287,36 +287,33 @@ public abstract class AbstractAccessProtocol {
 							final DecentralizedValue dvCentral = ((localDatabaseHostIDString != null && certificate!=null) || centralDatabaseBackupReceiver!=null)?lp.getCentralDatabaseID(id.getDistantIdentifier(), properties):null;
 
 							final DecentralizedValue dvDistant = (localDatabaseHostIDString != null || centralDatabaseBackupReceiver!=null)?lp.getDecentralizedDatabaseID(id.getDistantIdentifier(), properties):null;
+							if (dvCentral==null || centralDatabaseBackupReceiver==null || !dvCentral.equals(centralDatabaseBackupReceiver.getCentralID())) {
+								if (localDatabaseHostIDString != null) {
 
-							if (localDatabaseHostIDString != null) {
+									if (dvDistant != null && !dvDistant.equals(localDatabaseHostID)) {
+										listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getDistributedDatabaseGroup(localDatabaseHostIDString, dvDistant));
+									}
 
-								if (dvDistant != null && !dvDistant.equals(localDatabaseHostID)) {
-									listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getDistributedDatabaseGroup(localDatabaseHostIDString, dvDistant));
-								}
-
-								if (certificate != null) {
-									if (dvCentral!=null)
-									{
-										if (!dvCentral.equals(localDatabaseHostID)) {
+									if (certificate != null
+											&& dvCentral != null
+											&& centralDatabaseBackupReceiver == null
+									 		&& !dvCentral.equals(localDatabaseHostID)) {
 											listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getCentralDatabaseGroup(localDatabaseHostIDString, dvCentral));
-										}
-
 									}
 
 								}
+								if (centralDatabaseBackupReceiver != null) {
+									if (dvCentral != null) {
+										listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP);
+									}
 
-							}
-							if (centralDatabaseBackupReceiver != null) {
-								if (dvCentral!=null)
-								{
-									listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP);
-								}
-
-								if (dvDistant != null && !centralDatabaseBackupReceiver.getCentralID().equals(dvDistant)) {
-									listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getCentralDatabaseGroup(centralDatabaseBackupReceiver.getCentralID(), dvDistant));
+									if (dvDistant != null && !centralDatabaseBackupReceiver.getCentralID().equals(dvDistant)) {
+										listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getCentralDatabaseGroup(centralDatabaseBackupReceiver.getCentralID(), dvDistant));
+									}
 								}
 							}
-
+							else
+								throw new AccessException("Two servers cannot have the same central ID");
 
 						}
 					} catch (DatabaseException e) {

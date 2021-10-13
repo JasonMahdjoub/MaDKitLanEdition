@@ -68,7 +68,11 @@ import static com.distrimind.madkit.kernel.CGRSynchro.Code.REQUEST_ROLE;
  * 
  */
 @SuppressWarnings({"SynchronizeOnNonFinalField", "SameParameterValue"})
-class InternalRole implements SecureExternalizable {// TODO test with arraylist
+class InternalRole implements SecureExternalizable {
+	public boolean isGroupManagerRole() {
+		return this.getRoleName().equals(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE);
+	}
+	// TODO test with arraylist
 
 	static class ParametrizedAgent
 	{

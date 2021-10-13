@@ -155,7 +155,7 @@ public class sendMessageAndWaitForReplyWithAATest extends JunitMadkit {
 			@Override
 			protected void activate() throws InterruptedException {
 				setLogLevel(Level.ALL);
-				assertEquals(SUCCESS, createGroup(GROUP));
+				assertEquals(SUCCESS, requestRole(GROUP, ROLE));
 				// assertEquals(SUCCESS, requestRole(COMMUNITY,GROUP,ROLE));
 				assertEquals(SUCCESS, launchAgent(target3));
 

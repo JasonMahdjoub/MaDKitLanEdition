@@ -40,6 +40,7 @@ package com.distrimind.madkit.boot.process;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 import org.testng.annotations.Test;
+
 import java.util.logging.Level;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
@@ -64,7 +65,7 @@ public class NullArgTest extends JunitMadkit {
 			protected void activate() {
 				assertTrue(getMadkitConfig().desktop);
 			}
-		});
+		}, _properties -> {});
 	}
 
 	@Test

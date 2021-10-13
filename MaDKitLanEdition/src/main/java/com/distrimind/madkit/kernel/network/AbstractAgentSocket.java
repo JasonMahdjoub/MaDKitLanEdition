@@ -2804,7 +2804,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 	@SuppressWarnings({"SameParameterValue", "unused"})
     private boolean processInvalidAccessMessage(Exception e, AccessMessage received, AccessErrorMessage returned) {
 		return processInvalidProcess("Invalid access message from Kernel Address " + distantInterfacedKernelAddress
-				+ " and InetSocketAddress " + distant_inet_address, e, returned.candidate_to_ban);
+				+ " and InetSocketAddress " + distant_inet_address+". "+((returned!=null && returned.getLogMessage()!=null)?returned.getLogMessage():""), e, returned.candidate_to_ban);
 	}
 
 	private boolean processExternalAnomaly(String message, boolean candidate_to_ban) {
