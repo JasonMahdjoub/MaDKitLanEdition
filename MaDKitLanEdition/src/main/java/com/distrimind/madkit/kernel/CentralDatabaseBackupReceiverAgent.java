@@ -418,7 +418,6 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 
 			if (generateError && m.getContent() instanceof MessageDestinedToCentralDatabaseBackup) {
 				MessageDestinedToCentralDatabaseBackup b = (MessageDestinedToCentralDatabaseBackup) m.getContent();
-
 				try {
 
 					DecentralizedValue peerID = (b instanceof DistantBackupCenterConnexionInitialisation)?getDistantPeerIDOrInitIt(_message.getSender()):getDistantPeerID(_message.getSender());
@@ -485,20 +484,19 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 
 	private DecentralizedValue getCentralPeerID(KernelAddress distantKernelAddress, Group group, String role)
 	{
-		if (CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP.equals(group)
-				&& role.equals(CloudCommunity.Roles.CENTRAL_SYNCHRONIZER)) {
+		if (CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP.equals(group)) {
 			DecentralizedValue res= null;
 			try {
 				res = CloudCommunity.Groups.decodeDecentralizedValue(role);
 			} catch (IOException e) {
-				getLogger().severeLog("Invalided client group " + group, e);
+				getLogger().severeLog("Invalided client group " + group+" and role "+role, e);
 			}
 
 			if (res == null) {
 				if (distantKernelAddress != null)
-					anomalyDetectedWithOneDistantKernel(true, distantKernelAddress, "Invalided client group " + group);
+					anomalyDetectedWithOneDistantKernel(true, distantKernelAddress, "Invalided client group " + group+" and role "+role);
 
-				getLogger().severeLog("Invalided client group " + group);
+				getLogger().severeLog("Invalided client group " + group+" and role "+role);
 			}
 			return res;
 		}

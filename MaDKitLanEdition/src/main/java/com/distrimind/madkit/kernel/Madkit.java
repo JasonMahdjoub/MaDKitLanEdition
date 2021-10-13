@@ -152,6 +152,7 @@ final public class Madkit {
 							.addItem("Better log formatting")
 							.addItem("Fix possible infinite loop between peer and server, when an error occurs")
 							.addItem("Do not use group manager role when sending message without specifying role")
+							.addItem("Peers can now synchronize their database through several database backup servers")
 					)
 					.addDescription(new Description((short)2, (short)2, (short)0, Version.Type.STABLE, (short)1, "2021-10-01")
 							.addItem("Update Utils to 5.19.7 STABLE")
