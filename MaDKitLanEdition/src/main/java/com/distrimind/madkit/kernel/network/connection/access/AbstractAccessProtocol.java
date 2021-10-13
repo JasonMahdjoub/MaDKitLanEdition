@@ -294,14 +294,11 @@ public abstract class AbstractAccessProtocol {
 										listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getDistributedDatabaseGroup(localDatabaseHostIDString, dvDistant));
 									}
 
-									if (certificate != null) {
-										if (dvCentral != null) {
-											if (!dvCentral.equals(localDatabaseHostID)) {
-												listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getCentralDatabaseGroup(localDatabaseHostIDString, dvCentral));
-											}
-
-										}
-
+									if (certificate != null
+											&& dvCentral != null
+											&& centralDatabaseBackupReceiver == null
+									 		&& !dvCentral.equals(localDatabaseHostID)) {
+											listGroupsRoles.addGroupsRoles(CloudCommunity.Groups.getCentralDatabaseGroup(localDatabaseHostIDString, dvCentral));
 									}
 
 								}

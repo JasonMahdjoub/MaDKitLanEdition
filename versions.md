@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-2.2.0 STABLE (Build: 3479) (from 22/05/2015 to 01/10/2021)
+2.2.1 STABLE (Build: 3686) (from 22/05/2015 to 13/10/2021)
 
 # Creator(s):
 Jason MAHDJOUB
@@ -10,6 +10,16 @@ Fabien MICHEL (Entered in the team at 01/02/1997)
 Jason MAHDJOUB (Entered in the team at 22/05/2015)
 
 # Modifications:
+
+
+### 2.2.1 STABLE (13/10/2021)
+* Update Utils to 5.20.3 STABLE
+* Update OOD to 3.1.2 STABLE
+* Better log formatting
+* Fix possible infinite loop between peer and server, when an error occurs
+* Do not use group manager role when sending message without specifying role
+* Peers can now synchronize their database through several database backup servers
+* Pool executor : fix bad use of maximum number of threads, and permit to create more threads when the maximum of threads was not reached and when tasks are waiting to be executed.
 
 
 ### 2.2.0 STABLE (01/10/2021)
