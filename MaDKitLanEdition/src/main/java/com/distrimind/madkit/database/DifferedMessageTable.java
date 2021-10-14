@@ -64,7 +64,8 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 
 	public static final int MAX_DIFFERED_MESSAGE_LENGTH=128*1024;
 
-	protected DifferedMessageTable() throws DatabaseException {
+
+	private DifferedMessageTable() throws DatabaseException {
 	}
 
 	public static class Record extends DatabaseRecord
@@ -158,7 +159,10 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 		if (res!=null)
 			return ;
 		final AtomicBoolean allRemoved=new AtomicBoolean(true);
-		final Set<String> rolesList=new HashSet<>();
+
+		final StringBuilder where=new StringBuilder("groupPath=%groupPath AND roleSender=%roleSender and (");
+		final int startQueryLength=where.length();
+		final ArrayList<String> wheres=new ArrayList<>();
 		getOrderedRecords(new Filter<Record>(){
 			@Override
 			public boolean nextRecord(Record _record) {
@@ -167,8 +171,21 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 				if (aa!=null) {
 					try {
 
-						if (abstractAgent.sendMessageWithRole(aa, _record.getDifferedMessage(), r)== AbstractAgent.ReturnCode.SUCCESS)
-							rolesList.add(_record.getRoleReceiver());
+						if (abstractAgent.sendMessageWithRole(aa, _record.getDifferedMessage(), r)== AbstractAgent.ReturnCode.SUCCESS) {
+							if (where.length()>startQueryLength)
+								where.append(" OR ");
+
+							where.append("id=")
+									.append(_record.id);
+							if (where.length()>500000)
+							{
+								where.append(")");
+								wheres.add(where.toString());
+								where.setLength(startQueryLength);
+							}
+						}
+						else
+							allRemoved.set(false);
 					} catch (ClassNotFoundException | IOException e) {
 						e.printStackTrace();
 					}
@@ -180,14 +197,18 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 				return false;
 			}
 		},"groupPath=%groupPath AND roleSender=%roleSender", new Object[]{"groupPath", groupPath, "roleSender", r}, true, "utcTimeUpdate");
-		removeRecords(new Filter<Record>(){
-			@Override
-			public boolean nextRecord(Record _record) {
-				return rolesList.contains(_record.getRoleReceiver());
-
+		if (allRemoved.get())
+		{
+			removeAllRecordsWithCascade();
+		}
+		else {
+			if (where.length() > startQueryLength) {
+				where.append(")");
+				wheres.add(where.toString());
 			}
-		},"groupPath=%groupPath AND roleSender=%roleSender", "groupPath", groupPath, "roleSender", r);
-		if (!allRemoved.get()) {
+			for (String w : wheres)
+				removeRecords(w, "groupPath", groupPath, "roleSender", r);
+
 			availableSenders.put(role, abstractAgent);
 		}
 
@@ -230,7 +251,11 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 			public Void run() throws Exception {
 				checkSender(agent, agentAddress.getGroup(), agentAddress.getRole(), groupPath);
 
-				final Map<Role, Boolean> allRemoved=new HashMap<>();
+				final StringBuilder where=new StringBuilder("groupPath=%groupPath AND roleReceiver=%roleReceiver and (");
+				final int startQueryLength=where.length();
+				final ArrayList<String> wheres=new ArrayList<>();
+				final AtomicBoolean allRemoved=new AtomicBoolean(true);
+				final Map<Role, Boolean> allRemovedPerRole=new HashMap<>();
 				getOrderedRecords(new Filter<Record>(){
 
 					@Override
@@ -242,34 +267,52 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 						AgentAddress aa=abstractAgent.getAgentWithRole(agentAddress.getGroup(), _record.getRoleReceiver());
 						if (aa!=null) {
 							try {
-								abstractAgent.sendMessageWithRole(aa, _record.getDifferedMessage(), _record.getRoleSender());
-								if (!allRemoved.containsKey(r))
-									allRemoved.put(r,true);
-
+								if (abstractAgent.sendMessageWithRole(aa, _record.getDifferedMessage(), _record.getRoleSender())== AbstractAgent.ReturnCode.SUCCESS)
+								{
+									if (where.length() > startQueryLength)
+										where.append(" OR ");
+									where.append("id=")
+											.append(_record.getId());
+									if (where.length() > 500000) {
+										where.append(")");
+										wheres.add(where.toString());
+										where.setLength(startQueryLength);
+									}
+									if (!allRemovedPerRole.containsKey(r))
+										allRemovedPerRole.put(r, true);
+								}
+								else {
+									allRemovedPerRole.put(r, false);
+									allRemoved.set(false);
+								}
 							} catch (ClassNotFoundException | IOException e) {
+								allRemoved.set(false);
+								allRemovedPerRole.put(r, false);
 								e.printStackTrace();
 							}
-							return true;
+
 						}
 						else {
-							allRemoved.put(r,false);
-							return false;
+							allRemoved.set(false);
+							allRemovedPerRole.put(r, false);
 						}
+						return false;
 					}
 				},"groupPath=%groupPath AND roleReceiver=%roleReceiver", new Object[]{"groupPath", groupPath, "roleReceiver", agentAddress.getRole()}, true, "utcTimeUpdate");
-				removeRecords(new Filter<Record>(){
-
-					@Override
-					public boolean nextRecord(Record _record) {
-						Role r=new Role(agentAddress.getGroup(), _record.getRoleSender());
-						AbstractAgent abstractAgent=availableSenders.get(r);
-						if (abstractAgent==null)
-							return false;
-						AgentAddress aa=abstractAgent.getAgentWithRole(agentAddress.getGroup(), _record.getRoleReceiver());
-						return aa != null;
+				if (allRemoved.get())
+				{
+					removeAllRecordsWithCascade();
+				}
+				else {
+					if (where.length()>startQueryLength) {
+						where.append(")");
+						wheres.add(where.toString());
 					}
-				},"groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", groupPath, "roleReceiver", agentAddress.getRole());
-				for (Map.Entry<Role, Boolean> e : allRemoved.entrySet())
+					for (String w : wheres) {
+						removeRecords(w, "groupPath", groupPath, "roleReceiver", agentAddress.getRole());
+					}
+				}
+				for (Map.Entry<Role, Boolean> e : allRemovedPerRole.entrySet())
 					if (e.getValue())
 						availableSenders.remove(e.getKey());
 				return null;
