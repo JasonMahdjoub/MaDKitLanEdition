@@ -2312,13 +2312,17 @@ class MadkitKernel extends Agent {
 				if (agent.isAlive()) {// ! self kill -> safe to make this here
 
 					if (agent instanceof AgentFakeThread) {
-						agent.messageBox.getLocker().lock();
-						try {
+						if (agent.messageBox==null)
 							agent.state.set(LIVING);
-							if (!agent.messageBox.isEmpty())
-								((AgentFakeThread) agent).manageTaskMessage(true);
-						} finally {
-							agent.messageBox.getLocker().unlock();
+						else {
+							agent.messageBox.getLocker().lock();
+							try {
+								agent.state.set(LIVING);
+								if (!agent.messageBox.isEmpty())
+									((AgentFakeThread) agent).manageTaskMessage(true);
+							} finally {
+								agent.messageBox.getLocker().unlock();
+							}
 						}
 					} else
 						agent.state.set(LIVING);
@@ -2446,7 +2450,7 @@ class MadkitKernel extends Agent {
 
 							@Override
 							public boolean isLocked() {
-								return !target.messageBox.isEmpty();
+								return target.messageBox!=null && !target.messageBox.isEmpty();
 							}
 						});
 					//}

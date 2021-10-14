@@ -193,7 +193,7 @@ public class Agent extends AbstractAgent {
 								throw e;
 						}
 						if (waitForMessagePurge=isWaitForMessagePurge()) {
-							if (messageBox.isEmpty()) {
+							if (messageBox==null || messageBox.isEmpty()) {
 								synchronized (state)
 								{
 									state.notify();
@@ -762,12 +762,12 @@ public class Agent extends AbstractAgent {
 	
 	private Message waitingNextMessageForEver() throws InterruptedException {
 		checkInterruptedExceptionForMessageWaiting();
-		return messageBox.take().markMessageAsRead();
+		return getMessageBox().take().markMessageAsRead();
 	}
 
 	@Override
 	void checkInterruptedExceptionForMessageWaiting() throws InterruptedException {
-		if (isWaitForMessagePurge() && messageBox.isEmpty())
+		if (isWaitForMessagePurge() && (messageBox==null || messageBox.isEmpty()))
 			throw new InterruptedException();
 
 	}

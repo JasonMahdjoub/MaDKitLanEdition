@@ -172,8 +172,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * name is lazily created to save memory
 	 */
 	private String name;
-	final AtomicBoolean alive = new AtomicBoolean(); // default false
-	final ChainedBlockingDeque<Message> messageBox=new ChainedBlockingDeque<>(); // TODO lazy creation
+	final AtomicBoolean alive = new AtomicBoolean();
+	volatile ChainedBlockingDeque<Message> messageBox=null;
 
 	private volatile ArrayList<Replies> conversations = null;
 
@@ -475,13 +475,27 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 			sendMessage(Groups.GUI, Roles.GUI,
 					new GUIMessage(GUIManagerAction.SETUP_AGENT_GUI, AbstractAgent.this));
 			try {// wait answer using a big hack
-				messageBox.take();// works because the agent cannot be joined in anyway
+				getMessageBox().take();// works because the agent cannot be joined in anyway
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
 		logMethod(true);
 	}
+	protected final ChainedBlockingDeque<Message> getMessageBox()
+	{
+		if (messageBox==null) {
+			synchronized (this) {
+				if (messageBox==null) {
+					messageBox = new ChainedBlockingDeque<>();
+					if (kernel != null)
+						messageBox.setKernel(kernel);
+				}
+			}
+		}
+		return messageBox;
+	}
+
 
 	private void postActivate() {
 		synchronized (state) {
@@ -613,9 +627,11 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 
 				end();
 				//send empty replies for non read messages
-				for (Message m : messageBox)
-					if (m.needReply())
-						sendReplyEmpty(m);
+				if (messageBox!=null) {
+					for (Message m : messageBox)
+						if (m.needReply())
+							sendReplyEmpty(m);
+				}
 			} catch (InterruptedException ignored) {
 			} catch (Throwable e) {
 				validateDeathOnException(e, TERMINATED);
@@ -656,9 +672,12 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		terminate(true);
 	}
 	void terminate(boolean changeState) {
-		for (Message m : messageBox) {
-			if (m.needReply())
-				sendReplyEmpty(m);
+		if (messageBox!=null) {
+			for (Message m : messageBox) {
+				if (m.needReply())
+					sendReplyEmpty(m);
+			}
+			messageBox=null;
 		}
 
 		Thread.currentThread().setName(getAgentThreadName(TERMINATED));
@@ -1265,7 +1284,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 */
 	final void setKernel(MadkitKernel kernel) {
 		this.kernel = kernel;
-		messageBox.setKernel(kernel);
+		if (messageBox!=null)
+			messageBox.setKernel(kernel);
 	}
 
 	/**
@@ -1879,7 +1899,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @return The next message or <code>null</code> if the message box is empty.
 	 */
 	public Message nextMessage() {
-		final Message m = messageBox.poll();
+		final Message m = messageBox==null?null:messageBox.poll();
 		if (logger != null && logger.isLoggable(Level.FINEST)) {
 			logger.finest("nextMessage = " + m);
 		}
@@ -1898,7 +1918,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *         not been found.
 	 */
 	public Message nextMessage(final MessageFilter filter) {
-
+		if (messageBox==null)
+			return null;
 		messageBox.getLocker().lock();
 		try {
 			for (final Iterator<Message> iterator = messageBox.iterator(); iterator.hasNext();) {
@@ -1925,6 +1946,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *         been found.
 	 */
 	public List<Message> nextMessages(final MessageFilter filter) {
+		if (messageBox==null)
+			return Collections.emptyList();
 		if (filter == null) {
 			messageBox.getLocker().lock();
 			try {
@@ -1964,7 +1987,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *         empty.
 	 */
 	public Message getLastReceivedMessage() {
-		Message m = messageBox.pollLast();
+		Message m = messageBox==null?null:messageBox.pollLast();
 		if (m == null)
 			return null;
 		else
@@ -1981,6 +2004,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *         <code>null</code> if such message has not been found.
 	 */
 	public Message getLastReceivedMessage(final MessageFilter filter) {
+		if (messageBox==null)
+			return null;
 		messageBox.getLocker().lock();
 		try {
 			for (final Iterator<Message> iterator = messageBox.descendingIterator(); iterator.hasNext();) {
@@ -2006,6 +2031,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *         is already empty.
 	 */
 	public Message purgeMailbox() {
+		if (messageBox==null)
+			return null;
 		messageBox.getLocker().lock();
 		try {
 			Message m = null;
@@ -2031,7 +2058,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @return <code>true</code> if there is no message in the mailbox.
 	 */
 	public boolean isMessageBoxEmpty() {
-		return messageBox.isEmpty();
+		return messageBox==null || messageBox.isEmpty();
 	}
 
 	/**
@@ -2658,11 +2685,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 				getMadkitKernel().receivingPotentialNetworkMessage(this, (LocalLanMessage) messageTaken);
 
 
-			messageBox.offer(messageTaken); // TODO test vs. arraylist and synchronized
+			getMessageBox().offer(messageTaken); // TODO test vs. arraylist and synchronized
 		}
-		// if(messageBox == null)
-		// messageBox = new LinkedBlockingDeque<Message>();
-		// messageBox.offer(m); // TODO test vs. arraylist and synchronized
 		return messageTaken;
 	}
 
@@ -2962,7 +2986,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 
 	Message waitingNextMessage(final long timeout, final TimeUnit unit) throws InterruptedException {
 		checkInterruptedExceptionForMessageWaiting();
-		Message m = messageBox.poll(timeout, unit);
+		Message m = getMessageBox().poll(timeout, unit);
 		if (m != null)
 			return m.markMessageAsRead();
 		else
@@ -3020,7 +3044,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		final long endTime = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeOutMilliSeconds);
 		final ConversationID conversationID = message.getConversationID();
 		int missing = size;
-		final List<Message> receptions = new ArrayList<>(messageBox.size());
+		final List<Message> receptions = new ArrayList<>(getMessageBox().size());
 		final ArrayList<Message> answers = new ArrayList<>(size);
 		while (missing > 0 && System.nanoTime() < endTime) {
 			Message answer = waitingNextMessage(endTime - System.nanoTime(), TimeUnit.NANOSECONDS);
@@ -3044,7 +3068,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 
 
 	void addAllToMessageBox(final List<Message> receptions) {
-		messageBox.getLocker().lock();
+		getMessageBox().getLocker().lock();
 		try {
 			messageBox.addAll(receptions);
 		} finally {
@@ -3356,20 +3380,11 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 
 		private final State[] included_states;
 
-		//private int previousState;
 
 		State(State... _included_states) {
 			included_states = _included_states;
-			//this.previousState = previousState == null ? this.ordinal() : previousState.ordinal();
 		}
 
-		/*void setPreviousState(State s) {
-			previousState = s.ordinal();
-		}
-
-		State getPreviousState() {
-			return State.values()[previousState];
-		}*/
 
 		final String lifeCycleMethod() {
 			switch (this) {

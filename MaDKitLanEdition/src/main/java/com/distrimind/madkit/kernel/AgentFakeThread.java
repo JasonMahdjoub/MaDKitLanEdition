@@ -203,7 +203,7 @@ public abstract class AgentFakeThread extends AbstractAgent {
 	public Message receiveMessage(Message m) {
 		State s = state.get();
 		if (!s.include(State.WAIT_FOR_KILL) && s != State.ENDING && s != State.TERMINATED && s != State.ZOMBIE) {
-			messageBox.getLocker().lock();
+			getMessageBox().getLocker().lock();
 			try {
 				m = super.receiveMessage(m);
 
@@ -231,7 +231,7 @@ public abstract class AgentFakeThread extends AbstractAgent {
 	void manageTaskMessage(boolean force) {
 
 		boolean schedule = false;
-		if ((messageBox.size() == 1 || (force && messageBox.size() > 0))) {
+		if (messageBox!=null && (messageBox.size() == 1 || (force && messageBox.size() > 0))) {
 			if (messageReadAlreadyInProgress.weakCompareAndSet(false, true)) {
 				//if (!messageReadAlreadyInProgress && messageBox.size() > 0) {
 				schedule = true;
