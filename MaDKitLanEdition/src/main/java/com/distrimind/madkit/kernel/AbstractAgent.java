@@ -655,7 +655,6 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 				if (m.needReply())
 					sendReplyEmpty(m);
 			}
-			messageBox.clear();
 		}
 
 		Thread.currentThread().setName(getAgentThreadName(TERMINATED));
