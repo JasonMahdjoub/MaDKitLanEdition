@@ -1,5 +1,6 @@
 package com.distrimind.madkit.kernel;
 
+import com.distrimind.util.CircularArrayList;
 import com.distrimind.util.Reference;
 import com.distrimind.util.concurrent.LockerCondition;
 
@@ -18,22 +19,24 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class ChainedBlockingDeque<T> extends AbstractQueue<T> implements BlockingQueue<T>, Deque<T> {
 
-	private final LinkedList<T> list;
+	private final static int ARRAY_LIST_BASE_SIZE=5;
+	private final CircularArrayList<T> list;
 	private final Lock lock=new ReentrantLock();
 	private final Condition notEmpty=lock.newCondition();
 	private MadkitKernel madkitKernel;
+
 	public ChainedBlockingDeque() {
 		this((MadkitKernel)null);
 	}
 	public ChainedBlockingDeque(MadkitKernel madkitKernel) {
-		list=new LinkedList<>();
+		list=new CircularArrayList<>(ARRAY_LIST_BASE_SIZE,true);
 		this.madkitKernel=madkitKernel;
 	}
 	public ChainedBlockingDeque(Collection<T> c) {
 		this(null, c);
 	}
 	public ChainedBlockingDeque(MadkitKernel madkitKernel, Collection<T> c) {
-		list=new LinkedList<>(c);
+		list=new CircularArrayList<>(ARRAY_LIST_BASE_SIZE,true);
 		this.madkitKernel=madkitKernel;
 	}
 
