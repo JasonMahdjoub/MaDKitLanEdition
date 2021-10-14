@@ -64,6 +64,8 @@ public class Role {
 	 */
 	private final String m_group_role;
 
+	private volatile Integer hashCode=null;
+
 	/**
 	 * Constructing a Role associated with a group and a community.
 	 * 
@@ -75,9 +77,15 @@ public class Role {
 	 * @see AbstractGroup
 	 */
 	public Role(Group _group, String _role) {
+		if (_group==null)
+			throw new NullPointerException();
+		if (_role==null)
+			throw new NullPointerException();
 		if (_role.contains(";"))
 			throw new IllegalArgumentException(
 					"The role given as parameter (" + _role + ") cannot contains a ';' character !");
+		if (_role.length()>Group.MAX_ROLE_NAME_LENGTH)
+			throw new IllegalArgumentException();
 		m_group = _group;
 		m_role = _role;
 		m_group_role = m_group.getCommunity() + "," + m_group.getPath() + "," + m_role;
@@ -117,6 +125,8 @@ public class Role {
 
 	@Override
 	public int hashCode() {
-		return m_group_role.hashCode();
+		if (hashCode==null)
+			hashCode=m_group_role.hashCode();
+		return hashCode;
 	}
 }
