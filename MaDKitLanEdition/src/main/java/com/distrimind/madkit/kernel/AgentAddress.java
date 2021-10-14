@@ -335,7 +335,7 @@ final class CandidateAgentAddress extends AgentAddress {
 	 * @see com.distrimind.madkit.kernel.AgentAddress#getRole()
 	 */
 	@Override
-	final public String getRole() {
+	public String getRole() {
 		return Organization.GROUP_CANDIDATE_ROLE;
 	}
 
@@ -348,12 +348,6 @@ final class GroupManagerAddress extends AgentAddress {
 	GroupManagerAddress()
 	{
 		
-	}
-
-	GroupManagerAddress(AbstractAgent agt, InternalRole role, KernelAddress ka, boolean manually_requested,
-						boolean securedGroup) {
-		super(agt, role, ka, manually_requested);
-		this.securedGroup = securedGroup;
 	}
 
 	boolean isGroupSecured() {

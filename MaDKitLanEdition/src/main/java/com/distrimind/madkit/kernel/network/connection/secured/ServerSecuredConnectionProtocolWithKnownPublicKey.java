@@ -80,9 +80,6 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 	private final EncryptionSignatureHashDecoder decoderWithoutEncryption;
 
 	protected SymmetricEncryptionType symmetricEncryptionType;
-	/*protected SymmetricEncryptionAlgorithm symmetricEncryption;
-	protected SymmetricAuthenticatedSignerAlgorithm signer = null;
-	protected SymmetricAuthenticatedSignatureCheckerAlgorithm signatureChecker=null;*/
 	protected SymmetricSecretKey mySecretKeyForEncryption=null,mySecretKeyForSignature=null;
 	protected SymmetricAuthenticatedSignatureType signatureType;
 	protected ASymmetricKeyWrapperType keyWrapper;

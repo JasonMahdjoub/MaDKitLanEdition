@@ -94,7 +94,7 @@ public final class Task<V> implements Cloneable {
 		public boolean allowAgentToCreateSubGroup(Group _parent_group, Group _sub_group,
 				final Class<? extends AbstractAgent> requesterClass, AgentNetworkID _agentNetworkID,
 				Object _memberCard) {
-			return _memberCard instanceof MemberCard && _memberCard == memberCard;
+			return _memberCard == memberCard;
 		}
 	}, true, "~~Tasks Agent");
 

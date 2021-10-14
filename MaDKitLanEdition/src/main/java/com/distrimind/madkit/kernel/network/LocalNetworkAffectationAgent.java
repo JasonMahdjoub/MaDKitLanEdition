@@ -60,9 +60,6 @@ import java.util.logging.Level;
 @SuppressWarnings("unused")
 class LocalNetworkAffectationAgent extends AgentFakeThread {
 
-	// private ArrayList<LocalNetworkAgent> local_networks_agents=new ArrayList<>();
-	// private ArrayList<NetworkInterfaceAgent> local_network_interfaces_agents=new
-	// ArrayList<>();
 	private ArrayList<LocalNetworkAgent> local_network_agents = new ArrayList<>();
 
 	private final ArrayList<InetSocketAddress> port_binds = new ArrayList<>();
@@ -82,8 +79,6 @@ class LocalNetworkAffectationAgent extends AgentFakeThread {
 		this.requestRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.LOCAL_NETWORK_AFFECTATION_ROLE);
 		this.requestRole(LocalCommunity.Groups.LOCAL_NETWORKS, LocalCommunity.Roles.LOCAL_NETWORK_AFFECTATION_ROLE);
 		this.requestRole(LocalCommunity.Groups.NETWORK_INTERFACES, LocalCommunity.Roles.LOCAL_NETWORK_AFFECTATION_ROLE);
-		// his.requestRole(LocalCommunity.Groups.LOCAL_NETWORKS,
-		// LocalCommunity.Roles.LOCAL_NETWORK_AFFECTATION_ROLE);
 
 		if (getMadkitConfig().networkProperties.networkInterfaceScan)
 			this.sendMessageWithRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.LOCAL_NETWORK_EXPLORER_ROLE,

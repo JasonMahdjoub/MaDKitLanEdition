@@ -64,11 +64,11 @@ public final class WritePacket {
 	private final AbstractMessageDigest messageDigest;
 	private final byte[] digestResult;
 	private int digestResultPos = -1;
-	protected final RandomInputStream input_stream;
+	private final RandomInputStream input_stream;
 	private final int id_packet;
 	private final long start_position;
 	private final AtomicLong current_pos = new AtomicLong(0);
-	protected final int max_buffer_size;
+	private final int max_buffer_size;
 	private final long data_length;
 	private final long data_length_with_message_digest;
 	private final boolean redownloaded;
@@ -147,15 +147,15 @@ public final class WritePacket {
 		transfer_as_big_data = _transfer_as_big_data;
 	}
 
-	static protected short getMiniRandomValueSize() {
+	private static short getMiniRandomValueSize() {
 		return 3;
 	}
 
-	static protected byte getMaximumLocalRandomValues() {
+	private static byte getMaximumLocalRandomValues() {
 		return 32;
 	}
 
-	static protected byte getMaximumLocalRandomValuesBitsNumber() {
+	static byte getMaximumLocalRandomValuesBitsNumber() {
 		return 5;
 	}
 
@@ -169,7 +169,7 @@ public final class WritePacket {
 		return (byte) ((val & 255) & ((1 << getMaximumLocalRandomValuesBitsNumber()) - 1));
 	}
 
-	static protected short getMaximumGlobalRandomValues(int _max_buffer_size) {
+	static short getMaximumGlobalRandomValues(int _max_buffer_size) {
 		return (short) Math.min(_max_buffer_size / 2, Short.MAX_VALUE);
 	}
 
@@ -204,7 +204,7 @@ public final class WritePacket {
 				start_position);
 	}
 
-	public final int getID() {
+	public int getID() {
 		return id_packet;
 	}
 
@@ -220,7 +220,7 @@ public final class WritePacket {
 		return Math.min(current_pos.get() - start_position, data_length);
 	}
 
-	public final PacketPart getNextPart(ConnectionProtocol<?> conProto) throws PacketException, NIOException {
+	public PacketPart getNextPart(ConnectionProtocol<?> conProto) throws PacketException, NIOException {
 		try {
 			if (finished)
 				return null;
@@ -344,7 +344,7 @@ public final class WritePacket {
 
 	}
 
-	protected static AbstractByteTabOutputStream getByteTabOutputStream(ConnectionProtocol<?> conProto, AbstractMessageDigest messageDigest,
+	static AbstractByteTabOutputStream getByteTabOutputStream(ConnectionProtocol<?> conProto, AbstractMessageDigest messageDigest,
 			int max_buffer_size, int packet_head_size, long _data_remaining, short random_values_size, AbstractSecureRandom rand) throws NIOException {
 		if (random_values_size<0)
 			throw new NullPointerException();

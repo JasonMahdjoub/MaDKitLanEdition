@@ -166,7 +166,7 @@ public abstract class Overlooker<A extends AbstractAgent> {
 	}
 
 	void addToKernel(MadkitKernel _madkit_kernel) {
-		if (!madkit_kernel.weakCompareAndSet(null, _madkit_kernel)) {
+		if (!madkit_kernel.compareAndSet(null, _madkit_kernel)) {
 			_madkit_kernel
 					.bugReport(new IllegalArgumentException("Attempting to add an Overlooker to several kernels."));
 		}
@@ -349,13 +349,6 @@ public abstract class Overlooker<A extends AbstractAgent> {
 		overlookedRoles_to_add.clear();
 		overlookedRoles_to_remove.clear();
 	}
-
-	// @SuppressWarnings("unchecked")
-	// final public A getAgentNb(final int nb)
-	// {
-	// final List<A> l = getCurrentAgentsList();
-	// return l.get(nb);
-	// }
 
 	/**
 	 * Gets the group(s) to which this activator/probe is binded to.

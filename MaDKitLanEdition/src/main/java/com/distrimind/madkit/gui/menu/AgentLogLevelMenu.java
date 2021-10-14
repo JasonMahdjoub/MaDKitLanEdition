@@ -33,26 +33,19 @@
  */
 package com.distrimind.madkit.gui.menu;
 
-import java.awt.event.ActionEvent;
+import com.distrimind.madkit.action.ActionInfo;
+import com.distrimind.madkit.action.GUIManagerAction;
+import com.distrimind.madkit.kernel.AbstractAgent;
+import com.distrimind.madkit.kernel.AgentLogger;
+import com.distrimind.madkit.kernel.KernelAddress;
+
+import javax.swing.*;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
-
-import javax.swing.AbstractButton;
-import javax.swing.ButtonGroup;
-import javax.swing.JMenu;
-import javax.swing.JRadioButtonMenuItem;
-
-import com.distrimind.madkit.action.ActionInfo;
-import com.distrimind.madkit.action.GUIManagerAction;
-import com.distrimind.madkit.gui.AgentStatusPanel;
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.AgentLogger;
-import com.distrimind.madkit.kernel.KernelAddress;
 
 /**
  * An out of the box menu for manipulating the log level of an agent.
@@ -102,19 +95,9 @@ public class AgentLogLevelMenu extends JMenu {
 		add(logLevelMenu);
 		add(warningLogLevelMenu);
 
-		final ActionListener setLogLevelListener = new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				myAgent.setLogLevel(Level.parse(e.getActionCommand()));
-			}
-		};
+		final ActionListener setLogLevelListener = e -> myAgent.setLogLevel(Level.parse(e.getActionCommand()));
 
-		final ActionListener setWarningLogLevelListener = new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				myAgent.getLogger().setWarningLogLevel(Level.parse(e.getActionCommand()));
-			}
-		};
+		final ActionListener setWarningLogLevelListener = e -> myAgent.getLogger().setWarningLogLevel(Level.parse(e.getActionCommand()));
 
 		for (final Level l : logLevels) {
 			JRadioButtonMenuItem logItem = new JRadioButtonMenuItem(l.getLocalizedName());
@@ -172,12 +155,7 @@ public class AgentLogLevelMenu extends JMenu {
 		menus.remove(abstractAgent);
 	}
 	public static void remove(KernelAddress kernelAddress) {
-		for (Iterator<Map.Entry<AbstractAgent, AgentLogLevelMenu>> it = menus.entrySet().iterator(); it.hasNext();) {
-			Map.Entry<AbstractAgent, AgentLogLevelMenu> e=it.next();
-			if (!e.getKey().isAlive() || e.getKey().getKernelAddress().equals(kernelAddress)) {
-				it.remove();
-			}
-		}
+		menus.entrySet().removeIf(e -> !e.getKey().isAlive() || e.getKey().getKernelAddress().equals(kernelAddress));
 	}
 	// TODO remove agent on dispose
 

@@ -54,7 +54,7 @@ public class VersionsFileGenerator {
 	public static void main(String[] args) throws IOException
 	{
 		String markdown=Madkit.getVersion().getMarkdownCode();
-		try(FileWriter fr = new FileWriter(new File("../versions.md")))
+		try(FileWriter fr = new FileWriter("../versions.md"))
 		{
 			fr.write(markdown);
 			fr.flush();

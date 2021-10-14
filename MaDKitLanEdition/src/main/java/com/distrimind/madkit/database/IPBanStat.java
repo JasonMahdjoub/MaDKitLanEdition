@@ -60,7 +60,7 @@ import com.distrimind.ood.database.exceptions.DatabaseException;
  */
 public final class IPBanStat extends Table<IPBanStat.Record> {
 
-	protected IPBanStat() throws DatabaseException {
+	private IPBanStat() throws DatabaseException {
 		super();
 	}
 

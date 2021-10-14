@@ -49,7 +49,6 @@ import com.distrimind.madkit.exceptions.PacketException;
  */
 public final class PacketPart {
 
-	//private byte[] bytes;
 	private final SubBlock subBlock;
 	private final PacketPartHead head;
 	private final boolean isReadyToSend;
@@ -82,10 +81,6 @@ public final class PacketPart {
 		return subBlock;
 	}
 	
-	/*public byte[] getBytes() {
-		return bytes;
-	}*/
-
 	public PacketPartHead getHead() {
 		return head;
 	}

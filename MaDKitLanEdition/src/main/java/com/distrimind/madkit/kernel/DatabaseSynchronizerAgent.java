@@ -181,15 +181,6 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 		return distantGroupIdsPerID.get(id);
 	}
 
-	/*private void removeDistantGroupID(DecentralizedValue id)
-	{
-		Group group=distantGroupIdsPerID.remove(id);
-		if (group!=null) {
-			this.leaveRole(group, CloudCommunity.Roles.SYNCHRONIZER);
-			distantGroupIdsPerGroup.remove(group);
-		}
-	}*/
-
 	private void removeUnusedDistantGroups() {
 		for (Iterator<Map.Entry<DecentralizedValue, Group>> it = distantGroupIdsPerID.entrySet().iterator(); it.hasNext();) {
 			Map.Entry<DecentralizedValue, Group> e=it.next();
@@ -591,13 +582,10 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 			this.distantGroupIdsPerGroup=distantGroupIdsPerGroup;
 			this.distantGroupIdsPerID=distantGroupIdsPerID;
 			this.centralGroupIdsPerGroup=centralGroupIdsPerGroup;
-			//this.centralGroupIdsPerID=centralGroupIdsPerID;
 		}
 		else if (_message==checkEvents)
 		{
 			DatabaseEvent e;
-			/*if (currentBigDataTransferID!=null)
-				return ;*/
 			try {
 
 
@@ -744,7 +732,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 								generateError = false;
 							}
 						}
-					} catch (DatabaseException | IOException e) {
+					} catch (DatabaseException | IOException | IllegalAccessException e) {
 						e.printStackTrace();
 						getLogger().severe(e.getMessage());
 					}
@@ -763,7 +751,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 							generateError = false;
 						}
 
-					} catch (IOException e) {
+					} catch (IOException | IllegalAccessException e) {
 						e.printStackTrace();
 						getLogger().severe(e.getMessage());
 					}

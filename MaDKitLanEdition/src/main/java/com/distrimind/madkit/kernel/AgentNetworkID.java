@@ -98,7 +98,7 @@ public final class AgentNetworkID implements Serializable {
 	 * @return a simplified version of the binded agent's network identifier
 	 * @see AbstractAgent#getNetworkID()
 	 */
-	final public String getSimpleString() {
+	public String getSimpleString() {
 		return id + "@" + kernelAddress;
 	}
 

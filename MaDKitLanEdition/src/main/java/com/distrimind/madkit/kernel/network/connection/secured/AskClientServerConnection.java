@@ -117,12 +117,6 @@ class AskClientServerConnection extends AskConnection {
 		this.secretKeyForSignature=kwe.wrap(random, signatureSecretKey);
 		this.randomBytes=new byte[256];
 		random.nextBytes(randomBytes);
-		/*SymmetricAuthenticatedSignerAlgorithm signer=new SymmetricAuthenticatedSignerAlgorithm(signatureSecretKey);
-		signer.init();
-		signer.update(secretKeyForEncryption.getBytes());
-		signer.update(randomBytes);
-		this.signatureOfSecretKeyForEncryption=signer.getSignature();*/
-		//this.distantPublicKeyForEncryptionEncoded = asymmetricAlgo.encode(distantPublicKeyForEncryption.encode());
 	}
 	AskClientServerConnection(AbstractSecureRandom random, ASymmetricKeyWrapperType keyWrapper, SymmetricSecretKey signatureSecretKey,			
 			IASymmetricPublicKey distantPublicKeyForEncryption) throws IOException, IllegalStateException {
@@ -137,8 +131,6 @@ class AskClientServerConnection extends AskConnection {
 		this.secretKeyForEncryption=null;
 		this.secretKeyForSignature=kws.wrap(random, signatureSecretKey);
 		this.randomBytes=null;
-		//this.signatureOfSecretKeyForEncryption=null;
-		//this.distantPublicKeyForEncryptionEncoded = asymmetricAlgo.encode(distantPublicKeyForEncryption.encode());
 	}
 
 	WrappedEncryptedSymmetricSecretKey getSecretKeyForEncryption() {
@@ -148,35 +140,7 @@ class AskClientServerConnection extends AskConnection {
 		return secretKeyForSignature;
 	}
 	
-	/*boolean checkSignedMessage(SymmetricSecretKey signatureSecretKey, boolean encryptionEnabled)
-	{
-		if (secretKeyForEncryption==null)
-			return !encryptionEnabled;
-		if (!encryptionEnabled)
-			return false;
-		try {
 
-			SymmetricAuthenticatedSignatureCheckerAlgorithm checker=new SymmetricAuthenticatedSignatureCheckerAlgorithm(signatureSecretKey);
-			checker.init(this.signatureOfSecretKeyForEncryption);
-			if (secretKeyForEncryption!=null)
-				checker.update(this.secretKeyForEncryption);
-			checker.update(this.randomBytes);
-			return checker.verify();
-		} catch (NoSuchAlgorithmException | IllegalStateException | NoSuchProviderException
-				|  IOException e) {
-			return false;
-		}
-	}*/
-
-	/*byte[] getEncodedPublicKeyForEncryption() {
-		return publicKeyForEncryptionEncoded;
-	}
-	byte[] getEncodedPublicKeyForSignature() {
-		return publicKeyForSignatureEncoded;
-	}*/
-
-
-	
 	
 
 	@Override

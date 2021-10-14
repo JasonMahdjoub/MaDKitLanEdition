@@ -52,8 +52,7 @@ public interface SystemMessageWithoutInnerSizeControl extends SecureExternalizab
 
 
 	
-	//public abstract Integrity checkDataIntegrity();
-	
+
 	boolean excludedFromEncryption();
 
 

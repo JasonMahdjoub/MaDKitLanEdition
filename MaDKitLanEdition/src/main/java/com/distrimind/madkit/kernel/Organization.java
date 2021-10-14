@@ -67,7 +67,7 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 	/**
 	 * @return the myKernel
 	 */
-	final MadkitKernel getMyKernel() {
+	MadkitKernel getMyKernel() {
 		return myKernel;
 	}
 
@@ -79,10 +79,6 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 		myKernel = madkitKernel;
 		// logger = madkitKernel.getLogger();
 		logger = null;
-	}
-
-	String getName() {
-		return communityName;
 	}
 
 
@@ -257,14 +253,6 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 
 		}
 	}
-
-	/*void removeAgentsFromDistantKernel(KernelAddress kernelAddress2, MadkitKernel madkitKernel) {
-		for (InternalGroup group : values()) {
-			if (group.isDistributed()) {
-				group.removeAgentsFromDistantKernel(kernelAddress2, madkitKernel);
-			}
-		}
-	}*/
 
 	void removeDistantGroup(KernelAddress distantKernelAddress, Group distantGroup, MadkitKernel madkitKernel) {
 		for (InternalGroup group : values()) {

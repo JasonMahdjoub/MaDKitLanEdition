@@ -162,8 +162,6 @@ public class AccessProtocolWithP2PAgreementProperties extends AbstractAccessProt
 			return true;
 		if (this.p2pLoginAgreementType!=null && this.p2pLoginAgreementType!=P2PLoginAgreementType.AGREEMENT_WITH_SYMMETRIC_SIGNATURE)
 			return false;
-		/*if (this.asymmetricLoginAgreementType!=null && this.p2pLoginAgreementType!=null)
-			return false;*/
 		return this.aSymmetricEncryptionType == null || this.aSymmetricEncryptionType.isPostQuantumAlgorithm();
 	}
 
@@ -176,8 +174,6 @@ public class AccessProtocolWithP2PAgreementProperties extends AbstractAccessProt
 				||
 				(cloudIdentifier.getAuthenticationPublicKey().isPostQuantumKey()
 						&& (encryptionRestriction != EncryptionRestriction.HYBRID_ALGORITHMS || cloudIdentifier.getAuthenticationPublicKey() instanceof HybridASymmetricPublicKey));
-				//(this.asymmetricLoginAgreementType != null && this.asymmetricLoginAgreementType.isPostQuantumAlgorithm(cloudIdentifier.getAuthenticationPublicKey())
-				//		&& (encryptionRestriction != EncryptionRestriction.HYBRID_ALGORITHMS || cloudIdentifier.getAuthenticationPublicKey() instanceof HybridASymmetricPublicKey));
 	}
 
 	@Override

@@ -33,20 +33,16 @@
  */
 package com.distrimind.madkit.gui.menu;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.util.Iterator;
-import java.util.Set;
-
-import javax.swing.Action;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-
 import com.distrimind.madkit.action.AgentAction;
 import com.distrimind.madkit.action.MDKAbstractAction;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.MadkitClassLoader;
 import com.distrimind.madkit.kernel.NetworkAgent;
+
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.util.Set;
 
 /**
  * This class builds a {@link JMenu} containing all the agents which are on the
@@ -126,19 +122,6 @@ public class LaunchAgentsMenu extends ClassPathSensitiveMenu {
 		update();
 	}
 
-	// private void addLaunchingNumber(ButtonGroup group, final int i) {//TODO
-	// final JRadioButton b = new JRadioButton(Words.LAUNCH.toString()+ " : "+i);
-	// add(b);
-	// b.addActionListener(new ActionListener() {
-	// @Override
-	// public void actionPerformed(ActionEvent e) {
-	// numberToLaunch = i;
-	// }
-	// });
-	// group.add(b);
-	// }
-	//
-
 	private void addTomenu(final Action a, final JMenu subMenu, final String className, final boolean simpleName) {
 		final JMenuItem name = new JMenuItem(a);
 		name.setText(simpleName ? MadkitClassLoader.getClassSimpleName(className) : className);
@@ -152,11 +135,7 @@ public class LaunchAgentsMenu extends ClassPathSensitiveMenu {
 			return;
 		removeAll();
 		final Set<String> classesToLaunch = MadkitClassLoader.getAllAgentClasses();
-		for (Iterator<String> iterator = classesToLaunch.iterator(); iterator.hasNext();) {
-			String agentClass = iterator.next();
-			if (agentClass.equals(NetworkAgent.class.getName()) || (filter != null && !filter.accept(agentClass)))
-				iterator.remove();
-		}
+		classesToLaunch.removeIf(agentClass -> agentClass.equals(NetworkAgent.class.getName()) || (filter != null && !filter.accept(agentClass)));
 
 		if (classesToLaunch.size() < 20) {
 			for (String string : classesToLaunch) {
@@ -182,10 +161,6 @@ public class LaunchAgentsMenu extends ClassPathSensitiveMenu {
 				}
 			}
 		}
-		// ButtonGroup group = new ButtonGroup();
-		// for (int i = 1; i <= 1000000; i*=10) {
-		// addLaunchingNumber(group,i);
-		// }
 
 	}
 

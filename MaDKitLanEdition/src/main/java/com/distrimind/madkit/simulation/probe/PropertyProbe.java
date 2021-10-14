@@ -225,12 +225,4 @@ public class PropertyProbe<A extends AbstractAgent, T> extends Probe<A>// TODO
 		return total / size();
 	}
 
-	// final public List<T> getAllProperties(){
-	// final ArrayList<T> list = new ArrayList<T>(size());
-	// for (final A agent : getCurrentAgentsList()) {
-	// list.add(getPropertyValue(agent));
-	// }
-	// return list;
-	// }
-
 }

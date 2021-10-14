@@ -82,8 +82,6 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 	private final AbstractSecureRandom approvedRandom, approvedRandomForKeys;
 	private boolean blockCheckerChanged = true;
 	private boolean currentBlockCheckerIsNull = true;
-	/*private ASymmetricAuthenticatedSignerAlgorithm signer=null;
-	private ASymmetricAuthenticatedSignatureCheckerAlgorithm signatureChecker=null;*/
 	private final PacketCounterForEncryptionAndSignature packetCounter;
 	private boolean reInitSymmetricAlgorithm =true;
 

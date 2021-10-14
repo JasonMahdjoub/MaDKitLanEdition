@@ -105,17 +105,6 @@ class MadkitKernelAccess {
 		}
 	}
 
-	/*static ThreadPoolExecutor getMadkitLifeExecutor(AbstractAgent _requester) {
-		try {
-			return (ThreadPoolExecutor) invoke(m_get_madkit_life_executor, getMadkitKernel(_requester));
-		} catch (InvocationTargetException e) {
-			System.err.println("Unexpected error :");
-			e.printStackTrace();
-			System.exit(-1);
-			return null;
-		}
-	}*/
-
 	static void setReturnsCode(ReturnCode rc, TransfersReturnsCodes returns_Code) {
 		try {
 			invoke(m_set_returns_code, rc, returns_Code);

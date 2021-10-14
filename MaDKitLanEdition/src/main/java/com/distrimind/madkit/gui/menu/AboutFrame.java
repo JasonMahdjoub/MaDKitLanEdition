@@ -40,8 +40,6 @@ package com.distrimind.madkit.gui.menu;
 import java.awt.BorderLayout;
 import java.awt.Desktop;
 import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
@@ -96,10 +94,6 @@ final class AboutFrame extends JDialog {
 		textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
 		textPanel.add(Box.createRigidArea(new Dimension(0, 110)));
 
-		// final JLabel name = new JLabel("Visit");
-		// name.setAlignmentX(0.5f);
-		// textPanel.add(name);
-
 		final StyledDocument doc = textPanel.getStyledDocument();
 		final Style def = StyleContext.getDefaultStyleContext().getStyle(StyleContext.DEFAULT_STYLE);
 
@@ -136,12 +130,9 @@ final class AboutFrame extends JDialog {
 		add(textPanel);
 
 		final JButton close = new JButton("OK");
-		close.addActionListener(new ActionListener() {
-
-			public void actionPerformed(ActionEvent event) {
-				setVisible(false);
-				dispose();
-			}
+		close.addActionListener(event -> {
+			setVisible(false);
+			dispose();
 		});
 
 		add(close, BorderLayout.SOUTH);

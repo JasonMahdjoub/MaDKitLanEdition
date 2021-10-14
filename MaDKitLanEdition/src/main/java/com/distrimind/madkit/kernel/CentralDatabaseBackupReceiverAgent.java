@@ -274,7 +274,7 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 						currentBigDataReceiving.put(m.getConversationID(), new DatabaseSynchronizerAgent.BigDataMetaData(b, out));
 						generateError = false;
 					}
-				} catch (IOException e) {
+				} catch (IOException | IllegalAccessException e) {
 					e.printStackTrace();
 					getLogger().severe(e.getMessage());
 				}
@@ -289,7 +289,7 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 						currentBigDataReceiving.put(m.getConversationID(), new DatabaseSynchronizerAgent.BigDataMetaData(b, out));
 						generateError = false;
 					}
-				} catch (IOException e) {
+				} catch (IOException | IllegalAccessException e) {
 					e.printStackTrace();
 					getLogger().severe(e.getMessage());
 				}

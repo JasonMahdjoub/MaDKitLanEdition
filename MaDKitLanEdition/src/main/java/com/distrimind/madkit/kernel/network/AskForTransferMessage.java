@@ -147,22 +147,6 @@ public class AskForTransferMessage extends Message {
 		return inetSocketAddress1 == null || inetSocketAddress2 == null;
 	}
 
-	/*void setInetSocketAddress1(InetSocketAddress _inetSocketAddress1) {
-		inetSocketAddress1 = _inetSocketAddress1;
-	}
-
-	void setInetSocketAddress2(InetSocketAddress _inetSocketAddress2) {
-		inetSocketAddress2 = _inetSocketAddress2;
-	}
-
-	void setKernelAddress1(KernelAddress _kernelAddress1) {
-		kernelAddress1 = _kernelAddress1;
-	}
-
-	void setKernelAddress2(KernelAddress _kernelAddress2) {
-		kernelAddress2 = _kernelAddress2;
-	}*/
-
 	/**
 	 * Ask for a transfer connection between two kernel addresses
 	 * 

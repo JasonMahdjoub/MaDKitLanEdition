@@ -74,9 +74,6 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 	private Status status=Status.NOT_CONNECTED;
 	private final P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties properties;
 	private SymmetricSecretKey secretKeyForEncryption, secretKeyForSignature;
-	/*private SymmetricAuthenticatedSignatureCheckerAlgorithm signatureChecker;
-	private SymmetricAuthenticatedSignerAlgorithm signer;
-	private SymmetricEncryptionAlgorithm cipher;*/
 	private final AbstractSecureRandom approvedRandom;
 	private PacketCounterForEncryptionAndSignature packetCounter=null;
 	private boolean reInitSymmetricAlgorithm =false;

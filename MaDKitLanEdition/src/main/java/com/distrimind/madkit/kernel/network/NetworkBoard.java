@@ -123,24 +123,6 @@ class NetworkBoard {
 
 	}
 
-	/*boolean addDistantKernelAddressInterfaced(KernelAddressInterfaced kai) {
-		synchronized (distant_kernel_addresses) {
-			return distant_kernel_addresses.put(kai.getOriginalKernelAddress(), kai)==null;
-		}
-	}
-
-	void removeDistantKernelAddressInterfaced(KernelAddressInterfaced kai) {
-		synchronized (distant_kernel_addresses) {
-			distant_kernel_addresses.remove(kai.getOriginalKernelAddress());
-		}
-	}
-
-	KernelAddressInterfaced getKernelAddressInterfaced(KernelAddress originalKernelAddress) {
-		synchronized (distant_kernel_addresses) {
-			return distant_kernel_addresses.get(originalKernelAddress);
-		}
-	}*/
-
 	boolean checkDistantKernelAgentCandidateForPurgeEmpty() {
 		if (totalDataInQueueForAllDistantKernelAgent.get() != 0) {
 			new Exception("" + totalDataInQueueForAllDistantKernelAgent.get()).printStackTrace();
@@ -162,14 +144,6 @@ class NetworkBoard {
 
 	}
 
-	/*boolean checkDistantKernelAddressPurged() {
-		if (!distant_kernel_addresses.isEmpty()) {
-			new Exception("" + distant_kernel_addresses.size()).printStackTrace();
-			return false;
-		} else
-			return true;
-
-	}*/
 
 	@SuppressWarnings("unused")
 	boolean checkBoardEmpty() {

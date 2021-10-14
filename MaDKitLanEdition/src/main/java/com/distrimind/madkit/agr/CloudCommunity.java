@@ -257,11 +257,6 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 			return getDistributedDatabaseGroup(encodeDecentralizedValue(localIdentifier), distantIdentifier);
 		}
 
-		/*public static Group getDistributedDatabaseGroup(DecentralizedValue identifier)
-		{
-			return DISTRIBUTED_DATABASE.getSubGroup(true, databaseGateKeeper, false, Base64.encodeBase64URLSafeString(identifier.encodeWithDefaultParameters()));
-		}*/
-
 	}
 
 	/**
@@ -270,28 +265,6 @@ public class CloudCommunity implements Organization {// TODO check groups protec
 	 * @since MaDKitGroupEdition 1.0
 	 */
 	public static final class Roles {
-
-		// public static final String NET_AGENT="~~NET_AGENT";
-
-		/*
-		 * Role taken by distant kernel
-		 */
-		// public static final String DISTANT_KERNEL_ROLE="~~DISTANT_KERNEL";
-
-		/*
-		 * Role taken by socket agents
-		 */
-		// public static final String
-		// SOCKET_AGENT_ROLE=LocalCommunity.Roles.SOCKET_AGENT_ROLE;
-
-		/*public static final String DATABASE_EVENT_EMITTER="~~DATABASE_EVENT_EMITTER";
-
-		public static final String DATABASE_EVENT_LISTENER="~~DATABASE_EVENT_LISTENER";*/
-
-		/*public static String getDistributedDatabaseRole(DecentralizedValue identifier)
-		{
-			return Base64.encodeBase64URLSafeString(identifier.encodeWithDefaultParameters());
-		}*/
 
 		public static final String SYNCHRONIZER="~~SYNCHRONIZER";
 		public static final String CENTRAL_SYNCHRONIZER="~~CENTRAL_SYNCHRONIZER";

@@ -61,7 +61,7 @@ public abstract class AbstractIP extends MultiFormatProperties implements System
 	private static final long serialVersionUID = 5670994991069850019L;
 
 	private int port;
-	private transient int hashCode=-1;
+	private transient volatile int hashCode=-1;
 
 	public final Inet6Address getInet6Address()
 	{

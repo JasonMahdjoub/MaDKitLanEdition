@@ -211,9 +211,6 @@ public class GroupsRoles implements Cloneable, SecureExternalizable {
 		}
 	}
 
-	/*GroupsRoles(AbstractGroup group, String... distantAcceptedRoles) {
-			this(group, null, distantAcceptedRoles);
-		}*/
 	GroupsRoles(AbstractGroup group, RoleID roleID, String... distantAcceptedRoles) {
 		if (roleID==null)
 			throw new NullPointerException();
@@ -223,10 +220,15 @@ public class GroupsRoles implements Cloneable, SecureExternalizable {
 		if (distantAcceptedRoles!=null) {
 			if (distantAcceptedRoles.length>MAX_ROLES_NUMBER)
 				throw new IllegalArgumentException();
+
 			if (distantAcceptedRoles.length==0)
 				this.distantAcceptedRoles =null;
-			else
+			else {
+				for (String r : distantAcceptedRoles)
+					if (r.length()>Group.MAX_ROLE_NAME_LENGTH)
+						throw new IllegalArgumentException();
 				this.distantAcceptedRoles = distantAcceptedRoles;
+			}
 		}
 		else
 		{
@@ -246,8 +248,12 @@ public class GroupsRoles implements Cloneable, SecureExternalizable {
 				throw new IllegalArgumentException();
 			if (distantAcceptedRoles.length==0)
 				this.distantAcceptedRoles =null;
-			else
+			else {
+				for (String r : distantAcceptedRoles)
+					if (r.length()>Group.MAX_ROLE_NAME_LENGTH)
+						throw new IllegalArgumentException();
 				this.distantAcceptedRoles = distantAcceptedRoles;
+			}
 		}
 		else
 		{

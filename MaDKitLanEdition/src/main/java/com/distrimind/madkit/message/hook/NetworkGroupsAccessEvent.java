@@ -59,7 +59,7 @@ public class NetworkGroupsAccessEvent extends HookMessage {
 
 	private final ListGroupsRoles effective_accessible_groups;
 	private final ListGroupsRoles general_accessible_groups;
-	private KernelAddress concerned_kernel_address_interfaced;
+	private final KernelAddress concerned_kernel_address_interfaced;
 	private final boolean localGroupsRemoved;
 
 	/*private static Group[] toArray(Collection<Group> _accessible_groups) {

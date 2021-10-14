@@ -59,8 +59,6 @@ public enum ErrorMessages {
 	ITERATOR_NO_MORE_ELEMENTS;
 
 	final static ResourceBundle messages = I18nUtilities.getResourceBundle(ErrorMessages.class.getSimpleName());
-	// static ResourceBundle messages =
-	// I18nUtilities.getResourceBundle(ReturnCode.class);
 
 	public String toString() {
 		return messages.getString(name()) + " ";

@@ -85,38 +85,7 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 		oos.writeObject(identifiers, false, NetworkProperties.GLOBAL_MAX_SHORT_DATA_SIZE);
 	}
 
-	/*WrappedCloudIdentifier[] getIdentifiers() {
-		return identifiers;
-	}*/
 
-	/*public IdentifiersPropositionMessage(Collection<Identifier> _id_pws, P2PASymmetricSecretMessageExchanger cipher,
-				boolean encryptIdentifiers, short nbAnomalies) throws InvalidKeyException, IOException,
-				IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException,
-				NoSuchPaddingException, InvalidAlgorithmParameterException, NoSuchProviderException, IllegalStateException, ShortBufferException {
-			identifiers = new Identifier[_id_pws.size()];
-			isEncrypted = encryptIdentifiers;
-			int index = 0;
-			for (Identifier ip : _id_pws) {
-				if (encryptIdentifiers && !ip.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
-					identifiers[index++] = new EncryptedIdentifier(ip, cipher);
-				else {
-					identifiers[index++] = ip;
-				}
-			}
-			this.nbAnomalies = nbAnomalies;
-		}*/
-	/*static Collection<CloudIdentifier> getCloudIdentifierList(Collection<Identifier> _id_pws)
-	{
-		ArrayList<CloudIdentifier> res=new ArrayList<>(_id_pws.size());
-		for (Identifier id : _id_pws)
-			res.add(id.getCloudIdentifier());
-		return res;
-	}*/
-
-	/*CloudIdentifiersPropositionMessage(Collection<Identifier> _id_pws, AbstractSecureRandom random, AbstractMessageDigest messageDigest,
-											  boolean encryptIdentifiers, short nbAnomalies, byte[] distantGeneratedSalt, EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties) throws DigestException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidKeyException, InvalidKeySpecException {
-		this(random, messageDigest, encryptIdentifiers, nbAnomalies, distantGeneratedSalt, getCloudIdentifierList(_id_pws), encryptionRestriction, accessProtocolProperties);
-	}*/
 	CloudIdentifiersPropositionMessage(AbstractSecureRandom random, AbstractMessageDigest messageDigest,
 											  boolean permitAnonymousIdentifiers, short nbAnomalies, byte[] distantGeneratedSalt,
 									   Collection<CloudIdentifier> _id_pws) throws NoSuchAlgorithmException, IOException,NoSuchProviderException {
@@ -145,49 +114,6 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 		return nbAnomalies;
 	}
 
-	/*public ArrayList<Identifier> getValidDecodedIdentifiers(LoginData loginData,
-			P2PASymmetricSecretMessageExchanger cipher) throws AccessException {
-		ArrayList<Identifier> res = new ArrayList<>();
-		if (isEncrypted) {
-			for (Identifier id : identifiers) {
-				if (id instanceof EncryptedIdentifier) {
-					Identifier i = loginData.getIdentifier((EncryptedIdentifier) id, cipher);
-					if (i != null)
-						res.add(i);
-				}
-				else
-					res.add(id);
-			}
-		} else {
-			res.addAll(Arrays.asList(identifiers));
-		}
-
-		return res;
-	}*/
-	/*private boolean checkIdentifiers(Identifier local, Identifier distant, LoginData loginData)
-	{
-		if (local!=null && distant!=null)
-		{
-			if (local.equals(distant))
-				return false;
-			if (local.getCloudIdentifier().getAuthenticationMethod()!=distant.getCloudIdentifier().getAuthenticationMethod())
-				return false;
-			if (local.getHostIdentifier().getAuthenticationMethod()!=distant.getHostIdentifier().getAuthenticationMethod())
-				return false;
-			if (local.getCloudIdentifier().getAuthenticationMethod()== Identifier.AuthenticationMethod.NOT_DEFINED)
-				return false;
-			if ((local.getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey()
-					|| local.getHostIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey())
-					&& !loginData.acceptAutoSignedIdentifiers())
-			{
-				return false;
-			}
-			return (!local.getCloudIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey() || local.getCloudIdentifier().getAuthenticationKeyPair() != null)
-					&& (!local.getHostIdentifier().getAuthenticationMethod().isAuthenticatedByPublicKey() || local.getHostIdentifier().getAuthenticationKeyPair() != null);
-		}
-		else
-			return false;
-	}*/
 	public void getValidDecodedCloudIdentifiers(LoginData loginData,
 												AbstractMessageDigest messageDigest,
 												byte[] localGeneratedSalt ,
@@ -200,10 +126,7 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 		for (WrappedCloudIdentifier id : identifiers) {
 			CloudIdentifier i=loginData.getLocalVersionOfDistantCloudIdentifier(id, messageDigest, localGeneratedSalt, encryptionRestriction, accessProtocolProperties);
 			if (i!=null) {
-				/*if (i.getAuthenticationMethod().isAuthenticatedByPublicKey() && i.getAuthenticationKeyPair()==null)
-					acceptedAutoSignedCloudIdentifiers.add(i);
-				else*/
-					validCloudIdentifiers.add(i);
+				validCloudIdentifiers.add(i);
 			}
 			else {
 				validCloudIdentifiers.remove(id.getCloudIdentifier());
@@ -212,18 +135,6 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 
 	}
 
-	/*public IdentifiersPropositionMessage getIdentifiersPropositionMessageAnswer(LoginData loginData,
-			P2PASymmetricSecretMessageExchanger cipher, boolean encryptIdentifiers)
-			throws AccessException, InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException,
-			NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException,
-			InvalidAlgorithmParameterException, NoSuchProviderException, IllegalStateException, ShortBufferException {
-		ArrayList<Identifier> validID = getValidDecodedIdentifiers(loginData, cipher);
-		int nbAno = identifiers.length - validID.size();
-		return new IdentifiersPropositionMessage(validID, cipher, encryptIdentifiers,
-				loginData.canTakesLoginInitiative()
-						? ((validID.size() == 0 && identifiers.length > 0) ? (short) 1 : (short) 0)
-						: (nbAno > Short.MAX_VALUE) ? Short.MAX_VALUE : (short) nbAno);
-	}*/
 	public CloudIdentifiersPropositionMessage getIdentifiersPropositionMessageAnswer(LoginData loginData,
 																					 AbstractSecureRandom random,
 																					 AbstractMessageDigest messageDigest,
@@ -249,51 +160,6 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 						: (nbAno > Short.MAX_VALUE) ? Short.MAX_VALUE : (short) nbAno, distantGeneratedSalt, validID);
 	}
 
-	/*public IdPwMessage getIdPwMessage(LoginData loginData, P2PASymmetricSecretMessageExchanger cipher,
-			boolean encryptIdentifiers) throws AccessException, InvalidKeyException, IOException,
-			IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException,
-			NoSuchPaddingException, InvalidAlgorithmParameterException, NoSuchProviderException, IllegalStateException, ShortBufferException {
-		ArrayList<IdentifierPassword> res = new ArrayList<>();
-		int nbAno = 0;
-		if (isEncrypted) {
-			for (Identifier id : identifiers) {
-				Identifier i;
-				if (id instanceof EncryptedIdentifier)
-					i = loginData.getIdentifier((EncryptedIdentifier) id, cipher);
-				else
-					i=id;
-
-				if (i != null) {
-					Identifier localId = loginData.localiseIdentifier(i);
-
-					PasswordKey pw = loginData.getPassword(localId);
-					if (pw != null)
-						res.add(new IdentifierPassword(localId, pw));
-					else
-						++nbAno;
-				} else
-					++nbAno;
-			}
-
-		} else {
-			for (Identifier id : identifiers) {
-				Identifier localId = loginData.localiseIdentifier(id);
-				if (localId==null) {
-					++nbAno;
-					continue;
-				}
-				PasswordKey pw = loginData.getPassword(localId);
-				if (pw != null)
-					res.add(new IdentifierPassword(localId, pw));
-				else
-					++nbAno;
-			}
-		}
-		return new IdPwMessage(res, cipher, encryptIdentifiers,
-				loginData.canTakesLoginInitiative()
-						? ((res.size() == 0 && identifiers.length > 0) ? (short) 1 : (short) 0)
-						: (nbAno > Short.MAX_VALUE) ? Short.MAX_VALUE : (short) nbAno);
-}*/
 	private int getJakeMessageSub(WrappedCloudIdentifier distantCloudID, Collection<PairOfIdentifiers> acceptedIdentifiers,
 								  List<CloudIdentifier> newAcceptedDistantCloudIdentifiers,
 								  Map<WrappedCloudIdentifier, CloudIdentifier> temporaryAcceptedCloudIdentifiers, LoginData loginData,

@@ -187,39 +187,13 @@ class LoginConfirmationMessage extends AccessMessage {
 
 
 		ArrayList<PairOfIdentifiers> res=new ArrayList<>();
-		//HashSet<Identifier> usedDistantIdentifiers=new HashSet<>();
 		for (Identifier id : accepted_identifiers)
 		{
 			PairOfIdentifiers poi=getAcceptedPairOfIdentifiers(alreadyValidatedPairOfIdentifiers, removedValidatedPairOfIdentifiers, localLoginConfirmationMessage,proposedLocalIdentifiers, id, initializedIdentifiers, newAcceptedCloudIdentifiers);
 			if (poi!=null) {
 				res.add(poi);
-				//usedDistantIdentifiers.add(poi.getDistantIdentifier());
 			}
 		}
-		/*for (Identifier distantID : localLoginConfirmationMessage.accepted_identifiers)
-		{
-			if (!usedDistantIdentifiers.contains(distantID)) {
-				boolean add=true;
-				for (PairOfIdentifiers poi : alreadyValidatedPairOfIdentifiers) {
-					if (poi.getDistantIdentifier().getCloudIdentifier().equals(distantID.getCloudIdentifier())) {
-						if (!distantID.equals(poi.getDistantIdentifier())) {
-							removedValidatedPairOfIdentifiers.add(poi);
-						} else
-							add = false;
-						break;
-					}
-				}
-				if (add)
-					res.add(new PairOfIdentifiers(null, distantID));
-			}
-		}*/
-		/*for (Identifier distantID : accepted_identifiers)
-		{
-			if (distantID.getHostIdentifier().equals(HostIdentifier.getNullHostIdentifierSingleton()))
-			{
-
-			}
-		}*/
 		return res;
 
 	}

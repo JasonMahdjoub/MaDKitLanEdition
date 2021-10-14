@@ -302,12 +302,12 @@ public abstract class SwingViewer extends Watcher {
 
     public void setRenderingInterval(int interval) {
 		renderingInterval = interval > 0 ? interval : 1;
-		if ((Integer) comboBox.getSelectedItem() != renderingInterval) {
+		Integer i=(Integer) comboBox.getSelectedItem();
+		if ( i==null || i != renderingInterval) {
 			comboBox.setSelectedItem(renderingInterval);
 		}
 	}
 
-	@SuppressWarnings("serial")
 	private void initRenderingIntervalComboBox(String titleAndTooltip) {
 		final Integer[] defaultValues = new Integer[]{1, 5, 10, 20,
 				50, 100, 200, 500, 1000,
@@ -324,7 +324,9 @@ public abstract class SwingViewer extends Watcher {
 		comboBox.setEditable(true);
 		comboBox.addActionListener(e -> {
 			try {
-				setRenderingInterval((Integer) comboBox.getSelectedItem());
+				Integer i=(Integer) comboBox.getSelectedItem();
+				if (i!=null)
+					setRenderingInterval(i);
 			} catch (ClassCastException e1) {
 				comboBox.setSelectedItem(1);
 			}

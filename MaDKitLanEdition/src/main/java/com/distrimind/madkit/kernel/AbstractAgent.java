@@ -446,16 +446,6 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		return alive.get();
 	}
 
-	// //////////////////////////////////////////// LIFE CYCLE
-
-	// public void dieWithException(Exception e){
-	// throw new AgentLifeException(e);
-	// }
-
-	// public void dieWithException(String message, Exception e){
-	// throw new AgentLifeException(message,e);
-	// }
-
 	private void activationFirstStage() {
 		synchronized (state) {
 			if (!state.compareAndSet(INITIALIZING, State.ACTIVATING))// TODO remove it when OK
@@ -541,20 +531,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 			activationFirstStage();// the activated flag must be in the try
 			activate();
 
-			/*
-			 * if (this instanceof AgentFakeThread) { AgentFakeThread
-			 * This=(AgentFakeThread)this; for (Message m : This.messageBox)
-			 * This.manageTaskMessage(m); }
-			 */
 			Thread.currentThread().setName("");
-			/*
-			 * synchronized (state) {
-			 * Thread.currentThread().setName(getAgentThreadName(State.LIVING)); }// cannot
-			 * be hard killed after that
-			 */
 			postActivate();
-			/*if (state.get().compareTo(ENDING)>=0)
-				result=ReturnCode.KILLING_ALREADY_IN_PROGRESS;*/
 			result = SUCCESS;
 		} catch (SelfKillException e) {
 			logMethod(false);
@@ -677,7 +655,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 				if (m.needReply())
 					sendReplyEmpty(m);
 			}
-			messageBox=null;
+			messageBox.clear();
 		}
 
 		Thread.currentThread().setName(getAgentThreadName(TERMINATED));
@@ -1331,10 +1309,6 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		if (Level.OFF == newLevel) {
 			if (logger != null) {
 				if (logger != AgentLogger.defaultAgentLogger) {
-					/*if ((logger!=getMadkitKernel().logger || this instanceof MadkitKernel))
-						logger.close();
-					else
-						logger.setLevel(newLevel);*/
 					logger.close();
 				}
 				loggerModified(null);
@@ -3793,12 +3767,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 			return returns_code;
 		}
 
-		// NETWORK_DOWN;
-
 		final static ResourceBundle messages = I18nUtilities.getResourceBundle(ReturnCode.class.getSimpleName());
 
-		// static ResourceBundle messages =
-		// I18nUtilities.getResourceBundle(ReturnCode.class);
 
 		public String toString() {
 			return messages.getString(name());
@@ -3868,10 +3838,6 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		// bypassing logging
 		return getMadkitKernel().isRole(this, LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.NET_AGENT);
 	}
-
-	// AgentExecutor getAgentExecutor() {
-	// return null;
-	// }
 
 	/**
 	 * This offers a convenient way to create main a main method that launches the
@@ -4060,8 +4026,6 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 */
 	public void setThreadPriorityOfMaDKItServiceExecutor(int newPriority) {
 		getMadkitKernel().setThreadPriorityForServiceExecutor(newPriority);
-		// return getKernel().setTaskManagerExecutorPriority(this, _task_agent_name,
-		// newPriority);
 	}
 
 	/**

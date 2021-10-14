@@ -2193,7 +2193,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 
 		@Override
-		public void finalize() {
+		protected void finalize() {
 			removePacketID(packet.getID());
 			super.finalize();
 		}

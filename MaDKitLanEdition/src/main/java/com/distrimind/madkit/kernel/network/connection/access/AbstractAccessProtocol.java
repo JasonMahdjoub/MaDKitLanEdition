@@ -190,7 +190,6 @@ public abstract class AbstractAccessProtocol {
 	protected abstract AccessMessage manageDifferableAccessMessage(AccessMessage _m) throws AccessException;
 
 
-	//private KernelAddress distant_kernel_address;
 	private ArrayList<PairOfIdentifiers> last_accepted_identifiers = new ArrayList<>();
 	private final ArrayList<PairOfIdentifiers> all_accepted_identifiers = new ArrayList<>();
 	private ArrayList<Identifier> last_denied_identifiers_from_other = new ArrayList<>();
@@ -198,15 +197,7 @@ public abstract class AbstractAccessProtocol {
 	private ArrayList<CloudIdentifier> last_denied_cloud_to_other = new ArrayList<>();
 	private ArrayList<PairOfIdentifiers> last_un_logged_identifiers = new ArrayList<>();
 
-	/*public KernelAddress getDistantKernelAddress() {
-		return distant_kernel_address;
-	}*/
 
-	/*protected void setDistantKernelAddress(KernelAddress ka)
-	{
-		distant_kernel_address=ka;
-	}*/
-	
 	protected void addLastAcceptedAndDeniedIdentifiers(ArrayList<CloudIdentifier> deniedDistantCloudIdentifiers, ArrayList<PairOfIdentifiers> _accepted_identifiers,
 			ArrayList<Identifier> _denied_local_identifiers, ArrayList<Identifier> _denied_distant_identifiers) {
 

@@ -264,7 +264,11 @@ public class AgentBigTransfer extends AgentFakeThread {
 					AssertJUnit.assertTrue(ok);
 					otherStats.put(m.getConversationID(), m.getStatistics());
 					// otherConversationIDs.put(m.getSender().getRole(), m.getConversationID());
-					m.acceptTransfer(new RandomByteArrayOutputStream());
+					try {
+						m.acceptTransfer(new RandomByteArrayOutputStream());
+					} catch (IllegalAccessException e) {
+						e.printStackTrace();
+					}
 				} else {
 					m.denyTransfer();
 					++otherSentManaged;

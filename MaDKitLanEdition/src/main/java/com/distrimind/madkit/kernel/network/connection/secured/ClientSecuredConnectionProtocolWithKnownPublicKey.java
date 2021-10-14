@@ -80,9 +80,6 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 
 	private final IASymmetricPublicKey distant_public_key_for_encryption;
 	protected final ClientASymmetricEncryptionAlgorithm aSymmetricAlgorithm;
-	/*protected SymmetricEncryptionAlgorithm symmetricEncryption = null;
-	protected SymmetricAuthenticatedSignerAlgorithm signer = null;
-	protected SymmetricAuthenticatedSignatureCheckerAlgorithm signatureChecker=null;*/
 	protected SymmetricSecretKey mySecretKeyForEncryption=null,mySecretKeyForSignature=null;
 	protected final ASymmetricKeyWrapperType keyWrapper;
 	private final SubBlockParser parser;
@@ -90,7 +87,6 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 	protected final ClientSecuredProtocolPropertiesWithKnownPublicKey hProperties;
 	
 	boolean firstMessageSent = false;
-	/*private boolean currentBlockCheckerIsNull = true;*/
 	private boolean needToRefreshTransferBlockChecker = true;
 	private final AbstractSecureRandom approvedRandom, approvedRandomForKeys;
 	private final PacketCounterForEncryptionAndSignature packetCounter;

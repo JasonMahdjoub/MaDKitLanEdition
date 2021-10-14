@@ -122,10 +122,12 @@ public abstract class HostIdentifier implements SecureExternalizable {
 		return new DefaultHostIdentifier(bytes, off, len);
 	}
 
-
-	public static class NullHostIdentifier extends HostIdentifier
+	public static HostIdentifier.NullHostIdentifier getNullHostIdentifierSingleton() {
+		return Identifier.getNullHostIdentifierSingleton();
+	}
+	public static final class NullHostIdentifier extends HostIdentifier
 	{
-		private NullHostIdentifier()
+		NullHostIdentifier()
 		{
 
 		}
@@ -181,11 +183,7 @@ public abstract class HostIdentifier implements SecureExternalizable {
 			return null;
 		}
 	}
-	private static final NullHostIdentifier nullHostIdentifierSingleton=new NullHostIdentifier();
 
-	public static NullHostIdentifier getNullHostIdentifierSingleton() {
-		return nullHostIdentifierSingleton;
-	}
 
 	private static class DefaultHostIdentifier extends HostIdentifier {
 

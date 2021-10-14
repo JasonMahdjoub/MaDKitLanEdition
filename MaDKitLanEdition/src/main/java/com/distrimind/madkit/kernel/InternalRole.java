@@ -154,16 +154,6 @@ class InternalRole implements SecureExternalizable {
 
 	}
 
-	// @Override
-	// public boolean equals(Object obj) { //override should not be required
-	// if(this == obj)
-	// return true;
-	// Role other = (Role) obj;
-	// return communityName.equals(other.communityName) &&
-	// groupName.equals(other.groupName) &&
-	// roleName.equals(other.roleName);
-	// }
-
 	synchronized void initializeOverlookers() {
 		for (final Overlooker<? extends AbstractAgent> o : myGroup.getCommunityObject().getMyKernel()
 				.getOperatingOverlookers()) {
@@ -274,8 +264,6 @@ class InternalRole implements SecureExternalizable {
 		}
 		if (number < 0) {
 			throw new IllegalAccessError("" + this);
-			// logger.log(Level.SEVERE, "Incoherent reference number (number<0) : "+number,
-			// new IllegalAccessError());
 		}
 	}
 
@@ -366,18 +354,10 @@ class InternalRole implements SecureExternalizable {
 			if (logger != null) {
 				logger.finest(requester.getName() + " is now playing " + getCGRString(group, roleName));
 			}
-			// System.err.println(requester.getName() + " is now playing " +
-			// getCGRString(communityName, groupName, roleName));
-			// System.err.println(this+" current players---\n"+players+"\n\n");
 			agentAddresses=null;
 			localAgentAddresses=null;
-			/*if (agentAddresses != null) {
-				agentAddresses.add(new AgentAddress(requester, this, kernelAddress, manually_requested));
-			}*/
 			modified = true;
 		}
-		// needs to be synchronized so that adding occurs prior to getAgentList
-		// So addToOverlookers(requester); has to be called in group
 		if (manually_requested)
 			incrementReferences(null);
 
@@ -386,21 +366,9 @@ class InternalRole implements SecureExternalizable {
 	}
 
 	final void addMembers(final List<AbstractAgent> bucket, final boolean roleJustCreated, boolean manually_requested) {
-		// System.err.println("add members "+bucket.size());
 		synchronized (players) {
 			for (AbstractAgent aa : bucket)
 				players.add(new ParametrizedAgent(aa, manually_requested));// is optimized
-			/*if (agentAddresses != null) {
-				final Set<AgentAddress> addresses = new HashSet<>(bucket.size() + agentAddresses.size(), 0.9f);// TODO
-																												// try
-																												// load
-																												// factor
-				for (final AbstractAgent a : bucket) {
-					addresses.add(new AgentAddress(a, this, kernelAddress, manually_requested));
-				}
-				addresses.addAll(agentAddresses);// TODO test vs assignment : this because knowing the size
-				agentAddresses = addresses;
-			}*/
 			agentAddresses=null;
 			localAgentAddresses=null;
 			modified = true;
@@ -413,17 +381,6 @@ class InternalRole implements SecureExternalizable {
 			addToOverlookers(bucket);
 		}
 	}
-
-	/*final void addDistantMember(final AgentAddress content) {
-		boolean ok;
-		synchronized (players) {
-			content.setRoleObject(this);// required for equals to work
-			ok = distantAgentAddresses.add(content);
-			agentAddresses=null;
-		}
-		if (ok && content.isManuallyRequested())
-			incrementReferences(content.getKernelAddress());
-	}*/
 
 	final boolean containsDistantAgents()
 	{
@@ -450,14 +407,6 @@ class InternalRole implements SecureExternalizable {
 			}
 			else
 				ok=false;
-			/*if (!distantAgentAddresses.contains(content)) {
-				ok = distantAgentAddresses.add(content);
-				if (!ok)
-					content.setRoleObject(null);
-				agentAddresses = null;
-			}
-			else
-				ok=false;*/
 		}
 		if (ok) {
 			if (content.isManuallyRequested())
@@ -491,9 +440,6 @@ class InternalRole implements SecureExternalizable {
 			}
 			agentAddresses=null;
 			localAgentAddresses=null;
-			/*if (agentAddresses != null) {
-				Objects.requireNonNull(removeAgentAddressOf(requester, agentAddresses)).setRoleObject(null);
-			}*/
 			if (logger != null) {
 				logger.finest(requester.getName() + " has left role " + getCGRString(group, roleName) + "\n");
 			}
@@ -530,17 +476,6 @@ class InternalRole implements SecureExternalizable {
 				}
 			}
 			
-			/*if (distantAgentAddresses != null) {
-
-				for (Iterator<AgentAddress> i = distantAgentAddresses.iterator(); i.hasNext();) {
-					AgentAddress aa = i.next();
-					AbstractAgent agent = aa.getAgent();
-					if (agent != null && bucket.remove(agent)) {
-						i.remove();
-						aa.setRoleObject(null);// cost is high because of string creation...
-					}
-				}
-            }*/
             agentAddresses=null;
 			localAgentAddresses=null;
 			modified = true;
@@ -579,8 +514,6 @@ class InternalRole implements SecureExternalizable {
 		synchronized (players) {
 			removeDistantAgentAddress(ka);
 			removeReference(ka);
-			/*if (number>0)
-				updateReferences(ka, -number);*/
 		}
 		checkEmptiness();
 	}
@@ -637,8 +570,6 @@ class InternalRole implements SecureExternalizable {
 			if (a.equals(aa)) {
 				it.remove();
 				agentAddresses=null;
-				/*if (res!=null)
-					throw new InternalError();*/
 				res=aa;
 				break;
 			}
@@ -743,17 +674,6 @@ class InternalRole implements SecureExternalizable {
 		cleanAndRemove(true);
 	}
 
-	// /**
-	// * @param requester the agent by which I am now empty
-	// *
-	// */
-	// private void deleteMySelfFromOrg(AbstractAgent requester) {
-	// for (final Overlooker<? extends AbstractAgent> o : overlookers) {
-	// o.setOverlookedRole(null);
-	// }
-	// myGroup.removeRole(roleName);
-	// }
-
 	final void destroy() {
 		if (distantAgentAddresses != null) {
 			for (AgentAddress aa : distantAgentAddresses.values()) {
@@ -772,8 +692,6 @@ class InternalRole implements SecureExternalizable {
 	@SuppressWarnings("UnusedReturnValue")
 	static AgentAddress removeAgentAddressOf(final AbstractAgent requester,
 											 final Collection<AgentAddress> agentAddresses2) {
-		// if(requester == null)
-		// throw new AssertionError("Wrong use ^^");
 		for (final Iterator<AgentAddress> iterator = agentAddresses2.iterator(); iterator.hasNext();) {
 			try {
 				final AgentAddress aa = iterator.next();
@@ -787,20 +705,6 @@ class InternalRole implements SecureExternalizable {
 		}
 		return null;
 	}
-
-	// boolean empty() {
-	// return ( (players == null || players.isEmpty()) && (agentAddresses == null ||
-	// agentAddresses.isEmpty()) );//simply not possible if not following remove A
-	// }
-
-	// /**
-	// * @return all the agent addresses: This list is never null because an empty
-	// role does not exist
-	// */
-	// Set<AgentAddress> getAgentAddresses() {
-	// buildAgentAddressesList();
-	// return agentAddresses;
-	// }
 
 
 	final AgentAddress getAgentAddressInGroup(final AbstractAgent abstractAgent) {
@@ -887,16 +791,10 @@ class InternalRole implements SecureExternalizable {
 				}
 			}
 		}
-		/*for (AgentAddress aa : added){
-			if (aa.isManuallyRequested())
-				incrementReferences(aa.getKernelAddress());
-			madkitKernel.informHooks(AgentActionEvent.REQUEST_ROLE, aa);
-		}*/
 	}
 
 	AgentAddress getAgentAddressOf(final AbstractAgent a) {
 
-		// final KernelAddress ka = a.getKernelAddress();
 		synchronized (players) {
 			for (final AgentAddress aa : buildAndGetAddresses()) {// TODO when offline second part is useless
 				if (aa.getAgentID() == a.getAgentID() && aa.getAgent() != null)// && ka.equals(aa.getKernelAddress()))

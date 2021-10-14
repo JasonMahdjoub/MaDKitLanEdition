@@ -370,17 +370,14 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 		for (Map.Entry<Integer, AbstractKeyPair<?, ?>> e : keyPairs.entrySet()) {
 			if (e.getValue() == null)
 				throw new NullPointerException();
-			int s;
 			if (e.getValue() instanceof HybridASymmetricKeyPair)
 			{
 				if (((HybridASymmetricKeyPair)e.getValue()).getASymmetricPublicKey().getNonPQCPublicKey().getAuthenticatedSignatureAlgorithmType()==null)
 					throw new ConnectionException();
-				s= e.getValue().getNonPQCKeyPair().getKeySizeBits();
 			}
 			else{
 				if (((ASymmetricKeyPair)e.getValue()).getAuthenticatedSignatureAlgorithmType()==null)
 					throw new ConnectionException();
-				s=((ASymmetricKeyPair)e.getValue()).getKeySizeBits();
 			}
 			Boolean vp=serverSideValidProfiles.get(e.getKey());
 			if (e.getValue().getTimeExpirationUTC() > System.currentTimeMillis() && vp!=null && vp) {

@@ -529,31 +529,6 @@ class FakeKernel extends MadkitKernel {
 		throw buildKernelException(null);
 	}
 
-	/*@Override
-	void setIfNotPresentLocalDatabaseHostIdentifier(AbstractAgent requester, DecentralizedValue localDatabaseHostID, Package ...packages)
-	{
-		throw buildKernelException(null);
-	}
-
-	@Override
-	void resetDatabaseSynchronizer(AbstractAgent requester) {
-		throw buildKernelException(null);
-	}
-
-	@Override
-	void addOrConfigureDistantDatabaseHost(AbstractAgent requester, DecentralizedValue hostIdentifier, boolean conflictualRecordsReplacedByDistantRecords, Package... packages) {
-		throw buildKernelException(null);
-	}
-	@Override
-	void removeDistantDatabaseHostFromDatabaseSynchronizer(AbstractAgent requester, DecentralizedValue hostIdentifier, Package... packages)  {
-		throw buildKernelException(null);
-	}*/
-
-	/*@Override
-	<V> V take(BlockingDeque<V> toTake) {
-		throw buildKernelException(null);
-	}*/
-
 	@Override
 	List<AbstractAgent> createBucket(final String agentClass, int bucketSize, int cpuCoreNb) {
 		throw buildKernelException(null);

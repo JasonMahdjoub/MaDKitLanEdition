@@ -55,11 +55,8 @@ public class PacketCounterForEncryptionAndSignature implements PacketCounter {
 	private final byte[] mySignatureCounter;
 	private byte[] otherEncryptionCounter;
 	private byte[] otherSignatureCounter;
-	/*private byte[] myNextEncryptionCounter;
-	private byte[] myNextSignatureCounter;*/
 	private static final short ENCRYPTION_COUNTER_SIZE_BYTES=2;
 	private static final short SIGNATURE_COUNTER_SIZE_BYTES=16;
-	//private boolean nextMyCounterSelected=false;
 	private boolean distantActivated=false;
 	private boolean localActivated=false;
 	PacketCounterForEncryptionAndSignature(AbstractSecureRandom random, boolean encryptionEnabled, boolean signatureEnabled)
@@ -68,25 +65,19 @@ public class PacketCounterForEncryptionAndSignature implements PacketCounter {
 		{
 			myEncryptionCounter=new byte[ENCRYPTION_COUNTER_SIZE_BYTES];
 			random.nextBytes(myEncryptionCounter);
-			/*this.myNextEncryptionCounter=Arrays.clone(this.myEncryptionCounter);
-			incrementCounter(this.myNextEncryptionCounter);*/
 		}
 		else 
 		{
 			myEncryptionCounter=null;
-			//this.myNextEncryptionCounter=null;
 		}
 		if (signatureEnabled)
 		{
 			mySignatureCounter=new byte[SIGNATURE_COUNTER_SIZE_BYTES];
 			random.nextBytes(mySignatureCounter);
-			/*this.myNextSignatureCounter=Arrays.clone(this.mySignatureCounter);
-			incrementCounter(this.myNextSignatureCounter);*/
 		}
 		else
 		{
 			mySignatureCounter=null;
-			//myNextSignatureCounter=null;
 		}
 		
 		
@@ -211,38 +202,6 @@ public class PacketCounterForEncryptionAndSignature implements PacketCounter {
 		return otherSignatureCounter;
 	}
 
-	/*@Override
-	public void selectMyCounters(State state) throws PacketException {
-		switch(state)
-		{
-		case KEEP_ACTUAL:
-			distantActivated=true;
-			nextMyCounterSelected=false;
-			break;
-		case NOT_ACTIVATED:
-			if (distantActivated)
-				throw new PacketException();
-			
-			break;
-		case TAKE_NEXT_COUNTER:
-			distantActivated=true;
-			nextMyCounterSelected=true;
-			break;
-		case VALIDATE_NEXT_COUNTER_AND_TAKE_ACTUAL:
-			distantActivated=true;
-			nextMyCounterSelected=false;
-			incrementMyCounters();
-			break;
-		case VALIDATE_NEXT_COUNTER_AND_TAKE_NEXT:
-			distantActivated=true;
-			nextMyCounterSelected=true;
-			incrementMyCounters();
-			break;
-		
-		}
-		
-		
-	}*/
 
 	@Override
 	public boolean isDistantActivated() {

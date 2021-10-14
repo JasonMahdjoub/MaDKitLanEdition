@@ -62,7 +62,7 @@ import java.util.HashMap;
  */
 public final class KeysPairs extends Table<KeysPairs.Record> {
 
-	protected KeysPairs() throws DatabaseException {
+	private KeysPairs() throws DatabaseException {
 		super();
 	}
 
@@ -80,8 +80,8 @@ public final class KeysPairs extends Table<KeysPairs.Record> {
 		return res;
 	}
 
-	protected long getIdentifier(InetAddress address, byte usingTypeId, ASymmetricEncryptionType typeEncryption, ASymmetricAuthenticatedSignatureType typeSignature, short keySize,
-			short maximumNumberOfKeysForIpSpectrum) {
+	private long getIdentifier(InetAddress address, byte usingTypeId, ASymmetricEncryptionType typeEncryption, ASymmetricAuthenticatedSignatureType typeSignature, short keySize,
+							   short maximumNumberOfKeysForIpSpectrum) {
 		int inet_id = (getBigInteger(address.getAddress()).mod(BigInteger.valueOf(maximumNumberOfKeysForIpSpectrum))
 				.intValue() + maximumNumberOfKeysForIpSpectrum * usingTypeId);
 

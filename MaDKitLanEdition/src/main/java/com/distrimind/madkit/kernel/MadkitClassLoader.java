@@ -71,9 +71,7 @@ import java.util.jar.JarFile;
 final public class MadkitClassLoader extends URLClassLoader { // NO_UCD
 
 	private Collection<String> classesToReload;
-	// final private Madkit madkit;
 	private static Set<String> agentClasses;
-	// private static Set<File> mdkFiles;
 	private static Set<File> xmlFiles;
 	private static Set<String> mains;
 	private static Set<MASModel> demos;
@@ -123,10 +121,6 @@ final public class MadkitClassLoader extends URLClassLoader { // NO_UCD
 		if (classesToReload != null && classesToReload.contains(name)) {
 			c = findLoadedClass(name);
 			if (c != null) {
-				// Logger l = madkit.getKernel().logger;
-				// if (l != null) {
-				// l.log(Level.FINE, "Already defined " + name + " : NEED NEW MCL");
-				// }
 				@SuppressWarnings("resource")
 				MadkitClassLoader mcl = new MadkitClassLoader(getURLs(), this, classesToReload);
 				classesToReload.remove(name);
@@ -151,7 +145,7 @@ final public class MadkitClassLoader extends URLClassLoader { // NO_UCD
 
 	/**
 	 * Schedule the reloading of the byte code of a class for its next loading. So
-	 * new instances, created using {@link Class#newInstance()} on a class object
+	 * new instances, created using {@link java.lang.reflect.Constructor#newInstance(Object...)}} on a class object
 	 * obtained with {@link #loadClass(String)}, will reflect compilation changes
 	 * during run time.
 	 * 
@@ -207,11 +201,6 @@ final public class MadkitClassLoader extends URLClassLoader { // NO_UCD
 		return hasLoadSomething;
 	}
 
-	// Class<? extends AbstractAgent> loadAgentClass(String name) throws
-	// ClassNotFoundException{
-	// return (Class<? extends AbstractAgent>) loadClass(name);
-	// }
-
 	/**
 	 * used to reload classes from the target's package, ensuring accessibility
 	 * 
@@ -235,11 +224,10 @@ final public class MadkitClassLoader extends URLClassLoader { // NO_UCD
 																	// another class that depends on it
 							findClass(className);
 						}
-					} catch (ClassNotFoundException e) {
+					} catch (ClassNotFoundException | ClassCircularityError e) {
 						e.printStackTrace();
-					} catch (ClassCircularityError e) {// FIXME just a reminder
-						// e.printStackTrace();
-					}
+					} // FIXME just a reminder
+
 				}
 			}
 		}
@@ -332,10 +320,6 @@ final public class MadkitClassLoader extends URLClassLoader { // NO_UCD
 		return new HashSet<>(demos);
 	}
 
-	// List<AbstractAgent> createBucket(final String agentClass, int bucketSize){
-	//
-	// }
-
 	/**
 	 * Returns the names of all the available agent classes
 	 * 
@@ -345,16 +329,6 @@ final public class MadkitClassLoader extends URLClassLoader { // NO_UCD
 		scanClassPathForAgentClasses();
 		return new TreeSet<>(agentClasses);
 	}
-
-	/*
-	 * Returns the names of all the mdk properties files available
-	 * 
-	 * @return All the mdk files available on the class path
-	 */
-	/*
-	 * public static Set<File> getMDKFiles() { scanClassPathForAgentClasses();
-	 * return new TreeSet<>(mdkFiles); }
-	 */
 
 	/**
 	 * Returns the names of all the xml configuration files available
@@ -374,10 +348,6 @@ final public class MadkitClassLoader extends URLClassLoader { // NO_UCD
 		return new TreeSet<>(mains);
 	}
 
-	/*void addMASConfig(MASModel session) {
-		demos.add(session);
-	}*/
-
 	private static void scanJarFileForLaunchConfig(final JarFile jarFile) {
 		Attributes projectInfo = null;
 		try {
@@ -393,16 +363,7 @@ final public class MadkitClassLoader extends URLClassLoader { // NO_UCD
 				final String projectDescription = projectInfo.getValue("Description").trim();
 				MASModel mas = new MASModel(projectName, mdkArgs.trim().split("\\s+"), projectDescription);
 				demos.add(mas);
-				// if (l != null) {
-				// l.finest("found MAS info " + mas);
-				// }
 			}
-			/*
-			 * mdkArgs = projectInfo.getValue("MDK-Files");// recycling mdkArgs if
-			 * (check(mdkArgs)) { for (String configFile : mdkArgs.split(",")) {
-			 * mdkFiles.add(new File(configFile)); // if (l != null) { //
-			 * l.finest("found MAS config info " + mas); // } } }
-			 */
 			mdkArgs = projectInfo.getValue("Main-Classes");// recycling
 			if (check(mdkArgs)) {
 				mains.addAll(Arrays.asList(mdkArgs.split(",")));
@@ -462,7 +423,8 @@ final public class MadkitClassLoader extends URLClassLoader { // NO_UCD
 	private static boolean isAgentClass(final String className) {
 		try {
 			final Class<?> cl = getLoader().loadClass(className);
-			if (cl != null && AbstractAgent.class.isAssignableFrom(cl) && cl.getDeclaredConstructor((Class<?>[]) null) != null
+			//noinspection ConstantConditions
+			if (cl != null && AbstractAgent.class.isAssignableFrom(cl) && cl.getDeclaredConstructor() != null
 					&& (!Modifier.isAbstract(cl.getModifiers())) && Modifier.isPublic(cl.getModifiers())) {
 				try {
 					cl.getDeclaredMethod("main", String[].class);

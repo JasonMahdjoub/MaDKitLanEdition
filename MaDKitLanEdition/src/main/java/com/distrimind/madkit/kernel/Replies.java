@@ -56,11 +56,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Replies extends Message {
 
 
-	private Message originalMessage;
+	private final Message originalMessage;
 	// private final ConversationID originalConversationID;
-	private AtomicInteger numberOfReplies = new AtomicInteger(0);
-	private List<Message> replies;
-	private AtomicBoolean allMessagesSent = new AtomicBoolean(false);
+	private final AtomicInteger numberOfReplies = new AtomicInteger(0);
+	private final List<Message> replies;
+	private final AtomicBoolean allMessagesSent = new AtomicBoolean(false);
 
 	
 	
@@ -72,8 +72,7 @@ public class Replies extends Message {
 			throw new NullPointerException("originalMessage");
 		this.originalMessage = originalMessage;
 		super.setIDFrom(originalMessage);
-		// this.originalConversationID=originalMessage.getConversationID();
-	
+
 		replies = new ArrayList<>();
 	}
 
@@ -84,7 +83,6 @@ public class Replies extends Message {
 		
 
 		super.setIDFrom(originalMessage);
-		// this.originalConversationID=originalMessage.getConversationID();
 
 		if (replies == null)
 			this.replies = new ArrayList<>();

@@ -45,11 +45,8 @@ package com.distrimind.madkit.kernel;
  */
 final class TerminatedKernel extends FakeKernel {
 
-	final String buildFailString(final AbstractAgent agent) {
-		// if(agent instanceof AbstractAgent && Thread.currentThread().getThreadGroup()
-		// == MadkitKernel.A_LIFE){
-		// throw new KilledException((String)null);//TODO something else
-		// }
+	String buildFailString(final AbstractAgent agent) {
+
 		return agent != null ? agent.getName() : "" + AbstractAgent.State.TERMINATED;
 	}
 

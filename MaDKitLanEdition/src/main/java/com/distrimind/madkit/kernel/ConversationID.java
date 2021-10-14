@@ -102,13 +102,10 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 			if (conversationID.myInterfacedIDs!=null)
 			{
 				this.myInterfacedIDs=Collections.synchronizedMap(new HashMap<>());
-				//synchronized (global_interfaced_ids) {
 				try {
 					for (Map.Entry<KernelAddress, OriginalID> kpi : conversationID.myInterfacedIDs.entrySet()) {
 						myInterfacedIDs.put(kpi.getKey(), kpi.getValue());
 						kpi.getValue().incrementPointerToThisOriginalID();
-						/*InterfacedIDs i2 = global_interfaced_ids.get(kpi.getKey());
-						i2.getOriginalID(kpi.getValue().originalID).incrementPointerToThisOriginalID();*/
 					}
 				} catch (Throwable e) {
 					e.printStackTrace();
@@ -247,13 +244,6 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 			return res;
 		}
 
-		/*void addNewIds(OriginalID localID, OriginalID distantID)
-		{
-			original_ids.put(distantID.originalID, localID);
-			distant_ids.put(localID.originalID, distantID);
-			localID.incrementPointerToThisOriginalID();
-		}*/
-
 		OriginalID getOriginalID(int distant_id) {
 			return original_ids.get(distant_id);
 		}
@@ -368,9 +358,6 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 		} else if (origin.equals(currentKernelAddress)) {
 
 			synchronized (global_interfaced_ids) {
-				/*this.global_interfaced_ids = global_interfaced_ids;
-				assert myInterfacedIDs==null;
-				myInterfacedIDs = Collections.synchronizedMap(new HashMap<KernelAddress, OriginalID>());*/
 				InterfacedIDs i = global_interfaced_ids.get(distantKernelAddress);
 				if (i == null) {
 
@@ -378,12 +365,6 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 					global_interfaced_ids.put(distantKernelAddress, i);
 
 				}
-				/*InterfacedIDs i2=global_interfaced_ids.get(currentKernelAddress);
-				if (i2==null)
-				{
-					i2 = new InterfacedIDs();
-					global_interfaced_ids.put(currentKernelAddress, i2);
-				}*/
 
 				OriginalID o = i.getOriginalID(id);
 				if (o == null) {
@@ -394,11 +375,6 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 				OriginalID distantOriginalID=i.getDistantOriginalID(o.getOriginalID());
 				assert distantOriginalID!=null;
 				assert distantOriginalID.originalID==this.id;
-				/*i2.addNewIds(distantOriginalID, o);
-
-				myInterfacedIDs.put(currentKernelAddress, o);*/
-
-				// return new ConversationID(o.originalID, origin);
 				ConversationID cid;
 				if (this instanceof BigDataTransferID)
 					cid=new BigDataTransferID(o.getOriginalID(), origin, ((BigDataTransferID) this).getBytePerSecondsStat());
@@ -408,12 +384,7 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 				cid.global_interfaced_ids = global_interfaced_ids;
 				cid.myInterfacedIDs = Collections
 						.synchronizedMap(new HashMap<>());
-				cid.myInterfacedIDs.put(distantKernelAddress, distantOriginalID/*i.getNewID(o.getOriginalID())*/);
-				/*
-				 * if (myInterfacedIDs==null) myInterfacedIDs=new HashMap<>();
-				 * myInterfacedIDs.put(distantKernelAddress, i.getNewID(new
-				 * Integer(o.getOriginalID())));
-				 */
+				cid.myInterfacedIDs.put(distantKernelAddress, distantOriginalID);
 				return cid;
 			}
 		} else 	if (this instanceof BigDataTransferID)

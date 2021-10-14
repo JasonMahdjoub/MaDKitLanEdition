@@ -398,23 +398,6 @@ final class LoggedKernel extends MadkitKernel {
 		return result;
 	}
 
-	// /**
-	// * @see
-	// madkit.kernel.MadkitKernel#launchAgentBucketWithRoles(madkit.kernel.AbstractAgent,
-	// java.lang.String, int, java.util.Collection)
-	// */
-	// @Override
-	// List<AbstractAgent> launchAgentBucketWithRoles(AbstractAgent requester,
-	// String agentClassName, int bucketSize, String... CGRLocations) {
-	// if(requester.isFinestLogOn())
-	// requester.logger.log(Level.FINEST,"launchAgentBucketWithRoles <" +
-	// agentClassName + "," + bucketSize + "," + CGRLocations + ">");
-	// final List<AbstractAgent> l = kernel.launchAgentBucketWithRoles(requester,
-	// agentClassName, bucketSize, CGRLocations);
-	// if(requester.isFinestLogOn())
-	// requester.logger.log(Level.FINEST,"launchAgentBucketWithRoles done !");
-	// return l;
-	// }
 
 	@Override
 	void launchAgentBucketWithRoles(AbstractAgent requester, List<AbstractAgent> bucket, int cpuCoreNb,
@@ -520,20 +503,6 @@ final class LoggedKernel extends MadkitKernel {
 		return kernel;
 	}
 
-// @Override //TODO think about this log
-	// ReturnCode reloadClass(AbstractAgent requester, String name) throws
-	// ClassNotFoundException {
-	// final ReturnCode r = kernel.reloadClass(requester, name);
-	// if(requester.isFinestLogOn())
-	// requester.logger.log(Level.FINEST,Words.RELOAD.toString() + name);
-	// if(r == SUCCESS)
-	// return SUCCESS;
-	// else if(requester.isWarningOn()){
-	// requester.handleException(Influence.RELOAD_CLASS, new MadkitWarning(name,
-	// r));
-	// }
-	// return r;
-	// }
 
 	@Override
 	synchronized boolean removeOverlooker(AbstractAgent requester, Overlooker<? extends AbstractAgent> o) {
@@ -551,21 +520,6 @@ final class LoggedKernel extends MadkitKernel {
 		return added;
 	}
 
-	/*
-	 * @Override ScheduledThreadPoolExecutor
-	 * killScheduledExecutorService(AbstractAgent requester, String name) {
-	 * ScheduledThreadPoolExecutor rc=kernel.killScheduledExecutorService(requester,
-	 * name); if (requester.isFinestLogOn())
-	 * requester.logger.log(Level.FINEST,"killScheduledExecutorService "+name+" : "+
-	 * (rc!=null)); return rc; }
-	 * 
-	 * @Override ScheduledThreadPoolExecutor
-	 * getScheduledExecutorService(AbstractAgent requester, String name) {
-	 * ScheduledThreadPoolExecutor res=super.getScheduledExecutorService(requester,
-	 * name); if (requester.isFinestLogOn())
-	 * requester.logger.log(Level.FINEST,"getScheduledExecutorService "+name+(res!=
-	 * null?" exists.":" does not exist.")); return res; }
-	 */
 
 	@Override
 	TaskID scheduleTask(AbstractAgent requester, Task<?> _task, boolean ask_for_execution_confirmation) {
@@ -577,38 +531,6 @@ final class LoggedKernel extends MadkitKernel {
 		return t;
 	}
 
-	/*
-	 * @Override TaskID scheduleTask(AbstractAgent requester, String
-	 * _task_agent_name, Task<?> _task, boolean ask_for_execution_confirmation) {
-	 * TaskID t=kernel.scheduleTask(requester, _task_agent_name, _task,
-	 * ask_for_execution_confirmation); if (requester.isFinestLogOn())
-	 * requester.logger.log(Level.FINEST,"Scheduling task "+_task+(
-	 * ask_for_execution_confirmation?"with message confirmation":"")
-	 * +" and with task manager agent named "+_task_agent_name+" : "+(t==null?"FAIL"
-	 * :"OK")); return t; }
-	 */
-
-	/*
-	 * @Override ConversationID scheduleTasks(AbstractAgent requester,
-	 * Collection<Task<?>> _tasks, boolean ask_for_execution_confirmation) {
-	 * ConversationID res=kernel.scheduleTasks(requester, _tasks,
-	 * ask_for_execution_confirmation); if (requester.isFinestLogOn())
-	 * requester.logger.log(Level.FINEST,"Scheduling a collection of tasks "+res+(
-	 * ask_for_execution_confirmation?"with message confirmation":"")
-	 * +" and with default task manager agent : "+(res==null?"FAIL":"OK")); return
-	 * res; }
-	 * 
-	 * @Override ConversationID scheduleTasks(AbstractAgent requester, String
-	 * _task_agent_name, Collection<Task<?>> _tasks, boolean
-	 * ask_for_execution_confirmation) { ConversationID
-	 * res=kernel.scheduleTasks(requester, _task_agent_name, _tasks,
-	 * ask_for_execution_confirmation); if (requester.isFinestLogOn())
-	 * requester.logger.log(Level.FINEST,"Scheduling a collection of tasks "+res+(
-	 * ask_for_execution_confirmation?"with message confirmation":"")
-	 * +" and with task manager agent named "+_task_agent_name+" : "+(res==null?
-	 * "FAIL":"OK")); return res; }
-	 */
-
 	@Override
 	boolean cancelTask(AbstractAgent requester, TaskID task_id, boolean mayInterruptTask) {
 		boolean rc = kernel.cancelTask(requester, task_id, mayInterruptTask);
@@ -618,46 +540,6 @@ final class LoggedKernel extends MadkitKernel {
 		return rc;
 	}
 
-	/*
-	 * @Override ReturnCode cancelTask(AbstractAgent requester, String
-	 * _task_agent_name, ConversationID task_id) { ReturnCode rc=kernel.
-	 * cancelTask(requester, _task_agent_name, task_id); if
-	 * (requester.isFinestLogOn())
-	 * requester.logger.log(Level.FINEST,"Canceling task "
-	 * +task_id+" with task manager agent named "+_task_agent_name+" : "+rc); return
-	 * rc; }
-	 */
-
-	/*
-	 * @Override AgentAddress getDefaultTaskAgent(AbstractAgent requester) {
-	 * AgentAddress aa=kernel.getDefaultTaskAgent(requester); if
-	 * (requester.isFinestLogOn())
-	 * requester.logger.log(Level.FINEST,"get default task agent : "+aa); return aa;
-	 * }
-	 */
-
-	/*
-	 * @Override ScheduledThreadPoolExecutor
-	 * launchAndOrGetScheduledExecutorService(AbstractAgent requester, String name,
-	 * int maximumPoolSize, int priority, long timeOutSeconds) {
-	 * ScheduledThreadPoolExecutor
-	 * aa=kernel.launchAndOrGetScheduledExecutorService(requester, name,
-	 * maximumPoolSize, priority, timeOutSeconds); if (requester.isFinestLogOn())
-	 * requester.logger.log(Level.FINEST,"get task agent "+name+" : "+aa); return
-	 * aa;
-	 * 
-	 * }
-	 */
-
-	/*
-	 * @Override ScheduledThreadPoolExecutor
-	 * launchAndOrGetScheduledExecutorService(AbstractAgent requester, String
-	 * _task_agent_name) { ScheduledThreadPoolExecutor
-	 * rc=kernel.launchAndOrGetScheduledExecutorService(requester,
-	 * _task_agent_name); if (requester.isFinestLogOn()) requester.logger.log(Level.
-	 * FINEST,"Setting threads priority for Task Manager Agent"
-	 * +_task_agent_name+" : "+rc); return rc; }
-	 */
 
 	@Override
 	boolean isConcernedByAutoRequestRole(AbstractAgent requester, Group group, String role) {
@@ -1043,36 +925,6 @@ final class LoggedKernel extends MadkitKernel {
 		return res;
 	}
 
-	/*@Override
-	void setIfNotPresentLocalDatabaseHostIdentifier(AbstractAgent requester, DecentralizedValue localDatabaseHostID, Package ...packages) throws DatabaseException
-	{
-		kernel.setIfNotPresentLocalDatabaseHostIdentifier(requester, localDatabaseHostID, packages);
-		if (kernel.isFinestLogOn())
-			kernel.logger.log(Level.FINEST, "setIfNotPresentLocalDatabaseHostIdentifier (requester=" + requester + ", localDatabaseHostID="+localDatabaseHostID+", packages="+Arrays.toString(packages)+")");
-
-	}
-
-	@Override
-	void resetDatabaseSynchronizer(AbstractAgent requester) throws DatabaseException {
-		kernel.resetDatabaseSynchronizer(requester);
-		if (kernel.isFinestLogOn())
-			kernel.logger.log(Level.FINEST, "resetDatabaseSynchronizer (requester=" + requester + ")");
-	}
-
-	@Override
-	void addOrConfigureDistantDatabaseHost(AbstractAgent requester, DecentralizedValue hostIdentifier, boolean conflictualRecordsReplacedByDistantRecords, Package... packages) throws DatabaseException {
-		kernel.addOrConfigureDistantDatabaseHost(requester, hostIdentifier, conflictualRecordsReplacedByDistantRecords, packages);
-		if (kernel.isFinestLogOn())
-			kernel.logger.log(Level.FINEST, "addOrConfigureDistantDatabaseHost (requester=" + requester + ", hostIdentifier="+hostIdentifier+", conflictualRecordsReplacedByDistantRecords="+conflictualRecordsReplacedByDistantRecords+", packages="+Arrays.toString(packages)+")");
-	}
-
-	@Override
-	void removeDistantDatabaseHostFromDatabaseSynchronizer(AbstractAgent requester, DecentralizedValue hostIdentifier, Package... packages) throws DatabaseException {
-		kernel.removeDistantDatabaseHostFromDatabaseSynchronizer(requester, hostIdentifier, packages);
-		if (kernel.isFinestLogOn())
-			kernel.logger.log(Level.FINEST, "removeDistantDatabaseHostFromDatabaseSynchronizer (requester=" + requester + ", hostIdentifier="+hostIdentifier+", packages="+Arrays.toString(packages)+")");
-	}*/
-
 	@Override
 	int numberOfValidGeneratedID() {
 		int res = kernel.numberOfValidGeneratedID();
@@ -1086,11 +938,6 @@ final class LoggedKernel extends MadkitKernel {
 	IDGeneratorInt getIDTransferGenerator() {
 		return kernel.getIDTransferGenerator();
 	}
-
-	/*@Override
-	<V> V take(BlockingDeque<V> toTake) throws InterruptedException {
-		return kernel.take(toTake);
-	}*/
 
 	@Override
 	List<AbstractAgent> createBucket(final String agentClass, int bucketSize, int cpuCoreNb)

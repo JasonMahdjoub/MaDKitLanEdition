@@ -37,8 +37,6 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.util.Arrays;
-
 /**
  * 
  * @author Jason Mahdjoub

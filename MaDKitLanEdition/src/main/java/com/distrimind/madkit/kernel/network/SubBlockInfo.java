@@ -66,7 +66,7 @@ public final class SubBlockInfo {
 		return candidate_to_ban;
 	}
 
-	public final SubBlock getSubBlock() {
+	public SubBlock getSubBlock() {
 		return sub_block;
 	}
 }

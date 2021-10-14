@@ -52,7 +52,7 @@ import com.distrimind.ood.database.exceptions.DatabaseException;
  */
 public final class IPExpulsedStat extends Table<IPExpulsedStat.Record> {
 
-	protected IPExpulsedStat() throws DatabaseException {
+	private IPExpulsedStat() throws DatabaseException {
 		super();
 	}
 

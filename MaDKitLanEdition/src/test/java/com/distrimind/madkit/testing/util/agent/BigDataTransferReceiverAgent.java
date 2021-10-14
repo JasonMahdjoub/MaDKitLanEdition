@@ -76,7 +76,12 @@ public class BigDataTransferReceiverAgent extends Agent {
 		{
 			System.out.println("receiving big data proposition message");
 			BigDataPropositionMessage bdpm=((BigDataPropositionMessage) m);
-			bdpm.acceptTransfer(new RandomByteArrayOutputStream());
+			try {
+				bdpm.acceptTransfer(new RandomByteArrayOutputStream());
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+				return;
+			}
 			int delay;
 			int size=(int)bdpm.getTransferLength();
 			if (downloadLimitInBytesPerSecond!=Integer.MAX_VALUE || uploadLimitInBytesPerSecond!=Integer.MAX_VALUE)

@@ -118,17 +118,6 @@ class LocalNetworkAgent extends AgentFakeThread {
 		network_interfaces.add(ni);
 	}
 
-	private LocalNetworkAgent(NetworkInterface ni, InterfaceAddress ia1, InterfaceAddress ia2) {
-		if ((ia1.getAddress() instanceof Inet4Address) && (ia2.getAddress() instanceof Inet6Address)) {
-			network_interface_ipv4 = ia1;
-			network_interface_ipv6 = ia2;
-		} else if ((ia1.getAddress() instanceof Inet6Address) && (ia2.getAddress() instanceof Inet4Address)) {
-			network_interface_ipv4 = ia2;
-			network_interface_ipv6 = ia1;
-		} else
-			throw new IllegalArgumentException();
-		network_interfaces.add(ni);
-	}
 
 	static ArrayList<LocalNetworkAgent> extractLocalNetworkAgents(NetworkInterface ni, ArrayList<InterfaceAddress> list) {
 		ArrayList<LocalNetworkAgent> res = new ArrayList<>();
@@ -267,10 +256,6 @@ class LocalNetworkAgent extends AgentFakeThread {
 
 
 	private boolean isConcernedBy(NetworkInterface iface) {
-		/*if (!InetAddressFilter.isValidNetworkInterface(iface)) {
-			return false;
-		}*/
-
 		for (InterfaceAddress ia : iface.getInterfaceAddresses()) {
 			if (isConcernedBy(ia))
 				return true;
@@ -308,16 +293,10 @@ class LocalNetworkAgent extends AgentFakeThread {
 			logger.fine("Launching LocalNetworkAgent ...");
 		upnpIGDEnabled = getMadkitConfig().networkProperties.upnpIGDEnabled;
 
-		/*
-		 * this.requestRole(LocalCommunity.Groups.NETWORK,
-		 * LocalCommunity.Roles.LOCAL_NETWORK_AFFECTATION_ROLE);
-		 */
 		this.requestRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.LOCAL_NETWORK_ROLE);
 		this.requestRole(LocalCommunity.Groups.LOCAL_NETWORKS, LocalCommunity.Roles.LOCAL_NETWORK_AFFECTATION_ROLE);
 		this.requestRole(LocalCommunity.Groups.LOCAL_NETWORKS, LocalCommunity.Roles.LOCAL_NETWORK_ROLE);
 
-		// this.requestRole(LocalCommunity.Groups.getLocalLanGroup(inet_address),
-		// LocalCommunity.Roles.LOCAL_NETWORK_AFFECTATION_ROLE);
 		if (upnpIGDEnabled) {
 			this.sendMessageWithRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.LOCAL_NETWORK_EXPLORER_ROLE,
 					new AskForRouterDetectionInformation(true), LocalCommunity.Roles.LOCAL_NETWORK_ROLE);
@@ -928,10 +907,6 @@ class LocalNetworkAgent extends AgentFakeThread {
 			address = _address;
 		}
 
-		/*InetAddress getAddress() {
-			return address;
-		}*/
-
 		protected void changeStatus(StatusInfo status_info) {
 			if (status == null || !status.equals(status_info.getStatus())) {
 				InetSocketAddress old_isa = getInetSocketAddressForDirectConnection();
@@ -982,10 +957,6 @@ class LocalNetworkAgent extends AgentFakeThread {
 			return r;
 		}
 
-		/*InetAddress getExternalIP() {
-			return external_ip;
-		}*/
-
 		Status getStatus() {
 			return status;
 		}
@@ -1000,10 +971,6 @@ class LocalNetworkAgent extends AgentFakeThread {
 						LocalCommunity.Roles.LOCAL_NETWORK_ROLE);
 			}
 		}
-
-		/*boolean hasExternalPort() {
-			return externalPort > 0;
-		}*/
 
 		int getExternalPort() {
 			return externalPort;

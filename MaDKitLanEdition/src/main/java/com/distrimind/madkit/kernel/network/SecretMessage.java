@@ -103,10 +103,6 @@ final class SecretMessage extends KernelAddressNegotiationMessage {
 		return originalDistantKernelAgent;
 	}
 
-	/*byte[] getSecretMessage() {
-		return secretMessage;
-	}*/
-
 	AgentAddress getAgentSocketAddress() {
 		return agent_socket_address;
 	}

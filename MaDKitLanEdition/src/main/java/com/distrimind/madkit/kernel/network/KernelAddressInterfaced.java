@@ -136,15 +136,6 @@ public class KernelAddressInterfaced extends KernelAddress {
 		oos.writeObject(original_external_kernel_address, false);
 		oos.writeBoolean(interfaced.get());
 	}
-	/*/**
-	 * 
-	 * @param identical_from_original_kernel_interface
-	 *            true if the original kernel address do not need to be interfaced.
-	 */
-	/*void setInterface(boolean identical_from_original_kernel_interface) {
-		if (interfaced.getAndSet(!identical_from_original_kernel_interface) == identical_from_original_kernel_interface)
-			initName();
-	}*/
 
 	/**
 	 * 

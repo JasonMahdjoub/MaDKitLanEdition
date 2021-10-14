@@ -280,16 +280,8 @@ class TransferAgent extends AgentFakeThread {
 				if (t.getIdTransfer().equals(idTransfer)) {
 					boolean ok = false;
 					if (_message.getSender().equals(candidate1.getAgentAddress())) {
-						// sendMessageWithRole(candidate2.getAgentAddress(), new ObjectMessage<>(new
-						// TransferClosedSystemMessage(t.getIdTransferDestination(),
-						// candidate2.getKernelAddress(), idTransfer, t.isLastPass())),
-						// LocalCommunity.Roles.TRANSFER_AGENT_ROLE);
 						ok = true;
 					} else if (_message.getSender().equals(candidate2.getAgentAddress())) {
-						// sendMessageWithRole(candidate1.getAgentAddress(), new ObjectMessage<>(new
-						// TransferClosedSystemMessage(t.getIdTransferDestination(),
-						// candidate1.getKernelAddress(), idTransfer, t.isLastPass())),
-						// LocalCommunity.Roles.TRANSFER_AGENT_ROLE);
 						ok = true;
 					}
 					if (ok) {
@@ -500,7 +492,7 @@ class TransferAgent extends AgentFakeThread {
 
 		@SuppressWarnings("deprecation")
 		@Override
-		public void finalize() {
+		protected void finalize() {
 			if (generator_id_transfer != null)
 				removeIDTransfer(id);
 		}
