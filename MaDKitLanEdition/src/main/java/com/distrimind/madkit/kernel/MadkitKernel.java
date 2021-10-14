@@ -64,6 +64,7 @@ import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.message.task.TasksExecutionConfirmationMessage;
 import com.distrimind.madkit.util.XMLUtilities;
 import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.util.AbstractDecentralizedID;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.Utils;
 import com.distrimind.util.concurrent.LockerCondition;
@@ -3770,9 +3771,10 @@ class MadkitKernel extends Agent {
 	}
 
 	void connectionLostForBigDataTransfer(AbstractAgent requester, ConversationID conversationID, int idPacket,
-			AgentAddress sender, AgentAddress receiver, long readDataLength, long duration) {
+			AgentAddress sender, AgentAddress receiver, long readDataLength, long duration, AbstractDecentralizedID differedBigDataInternalIdentifier,
+										  DifferedBigDataIdentifier differedBigDataIdentifier) {
 		BigDataResultMessage m = new BigDataResultMessage(BigDataResultMessage.Type.CONNECTION_LOST, readDataLength,
-				idPacket, duration);
+				idPacket, duration, differedBigDataInternalIdentifier, differedBigDataIdentifier);
 		m.setSender(receiver);
 		m.setReceiver(sender);
 		sender.getAgent().receiveMessage(m);

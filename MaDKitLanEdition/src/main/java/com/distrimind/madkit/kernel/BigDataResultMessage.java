@@ -37,6 +37,7 @@
  */
 package com.distrimind.madkit.kernel;
 
+import com.distrimind.util.AbstractDecentralizedID;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
 
@@ -56,6 +57,8 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 	private Type type;
 	private int idPacket;
 	private long duration;
+	private AbstractDecentralizedID differedBigDataInternalIdentifier;
+	private DifferedBigDataIdentifier differedBigDataIdentifier;
 
 	@Override
 	public int getInternalSerializedSize() {
@@ -88,7 +91,8 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 	{
 		
 	}
-	BigDataResultMessage(Type type, long transferredData, int idPacket, long duration) {
+	BigDataResultMessage(Type type, long transferredData, int idPacket, long duration, AbstractDecentralizedID differedBigDataInternalIdentifier,
+			DifferedBigDataIdentifier differedBigDataIdentifier) {
 		if (type == null)
 			throw new NullPointerException("type");
 		if (type == Type.BIG_DATA_TRANSFER_DENIED && transferredData != 0)
@@ -97,6 +101,10 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 		this.transferredData = transferredData;
 		this.idPacket = idPacket;
 		this.duration = duration;
+		if ((differedBigDataInternalIdentifier==null)!=(differedBigDataIdentifier==null))
+			throw new NullPointerException();
+		this.differedBigDataInternalIdentifier=differedBigDataInternalIdentifier;
+		this.differedBigDataIdentifier=differedBigDataIdentifier;
 	}
 
 	/**
@@ -163,5 +171,13 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 	public String toString()
 	{
 		return "BigDataResultMessage[type="+type+", dataTransferredInBytes="+ getTransferredDataLength()+", durationInMs="+getTransferDuration()/*+", sender="+getSender()+", receiver="+getReceiver()*/+"]";
+	}
+
+	AbstractDecentralizedID getDifferedBigDataInternalIdentifier() {
+		return differedBigDataInternalIdentifier;
+	}
+
+	public DifferedBigDataIdentifier getDifferedBigDataIdentifier() {
+		return differedBigDataIdentifier;
 	}
 }

@@ -44,6 +44,7 @@ import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.util.AbstractDecentralizedID;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.concurrent.ScheduledPoolExecutor;
@@ -433,7 +434,7 @@ final class LoggedKernel extends MadkitKernel {
 	 *      com.distrimind.madkit.kernel.AbstractAgent, int, boolean)
 	 */
 	@Override
-	final ReturnCode launchAgent(AbstractAgent requester, AbstractAgent agent, int timeOutSeconds, boolean defaultGUI) {
+	ReturnCode launchAgent(AbstractAgent requester, AbstractAgent agent, int timeOutSeconds, boolean defaultGUI) {
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST,
 					Influence.LAUNCH_AGENT + " (" + timeOutSeconds + ")" + agent.getName() + "...");
@@ -448,7 +449,7 @@ final class LoggedKernel extends MadkitKernel {
 	}
 
 	@Override
-	final ReturnCode killAgent(final AbstractAgent requester, final AbstractAgent target, int timeOutSeconds,
+	ReturnCode killAgent(final AbstractAgent requester, final AbstractAgent target, int timeOutSeconds,
 			KillingType killing_type) {
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST, Influence.KILL_AGENT + " (" + timeOutSeconds + ")" + target + "...");
@@ -762,9 +763,10 @@ final class LoggedKernel extends MadkitKernel {
 
 	@Override
 	void connectionLostForBigDataTransfer(AbstractAgent requester, ConversationID conversationID, int idPacket,
-			AgentAddress sender, AgentAddress receiver, long readDataLength, long duration) {
+			AgentAddress sender, AgentAddress receiver, long readDataLength, long duration, AbstractDecentralizedID differedBigDataInternalIdentifier,
+										  DifferedBigDataIdentifier differedBigDataIdentifier) {
 		kernel.connectionLostForBigDataTransfer(requester, conversationID, idPacket, sender, receiver, readDataLength,
-				duration);
+				duration, differedBigDataInternalIdentifier, differedBigDataIdentifier);
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST,
 					"acceptDistantBigDataTransfer (Agent " + requester + ", conversation ID " + conversationID

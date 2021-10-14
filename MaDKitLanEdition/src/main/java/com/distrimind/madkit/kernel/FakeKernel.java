@@ -43,7 +43,7 @@ import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
 import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
-import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.util.AbstractDecentralizedID;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.crypto.MessageDigestType;
@@ -422,7 +422,8 @@ class FakeKernel extends MadkitKernel {
 
 	@Override
 	void connectionLostForBigDataTransfer(AbstractAgent requester, ConversationID conversationID, int idPacket,
-			AgentAddress sender, AgentAddress receiver, long readDataLength, long duration) {
+			AgentAddress sender, AgentAddress receiver, long readDataLength, long duration, AbstractDecentralizedID differedBigDataInternalIdentifier,
+										  DifferedBigDataIdentifier differedBigDataIdentifier) {
 		throw buildKernelException(requester);
 	}
 
@@ -524,7 +525,7 @@ class FakeKernel extends MadkitKernel {
 	}
 
 	@Override
-	ReturnCode setCentralDatabaseBackupReceiverFactory(AbstractAgent ignored, CentralDatabaseBackupReceiverFactory<?> centralDatabaseBackupReceiverFactory) throws DatabaseException {
+	ReturnCode setCentralDatabaseBackupReceiverFactory(AbstractAgent ignored, CentralDatabaseBackupReceiverFactory<?> centralDatabaseBackupReceiverFactory) {
 		throw buildKernelException(null);
 	}
 

@@ -40,6 +40,7 @@ package com.distrimind.madkit.kernel.network;
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.message.hook.HookMessage;
+import com.distrimind.util.AbstractDecentralizedID;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.io.MessageExternalizationException;
@@ -261,10 +262,11 @@ class MadkitKernelAccess {
 	}
 
 	static void connectionLostForBigDataTransfer(AbstractAgent requester, ConversationID conversationID, int idPacket,
-			AgentAddress sender, AgentAddress receiver, long readDataLength, long duration) {
+			AgentAddress sender, AgentAddress receiver, long readDataLength, long duration, AbstractDecentralizedID differedBigDataInternalIdentifier,
+												 DifferedBigDataIdentifier differedBigDataIdentifier) {
 		try {
 			invoke(m_connectionLostForBigDataTransfer, getMadkitKernel(requester), requester, conversationID,
-					idPacket, sender, receiver, readDataLength, duration);
+					idPacket, sender, receiver, readDataLength, duration, differedBigDataInternalIdentifier, differedBigDataIdentifier);
 		} catch (InvocationTargetException e) {
 			System.err.println("Unexpected error :");
 			e.printStackTrace();
@@ -355,7 +357,7 @@ class MadkitKernelAccess {
 		m_big_data_complete = getMethod(BigDataPropositionMessage.class, "transferCompleted", long.class);
 		m_connectionLostForBigDataTransfer = getMethod(c_madkit_kernel, "connectionLostForBigDataTransfer",
 				AbstractAgent.class, ConversationID.class, int.class, AgentAddress.class, AgentAddress.class,
-				long.class, long.class);
+				long.class, long.class, AbstractDecentralizedID.class,DifferedBigDataIdentifier.class);
 		m_message_mark_as_read = getMethod(Message.class, "markMessageAsRead");
 		m_wait_message_sent = getMethod(c_madkit_kernel, "waitMessageSent", AbstractAgent.class, LockerCondition.class);
 		m_get_global_interfaced_ids = getMethod(c_madkit_kernel, "getGlobalInterfacedIDs");

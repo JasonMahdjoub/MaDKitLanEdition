@@ -129,6 +129,12 @@ class InternalRole implements SecureExternalizable {
 		return group.getInternalSerializedSize()+2+(roleName==null?0:roleName.length()*2);
 	}
 	InternalRole(final InternalGroup groupObject, final String roleName) {
+		if (groupObject==null)
+			throw new NullPointerException();
+		if (roleName==null)
+			throw new NullPointerException();
+		if (roleName.length()>Group.MAX_ROLE_NAME_LENGTH)
+			throw new IllegalArgumentException();
 		players = new ArrayList<>();
 		distantAgentAddresses=new HashMap<>();
 		tmpReferencableAgents = null;
@@ -274,6 +280,8 @@ class InternalRole implements SecureExternalizable {
 	}
 
 	InternalRole(Group _group) {
+		if (_group==null)
+			throw new NullPointerException();
 		group = _group;
 		roleName = null;
 		players = null;

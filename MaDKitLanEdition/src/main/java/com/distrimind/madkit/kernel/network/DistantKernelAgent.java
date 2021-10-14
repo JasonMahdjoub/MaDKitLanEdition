@@ -58,6 +58,7 @@ import com.distrimind.madkit.message.hook.DistantKernelAgentEventMessage;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.message.hook.NetworkGroupsAccessEvent;
 import com.distrimind.madkit.message.hook.NetworkLoginAccessEvent;
+import com.distrimind.util.AbstractDecentralizedID;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.crypto.AbstractSecureRandom;
@@ -304,10 +305,6 @@ class DistantKernelAgent extends AgentFakeThread {
 
 					if (this.kernelAddressActivated) {
 						if (sharedAcceptedAndRequestedGroups.contains(m.getContent().getGroup())) {
-						/*if (m.getMessageLocker()!=null) {
-							m.getMessageLocker().lock();
-							sendReplyEmpty(m);
-						}*/
 
 							AgentSocketData asd = getBestAgentSocketForLocalAgentAddress(distant_kernel_address, m.getContent(),
 									false);
@@ -338,14 +335,10 @@ class DistantKernelAgent extends AgentFakeThread {
 								if (logger != null && logger.isLoggable(Level.FINER))
 									logger.finer("No agent socket found for CGRSynchro (distantInterfacedKernelAddress=" + distant_kernel_address
 											+ ") : " + _message);
-							/*if (m.getMessageLocker()!=null)
-								m.getMessageLocker().unlock();*/
 							}
 						}
 
 					}
-					/*else if (m.getMessageLocker()!=null)
-						sendReplyEmpty(m);*/
 
 				} else if (_message.getClass() == SendDataFromAgentSocket.class) {
 					if (logger != null && logger.isLoggable(Level.FINEST))
@@ -445,7 +438,8 @@ class DistantKernelAgent extends AgentFakeThread {
 									if (bpd != null) {
 										MadkitKernelAccess.connectionLostForBigDataTransfer(this,
 												bpd.getConversationID(), bpd.getIDPacket(), bpd.getCaller(),
-												bpd.getReceiver(), bpd.getReadDataLength(), bpd.getDuration());
+												bpd.getReceiver(), bpd.getReadDataLength(), bpd.getDuration(),
+												bpd.getDifferedBigDataInternalIdentifier(), bpd.getDifferedBigDataIdentifier());
 									}
 								}
 							}
@@ -454,7 +448,8 @@ class DistantKernelAgent extends AgentFakeThread {
 									BigPacketData bpd = (BigPacketData) ad;
 									MadkitKernelAccess.connectionLostForBigDataTransfer(this, bpd.getConversationID(),
 											bpd.getIDPacket(), bpd.getCaller(), bpd.getReceiver(),
-											bpd.getReadDataLength(), bpd.getDuration());
+											bpd.getReadDataLength(), bpd.getDuration(),
+											bpd.getDifferedBigDataInternalIdentifier(), bpd.getDifferedBigDataIdentifier());
 								}
 							}
 							/*
@@ -781,7 +776,7 @@ class DistantKernelAgent extends AgentFakeThread {
 					bgpm.bigDataExcludedFromEncryption()?0:getMadkitConfig().networkProperties.maxRandomPacketValues, random, inputStream,
 					bgpm.getStartStreamPosition(), bgpm.getTransferLength(), true, bgpm.getMessageDigestType());
 			BigPacketData packetData = new BigPacketData(chosenSocket.getAgentAddress(), packet, bgpm.getReceiver(),
-					bgpm.getSender(), bgpm.getConversationID(), bgpm.getStatistics(), bgpm.bigDataExcludedFromEncryption());
+					bgpm.getSender(), bgpm.getConversationID(), bgpm.getStatistics(), bgpm.bigDataExcludedFromEncryption(), bgpm.getDifferedBigDataInternalIdentifier(), bgpm.getDifferedBigDataIdentifier());
 			packetsDataInQueue.put(id, packetData);
 		}
 	}
@@ -960,10 +955,6 @@ class DistantKernelAgent extends AgentFakeThread {
 			return !readingToPurge.isEmpty();
 		}
 
-		/*boolean hasMoreThanOneReadingsToPurge() {
-			return readingToPurge.size() > 1;
-		}*/
-
 	}
 
 	private boolean hasUsableDistantSocketAgent(ArrayList<AgentSocketData> agents_socket) {
@@ -1117,14 +1108,10 @@ class DistantKernelAgent extends AgentFakeThread {
 				// interface the received distant kernel address
 				this.distant_kernel_address = new KernelAddressInterfaced(distant_ka, false);
 				// the current agent join the interfaced distant kernel address
-				// this.requestRole(LocalCommunity.Groups.getDistantKernelAgentGroup(this.distant_kernel_address),
-				// LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 				this.requestRole(LocalCommunity.Groups.getDistantKernelAgentGroup(getNetworkID()),
 						LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 			} else {
 				// the current agent join the interfaced distant kernel address
-				// this.requestRole(LocalCommunity.Groups.getDistantKernelAgentGroup(this.distant_kernel_address),
-				// LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 				this.requestRole(LocalCommunity.Groups.getDistantKernelAgentGroup(getNetworkID()),
 						LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 				// activate the current distant kernel agent
@@ -1150,28 +1137,6 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 	}
 
-	/*private void updateDistantAcceptedGroups() throws NIOException {
-		MultiGroup general = new MultiGroup();
-		Set<Group> groups = new HashSet<>();
-
-		updateDistantAcceptedGroups(agents_socket, general, groups);
-		updateDistantAcceptedGroups(indirect_agents_socket, general, groups);
-
-		Group[] old = distant_accepted_groups;
-		distant_accepted_groups = new Group[groups.size()];
-
-		groups.toArray(distant_accepted_groups);
-
-		if (kernelAddressActivated && hasUsableDistantSocketAgent()
-				&& !((old == null || old.length == 0) && distant_accepted_groups.length == 0))
-			updateSharedAcceptedGroups();
-			MadkitKernelAccess.informHooks(this,
-					new NetworkGroupsAccessEvent(AgentActionEvent.ACCESSIBLE_LAN_GROUPS_GIVEN_BY_DISTANT_PEER, general,
-							distant_accepted_groups, distant_kernel_address, false));
-		if (logger != null && logger.isLoggable(Level.FINEST))
-			logger.finest(
-					"Distant accepted groups updated (distantInterfacedKernelAddress=" + distant_kernel_address + ")");
-	}*/
 
 	private void updateLoginData(ArrayList<AgentSocketData> agents_socket, Set<PairOfIdentifiers> ids,
 			Set<PairOfIdentifiers> idsnewa,
@@ -1283,8 +1248,6 @@ class DistantKernelAgent extends AgentFakeThread {
 
 		networkBoard = (NetworkBoard) getBoard(LocalCommunity.Groups.NETWORK,
 				LocalCommunity.Boards.NETWORK_BOARD);
-		// this.requestRole(LocalCommunity.Groups.getDistantKernelAgentGroup(hashCode()),
-		// LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 		try {
 			random = getMadkitConfig().getApprovedSecureRandom();
 		} catch (Exception e) {
@@ -1304,11 +1267,6 @@ class DistantKernelAgent extends AgentFakeThread {
 			lastAgentsUpdate = System.currentTimeMillis();
 		}
 	}
-
-	/*@SuppressWarnings("SameParameterValue")
-	protected AgentSocketData getBestAgentSocketForDistantAgentAddress(AgentAddress _receiver, boolean testOnlyRequestedGroups) {
-		return getBestAgentSocketForDistantAgentAddress(_receiver.getKernelAddress(), _receiver, testOnlyRequestedGroups);
-	}*/
 
 	private void potentialChangesInGroups(ArrayList<AgentSocketData> agents_socket) throws MadkitException {
 		for (AgentSocketData asd : agents_socket) {
@@ -1337,21 +1295,6 @@ class DistantKernelAgent extends AgentFakeThread {
 					testOnlyRequestedGroups);
 		return asd;
 	}
-	/*protected AgentSocketData getBestAgentSocketForDistantAgentAddress(KernelAddress distantKernelAddress, AgentAddress agentAddress,
-																	 boolean testOnlyRequestedGroups) {
-		updateBestAgent();
-
-		if (!distantKernelAddress.equals(distant_kernel_address)) {
-			return null;
-		}
-
-		AgentSocketData asd = getFirstValidAgentSocketDataForDistantAgentAddress(agents_socket, agentAddress,
-				testOnlyRequestedGroups);
-		if (asd == null)
-			asd = getFirstValidAgentSocketDataForDistantAgentAddress(indirect_agents_socket, agentAddress,
-					testOnlyRequestedGroups);
-		return asd;
-	}*/
 
 	protected AgentSocketData getBestAgentSocket(AgentAddress agentAddressSender, AgentAddress agentAddressReceiver,
 												 @SuppressWarnings("SameParameterValue") boolean testOnlyRequestedGroups) {
@@ -1379,14 +1322,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 		return null;
 	}
-	/*private AgentSocketData getFirstValidAgentSocketDataForDistantAgentAddress(ArrayList<AgentSocketData> agents_socket,
-																			 AgentAddress agentAddress, boolean testOnlyRequestedGroups) {
-		for (AgentSocketData asd : agents_socket) {
-			if (asd.isUsable() && asd.acceptDistantAgentAddressToSend(agentAddress, testOnlyRequestedGroups))
-				return asd;
-		}
-		return null;
-	}*/
+
 	private AgentSocketData getFirstValidAgentSocketData(ArrayList<AgentSocketData> agents_socket,
 														 AgentAddress agentAddressSender, AgentAddress agentAddressReceiver, boolean testOnlyRequestedGroups) {
 		for (AgentSocketData asd : agents_socket) {
@@ -1457,20 +1393,13 @@ class DistantKernelAgent extends AgentFakeThread {
 			global_address = address = _agent_socket.getAgentAddressIn(LocalCommunity.Groups.NETWORK,
 					LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 			stat = _agent_socket.getStatistics();
-			// distant_accessible_groups=new
-			// MultiGroup(_agent_socket.getDistantAcceptedGroups());
 			direct = _agent_socket instanceof AgentSocket;
 			distant_inet_socket_address = _agent_socket.getDistantInetSocketAddress();
 			numberOfIntermediatePeers = _agent_socket.getNumberOfIntermediatePeers();
 			distantKernelAddressValidated = false;
-			//this.counterSelector=_agent_socket.connection_protocol.getCounterSelector();
 		}
 
-		/*CounterSelector getCounterSelector()
-		{
-			return counterSelector;
-		}*/
-		
+
 		@SuppressWarnings("SameParameterValue")
 		void setUsable(boolean value) {
 			distantKernelAddressValidated = value;
@@ -1486,7 +1415,9 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 
 		@Override
-		public int compareTo(AgentSocketData _o) {
+		public int compareTo(@SuppressWarnings("NullableProblems") AgentSocketData _o) {
+			if (_o==null)
+				throw new NullPointerException();
 			if (this.isUsable() && !_o.isUsable())
 				return 1;
 			else if (!this.isUsable() && _o.isUsable())
@@ -1560,9 +1491,6 @@ class DistantKernelAgent extends AgentFakeThread {
 			return getAcceptedLocalGroups().acceptLocal(agentAddressSender);
 		}
 
-		/*boolean acceptDistantAgentAddressToSend(AgentAddress agentAddressReceiver, boolean testOnlyRequestedGroups) {
-			return getAcceptedLocalGroups().acceptReceiver(agentAddressReceiver);
-		}*/
 
 		void setDistantAccessibleGroups(NetworkGroupsAccessEvent event) {
 			distant_general_accessible_groups = event.getGeneralAcceptedGroups();
@@ -1847,26 +1775,6 @@ class DistantKernelAgent extends AgentFakeThread {
 
 	}
 
-	/*protected void updateLocalAcceptedGroups() throws MadkitException {
-
-		if (kernelAddressActivated && hasUsableDistantSocketAgent()) {
-			ArrayList<Group> ag = computeLocalAcceptedAndRequestedGroups();
-			ArrayList<Group> newAcceptedGroups = computeMissedGroups(this.localAcceptedAndRequestedGroups, ag);
-			ArrayList<Group> removedAcceptedGroups = computeMissedGroups(ag, this.localAcceptedAndRequestedGroups);
-
-			if (newAcceptedGroups.size() > 0 || removedAcceptedGroups.size() > 0) {
-				MultiGroup mg = computeLocalGeneralAcceptedGroups();
-				updateSharedAcceptedGroups();
-				MadkitKernelAccess.informHooks(this, new NetworkGroupsAccessEvent(
-						AgentActionEvent.ACCESSIBLE_LAN_GROUPS_GIVEN_TO_DISTANT_PEER, mg, ag, distant_kernel_address, removedAcceptedGroups.size() > 0));
-			}
-			localAcceptedAndRequestedGroups = ag;
-		}
-
-		// calGeneralAcceptedGroups=mg;
-
-	}*/
-
 	protected void sendData(AgentAddress receiver, SystemMessageWithoutInnerSizeControl _data, boolean isItAPriority,
 							MessageLocker _messageLocker, boolean last_message) throws NIOException {
 		try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
@@ -1999,9 +1907,6 @@ class DistantKernelAgent extends AgentFakeThread {
 		private final AgentAddress agentReceiver;
 		protected final AtomicBoolean isCanceled = new AtomicBoolean(false);
 		protected final boolean excludedFromEncryption;
-		//private byte counterID=-1;
-		//private boolean currentCounterIDReleased=true;
-		//private final CounterSelector counterSelector;
 		AbstractAgentSocket agentSocket;
 
 		protected AbstractPacketData(boolean priority, AgentAddress firstAgentSocketSender, WritePacket _packet,
@@ -2088,11 +1993,6 @@ class DistantKernelAgent extends AgentFakeThread {
 					if (stat != null)
 						stat.newBytesIdentified(currentByteBuffer.capacity());
 
-					/*if (currentBlock!=null)
-					{
-						currentBlock.setCounterSelector(counterSelector);
-						currentBlock=null;
-					}*/
 					return currentByteBuffer;
 				}
 				finally
@@ -2109,11 +2009,8 @@ class DistantKernelAgent extends AgentFakeThread {
 			synchronized (this) {
 				idTransfer = id;
 				if (currentByteBuffer == null) {
-					//currentCounterIDReleased=false;
-					//counterID=_block.getCounterID();
 					currentByteBuffer = ByteBuffer.wrap((currentBlock=_block).getBytes(), 0, _block.getBlockSize());
 					asking_new_buffer_in_process = false;
-					//observer.update(null, null);
 				}  else
 					e=new NIOException("Unexpected exception !");
 			}
@@ -2125,19 +2022,6 @@ class DistantKernelAgent extends AgentFakeThread {
 				throw e;
 			
 		}
-
-		/*@Override
-		public boolean isReady() {
-			if (isCanceled.get())
-				return true;
-			synchronized (this) {
-				if (currentByteBuffer == null || currentByteBuffer.remaining() == 0)
-					return false;
-				else {
-					return true;
-				}
-			}
-		}*/
 
 		@Override
 		boolean isDataBuildInProgress()
@@ -2173,23 +2057,10 @@ class DistantKernelAgent extends AgentFakeThread {
 		
 		
 
-		/*@Override
-		public boolean isCurrentByteBufferStarted() {
-			synchronized (this) {
-				return currentByteBuffer != null && currentByteBuffer.position() > 0;
-			}
-		}*/
-
 		@Override
 		public boolean isCurrentByteBufferFinished() {
 			synchronized (this) {
 				return currentByteBuffer == null || currentByteBuffer.remaining() == 0;
-				/*if (res && !currentCounterIDReleased)
-				{
-					currentCounterIDReleased=true;
-					counterSelector.releaseCounterID(counterID);
-				}
-				return res;*/
 			}
 		}
 
@@ -2237,15 +2108,9 @@ class DistantKernelAgent extends AgentFakeThread {
 			}
 		}
 
-		//abstract boolean isSystemMessage();
 
 		@Override
 		public void unlockMessage() throws MadkitException {
-			/*if (!currentCounterIDReleased)
-			{
-				currentCounterIDReleased=true;
-				counterSelector.releaseCounterID(counterID);
-			}*/
 			unlocked.set(true);
 		}
 
@@ -2254,15 +2119,6 @@ class DistantKernelAgent extends AgentFakeThread {
 			return unlocked.get();
 		}
 
-		/*@Override
-		public void finalize() {
-			try {
-				unlockMessage();
-			} catch (Exception e) {
-				if (logger != null)
-					logger.severeLog("Unexpected error", e);
-			}
-		}*/
 
 		AgentAddress getFirstAgentSocketSender() {
 			return firstAgentSocketSender;
@@ -2270,10 +2126,6 @@ class DistantKernelAgent extends AgentFakeThread {
 
 		AgentAddress getAgentSocketSender() {
 			return getFirstAgentSocketSender();
-			/*
-			 * if (packet.concernsBigData()) { return getBestAgentSocket(agentReceiver,
-			 * true).getAgentAddress(); } else return getFirstAgentSocketSender();
-			 */
 
 		}
 
@@ -2312,15 +2164,8 @@ class DistantKernelAgent extends AgentFakeThread {
 			this.original_lan_message = isSystemMessage ? null : (LanMessage) lan_message;
 
 			messageLocker = _messageLocker;
-			/*
-			 * if (messageLocker!=null) messageLocker.lock();
-			 */
 		}
 
-		/*@Override
-		boolean isSystemMessage() {
-			return isSystemMessage;
-		}*/
 
 		@Override
 		public boolean isLastMessage() {
@@ -2359,9 +2204,13 @@ class DistantKernelAgent extends AgentFakeThread {
 		private final AgentAddress caller;
 		private final ConversationID conversationID;
 		private final long timeUTC;
+		private final AbstractDecentralizedID differedBigDataInternalIdentifier;
+		private final DifferedBigDataIdentifier differedBigDataIdentifier;
 
 		protected BigPacketData(AgentAddress _firstAgentSocketSender, WritePacket _packet, AgentAddress _agentReceiver,
-								AgentAddress caller, ConversationID conversationID, RealTimeTransferStat stat, boolean excludedFromEncryption) {
+								AgentAddress caller, ConversationID conversationID, RealTimeTransferStat stat, boolean excludedFromEncryption,
+								AbstractDecentralizedID differedBigDataInternalIdentifier,
+								DifferedBigDataIdentifier differedBigDataIdentifier) {
 			super(false, _firstAgentSocketSender, _packet, _agentReceiver, excludedFromEncryption);
 			if (!_packet.concernsBigData())
 				throw new IllegalArgumentException("_packet has to use big data !");
@@ -2369,16 +2218,15 @@ class DistantKernelAgent extends AgentFakeThread {
 				throw new NullPointerException("caller");
 			if (conversationID == null)
 				throw new NullPointerException("conversationID");
+			if ((differedBigDataInternalIdentifier==null)!=(differedBigDataIdentifier==null))
+				throw new NullPointerException();
+			this.differedBigDataInternalIdentifier=differedBigDataInternalIdentifier;
+			this.differedBigDataIdentifier=differedBigDataIdentifier;
 			this.caller = caller;
 			this.conversationID = conversationID;
 			setStat(stat);
 			timeUTC = System.currentTimeMillis();
 		}
-
-		/*@Override
-		boolean isSystemMessage() {
-			return false;
-		}*/
 
 		AgentAddress getCaller() {
 			return caller;
@@ -2392,6 +2240,13 @@ class DistantKernelAgent extends AgentFakeThread {
 			return System.currentTimeMillis() - timeUTC;
 		}
 
+		public AbstractDecentralizedID getDifferedBigDataInternalIdentifier() {
+			return differedBigDataInternalIdentifier;
+		}
+
+		public DifferedBigDataIdentifier getDifferedBigDataIdentifier() {
+			return differedBigDataIdentifier;
+		}
 	}
 
 	static class DistKernADataToUpgradeMessage extends NIOMessage {
@@ -2775,10 +2630,6 @@ class DistantKernelAgent extends AgentFakeThread {
 			this.dataIncrement = dataSize;
 		}
 
-		/*KernelAddressInterfaced getKernelAddressInterfaced() {
-			return DistantKernelAgent.this.distant_kernel_address;
-		}*/
-
 		void markDataAsRead() {
 			if (dataSize.addAndGet(-dataIncrement) >= 0) {
 				decrementTotalDataQueue(dataIncrement);
@@ -2841,11 +2692,8 @@ class DistantKernelAgent extends AgentFakeThread {
 	}
 
 	private long getMaxSizeForUnreadShortDataFromOneDistantKernel() {
-		// return
-		// Math.max(getMadkitConfig().networkProperties.maxSizeForUnreadShortDataFromOneDistantKernel,
-		// getMadkitConfig().networkProperties.numberOfMaximumSimultaneousNonBigDataTransfers*getMadkitConfig().networkProperties.maxShortDataSize);
 		return Math.max(getMadkitConfig().networkProperties.maxSizeForUnreadShortDataFromOneDistantKernel,
-				getMadkitConfig().networkProperties.numberOfMaximumConnectionsBetweenTwoSameKernelsAndMachines
+				((long) getMadkitConfig().networkProperties.numberOfMaximumConnectionsBetweenTwoSameKernelsAndMachines)
 						* getMadkitConfig().networkProperties.maxShortDataSize);
 	}
 
@@ -2987,10 +2835,6 @@ class DistantKernelAgent extends AgentFakeThread {
 	}
 
 	protected void processPotentialDDOS() {
-		// broadcastMessageWithRole(LocalCommunity.Groups.getDistantKernelAgentGroup(distant_kernel_address),
-		// LocalCommunity.Roles.SOCKET_AGENT_ROLE, new
-		// AskForConnectionMessage(ConnectionClosedReason.CONNECTION_ANOMALY, null,
-		// null, false), LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 		processInvalidProcess(null, "Potential DDOS from Kernel Address " + distant_kernel_address, true);
 		if (logger != null)
 			logger.severe(
@@ -3011,16 +2855,9 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 		try {
 			if (source != null) {
-				// sendMessageWithRole(source, new AnomalyDetectedMessage(candidate_to_ban,
-				// distant_kernel_address, message),
-				// LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 				sendMessageWithRole(source, new AskForConnectionMessage(ConnectionClosedReason.CONNECTION_ANOMALY, null,
 						null, null, false, false), LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 			} else if (distant_kernel_address != null) {
-				// broadcastMessageWithRole(LocalCommunity.Groups.getDistantKernelAgentGroup(distant_kernel_address),
-				// LocalCommunity.Roles.SOCKET_AGENT_ROLE, new
-				// AnomalyDetectedMessage(candidate_to_ban, distant_kernel_address, message),
-				// LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 				broadcastMessageWithRole(LocalCommunity.Groups.getDistantKernelAgentGroup(getNetworkID()),
 						LocalCommunity.Roles.SOCKET_AGENT_ROLE,
 						new AnomalyDetectedMessage(candidate_to_ban, distant_kernel_address, message),

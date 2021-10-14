@@ -63,9 +63,9 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public final class Group extends AbstractGroup implements Comparable<Group> {
 
-	public static final short MAX_COMMUNITY_LENGTH=8192;
-	public static final int MAX_PATH_LENGTH=65536;
-	public static final short MAX_ROLE_NAME_LENGTH=16384;
+	public static final short MAX_COMMUNITY_LENGTH=1024;
+	public static final int MAX_PATH_LENGTH=16384;
+	public static final short MAX_ROLE_NAME_LENGTH=2048;
 	
 	public static final int MAX_CGR_LENGTH=MAX_COMMUNITY_LENGTH+MAX_PATH_LENGTH+MAX_ROLE_NAME_LENGTH+3;
 	
