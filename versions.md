@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-2.2.1 STABLE (Build: 3686) (from 22/05/2015 to 13/10/2021)
+2.2.2 STABLE (Build: 3693) (from 22/05/2015 to 13/10/2021)
 
 # Creator(s):
 Jason MAHDJOUB
@@ -10,6 +10,12 @@ Fabien MICHEL (Entered in the team at 01/02/1997)
 Jason MAHDJOUB (Entered in the team at 22/05/2015)
 
 # Modifications:
+
+
+### 2.2.2 STABLE (13/10/2021)
+* Clean code
+* Use CircularArrayList for agent's message box instead of LinkedList
+* Load agent message box only if necessary
 
 
 ### 2.2.1 STABLE (13/10/2021)
