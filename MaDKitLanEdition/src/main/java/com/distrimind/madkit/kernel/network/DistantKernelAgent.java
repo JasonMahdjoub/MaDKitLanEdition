@@ -2255,7 +2255,6 @@ class DistantKernelAgent extends AgentFakeThread {
 
 		DistKernADataToUpgradeMessage(AbstractPacketData _data) {
 			dataToUpgrade = _data;
-			
 		}
 	}
 

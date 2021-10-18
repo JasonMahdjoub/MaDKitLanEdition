@@ -181,6 +181,11 @@ public class UnsecuredConnectionProtocol extends ConnectionProtocol<UnsecuredCon
 			return _block;
 		}
 
+		@Override
+		public boolean canAvoidSignatureCounter() {
+			return true;
+		}
+
 
 	}
 

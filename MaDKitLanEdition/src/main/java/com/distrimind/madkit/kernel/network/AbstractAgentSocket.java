@@ -655,7 +655,6 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			// d.setStat(getBytesPerSecondsStat());
 			if (d.isDataBuildInProgress()) {
 				try {
-						
 					d.setNewBlock(getTransferType(), getBlock(d.packet, getTransferType().getID(), d.excludedFromEncryption));
 					if (logger != null && logger.isLoggable(Level.FINEST))
 						logger.finest("Data buffer updated (distant_inet_address=" + distant_inet_address

@@ -55,8 +55,8 @@ public class PacketCounterForEncryptionAndSignature implements PacketCounter {
 	private final byte[] mySignatureCounter;
 	private byte[] otherEncryptionCounter;
 	private byte[] otherSignatureCounter;
-	private static final short ENCRYPTION_COUNTER_SIZE_BYTES=2;
-	private static final short SIGNATURE_COUNTER_SIZE_BYTES=16;
+	public static final byte ENCRYPTION_COUNTER_SIZE_BYTES=2;
+	public static final byte SIGNATURE_COUNTER_SIZE_BYTES=16;
 	private boolean distantActivated=false;
 	private boolean localActivated=false;
 	PacketCounterForEncryptionAndSignature(AbstractSecureRandom random, boolean encryptionEnabled, boolean signatureEnabled)
@@ -147,6 +147,7 @@ public class PacketCounterForEncryptionAndSignature implements PacketCounter {
 			return;
 		if (myEncryptionCounter!=null)
 		{
+
 			incrementCounter(myEncryptionCounter);
 			//incrementCounter(myNextEncryptionCounter);
 		}
@@ -170,9 +171,12 @@ public class PacketCounterForEncryptionAndSignature implements PacketCounter {
 	public void incrementOtherCounters() {
 		if (!isDistantActivated())
 			return;
-		if (myEncryptionCounter!=null)
+
+		if (otherEncryptionCounter!=null) {
+
 			incrementCounter(otherEncryptionCounter);
-		if (mySignatureCounter!=null)
+		}
+		if (otherSignatureCounter!=null)
 			incrementCounter(otherSignatureCounter);
 		
 	}

@@ -44,9 +44,13 @@ import com.distrimind.madkit.exceptions.PacketException;
 import com.distrimind.madkit.i18n.ErrorMessages;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.*;
+import com.distrimind.madkit.kernel.network.connection.secured.PacketCounterForEncryptionAndSignature;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.util.crypto.AbstractSecureRandom;
+import com.distrimind.util.crypto.EncryptionSignatureHashDecoder;
+import com.distrimind.util.crypto.EncryptionSignatureHashEncoder;
+import com.distrimind.util.crypto.SymmetricSecretKey;
 import com.distrimind.util.io.Integrity;
 import com.distrimind.util.io.MessageExternalizationException;
 import com.distrimind.util.io.SecuredObjectInputStream;
@@ -740,4 +744,43 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 	public abstract PacketCounter getPacketCounter();
 
 
+	protected static void initEncryption(PacketCounterForEncryptionAndSignature packetCounter,
+										 AbstractSecureRandom approvedRandom,
+										 SymmetricSecretKey secretKeyForEncryption,
+										 EncryptionSignatureHashEncoder encoderWithEncryption,
+										 EncryptionSignatureHashDecoder decoderWithEncryption) throws IOException {
+		if (packetCounter.getOtherEncryptionCounter()!=null && packetCounter.isDistantActivated())
+		{
+			encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secretKeyForEncryption, PacketCounterForEncryptionAndSignature.ENCRYPTION_COUNTER_SIZE_BYTES)
+					.withExternalCounter(packetCounter.getOtherEncryptionCounter());
+		}
+		else {
+			encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secretKeyForEncryption)
+					.withoutExternalCounter();
+		}
+		if (packetCounter.getMyEncryptionCounter()!=null && packetCounter.isLocalActivated())
+		{
+			decoderWithEncryption.withSymmetricSecretKeyForEncryption(secretKeyForEncryption, PacketCounterForEncryptionAndSignature.ENCRYPTION_COUNTER_SIZE_BYTES)
+					.withExternalCounter(packetCounter.getMyEncryptionCounter());
+		}
+		else {
+			decoderWithEncryption.withSymmetricSecretKeyForEncryption(secretKeyForEncryption)
+					.withoutExternalCounter();
+		}
+	}
+	protected static void initSignature(PacketCounterForEncryptionAndSignature packetCounter,
+										SymmetricSecretKey secretKeyForSignature,
+										SymmetricSecretKey secretKeyForEncryption,
+										EncryptionSignatureHashEncoder encoderWithEncryption,
+										EncryptionSignatureHashDecoder decoderWithEncryption,
+										EncryptionSignatureHashEncoder encoderWithoutEncryption,
+										EncryptionSignatureHashDecoder decoderWithoutEncryption) throws IOException {
+		encoderWithoutEncryption.withSymmetricSecretKeyForSignature(secretKeyForSignature);
+		if (secretKeyForEncryption ==null || !secretKeyForEncryption.getEncryptionAlgorithmType().isAuthenticatedAlgorithm())
+			encoderWithEncryption.withSymmetricSecretKeyForSignature(secretKeyForSignature);
+
+		decoderWithoutEncryption.withSymmetricSecretKeyForSignature(secretKeyForSignature);
+		if (secretKeyForEncryption ==null || !secretKeyForEncryption.getEncryptionAlgorithmType().isAuthenticatedAlgorithm())
+			decoderWithEncryption.withSymmetricSecretKeyForSignature(secretKeyForSignature);
+	}
 }

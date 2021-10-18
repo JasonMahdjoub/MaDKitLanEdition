@@ -219,6 +219,7 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
 
     private class Parser extends SubBlockParser
     {
+
         public Parser() throws ConnectionException {
             super(null, null, null, null, null);
         }
@@ -282,6 +283,11 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
         public SubBlock signIfPossibleOutgoingPointToPointTransferredBlock(SubBlock _block) throws BlockParserException {
             return selectedConnectionProtocol.getParser().signIfPossibleOutgoingPointToPointTransferredBlock(_block);
 
+        }
+
+        @Override
+        public boolean canAvoidSignatureCounter() {
+            return status!=Status.PROTOCOL_CHOSEN || selectedConnectionProtocol.getParser().canAvoidSignatureCounter();
         }
     }
 }

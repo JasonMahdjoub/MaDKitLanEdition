@@ -50,11 +50,13 @@ import java.security.NoSuchProviderException;
 class MaximumBodyOutputSizeComputer {
 	private final EncryptionSignatureHashEncoder maxEncoder;
 	private final EncryptionSignatureHashEncoder maxEncoderWithoutEncryption;
+	private static final byte[] externalCounter=new byte[(byte)(Math.min(32, PacketCounterForEncryptionAndSignature.ENCRYPTION_COUNTER_SIZE_BYTES))];
 
 	MaximumBodyOutputSizeComputer(boolean encryptionEnabled, SymmetricEncryptionType symmetricEncryptionType, short symmetricKeySizeBits, SymmetricAuthenticatedSignatureType symmetricSignatureType, MessageDigestType messageDigestType) throws BlockParserException {
 		this(encryptionEnabled, symmetricEncryptionType, symmetricKeySizeBits, messageDigestType);
 		try {
 			SymmetricSecretKey ssk=symmetricSignatureType.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), symmetricKeySizeBits).generateKey();
+
 			if (!encryptionEnabled || !symmetricEncryptionType.isAuthenticatedAlgorithm()) {
 				maxEncoder.withSymmetricSecretKeyForSignature(ssk);
 			}
@@ -87,7 +89,8 @@ class MaximumBodyOutputSizeComputer {
 	private void init(boolean encryptionEnabled, SymmetricSecretKey symmetricSecretKeyForEncryption, MessageDigestType messageDigestType) throws BlockParserException {
 		try {
 			if (encryptionEnabled)
-				maxEncoder.withSymmetricSecretKeyForEncryption(SecureRandomType.DEFAULT.getSingleton(null), symmetricSecretKeyForEncryption);
+				maxEncoder.withSymmetricSecretKeyForEncryption(SecureRandomType.DEFAULT.getSingleton(null), symmetricSecretKeyForEncryption, (byte)(Math.min(32, PacketCounterForEncryptionAndSignature.ENCRYPTION_COUNTER_SIZE_BYTES)))
+						.withExternalCounter(externalCounter);
 			if (messageDigestType != null) {
 				maxEncoder.withMessageDigestType(messageDigestType);
 				if (maxEncoderWithoutEncryption!=null)

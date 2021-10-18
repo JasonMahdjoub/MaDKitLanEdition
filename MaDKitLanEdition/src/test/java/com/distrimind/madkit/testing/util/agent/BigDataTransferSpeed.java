@@ -74,7 +74,7 @@ public class BigDataTransferSpeed extends JunitMadkit {
         this.uploadLimitInBytesPerSecond=uploadLimitInBytesPerSecond;
         P2PSecuredConnectionProtocolPropertiesWithKeyAgreement p2pprotocol=new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
         p2pprotocol.isServer = true;
-        p2pprotocol.symmetricEncryptionType=SymmetricEncryptionType.CHACHA20_NO_RANDOM_ACCESS;
+        p2pprotocol.symmetricEncryptionType=SymmetricEncryptionType.AES_CBC_PKCS5Padding;
         p2pprotocol.symmetricSignatureType= SymmetricAuthenticatedSignatureType.HMAC_SHA2_384;
         ListGroupsRoles defaultGroupAccess=new ListGroupsRoles();
         defaultGroupAccess.addGroupsRoles(JunitMadkit.GROUP);

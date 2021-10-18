@@ -151,7 +151,10 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 	}
 
 	class Parser extends SubBlockParser {
-
+		public boolean canAvoidSignatureCounter()
+		{
+			return true;
+		}
 		public Parser() throws ConnectionException {
 			super(null, null, null, null, null);
 		}
