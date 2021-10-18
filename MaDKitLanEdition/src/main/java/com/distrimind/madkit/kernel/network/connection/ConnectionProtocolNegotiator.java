@@ -219,6 +219,7 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
 
     private class Parser extends SubBlockParser
     {
+
         public Parser() throws ConnectionException {
             super(null, null, null, null, null);
         }
@@ -273,34 +274,20 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
             else
                 return selectedConnectionProtocol.getParser().getBodyOutputSizeForDecryption(size);
         }
-        /*private SubBlock signIfPossibleOutgoingPointToPointTransferedBlockWithNoEncryption(SubBlock _block) throws BlockParserException {
-            SubBlock res= new SubBlock(_block.getBytes(), _block.getOffset() - getSizeHead(),
-                    _block.getSize() + getSizeHead());
-            byte[] tab=res.getBytes();
-            for (int i=res.getOffset();i<_block.getOffset();i++)
-                tab[i]=0;
-            return res;
-
-        }
-        private SubBlockInfo checkEntrantPointToPointTransferedBlockWithNoEncryptin(SubBlock _block) throws BlockParserException {
-            return new SubBlockInfo(new SubBlock(_block.getBytes(), _block.getOffset() + getSizeHead(),
-                    _block.getSize() - getSizeHead()), true, false);
-        }*/
         @Override
         public SubBlockInfo checkIncomingPointToPointTransferredBlock(SubBlock _block) throws BlockParserException {
-            /*if (selectedConnectionProtocol==null)
-                return checkEntrantPointToPointTransferedBlockWithNoEncryptin(_block);
-            else*/
-                return selectedConnectionProtocol.getParser().checkIncomingPointToPointTransferredBlock(_block);
+            return selectedConnectionProtocol.getParser().checkIncomingPointToPointTransferredBlock(_block);
         }
 
         @Override
         public SubBlock signIfPossibleOutgoingPointToPointTransferredBlock(SubBlock _block) throws BlockParserException {
-            /*if (selectedConnectionProtocol==null || stateJustChanged)
-                return signIfPossibleOutgoingPointToPointTransferedBlockWithNoEncryption(_block);
-            else*/
-                return selectedConnectionProtocol.getParser().signIfPossibleOutgoingPointToPointTransferredBlock(_block);
+            return selectedConnectionProtocol.getParser().signIfPossibleOutgoingPointToPointTransferredBlock(_block);
 
+        }
+
+        @Override
+        public boolean canAvoidSignatureCounter() {
+            return status!=Status.PROTOCOL_CHOSEN || selectedConnectionProtocol.getParser().canAvoidSignatureCounter();
         }
     }
 }

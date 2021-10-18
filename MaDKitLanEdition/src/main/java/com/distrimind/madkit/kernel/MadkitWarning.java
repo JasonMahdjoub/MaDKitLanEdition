@@ -82,17 +82,6 @@ final class OrganizationWarning extends MadkitWarning {
 	final private String community, role;
 	private final AbstractGroup group;
 
-	/*public OrganizationWarning(ReturnCode code, String _community) {
-		super(code);
-		this.community = _community;
-		this.group = null;
-		this.role = null;
-	}
-
-	public OrganizationWarning(ReturnCode code, Role _cgr) {
-		this(code, _cgr.getGroup(), _cgr.getRole());
-	}*/
-
 	public OrganizationWarning(ReturnCode code, Group _group, String _role) {
 		super(code);
 		this.community = _group.getCommunity();

@@ -1,4 +1,4 @@
-package com.distrimind.madkit.database;
+package com.distrimind.madkit.kernel;
 /*
 Copyright or © or Copr. Jason Mahdjoub (01/04/2013)
 
@@ -35,20 +35,14 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import com.distrimind.util.io.RandomOutputStream;
+import com.distrimind.util.io.SecureExternalizable;
 
 /**
  * @author Jason Mahdjoub
  * @version 1.0
- * @since MaDKitLanEdition 2.2.0
+ * @since MaDKitLanEdition 2.3.0
  */
-public class MKDatabase {
-	public static final Set<Class<?>> databaseClasses= new HashSet<>(Arrays.asList(
-			DifferedMessageTable.class,
-			IPBanned.class,
-			IPBanStat.class,
-			IPExpulsedStat.class,
-			KeysPairs.class));
+public interface DifferedBigDataToReceiveWrapper extends SecureExternalizable {
+	RandomOutputStream getRandomOutputStream(DifferedBigDataIdentifier differedBigDataIdentifier);
 }

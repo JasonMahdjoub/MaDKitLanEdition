@@ -80,8 +80,6 @@ public class PairOfIdentifiers {
 		cloudIdentifier=_localIdentifier.getCloudIdentifier();
 		localHostIdentifier=_localIdentifier.getHostIdentifier();
 		distantHostIdentifier=_distant_identifier.getHostIdentifier();
-		/*localIdentifier = _localIdentifier;
-		distantIdentifier = new Identifier(_localIdentifier.getCloudIdentifier(), _distant_identifier.getHostIdentifier());*/
 		this.locallyAuthenticatedCloud=locallyAuthenticatedCloud;
 		this.distantlyAuthenticatedCloud=distantlyAuthenticatedCloud;
 		this.hashCode=cloudIdentifier.hashCode()^localHostIdentifier.hashCode()^distantHostIdentifier.hashCode();

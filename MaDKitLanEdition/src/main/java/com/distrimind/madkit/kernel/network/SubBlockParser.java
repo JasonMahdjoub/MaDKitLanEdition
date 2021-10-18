@@ -112,18 +112,14 @@ public abstract class SubBlockParser {
 			EncryptionSignatureHashDecoder decoder;
 			if (enabledEncryption) {
 				decoder = decoderWithEncryption;
-				if (packetCounter.isLocalActivated()) {
-					byte[] mec=packetCounter.getMyEncryptionCounter();
-					if (mec!=null)
-						decoder.withExternalCounter(mec);
-				}
 			} else
+			{
 				decoder = decoderWithoutEncryption;
-
-
-			if (packetCounter.isLocalActivated() && packetCounter.getMySignatureCounter()!=null) {
-				decoder.withAssociatedData(packetCounter.getMySignatureCounter());
 			}
+
+
+
+
 
 			if (enabledEncryption) {
 				byte[] tab = new byte[_block.getBytes().length];
@@ -145,7 +141,18 @@ public abstract class SubBlockParser {
 		}
 	}
 	private int getBodyOutputSizeWithEncryptionImpl(int size) throws IOException {
-
+		if (packetCounter.isDistantActivated()) {
+			byte[] oec=packetCounter.getOtherEncryptionCounter();
+			if (oec!=null) {
+				encoderWithEncryption
+						.withExternalCounter(oec);
+			}
+			oec= packetCounter.getOtherSignatureCounter();
+			if (oec!=null)
+				encoderWithEncryption.withAssociatedData(oec);
+			else
+				assert canAvoidSignatureCounter();
+		}
 		if (encoderWithEncryption.getSymmetricSecretKeyForSignature()==null && encoderWithoutEncryption.getSymmetricSecretKeyForSignature()!=null) {
 			return (int) Math.max(encoderWithEncryption.getMaximumOutputLength(size), encoderWithoutEncryption.getMaximumOutputLength(size));
 		}
@@ -160,14 +167,26 @@ public abstract class SubBlockParser {
 	}
 	protected int getBodyOutputSizeWithDecryption(int size) throws IOException {
 
+		if (packetCounter.isLocalActivated()) {
+			byte[] mec=packetCounter.getMyEncryptionCounter();
+			if (mec!=null) {
+				decoderWithEncryption.withExternalCounter(mec);
+			}
+			mec=packetCounter.getMySignatureCounter();
+			if (mec!=null)
+				decoderWithEncryption.withAssociatedData(mec);
+			else
+				assert canAvoidSignatureCounter();
+		}
+
 		size+=EncryptionSignatureHashEncoder.headSize;
-		if (encoderWithEncryption.getSymmetricSecretKeyForSignature()==null && encoderWithoutEncryption.getSymmetricSecretKeyForSignature()!=null) {
+		if (decoderWithEncryption.getSymmetricSecretKeyForSignature()==null && decoderWithoutEncryption.getSymmetricSecretKeyForSignature()!=null) {
 			return (int) Math.max(decoderWithEncryption.getMaximumOutputLength(size), decoderWithoutEncryption.getMaximumOutputLength(size));
 		}
 		else
 			return (int)(decoderWithEncryption.getMaximumOutputLength(size));
 	}
-
+	public abstract boolean canAvoidSignatureCounter();
 	protected SubBlock getEncryptedParentBlock(final SubBlock _block, boolean excludeFromEncryption) throws BlockParserException {
 		try {
 			EncryptionSignatureHashEncoder encoder;
@@ -175,14 +194,7 @@ public abstract class SubBlockParser {
 				encoder = encoderWithoutEncryption;
 			} else {
 				encoder = encoderWithEncryption;
-				if (packetCounter.isDistantActivated()) {
-					byte[] oec=packetCounter.getOtherEncryptionCounter();
-					if (oec!=null)
-						encoder.withExternalCounter(oec);
-				}
 			}
-			if (packetCounter.isDistantActivated() && packetCounter.getMySignatureCounter()!=null)
-				encoder.withAssociatedData(packetCounter.getOtherSignatureCounter());
 			if (excludeFromEncryption) {
 				byte[] tab=_block.getBytes();
 				int l=encoder.encodeWithSameInputAndOutputStreamSource(tab, _block.getOffset(), _block.getSize());

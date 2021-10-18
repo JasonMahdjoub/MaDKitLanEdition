@@ -212,20 +212,6 @@ final class CGRSynchrosSystemMessage implements SystemMessageWithoutInnerSizeCon
 
 
 
-	/*public Map<String, Map<Group, Map<String, Set<AgentAddress>>>> getOrganisationSnapShot() {
-		return organization_snap_shot;
-	}*/
-
-	/*public ArrayList<Group> getRemovedGroups() {
-		return removedGroups;
-	}*/
-
-	/*CGRSynchros getCGRSynchros(KernelAddress distantKernelAddress) {
-		Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> org = cleanUp(organization_snap_shot,
-				distantKernelAddress);
-		return new CGRSynchros(org, distantKernelAddress, removedGroups.cleanUp(org,distantKernelAddress ));
-	}*/
-
 	private ArrayList<Group> cleanUp(Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> organization_snap_shop,
 									 List<Group> removedGroups) {
 		ArrayList<Group> res = new ArrayList<>();

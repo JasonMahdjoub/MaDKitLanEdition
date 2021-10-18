@@ -97,88 +97,11 @@ abstract class AbstractJPakeMessage<T> extends AccessMessage{
 	{
 		return 5;
 	}
-	/*private AbstractJPakeMessage(boolean identifiersIsEncrypted, short nbAnomalies, AbstractSecureRandom random, AbstractMessageDigest messageDigest, short step, Map<Identifier, byte[]> jakeMessages, byte[] distantGeneratedSalt) throws DigestException {
-		super();
-		this.identifiersIsEncrypted=identifiersIsEncrypted;
-		this.identifiers=new Identifier[jakeMessages.size()];
-		this.jpakeMessages=new byte[jakeMessages.size()][];
-		this.step = step;
-		int i=0;
-		for (Map.Entry<Identifier, byte[]> e : jakeMessages.entrySet())
-		{
-			if (identifiersIsEncrypted && !e.getKey().getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
-				this.identifiers[i] = new EncryptedIdentifier(e.getKey(), random, messageDigest, distantGeneratedSalt);
-			else
-				this.identifiers[i] = e.getKey();
-			jpakeMessages[i]=e.getValue();
-			++i;
-		}
-		this.nbAnomalies=nbAnomalies;
-	}
-
-	AbstractJPakeMessage(LoginData loginData, AbstractSecureRandom random, AbstractMessageDigest messageDigest, Map<Identifier, P2PLoginAgreement> agreements, P2PLoginAgreementType agreementType, ASymmetricLoginAgreementType aSymmetricLoginAgreementType, boolean encryptIdentifiers, List<Identifier> newIdentifiers, byte[] distantGeneratedSalt, MessageDigestType messageDigestType, PasswordHashType passwordHashType, ASymmetricPublicKey myPublicKey) throws Exception
-	{
-		try
-		{
-			for (Identifier id : newIdentifiers) {
-				if (id==null)
-					throw new AccessException(new NullPointerException());
-				Identifier localId = loginData.localiseIdentifier(id);
-				if (localId==null)
-					throw new AccessException(new NullPointerException());
-
-				if (localId.getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
-				{
-					if (!loginData.acceptAutoSignedIdentifiers())
-						continue;
-					P2PLoginAgreement agreement=aSymmetricLoginAgreementType.getAgreementAlgorithmForASymmetricSignatureRequester(random, localId.getCloudIdentifier().getCloudKeyPair());
-					agreements.put(localId, agreement);
-
-				}
-				else
-				{
-					PasswordKey pw = loginData.getPassword(localId);
-					if (pw != null) {
-						P2PLoginAgreement agreement = agreementType.getAgreementAlgorithm(random, localId.toBytes(), pw.getPasswordBytes(), pw.isKey(), pw.getSecretKeyForSignature(), messageDigestType, passwordHashType, myPublicKey);
-						agreements.put(localId, agreement);
-					}
-					else
-						throw new IllegalAccessError();
-				}
-
-			}
-			this.identifiersIsEncrypted=encryptIdentifiers;
-			this.identifiers=new Identifier[agreements.size()];
-			this.jpakeMessages=new byte[agreements.size()][];
-			this.step = 1;
-			int i=0;
-			for (Map.Entry<Identifier, P2PLoginAgreement> e : agreements.entrySet())
-			{
-				if (identifiersIsEncrypted && !e.getKey().getCloudIdentifier().isAutoIdentifiedCloudWithPublicKey())
-					this.identifiers[i] = new EncryptedIdentifier(e.getKey(), random, messageDigest, distantGeneratedSalt);
-				else
-					this.identifiers[i] = e.getKey();
-				jpakeMessages[i]=e.getValue().getDataToSend();
-				
-				++i;
-			}
-			this.nbAnomalies=0;
-		}
-		catch ( NoSuchAlgorithmException | InvalidKeySpecException | NoSuchProviderException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException | NoSuchPaddingException | InvalidAlgorithmParameterException | DigestException | IOException e) {
-			
-			throw new AccessException(e);
-		}
-		
-		
-	}*/
 	@Override
 	public short getNbAnomalies() {
 		return nbAnomalies;
 	}
 	
-	/*public byte[][] getJpakeMessages() {
-		return jpakeMessages;
-	}*/
 	public short getStep() {
 		return step;
 	}
@@ -186,11 +109,7 @@ abstract class AbstractJPakeMessage<T> extends AccessMessage{
 	{
 		return identifiers;
 	}
-	/*public boolean areIdentifiersEncrypted()
-	{
-		return identifiersIsEncrypted;
-	}*/
-	
+
 	
 	@Override
 	public boolean checkDifferedMessages() {

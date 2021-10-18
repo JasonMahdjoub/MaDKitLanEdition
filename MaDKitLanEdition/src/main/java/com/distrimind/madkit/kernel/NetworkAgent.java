@@ -61,10 +61,6 @@ import java.util.logging.Level;
 @SuppressWarnings("UnusedReturnValue")
 public final class NetworkAgent extends AgentFakeThread {
 
-	// final static String
-	// SCHEDULER_NAME_FOR_AGENTS_FAKE_THREAD="~~MKLE_AGENTS_FAKE_THREAD_SCHEDULER";
-
-	// private AgentAddress kernelAgent;
 	private AgentAddress NIOAgentAddress = null, LocalNetworkAffectationAgentAddress = null;
 	private final HashMap<ConversationID, MessageLocker> messageLockers = new HashMap<>();
 	private DatabaseSynchronizerAgent databaseSynchronizerAgent=null;
@@ -75,28 +71,14 @@ public final class NetworkAgent extends AgentFakeThread {
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see madkit.kernel.AbstractAgent#activate()
-	 */
 	@Override
 	protected void activate() {
 		setLogLevel(getMadkitConfig().networkProperties.networkLogLevel);
 		setName(super.getName() + getKernelAddress());
-		// setLogLevel(Level.INFO);
 		requestRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.NET_AGENT);
 		requestRole(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS, LocalCommunity.Roles.NET_AGENT);
 
 		requestRole(LocalCommunity.Groups.DATABASE, LocalCommunity.Roles.NET_AGENT);
-		/*
-		 * kernelAgent = getAgentWithRole(Groups.NETWORK,
-		 * Organization.GROUP_MANAGER_ROLE);
-		 * 
-		 * if(kernelAgent == null) throw new
-		 * AssertionError(this+" no kernel agent to work with... Please bug report");
-		 */
-
 		// build servers
 		weakSetBoard(LocalCommunity.Groups.NETWORK, LocalCommunity.Boards.NETWORK_BOARD,
 				MadkitNetworkAccess.getNetworkBoard());
@@ -183,9 +165,6 @@ public final class NetworkAgent extends AgentFakeThread {
 	private boolean launchNetwork() {
 		if (logger != null && logger.isLoggable(Level.FINE))
 			logger.fine("Launching network agent in " + getKernelAddress() + "...");
-		// requestRole(CloudCommunity.Groups.NETWORK_AGENTS,
-		// CloudCommunity.Roles.NET_AGENT);
-
 		launchDatabaseSynchronizerAgent();
 		checkCentralDatabaseBackupReceiverAgent();
 
@@ -306,25 +285,8 @@ public final class NetworkAgent extends AgentFakeThread {
 				}
 			case Roles.UPDATER:// It is a CGR update
 			{
-				/*MessageLocker ml = null;
-				if (m instanceof CGRSynchro) {
-					ml = ((CGRSynchro) m).getMessageLocker();
-					if (ml!=null)
-						ml.lock();
-				}*/
-
-
-				/*ReturnCode rc = */broadcastMessage(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
+				broadcastMessage(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
 						LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE, m, false/*ml != null*/);
-				/*if (ml != null)
-				{
-					if (rc.equals(ReturnCode.SUCCESS)) {
-						messageLockers.put(m.getConversationID(), ml);
-					} else  {
-							ml.cancelLock();
-					}
-				}*/
-
 
 			}
 				break;

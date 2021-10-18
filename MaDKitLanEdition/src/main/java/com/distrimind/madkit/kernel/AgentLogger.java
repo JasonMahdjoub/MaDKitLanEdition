@@ -20,6 +20,7 @@ package com.distrimind.madkit.kernel;
 
 import com.distrimind.madkit.gui.menu.AgentLogLevelMenu;
 import com.distrimind.madkit.i18n.Words;
+import com.distrimind.util.FileTools;
 
 import javax.swing.*;
 import java.io.*;
@@ -78,24 +79,6 @@ final public class AgentLogger extends Logger {
 		}
 	}
 
-	static boolean removeLogger(AbstractAgent agent)
-	{
-		if (agent instanceof MadkitKernel)
-			agent=agent.getMadkitKernel();
-		synchronized (agentLoggers) {
-			AgentLogger al=agentLoggers.remove(agent);
-			if (al==null)
-				return false;
-			else {
-				for (final Handler h : al.getHandlers()) {
-
-					al.removeHandler(h);
-					h.close();
-				}
-				return true;
-			}
-		}
-	}
 
 	static void removeLoggers(MadkitKernel kernel)
 	{
@@ -116,19 +99,6 @@ final public class AgentLogger extends Logger {
 		}
 	}
 
-
-	// public static void renameLogger(AbstractAgent agent) {
-	// AgentLogger al = agentLoggers.get(agent);
-	// if(! al.getName().equals(agent.getName())){
-	//
-	// }
-	// if(al == null){
-	// al = new AgentLogger(agent);
-	// agentLoggers.put(agent, al);
-	// LogManager.getLogManager().addLogger(al);
-	// }
-	// return al;
-	// }
 
 	/**
 	 * Returns the log level above which MaDKit warnings are displayed for the
@@ -193,7 +163,7 @@ final public class AgentLogger extends Logger {
 		if (fh == null) {
 			final File logDir = myAgent.getMadkitConfig().logDirectory;
 
-			logDir.mkdirs();
+			FileTools.checkFolderRecursive(logDir);
 
 			final File logFile = new File(logDir, getName());
 			final String lineSeparator = "----------------------------------------------------------------------\n";
@@ -222,7 +192,7 @@ final public class AgentLogger extends Logger {
 		}
 	}
 
-	final synchronized void close() {
+	synchronized void close() {
 
 		for (final Handler h : getHandlers()) {
 

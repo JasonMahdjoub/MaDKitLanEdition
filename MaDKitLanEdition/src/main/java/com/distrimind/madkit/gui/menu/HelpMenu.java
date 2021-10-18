@@ -33,22 +33,19 @@
  */
 package com.distrimind.madkit.gui.menu;
 
-import java.awt.Desktop;
-import java.awt.event.ActionEvent;
+import com.distrimind.madkit.action.KernelAction;
+import com.distrimind.madkit.gui.SwingUtil;
+import com.distrimind.madkit.i18n.Words;
+import com.distrimind.madkit.kernel.Madkit;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-
-import javax.swing.ImageIcon;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-
-import com.distrimind.madkit.action.KernelAction;
-import com.distrimind.madkit.gui.SwingUtil;
-import com.distrimind.madkit.i18n.Words;
-import com.distrimind.madkit.kernel.Madkit;
+import java.util.Objects;
 
 /**
  * 
@@ -59,23 +56,15 @@ import com.distrimind.madkit.kernel.Madkit;
  */
 final public class HelpMenu extends JMenu {
 
-	private static final ImageIcon HELP_ICON = new ImageIcon(SwingUtil.class.getResource("images/help.png"));
+	private static final ImageIcon HELP_ICON = new ImageIcon(Objects.requireNonNull(SwingUtil.class.getResource("images/help.png")));
 
 	private static final long serialVersionUID = 6177193453649323680L;
-	final private static ActionListener about = new ActionListener() {
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			new AboutFrame();
-		}
-	};
-	final private static ActionListener tuto = new ActionListener() {
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			try {
-				Desktop.getDesktop().browse(new URI(Madkit.getWEB() + "/" + e.getActionCommand()));
-			} catch (IOException | URISyntaxException e1) {
-				e1.printStackTrace();
-			}
+	final private static ActionListener about = e -> new AboutFrame();
+	final private static ActionListener tuto = e -> {
+		try {
+			Desktop.getDesktop().browse(new URI(Madkit.getWEB() + "/" + e.getActionCommand()));
+		} catch (IOException | URISyntaxException e1) {
+			e1.printStackTrace();
 		}
 	};
 

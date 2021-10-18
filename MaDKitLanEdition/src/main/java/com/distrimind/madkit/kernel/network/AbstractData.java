@@ -92,7 +92,7 @@ abstract class AbstractData {
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public void finalize() {
+	protected void finalize() {
 		try {
 			if (!isUnlocked())
 				unlockMessage();

@@ -75,8 +75,6 @@ public class ObjectMessage<T> extends Message {
 		return super.getInternalSerializedSizeImpl()+1+ SerializationTools.getInternalSize(content, maxContentLength);
 	}	
 	
-	@SuppressWarnings("unchecked")
-	
 	public void readExternal(final SecuredObjectInputStream in, int maxContentLength) throws IOException, ClassNotFoundException
 	{
 		super.readExternal(in);

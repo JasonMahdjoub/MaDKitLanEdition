@@ -79,8 +79,6 @@ class TransferPropositionSystemMessage extends BroadcastableSystemMessage {
 		kernelAddressToConnect=in.readObject(false, KernelAddress.class);
 		totalSize+=kernelAddressToConnect.getInternalSerializedSize()+1;
 		attachedData=in.readObject(false, SecureExternalizable.class);
-		/*if (attachedData==null)
-			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);*/
 		totalSize+=attachedData.getInternalSerializedSize();
 		if (totalSize>globalSize)
 			throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);

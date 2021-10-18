@@ -67,16 +67,6 @@ public class ListGroupsRoles implements Cloneable, SecureExternalizable {
 		return getGroups().getRepresentedGroups(localKernelAddress);
 	}
 
-	/*public GroupsRoles getGroupsRoles(Group group)
-	{
-		for (GroupsRoles gr : groupsRoles.values())
-		{
-			if (gr.getGroup().includes(group))
-				return gr;
-		}
-		return null;
-	}*/
-
 	@Override
 	public int getInternalSerializedSize() {
 		int res=4;
@@ -373,77 +363,6 @@ public class ListGroupsRoles implements Cloneable, SecureExternalizable {
 		return groupsRoles.size()==0;
 	}
 
-	/*public ListGroupsRoles computeMissedGroups(KernelAddress localKernelAddress, ListGroupsRoles listToTest) {
-		ListGroupsRoles res = new ListGroupsRoles();
-		for (Map.Entry<GroupsRoles.RoleID, GroupsRoles> e : listToTest.groupsRoles.entrySet())
-		{
-			ArrayList<Group> groups=new ArrayList<>();
-			for (Group g : e.getValue().getGroup().getRepresentedGroups(localKernelAddress))
-			{
-				boolean found = false;
-				GroupsRoles gr=this.groupsRoles.get(e.getKey());
-				if (gr!=null) {
-					for (Group g2 : gr.getGroup().getRepresentedGroups(localKernelAddress)) {
-						if (g.equals(g2)) {
-							found = true;
-							break;
-						}
-					}
-				}
-				if (!found) {
-					groups.add(g);
-				}
-			}
-			if (!groups.isEmpty()) {
-				Group[] gs=new Group[groups.size()];
-				groups.toArray(gs);
-				res.groupsRoles.put(e.getKey(), new GroupsRoles(gs, e.getKey(), e.getValue().getDistantAcceptedRoles()));
-			}
-		}
-		return res;
-	}
-
-
-	public ListGroupsRoles cleanUp(Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> organization_snap_shop,
-									KernelAddress from) {
-		ListGroupsRoles res = new ListGroupsRoles();
-		for (Map.Entry<GroupsRoles.RoleID, GroupsRoles> entry : groupsRoles.entrySet()) {
-
-			ArrayList<Group> groups=new ArrayList<>();
-			for (Group g : entry.getValue().getGroup().getRepresentedGroups(from)) {
-
-				boolean add = true;
-				for (Map.Entry<String, Map<Group, Map<String, Collection<AgentAddress>>>> e0 : organization_snap_shop.entrySet()) {
-					for (Map.Entry<Group, Map<String, Collection<AgentAddress>>> e : e0.getValue().entrySet()) {
-						for (Map.Entry<String, Collection<AgentAddress>> e2 : e.getValue().entrySet()) {
-							for (AgentAddress aa : e2.getValue()) {
-								if (g.equals(aa.getGroup())) {
-									add = false;
-									break;
-								}
-							}
-							if (!add)
-								break;
-						}
-						if (!add)
-							break;
-					}
-					if (!add)
-						break;
-				}
-				if (add) {
-					groups.add(g);
-				}
-			}
-			if (!groups.isEmpty())
-			{
-				Group[] gs=new Group[groups.size()];
-				groups.toArray(gs);
-				res.groupsRoles.put(entry.getKey(), new GroupsRoles(gs, entry.getKey(), entry.getValue().getDistantAcceptedRoles()));
-			}
-		}
-		return res;
-	}*/
 	public boolean isDistantRoleAcceptable(AgentAddress agentAddress) {
 		return isDistantRoleAcceptable(agentAddress.getGroup(), agentAddress.getRole());
 	}

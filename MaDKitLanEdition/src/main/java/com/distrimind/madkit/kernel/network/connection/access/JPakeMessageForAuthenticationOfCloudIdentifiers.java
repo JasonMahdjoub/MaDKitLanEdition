@@ -181,12 +181,6 @@ class JPakeMessageForAuthenticationOfCloudIdentifiers extends AbstractJPakeMessa
 
 		int nbAno=0;
 		
-		/*if (step!=maxSteps)
-		{
-			nbAno+=jpakes.size();
-			jpakes.clear();
-			return new AccessErrorMessage(true);
-		}*/
 		if (identifiers.length!=initialJPakeMessage.identifiers.length || this.jpakeMessages.length!=initialJPakeMessage.identifiers.length)
 		{
 			++nbAno;

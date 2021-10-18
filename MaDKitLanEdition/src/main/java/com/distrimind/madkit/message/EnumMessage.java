@@ -65,7 +65,6 @@ public class EnumMessage<E extends Enum<E>> extends ObjectMessage<Object[]> impl
 		return super.getInternalSerializedSizeImpl(MAX_PARAMETERS_LENGTH)+(code==null?1:(code.name().length()*2+5+code.getClass().getName().length()*2));
 	}	
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public void readExternal(final SecuredObjectInputStream in) throws IOException, ClassNotFoundException
 	{

@@ -146,6 +146,15 @@ final public class Madkit {
 					.addDeveloper(new PersonDeveloper("michel", "fabien", "1997-02-01"))
 					.addDeveloper(new PersonDeveloper("Gutknecht", "Olivier", "1997-02-01"))
 					.addDeveloper(new PersonDeveloper("Ferber", "Jacques", "1997-02-01"))
+					.addDescription(new Description((short)2, (short)2, (short)2, Version.Type.STABLE, (short)0, "2021-10-18")
+							.addItem("Update Utils to 5.20.6 STABLE")
+							.addItem("Update OOD to 3.1.6 STABLE")
+							.addItem("Clean code")
+							.addItem("Use CircularArrayList for agent's message box instead of LinkedList")
+							.addItem("Load agent message box only if necessary")
+							.addItem("Fix bad encryption when using secret counter to avoid replay")
+							.addItem("Make some optimizations with messages filtering")
+					)
 					.addDescription(new Description((short)2, (short)2, (short)1, Version.Type.STABLE, (short)0, "2021-10-13")
 							.addItem("Update Utils to 5.20.3 STABLE")
 							.addItem("Update OOD to 3.1.2 STABLE")
@@ -681,12 +690,9 @@ final public class Madkit {
 	}
 	
 	final private MadkitProperties madkitConfig;
-	// private Element madkitXMLConfigFile = null;
-	// private FileHandler madkitLogFileHandler;
 	final private MadkitKernel myKernel;
 	private Logger logger;
 	// TODO Remove unused code found by UCDetector
-	// String cmdLine;
 	String[] args = null;
 	final KernelAddress kernelAddress;
 
@@ -847,12 +853,6 @@ final public class Madkit {
 			this.args = argsList.toArray(new String[0]);
 		}
 
-		/*try {
-			madkitConfig.loadYAML(getClass().getResourceAsStream("madkit.yaml"));
-		} catch (PropertiesParseException | IOException e) {
-			e.printStackTrace();
-		}
-		*/
 		this.madkitConfig=madkitProperties.clone();
 		this.madkitConfig.setReference(madkitProperties);
 		final Properties fromArgs = buildConfigFromArgs(args);
@@ -917,11 +917,6 @@ final public class Madkit {
 			for (Enumeration<URL> urls = Madkit.class.getClassLoader().getResources("META-INF/MANIFEST.MF"); urls
 					.hasMoreElements();) {
 				Manifest manifest = new Manifest(urls.nextElement().openStream());
-				// if(logger != null)
-				// logger.fine(manifest.toString());
-				// for (Map.Entry<String, Attributes> e : manifest.getEntries().entrySet()) {
-				// System.err.println("\n"+e.getValue().values());
-				// }
 				Attributes projectInfo = manifest.getAttributes("MaDKit-Project-Info");
 				if (projectInfo != null) {
 					logger.finest("found project info \n\t" + projectInfo.keySet() + "\n\t" + projectInfo.values());

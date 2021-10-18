@@ -142,31 +142,17 @@ public class SubBlocksStructure {
 			sub_block_sizes = new int[s];
 		if (sub_block_offsets==null || sub_block_offsets.length!=s)
 			sub_block_offsets = new int[sub_block_sizes.length];
-		// sub_block_sizes_for_parent=new int[sub_block_sizes.length];
-		// sub_block_sizes_for_parent[0]=_block.getBlockSize();
 		int i = 0;
 		for (Iterator<ConnectionProtocol<?>> it = connection_protocol.iterator(); it.hasNext(); i++) {
 			ConnectionProtocol<?> cp = it.next();
 			SubBlockParser sbp = cp.getParser();
 			int sizeHead;
-			/*
-			 * if (i<sub_block_sizes_for_parent.length-1)
-			 * sub_block_sizes_for_parent[i+1]=size;
-			 */
 			try {
-				/*
-				 * if (sbp.getSizeBlockModulus()<1) throw new BlockParserException("The parser "
-				 * +sbp+" returns a block modulus lower than 1: "+sbp.getSizeBlockModulus());
-				 */
 				sizeHead = sbp.getHeadSize();
 				if (sizeHead < 0)
 					throw new BlockParserException(
 							"The parser " + sbp + " returns a head size lower than 0: " + sbp.getHeadSize());
 
-				/*
-				 * int s=size-sbp.getSizeHead(); s=s-s%sbp.getSizeBlockModulus();
-				 * size=s+sbp.getSizeHead();
-				 */
 				if (offset > _block.getBlockSize() || _block.getBlockSize() - offset < size)
 					throw new BlockParserException("Invalid block");
 			} catch (BlockParserException e) {

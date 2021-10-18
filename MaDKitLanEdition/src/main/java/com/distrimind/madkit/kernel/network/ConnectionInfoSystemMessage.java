@@ -142,10 +142,6 @@ class ConnectionInfoSystemMessage implements SystemMessageWithoutInnerSizeContro
 		this.localAddresses = localAddresses;
 	}
 
-	/*int getManualPortToConnect() {
-		return manualPortToConnect;
-	}*/
-
 	boolean hasManualPortToConnect() {
 		return manualPortToConnect >= 0;
 	}
@@ -199,10 +195,6 @@ class ConnectionInfoSystemMessage implements SystemMessageWithoutInnerSizeContro
 			return isa;
 	}
 
-	/*public boolean canBeDirectServer() {
-		return canBeDirectServer;
-	}
-*/
 	private InetSocketAddress getInetSocketAddress(boolean connectionFromIPV6, Inet4Address perceivedDistantInetAddress,
 			boolean isLocalToLocal) {
 		if (isLocalToLocal && !connectionFromIPV6 && this.canBeDirectServer)

@@ -1,5 +1,6 @@
 package com.distrimind.madkit.kernel;
 
+import com.distrimind.util.CircularArrayList;
 import com.distrimind.util.Reference;
 import com.distrimind.util.concurrent.LockerCondition;
 
@@ -10,6 +11,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Predicate;
 
 /**
  * @author Jason Mahdjoub
@@ -18,22 +20,31 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class ChainedBlockingDeque<T> extends AbstractQueue<T> implements BlockingQueue<T>, Deque<T> {
 
-	private final LinkedList<T> list;
+	private final boolean useCircularArrayList=true;
+	private final static int ARRAY_LIST_BASE_SIZE=5;
+	private final Deque<T> list;
 	private final Lock lock=new ReentrantLock();
 	private final Condition notEmpty=lock.newCondition();
 	private MadkitKernel madkitKernel;
+
 	public ChainedBlockingDeque() {
 		this((MadkitKernel)null);
 	}
 	public ChainedBlockingDeque(MadkitKernel madkitKernel) {
-		list=new LinkedList<>();
+		if (useCircularArrayList)
+			list=new CircularArrayList<>(ARRAY_LIST_BASE_SIZE,true);
+		else
+			list=new LinkedList<>();
 		this.madkitKernel=madkitKernel;
 	}
 	public ChainedBlockingDeque(Collection<T> c) {
 		this(null, c);
 	}
 	public ChainedBlockingDeque(MadkitKernel madkitKernel, Collection<T> c) {
-		list=new LinkedList<>(c);
+		if (useCircularArrayList)
+			list=new CircularArrayList<>(ARRAY_LIST_BASE_SIZE,true);
+		else
+			list=new LinkedList<>();
 		this.madkitKernel=madkitKernel;
 	}
 
@@ -51,6 +62,16 @@ public class ChainedBlockingDeque<T> extends AbstractQueue<T> implements Blockin
 
 	public Lock getLocker() {
 		return lock;
+	}
+	@Override
+	public boolean removeIf(Predicate<? super T> filter) {
+		lock.lock();
+		try {
+			return list.removeIf(filter);
+		}
+		finally {
+			lock.unlock();
+		}
 	}
 
 	@Override

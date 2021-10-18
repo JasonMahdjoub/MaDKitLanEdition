@@ -63,9 +63,9 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public final class Group extends AbstractGroup implements Comparable<Group> {
 
-	public static final short MAX_COMMUNITY_LENGTH=8192;
-	public static final int MAX_PATH_LENGTH=65536;
-	public static final short MAX_ROLE_NAME_LENGTH=16384;
+	public static final short MAX_COMMUNITY_LENGTH=1024;
+	public static final int MAX_PATH_LENGTH=16384;
+	public static final short MAX_ROLE_NAME_LENGTH=2048;
 	
 	public static final int MAX_CGR_LENGTH=MAX_COMMUNITY_LENGTH+MAX_PATH_LENGTH+MAX_ROLE_NAME_LENGTH+3;
 	
@@ -406,7 +406,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public final void finalize() {
+	protected void finalize() {
 		m_group.decrementReferences();
 	}
 
@@ -1015,9 +1015,6 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 		return m_group.isAnyRoleRequested(ka);
 	}
 
-	/*boolean isAnyRoleRequestedRecursive(KernelAddress ka) {
-		return m_group.isAnyRoleRequestedRecursive(ka);
-	}*/
 
 	boolean isAnyRoleRequested() {
 		return m_group.isAnyRoleRequested();
@@ -1027,22 +1024,11 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 		m_group.incrementMadKitReferences(ka);
 	}
 
-	/*
-	 * void incrementMadKitReferences(int number, KernelAddress ka) { if (number<1)
-	 * throw new IllegalAccessError(); m_group.incrementMadKitReferences(number,
-	 * ka); }
-	 */
 
 	void decrementMadKitReferences(KernelAddress ka) {
 		m_group.decrementMadKitReferences(ka);
-		// return m_group.isMadKitCreated(ka);
 	}
 
-	/*
-	 * boolean decrementMadKitReferences(int number, KernelAddress ka) {
-	 * m_group.decrementMadKitReferences(number, ka); return
-	 * m_group.isMadKitCreated(ka); }
-	 */
 
 	void setMadKitCreated(KernelAddress ka, boolean value) {
 		m_group.setMadKitCreated(ka, value);
@@ -1155,16 +1141,6 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 				this.equals(LocalCommunity.Groups.SYSTEM)
 				|| this.equals(com.distrimind.madkit.agr.LocalCommunity.Groups.GUI);
 	}
-	/*private boolean isHiddenGroup() {
-		return ((this.getPath().startsWith(CloudCommunity.Groups.DISTRIBUTED_DATABASE.getPath())
-				|| this.getPath().startsWith(CloudCommunity.Groups.CLIENT_SERVER_DATABASE.getPath()) ||
-				this.getPath().startsWith(CloudCommunity.Groups.CENTRAL_DATABASE_BACKUP.getPath()))
-				&& this.getCommunity().equals(CloudCommunity.Groups.DISTRIBUTED_DATABASE.getCommunity())) ||
-				(this.getPath().equals(LocalCommunity.Groups.SYSTEM.getPath())
-						&& this.getCommunity().equals(LocalCommunity.Groups.SYSTEM.getCommunity()))
-				|| this.getPath().equals(com.distrimind.madkit.agr.LocalCommunity.Groups.GUI.getPath()) && this
-				.getCommunity().equals(com.distrimind.madkit.agr.LocalCommunity.Groups.GUI.getCommunity());
-	}*/
 
 	/**
 	 * Return true if this group represents also its subgroups.
@@ -1373,15 +1349,10 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 				af.set(null);
 		}
 	}
-	/*static void removeRepresentedGroupsOfUniverse(KernelAddress ka) {
-		synchronized (represented_groups_universe) {
-			represented_groups_universe.remove(ka);
-		}
-	}*/
 
-	static protected final Map<String, GroupTree> m_groups_root = new HashMap<>();
+	static final Map<String, GroupTree> m_groups_root = new HashMap<>();
 
-	static protected GroupTree getRoot(String _community) {
+	static GroupTree getRoot(String _community) {
 		if (_community == null)
 			throw new NullPointerException("_community");
 		if (_community.length() == 0)
@@ -1397,7 +1368,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 		}
 	}
 
-	protected static KernelAddress m_first_kernel = null;
+	static KernelAddress m_first_kernel = null;
 
 	public static KernelAddress getFirstUsedMadKitKernel() {
 		return m_first_kernel;
@@ -1406,11 +1377,6 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	static void madkitKernelKilled(KernelAddress ka)
 	{
 		synchronized (m_groups_root) {
-			/*for (GroupTree gt : new ArrayList<>(Group.m_groups_root.values()))
-			{
-				gt.madkitKernelKilled(ka);
-			}
-			removeRepresentedGroupsOfUniverse(ka);*/
 			if (m_first_kernel != null && m_first_kernel.equals(ka))
 				m_first_kernel = null;
 
@@ -1447,11 +1413,11 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 		}
 
 		private final ArrayList<GroupTree> subGroups = new ArrayList<>();
-		protected final String community;
+		private final String community;
 		private final String group;
 		private final String path;
 		private final GroupTree parent;
-		protected final GroupTree root;
+		private final GroupTree root;
 		private final boolean isDistributed;
 		private final Gatekeeper identifier;
 		private int references = 0;
@@ -1459,22 +1425,9 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 		private boolean isReserved;
 		private volatile GroupTree[] m_global_sub_groups_duplicated = null;
 
-		// private final LinkedList<GroupTree> m_all_sub_groups=new
-		// LinkedList<GroupTree>();
-		// private GroupTree[] m_all_sub_groups_duplicated=new GroupTree[0];
-
 		private final LinkedList<GroupTree> m_parent_groups = new LinkedList<>();
 		private final AtomicReference<GroupTree[]> m_parent_groups_duplicated = new AtomicReference<>(
                 new GroupTree[0]);
-
-		/*
-		 * private final LinkedList<String> m_sub_group_paths=new LinkedList<String>();
-		 * private String[] m_sub_group_paths_duplicated=new String[0];
-		 * 
-		 * private final LinkedList<String> m_parent_group_paths=new
-		 * LinkedList<String>(); private String[] m_parent_group_paths_duplicated=new
-		 * String[0];
-		 */
 
 		public GroupTree(String _community) {
 			community = _community;
@@ -1486,22 +1439,6 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 			isReserved = false;
 			root = this;
 		}
-
-		/*void madkitKernelKilled(KernelAddress ka)
-		{
-			for (GroupTree gt : this.m_sub_groups)
-				gt.madkitKernelKilled(ka);
-
-			KernelReferences kr = m_kernel_references.remove(ka);
-
-			if (kr == null)
-				return;
-
-
-			if (!isAnyRoleRequested())
-				m_global_sub_groups_duplicated = null;
-
-		}*/
 
 		private GroupTree(String group, GroupTree root, GroupTree _parent, boolean _isDistributed,
 				Gatekeeper _theIdentifier, boolean _isReserved) {
@@ -1654,9 +1591,6 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
                     kr = kernelReferences.get(ka);
                     if (kr==null)
                         throw new IllegalAccessError();
-					/*kr=new KernelReferences(ka);
-					m_kernel_references.put(ka, kr);
-					kr.m_madkit_references=1;*/
 					if (kr.m_madkit_references != 1)
 						throw new IllegalAccessError("kr.m_madkit_references=" + kr.m_madkit_references);
 				}
@@ -1729,8 +1663,6 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 
 				if (kr.m_madkit_references == 1) {
 					//TODO check for removing this commentary
-					/*if (!isAnyRoleRequestedRecursive(ka))
-						m_kernel_references.remove(kr.m_kernel);*/
 					activate = true;
 					GroupTree p = parent;
 					while (p != null) {
@@ -1740,10 +1672,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 									"Problem of data integrity ! The KernelAddress should be stored on the GroupTree class. This is a MaKitGroupExtension bug !");
 
 						krp.m_all_sub_groups.remove(this);
-						/*if (!p.isAnyMadkitCreatedRecursive(ka)) {
-							p.m_kernel_references.remove(krp);
-						}*/
-						
+
 						p.updateDuplicatedSubGroupList(ka);
 						p = p.parent;
 					}
@@ -1839,21 +1768,6 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 			}
 		}
 
-		/*public boolean isAnyRoleRequestedRecursive(KernelAddress ka) {
-			synchronized (m_root) {
-				KernelReferences kr = m_kernel_references.get(ka);
-
-				if (kr == null)
-					return false;
-				if (kr.m_madkit_references > 1)
-					return true;
-				for (GroupTree gt : m_sub_groups)
-					if (gt.isAnyRoleRequested(ka))
-						return true;
-				return false;
-			}
-		}
-*/
 		public boolean isAnyMadkitCreatedRecursive(KernelAddress ka) {
 			synchronized (root) {
 				KernelReferences kr = kernelReferences.get(ka);

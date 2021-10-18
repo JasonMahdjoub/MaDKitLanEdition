@@ -124,7 +124,7 @@ final class ReadPacket {
 		readNewPart(_first_part);
 	}
 
-	public final void readNewPart(PacketPart _part) throws PacketException, IOException {
+	public void readNewPart(PacketPart _part) throws PacketException, IOException {
 		if (isFinished())
 			return;
 		if (_part == null)
@@ -271,15 +271,11 @@ final class ReadPacket {
 		validity = Validity.INVALID;
 	}
 
-	/*public long getCurrentPosition() {
-		return current_pos + start_position;
-	}*/
-
 	public boolean isFinished() {
 		return current_pos == data_length_with_message_digest;
 	}
 
-	public final int getID() {
+	public int getID() {
 		return id_packet;
 	}
 
@@ -318,11 +314,6 @@ final class ReadPacket {
 		{
 			return subBlock;
 		}
-
-		/*@Override
-		int getRealDataSize() {
-			return subBlock.getSize();
-		}*/
 
 	}
 
@@ -367,11 +358,6 @@ final class ReadPacket {
 			return subBlockRes;
 		}
 
-		/*@Override
-		int getRealDataSize() {
-			getSubBlock();
-			return realSize;
-		}*/
 	}
 
 }

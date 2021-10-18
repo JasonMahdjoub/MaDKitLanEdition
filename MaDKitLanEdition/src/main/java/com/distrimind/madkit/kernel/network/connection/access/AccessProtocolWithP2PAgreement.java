@@ -223,8 +223,6 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 							setCloudIdentifiers(lp.getCloudIdentifiersToInitiate(properties.networkProperties.encryptionRestrictionForAccessProtocols, access_protocol_properties));
 						else
 							setCloudIdentifiers(null);
-						/*if (getIdentifiers() != null && getIdentifiers().size() == 0)
-							setIdentifiers(null);*/
 						if (getCloudIdentifiers() != null) {
 							access_state = AccessState.WAITING_FOR_CLOUD_IDENTIFIERS;
 							return new CloudIdentifiersPropositionMessage(properties.getApprovedSecureRandom(), messageDigest,

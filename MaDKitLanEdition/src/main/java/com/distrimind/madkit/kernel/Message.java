@@ -98,18 +98,10 @@ public class Message implements Cloneable {// TODO message already sent warning 
 	public void readExternal(final SecuredObjectInputStream in) throws IOException, ClassNotFoundException
 	{
 		readAndCheckObjectImpl(in);
-		/*receiver=in.readObject(true, AgentAddress.class);
-		sender=in.readObject(false, AgentAddress.class);
-		conversationID=in.readObject(false, ConversationID.class);
-		needReply=in.readBoolean();*/
 
 	}
 	public void writeExternal(final SecuredObjectOutputStream oos) throws IOException{
 		writeAndCheckObjectImpl(oos);
-		/*oos.writeObject(receiver, true);
-		oos.writeObject(sender, false);
-		oos.writeObject(conversationID, false);
-		oos.writeBoolean(needReply);*/
 	}
 	@SuppressWarnings("SameParameterValue")
 	void setNeedReply(boolean value) {
@@ -119,9 +111,6 @@ public class Message implements Cloneable {// TODO message already sent warning 
 	public boolean needReply() {
 		return needReply;
 	}
-
-	// public Message(){//TODO id when sending ?
-	// }
 
 	final void setReceiver(AgentAddress a) {
 		receiver = a;

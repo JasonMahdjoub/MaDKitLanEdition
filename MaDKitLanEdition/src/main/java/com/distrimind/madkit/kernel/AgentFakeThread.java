@@ -100,57 +100,8 @@ public abstract class AgentFakeThread extends AbstractAgent {
 	 * constructed like this will be managed with the same task manager agent.
 	 */
 	public AgentFakeThread() {
-		// this(Task.DEFAULT_TASK_EXECUTOR_NAME, Integer.MAX_VALUE,
-		// MadkitKernel.DEFAULT_THREAD_PRIORITY, -1);
 	}
 
-	/*
-	 * Construct an AgentFakeThread and associate it to a given arbitrary task
-	 * manager agent name. All agents constructed with the same task agent name will
-	 * be managed with the same task manager agent.
-	 * 
-	 * @param _agent_task_name
-	 *            the task manger agent name
-	 * @param maximumPoolSize
-	 *            the maximum number of threads to allow in the pool (see
-	 *            {@link ThreadPoolExecutor#ThreadPoolExecutor(int, int, long, TimeUnit, java.util.concurrent.BlockingQueue, java.util.concurrent.ThreadFactory)}.
-	 * @param priority
-	 *            priority to set this thread to
-	 * @see Task
-	 */
-	/*
-	 * public AgentFakeThread(String _agent_task_name, int maximumPoolSize, int
-	 * priority, long timeOutSeconds) { super(); if (_agent_task_name==null) throw
-	 * new NullPointerException("_agent_task_name");
-	 * agent_task_name=_agent_task_name; executorProperties=new
-	 * ExecutorProperties(maximumPoolSize, priority, timeOutSeconds);
-	 * 
-	 * }
-	 */
-
-	/*
-	 * void initiateTaskExecutor() {
-	 * /*getKernel().launchAndOrGetScheduledExecutorService(this, agent_task_name,
-	 * executorProperties.maximumPoolSize, executorProperties.defaultThreadPriotity,
-	 * executorProperties.timeOutSeconds); executorProperties=null;
-	 */
-	// launchTaskManagerAgent(agent_task_name, maximumPoolSize,
-	// defaultThreadPriotity);
-	// }
-
-	/*
-	 * Construct an AgentFakeThread and associate it to a given arbitrary task
-	 * manager agent name. All agents constructed with the same task agent name will
-	 * be managed with the same task manager agent.
-	 * 
-	 * @param _agent_task_name
-	 *            the task manger agent name
-	 * @see Task
-	 */
-	/*
-	 * public AgentFakeThread(String _agent_task_name) { this(_agent_task_name, 1,
-	 * MadkitKernel.DEFAULT_THREAD_PRIORITY, -1); }
-	 */
 
 	/**
 	 * {@inheritDoc}
@@ -203,7 +154,7 @@ public abstract class AgentFakeThread extends AbstractAgent {
 	public Message receiveMessage(Message m) {
 		State s = state.get();
 		if (!s.include(State.WAIT_FOR_KILL) && s != State.ENDING && s != State.TERMINATED && s != State.ZOMBIE) {
-			messageBox.getLocker().lock();
+			getMessageBox().getLocker().lock();
 			try {
 				m = super.receiveMessage(m);
 
@@ -231,9 +182,8 @@ public abstract class AgentFakeThread extends AbstractAgent {
 	void manageTaskMessage(boolean force) {
 
 		boolean schedule = false;
-		if ((messageBox.size() == 1 || (force && messageBox.size() > 0))) {
-			if (messageReadAlreadyInProgress.weakCompareAndSet(false, true)) {
-				//if (!messageReadAlreadyInProgress && messageBox.size() > 0) {
+		if (messageBox!=null && (messageBox.size() == 1 || (force && messageBox.size() > 0))) {
+			if (messageReadAlreadyInProgress.compareAndSet(false, true)) {
 				schedule = true;
 			}
 		}

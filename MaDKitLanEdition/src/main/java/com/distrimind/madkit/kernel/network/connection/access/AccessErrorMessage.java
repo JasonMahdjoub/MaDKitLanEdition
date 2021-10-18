@@ -52,7 +52,7 @@ public class AccessErrorMessage extends AccessMessage {
 
 
 	public boolean candidate_to_ban;
-	private transient String logMessage;
+	private final transient String logMessage;
 	AccessErrorMessage()
 	{
 		this(null, false);

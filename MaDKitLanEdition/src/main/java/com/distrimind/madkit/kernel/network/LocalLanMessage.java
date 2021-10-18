@@ -108,7 +108,7 @@ public class LocalLanMessage extends Message {
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public void finalize() {
+	protected void finalize() {
 		if (originalMessage != null) {
 			originalMessage.markDataAsRead();
 			originalMessage = null;

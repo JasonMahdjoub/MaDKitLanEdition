@@ -35,7 +35,6 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-import com.distrimind.madkit.kernel.network.EncryptionRestriction;
 import com.distrimind.util.crypto.*;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
@@ -67,6 +66,7 @@ final class WrappedCloudIdentifier extends CloudIdentifier {
 	private CloudIdentifier cloudIdentifier;
 	private byte[] signature;
 
+	@SuppressWarnings("unused")
 	WrappedCloudIdentifier getInvalidWrappedCloudIdentifier(AbstractSecureRandom random)
 	{
 		WrappedCloudIdentifier res=new WrappedCloudIdentifier();

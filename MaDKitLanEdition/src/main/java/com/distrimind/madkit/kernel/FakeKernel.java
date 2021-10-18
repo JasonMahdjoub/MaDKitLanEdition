@@ -43,7 +43,7 @@ import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
 import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
-import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.util.AbstractDecentralizedID;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.crypto.MessageDigestType;
@@ -422,7 +422,8 @@ class FakeKernel extends MadkitKernel {
 
 	@Override
 	void connectionLostForBigDataTransfer(AbstractAgent requester, ConversationID conversationID, int idPacket,
-			AgentAddress sender, AgentAddress receiver, long readDataLength, long duration) {
+			AgentAddress sender, AgentAddress receiver, long readDataLength, long duration, AbstractDecentralizedID differedBigDataInternalIdentifier,
+										  DifferedBigDataIdentifier differedBigDataIdentifier) {
 		throw buildKernelException(requester);
 	}
 
@@ -524,34 +525,9 @@ class FakeKernel extends MadkitKernel {
 	}
 
 	@Override
-	ReturnCode setCentralDatabaseBackupReceiverFactory(AbstractAgent ignored, CentralDatabaseBackupReceiverFactory<?> centralDatabaseBackupReceiverFactory) throws DatabaseException {
+	ReturnCode setCentralDatabaseBackupReceiverFactory(AbstractAgent ignored, CentralDatabaseBackupReceiverFactory<?> centralDatabaseBackupReceiverFactory) {
 		throw buildKernelException(null);
 	}
-
-	/*@Override
-	void setIfNotPresentLocalDatabaseHostIdentifier(AbstractAgent requester, DecentralizedValue localDatabaseHostID, Package ...packages)
-	{
-		throw buildKernelException(null);
-	}
-
-	@Override
-	void resetDatabaseSynchronizer(AbstractAgent requester) {
-		throw buildKernelException(null);
-	}
-
-	@Override
-	void addOrConfigureDistantDatabaseHost(AbstractAgent requester, DecentralizedValue hostIdentifier, boolean conflictualRecordsReplacedByDistantRecords, Package... packages) {
-		throw buildKernelException(null);
-	}
-	@Override
-	void removeDistantDatabaseHostFromDatabaseSynchronizer(AbstractAgent requester, DecentralizedValue hostIdentifier, Package... packages)  {
-		throw buildKernelException(null);
-	}*/
-
-	/*@Override
-	<V> V take(BlockingDeque<V> toTake) {
-		throw buildKernelException(null);
-	}*/
 
 	@Override
 	List<AbstractAgent> createBucket(final String agentClass, int bucketSize, int cpuCoreNb) {

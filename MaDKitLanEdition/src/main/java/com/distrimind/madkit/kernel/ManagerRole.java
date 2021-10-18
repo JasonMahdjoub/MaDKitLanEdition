@@ -63,11 +63,6 @@ final class ManagerRole extends InternalRole {
 		synchronized (players) {
 			players.add(new ParametrizedAgent(requester, true));
 
-			/*Set<AgentAddress> set= new HashSet<>(1, 1);
-			set.add(new GroupManagerAddress(requester, this, getKernelAddress(), true, securedGroup));*/
-			// System.err.println(requester.getName() + " is now playing " +
-			// getCGRString(communityName, groupName, roleName));
-			// System.err.println(this+" current players---\n"+players+"\n\n");
 			agentAddresses=null;
 			localAgentAddresses=null;
 			modified = true;

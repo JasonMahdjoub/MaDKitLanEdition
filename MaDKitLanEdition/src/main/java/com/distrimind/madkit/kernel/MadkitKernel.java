@@ -64,6 +64,7 @@ import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.message.task.TasksExecutionConfirmationMessage;
 import com.distrimind.madkit.util.XMLUtilities;
 import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.util.AbstractDecentralizedID;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.Utils;
 import com.distrimind.util.concurrent.LockerCondition;
@@ -157,9 +158,6 @@ class MadkitKernel extends Agent {
     private volatile int maximumGlobalDownloadSpeedInBytesPerSecond;
     private volatile boolean hasSpeedLimitation;
 
-	// final private HashMap<String, ScheduledThreadPoolExecutor>
-	// dedicatedServiceExecutors=new HashMap<>();
-
 
 	void setThreadPriorityForServiceExecutor(int _priority) {
 		threadPriorityForServiceExecutor = _priority;
@@ -169,15 +167,6 @@ class MadkitKernel extends Agent {
 	ScheduledPoolExecutor getMaDKitServiceExecutor() {
 		return serviceExecutor;
 	}
-
-	/*ThreadPoolExecutor getLifeExecutor() {
-		return lifeExecutor;
-	}*/
-
-	/*
-	 * ThreadPoolExecutor getLifeExecutorWithBlockedQueue() { return
-	 * lifeExecutorWithBlockQueue; }
-	 */
 
 	private static ScheduledPoolExecutor createSchedulerServiceExecutor(int corePoolSize,
 			ThreadFactory threadFactory, long timeOutSeconds) {
@@ -293,31 +282,12 @@ class MadkitKernel extends Agent {
 
 		normalAgentThreadFactory = new AgentThreadFactory(kernelAddress, false);
 		daemonAgentThreadFactory = new AgentThreadFactory(kernelAddress, true);
-		/*lifeExecutor = new PoolExecutor(1, 2, 4L, TimeUnit.SECONDS,
-				new ThreadFactory() {
-					public Thread newThread(Runnable r) {
-						final Thread t = new Thread(daemonAgentThreadFactory.getThreadGroup(), r);
-						t.setPriority(threadPriorityForLifeExecutor);
-						t.setDaemon(true);
-						return t;
-					}
-				});
-		lifeExecutor.start();*/
 		this.serviceExecutor = createSchedulerServiceExecutor(SYSTEM, threadPriorityForServiceExecutor, false,
 				SYSTEM.getName(), Math.min(Runtime.getRuntime().availableProcessors(), 2), 4L,
 				null);
 		this.serviceExecutor.start();
 		if (madkitConfig.isUseMadkitSchedulerWithFortunaSecureRandom())
 			Fortuna.setPersonalDefaultScheduledExecutorService(this.serviceExecutor);
-		/*
-		 * lifeExecutorWithBlockQueue = new
-		 * ThreadPoolExecutor(Math.min(Runtime.getRuntime().availableProcessors(), 2),
-		 * Integer.MAX_VALUE, 1L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
-		 * new ThreadFactory() { public Thread newThread(Runnable r) { final Thread t =
-		 * new Thread(normalAgentThreadFactory.getThreadGroup(), r);
-		 * t.setPriority(threadPriorityForLifeExecutor); t.setDaemon(false); return t; }
-		 * });
-		 */
 
 		madkitConfig.getApprovedRandomType();
 		madkitConfig.getApprovedRandomTypeForKeys();
@@ -325,7 +295,6 @@ class MadkitKernel extends Agent {
 		if (madkitConfig.isDatabaseEnabled()) {
 			try {
 				differedMessageTable= madkitConfig.getDatabaseWrapper().getTableInstance(DifferedMessageTable.class);
-				//madkitConfig.resetTemporaryDatabaseDirectoryUsedForSynchronisation();
 			} catch (DatabaseException e) {
 				bugReport(e);
 				try {
@@ -336,7 +305,6 @@ class MadkitKernel extends Agent {
 			}
 		}
 		madkitConfig.madkitLaunched=true;
-		//this.lockSocketUntilCGRSynchroIsSent= madkitConfig.networkProperties != null && madkitConfig.networkProperties.lockSocketUntilCGRSynchroIsSent;
 
 	}
 
@@ -360,12 +328,9 @@ class MadkitKernel extends Agent {
 		operatingOverlookers = null;
 		normalAgentThreadFactory = null;
 		daemonAgentThreadFactory = null;
-		//lifeExecutor = null;
 		this.serviceExecutor = null;
 		generatorIdTransfer = null;
 		globalInterfacedIds = null;
-		//lockSocketUntilCGRSynchroIsSent=false;
-		// lifeExecutorWithBlockQueue=null;
 	}
 
 	/**
@@ -423,7 +388,7 @@ class MadkitKernel extends Agent {
 		hasSpeedLimitation=maximumGlobalUploadSpeedInBytesPerSecond!=Integer.MAX_VALUE || maximumGlobalDownloadSpeedInBytesPerSecond!=Integer.MAX_VALUE;
 	}
 
-	boolean hasSpeedLimitation(AbstractAgent requester) {
+	boolean hasSpeedLimitation(@SuppressWarnings("unused") AbstractAgent requester) {
 		return hasSpeedLimitation;
 	}
 
@@ -800,11 +765,6 @@ class MadkitKernel extends Agent {
 		}
 	}
 
-	// private ReturnCode updateNetworkStatus(boolean start){
-	// return sendNetworkMessageWithRole(new
-	// KernelMessage(KernelAction.LAUNCH_NETWORK,start), kernelRole);
-	// }
-	//
 	private void handleMessage(Message m) {
 
 		if (m instanceof KernelMessage) {
@@ -1171,8 +1131,6 @@ class MadkitKernel extends Agent {
                     removeDistantKernelAddress(distantAccessibleGroupsGivenToDistantPeer, distantAccessibleKernelsPerGroupsGivenToDistantPeer, m.getDistantKernelAddress());
 					acceptedDistantLogins.remove(m.getDistantKernelAddress());
 					removeDistantKernelAddressFromCGR(m.getDistantKernelAddress());
-					//globalInterfacedIds.remove(m.getDistantKernelAddress());
-					//Group.madkitKernelKilled(m.getDistantKernelAddress());
 				}
 			} else if (hook_message.getClass() == NetworkGroupsAccessEvent.class) {
 				NetworkGroupsAccessEvent n = (NetworkGroupsAccessEvent) hook_message;
@@ -1348,9 +1306,6 @@ class MadkitKernel extends Agent {
 			affectedRoles = g.leaveGroup(requester, manually_requested);
 		}
 		if (affectedRoles != null) {// success
-			/*for (final InternalRole role : affectedRoles) {
-				role.removeFromOverlookers(requester);
-			}*/
 			if (g.isDistributed()) {
 				sendNetworkCGRSynchroMessageWithRole(requester, new CGRSynchro(LEAVE_GROUP, new AgentAddress(requester,
 						new InternalRole(group), kernelAddress, isAutoCreateGroup(requester)), manually_requested));
@@ -2068,6 +2023,11 @@ class MadkitKernel extends Agent {
 					super(list);
 				}
 
+				@Override
+				protected AJ clone() throws CloneNotSupportedException {
+					return new AJ(getClonedList());
+				}
+
 				AJ() {
 				}
 
@@ -2112,6 +2072,10 @@ class MadkitKernel extends Agent {
 				}
 				class AJ2 extends AgentsJob
 				{
+					@Override
+					protected AJ2 clone() throws CloneNotSupportedException {
+						return new AJ2(getClonedList());
+					}
 					AJ2(List<AbstractAgent> list) {
 						super(list);
 					}
@@ -2142,6 +2106,11 @@ class MadkitKernel extends Agent {
 		} else {
 			class AJ extends AgentsJob
 			{
+
+				@Override
+				protected AJ clone() throws CloneNotSupportedException {
+					return new AJ(getClonedList());
+				}
 				AJ(List<AbstractAgent> list) {
 					super(list);
 				}
@@ -2311,13 +2280,17 @@ class MadkitKernel extends Agent {
 				if (agent.isAlive()) {// ! self kill -> safe to make this here
 
 					if (agent instanceof AgentFakeThread) {
-						agent.messageBox.getLocker().lock();
-						try {
+						if (agent.messageBox==null)
 							agent.state.set(LIVING);
-							if (!agent.messageBox.isEmpty())
-								((AgentFakeThread) agent).manageTaskMessage(true);
-						} finally {
-							agent.messageBox.getLocker().unlock();
+						else {
+							agent.messageBox.getLocker().lock();
+							try {
+								agent.state.set(LIVING);
+								if (!agent.messageBox.isEmpty())
+									((AgentFakeThread) agent).manageTaskMessage(true);
+							} finally {
+								agent.messageBox.getLocker().unlock();
+							}
 						}
 					} else
 						agent.state.set(LIVING);
@@ -2445,7 +2418,7 @@ class MadkitKernel extends Agent {
 
 							@Override
 							public boolean isLocked() {
-								return !target.messageBox.isEmpty();
+								return target.messageBox!=null && !target.messageBox.isEmpty();
 							}
 						});
 					//}
@@ -3188,7 +3161,6 @@ class MadkitKernel extends Agent {
 		}
 		try {
 			getMadkitConfig().resetCacheFileCenter();
-			//getMadkitConfig().resetTemporaryDatabaseDirectoryUsedForSynchronisation();
 			getMadkitConfig().setDatabaseFactory(null);
 		} catch (Throwable e) {
 			e.printStackTrace();
@@ -3204,9 +3176,6 @@ class MadkitKernel extends Agent {
 		loggedKernel = null;
 		platform = null;
 		differedMessageTable=null;
-		/*synchronized (organizations) {
-			organizations.clear();
-		}*/
 		operatingOverlookers.clear();
 		synchronized (state) {
 			state.set(TERMINATED);
@@ -3239,10 +3208,7 @@ class MadkitKernel extends Agent {
 			if (netAgent == null) {
 				final NetworkAgent na = new NetworkAgent();
 				final ReturnCode r = launchAgent(na);
-				// threadedAgents.remove(na);
 				if (r == SUCCESS) {
-					// requestRole(CloudCommunity.NAME, CloudCommunity.Groups.NETWORK_AGENTS,
-					// Roles.KERNEL);
 					if (logger != null)
 						logger.fine("\n\t****** Network agent launched ******\n");
 				} // TODO i18n
@@ -3299,14 +3265,6 @@ class MadkitKernel extends Agent {
 	void bugReport(String m, Throwable e) {
 		getMadkitKernel().getLogger().severeLog("********************** KERNEL PROBLEM, please bug report " + m, e); // Kernel
 	}
-
-	/*final void removeAgentsFromDistantKernel(KernelAddress kernelAddress2) {
-		synchronized (organizations) {
-			for (final Organization org : organizations.values()) {
-				org.removeAgentsFromDistantKernel(kernelAddress2, this);
-			}
-		}
-	}*/
 
 	@SuppressWarnings("unused")
     ReturnCode destroyCommunity(AbstractAgent abstractAgent, String community) {
@@ -3434,12 +3392,7 @@ class MadkitKernel extends Agent {
 			mustCancelLock = true;
 			synchronized (agentsSendingNetworkMessage) {
 				LockerCondition l = agentsSendingNetworkMessage.put(requester.getAgentID(), locker);
-				/*if (locker==l) {
-					agentsSendingNetworkMessage.remove(requester.getAgentID());
-					l.cancelLock();
-					return;
-				}
-				else */if (l != null) {
+				if (l != null) {
 					l.cancelLock();
 				}
 			}
@@ -3459,34 +3412,24 @@ class MadkitKernel extends Agent {
 
 	}
 
-	/*<V> V take(BlockingDeque<V> toTake) throws InterruptedException {
-		V res = serviceExecutor.takeToBlockingQueue(toTake);
-		if (res == null)
-			res = lifeExecutor.takeToBlockingQueue(toTake);
-
-		if (res == null)
-			return toTake.take();
-		else
-			return res;
-	}*/
 
 	void wait(AbstractAgent requester, LockerCondition locker) throws InterruptedException {
-		if (!serviceExecutor.wait(locker) /*&& !lifeExecutor.wait(locker)*/) {
+		if (!serviceExecutor.wait(locker) ) {
 			regularWait(requester, locker);
 		}
 	}
 	void wait(AbstractAgent requester, LockerCondition locker, long delayMillis) throws InterruptedException, TimeoutException {
-		if (!serviceExecutor.wait(locker, delayMillis, TimeUnit.MILLISECONDS)/* && !lifeExecutor.wait(locker, delayMillis, TimeUnit.MILLISECONDS)*/) {
+		if (!serviceExecutor.wait(locker, delayMillis, TimeUnit.MILLISECONDS)) {
 			regularWait(requester, locker, delayMillis);
 		}
 	}
 	void wait(AbstractAgent requester, LockerCondition locker, Lock personalLocker, Condition personalCondition, long delay, TimeUnit unit) throws InterruptedException, TimeoutException {
-		if (!serviceExecutor.wait(locker, personalLocker, personalCondition, delay, unit) /*&& !lifeExecutor.wait(locker, personalLocker, personalCondition, delay, unit)*/) {
+		if (!serviceExecutor.wait(locker, personalLocker, personalCondition, delay, unit) ) {
 			regularWait(requester, locker, personalLocker, personalCondition,  delay, unit);
 		}
 	}
 	void wait(AbstractAgent requester, LockerCondition locker, Lock personalLocker, Condition personalCondition) throws InterruptedException{
-		if (!serviceExecutor.wait(locker, personalLocker, personalCondition) /*&& !lifeExecutor.wait(locker, personalLocker, personalCondition)*/) {
+		if (!serviceExecutor.wait(locker, personalLocker, personalCondition) ) {
 			regularWait(requester, locker, personalLocker, personalCondition);
 		}
 	}
@@ -3770,9 +3713,10 @@ class MadkitKernel extends Agent {
 	}
 
 	void connectionLostForBigDataTransfer(AbstractAgent requester, ConversationID conversationID, int idPacket,
-			AgentAddress sender, AgentAddress receiver, long readDataLength, long duration) {
+			AgentAddress sender, AgentAddress receiver, long readDataLength, long duration, AbstractDecentralizedID differedBigDataInternalIdentifier,
+										  DifferedBigDataIdentifier differedBigDataIdentifier) {
 		BigDataResultMessage m = new BigDataResultMessage(BigDataResultMessage.Type.CONNECTION_LOST, readDataLength,
-				idPacket, duration);
+				idPacket, duration, differedBigDataInternalIdentifier, differedBigDataIdentifier);
 		m.setSender(receiver);
 		m.setReceiver(sender);
 		sender.getAgent().receiveMessage(m);
@@ -3950,9 +3894,6 @@ class MadkitKernel extends Agent {
 			return role;
 		}
 
-		/*public Object getPassKey() {
-			return passKey;
-		}*/
 
 		@Override
 		public boolean equals(Object other) {
@@ -4052,85 +3993,6 @@ class MadkitKernel extends Agent {
 
 
 	}
-
-	/*void setIfNotPresentLocalDatabaseHostIdentifier(AbstractAgent requester, DecentralizedValue localDatabaseHostID, Package ...packages) throws DatabaseException
-	{
-		if (localDatabaseHostID==null)
-			throw new NullPointerException();
-		if (packages==null)
-			throw new NullPointerException();
-		if (!sendInternalDatabaseSynchronizerEvent(new InternalDatabaseSynchronizerEvent(InternalDatabaseSynchronizerEventType.SET_LOCAL_IDENTIFIER, localDatabaseHostID, packages)))
-			getMadkitConfig().getDatabaseWrapper().getDatabaseConfigurationsBuilder()
-					.setLocalPeerIdentifier(localDatabaseHostID)
-					.add;
-	}
-
-	void resetDatabaseSynchronizer(AbstractAgent requester) throws DatabaseException {
-		if (!sendInternalDatabaseSynchronizerEvent(new InternalDatabaseSynchronizerEvent(InternalDatabaseSynchronizerEventType.RESET_SYNCHRONIZER)))
-			getMadkitConfig().resetDatabaseSynchronizerAndRemoveAllDatabaseHosts();
-	}*/
-
-	/*private boolean sendInternalDatabaseSynchronizerEvent(InternalDatabaseSynchronizerEvent event)
-	{
-		updateNetworkAgent();
-		if (netAgent!=null)
-		{
-			ObjectMessage<InternalDatabaseSynchronizerEvent> m=new ObjectMessage<>(event);
-			((Message) m).setSender(kernelRole);
-			((Message) m).setReceiver(netAgent);
-			netAgent.getAgent().receiveMessage(m);
-			return true;
-		}
-		else
-			return false;
-	}
-
-	static class InternalDatabaseSynchronizerEvent
-	{
-		InternalDatabaseSynchronizerEventType type;
-		Object[] parameters;
-
-		private InternalDatabaseSynchronizerEvent(InternalDatabaseSynchronizerEventType type, Object... parameters) {
-			this.type = type;
-			this.parameters = parameters;
-		}
-	}*/
-
-	/*enum InternalDatabaseSynchronizerEventType
-	{
-		SET_LOCAL_IDENTIFIER,
-		RESET_SYNCHRONIZER,
-		ASSOCIATE_DISTANT_DATABASE_HOST,
-		DISSOCIATE_DISTANT_DATABASE_HOST
-	}
-
-	void addOrConfigureDistantDatabaseHost(AbstractAgent requester, DecentralizedValue hostIdentifier, boolean conflictualRecordsReplacedByDistantRecords, Package... packages) throws DatabaseException {
-		if (hostIdentifier==null)
-			throw new NullPointerException();
-		if (packages==null)
-			throw new NullPointerException();
-		if (!sendInternalDatabaseSynchronizerEvent(new InternalDatabaseSynchronizerEvent(InternalDatabaseSynchronizerEventType.ASSOCIATE_DISTANT_DATABASE_HOST, hostIdentifier, conflictualRecordsReplacedByDistantRecords, packages)))
-		{
-			try {
-				getMadkitConfig().differDistantDatabaseHostConfiguration(hostIdentifier, conflictualRecordsReplacedByDistantRecords, packages);
-			} catch (IOException e) {
-				throw new DatabaseException("",e);
-			}
-		}
-
-	}
-
-	void removeDistantDatabaseHostFromDatabaseSynchronizer(AbstractAgent requester, DecentralizedValue hostIdentifier, Package... packages) throws DatabaseException {
-		if (hostIdentifier==null)
-			throw new NullPointerException();
-		if (packages==null)
-			throw new NullPointerException();
-		if (!sendInternalDatabaseSynchronizerEvent(new InternalDatabaseSynchronizerEvent(InternalDatabaseSynchronizerEventType.DISSOCIATE_DISTANT_DATABASE_HOST, hostIdentifier, packages)))
-		{
-			getMadkitConfig().removeDistantDatabaseHost( hostIdentifier, packages);
-		}
-
-	}*/
 }
 
 final class CGRNotAvailable extends Exception {
@@ -4144,7 +4006,7 @@ final class CGRNotAvailable extends Exception {
 	/**
 	 * @return the code
 	 */
-	final ReturnCode getCode() {
+	ReturnCode getCode() {
 		return code;
 	}
 
@@ -4158,10 +4020,6 @@ final class CGRNotAvailable extends Exception {
 		this.code = code;
 	}
 
-	// @Override
-	// public synchronized Throwable fillInStackTrace() {
-	// return null;
-	// }
 
 }
 
@@ -4172,6 +4030,9 @@ abstract class AgentsJob implements Callable<Void>, Cloneable {
 		this.list = list;
 	}
 
+	@Override
+	protected abstract AgentsJob clone() throws CloneNotSupportedException;
+
 	AgentsJob() {
 	}
 
@@ -4181,6 +4042,10 @@ abstract class AgentsJob implements Callable<Void>, Cloneable {
 			proceedAgent(a);
 		}
 		return null;
+	}
+	protected List<AbstractAgent> getClonedList()
+	{
+		return new ArrayList<>(list);
 	}
 
 
@@ -4197,12 +4062,8 @@ abstract class AgentsJob implements Callable<Void>, Cloneable {
 		for (int i = 0; i < cpuCoreNb; i++) {
 			int firstIndex = nbOfAgentsPerTask * i;
 			workers.add(createNewAgentJobWithList(l.subList(firstIndex, firstIndex + nbOfAgentsPerTask)));
-			// System.err.println("from "+firstIndex+
-			// " to "+(firstIndex+nbOfAgentsPerTask));
 		}
 		workers.add(createNewAgentJobWithList(l.subList(cpuCoreNb * nbOfAgentsPerTask, l.size())));
-		// System.err.println("from "+cpuCoreNb*nbOfAgentsPerTask+
-		// " to "+l.size());
 		return workers;
 	}
 

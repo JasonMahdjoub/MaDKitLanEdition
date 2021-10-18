@@ -116,25 +116,23 @@ final class NIOAgent extends Agent {
 	private final ArrayList<Server> serverChannels = new ArrayList<>();
 
 	// The selector we'll be monitoring
-	protected final Selector selector;
+	private final Selector selector;
 
 	// The buffer into which we'll read data when it's available
 	
 
-	protected HashMap<AgentNetworkID, PersonalSocket> personal_sockets = new HashMap<>();
-	protected ArrayList<PersonalSocket> personal_sockets_list = new ArrayList<>(100);
+	private final HashMap<AgentNetworkID, PersonalSocket> personal_sockets = new HashMap<>();
+	private final ArrayList<PersonalSocket> personal_sockets_list = new ArrayList<>(100);
 
-	protected HashMap<DatagramChannel, PersonalDatagramChannel> personal_datagram_channels = new HashMap<>();
-	protected HashMap<AgentAddress, PersonalDatagramChannel> personal_datagram_channels_per_agent_address = new HashMap<>();
-	protected HashMap<InetAddress, PersonalDatagramChannel> personal_datagram_channels_per_ni_address = new HashMap<>();
-	protected HashMap<InetAddress, Integer> numberOfConnectionsPerIP = new HashMap<>();
-	protected final ArrayList<PendingConnection> pending_connections = new ArrayList<>();
+	private final HashMap<DatagramChannel, PersonalDatagramChannel> personal_datagram_channels = new HashMap<>();
+	private final HashMap<AgentAddress, PersonalDatagramChannel> personal_datagram_channels_per_agent_address = new HashMap<>();
+	private final HashMap<InetAddress, PersonalDatagramChannel> personal_datagram_channels_per_ni_address = new HashMap<>();
+	private final HashMap<InetAddress, Integer> numberOfConnectionsPerIP = new HashMap<>();
+	private final ArrayList<PendingConnection> pending_connections = new ArrayList<>();
 
-	protected Group group = null;
 	private boolean stopping = false;
-	protected AgentAddress myAgentAddress = null;
-	protected long localOnlineTime = -1;
-	protected long delayToWaitToRespectGlobalBandwidthLimit=0;
+	private AgentAddress myAgentAddress = null;
+	private long delayToWaitToRespectGlobalBandwidthLimit=0;
     private RealTimeTransferStat realTimeGlobalDownloadStat =null, realTimeGlobalUploadStat=null;
     private double realTimeDownloadStatDuration=0.0, realTimeUploadStatDuration=0.0;
 
@@ -186,7 +184,6 @@ final class NIOAgent extends Agent {
 		setLogLevel(getMadkitConfig().networkProperties.networkLogLevel);
 		if (logger != null && logger.isLoggable(Level.FINE))
 			logger.fine("Launching NIOAgent ...");
-		localOnlineTime = System.currentTimeMillis();
         this.realTimeGlobalDownloadStat =getMadkitConfig().networkProperties.getGlobalStatsBandwidth().getBytesDownloadedInRealTime(NetworkProperties.DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS);
         this.realTimeGlobalUploadStat=getMadkitConfig().networkProperties.getGlobalStatsBandwidth().getBytesUploadedInRealTime(NetworkProperties.DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS);
         this.realTimeDownloadStatDuration=((double)this.realTimeGlobalDownloadStat.getDurationMilli())/1000.0;
@@ -304,7 +301,7 @@ final class NIOAgent extends Agent {
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public void finalize() {
+	protected void finalize() {
 		closeAllNow();
 	}
 
@@ -1087,19 +1084,15 @@ final class NIOAgent extends Agent {
 			}
 		}
 
-		/*@Override
-		boolean isReady() {
-			return true;
-		}*/
 
 		@Override
 		boolean isFinished() {
-			return data==null;//data.remaining() == 0;
+			return data==null;
 		}
 
 		@Override
 		boolean isCurrentByteBufferFinished() {
-			return data==null;//data.remaining() == 0;
+			return data==null;
 		}
 
 		@Override
@@ -1378,7 +1371,7 @@ final class NIOAgent extends Agent {
 
 		@SuppressWarnings("deprecation")
         @Override
-		public void finalize() {
+		protected void finalize() {
 			try {
 				if (this.socketChannel.isConnected())
 					this.socketChannel.close();
@@ -1478,41 +1471,6 @@ final class NIOAgent extends Agent {
 			return shortDataToSend.size() > 0 && shortDataToSend.get(0).isPriority();
 		}
 
-		/*private boolean waitDataReady() {
-			try {
-				synchronized (myAgentAddress) {
-					final AtomicBoolean hasData = new AtomicBoolean(hasDataToSend());
-					final AtomicBoolean validData = new AtomicBoolean(
-							((shortDataToSend.size() > 0 && shortDataToSend.getFirst().isReady())
-									|| (bigDataToSend.size() > bigDataToSendIndex
-											&& bigDataToSend.get(bigDataToSendIndex).isReady())
-									|| (dataToTransfer.size() > 0 && dataToTransfer.getFirst().isReady())));
-
-					if (!hasData.get() || validData.get())
-						return hasData.get();
-
-					NIOAgent.this.wait(new LockerCondition(myAgentAddress) {
-
-						@Override
-						public boolean isLocked() {
-							return hasData.get() && !validData.get();
-						}
-
-						@Override
-						public void afterCycleLocking() {
-							hasData.set(hasDataToSend());
-							validData.set(((shortDataToSend.size() > 0 && shortDataToSend.getFirst().isReady())
-									|| (bigDataToSend.size() > bigDataToSendIndex
-											&& bigDataToSend.get(bigDataToSendIndex).isReady())
-									|| (dataToTransfer.size() > 0 && dataToTransfer.getFirst().isReady())));
-						}
-					});
-					return validData.get();
-				}
-			} catch (InterruptedException e) {
-				return false;
-			}
-		}*/
 		private boolean waitDataReady() throws TransferException {
 			try {
 				//synchronized (this.agentSocket) {
@@ -1530,12 +1488,9 @@ final class NIOAgent extends Agent {
 						
 						@Override
 						public boolean isLocked() {
-							//NoBackData first=noBackDataToSend.getFirst();
 							NoBackData first=noBackDataToSend.peekFirst();
 							try
 							{
-								/*hasData.set(noBackDataToSend.size()>0);
-								validData.set(noBackDataToSend.size()>0 && first.isReady());*/
 								hasData.set(first!=null);
 								validData.set(first!=null && first.isReady());
 							}
@@ -1544,7 +1499,6 @@ final class NIOAgent extends Agent {
 								exception.set(e);
 								return false;
 							}
-							//return exception.get()==null && hasData.get() && (!validData.get() || first.isCanceled() || agentSocket.getState().compareTo(AbstractAgent.State.ENDING)>=0);
 							return exception.get()==null && first!=null && (!validData.get() || first.isCanceled() || agentSocket.getState().compareTo(AbstractAgent.State.ENDING)>=0);
 						}
 

@@ -52,7 +52,7 @@ import com.distrimind.ood.database.exceptions.DatabaseException;
  */
 public final class IPBanned extends Table<IPBanned.Record> {
 
-	protected IPBanned() throws DatabaseException {
+	private IPBanned() throws DatabaseException {
 		super();
 	}
 

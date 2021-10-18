@@ -29,6 +29,7 @@ import java.awt.*;
 import java.awt.event.MouseWheelListener;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Objects;
 
 /**
  * This class provides some utilities for building swing components.
@@ -43,7 +44,7 @@ final public class SwingUtil {
 	/**
 	 * The MaDKit's logo
 	 */
-	final public static ImageIcon MADKIT_LOGO = new ImageIcon(SwingUtil.class.getResource("images/madkit_logo.png"));
+	final public static ImageIcon MADKIT_LOGO = new ImageIcon(Objects.requireNonNull(SwingUtil.class.getResource("images/madkit_logo.png")));
 	/**
 	 * The MaDKit's logo with a size of 14x14 pixels
 	 */
@@ -103,9 +104,6 @@ final public class SwingUtil {
 		slider.addMouseWheelListener(e -> slider.setValue(-e.getWheelRotation() * model.getMaximum() / 100 + model.getValue()));
 		slider.setPaintTicks(true);
 		slider.setPaintLabels(true);
-		// slider.setMajorTickSpacing(model.getMaximum()/2);
-		// slider.setMinorTickSpacing(model.getMaximum()/10);
-		// slider.setSnapToTicks(true);
 		return slider;
 	}
 
@@ -146,19 +144,15 @@ final public class SwingUtil {
 			add.invoke(menuOrToolBar, KernelAction.STOP_NETWORK.getActionFor(agent));
 			add.invoke(menuOrToolBar, GUIManagerAction.CONNECT_TO_IP.getActionFor(agent));
 			addSeparator.invoke(menuOrToolBar);
-			if (!(GlobalAction.JConsole == null /* || MadkitProperties.JAVAWS_IS_ON */)) {
+			if (!(GlobalAction.JConsole == null )) {
 				add.invoke(menuOrToolBar, GlobalAction.JConsole);
 			}
 			add.invoke(menuOrToolBar, KernelAction.CONSOLE.getActionFor(agent));
 			addBooleanActionTo(menuOrToolBar, GlobalAction.DEBUG);
 			add.invoke(menuOrToolBar, GlobalAction.LOG_FILES);
-			// if (! MadkitProperties.JAVAWS_IS_ON) {
 			addSeparator.invoke(menuOrToolBar);
 			add.invoke(menuOrToolBar, GlobalAction.LOAD_LOCAL_DEMOS);
 			add.invoke(menuOrToolBar, GlobalAction.LOAD_JAR_FILE);
-			// }
-			// add.invoke(menuOrToolBar,
-			// GUIManagerAction.LOAD_JAR_FILE.getActionFor(agent));
 			addSeparator.invoke(menuOrToolBar);
 			add.invoke(menuOrToolBar, GUIManagerAction.ICONIFY_ALL.getActionFor(agent));
 			add.invoke(menuOrToolBar, GUIManagerAction.DE_ICONIFY_ALL.getActionFor(agent));

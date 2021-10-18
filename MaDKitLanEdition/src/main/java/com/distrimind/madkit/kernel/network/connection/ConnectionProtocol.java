@@ -44,9 +44,13 @@ import com.distrimind.madkit.exceptions.PacketException;
 import com.distrimind.madkit.i18n.ErrorMessages;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.*;
+import com.distrimind.madkit.kernel.network.connection.secured.PacketCounterForEncryptionAndSignature;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.ood.database.DatabaseWrapper;
 import com.distrimind.util.crypto.AbstractSecureRandom;
+import com.distrimind.util.crypto.EncryptionSignatureHashDecoder;
+import com.distrimind.util.crypto.EncryptionSignatureHashEncoder;
+import com.distrimind.util.crypto.SymmetricSecretKey;
 import com.distrimind.util.io.Integrity;
 import com.distrimind.util.io.MessageExternalizationException;
 import com.distrimind.util.io.SecuredObjectInputStream;
@@ -335,19 +339,6 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 		if (_block.getTransferID() != -1)
 			throw new NIOException("Unexpected exception !");
 		
-		/*CounterSelector.State state=_block.getCounterState();
-		for (Iterator<ConnectionProtocol<?>> it = this.iterator(); it.hasNext(); ) {
-			ConnectionProtocol<?> cp=it.next();
-			try
-			{
-				cp.getPacketCounter().selectMyCounters(state);
-			}
-			catch(PacketException e)
-			{
-				throw new NIOException("Invalid block with "+cp.getClass(), false, false);
-			}
-		}*/
-		
 		SubBlockInfo sbi;
 		try {
 			sbi = new SubBlockInfo(new SubBlock(_block), true, false);
@@ -420,11 +411,6 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 			if (packet_part == null)
 				return null;
 			
-			//byte counter=getCounterSelector().getNewCounterID();
-			
-			//SubBlocksStructure sbs = new SubBlocksStructure(packet_part, this);
-			/*Block block = new Block(packet_part, sbs, _transfert_type);
-			SubBlock subBlock = new SubBlock(block.getBytes(), sbs.initial_packet_offset, sbs.initial_packet_size);*/
 			SubBlock subBlock= packet_part.getSubBlock();
 			int i = this.numberOfSubConnectionProtocols();
 			for (Iterator<ConnectionProtocol<?>> it = this.reverseIterator(); it.hasNext(); i--) {
@@ -697,10 +683,6 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 			}
 		}
 
-		/*protected ConnectionProtocol<CP> getConnectionProtocolInstance() {
-			return ConnectionProtocol.this;
-		}*/
-
 		@Override
 		public void remove() {
 			throw new IllegalAccessError();
@@ -761,15 +743,44 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 	
 	public abstract PacketCounter getPacketCounter();
 
-	/*public CounterSelector getCounterSelector() {
-		return counterSelector;
-	}
 
-	public void setCounterSelector(CounterSelector counterSelector) {
-		this.counterSelector = counterSelector;
-		if (this.subProtocol!=null)
-			subProtocol.setCounterSelector(counterSelector);
-	}*/
-	
-	
+	protected static void initEncryption(PacketCounterForEncryptionAndSignature packetCounter,
+										 AbstractSecureRandom approvedRandom,
+										 SymmetricSecretKey secretKeyForEncryption,
+										 EncryptionSignatureHashEncoder encoderWithEncryption,
+										 EncryptionSignatureHashDecoder decoderWithEncryption) throws IOException {
+		if (packetCounter.getOtherEncryptionCounter()!=null && packetCounter.isDistantActivated())
+		{
+			encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secretKeyForEncryption, PacketCounterForEncryptionAndSignature.ENCRYPTION_COUNTER_SIZE_BYTES)
+					.withExternalCounter(packetCounter.getOtherEncryptionCounter());
+		}
+		else {
+			encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secretKeyForEncryption)
+					.withoutExternalCounter();
+		}
+		if (packetCounter.getMyEncryptionCounter()!=null && packetCounter.isLocalActivated())
+		{
+			decoderWithEncryption.withSymmetricSecretKeyForEncryption(secretKeyForEncryption, PacketCounterForEncryptionAndSignature.ENCRYPTION_COUNTER_SIZE_BYTES)
+					.withExternalCounter(packetCounter.getMyEncryptionCounter());
+		}
+		else {
+			decoderWithEncryption.withSymmetricSecretKeyForEncryption(secretKeyForEncryption)
+					.withoutExternalCounter();
+		}
+	}
+	protected static void initSignature(PacketCounterForEncryptionAndSignature packetCounter,
+										SymmetricSecretKey secretKeyForSignature,
+										SymmetricSecretKey secretKeyForEncryption,
+										EncryptionSignatureHashEncoder encoderWithEncryption,
+										EncryptionSignatureHashDecoder decoderWithEncryption,
+										EncryptionSignatureHashEncoder encoderWithoutEncryption,
+										EncryptionSignatureHashDecoder decoderWithoutEncryption) throws IOException {
+		encoderWithoutEncryption.withSymmetricSecretKeyForSignature(secretKeyForSignature);
+		if (secretKeyForEncryption ==null || !secretKeyForEncryption.getEncryptionAlgorithmType().isAuthenticatedAlgorithm())
+			encoderWithEncryption.withSymmetricSecretKeyForSignature(secretKeyForSignature);
+
+		decoderWithoutEncryption.withSymmetricSecretKeyForSignature(secretKeyForSignature);
+		if (secretKeyForEncryption ==null || !secretKeyForEncryption.getEncryptionAlgorithmType().isAuthenticatedAlgorithm())
+			decoderWithEncryption.withSymmetricSecretKeyForSignature(secretKeyForSignature);
+	}
 }

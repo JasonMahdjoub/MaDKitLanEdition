@@ -75,8 +75,8 @@ public class Identifier implements SecureExternalizable {
 		if (_host_identifier == null)
 			throw new NullPointerException("_host_identifier");
 		cloud_identifier = _cloud_identifier;
-		if (HostIdentifier.getNullHostIdentifierSingleton().equals(_host_identifier))
-			host_identifier=HostIdentifier.getNullHostIdentifierSingleton();
+		if (getNullHostIdentifierSingleton().equals(_host_identifier))
+			host_identifier=getNullHostIdentifierSingleton();
 		else
 			host_identifier = _host_identifier;
 	}
@@ -161,7 +161,7 @@ public class Identifier implements SecureExternalizable {
 	{
 		cloud_identifier=in.readObject(false, CloudIdentifier.class);
 		if (in.readBoolean())
-			host_identifier=HostIdentifier.getNullHostIdentifierSingleton();
+			host_identifier=getNullHostIdentifierSingleton();
 		else {
 			host_identifier = in.readObject(false, HostIdentifier.class);
 			if (host_identifier.getAuthenticationPublicKey() == null && host_identifier.isAuthenticatedByPublicKey())
@@ -174,7 +174,7 @@ public class Identifier implements SecureExternalizable {
 	public void writeExternal(final SecuredObjectOutputStream oos) throws IOException
 	{
 		oos.writeObject(  cloud_identifier, false);
-		if (host_identifier==HostIdentifier.getNullHostIdentifierSingleton())
+		if (host_identifier==getNullHostIdentifierSingleton())
 			oos.writeBoolean(true);
 		else {
 			oos.writeBoolean(false);
@@ -271,6 +271,12 @@ public class Identifier implements SecureExternalizable {
 
 	public boolean isHostPartOfCloud()
 	{
-		return HostIdentifier.getNullHostIdentifierSingleton()!=host_identifier;
+		return getNullHostIdentifierSingleton()!=host_identifier;
+	}
+
+	private static final HostIdentifier.NullHostIdentifier nullHostIdentifierSingleton=new HostIdentifier.NullHostIdentifier();
+
+	public static HostIdentifier.NullHostIdentifier getNullHostIdentifierSingleton() {
+		return nullHostIdentifierSingleton;
 	}
 }

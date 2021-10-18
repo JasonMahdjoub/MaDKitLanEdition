@@ -67,8 +67,6 @@ import com.distrimind.madkit.message.ObjectMessage;
  */
 class IndirectAgentSocket extends AbstractAgentSocket {
 	private final IDTransfer transfer_id;
-	// protected final TransferSpeedStat stat;
-	// private long time_between_each_packet;
 	private final AgentAddress agentSocketRequester;
 	private final KernelAddress distant_kernel_address_requester;
 	private final int numberOfIntermediatePeers;
@@ -94,9 +92,6 @@ class IndirectAgentSocket extends AbstractAgentSocket {
 			throw new NullPointerException("kernelAddressDestinationForSystemBroadcast");
 		transfer_id = _transfer_id;
 		this.numberOfIntermediatePeers = numberOfIntermediatePeers;
-		// stat=new
-		// TransferSpeedStat(this.getMadkitConfig().networkProperties.maxBufferSize*3,
-		// (this.getMadkitConfig().networkProperties.maxBufferSize*3)/20);
 		if (statRequester == null)
 			throw new NullPointerException("statRequester");
 		this.statRequester = statRequester;

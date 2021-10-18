@@ -71,12 +71,6 @@ class DatagramData {
 		}
 	}
 
-	/*DatagramData(byte[] data) {
-		if (data == null)
-			throw new NullPointerException("data");
-		this.data = ByteBuffer.wrap(data);
-	}*/
-
 	DatagramData() {
 		this.data = ByteBuffer.allocate(DatagramLocalNetworkPresenceMessage.getMaxDatagramMessageLength());
 	}

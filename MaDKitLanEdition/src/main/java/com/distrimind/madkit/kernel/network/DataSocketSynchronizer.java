@@ -47,23 +47,15 @@ import com.distrimind.madkit.exceptions.PacketException;
  * @since MadkitLanEdition 1.0
  */
 class DataSocketSynchronizer {
-	/*private byte buffer[] = null;
-	private int cursor_buffer = 0;*/
-	//private final AtomicBoolean dataInProgress = new AtomicBoolean(false);
-
 	void receiveData(byte[] _bytes, SocketAgentInterface socketAgentInterface) {
-		/*if (!dataInProgress.compareAndSet(false, true))
-			throw new ConcurrentModificationException();
-
-		try {*/
-			if (_bytes == null)
-				return;
-			try {
-				Block block = new Block(_bytes);
-				socketAgentInterface.receivedBlock(block);
-			} catch (PacketException e) {
-				socketAgentInterface.processInvalidBlock(e, null, false);
-			}
+		if (_bytes == null)
+			return;
+		try {
+			Block block = new Block(_bytes);
+			socketAgentInterface.receivedBlock(block);
+		} catch (PacketException e) {
+			socketAgentInterface.processInvalidBlock(e, null, false);
+		}
 		socketAgentInterface.isBannedOrDefinitelyRejected();
 
 	}

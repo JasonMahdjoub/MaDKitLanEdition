@@ -54,22 +54,13 @@ import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
  */
 final class AgentExecutor {
 
-	// private boolean started = false;
-	final protected Agent myAgent;
+	final Agent myAgent;
 	private volatile Future<ReturnCode> activate=null;
 	private volatile Future<?> live=null;
 	private volatile Future<?> end=null;
 
-	// public AgentExecutor(Agent a, ThreadFactory threadFactory) {
-	// super(1, Integer.MAX_VALUE, 0, TimeUnit.NANOSECONDS, new
-	// ArrayBlockingQueue<Runnable>(4, false), threadFactory);
-	// myAgent = a;
-	//// myAgent.setAgentExecutor(this);
-	// setThreadFactory(threadFactory);
-	// }
 
 	public AgentExecutor(Agent a) {
-		//super(1, 1, 0, TimeUnit.NANOSECONDS, new ArrayBlockingQueue<Runnable>(4, false));
 		myAgent = a;
 
 
@@ -141,7 +132,6 @@ final class AgentExecutor {
 							return null;
 						}
 				));
-		//noinspection unchecked
 		activate=(Future<ReturnCode>)list.get(0);
 		live=list.get(1);
 		end=list.get(2);
@@ -151,34 +141,3 @@ final class AgentExecutor {
 
 }
 
-// @Override
-// protected void afterExecute(Runnable r, Throwable t) {
-//// if(t != null){
-//// myAgent.getAlive().set(false);
-//// if(t instanceof KilledException){
-//// if(myAgent.logger != null){
-//// myAgent.logger.finer( "-*-GET KILLED in "+methodName()+"-*- :
-// "+t.getMessage());
-//// }
-//// }
-//// else{
-//// myAgent.kernel.logSevereException(t);
-//// myAgent.kernel.getMadkitKernel().kernelLog("Problem for "+this+" in
-// "+methodName(), Level.FINER, t);
-//// }
-//// }
-// if(! isTerminating() && myAgent.logger != null){
-// myAgent.logger.finer("** exiting "+methodName()+" **");
-// }
-// }
-//
-// String methodName(){
-// switch (myAgent.getState()) {
-// case ACTIVATED:
-// return "ACTIVATE";
-// case LIVING:
-// return "LIVE";
-// default:
-// return "END";
-// }
-// }

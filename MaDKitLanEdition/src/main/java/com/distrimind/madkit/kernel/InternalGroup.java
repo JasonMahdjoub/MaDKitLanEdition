@@ -63,8 +63,6 @@ import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.*;
 final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 
 	private static final long serialVersionUID = 498214902172237862L;
-	// private AbstractAgent manager;
-	// private final AtomicReference<AgentAddress> manager;
 	private final Gatekeeper gatekeeper;
 	private final Logger logger;
 	private final Group group;
@@ -92,7 +90,7 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 	/**
 	 * @return the communityObject
 	 */
-	final Organization getCommunityObject() {
+	Organization getCommunityObject() {
 		return communityObject;
 	}
 
@@ -121,10 +119,6 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 		group = _group;
 		this.manually_created = manually_created;
 		put(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE, new ManagerRole(this, manager));
-	}
-
-	boolean isSecured() {
-		return isSecured;
 	}
 
 	/*
@@ -281,21 +275,6 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 		return false;
 	}
 
-	// /**
-	// * @param roleName
-	// * @return
-	// * @throws getAgentWithRoleWarning
-	// */
-	// List<AgentAddress> getRolePlayers(final String roleName) throws
-	// CGRException {
-	// try {
-	// return get(roleName).getAgentAddresses();
-	// } catch (NullPointerException e) {
-	// throw new CGRException(NOT_ROLE, printCGR(communityName,groupName,
-	// roleName),e);
-	// }
-	// }
-
 	AgentAddress getAgentAddressOf(AbstractAgent abstractAgent) {
 		for (final InternalRole r : values()) {
 			final AgentAddress aa = r.getAgentAddressOf(abstractAgent);
@@ -344,9 +323,6 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 		return null;
 	}
 
-	// boolean empty(){
-	// return super.isEmpty() && manager.get() == null;
-	// }
 
 	/**
 	 * @return the distributed
@@ -376,14 +352,6 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 		final Map<String, Collection<AgentAddress>> export = new TreeMap<>();
 		for (final Map.Entry<String, InternalRole> org : entrySet()) {
 			export.put(org.getKey(), org.getValue().buildAndGetLocalAddresses());
-		}
-		return export;
-	}
-
-	Map<String, Collection<AgentAddress>> getGroupMap() {
-		final Map<String, Collection<AgentAddress>> export = new TreeMap<>();
-		for (final Map.Entry<String, InternalRole> org : entrySet()) {
-			export.put(org.getKey(), org.getValue().buildAndGetAddresses());
 		}
 		return export;
 	}
@@ -426,15 +394,6 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 			changed|=r.removeDistantMember(aa, manually_requested);
 		}
 		aa.setRoleObject(null);
-		// if (manager.get().equals(aa)){
-		// manager.set(null);
-		// in = true;
-		// }
-		// if(in){
-		// if(isEmpty()){
-		// communityObject.removeGroup(groupName);
-		// }
-		// }
 		return changed;
 	}
 
@@ -472,14 +431,14 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 		return I18nUtilities.getCGRString(group) + values();
 	}
 
-	final void destroy() {
+	void destroy() {
 		for (InternalRole r : values()) {
 			r.destroy();
 		}
 		communityObject.removeGroup(group);
 	}
 
-	final Object weakSetBoard(AbstractAgent requester, String name, Object data) throws CGRNotAvailable {
+	Object weakSetBoard(AbstractAgent requester, String name, Object data) throws CGRNotAvailable {
 		if (!isIn(requester))
 			throw new CGRNotAvailable(NOT_IN_GROUP);
 		synchronized (board) {
@@ -493,7 +452,7 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 		}
 	}
 
-	final Object setBoard(AbstractAgent requester, String name, Object data) throws CGRNotAvailable {
+	Object setBoard(AbstractAgent requester, String name, Object data) throws CGRNotAvailable {
 		if (!isIn(requester))
 			throw new CGRNotAvailable(NOT_IN_GROUP);
 		synchronized (board) {
@@ -501,7 +460,7 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 		}
 	}
 
-	final Object getBoard(AbstractAgent requester, String name) throws CGRNotAvailable {
+	Object getBoard(AbstractAgent requester, String name) throws CGRNotAvailable {
 		if (!isIn(requester))
 			throw new CGRNotAvailable(NOT_IN_GROUP);
 		synchronized (board) {
@@ -509,7 +468,7 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 		}
 	}
 
-	final Object removeBoard(AbstractAgent requester, String name) throws CGRNotAvailable {
+	Object removeBoard(AbstractAgent requester, String name) throws CGRNotAvailable {
 		if (!isIn(requester))
 			throw new CGRNotAvailable(NOT_IN_GROUP);
 		synchronized (board) {

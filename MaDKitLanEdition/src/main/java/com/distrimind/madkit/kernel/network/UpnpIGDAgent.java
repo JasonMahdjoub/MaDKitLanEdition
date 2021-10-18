@@ -735,30 +735,6 @@ class UpnpIGDAgent extends AgentFakeThread {
 		return ipConnectionService != null ? ipConnectionService : pppConnectionService;
 	}
 
-	/*protected Router getRouter(RemoteDevice d) {
-		synchronized (upnp_igd_routers) {
-			for (Router r : upnp_igd_routers.values())
-				if (r.concerns(d))
-					return r;
-		}
-		return null;
-	}
-
-	protected Router removeRouter(RemoteDevice d, boolean manual) {
-		Router res = null;
-		synchronized (upnp_igd_routers) {
-			for (Router r : upnp_igd_routers.values()) {
-				if (r.concerns(d)) {
-					res = r;
-					break;
-				}
-			}
-		}
-		if (res != null)
-			res.setRemoved(manual);
-		return res;
-	}*/
-
 	protected Router removeRouter(InetAddress ia, boolean manual) {
 		Router res;
 		synchronized (upnp_igd_routers) {

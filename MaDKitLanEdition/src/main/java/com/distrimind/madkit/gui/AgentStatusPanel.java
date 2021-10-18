@@ -33,19 +33,14 @@
  */
 package com.distrimind.madkit.gui;
 
-import java.awt.FlowLayout;
-import java.awt.Image;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-
 import com.distrimind.madkit.action.KernelAction;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.KernelAddress;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A panel that displays a flag if the MaDKit kernel is online.

@@ -192,8 +192,9 @@ public class Agent extends AbstractAgent {
 							if (!isWaitForMessagePurge())
 								throw e;
 						}
-						if (waitForMessagePurge=isWaitForMessagePurge()) {
-							if (messageBox.isEmpty()) {
+						waitForMessagePurge=isWaitForMessagePurge();
+						if (waitForMessagePurge) {
+							if (messageBox==null || messageBox.isEmpty()) {
 								synchronized (state)
 								{
 									state.notify();
@@ -201,34 +202,18 @@ public class Agent extends AbstractAgent {
 								break;
 							}
 						}
-						/*synchronized (state) {
-							if (isWaitForMessagePurge()) {
-								if (messageBox.isEmpty()) {
-									state.notifyAll();
-									break;
-								}
-							}
-						}*/
 					}
 				} catch (InterruptedException ignored) {
 				}
 
-				/*
-				 * finally { synchronized(state) { state.notify(); } }
-				 */
 
 			} catch (SelfKillException e) {
 				suicide(e);
 			} catch (Throwable e) {
 				synchronized (state) {
 					logLifeException(e);
-					// alive.set(false);
 				}
 			}
-			/*
-			 * if(! alive.get()){ try { Thread.sleep(1); } catch (InterruptedException e) {
-			 * }//answer the kill }
-			 */
 		} catch (KilledException e) {
 			logLifeException(e);
 		}
@@ -711,11 +696,6 @@ public class Agent extends AbstractAgent {
 			m = waitingNextMessageForEver();
 		}
 		addAllToMessageBox(receptions);
-		// if (!receptions.isEmpty()) {
-		// synchronized (messageBox) {
-		// messageBox.addAll(receptions);
-		// }
-		// }
 		if (logger != null && logger.isLoggable(Level.FINEST))
 			logger.finest("a match has arrived " + m);
 		return m;
@@ -747,11 +727,6 @@ public class Agent extends AbstractAgent {
 			answer = waitingNextMessage(endTime - System.nanoTime(), TimeUnit.NANOSECONDS);
 		}
 		addAllToMessageBox(receptions);
-		// if (!receptions.isEmpty()) {
-		// synchronized (messageBox) {
-		// messageBox.addAll(receptions);
-		// }
-		// }
 		if (logger != null && logger.isLoggable(Level.FINEST)) {
 			logger.finest(answer == null ? "...Waiting time out, no compliant message received"
 					: "...a match has arrived : " + answer);
@@ -762,12 +737,12 @@ public class Agent extends AbstractAgent {
 	
 	private Message waitingNextMessageForEver() throws InterruptedException {
 		checkInterruptedExceptionForMessageWaiting();
-		return messageBox.take().markMessageAsRead();
+		return getMessageBox().take().markMessageAsRead();
 	}
 
 	@Override
 	void checkInterruptedExceptionForMessageWaiting() throws InterruptedException {
-		if (isWaitForMessagePurge() && messageBox.isEmpty())
+		if (isWaitForMessagePurge() && (messageBox==null || messageBox.isEmpty()))
 			throw new InterruptedException();
 
 	}

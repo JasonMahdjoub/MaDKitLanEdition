@@ -162,8 +162,6 @@ public class LocalCommunity implements Organization {// TODO check groups protec
 				return true;
 			}
 		}, true, "~~network_interfaces");
-		// public static final Group AGENTS_SOCKET_GROUPS=NETWORK.getSubGroup(false,
-		// null, true, "~~agents_sockets");
 		public static final Group DISTANT_KERNEL_AGENTS_GROUPS = NETWORK.getSubGroup(false, new Gatekeeper() {
 
 			@Override

@@ -65,7 +65,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 
 	private ASymmetricKeyPair myKeyPairForEncryption = null, myKeyPairForSignature;
 	private ASymmetricPublicKey distant_public_key_for_encryption = null, distant_public_key_for_signature=null;
-	private SymmetricSecretKey secret_key = null;
+	private SymmetricSecretKey secretKeyForEncryption = null;
 	
 	//protected SymmetricEncryptionAlgorithm symmetricEncryption = null;
 
@@ -82,10 +82,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 	private final AbstractSecureRandom approvedRandom, approvedRandomForKeys;
 	private boolean blockCheckerChanged = true;
 	private boolean currentBlockCheckerIsNull = true;
-	/*private ASymmetricAuthenticatedSignerAlgorithm signer=null;
-	private ASymmetricAuthenticatedSignatureCheckerAlgorithm signatureChecker=null;*/
 	private final PacketCounterForEncryptionAndSignature packetCounter;
-	private boolean reInitSymmetricAlgorithm =true;
 
 	private P2PSecuredConnectionProtocolWithASymmetricKeyExchanger(InetSocketAddress _distant_inet_address,
                                                                    InetSocketAddress _local_interface_address, ConnectionProtocol<?> _subProtocol,
@@ -129,29 +126,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 		else
 			parser = new ParserWithNoEncryption();
 	}
-	
-	private void reInitSymmetricAlgorithmIfNecessary() throws ConnectionException
-	{
-		if (reInitSymmetricAlgorithm)
-		{
-			reInitSymmetricAlgorithm =false;
-			try {
-				byte[] ec=packetCounter.getMyEncryptionCounter();
-				if (ec==null) {
-					encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.secret_key);
-					decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.secret_key);
-				}
-				else {
-					encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.secret_key, (byte) ec.length);
-					decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.secret_key, (byte) ec.length);
-				}
 
-			} catch (IOException e) {
-				throw new ConnectionException(e);
-			}
-
-		}
-	}
 
 	private void setPublicPrivateKeys() throws ConnectionException {
 		blockCheckerChanged |= !(myKeyPairForEncryption == null || myKeyPairForSignature==null 
@@ -261,7 +236,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 		myKeyPairForSignature = null;
 		distant_public_key_for_encryption = null;
 		distant_public_key_for_signature = null;
-		secret_key = null;
+		secretKeyForEncryption = null;
 		encoderWithEncryption.withoutSymmetricEncryption();
 		decoderWithEncryption.withoutSymmetricEncryption();
 		encoderWithEncryption.withoutSymmetricSignature();
@@ -276,20 +251,11 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 
 	private void generateSecretKey() throws ConnectionException {
 		try {
-			secret_key = hProperties.symmetricEncryptionType.getKeyGenerator(approvedRandomForKeys, hProperties.symmetricKeySizeBits)
+			secretKeyForEncryption = hProperties.symmetricEncryptionType.getKeyGenerator(approvedRandomForKeys, hProperties.symmetricKeySizeBits)
 					.generateKey();
-			byte[] pc=packetCounter.getMyEncryptionCounter();
-			if (pc!=null)
-			{
-				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key, (byte)pc.length);
-				decoderWithEncryption.withSymmetricSecretKeyForEncryption(secret_key, (byte)pc.length);
-			}
-			else {
-				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key);
-				decoderWithEncryption.withSymmetricSecretKeyForEncryption(secret_key);
-			}
+			initEncryption(packetCounter, approvedRandom, secretKeyForEncryption, encoderWithEncryption, decoderWithEncryption);
 		} catch (NoSuchAlgorithmException | NoSuchProviderException | IOException e) {
-			secret_key = null;
+			secretKeyForEncryption = null;
 			encoderWithEncryption.withoutSymmetricEncryption();
 			decoderWithEncryption.withoutSymmetricEncryption();
 			throw new ConnectionException(e);
@@ -299,7 +265,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 	private WrappedEncryptedSymmetricSecretKey encodeSecretKey() throws ConnectionException {
 		try {
 			KeyWrapperAlgorithm kwe=new KeyWrapperAlgorithm(keyWrapper, distant_public_key_for_encryption);
-			return kwe.wrap(approvedRandom, secret_key);
+			return kwe.wrap(approvedRandom, secretKeyForEncryption);
 		} catch (IOException
 				| IllegalStateException e) {
 			throw new ConnectionException(e);
@@ -310,17 +276,8 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 	private void decodeSecretKey(WrappedEncryptedSymmetricSecretKey _secret_key) throws ConnectionException {
 		try {
 			KeyWrapperAlgorithm kwe=new KeyWrapperAlgorithm(keyWrapper, myKeyPairForEncryption);
-			secret_key = kwe.unwrap(_secret_key);
-			byte[] pc=packetCounter.getMyEncryptionCounter();
-			if (pc!=null)
-			{
-				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key, (byte)pc.length);
-				decoderWithEncryption.withSymmetricSecretKeyForEncryption(secret_key, (byte)pc.length);
-			}
-			else {
-				encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key);
-				decoderWithEncryption.withSymmetricSecretKeyForEncryption(secret_key);
-			}
+			secretKeyForEncryption = kwe.unwrap(_secret_key);
+			initEncryption(packetCounter, approvedRandom, secretKeyForEncryption, encoderWithEncryption, decoderWithEncryption);
 		} catch (IOException | IllegalArgumentException | IllegalStateException e) {
 			encoderWithEncryption.withoutSymmetricEncryption();
 			decoderWithEncryption.withoutSymmetricEncryption();
@@ -435,13 +392,13 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 		case WAITING_FOR_CONNECTION_CONFIRMATION: {
 			if (_m instanceof ConnectionFinished && ((ConnectionFinished) _m).getState()
 					.equals(ConnectionProtocol.ConnectionState.CONNECTION_ESTABLISHED)) {
-				current_step = Step.CONNECTED;
+
 				if (!packetCounter.setDistantCounters(((ConnectionFinished) _m).getInitialCounter()))
 				{
 					current_step=Step.NOT_CONNECTED;
 					return new UnexpectedMessage(this.getDistantInetSocketAddress());
 				}
-				
+				current_step = Step.CONNECTED;
 				if (!isCurrentServerAskingConnection())
 					return new ConnectionFinished(getDistantInetSocketAddress(), packetCounter.getMyEncodedCounters());
 				else
@@ -508,10 +465,6 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 				}
 				case WAITING_FOR_CONNECTION_CONFIRMATION:
 				case CONNECTED:
-					if (packetCounter.isDistantActivated())
-					{
-						reInitSymmetricAlgorithmIfNecessary();
-					}
 					return getBodyOutputSizeWithEncryption(size);
 				}
 			} catch (Exception e) {
@@ -534,10 +487,6 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 					}
 					case WAITING_FOR_CONNECTION_CONFIRMATION:
 					case CONNECTED:
-						if (packetCounter.isDistantActivated())
-						{
-							reInitSymmetricAlgorithmIfNecessary();
-						}
 						return getBodyOutputSizeWithSignature(size);
 				}
 			} catch (Exception e) {
@@ -558,10 +507,6 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 				case WAITING_FIRST_MESSAGE: {
 					if (isCurrentServerAskingConnection())
 					{
-						if (getPacketCounter().isLocalActivated())
-						{
-							reInitSymmetricAlgorithmIfNecessary();
-						}
 						return getBodyOutputSizeWithDecryption(size);
 					}
 					else
@@ -569,10 +514,6 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 				}
 				case WAITING_FOR_CONNECTION_CONFIRMATION:
 				case CONNECTED:
-					if (getPacketCounter().isLocalActivated())
-					{
-						reInitSymmetricAlgorithmIfNecessary();
-					}
 					return getBodyOutputSizeWithDecryption(size);
 
 				}
@@ -697,6 +638,11 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 
 		}
 
+		@Override
+		public boolean canAvoidSignatureCounter() {
+			return true;
+		}
+
 	}
 
 	private class ParserWithNoEncryption extends ParserWithEncryption {
@@ -717,10 +663,6 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 					}
 					case WAITING_FOR_CONNECTION_CONFIRMATION:
 					case CONNECTED:
-						if (packetCounter.isDistantActivated())
-						{
-							reInitSymmetricAlgorithmIfNecessary();
-						}
 						return getBodyOutputSizeWithEncryption(size);
 				}
 			} catch (Exception e) {
@@ -744,10 +686,6 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 					case WAITING_FIRST_MESSAGE: {
 						if (isCurrentServerAskingConnection())
 						{
-							if (getPacketCounter().isLocalActivated())
-							{
-								reInitSymmetricAlgorithmIfNecessary();
-							}
 							return getBodyOutputSizeWithDecryption(size);
 						}
 						else
@@ -755,10 +693,6 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 					}
 					case WAITING_FOR_CONNECTION_CONFIRMATION:
 					case CONNECTED:
-						if (getPacketCounter().isLocalActivated())
-						{
-							reInitSymmetricAlgorithmIfNecessary();
-						}
 						return getBodyOutputSizeWithDecryption(size);
 
 				}

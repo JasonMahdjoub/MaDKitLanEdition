@@ -82,13 +82,9 @@ class MulticastListenerConnectionMessage extends Message {
 
 		datagramChannel.configureBlocking(false);
 		datagramChannel.setOption(StandardSocketOptions.SO_REUSEADDR, Boolean.TRUE);
-		// datagramChannel.setOption(StandardSocketOptions.SO_BROADCAST, new
-		// Boolean(true));
 		datagramChannel.socket().setReuseAddress(true);
 		datagramChannel.socket().setBroadcast(true);
 
-		// datagramChannel.setOption(StandardSocketOptions.IP_MULTICAST_LOOP, new
-		// Boolean(networkInterface.isLoopback()));
 		datagramChannel.bind(new InetSocketAddress(port));
 		datagramChannel.setOption(StandardSocketOptions.IP_MULTICAST_IF, networkInterface);
 		datagramChannel.join(groupIPAddress, networkInterface);

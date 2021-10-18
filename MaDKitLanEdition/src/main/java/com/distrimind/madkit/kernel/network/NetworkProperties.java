@@ -349,7 +349,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	/**
 	 * Delay to wait in milliseconds before closing a connection, and in order to being sure to send the last packet.
 	 */
-	public long delayInMsBeforeClosingConnectionNormally=200;
+	public long delayInMsBeforeClosingConnectionNormally=0;
 
 	/**
 	 * Delay after a channel selector returns 0 network event and gives hand to the
@@ -1125,20 +1125,8 @@ public class NetworkProperties extends MultiFormatProperties {
 		String globalStats = "(For global statistics)";
 		stats.putBytesDownloadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS + globalStats,
 				globalRealTimeTransferStatPerOneSecondForDownload);
-		/*stats.putBytesDownloadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS + globalStats,
-				globalRealTimeTransferStatPer30SecondsForDownload);
-		stats.putBytesDownloadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS + globalStats,
-				globalRealTimeTransferStatPer5MinutesForDownload);*/
 		stats.putBytesUploadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_ONE_SECOND_SEGMENTS + globalStats,
 				globalRealTimeTransferStatPerOneSecondForUpload);
-		/*stats.putBytesUploadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS + globalStats,
-				globalRealTimeTransferStatPer30SecondsForUpload);
-		stats.putBytesUploadedInRealTime(DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS + globalStats,
-				globalRealTimeTransferStatPer5MinutesForUpload);
-		stats.putBytesUploadedInRealBytes(DEFAULT_STAT_PER_512KB_SEGMENTS + globalStats,
-				globalTransferSpeedStatPer512SegmentsForUpload);
-		stats.putBytesDownloadedInRealBytes(DEFAULT_STAT_PER_512KB_SEGMENTS + globalStats,
-				globalTransferSpeedStatPer512SegmentsForDownload);*/
 
 	}
 

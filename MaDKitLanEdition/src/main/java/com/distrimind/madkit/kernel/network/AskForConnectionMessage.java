@@ -142,6 +142,7 @@ public class AskForConnectionMessage extends ConnectionStatusMessage {
 		return transferID;
 	}
 
+	@SuppressWarnings("CopyConstructorMissesField")
 	private AskForConnectionMessage(AskForConnectionMessage m) {
 		super(m);
 		this.now = m.now;

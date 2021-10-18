@@ -210,7 +210,7 @@ public abstract class AbstractGroup implements SecureExternalizable, Cloneable {
 		}
 		ArrayList<Group> gi = this.intersect(ka, _group);
 		HashSet<Group> gu = this.union(ka, _group);
-		gu.removeAll(gi);
+		gi.forEach(gu::remove);
 		return gu;
 	}
 
@@ -686,10 +686,6 @@ public abstract class AbstractGroup implements SecureExternalizable, Cloneable {
 			return groups_eliminated;
 		}
 
-		/*public ArrayList<Group> getGeneratedGroups() {
-			return groups_generated;
-		}*/
-
 		public void addEliminatedGroup(Group _group, Group _replaced_group) {
 			groups_eliminated.add(_group);
 
@@ -715,10 +711,8 @@ public abstract class AbstractGroup implements SecureExternalizable, Cloneable {
 					} else if (g.getPath().startsWith(_group.getPath())) {
 						if (_group.isUsedSubGroups()) {
 							it.remove();
-							add = true;
-						} else {
-							add = true;
 						}
+						add = true;
 					} else if (_group.getPath().startsWith(g.getPath())) {
 						add = !g.isUsedSubGroups();
 					} else
@@ -856,29 +850,6 @@ public abstract class AbstractGroup implements SecureExternalizable, Cloneable {
 			}
 
 		}
-
-		/*public ArrayList<Group> getNotEliminated(ArrayList<Group> authorized) {
-			ArrayList<Group> res = new ArrayList<>(authorized.size());
-			for (Group g : authorized) {
-				boolean add = true;
-				for (Group g2 : groups_eliminated) {
-					if (g.getCommunity().equals(g2.getCommunity())) {
-						if (g.getPath().equals(g2.getPath())) {
-							if (g2.isUsedSubGroups() || g.isUsedSubGroups() == g2.isUsedSubGroups())
-								add = false;
-						} else if (g.getPath().startsWith(g2.getPath()) && g2.isUsedSubGroups()) {
-							add = false;
-						}
-					}
-					if (!add)
-						break;
-				}
-				if (add)
-					res.add(g);
-			}
-			res.addAll(groups_generated);
-			return res;
-		}*/
 
 		private void addEliminatedGroup(Group g) {
 			this.groups_eliminated.add(g);

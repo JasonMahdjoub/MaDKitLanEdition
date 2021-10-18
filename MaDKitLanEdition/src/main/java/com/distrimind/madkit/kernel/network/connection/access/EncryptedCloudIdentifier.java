@@ -75,29 +75,6 @@ final class EncryptedCloudIdentifier extends CloudIdentifier {
 		return res;
 	}
 
-	/*EncryptedCloudIdentifier(CloudIdentifier cloudIdentifier, P2PASymmetricSecretMessageExchanger cipher)
-			throws InvalidKeyException, IOException, IllegalBlockSizeException, BadPaddingException,
-			NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException,
-			InvalidAlgorithmParameterException, NoSuchProviderException, IllegalStateException{
-		if (cloudIdentifier == null)
-			throw new NullPointerException("cloudIdentifier");
-		if (cipher == null)
-			throw new NullPointerException("cipher");
-
-		bytes = cipher.encode(cloudIdentifier.getIdentifierBytes(), cloudIdentifier.getSaltBytes(), false);
-	}*/
-
-	/*private void applySignature(CloudIdentifier cloudIdentifier) throws InvalidKeyException, NoSuchAlgorithmException, IOException, SignatureException, NoSuchProviderException, InvalidAlgorithmParameterException, InvalidKeySpecException {
-		if (cloudIdentifier.getAuthenticationMethod().isAuthenticatedByPublicKey())
-		{
-			if (cloudIdentifier.getAuthenticationKeyPair()==null || cloudIdentifier.getAuthenticationPublicKey()==null)
-				throw new IllegalArgumentException();
-			signature=Identifier.signAuthenticatedIdentifier(cloudIdentifier.getAuthenticationKeyPair(), bytes);
-		}
-		else
-			signature=null;
-
-	}*/
 	EncryptedCloudIdentifier(CloudIdentifier cloudIdentifier, AbstractSecureRandom random, AbstractMessageDigest messageDigest, byte[] distantGeneratedSalt)
 			throws
 			IOException {
@@ -136,39 +113,6 @@ final class EncryptedCloudIdentifier extends CloudIdentifier {
 	public byte[] getIdentifierBytes() {
 		return bytes;
 	}
-
-	/*
-	 * Tells if the given cloud identifier corresponds to the current encrypted
-	 * cloud identifier, considering the given cipher.
-	 * 
-	 * @param originalCloudIdentifier
-	 *            the original cloud identifier
-	 * @param cipher
-	 *            the cipher
-	 * @return true if the given cloud identifier corresponds to the current
-	 *         encrypted cloud identifier, considering the given cipher.
-	 * @throws InvalidKeyException
-	 *             if a problem occurs
-	 * @throws IllegalAccessException
-	 *             if a problem occurs
-	 * @throws IOException
-	 *             if a problem occurs
-	 * @throws BadPaddingException if a problem occurs
-	 * @throws IllegalBlockSizeException if a problem occurs
-	 * @throws InvalidKeySpecException if a problem occurs
-	 * @throws NoSuchAlgorithmException if a problem occurs
-	 * @throws NoSuchProviderException  if a problem occurs
-	 */
-	/*public boolean verifyWithLocalCloudIdentifier(CloudIdentifier originalCloudIdentifier,
-			P2PASymmetricSecretMessageExchanger cipher) throws InvalidKeyException, IllegalAccessException, IOException,
-			IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
-		if (originalCloudIdentifier == null)
-			throw new NullPointerException("originalCloudIdentifier");
-		if (cipher == null)
-			throw new NullPointerException("cipher");
-		return cipher.verifyDistantMessage(originalCloudIdentifier.getIdentifierBytes(),
-				originalCloudIdentifier.getSaltBytes(), bytes, false);
-	}*/
 
 	/**
 	 * Tells if the given cloud identifier corresponds to the current encrypted

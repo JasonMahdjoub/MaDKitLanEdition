@@ -66,8 +66,8 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 	private static final int MATERIAL_KEY_SIZE_BYTES=64;
 	Step current_step = Step.NOT_CONNECTED;
 
-	private SymmetricSecretKey secret_key_for_encryption = null;
-	private SymmetricSecretKey secret_key_for_signature = null;
+	private SymmetricSecretKey secretKeyForEncryption = null;
+	private SymmetricSecretKey secretKeyForSignature = null;
 
 	private final EncryptionSignatureHashEncoder encoderWithEncryption;
 	private final EncryptionSignatureHashEncoder encoderWithoutEncryption;
@@ -85,7 +85,6 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 	private boolean blockCheckerChanged = true;
 	private byte[] materialKeyForSignature=null, materialKeyForEncryption=null;
 	private final PacketCounterForEncryptionAndSignature packetCounter;
-	private boolean reInitSymmetricAlgorithm =true;
 	private boolean myCounterSent=false;
 	private boolean doNotTakeIntoAccountNextState=true;
 	private P2PSecuredConnectionProtocolWithKeyAgreement(InetSocketAddress _distant_inet_address,
@@ -129,15 +128,14 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 
 	private void checkSymmetricSignatureAlgorithm() throws ConnectionException {
 		try {
-			if (secret_key_for_signature!=null) {
+			if (secretKeyForSignature !=null) {
+
 				if (encoderWithoutEncryption.getSymmetricSecretKeyForSignature()==null || decoderWithoutEncryption.getSymmetricSecretKeyForSignature()==null)
 				{
-					encoderWithoutEncryption.withSymmetricSecretKeyForSignature(secret_key_for_signature);
-					if (!hProperties.enableEncryption || !hProperties.symmetricEncryptionType.isAuthenticatedAlgorithm())
-						encoderWithEncryption.withSymmetricSecretKeyForSignature(secret_key_for_signature);
-					decoderWithoutEncryption.withSymmetricSecretKeyForSignature(secret_key_for_signature);
-					if (!hProperties.enableEncryption || !hProperties.symmetricEncryptionType.isAuthenticatedAlgorithm())
-						decoderWithEncryption.withSymmetricSecretKeyForSignature(secret_key_for_signature);
+					initSignature(packetCounter, secretKeyForSignature, secretKeyForEncryption,
+							encoderWithEncryption, decoderWithEncryption,
+							encoderWithoutEncryption,
+							decoderWithoutEncryption);
 					blockCheckerChanged=true;
 				}
 			} else {
@@ -154,18 +152,10 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 	}
 	private void checkSymmetricEncryptionAlgorithm() throws ConnectionException {
 		try {
-			if (secret_key_for_encryption != null) {
+			if (secretKeyForEncryption != null) {
 				if (encoderWithEncryption.getSymmetricSecretKeyForEncryption() == null) {
-					byte[] pc=packetCounter.getMyEncryptionCounter();
-					if (pc!=null)
-					{
-						encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key_for_encryption, (byte)pc.length);
-						decoderWithEncryption.withSymmetricSecretKeyForEncryption(secret_key_for_encryption, (byte)pc.length);
-					}
-					else {
-						encoderWithEncryption.withSymmetricSecretKeyForEncryption(approvedRandom, secret_key_for_encryption);
-						decoderWithEncryption.withSymmetricSecretKeyForEncryption(secret_key_for_encryption);
-					}
+
+					initEncryption(packetCounter, approvedRandom, secretKeyForEncryption, encoderWithEncryption, decoderWithEncryption);
 				}
 			} else {
 				encoderWithEncryption.withoutSymmetricEncryption();
@@ -180,8 +170,8 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 		blockCheckerChanged = true;
 		encoderWithEncryption.withoutSymmetricEncryption();
 		decoderWithEncryption.withoutSymmetricEncryption();
-		secret_key_for_encryption = null;
-		secret_key_for_signature=null;
+		secretKeyForEncryption = null;
+		secretKeyForSignature =null;
 		keyAgreementForEncryption=null;
 		keyAgreementForSignature=null;
 		encoderWithEncryption.withoutSymmetricSignature();
@@ -243,21 +233,6 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 
 	}
 	
-	private void reInitSymmetricAlgorithmIfNecessary() throws IOException {
-		if (reInitSymmetricAlgorithm)
-		{
-			reInitSymmetricAlgorithm =false;
-			if (isCrypted()) {
-				if (packetCounter.getMyEncryptionCounter() == null) {
-					encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.secret_key_for_encryption);
-					decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.secret_key_for_encryption);
-				} else {
-					encoderWithEncryption.withSymmetricSecretKeyForEncryption(this.approvedRandom, this.secret_key_for_encryption, (byte) packetCounter.getMyEncryptionCounter().length);
-					decoderWithEncryption.withSymmetricSecretKeyForEncryption(this.secret_key_for_encryption, (byte) packetCounter.getMyEncryptionCounter().length);
-				}
-			}
-		}
-	}
 
 	@Override
 	protected ConnectionMessage getNextStep(ConnectionMessage _m) throws ConnectionException {
@@ -366,7 +341,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 							current_step=Step.WAITING_FOR_ENCRYPTION_DATA;
 						else
 							current_step=Step.WAITING_FOR_SERVER_PROFILE_MESSAGE;
-						secret_key_for_signature=keyAgreementForSignature.getDerivedKey();
+						secretKeyForSignature =keyAgreementForSignature.getDerivedKey();
 						checkSymmetricSignatureAlgorithm();
 					}
 						
@@ -433,7 +408,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 					{
 						doNotTakeIntoAccountNextState=true;
 						current_step=Step.WAITING_FOR_SERVER_PROFILE_MESSAGE;
-						secret_key_for_encryption=keyAgreementForEncryption.getDerivedKey();
+						secretKeyForEncryption =keyAgreementForEncryption.getDerivedKey();
 						checkSymmetricEncryptionAlgorithm();
 					}
 						
@@ -651,10 +626,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 					}
 					else
 					{
-						if (packetCounter.isDistantActivated())
-						{
-							reInitSymmetricAlgorithmIfNecessary();
-						}
+
 						return getBodyOutputSizeWithEncryption(size);
 					}
 				}
@@ -662,10 +634,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 				case WAITING_FOR_CONNECTION_CONFIRMATION:
 				case CONNECTED:
 				{
-					if (packetCounter.isDistantActivated())
-					{
-						reInitSymmetricAlgorithmIfNecessary();
-					}
+
 					return getBodyOutputSizeWithEncryption(size);
 				}
 				}
@@ -696,10 +665,6 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 						}
 						else
 						{
-							if (packetCounter.isDistantActivated())
-							{
-								reInitSymmetricAlgorithmIfNecessary();
-							}
 							return getBodyOutputSizeWithSignature(size);
 						}
 					}
@@ -707,10 +672,6 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 					case WAITING_FOR_CONNECTION_CONFIRMATION:
 					case CONNECTED:
 					{
-						if (packetCounter.isDistantActivated())
-						{
-							reInitSymmetricAlgorithmIfNecessary();
-						}
 						return getBodyOutputSizeWithSignature(size);
 					}
 				}
@@ -737,10 +698,6 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 				case WAITING_FOR_CONNECTION_CONFIRMATION:
 				case CONNECTED:
 				{
-					if (getPacketCounter().isLocalActivated())
-					{
-						reInitSymmetricAlgorithmIfNecessary();
-					}
 					return getBodyOutputSizeWithDecryption(size);
 				}
 				}
@@ -863,6 +820,11 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 			throw new BlockParserException("Unexpected exception");
 		}
 
+		@Override
+		public boolean canAvoidSignatureCounter() {
+			return current_step!=Step.CONNECTED;
+		}
+
 	}
 
 
@@ -909,7 +871,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 	@Override
 	public boolean isTransferBlockCheckerChangedImpl() {
 		//boolean currentBlockCheckerIsNull = true;
-		if (secret_key_for_encryption == null || secret_key_for_signature==null || current_step.compareTo(Step.WAITING_FOR_CONNECTION_CONFIRMATION) <= 0) {
+		if (secretKeyForEncryption == null || secretKeyForSignature ==null || current_step.compareTo(Step.WAITING_FOR_CONNECTION_CONFIRMATION) <= 0) {
 			return blockCheckerChanged;
 		} else
 			return true;

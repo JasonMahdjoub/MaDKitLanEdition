@@ -62,7 +62,6 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import com.distrimind.madkit.action.SchedulingAction;
 import com.distrimind.madkit.gui.SwingUtil;
