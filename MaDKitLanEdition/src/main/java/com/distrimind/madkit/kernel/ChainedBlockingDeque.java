@@ -11,6 +11,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Predicate;
 
 /**
  * @author Jason Mahdjoub
@@ -54,6 +55,16 @@ public class ChainedBlockingDeque<T> extends AbstractQueue<T> implements Blockin
 
 	public Lock getLocker() {
 		return lock;
+	}
+	@Override
+	public boolean removeIf(Predicate<? super T> filter) {
+		lock.lock();
+		try {
+			return list.removeIf(filter);
+		}
+		finally {
+			lock.unlock();
+		}
 	}
 
 	@Override

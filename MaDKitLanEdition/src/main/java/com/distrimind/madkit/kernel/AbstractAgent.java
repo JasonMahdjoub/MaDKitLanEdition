@@ -1939,14 +1939,15 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		final List<Message> match = new ArrayList<>();
 		messageBox.getLocker().lock();
 		try {
-			for (Iterator<Message> iterator = messageBox.iterator(); iterator.hasNext();) {
-				final Message m = iterator.next();
+			messageBox.removeIf(m -> {
 				if (filter.accept(m)) {
-					iterator.remove();
 					if (m != null)
 						match.add(m.markMessageAsRead());
+					return true;
 				}
-			}
+				else
+					return false;
+			});
 		} finally {
 			messageBox.getLocker().unlock();
 		}
