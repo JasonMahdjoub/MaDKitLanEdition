@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-2.2.2 STABLE (Build: 3693) (from 22/05/2015 to 13/10/2021)
+2.2.2 STABLE (Build: 3964) (from 22/05/2015 to 18/10/2021)
 
 # Creator(s):
 Jason MAHDJOUB
@@ -12,10 +12,14 @@ Jason MAHDJOUB (Entered in the team at 22/05/2015)
 # Modifications:
 
 
-### 2.2.2 STABLE (13/10/2021)
+### 2.2.2 STABLE (18/10/2021)
+* Update Utils to 5.20.6 STABLE
+* Update OOD to 3.1.6 STABLE
 * Clean code
 * Use CircularArrayList for agent's message box instead of LinkedList
 * Load agent message box only if necessary
+* Fix bad encryption when using secret counter to avoid replay
+* Make some optimizations with messages filtering
 
 
 ### 2.2.1 STABLE (13/10/2021)

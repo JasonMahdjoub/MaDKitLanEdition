@@ -20,8 +20,9 @@ import java.util.function.Predicate;
  */
 public class ChainedBlockingDeque<T> extends AbstractQueue<T> implements BlockingQueue<T>, Deque<T> {
 
+	private final boolean useCircularArrayList=true;
 	private final static int ARRAY_LIST_BASE_SIZE=5;
-	private final CircularArrayList<T> list;
+	private final Deque<T> list;
 	private final Lock lock=new ReentrantLock();
 	private final Condition notEmpty=lock.newCondition();
 	private MadkitKernel madkitKernel;
@@ -30,14 +31,20 @@ public class ChainedBlockingDeque<T> extends AbstractQueue<T> implements Blockin
 		this((MadkitKernel)null);
 	}
 	public ChainedBlockingDeque(MadkitKernel madkitKernel) {
-		list=new CircularArrayList<>(ARRAY_LIST_BASE_SIZE,true);
+		if (useCircularArrayList)
+			list=new CircularArrayList<>(ARRAY_LIST_BASE_SIZE,true);
+		else
+			list=new LinkedList<>();
 		this.madkitKernel=madkitKernel;
 	}
 	public ChainedBlockingDeque(Collection<T> c) {
 		this(null, c);
 	}
 	public ChainedBlockingDeque(MadkitKernel madkitKernel, Collection<T> c) {
-		list=new CircularArrayList<>(ARRAY_LIST_BASE_SIZE,true);
+		if (useCircularArrayList)
+			list=new CircularArrayList<>(ARRAY_LIST_BASE_SIZE,true);
+		else
+			list=new LinkedList<>();
 		this.madkitKernel=madkitKernel;
 	}
 

@@ -163,7 +163,7 @@ final public class AgentLogger extends Logger {
 		if (fh == null) {
 			final File logDir = myAgent.getMadkitConfig().logDirectory;
 
-			FileTools.checkFolder(logDir);
+			FileTools.checkFolderRecursive(logDir);
 
 			final File logFile = new File(logDir, getName());
 			final String lineSeparator = "----------------------------------------------------------------------\n";
