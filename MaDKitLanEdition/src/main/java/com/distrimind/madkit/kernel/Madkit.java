@@ -148,6 +148,7 @@ final public class Madkit {
 					.addDeveloper(new PersonDeveloper("Ferber", "Jacques", "1997-02-01"))
 					.addDescription(new Description((short)2, (short)2, (short)2, Version.Type.STABLE, (short)0, "2021-10-18")
 							.addItem("Update Utils to 5.20.5 STABLE")
+							.addItem("Update OOD to 3.1.5 STABLE")
 							.addItem("Clean code")
 							.addItem("Use CircularArrayList for agent's message box instead of LinkedList")
 							.addItem("Load agent message box only if necessary")

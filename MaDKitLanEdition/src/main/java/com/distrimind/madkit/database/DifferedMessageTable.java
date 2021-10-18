@@ -184,8 +184,9 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 								where.setLength(startQueryLength);
 							}
 						}
-						else
+						else {
 							allRemoved.set(false);
+						}
 					} catch (ClassNotFoundException | IOException e) {
 						e.printStackTrace();
 					}
@@ -197,21 +198,20 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 				return false;
 			}
 		},"groupPath=%groupPath AND roleSender=%roleSender", new Object[]{"groupPath", groupPath, "roleSender", r}, true, "utcTimeUpdate");
-		if (allRemoved.get())
-		{
-			removeAllRecordsWithCascade();
-		}
-		else {
-			if (where.length() > startQueryLength) {
-				where.append(")");
-				wheres.add(where.toString());
+		if (!allRemoved.get() || where.length() > startQueryLength || wheres.size()>0) {
+			if (allRemoved.get()) {
+				removeAllRecordsWithCascade();
+			} else {
+				if (where.length() > startQueryLength) {
+					where.append(")");
+					wheres.add(where.toString());
+				}
+				for (String w : wheres)
+					removeRecords(w, "groupPath", groupPath, "roleSender", r);
+
+				availableSenders.put(role, abstractAgent);
 			}
-			for (String w : wheres)
-				removeRecords(w, "groupPath", groupPath, "roleSender", r);
-
-			availableSenders.put(role, abstractAgent);
 		}
-
 	}
 
 	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
@@ -244,13 +244,13 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 
 	public void newAgentConnected(Collection<String> baseGroupPath, final AbstractAgent agent, final AgentAddress agentAddress) throws DatabaseException {
 		final String groupPath=agentAddress.getGroup().getPath();
+
 		if (!isConcerned(baseGroupPath, groupPath))
 			return ;
 		getDatabaseWrapper().runSynchronizedTransaction(new SynchronizedTransaction<Void>() {
 			@Override
 			public Void run() throws Exception {
 				checkSender(agent, agentAddress.getGroup(), agentAddress.getRole(), groupPath);
-
 				final StringBuilder where=new StringBuilder("groupPath=%groupPath AND roleReceiver=%roleReceiver and (");
 				final int startQueryLength=where.length();
 				final ArrayList<String> wheres=new ArrayList<>();
@@ -299,17 +299,19 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 						return false;
 					}
 				},"groupPath=%groupPath AND roleReceiver=%roleReceiver", new Object[]{"groupPath", groupPath, "roleReceiver", agentAddress.getRole()}, true, "utcTimeUpdate");
-				if (allRemoved.get())
-				{
-					removeAllRecordsWithCascade();
-				}
-				else {
-					if (where.length()>startQueryLength) {
-						where.append(")");
-						wheres.add(where.toString());
-					}
-					for (String w : wheres) {
-						removeRecords(w, "groupPath", groupPath, "roleReceiver", agentAddress.getRole());
+				if (!allRemoved.get() || where.length() > startQueryLength || wheres.size()>0) {
+
+
+					if (allRemoved.get()) {
+						removeAllRecordsWithCascade();
+					} else {
+						if (where.length() > startQueryLength) {
+							where.append(")");
+							wheres.add(where.toString());
+						}
+						for (String w : wheres) {
+							removeRecords(w, "groupPath", groupPath, "roleReceiver", agentAddress.getRole());
+						}
 					}
 				}
 				for (Map.Entry<Role, Boolean> e : allRemovedPerRole.entrySet())
