@@ -120,7 +120,7 @@ Note that one agent can't be attached to a MultiGroup or a Group that represents
 
 ### Changes
 
-[See historical of changes](./versions.md)
+[See historical of changes](./changelog.md)
 
 How to use it ?
 ---------------
