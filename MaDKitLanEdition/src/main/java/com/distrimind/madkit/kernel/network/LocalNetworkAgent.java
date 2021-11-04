@@ -49,6 +49,7 @@ import java.util.concurrent.Callable;
 import java.util.logging.Level;
 
 import com.distrimind.madkit.kernel.*;
+import com.distrimind.util.Reference;
 import org.fourthline.cling.support.model.Connection.Status;
 import org.fourthline.cling.support.model.Connection.StatusInfo;
 import org.fourthline.cling.support.model.PortMapping.Protocol;
@@ -346,18 +347,19 @@ class LocalNetworkAgent extends AgentFakeThread {
 	}
 
 	private boolean removeBind(BindInetSocketAddressMessage bind_message) {
-		boolean changed = false;
-		for (Iterator<BindInetSocketAddressMessage> it = socket_binds.iterator(); it.hasNext();) {
-			BindInetSocketAddressMessage m = it.next();
+		final Reference<Boolean> changed = new Reference<>(false);
+		socket_binds.removeIf(m -> {
 			if (bind_message.include(m)) {
-				it.remove();
-				changed = true;
+
+				changed.set(true);
 				if (logger != null && logger.isLoggable(Level.FINER))
 					logger.finer("Bind removed : " + m);
-
+				return true;
 			}
-		}
-		return changed;
+			else
+				return false;
+		});
+		return changed.get();
 	}
 
 	@Override

@@ -80,7 +80,16 @@ You can also find inspiration into Junit tests.
 	* YAML format (default)
 	* XML format
 	* Properties format
-* Automatically synchronize database with other peers, when it is altered into one of these peers. Moreover resynchronisation is done automatically when two peers become connected after a long time.
+* Transparent decentralized and secured database synchronization through the ORM [OOD](https://github.com/JazZ51/OOD) : 
+  * Automatically synchronize database with other authorized peers, even if peers where disconnected (asynchronous mode).
+  * Manage eventual conflicts during database synchronization
+  * Automatically backup database and it historical to authorized servers and use end-to-end encryption : the servers are not able to read database in clear. 
+  * Autotatically synchronize peers through server side database backup if peers are not connected (asynchronous mode)
+  * Permit to revert database to an old version with a given time, and synchronize the restoration toward others peers and servers. It is possible to choose data source from local backup, other peers backup, or server backup.
+  * Backups cannot be removed into servers from peers for a certain period. They cannot also be removed from a peer into a distant peer. This permit to garuantee the restoration even after an attack of a ransomware. 
+  * Permit to restore database of peers thanks to other peers or thanks to servers
+  * Automatically synchronize peers though intermediate peers when direct connections are not possible
+  * Use encryption profile provider and to manage different version of secret keys in the case where a secret key was compromised
 
 All described features are tested and considered as stable.
 
@@ -111,7 +120,7 @@ Note that one agent can't be attached to a MultiGroup or a Group that represents
 
 ### Changes
 
-[See historical of changes](./versions.md)
+[See historical of changes](./changelog.md)
 
 How to use it ?
 ---------------
@@ -130,7 +139,7 @@ Adapt into your build.gradle file, the next code :
 	...
 	dependencies {
 		...
-		compile(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.2.2-STABLE')
+		compile(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.2.3-STABLE')
 		...
 	}
 	...
@@ -146,7 +155,7 @@ Adapt into your pom.xml file, the next code :
 			<dependency>
 				<groupId>com.distrimind.madkit</groupId>
 				<artifactId>MaDKitLanEdition</artifactId>
-				<version>2.2.2-STABLE</version>
+				<version>2.2.3-STABLE</version>
 			</dependency>
 			...
 		</dependencies>

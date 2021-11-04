@@ -66,6 +66,7 @@ import com.distrimind.madkit.util.XMLUtilities;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.AbstractDecentralizedID;
 import com.distrimind.util.IDGeneratorInt;
+import com.distrimind.util.Reference;
 import com.distrimind.util.Utils;
 import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.concurrent.ScheduledPoolExecutor;
@@ -1141,11 +1142,10 @@ class MadkitKernel extends Agent {
                     updateKernelMapPerGroups(distantAccessibleGroupsGivenToDistantPeer, distantAccessibleKernelsPerGroupsGivenToDistantPeer, n.getConcernedKernelAddress(), n.getRequestedAccessibleGroups());
                     if (n.isLocalGroupsRemoved()) {
 						synchronized (organizations) {
-							for (Iterator<Organization> it = organizations.values().iterator(); it.hasNext(); ) {
-								it.next().updateAcceptedDistantGroupsGivenToDistantPeer(n.getConcernedKernelAddress(), n.getGeneralAcceptedGroups());
-								if (organizations.isEmpty())
-									it.remove();
-							}
+							organizations.values().removeIf(org -> {
+								org.updateAcceptedDistantGroupsGivenToDistantPeer(n.getConcernedKernelAddress(), n.getGeneralAcceptedGroups());
+								return org.isEmpty();
+							});
 						}
 					}
 
@@ -2710,25 +2710,23 @@ class MadkitKernel extends Agent {
 	void removeAgentFromOrganizations(AbstractAgent theAgent) {
 		removeAllAutoRequestedGroups(theAgent);
 		synchronized (organizations) {
-			for (Iterator<Organization> it =organizations.values().iterator();it.hasNext();) {
-				for (final Group group : it.next().removeAgentFromAllGroups(theAgent, true)) {
+			organizations.values().removeIf(org -> {
+				for (final Group group : org.removeAgentFromAllGroups(theAgent, true)) {
 					sendNetworkCGRSynchroMessageWithRole(null, new CGRSynchro(LEAVE_GROUP, new AgentAddress(theAgent,
 							new InternalRole(group), kernelAddress, isAutoCreateGroup(theAgent)), true));
 				}
-				if (organizations.isEmpty())
-					it.remove();
-			}
+				return org.isEmpty();
+			});
 		}
 	}
 
 	void removeDistantKernelAddressFromCGR(KernelAddress ka)
 	{
 		synchronized (organizations) {
-			for (Iterator<Organization> it =organizations.values().iterator();it.hasNext();) {
-				it.next().removeDistantKernelAddressForAllGroups(ka);
-				if (organizations.isEmpty())
-					it.remove();
-			}
+			organizations.values().removeIf(org -> {
+				org.removeDistantKernelAddressForAllGroups(ka);
+				return org.isEmpty();
+			});
 		}
 
 	}
@@ -3754,42 +3752,42 @@ class MadkitKernel extends Agent {
 		}
 
 		public void destroy(String role) {
-			Iterator<AutoRequestedGroup> it = auto_requested_groups.iterator();
-			while (it.hasNext()) {
-				AutoRequestedGroup arg = it.next();
+			auto_requested_groups.removeIf(arg -> {
 				if (arg.getRole().equals(role)) {
 					arg.destroy();
-					it.remove();
+					return true;
 				}
-			}
+				else
+					return false;
+			});
 		}
 
 		public boolean destroy(AbstractGroup group) {
-			boolean deleted = false;
-			Iterator<AutoRequestedGroup> it = auto_requested_groups.iterator();
-			while (it.hasNext()) {
-				AutoRequestedGroup arg = it.next();
+			final Reference<Boolean> deleted=new Reference<>(false);
+			auto_requested_groups.removeIf(arg -> {
 				if (arg.getGroups().equals(group)) {
 					arg.destroy();
-					it.remove();
-					deleted = true;
+					deleted.set(true);
+					return true;
 				}
-			}
-			return deleted;
+				else
+					return false;
+			});
+			return deleted.get();
 		}
 
 		public boolean destroy(AbstractGroup group, String role) {
-			boolean deleted = false;
-			Iterator<AutoRequestedGroup> it = auto_requested_groups.iterator();
-			while (it.hasNext()) {
-				AutoRequestedGroup arg = it.next();
+			final Reference<Boolean> deleted=new Reference<>(false);
+			auto_requested_groups.removeIf(arg -> {
 				if (arg.getGroups().equals(group) && arg.getRole().equals(role)) {
 					arg.destroy();
-					it.remove();
-					deleted = true;
+					deleted.set(true);
+					return true;
 				}
-			}
-			return deleted;
+				else
+					return false;
+			});
+			return deleted.get();
 		}
 
 		public void addAutoRequestedGroup(AutoRequestedGroup _group) {

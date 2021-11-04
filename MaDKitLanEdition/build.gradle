@@ -64,7 +64,7 @@ dependencies {
 	testImplementation 'org.testng:testng:7.4.0'
     //testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.hamcrest:hamcrest-core:2.2'
-    api(group:'com.distrimind.ood', name: 'OOD', version: '3.1.6-STABLE')
+    api(group:'com.distrimind.ood', name: 'OOD', version: '3.1.7-STABLE')
 
     //api project(':OOD')
     api(group:'org.fourthline.cling', name: 'cling-core', version: '2.1.2')
@@ -160,14 +160,14 @@ task sourcesJar(type: Jar, dependsOn: classes) {
     archiveClassifier.set("sources")
     from sourceSets.main.allSource
     from project.getProjectDir().getParentFile().getAbsolutePath()+"LICENSE"
-    from project.getProjectDir().getParentFile().getAbsolutePath()+"versions.md"
+    from project.getProjectDir().getParentFile().getAbsolutePath()+"changelog.md"
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
     archiveClassifier.set("javadoc")
     from javadoc.destinationDir
     from project.getProjectDir().getParentFile().getAbsolutePath()+"LICENSE"
-    from project.getProjectDir().getParentFile().getAbsolutePath()+"versions.md"
+    from project.getProjectDir().getParentFile().getAbsolutePath()+"changelog.md"
 }
 
 artifacts {
@@ -185,7 +185,7 @@ jar{
                    'Implementation-Version': project.version)
     }
     from project.getProjectDir().getParentFile().getAbsolutePath()+"LICENSE"
-    from project.getProjectDir().getParentFile().getAbsolutePath()+"versions.md"
+    from project.getProjectDir().getParentFile().getAbsolutePath()+"changelog.md"
 
 }
 

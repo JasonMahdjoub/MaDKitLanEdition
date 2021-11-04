@@ -75,7 +75,7 @@ import com.distrimind.util.version.Description;
 import com.distrimind.util.version.Person;
 import com.distrimind.util.version.PersonDeveloper;
 import com.distrimind.util.version.Version;
-
+import static com.distrimind.util.version.DescriptionType.*;
 /**
  * MaDKit 5 starter class.
  * 
@@ -146,206 +146,211 @@ final public class Madkit {
 					.addDeveloper(new PersonDeveloper("michel", "fabien", "1997-02-01"))
 					.addDeveloper(new PersonDeveloper("Gutknecht", "Olivier", "1997-02-01"))
 					.addDeveloper(new PersonDeveloper("Ferber", "Jacques", "1997-02-01"))
+					.addDescription(new Description((short)2, (short)2, (short)3, Version.Type.STABLE, (short)0, "2021-11-02")
+							.addItem(INTERNAL_CHANGE, "Update Utils to 5.21.0 STABLE")
+							.addItem(INTERNAL_CHANGE, "Update OOD to 3.1.7 STABLE")
+							.addItem(INTERNAL_CHANGE, "Optimizations")
+					)
 					.addDescription(new Description((short)2, (short)2, (short)2, Version.Type.STABLE, (short)0, "2021-10-18")
-							.addItem("Update Utils to 5.20.6 STABLE")
-							.addItem("Update OOD to 3.1.6 STABLE")
-							.addItem("Clean code")
-							.addItem("Use CircularArrayList for agent's message box instead of LinkedList")
-							.addItem("Load agent message box only if necessary")
-							.addItem("Fix bad encryption when using secret counter to avoid replay")
-							.addItem("Make some optimizations with messages filtering")
+							.addItem(INTERNAL_CHANGE, "Update Utils to 5.20.6 STABLE")
+							.addItem(INTERNAL_CHANGE, "Update OOD to 3.1.6 STABLE")
+							.addItem(INTERNAL_CHANGE, "Clean code")
+							.addItem(INTERNAL_CHANGE, "Use CircularArrayList for agent's message box instead of LinkedList")
+							.addItem(INTERNAL_CHANGE, "Load agent message box only if necessary")
+							.addItem(BUG_FIX, "Fix bad encryption when using secret counter to avoid replay. The bug was not producing security consequences.")
+							.addItem(INTERNAL_CHANGE, "Make some optimizations with messages filtering")
 					)
 					.addDescription(new Description((short)2, (short)2, (short)1, Version.Type.STABLE, (short)0, "2021-10-13")
-							.addItem("Update Utils to 5.20.3 STABLE")
-							.addItem("Update OOD to 3.1.2 STABLE")
-							.addItem("Better log formatting")
-							.addItem("Fix possible infinite loop between peer and server, when an error occurs")
-							.addItem("Do not use group manager role when sending message without specifying role")
-							.addItem("Peers can now synchronize their database through several database backup servers")
-							.addItem("Pool executor : fix bad use of maximum number of threads, and permit to create more threads when the maximum of threads was not reached and when tasks are waiting to be executed.")
+							.addItem(INTERNAL_CHANGE, "Update Utils to 5.20.3 STABLE")
+							.addItem(INTERNAL_CHANGE, "Update OOD to 3.1.2 STABLE")
+							.addItem(INTERNAL_CHANGE, "Better log formatting")
+							.addItem(BUG_FIX, "Fix possible infinite loop between peer and server, when an error occurs")
+							.addItem(BUG_FIX, "Do not use group manager role when sending message without specifying role")
+							.addItem(BUG_FIX, "Peers can now synchronize their database through several database backup servers")
+							.addItem(BUG_FIX, "Pool executor : fix bad use of maximum number of threads, and permit to create more threads when the maximum of threads was not reached and when tasks are waiting to be executed.")
 					)
 					.addDescription(new Description((short)2, (short)2, (short)0, Version.Type.STABLE, (short)0, "2021-10-01")
-							.addItem("Update Utils to 5.19.7 STABLE")
-							.addItem("Update OOD to 3.1.1 STABLE")
-							.addItem("Disable useless server stream into Upnp IGD")
-							.addItem("UPNP IGD test pass")
-							.addItem("Complete filter of network interfaces")
-							.addItem("Fix issue when determining if a local ip is compatible with another ip")
-							.addItem("Fix XXE security issue with Cling dependency : https://github.com/4thline/cling/issues/243")
-							.addItem("Fix DDOS and SSRF security issues with Cling dependency : https://github.com/4thline/cling/issues/253")
-							.addItem("Fix issue with AgentExecutor when an agent is launched and terminated too quickly")
-							.addItem("Add the possibility for a scheduled task to be executed even if the agent who launched the task was killed")
-							.addItem("Finish closing connexions even if NIO agent was killed")
-							.addItem("Fix issue with agent fake thread and avoid reception of two messages (or more) at the same time")
+							.addItem(INTERNAL_CHANGE, "Update Utils to 5.19.7 STABLE")
+							.addItem(INTERNAL_CHANGE, "Update OOD to 3.1.1 STABLE")
+							.addItem(INTERNAL_CHANGE, "Disable useless server stream into Upnp IGD")
+							.addItem(BUG_FIX, "UPNP IGD test pass")
+							.addItem(INTERNAL_CHANGE, "Complete filter of network interfaces")
+							.addItem(BUG_FIX, "Fix issue when determining if a local ip is compatible with another ip")
+							.addItem(SECURITY_FIX, "Fix XXE security issue with Cling dependency : https://github.com/4thline/cling/issues/243")
+							.addItem(SECURITY_FIX, "Fix DDOS and SSRF security issues with Cling dependency : https://github.com/4thline/cling/issues/253")
+							.addItem(BUG_FIX, "Fix issue with AgentExecutor when an agent is launched and terminated too quickly")
+							.addItem(NEW_FEATURE, "Add the possibility for a scheduled task to be executed even if the agent who launched the task was killed")
+							.addItem(BUG_FIX, "Finish closing connexions even if NIO agent was killed")
+							.addItem(BUG_FIX, "Fix issue with agent fake thread and avoid reception of two messages (or more) at the same time")
 					)
 					.addDescription(new Description((short)2, (short)2, (short)0, Version.Type.BETA, (short)1, "2021-07-07")
-							.addItem("Update Utils to 5.18.5 STABLE")
-							.addItem("Update OOD to 3.1.0 Beta 2")
-							.addItem("Make Utils and OOD compatible with Android")
-							.addItem("Reimplement connection protocol using new Utils classes")
-							.addItem("Permit MaDKit to be a central database backup server in order to synchronize database of distant peers")
-							.addItem("Check distant and not only local ports with filters of connection protocols and with filter of access protocols")
-							.addItem("Fix unexpected high CPU usage due to a bad socket channel using")
+							.addItem(INTERNAL_CHANGE, "Update Utils to 5.18.5 STABLE")
+							.addItem(INTERNAL_CHANGE, "Update OOD to 3.1.0 Beta 2")
+							.addItem(BUG_FIX, "Make Utils and OOD compatible with Android")
+							.addItem(INTERNAL_CHANGE, "Reimplement connection protocol using new Utils classes")
+							.addItem(NEW_FEATURE, "Permit MaDKit to be a central database backup server in order to synchronize database of distant peers")
+							.addItem(INTERNAL_CHANGE, "Check distant and not only local ports with filters of connection protocols and with filter of access protocols")
+							.addItem(BUG_FIX, "Fix unexpected high CPU usage due to a bad socket channel using")
 					)
 					.addDescription(new Description((short)2, (short)1, (short)10, Version.Type.STABLE, (short)1, "2020-02-15")
-							.addItem("Update Utils to 4.10.2")
-							.addItem("Update OOD to 2.4.2")
+							.addItem(INTERNAL_CHANGE, "Update Utils to 4.10.2")
+							.addItem(INTERNAL_CHANGE, "Update OOD to 2.4.2")
 					);
 
 			Calendar c = Calendar.getInstance();
 			c.set(2020, Calendar.FEBRUARY, 11);
 			Description d = new Description((short)2, (short)1, (short)8, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Update Utils to 4.9.0");
-			d.addItem("Update OOD to 2.4.0");
+			d.addItem(INTERNAL_CHANGE, "Update Utils to 4.9.0");
+			d.addItem(INTERNAL_CHANGE, "Update OOD to 2.4.0");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2020, Calendar.JANUARY, 25);
 			d = new Description((short)2, (short)1, (short)7, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Generate random messages only if messages are lower than network block size");
+			d.addItem(INTERNAL_CHANGE, "Generate random messages only if messages are lower than network block size");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2020, Calendar.JANUARY, 24);
 			d = new Description((short)2, (short)1, (short)6, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Update Utils to 4.8.5");
-			d.addItem("Update OOD to 2.3.20");
-			d.addItem("Rewrite agent thread executors and thread pool executors.");
-			d.addItem("Fiw issue when purging messages of a killed agent.");
+			d.addItem(INTERNAL_CHANGE,"Update Utils to 4.8.5");
+			d.addItem(INTERNAL_CHANGE,"Update OOD to 2.3.20");
+			d.addItem(INTERNAL_CHANGE,"Rewrite agent thread executors and thread pool executors.");
+			d.addItem(BUG_FIX, "Fiw issue when purging messages of a killed agent.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2020, Calendar.JANUARY, 10);
 			d = new Description((short)2, (short)1, (short)5, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.3.14 STABLE");
+			d.addItem(INTERNAL_CHANGE,"Update OOD to 2.3.14 STABLE");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.DECEMBER, 17);
 			d = new Description((short)2, (short)1, (short)4, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Update Utils to 4.7.1 STABLE");
-			d.addItem("Update OOD to 2.3.13 STABLE");
+			d.addItem(INTERNAL_CHANGE,"Update Utils to 4.7.1 STABLE");
+			d.addItem(INTERNAL_CHANGE, "Update OOD to 2.3.13 STABLE");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.NOVEMBER, 22);
 			d = new Description((short)2, (short)1, (short)3, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Update Utils to 4.7.0 STABLE");
-			d.addItem("Update OOD to 2.3.11 STABLE");
-			d.addItem("Use LoginData.invalidCloudPassword function");
+			d.addItem(INTERNAL_CHANGE, "Update Utils to 4.7.0 STABLE");
+			d.addItem(INTERNAL_CHANGE, "Update OOD to 2.3.11 STABLE");
+			d.addItem(INTERNAL_CHANGE, "Use LoginData.invalidCloudPassword function");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.NOVEMBER, 19);
 			d = new Description((short)2, (short)1, (short)1, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Rewrite PairOfIdentifiers class");
+			d.addItem(INTERNAL_CHANGE, "Rewrite PairOfIdentifiers class");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.NOVEMBER, 18);
 			d = new Description((short)2, (short)1, (short)0, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Update Utils to 4.6.5 STABLE");
-			d.addItem("Update OOD to 2.3.10 STABLE");
-			d.addItem("Update JDKRewriteUtils to 1.0.4 STABLE");
-			d.addItem("Filter distant network roles, and not only distant network groups");
-			d.addItem("Compile with openjdk 13 (compatibility set to Java 7");
-			d.addItem("Fix network broadcast message issue when no local agent is present, and when network agents does not received broadcast message");
+			d.addItem(INTERNAL_CHANGE, "Update Utils to 4.6.5 STABLE");
+			d.addItem(INTERNAL_CHANGE, "Update OOD to 2.3.10 STABLE");
+			d.addItem(INTERNAL_CHANGE, "Update JDKRewriteUtils to 1.0.4 STABLE");
+			d.addItem(INTERNAL_CHANGE, "Filter distant network roles, and not only distant network groups");
+			d.addItem(INTERNAL_CHANGE, "Compile with openjdk 13 (compatibility set to Java 7");
+			d.addItem(BUG_FIX, "Fix network broadcast message issue when no local agent is present, and when network agents does not received broadcast message");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.OCTOBER, 31);
 			d = new Description((short)2, (short)0, (short)4, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Update Utils to 4.6.2 STABLE");
-			d.addItem("Update OOD to 2.3.7 STABLE");
-			d.addItem("Update documentation");
+			d.addItem(INTERNAL_CHANGE, "Update Utils to 4.6.2 STABLE");
+			d.addItem(INTERNAL_CHANGE, "Update OOD to 2.3.7 STABLE");
+			d.addItem(INTERNAL_CHANGE, "Update documentation");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.OCTOBER, 19);
 			d = new Description((short)2, (short)0, (short)3, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Update Utils to 4.6.1 STABLE");
-			d.addItem("Update OOD to 2.3.6 STABLE");
-			d.addItem("Update dependencies");
+			d.addItem(INTERNAL_CHANGE, "Update Utils to 4.6.1 STABLE");
+			d.addItem(INTERNAL_CHANGE, "Update OOD to 2.3.6 STABLE");
+			d.addItem(INTERNAL_CHANGE, "Update dependencies");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.OCTOBER, 18);
 			d = new Description((short)2, (short)0, (short)0, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Update Utils to 4.6.0 STABLE");
-			d.addItem("Update OOD to 2.3.4 STABLE");
-			d.addItem("Cloud identifiers can be individually anonymous thanks to an encryption process.");
-			d.addItem("Host identifiers are sent only if the cloud identifier authentication process succeeded.");
-			d.addItem("Authentication can be done automatically with public key, through a shared password/key, or both");
-			d.addItem("P2PSecuredConnectionProtocolWithKeyAgreement algorithm permit to make client/server authentication throw asymmetric signatures");
-			d.addItem("An identifier is composed of a cloud identifier, and a host identifier. In the past, one authentication concerned both cloud and host identifiers. Now it is possible to have two authentications : one for the cloud identifier, and one another for the host identifier. If one of them fails, than identifier is rejected.");
-			d.addItem("Use hybrid connexion protocols that enables to use at the same time non post quantum algorithms and post quantum algorithms. It is to prevent the quantum supremacy without loosing the benefits of stable encryption algorithms. For client/server connexion, two asymmetric key pairs are then used : one for a non post quantum algorithm like RSA and one for a post quantum algorithm like Mc Eliece");
-			d.addItem("Synchronize local database with other peers");
+			d.addItem(INTERNAL_CHANGE, "Update Utils to 4.6.0 STABLE");
+			d.addItem(INTERNAL_CHANGE, "Update OOD to 2.3.4 STABLE");
+			d.addItem(NEW_FEATURE, "Cloud identifiers can be individually anonymous thanks to an encryption process.");
+			d.addItem(INTERNAL_CHANGE, "Host identifiers are sent only if the cloud identifier authentication process succeeded.");
+			d.addItem(NEW_FEATURE, "Authentication can be done automatically with public key, through a shared password/key, or both");
+			d.addItem(NEW_FEATURE, "P2PSecuredConnectionProtocolWithKeyAgreement algorithm permit to make client/server authentication throw asymmetric signatures");
+			d.addItem(NEW_FEATURE, "An identifier is composed of a cloud identifier, and a host identifier. In the past, one authentication concerned both cloud and host identifiers. Now it is possible to have two authentications : one for the cloud identifier, and one another for the host identifier. If one of them fails, than identifier is rejected.");
+			d.addItem(NEW_FEATURE, "Use hybrid connexion protocols that enables to use at the same time non post quantum algorithms and post quantum algorithms. It is to prevent the quantum supremacy without loosing the benefits of stable encryption algorithms. For client/server connexion, two asymmetric key pairs are then used : one for a non post quantum algorithm like RSA and one for a post quantum algorithm like Mc Eliece");
+			d.addItem(NEW_FEATURE, "Synchronize local database with other peers");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.APRIL, 24);
 			d = new Description((short)1, (short)11, (short)1, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Minimal modification into SecuredObjectOutputStream and SecuredObjectInputStream classes. ");
-			d.addItem("Fix bad use of garbage collector with ConversationID. ");
+			d.addItem(INTERNAL_CHANGE, "Minimal modification into SecuredObjectOutputStream and SecuredObjectInputStream classes. ");
+			d.addItem(INTERNAL_CHANGE, "Fix bad use of garbage collector with ConversationID. ");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.APRIL, 23);
 			d = new Description((short)1, (short)11, (short)0, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Add SecuredObjectOutputStream and SecuredObjectInputStream classes. Do not use native ObjectInputStream.");
-			d.addItem("Add possibility to send asynchronous messages (AbstractAgent.sendMessageWithRoleOrDifferSendingUntilRecipientWasFound).");
+			d.addItem(SECURITY_FIX, "Add SecuredObjectOutputStream and SecuredObjectInputStream classes. Do not use native ObjectInputStream.");
+			d.addItem(NEW_FEATURE, "Add possibility to send asynchronous messages (AbstractAgent.sendMessageWithRoleOrDifferSendingUntilRecipientWasFound).");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.APRIL, 8);
 			d = new Description((short)1, (short)10, (short)2, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Add hashCode function into class AbstractIP.");
-			d.addItem("Better manage externalization.");
-			d.addItem("Better manage identifiers of connection protocol negotiator.");
-			d.addItem("Add possibility to change connection protocols during MaDKit life, and not only during MaDKit loading.");
-			d.addItem("Add possibility to change access protocols during MaDKit life, and not only during MaDKit loading.");
-			d.addItem("Add possibility to change access data during MaDKit life, and not only during MaDKit loading.");
-			d.addItem("Add possibility to trigger connection/disconnection only if these were not present into the list of connection to attempt at the MaDKit starting defined into NetworkProperties class. " +
+			d.addItem(INTERNAL_CHANGE, "Add hashCode function into class AbstractIP.");
+			d.addItem(INTERNAL_CHANGE, "Better manage externalization.");
+			d.addItem(INTERNAL_CHANGE, "Better manage identifiers of connection protocol negotiator.");
+			d.addItem(NEW_FEATURE, "Add possibility to change connection protocols during MaDKit life, and not only during MaDKit loading.");
+			d.addItem(NEW_FEATURE, "Add possibility to change access protocols during MaDKit life, and not only during MaDKit loading.");
+			d.addItem(NEW_FEATURE, "Add possibility to change access data during MaDKit life, and not only during MaDKit loading.");
+			d.addItem(NEW_FEATURE, "Add possibility to trigger connection/disconnection only if these were not present into the list of connection to attempt at the MaDKit starting defined into NetworkProperties class. " +
 					"Concerned functions are AbstractAgent.manageDirectConnection, AbstractAgent.manageDirectConnections, AbstractAgent.manageDirectConnectionAndAddItToNetworkProperties and AbstractAgent.manageDirectConnectionsAndAddThemToNetworkProperties.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.MARCH, 26);
 			d = new Description((short)1, (short)10, (short)1, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Do not do useless thread locking when CGR groups are synchronized with distant peers.");
-			d.addItem("Restore BigDataTransferID to previous previous (new version caused issues with Junit tests).");
-			d.addItem("Fix issue during MaDKit ending.");
+			d.addItem(INTERNAL_CHANGE, "Do not do useless thread locking when CGR groups are synchronized with distant peers.");
+			d.addItem(BUG_FIX, "Restore BigDataTransferID to previous previous (new version caused issues with Junit tests).");
+			d.addItem(BUG_FIX, "Fix issue during MaDKit ending.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.MARCH, 25);
 			d = new Description((short)1, (short)10, (short)0, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 BETA 104.");
-			d.addItem("Update Utils to 3.25.5 STABLE.");
-			d.addItem("Add new connection protocol with symmetric keys: P2PSecuredConnectionProtocolWithKnownSymmetricKeys.");
-			d.addItem("Better tests for network transfers.");
-			d.addItem("Improve synchronization of list of distant agents.");
-			d.addItem("Security issue : control that received distant agents list synchronization concerns the good distant kernel address.");
-			d.addItem("Insure that list of distant agents are removed when peers are disconnected.");
-			d.addItem("When a connection fail, try another ip.");
-			d.addItem("Change information sending order when a new connection was established (fix a problem with synchronization of CGR that is done after network messages are done).");
-			d.addItem("Fix issue with replies not sent with killed agents : killed agent send now empty reply for messages that need reply.");
+			d.addItem(INTERNAL_CHANGE, "Update OOD to 2.0.0 BETA 104.");
+			d.addItem(INTERNAL_CHANGE, "Update Utils to 3.25.5 STABLE.");
+			d.addItem(NEW_FEATURE, "Add new connection protocol with symmetric keys: P2PSecuredConnectionProtocolWithKnownSymmetricKeys.");
+			d.addItem(BUG_FIX, "Better tests for network transfers.");
+			d.addItem(INTERNAL_CHANGE, "Improve synchronization of list of distant agents.");
+			d.addItem(SECURITY_FIX, "control that received distant agents list synchronization concerns the good distant kernel address.");
+			d.addItem(BUG_FIX, "Insure that list of distant agents are removed when peers are disconnected.");
+			d.addItem(NEW_FEATURE, "When a connection fail, try another ip.");
+			d.addItem(BUG_FIX, "Change information sending order when a new connection was established (fix a problem with synchronization of CGR that is done after network messages are done).");
+			d.addItem(BUG_FIX, "Fix issue with replies not sent with killed agents : killed agent send now empty reply for messages that need reply.");
 			VERSION.addDescription(d);
 
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.MARCH, 1);
 			d = new Description((short)1, (short)9, (short)6, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Remove obsolete code.");
-			d.addItem("Rename function into HostIdentifier class.");
-			d.addItem("Typo corrections.");
-			d.addItem("Add possibility to specify the profile identifier into class ServerSecuredProtocolPropertiesWithKnownPublicKey.");
+			d.addItem(INTERNAL_CHANGE, "Remove obsolete code.");
+			d.addItem(INTERNAL_CHANGE, "Rename function into HostIdentifier class.");
+			d.addItem(INTERNAL_CHANGE, "Typo corrections.");
+			d.addItem(NEW_FEATURE, "Add possibility to specify the profile identifier into class ServerSecuredProtocolPropertiesWithKnownPublicKey.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.FEBRUARY, 8);
 			d = new Description((short)1, (short)9, (short)4, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Code cleaning/optimizing.");
+			d.addItem(INTERNAL_CHANGE, "Code cleaning/optimizing.");
 			VERSION.addDescription(d);
 
 
@@ -353,291 +358,291 @@ final public class Madkit {
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.FEBRUARY, 6);
 			d = new Description((short)1, (short)9, (short)5, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 BETA 99.");
-			d.addItem("Update Utils to 3.25.1");
+			d.addItem(INTERNAL_CHANGE, "Update OOD to 2.0.0 BETA 99.");
+			d.addItem(INTERNAL_CHANGE, "Update Utils to 3.25.1");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.FEBRUARY, 5);
 			d = new Description((short)1, (short)9, (short)2, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 BETA 97.");
-			d.addItem("OOD - Security fix : disable cache for tables that use secret ou private keys");
-			d.addItem("OOD - Security improvement : add Field.disableCache property");
+			d.addItem(INTERNAL_CHANGE, "Update OOD to 2.0.0 BETA 97.");
+			d.addItem(SECURITY_FIX, "OOD - Security fix : disable cache for tables that use secret ou private keys");
+			d.addItem(SECURITY_FIX, "OOD - Security improvement : add Field.disableCache property");
 			VERSION.addDescription(d);
 
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.JANUARY, 18);
 			d = new Description((short)1, (short)9, (short)1, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 BETA 95.");
-			d.addItem("Set default OOD driver to H2 database.");
+			d.addItem(INTERNAL_CHANGE, "Update OOD to 2.0.0 BETA 95.");
+			d.addItem(INTERNAL_CHANGE, "Set default OOD driver to H2 database.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2019, Calendar.JANUARY, 13);
 			d = new Description((short)1, (short)9, (short)0, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 BETA 94.");
-			d.addItem("Update Utils to 3.24.0.");
-			d.addItem("Manage asymmetric auto-signed login.");
-			d.addItem("Better computer manage sleep mode.");
-			d.addItem("Manage moment of connection, and connection retry when failed");
+			d.addItem(INTERNAL_CHANGE, "Update OOD to 2.0.0 BETA 94.");
+			d.addItem(INTERNAL_CHANGE, "Update Utils to 3.24.0.");
+			d.addItem(NEW_FEATURE, "Manage asymmetric auto-signed login.");
+			d.addItem(INTERNAL_CHANGE, "Better computer manage sleep mode.");
+			d.addItem(INTERNAL_CHANGE, "Manage moment of connection, and connection retry when failed");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.NOVEMBER, 24);
 			d = new Description((short)1, (short)8, (short)2, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Improve security of Client/Server connection protocol.");
-			d.addItem("Resolve a concurrent modification exception into internal role.");
+			d.addItem(SECURITY_FIX, "Improve security of Client/Server connection protocol.");
+			d.addItem(BUG_FIX, "Resolve a concurrent modification exception into internal role.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.NOVEMBER, 23);
 			d = new Description((short)1, (short)8, (short)1, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Improve security of Client/Server connection protocol.");
+			d.addItem(SECURITY_FIX, "Improve security of Client/Server connection protocol.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.NOVEMBER, 21);
 			d = new Description((short)1, (short)8, (short)0, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Detect security anomalies during big data transfers.");
-            d.addItem("Correction of Group.equals() with null references.");
-            d.addItem("Better manage ban with deserialization process.");
-			d.addItem("Update Utils to 3.22.1.");
-			d.addItem("Update OOD to 2.0.0 BETA 91.");
-			d.addItem("Add function AbstractAgent.getAccessibleKernelsFilteredByGroupsGivenByDistantPeer(Group).");
-			d.addItem("Add function AbstractAgent.getAccessibleKernelsFilteredByGroupsGivenToDistantPeer(Group).");
-			d.addItem("Check public key validity with client/server connexion protocol.");
-            d.addItem("Add ConnectionProtocolNegotiator and ConnectionProtocolNegotiatorProperties classes.");
-            d.addItem("Fix issue with client/server vs peer-to-peer protocol negotiation.");
-			d.addItem("Optimizing a problem of simultaneous network data send to several peers : data was sent peer after peer, and not to all peers at the same time.");
-			d.addItem("Add possibility to limit global download bandwidth and global upload bandwidth.");
-			d.addItem("Detect OS wake up after a sleep mode.");
-			d.addItem("Update Cling to 2.1.2.");
-			d.addItem("Fix issue with router updating.");
+			d.addItem(NEW_FEATURE, "Detect security anomalies during big data transfers.");
+            d.addItem(BUG_FIX, "Correction of Group.equals() with null references.");
+            d.addItem(SECURITY_FIX, "Better manage ban with deserialization process.");
+			d.addItem(INTERNAL_CHANGE, "Update Utils to 3.22.1.");
+			d.addItem(INTERNAL_CHANGE, "Update OOD to 2.0.0 BETA 91.");
+			d.addItem(NEW_FEATURE, "Add function AbstractAgent.getAccessibleKernelsFilteredByGroupsGivenByDistantPeer(Group).");
+			d.addItem(NEW_FEATURE, "Add function AbstractAgent.getAccessibleKernelsFilteredByGroupsGivenToDistantPeer(Group).");
+			d.addItem(BUG_FIX, "Check public key validity with client/server connexion protocol.");
+            d.addItem(NEW_FEATURE, "Add ConnectionProtocolNegotiator and ConnectionProtocolNegotiatorProperties classes.");
+            d.addItem(BUG_FIX, "Fix issue with client/server vs peer-to-peer protocol negotiation.");
+			d.addItem(BUG_FIX, "Optimizing a problem of simultaneous network data send to several peers : data was sent peer after peer, and not to all peers at the same time.");
+			d.addItem(NEW_FEATURE, "Add possibility to limit global download bandwidth and global upload bandwidth.");
+			d.addItem(NEW_FEATURE, "Detect OS wake up after a sleep mode.");
+			d.addItem(INTERNAL_CHANGE, "Update Cling to 2.1.2.");
+			d.addItem(BUG_FIX, "Fix issue with router updating.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.AUGUST, 1);
 			d = new Description((short)1, (short)7, (short)6, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 BETA 86.");
-			d.addItem("Update Utils to 3.19.0.");
-			d.addItem("Add save functions into MadKit Properties.");
-			d.addItem("Fix network messages serialization problem.");
+			d.addItem(INTERNAL_CHANGE, "Update OOD to 2.0.0 BETA 86.");
+			d.addItem(INTERNAL_CHANGE, "Update Utils to 3.19.0.");
+			d.addItem(NEW_FEATURE, "Add save functions into MadKit Properties.");
+			d.addItem(BUG_FIX, "Fix network messages serialization problem.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.JULY, 27);
 			d = new Description((short)1, (short)7, (short)5, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 BETA 85.");
-			d.addItem("Update Utils to 3.18.0.");
-			d.addItem("Save MKLE configuration that are different from a reference configuration. Other properties are not saved.");
+			d.addItem(INTERNAL_CHANGE, "Update OOD to 2.0.0 BETA 85.");
+			d.addItem(INTERNAL_CHANGE, "Update Utils to 3.18.0.");
+			d.addItem(INTERNAL_CHANGE, "Save MKLE configuration that are different from a reference configuration. Other properties are not saved.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.JULY, 20);
 			d = new Description((short)1, (short)7, (short)3, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 BETA 84.");
-			d.addItem("Update Utils to 3.17.0.");
-			d.addItem("Fix version's control issue of distant peer.");
+			d.addItem(INTERNAL_CHANGE, "Update OOD to 2.0.0 BETA 84.");
+			d.addItem(INTERNAL_CHANGE, "Update Utils to 3.17.0.");
+			d.addItem(BUG_FIX, "Fix version's control issue of distant peer.");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.JULY, 13);
 			d = new Description((short)1, (short)7, (short)1, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 BETA 83.");
-            d.addItem("Update Utils to 3.16.1.");
-            d.addItem("Improve version's control of distant peer.");
-            d.addItem("Clean code.");
+			d.addItem(INTERNAL_CHANGE, "Update OOD to 2.0.0 BETA 83.");
+            d.addItem(INTERNAL_CHANGE, "Update Utils to 3.16.1.");
+            d.addItem(INTERNAL_CHANGE, "Improve version's control of distant peer.");
+            d.addItem(INTERNAL_CHANGE, "Clean code.");
 			VERSION.addDescription(d);
 
 
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.MAY, 20);
 			d = new Description((short)1, (short)7, (short)0, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 BETA 82.");
-			d.addItem("Update Utils to 3.15.0.");
-			d.addItem("Add P2P connection protocol that support parametrisation of key agreement.");
-			d.addItem("Support several key agreement (including Post Quantum Cryptography key agreement (New Hope)).");
-			d.addItem("Fix security issue : when data is sent without being wrote (default memory state), fill it with zeros.");
-			d.addItem("Fix security issue : sign symmetric encryption key into client/server connection protocol.");
-			d.addItem("Fix security issue : with P2P key agreements, generate signature and encryption keys with two steps (instead of one), in order to sign the exchanged symmetric encryption key.");
-			d.addItem("Fix security issue : class serialization are now filtered with allow list and deny list. Classes that are not into deny list must implement the interference 'SerializableAndSizable'. Messages sent to the network must implement the interface NetworkMessage.");
-			d.addItem("Optimization : use externalization process instead of deserialization process during lan transfer.");
-			d.addItem("Fix security issue : classes externalization processes control now the allocated memory during de-externalization phase.");
-			d.addItem("Security enhancement : initialisation vectors used with encryption has now a secret part composed of counter that is increased at each data exchange.");
-			d.addItem("Security enhancement : signature and encryption process use now a secret message that is increased at each data exchange.");
-			d.addItem("Security enhancement : P2P login agreement use now JPake and a signature authentication if secret key for signature is available (PasswordKey.getSecretKeyForSignature()).");
-			d.addItem("Fix issue with dead lock into indirect connection process.");
-			d.addItem("Fix issue with dual connection between two same kernels.");
-			d.addItem("Externalising Java rewrote classes into JDKRewriteUtils project.");
-			d.addItem("Support of authenticated encryption algorithms. When use these algorithms, MKLE do not add a signature with independent MAC.");
-			d.addItem("Add some benchmarks.");
-			d.addItem("Support of YAML file properties.");
+			d.addItem(INTERNAL_CHANGE, "Update OOD to 2.0.0 BETA 82.");
+			d.addItem(INTERNAL_CHANGE, "Update Utils to 3.15.0.");
+			d.addItem(NEW_FEATURE, "Add P2P connection protocol that support parametrisation of key agreement.");
+			d.addItem(NEW_FEATURE, "Support several key agreement (including Post Quantum Cryptography key agreement (New Hope)).");
+			d.addItem(SECURITY_FIX, "when data is sent without being wrote (default memory state), fill it with zeros.");
+			d.addItem(SECURITY_FIX, "sign symmetric encryption key into client/server connection protocol.");
+			d.addItem(SECURITY_FIX, "with P2P key agreements, generate signature and encryption keys with two steps (instead of one), in order to sign the exchanged symmetric encryption key.");
+			d.addItem(SECURITY_FIX, "class serialization are now filtered with allow list and deny list. Classes that are not into deny list must implement the interference 'SerializableAndSizable'. Messages sent to the network must implement the interface NetworkMessage.");
+			d.addItem(INTERNAL_CHANGE, "Optimization : use externalization process instead of deserialization process during lan transfer.");
+			d.addItem(SECURITY_FIX, "classes externalization processes control now the allocated memory during de-externalization phase.");
+			d.addItem(SECURITY_FIX, "Security enhancement : initialisation vectors used with encryption has now a secret part composed of counter that is increased at each data exchange.");
+			d.addItem(SECURITY_FIX, "Security enhancement : signature and encryption process use now a secret message that is increased at each data exchange.");
+			d.addItem(SECURITY_FIX, "Security enhancement : P2P login agreement use now JPake and a signature authentication if secret key for signature is available (PasswordKey.getSecretKeyForSignature()).");
+			d.addItem(BUG_FIX, "Fix issue with dead lock into indirect connection process.");
+			d.addItem(BUG_FIX, "Fix issue with dual connection between two same kernels.");
+			d.addItem(INTERNAL_CHANGE, "Externalising Java rewrote classes into JDKRewriteUtils project.");
+			d.addItem(NEW_FEATURE, "Support of authenticated encryption algorithms. When use these algorithms, MKLE do not add a signature with independent MAC.");
+			d.addItem(INTERNAL_CHANGE, "Add some benchmarks.");
+			d.addItem(NEW_FEATURE, "Support of YAML file properties.");
 			VERSION.addDescription(d);	
 
 			
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.FEBRUARY, 27);
 			d = new Description((short)1, (short)6, (short)5, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Debug UPNP connexion with macOS.");
-			d.addItem("Fix issue with multiple identical router's messages : do not remove the router to recreate it.");
+			d.addItem(BUG_FIX, "Debug UPNP connexion with macOS.");
+			d.addItem(BUG_FIX, "Fix issue with multiple identical router's messages : do not remove the router to recreate it.");
 			VERSION.addDescription(d);	
 			
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.FEBRUARY, 26);
 			d = new Description((short)1, (short)6, (short)5, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Fiw a problem with UPNP connexion under macOS.");
+			d.addItem(BUG_FIX, "Fiw a problem with UPNP connexion under macOS.");
 			VERSION.addDescription(d);	
 			
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.FEBRUARY, 15);
 			d = new Description((short)1, (short)6, (short)4, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Fix problem of port unbind with Windows.");
-			d.addItem("Fix problem of simultaneous connections with Mac OS");
-			d.addItem("Fix problem with interface address filtering");
+			d.addItem(BUG_FIX, "Fix problem of port unbind with Windows.");
+			d.addItem(BUG_FIX, "Fix problem of simultaneous connections with Mac OS");
+			d.addItem(BUG_FIX, "Fix problem with interface address filtering");
 			VERSION.addDescription(d);	
 			
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.FEBRUARY, 10);
 			d = new Description((short)1, (short)6, (short)3, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 BETA 66.");
-			d.addItem("Update Utils to 3.10.5");
-			d.addItem("Change minimum public key size from 1024 to 2048");
+			d.addItem(INTERNAL_CHANGE, "Update OOD to 2.0.0 BETA 66.");
+			d.addItem(INTERNAL_CHANGE, "Update Utils to 3.10.5");
+			d.addItem(INTERNAL_CHANGE, "Change minimum public key size from 1024 to 2048");
 			VERSION.addDescription(d);			
 			
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.FEBRUARY, 10);
 			d = new Description((short)1, (short)6, (short)2, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Update OOD to 2.0.0 BETA 65.");
-			d.addItem("Update Utils to 3.10.4");
-			d.addItem("Change minimum public key size from 1024 to 2048");
+			d.addItem(INTERNAL_CHANGE, "Update OOD to 2.0.0 BETA 65.");
+			d.addItem(INTERNAL_CHANGE, "Update Utils to 3.10.4");
+			d.addItem(INTERNAL_CHANGE, "Change minimum public key size from 1024 to 2048");
 			VERSION.addDescription(d);
 			
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.FEBRUARY, 4);
 			d = new Description((short)1, (short)6, (short)1, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Overlookers were not aware from new roles adding. Fix this issue.");
-			d.addItem("Add MadKit demos");
+			d.addItem(BUG_FIX, "Overlookers were not aware from new roles adding. Fix this issue.");
+			d.addItem(NEW_FEATURE, "Add MadKit demos");
 			VERSION.addDescription(d);
 			
 			c = Calendar.getInstance();
 			c.set(2018, Calendar.JANUARY, 31);
 			d = new Description((short)1, (short)6, (short)0, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Updating OOD to 2.0.0 BETA 59");
-			d.addItem("Updating Utils to 3.9.0");
-			d.addItem("Messages can now be atomically non encrypted");
+			d.addItem(INTERNAL_CHANGE, "Updating OOD to 2.0.0 BETA 59");
+			d.addItem(INTERNAL_CHANGE, "Updating Utils to 3.9.0");
+			d.addItem(NEW_FEATURE, "Messages can now be atomically non encrypted");
 			VERSION.addDescription(d);
 			
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.DECEMBER, 13);
 			d = new Description((short)1, (short)5, (short)2, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Updating OOD to 2.0.0 BETA 57");
-			d.addItem("Updating Utils to 3.7.1");
-			d.addItem("Debugging JavaDoc");
+			d.addItem(INTERNAL_CHANGE, "Updating OOD to 2.0.0 BETA 57");
+			d.addItem(INTERNAL_CHANGE, "Updating Utils to 3.7.1");
+			d.addItem(INTERNAL_CHANGE, "Debugging JavaDoc");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.NOVEMBER, 13);
 			d = new Description((short)1, (short)5, (short)0, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Updating OOD to 2.0.0 BETA 55");
-			d.addItem("Packets can now have sizes greater than Short.MAX_VALUE");
+			d.addItem(INTERNAL_CHANGE, "Updating OOD to 2.0.0 BETA 55");
+			d.addItem(INTERNAL_CHANGE, "Packets can now have sizes greater than Short.MAX_VALUE");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.NOVEMBER, 2);
 			d = new Description((short)1, (short)4, (short)5, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Updating OOD to 2.0.0 BETA 54");
+			d.addItem(INTERNAL_CHANGE, "Updating OOD to 2.0.0 BETA 54");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.OCTOBER, 13);
 			d = new Description((short)1, (short)4, (short)0, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Updating OOD to 2.0.0 BETA 48");
-			d.addItem("Several modifications into connection and access protocols");
-			d.addItem("Adding approved randoms parameters into MaDKitProperties");
-			d.addItem("Adding point to point transfer connection signature and verification");
-			d.addItem("Saving automatically random seed to be reload with the next application loading");
+			d.addItem(INTERNAL_CHANGE, "Updating OOD to 2.0.0 BETA 48");
+			d.addItem(INTERNAL_CHANGE, "Several modifications into connection and access protocols");
+			d.addItem(NEW_FEATURE, "Adding approved randoms parameters into MaDKitProperties");
+			d.addItem(NEW_FEATURE, "Adding point to point transfer connection signature and verification");
+			d.addItem(NEW_FEATURE, "Saving automatically random seed to be reload with the next application loading");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.AUGUST, 31);
 			d = new Description((short)1, (short)2, (short)1, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Including resources in jar files");
+			d.addItem(INTERNAL_CHANGE, "Including resources in jar files");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.AUGUST, 5);
 			d = new Description((short)1, (short)2, (short)0, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Correction a problem with database");
-			d.addItem("Adding P2PSecuredConnectionProtocolWithECDHAlgorithm connection protocol (speediest)");
-			d.addItem("Adding Client/ServerSecuredConnectionProtocolWithKnownPublicKeyWithECDHAlgorithm connection protocol (speediest)");
-			d.addItem("Now all connection protocols use different keys for encryption and for signature");
-			d.addItem("Adding AccessProtocolWithP2PAgreement (speediest)");
-			d.addItem("Debugging desktop JFrame closing (however the JMV still become opened when all windows are closed)");
-			d.addItem("Several minimal bug fix");
-			d.addItem("Correction of JavaDoc");
-			d.addItem("Updating OOD to 2.0.0 BETA 20 version");
+			d.addItem(INTERNAL_CHANGE, "Correction a problem with database");
+			d.addItem(NEW_FEATURE, "Adding P2PSecuredConnectionProtocolWithECDHAlgorithm connection protocol (speediest)");
+			d.addItem(NEW_FEATURE, "Adding Client/ServerSecuredConnectionProtocolWithKnownPublicKeyWithECDHAlgorithm connection protocol (speediest)");
+			d.addItem(SECURITY_FIX, "Now all connection protocols use different keys for encryption and for signature");
+			d.addItem(NEW_FEATURE, "Adding AccessProtocolWithP2PAgreement (speediest)");
+			d.addItem(BUG_FIX, "Debugging desktop JFrame closing (however the JMV still become opened when all windows are closed)");
+			d.addItem(BUG_FIX, "Several minimal bug fix");
+			d.addItem(INTERNAL_CHANGE, "Correction of JavaDoc");
+			d.addItem(INTERNAL_CHANGE, "Updating OOD to 2.0.0 BETA 20 version");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.AUGUST, 5);
 			d = new Description((short)1, (short)1, (short)3, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Updating OOD to 2.0.0 BETA 15");
+			d.addItem(INTERNAL_CHANGE,"Updating OOD to 2.0.0 BETA 15");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.AUGUST, 5);
 			d = new Description((short)1, (short)1, (short)2, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Updating OOD to 2.0.0 BETA 14");
-			d.addItem("Optimizing some memory leak tests");
+			d.addItem(INTERNAL_CHANGE,"Updating OOD to 2.0.0 BETA 14");
+			d.addItem(INTERNAL_CHANGE,"Optimizing some memory leak tests");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.AUGUST, 4);
 			d = new Description((short)1, (short)1, (short)0, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Convert project to Gradle project");
+			d.addItem(INTERNAL_CHANGE,"Convert project to Gradle project");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.JUNE, 4);
 			d = new Description((short)1, (short)0, (short)0, Version.Type.STABLE, (short)1, c.getTime());
-			d.addItem("Correction of a bug with database disconnection");
-			d.addItem("Debugging indirect connections");
-			d.addItem("Solving a memory leak problem with ConversationID");
-			d.addItem("Solving a memory leak problem with TransferAgent (not killed)");
-			d.addItem("Solving problem when deny BigDataProposition and kill agent just after");
-			d.addItem("Indirect connection send now ping message");
-			d.addItem("Adding allow list for InetAddresses in network properties");
-			d.addItem("Correcting problems of internal group/role references/dereferences");
+			d.addItem(BUG_FIX, "Correction of a bug with database disconnection");
+			d.addItem(BUG_FIX, "Debugging indirect connections");
+			d.addItem(BUG_FIX, "Solving a memory leak problem with ConversationID");
+			d.addItem(BUG_FIX, "Solving a memory leak problem with TransferAgent (not killed)");
+			d.addItem(BUG_FIX, "Solving problem when deny BigDataProposition and kill agent just after");
+			d.addItem(NEW_FEATURE, "Indirect connection send now ping message");
+			d.addItem(NEW_FEATURE, "Adding allow list for InetAddresses in network properties");
+			d.addItem(BUG_FIX, "Correcting problems of internal group/role references/dereferences");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.MAY, 27);
 			d = new Description((short)1, (short)0, (short)0, Version.Type.BETA, (short)4, c.getTime());
-			d.addItem("Agents are now identified by a long (and not int)");
-			d.addItem("Adding the function AbstractAgent.getAgentID()");
-			d.addItem("Removing static elements in Conversation ID");
+			d.addItem(INTERNAL_CHANGE, "Agents are now identified by a long (and not int)");
+			d.addItem(INTERNAL_CHANGE,"Adding the function AbstractAgent.getAgentID()");
+			d.addItem(INTERNAL_CHANGE,"Removing static elements in Conversation ID");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.MAY, 23);
 			d = new Description((short)1, (short)0, (short)0, Version.Type.BETA, (short)3, c.getTime());
-			d.addItem("Update Utils to 2.7.1");
-			d.addItem("Update OOD to 2.0.0 BETA 1");
-			d.addItem("JDK 7 compatible");
+			d.addItem(INTERNAL_CHANGE,"Update Utils to 2.7.1");
+			d.addItem(INTERNAL_CHANGE,"Update OOD to 2.0.0 BETA 1");
+			d.addItem(INTERNAL_CHANGE,"Minimum java version is now Java 7");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.MARCH, 7);
 			d = new Description((short)1, (short)0, (short)0, Version.Type.BETA, (short)2, c.getTime());
-			d.addItem("Reinforce secret identifier/password exchange");
-			d.addItem("Add agent to launch into MKDesktop windows");
+			d.addItem(SECURITY_FIX, "Reinforce secret identifier/password exchange");
+			d.addItem(NEW_FEATURE, "Add agent to launch into MKDesktop windows");
 			VERSION.addDescription(d);
 
 			c = Calendar.getInstance();
 			c.set(2017, Calendar.MARCH, 4);
 			d = new Description((short)1, (short)0, (short)0, Version.Type.BETA, (short)0, c.getTime());
-			d.addItem("First MaDKitLanEdition release, based on MaDKit");
+			d.addItem(NEW_FEATURE, "First MaDKitLanEdition release, based on MaDKit");
 			VERSION.addDescription(d);
 		} catch (Exception e) {
 			e.printStackTrace();

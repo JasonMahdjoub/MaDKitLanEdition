@@ -21,6 +21,7 @@ package com.distrimind.madkitdemos.bees;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Predicate;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Agent;
@@ -149,17 +150,23 @@ public class BeeLauncher extends Agent {
 			l = queensList;
 		else
 			l = beesList;
-		for (final Iterator<AbstractAgent> i = l.iterator(); i.hasNext() && j < number; j++) {
-			if (j % 100 == 0) {
-				Thread.yield();
+		l.removeIf(new Predicate<AbstractAgent>() {
+			int j=0;
+			@Override
+			public boolean test(AbstractAgent a) {
+				if (j>=number)
+					return false;
+				if (j++ % 100 == 0) {
+					Thread.yield();
+				}
+				if (a != null) {
+
+					killAgent(a);
+					return true;
+				} else
+					return false;
 			}
-			final AbstractAgent a = i.next();
-			if (a != null) {
-				i.remove();
-				killAgent(a);
-			} else
-				break;
-		}
+		});
 	}
 
 	public static void main(String[] args) {
