@@ -91,7 +91,6 @@ You can also find inspiration into Junit tests.
   * Automatically synchronize peers though intermediate peers when direct connections are not possible
   * Use encryption profile provider and to manage different version of secret keys in the case where a secret key was compromised
 
-
 All described features are tested and considered as stable.
 
 ###### Other futures of MaDKit Lan Edition :
@@ -121,7 +120,7 @@ Note that one agent can't be attached to a MultiGroup or a Group that represents
 
 ### Changes
 
-[See historical of changes](./versions.md)
+[See historical of changes](./changelog.md)
 
 How to use it ?
 ---------------
@@ -140,7 +139,7 @@ Adapt into your build.gradle file, the next code :
 	...
 	dependencies {
 		...
-		compile(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.2.2-STABLE')
+		compile(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.2.3-STABLE')
 		...
 	}
 	...
@@ -156,7 +155,7 @@ Adapt into your pom.xml file, the next code :
 			<dependency>
 				<groupId>com.distrimind.madkit</groupId>
 				<artifactId>MaDKitLanEdition</artifactId>
-				<version>2.2.2-STABLE</version>
+				<version>2.2.3-STABLE</version>
 			</dependency>
 			...
 		</dependencies>
