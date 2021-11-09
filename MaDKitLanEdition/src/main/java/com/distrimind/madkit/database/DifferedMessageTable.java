@@ -52,8 +52,8 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.distrimind.madkit.util.ReflectionTools.getMethod;
-import static com.distrimind.madkit.util.ReflectionTools.invoke;
+import static com.distrimind.util.ReflectionTools.getMethod;
+import static com.distrimind.util.ReflectionTools.invoke;
 
 /**
  * @author Jason Mahdjoub
@@ -62,7 +62,7 @@ import static com.distrimind.madkit.util.ReflectionTools.invoke;
  */
 public final class DifferedMessageTable extends Table<DifferedMessageTable.Record> {
 
-	public static final int MAX_DIFFERED_MESSAGE_LENGTH=128*1024;
+	public static final int MAX_DIFFERED_MESSAGE_LENGTH=512*1024;
 
 
 	private DifferedMessageTable() throws DatabaseException {
@@ -74,9 +74,9 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 		@AutoPrimaryKey
 		private int id;
 
-		@Field(index = true, limit = Group.MAX_PATH_LENGTH)
+		@Field(index = true, limit = Group.MAX_GROUP_SIZE_IN_BYTES)
 		@NotNull
-		private String groupPath;
+		private Group group;
 
 		@Field(index = true, limit=Group.MAX_PATH_LENGTH)
 		@NotNull
@@ -96,9 +96,9 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 		public Record() {
 		}
 
-		public Record(String groupPath, String roleSender, String roleReceiver, Message differedMessage) throws IOException {
+		public Record(Group group, String roleSender, String roleReceiver, Message differedMessage) throws IOException {
 			this.id=0;
-			if (groupPath==null)
+			if (group==null)
 				throw new NullPointerException();
 			if (roleSender==null)
 				throw new NullPointerException();
@@ -106,7 +106,7 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 				throw new NullPointerException();
 			if (differedMessage==null)
 				throw new NullPointerException();
-			this.groupPath = groupPath;
+			this.group = group;
 			this.roleSender = roleSender;
 			this.roleReceiver = roleReceiver;
 			try(RandomByteArrayOutputStream baos=new RandomByteArrayOutputStream())
@@ -128,8 +128,8 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 			return id;
 		}
 
-		public String getGroupPath() {
-			return groupPath;
+		public Group getGroup() {
+			return group;
 		}
 
 		public String getRoleSender() {
@@ -215,7 +215,7 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 	}
 
 	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
-	private boolean isConcerned(Collection<String> baseGroupPathList, String groupPath)
+	static boolean isConcerned(Collection<String> baseGroupPathList, String groupPath)
 	{
 		if (baseGroupPathList==null)
 			return true;
@@ -374,7 +374,7 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 				public Void run() throws Exception {
 					Role role=new Role(group, roleSender);
 					availableSenders.putIfAbsent(role, requester);
-					addRecord(new Record(group.getPath(), roleSender, roleReceiver, message));
+					addRecord(new Record(group, roleSender, roleReceiver, message));
 
 					return null;
 				}

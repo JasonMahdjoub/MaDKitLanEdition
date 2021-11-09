@@ -37,6 +37,7 @@
  */
 package com.distrimind.madkit.kernel;
 
+import com.distrimind.madkit.database.DifferedBigDataTable;
 import com.distrimind.madkit.database.DifferedMessageTable;
 import com.distrimind.madkit.i18n.ErrorMessages;
 import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
@@ -548,5 +549,24 @@ class FakeKernel extends MadkitKernel {
 	ArrayList<AbstractAgent> getConnectedNetworkAgents() {
 		throw buildKernelException(null);
 	}
-
+	@Override
+	DifferedBigDataTransferID sendBigDataAndDifferItIfNecessary(AbstractAgent requester, Group group, final String role,String senderRole,
+																DifferedBigDataIdentifier differedBigDataIdentifier,
+																SecureExternalizable attachedData,
+																MessageDigestType messageDigestType, boolean excludedFromEncryption,long timeOutInMs,
+																DifferedBigDataToSendWrapper differedBigDataToSendWrapper)
+	{
+		throw buildKernelException(null);
+	}
+	@Override
+	ReturnCode cancelBigDataTransfer(AbstractAgent requester, BigDataTransferID bigDataTransferID)
+	{
+		throw buildKernelException(null);
+	}
+	@Override
+	BigDataTransferID sendDifferedBigData(AbstractAgent requester, AgentAddress senderAA, AgentAddress receiverAA,
+										  DifferedBigDataTable.Record record)
+			{
+		throw buildKernelException(null);
+	}
 }

@@ -66,6 +66,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	public static final short MAX_COMMUNITY_LENGTH=1024;
 	public static final int MAX_PATH_LENGTH=16384;
 	public static final short MAX_ROLE_NAME_LENGTH=2048;
+	public static final int MAX_GROUP_SIZE_IN_BYTES=7+MAX_PATH_LENGTH*2+MAX_COMMUNITY_LENGTH*2;
 	
 	public static final int MAX_CGR_LENGTH=MAX_COMMUNITY_LENGTH+MAX_PATH_LENGTH+MAX_ROLE_NAME_LENGTH+3;
 	

@@ -47,7 +47,7 @@ import com.distrimind.madkit.kernel.network.BroadcastLocalLanMessage;
 import com.distrimind.madkit.kernel.network.DirectLocalLanMessage;
 import com.distrimind.madkit.util.NetworkMessage;
 
-import static com.distrimind.madkit.util.ReflectionTools.*;
+import static com.distrimind.util.ReflectionTools.*;
 
 /**
  * Gives access to Madkit Network methods

@@ -172,11 +172,11 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		this.differedBigDataIdentifier =null;
 		this.differedBigDataInternalIdentifier =null;
 	}
-	BigDataPropositionMessage(RandomInputStream stream, long pos, long length, SecureExternalizable attachedData, boolean local,
+	BigDataPropositionMessage(RandomInputStream stream, long pos, SecureExternalizable attachedData, boolean local,
 							  int maxBufferSize, RealTimeTransferStat stat, MessageDigestType messageDigestType, boolean excludedFromEncryption,
 							  AbstractDecentralizedID differedBigDataInternalIdentifier,
 							  DifferedBigDataIdentifier differedBigDataIdentifier) throws IOException {
-		this(stream, pos, length, attachedData, local, maxBufferSize, stat, messageDigestType, excludedFromEncryption);
+		this(stream, pos, stream.length(), attachedData, local, maxBufferSize, stat, messageDigestType, excludedFromEncryption);
 		if (differedBigDataIdentifier==null)
 			throw new NullPointerException();
 		if (differedBigDataInternalIdentifier==null)

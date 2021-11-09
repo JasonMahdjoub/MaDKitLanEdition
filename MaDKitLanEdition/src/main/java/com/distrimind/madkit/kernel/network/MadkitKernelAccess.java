@@ -52,7 +52,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 
-import static com.distrimind.madkit.util.ReflectionTools.*;
+import static com.distrimind.util.ReflectionTools.*;
 
 /**
  * Gives access to Madkit Kernel methods

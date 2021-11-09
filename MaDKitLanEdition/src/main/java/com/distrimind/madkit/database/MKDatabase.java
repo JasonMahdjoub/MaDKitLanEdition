@@ -47,6 +47,7 @@ import java.util.Set;
 public class MKDatabase {
 	public static final Set<Class<?>> databaseClasses= new HashSet<>(Arrays.asList(
 			DifferedMessageTable.class,
+			DifferedBigDataTable.class,
 			IPBanned.class,
 			IPBanStat.class,
 			IPExpulsedStat.class,

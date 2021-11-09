@@ -72,6 +72,7 @@ import com.distrimind.madkit.message.task.TasksExecutionConfirmationMessage;
 import com.distrimind.madkit.util.XMLUtilities;
 import com.distrimind.ood.database.DatabaseConfigurationsBuilder;
 import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.util.AbstractDecentralizedIDGenerator;
 import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.crypto.MessageDigestType;
 import com.distrimind.util.io.RandomInputStream;
@@ -5037,6 +5038,16 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	public ReturnCode setCentralDatabaseBackupReceiverFactory(CentralDatabaseBackupReceiverFactory<?> centralDatabaseBackupReceiverFactory) throws DatabaseException {
 		return getMadkitKernel().setCentralDatabaseBackupReceiverFactory(this, centralDatabaseBackupReceiverFactory);
 
+	}
+
+	public DifferedBigDataTransferID getDifferedBigDataTransferIDInstance(AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier, DifferedBigDataIdentifier differedBigDataIdentifier)
+	{
+		return new DifferedBigDataTransferID(differedBigDataInternalIdentifier, differedBigDataIdentifier, getKernel().getKernel());
+	}
+
+	public ReturnCode cancelBigDataTransfer(BigDataTransferID bigDataTransferID)
+	{
+		return getKernel().cancelBigDataTransfer(this, bigDataTransferID);
 	}
 
 }

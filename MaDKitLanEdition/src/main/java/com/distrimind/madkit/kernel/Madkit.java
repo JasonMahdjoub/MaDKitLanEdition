@@ -141,11 +141,14 @@ final public class Madkit {
 			if (is!=null)
 				VERSION.loadBuildNumber(is);
 
-			VERSION.addCreator(new Person("mahdjoub", "jason"))
-					.addDeveloper(new PersonDeveloper("mahdjoub", "jason", "2015-05-22"))
-					.addDeveloper(new PersonDeveloper("michel", "fabien", "1997-02-01"))
+			VERSION.addCreator(new Person("Mahdjoub", "Jason"))
+					.addDeveloper(new PersonDeveloper("Mahdjoub", "Jason", "2015-05-22"))
+					.addDeveloper(new PersonDeveloper("Michel", "Fabien", "1997-02-01"))
 					.addDeveloper(new PersonDeveloper("Gutknecht", "Olivier", "1997-02-01"))
 					.addDeveloper(new PersonDeveloper("Ferber", "Jacques", "1997-02-01"))
+					.addDescription(new Description((short)2, (short)3, (short)0, Version.Type.STABLE, (short)0, "2021-11-04")
+							.addItem(NEW_FEATURE, "Add possibility to send differed big data messages")
+					)
 					.addDescription(new Description((short)2, (short)2, (short)3, Version.Type.STABLE, (short)0, "2021-11-02")
 							.addItem(INTERNAL_CHANGE, "Update Utils to 5.21.0 STABLE")
 							.addItem(INTERNAL_CHANGE, "Update OOD to 3.1.7 STABLE")
@@ -1134,7 +1137,9 @@ final public class Madkit {
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.WrappedCloudIdentifier"),
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.CloudIdentifiersPropositionMessage"),
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.JPakeMessageForAuthenticationOfCloudIdentifiers"),
-					ListGroupsRoles.class, GroupsRoles.class));
+					ListGroupsRoles.class, GroupsRoles.class,
+					CancelBigDataTransferMessage.class,
+					CancelDifferedBigDataTransferMessage.class));
 			for (Class<?> c : classes)
 				assert !Modifier.isAbstract(c.getModifiers()):""+c;
 

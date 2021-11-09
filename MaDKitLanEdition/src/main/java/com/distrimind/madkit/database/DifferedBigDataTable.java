@@ -1,0 +1,445 @@
+package com.distrimind.madkit.database;
+/*
+Copyright or © or Copr. Jason Mahdjoub (01/04/2013)
+
+jason.mahdjoub@distri-mind.fr
+
+This software (Object Oriented Database (OOD)) is a computer program 
+whose purpose is to manage a local database with the object paradigm 
+and the java language 
+
+This software is governed by the CeCILL-C license under French law and
+abiding by the rules of distribution of free software.  You can  use, 
+modify and/ or redistribute the software under the terms of the CeCILL-C
+license as circulated by CEA, CNRS and INRIA at the following URL
+"http://www.cecill.info". 
+
+As a counterpart to the access to the source code and  rights to copy,
+modify and redistribute granted by the license, users are provided only
+with a limited warranty  and the software's author,  the holder of the
+economic rights,  and the successive licensors  have only  limited
+liability. 
+
+In this respect, the user's attention is drawn to the risks associated
+with loading,  using,  modifying and/or developing or reproducing the
+software by the user in light of its specific status of free software,
+that may mean  that it is complicated to manipulate,  and  that  also
+therefore means  that it is reserved for developers  and  experienced
+professionals having in-depth computer knowledge. Users are therefore
+encouraged to load and test the software's suitability as regards their
+requirements in conditions enabling the security of their systems and/or 
+data to be ensured and,  more generally, to use and operate it in the 
+same conditions as regards security. 
+
+The fact that you are presently reading this means that you have had
+knowledge of the CeCILL-C license and that you accept its terms.
+ */
+
+import com.distrimind.madkit.kernel.*;
+import com.distrimind.madkit.kernel.network.RealTimeTransferStat;
+import com.distrimind.ood.database.DatabaseRecord;
+import com.distrimind.ood.database.SynchronizedTransaction;
+import com.distrimind.ood.database.Table;
+import com.distrimind.ood.database.TransactionIsolation;
+import com.distrimind.ood.database.annotations.Field;
+import com.distrimind.ood.database.annotations.NotNull;
+import com.distrimind.ood.database.annotations.PrimaryKey;
+import com.distrimind.ood.database.annotations.Unique;
+import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.util.AbstractDecentralizedIDGenerator;
+import com.distrimind.util.RenforcedDecentralizedIDGenerator;
+import com.distrimind.util.crypto.MessageDigestType;
+import com.distrimind.util.io.SecureExternalizable;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.distrimind.util.ReflectionTools.getMethod;
+import static com.distrimind.util.ReflectionTools.invoke;
+import static com.distrimind.util.ReflectionTools.loadClass;
+
+/**
+ * @author Jason Mahdjoub
+ * @version 1.0
+ * @since MaDKitLanEdition 2.3.0
+ */
+public class DifferedBigDataTable extends Table<DifferedBigDataTable.Record> {
+	private final Map<AbstractDecentralizedIDGenerator, BigDataTransferID> transferIdsPerInternalDifferedId= Collections.synchronizedMap(new HashMap<>());
+	protected DifferedBigDataTable() throws DatabaseException {
+	}
+
+	public static class Record extends DatabaseRecord{
+		@PrimaryKey
+		private AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier;
+
+		@Field(index = true, limit = Group.MAX_GROUP_SIZE_IN_BYTES)
+		@NotNull
+		private Group group;
+
+		@Field(index = true, limit=Group.MAX_PATH_LENGTH)
+		@NotNull
+		private String roleSender;
+
+		@Field(index = true, limit = Group.MAX_PATH_LENGTH)
+		@NotNull
+		private String roleReceiver;
+
+
+
+		@NotNull
+		@Field(limit = DifferedBigDataIdentifier.MAX_DIFFERED_BIG_DATA_IDENTIFIER_SIZE_IN_BYTES)
+		@Unique
+		private DifferedBigDataIdentifier differedBigDataIdentifier;
+
+		@Field(limit = DifferedMessageTable.MAX_DIFFERED_MESSAGE_LENGTH)
+		private SecureExternalizable attachedData;
+
+		@Field
+		private long currentStreamPosition;
+
+		@Field
+		private MessageDigestType messageDigestType;
+
+		@Field
+		private boolean excludedFromEncryption;
+
+		@Field
+		private DifferedBigDataToSendWrapper differedBigDataToSendWrapper;
+
+		@Field
+		private DifferedBigDataToReceiveWrapper differedBigDataToReceiveWrapper;
+
+		@Field
+		private long timeOutInMs;
+
+		@Field
+		private long lastTimeUpdateUTCInMs;
+
+		@Field
+		private boolean transferStarted;
+
+		@SuppressWarnings("unused")
+		private Record() {
+		}
+
+		private Record(AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier,
+					   Group group, String roleSender, String roleReceiver,
+					  DifferedBigDataIdentifier differedBigDataIdentifier,
+					  SecureExternalizable attachedData,
+					  MessageDigestType messageDigestType, boolean excludedFromEncryption,
+					   long timeOutInMs) {
+			if (group==null)
+				throw new NullPointerException();
+			if (roleSender==null)
+				throw new NullPointerException();
+			if (roleReceiver==null)
+				throw new NullPointerException();
+			if (differedBigDataIdentifier==null)
+				throw new NullPointerException();
+			if (differedBigDataInternalIdentifier==null)
+				throw new NullPointerException();
+			this.group=group;
+			this.roleSender=roleSender;
+			this.roleReceiver=roleReceiver;
+			this.differedBigDataInternalIdentifier = differedBigDataInternalIdentifier;
+			this.differedBigDataIdentifier = differedBigDataIdentifier;
+			this.attachedData = attachedData;
+			this.messageDigestType = messageDigestType;
+			this.excludedFromEncryption = excludedFromEncryption;
+			this.differedBigDataToSendWrapper = null;
+			this.differedBigDataToReceiveWrapper = null;
+			this.currentStreamPosition=0;
+			this.timeOutInMs=timeOutInMs;
+			this.lastTimeUpdateUTCInMs=System.currentTimeMillis();
+
+		}
+		public Record(AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier,
+					  Group group, String roleSender, String roleReceiver,
+					  DifferedBigDataIdentifier differedBigDataIdentifier,
+					  SecureExternalizable attachedData,
+					  MessageDigestType messageDigestType, boolean excludedFromEncryption,long timeOutInMs,
+					  DifferedBigDataToSendWrapper differedBigDataToSendWrapper
+					  ) {
+			this(differedBigDataInternalIdentifier, group, roleSender, roleReceiver, differedBigDataIdentifier,
+					attachedData, messageDigestType, excludedFromEncryption, timeOutInMs);
+			if (differedBigDataToSendWrapper==null)
+				throw new NullPointerException();
+			this.differedBigDataToSendWrapper=differedBigDataToSendWrapper;
+			this.transferStarted=false;
+		}
+		public Record(AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier,
+					  Group group, String roleSender, String roleReceiver,
+					  DifferedBigDataIdentifier differedBigDataIdentifier,
+					  SecureExternalizable attachedData,
+					  MessageDigestType messageDigestType, boolean excludedFromEncryption,long timeOutInMs,
+					  DifferedBigDataToReceiveWrapper differedBigDataToReceiveWrapper
+					  ) {
+			this(differedBigDataInternalIdentifier, group, roleSender, roleReceiver, differedBigDataIdentifier,
+					attachedData, messageDigestType, excludedFromEncryption, timeOutInMs);
+			if (differedBigDataToReceiveWrapper==null)
+				throw new NullPointerException();
+			this.differedBigDataToReceiveWrapper=differedBigDataToReceiveWrapper;
+			this.transferStarted=true;
+		}
+
+		public AbstractDecentralizedIDGenerator getDifferedBigDataInternalIdentifier() {
+			return differedBigDataInternalIdentifier;
+		}
+
+		public DifferedBigDataIdentifier getDifferedBigDataIdentifier() {
+			return differedBigDataIdentifier;
+		}
+
+		public SecureExternalizable getAttachedData() {
+			return attachedData;
+		}
+
+		public long getCurrentStreamPosition() {
+			return currentStreamPosition;
+		}
+
+		public MessageDigestType getMessageDigestType() {
+			return messageDigestType;
+		}
+
+		public boolean isExcludedFromEncryption() {
+			return excludedFromEncryption;
+		}
+
+		public DifferedBigDataToSendWrapper getDifferedBigDataToSendWrapper() {
+			return differedBigDataToSendWrapper;
+		}
+
+		public DifferedBigDataToReceiveWrapper getDifferedBigDataToReceiveWrapper() {
+			return differedBigDataToReceiveWrapper;
+		}
+
+		public Group getGroup() {
+			return group;
+		}
+
+		public String getRoleSender() {
+			return roleSender;
+		}
+
+		public String getRoleReceiver() {
+			return roleReceiver;
+		}
+
+		public long getTimeOutInMs() {
+			return timeOutInMs;
+		}
+
+		public long getLastTimeUpdateUTCInMs() {
+			return lastTimeUpdateUTCInMs;
+		}
+
+		public boolean isTransferStarted() {
+			return transferStarted;
+		}
+	}
+	private Record startDifferedBigData(Group group, String roleSender, String roleReceiver,
+										DifferedBigDataIdentifier differedBigDataIdentifier,
+										SecureExternalizable attachedData,
+										MessageDigestType messageDigestType, boolean excludedFromEncryption,long timeOutInMs,
+										DifferedBigDataToSendWrapper differedBigDataToSendWrapper
+	)
+	{
+		return startDifferedBigData(group, roleSender, roleReceiver, differedBigDataIdentifier, attachedData, messageDigestType, excludedFromEncryption, timeOutInMs,
+				differedBigDataToSendWrapper, null);
+	}
+	public Record startDifferedBigData(Group group, String roleSender, String roleReceiver,
+									   DifferedBigDataIdentifier differedBigDataIdentifier,
+									   SecureExternalizable attachedData,
+									   MessageDigestType messageDigestType, boolean excludedFromEncryption,long timeOutInMs,
+									   DifferedBigDataToReceiveWrapper differedBigDataToReceiveWrapper
+	)
+	{
+		return startDifferedBigData(group, roleSender, roleReceiver, differedBigDataIdentifier, attachedData, messageDigestType, excludedFromEncryption, timeOutInMs,
+				null, differedBigDataToReceiveWrapper);
+	}
+	private Record startDifferedBigData(Group group, String roleSender, String roleReceiver,
+									  DifferedBigDataIdentifier differedBigDataIdentifier,
+									  SecureExternalizable attachedData,
+									  MessageDigestType messageDigestType, boolean excludedFromEncryption,long timeOutInMs,
+									  DifferedBigDataToSendWrapper differedBigDataToSendWrapper,
+									  DifferedBigDataToReceiveWrapper differedBigDataToReceiveWrapper
+									  ) {
+		assert differedBigDataToSendWrapper==null || differedBigDataToReceiveWrapper==null;
+		try {
+
+			return getDatabaseWrapper().runSynchronizedTransaction(new SynchronizedTransaction<Record>() {
+				@Override
+				public Record run() throws Exception {
+					Record r = getRecords("differedBigDataIdentifier", differedBigDataIdentifier).stream().findAny().orElse(null);
+					if (r != null)
+						return null;
+					if (differedBigDataToSendWrapper!=null)
+						r = addRecord(new Record(new RenforcedDecentralizedIDGenerator(false, true),
+							group, roleSender, roleReceiver, differedBigDataIdentifier,
+							attachedData, messageDigestType, excludedFromEncryption, timeOutInMs, differedBigDataToSendWrapper));
+					else
+						r = addRecord(new Record(new RenforcedDecentralizedIDGenerator(false, true),
+								group, roleSender, roleReceiver, differedBigDataIdentifier,
+								attachedData, messageDigestType, excludedFromEncryption, timeOutInMs, differedBigDataToReceiveWrapper));
+
+					return r;
+				}
+
+				@Override
+				public TransactionIsolation getTransactionIsolation() {
+					return TransactionIsolation.TRANSACTION_REPEATABLE_READ;
+				}
+
+				@Override
+				public boolean doesWriteData() {
+					return true;
+				}
+
+				@Override
+				public void initOrReset() {
+
+				}
+			});
+		}
+		catch (DatabaseException e)
+		{
+			e.printStackTrace();
+			return null;
+		}
+
+	}
+
+	public Record startDifferedBigData(Collection<String> baseGroupPath, final AbstractAgent requester, final Group group, String roleSender, String roleReceiver,
+									   DifferedBigDataIdentifier differedBigDataIdentifier,
+									   SecureExternalizable attachedData,
+									   MessageDigestType messageDigestType, boolean excludedFromEncryption,long timeOutInMs,
+									   DifferedBigDataToSendWrapper differedBigDataToSendWrapper
+	) {
+		final String groupPath=group.getPath();
+		if (!DifferedMessageTable.isConcerned(baseGroupPath, groupPath))
+			return null;
+
+		if (!requester.hasGroup(group))
+			return null;
+		AgentAddress senderAA=requester.getAgentAddressIn(group, roleSender);
+		if (senderAA==null)
+			return null;
+
+		AgentAddress receiverAA=requester.getAgentWithRole(group, roleReceiver);
+		Record r=startDifferedBigData(group, roleSender, roleReceiver, differedBigDataIdentifier, attachedData, messageDigestType, excludedFromEncryption, timeOutInMs,
+				differedBigDataToSendWrapper);
+		if (r!=null)
+		{
+			if (receiverAA!=null)
+			{
+				BigDataTransferID tid=sendDifferedBigData(requester, senderAA, receiverAA, r);
+				if (tid==null)
+					return null;
+				else
+					transferIdsPerInternalDifferedId.put(r.getDifferedBigDataInternalIdentifier(), tid);
+			}
+		}
+		return r;
+
+	}
+
+	public void cancelTransfer(AbstractAgent requester, Record record)
+	{
+		BigDataTransferID bigDataTransferID=transferIdsPerInternalDifferedId.remove(record.getDifferedBigDataInternalIdentifier());
+		if (bigDataTransferID==null && record.isTransferStarted())
+		{
+			sendMessageAndDifferItIfNecessary(requester, record.getGroup(), record.getRoleReceiver(), new CancelDifferedBigDataTransferMessage(record.getDifferedBigDataInternalIdentifier()), record.getRoleSender());
+		}
+		try {
+			removeRecord(record);
+		} catch (DatabaseException e) {
+			e.printStackTrace();
+		}
+		cancelBigDataTransfer(requester, bigDataTransferID);
+	}
+	public RealTimeTransferStat getBytePerSecondsStat(AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier)
+	{
+		BigDataTransferID b=transferIdsPerInternalDifferedId.get(differedBigDataInternalIdentifier);
+		if (b==null)
+			return null;
+		else
+			return b.getBytePerSecondsStat();
+	}
+
+	private static final Method m_send_differed_big_data;
+	private static final Method m_get_madkit_kernel;
+	private static final Method m_send_message_and_differ_it_if_necessary;
+	private static final Method m_cancel_big_data_transfer;
+	static
+	{
+		Class<?> madkitKernelClass= loadClass("com.distrimind.kernel.MadkitKernel");
+		Class<?> abstractAgentClass= loadClass("com.distrimind.kernel.AbstractAgent");
+		if (madkitKernelClass==null || abstractAgentClass==null) {
+			m_send_differed_big_data = null;
+			m_get_madkit_kernel=null;
+			m_send_message_and_differ_it_if_necessary=null;
+			m_cancel_big_data_transfer=null;
+			System.exit(-1);
+		}
+		else {
+			m_send_differed_big_data = getMethod(madkitKernelClass, "sendDifferedBigData", AbstractAgent.class,
+					AgentAddress.class, AgentAddress.class, Record.class);
+			m_send_message_and_differ_it_if_necessary = getMethod(madkitKernelClass, "sendMessageAndDifferItIfNecessary", AbstractAgent.class,
+					Group.class, String.class, Message.class, String.class);
+			m_cancel_big_data_transfer = getMethod(madkitKernelClass, "cancelBigDataTransfer", AbstractAgent.class,
+					BigDataTransferID.class);
+			m_get_madkit_kernel = getMethod(abstractAgentClass, "getMadkitKernel");
+		}
+	}
+	Agent getMadkitKernel(AbstractAgent abstractAgent)
+	{
+		try {
+			return (Agent)invoke(m_get_madkit_kernel, abstractAgent);
+		} catch (InvocationTargetException e) {
+			System.err.println("Unexpected error :");
+			e.printStackTrace();
+			System.exit(-1);
+			return null;
+		}
+	}
+	BigDataTransferID sendDifferedBigData(AbstractAgent requester, AgentAddress senderAA, AgentAddress receiverAA,
+										  DifferedBigDataTable.Record record)
+	{
+		try {
+			return (BigDataTransferID)invoke(m_send_differed_big_data, getMadkitKernel(requester),requester, senderAA, receiverAA, requester, record);
+		} catch (InvocationTargetException e) {
+			System.err.println("Unexpected error :");
+			e.printStackTrace();
+			System.exit(-1);
+			return null;
+		}
+
+	}
+	void sendMessageAndDifferItIfNecessary(final AbstractAgent requester, Group group, final String role,
+															   final Message message, final String senderRole)  {
+		try {
+			invoke(m_send_message_and_differ_it_if_necessary, getMadkitKernel(requester), requester, group, role, message, senderRole);
+		} catch (InvocationTargetException e) {
+			System.err.println("Unexpected error :");
+			e.printStackTrace();
+			System.exit(-1);
+		}
+	}
+
+	void cancelBigDataTransfer(AbstractAgent requester, BigDataTransferID bigDataTransferID)
+	{
+		try {
+			invoke(m_cancel_big_data_transfer, getMadkitKernel(requester), requester, bigDataTransferID);
+		} catch (InvocationTargetException e) {
+			System.err.println("Unexpected error :");
+			e.printStackTrace();
+			System.exit(-1);
+		}
+	}
+
+}

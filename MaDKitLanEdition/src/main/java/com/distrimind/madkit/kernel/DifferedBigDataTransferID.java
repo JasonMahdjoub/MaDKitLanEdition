@@ -35,13 +35,57 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-import com.distrimind.util.io.SecureExternalizable;
+import com.distrimind.madkit.kernel.network.RealTimeTransferStat;
+import com.distrimind.util.AbstractDecentralizedIDGenerator;
 
 /**
  * @author Jason Mahdjoub
  * @version 1.0
  * @since MaDKitLanEdition 2.3.0
  */
-public interface DifferedBigDataIdentifier extends SecureExternalizable {
-	int MAX_DIFFERED_BIG_DATA_IDENTIFIER_SIZE_IN_BYTES= 3000;
+public class DifferedBigDataTransferID implements Cloneable {
+	private AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier;
+	private DifferedBigDataIdentifier differedBigDataIdentifier;
+	private MadkitKernel madkitKernel;
+
+	DifferedBigDataTransferID(AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier, DifferedBigDataIdentifier differedBigDataIdentifier,
+							  MadkitKernel madkitKernel) {
+		if (differedBigDataInternalIdentifier==null)
+			throw new NullPointerException();
+		if (differedBigDataIdentifier==null)
+			throw new NullPointerException();
+		if (madkitKernel==null)
+			throw new NullPointerException();
+		this.differedBigDataInternalIdentifier = differedBigDataInternalIdentifier;
+		this.differedBigDataIdentifier = differedBigDataIdentifier;
+		this.madkitKernel=madkitKernel;
+	}
+
+	@SuppressWarnings("unused")
+	private DifferedBigDataTransferID() {
+	}
+
+	public AbstractDecentralizedIDGenerator getDifferedBigDataInternalIdentifier() {
+		return differedBigDataInternalIdentifier;
+	}
+
+	public DifferedBigDataIdentifier getDifferedBigDataIdentifier() {
+		return differedBigDataIdentifier;
+	}
+
+	@SuppressWarnings("MethodDoesntCallSuperMethod")
+	@Override
+	public DifferedBigDataTransferID clone()
+	{
+		return this;
+	}
+	public RealTimeTransferStat getBytePerSecondsStat()
+	{
+		if (madkitKernel==null)
+			return null;
+		else
+		{
+			return madkitKernel.getDifferedBigDataTable().getBytePerSecondsStat(differedBigDataInternalIdentifier);
+		}
+	}
 }

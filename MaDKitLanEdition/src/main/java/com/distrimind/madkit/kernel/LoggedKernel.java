@@ -37,6 +37,7 @@
  */
 package com.distrimind.madkit.kernel;
 
+import com.distrimind.madkit.database.DifferedBigDataTable;
 import com.distrimind.madkit.database.DifferedMessageTable;
 import com.distrimind.madkit.i18n.Words;
 import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
@@ -503,6 +504,10 @@ final class LoggedKernel extends MadkitKernel {
 		return kernel;
 	}
 
+	@Override
+	DifferedBigDataTable getDifferedBigDataTable() {
+		return kernel.getDifferedBigDataTable();
+	}
 
 	@Override
 	synchronized boolean removeOverlooker(AbstractAgent requester, Overlooker<? extends AbstractAgent> o) {
@@ -963,5 +968,47 @@ final class LoggedKernel extends MadkitKernel {
 	@Override
 	protected void exit() throws InterruptedException {
 		kernel.exit();
+	}
+
+	@Override
+	DifferedBigDataTransferID sendBigDataAndDifferItIfNecessary(AbstractAgent requester, Group group, final String role,String senderRole,
+														DifferedBigDataIdentifier differedBigDataIdentifier,
+														SecureExternalizable attachedData,
+														MessageDigestType messageDigestType, boolean excludedFromEncryption,long timeOutInMs,
+														DifferedBigDataToSendWrapper differedBigDataToSendWrapper)
+	{
+		DifferedBigDataTransferID r=kernel.sendBigDataAndDifferItIfNecessary(requester, group, role, senderRole,
+				differedBigDataIdentifier, attachedData, messageDigestType, excludedFromEncryption, timeOutInMs,
+				differedBigDataToSendWrapper);
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "sendBigDataAndDifferItIfNecessary (requester="+requester+", group="+group
+					+", destinationRole="+role
+					+", senderRole="+senderRole
+					+", differedBidDataIdentifier="+differedBigDataIdentifier
+					+", messageDigestType="+messageDigestType
+					+", excludedFromEncryption="+excludedFromEncryption
+					+", timeOutInMs="+timeOutInMs
+					+", res=" + r + ")");
+		return r;
+	}
+	@Override
+	ReturnCode cancelBigDataTransfer(AbstractAgent requester, BigDataTransferID bigDataTransferID)
+	{
+		ReturnCode r=kernel.cancelBigDataTransfer(requester, bigDataTransferID);
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "cancelBigDataTransfer (requester="+requester+", bigDataTransferID="+bigDataTransferID
+					+", res=" + r + ")");
+		return r;
+	}
+	@Override
+	BigDataTransferID sendDifferedBigData(AbstractAgent requester, AgentAddress senderAA, AgentAddress receiverAA,
+										  DifferedBigDataTable.Record record)
+			throws IOException {
+		BigDataTransferID r=kernel.sendDifferedBigData(requester, senderAA, receiverAA, record);
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "sendBigDataAndDifferItIfNecessary (requester="+requester+", senderAA="+senderAA
+					+", receiverAA="+receiverAA
+					+", res=" + r + ")");
+		return r;
 	}
 }

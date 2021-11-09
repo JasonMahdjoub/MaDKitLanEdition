@@ -35,13 +35,44 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-import com.distrimind.util.io.SecureExternalizable;
+import com.distrimind.madkit.kernel.network.SystemMessageWithoutInnerSizeControl;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
+
+import java.io.IOException;
 
 /**
  * @author Jason Mahdjoub
  * @version 1.0
  * @since MaDKitLanEdition 2.3.0
  */
-public interface DifferedBigDataIdentifier extends SecureExternalizable {
-	int MAX_DIFFERED_BIG_DATA_IDENTIFIER_SIZE_IN_BYTES= 3000;
+class CancelBigDataTransferMessage extends Message implements SystemMessageWithoutInnerSizeControl {
+	private BigDataTransferID bigDataTransferID;
+
+	@SuppressWarnings("unused")
+	CancelBigDataTransferMessage() {
+	}
+
+	public CancelBigDataTransferMessage(BigDataTransferID bigDataTransferID) {
+		if (bigDataTransferID==null)
+			throw new NullPointerException();
+		this.bigDataTransferID = bigDataTransferID;
+	}
+
+
+	@Override
+	public void writeExternal(SecuredObjectOutputStream out) throws IOException {
+		out.writeObject(bigDataTransferID, false);
+	}
+
+	@Override
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+		bigDataTransferID=in.readObject(false);
+	}
+
+
+
+	public BigDataTransferID getBigDataTransferID() {
+		return bigDataTransferID;
+	}
 }

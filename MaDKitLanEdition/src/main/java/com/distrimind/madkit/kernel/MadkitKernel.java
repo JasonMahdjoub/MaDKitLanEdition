@@ -43,6 +43,7 @@ import com.distrimind.madkit.action.KernelAction;
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.agr.LocalCommunity.Groups;
 import com.distrimind.madkit.agr.LocalCommunity.Roles;
+import com.distrimind.madkit.database.DifferedBigDataTable;
 import com.distrimind.madkit.database.DifferedMessageTable;
 import com.distrimind.madkit.exceptions.MadkitException;
 import com.distrimind.madkit.gui.AgentStatusPanel;
@@ -233,7 +234,8 @@ class MadkitKernel extends Agent {
 	private final Map<KernelAddress, InterfacedIDs> globalInterfacedIds;
 	//private final boolean lockSocketUntilCGRSynchroIsSent;
 
-	private volatile DifferedMessageTable differedMessageTable;
+	private volatile DifferedMessageTable differedMessageTable=null;
+	private volatile DifferedBigDataTable differedBigDataTable=null;
 
 	/**
 	 * Constructing the real one.
@@ -293,9 +295,11 @@ class MadkitKernel extends Agent {
 		madkitConfig.getApprovedRandomType();
 		madkitConfig.getApprovedRandomTypeForKeys();
 		differedMessageTable=null;
+		differedBigDataTable=null;
 		if (madkitConfig.isDatabaseEnabled()) {
 			try {
 				differedMessageTable= madkitConfig.getDatabaseWrapper().getTableInstance(DifferedMessageTable.class);
+				differedBigDataTable= madkitConfig.getDatabaseWrapper().getTableInstance(DifferedBigDataTable.class);
 			} catch (DatabaseException e) {
 				bugReport(e);
 				try {
@@ -307,6 +311,10 @@ class MadkitKernel extends Agent {
 		}
 		madkitConfig.madkitLaunched=true;
 
+	}
+
+	DifferedBigDataTable getDifferedBigDataTable() {
+		return differedBigDataTable;
 	}
 
 	AgentThreadFactory getNormalAgentThreadFactory() {
@@ -1387,6 +1395,7 @@ class MadkitKernel extends Agent {
 
 	}
 
+
 	AgentAddress getAgentWithRole(AbstractAgent requester, AbstractGroup group, String role) {
 		try {
 			Group[] groups = getRepresentedGroups(group, role);
@@ -1449,8 +1458,8 @@ class MadkitKernel extends Agent {
 	}
 
 
-	ReturnCode sendMessageAndDifferItIfNecessary(final AbstractAgent requester, Group group, final String role, final Message message,
-						   final String senderRole)  {
+	ReturnCode sendMessageAndDifferItIfNecessary(final AbstractAgent requester, Group group, final String role,
+												 final Message message, final String senderRole)  {
 		if (requester==null)
 			throw new NullPointerException();
 		if (message==null)
@@ -1476,6 +1485,37 @@ class MadkitKernel extends Agent {
 			return IGNORED;
 		}
 
+	}
+	DifferedBigDataTransferID sendBigDataAndDifferItIfNecessary(AbstractAgent requester, Group group, final String role,String senderRole,
+														DifferedBigDataIdentifier differedBigDataIdentifier,
+														SecureExternalizable attachedData,
+														MessageDigestType messageDigestType, boolean excludedFromEncryption,long timeOutInMs,
+														DifferedBigDataToSendWrapper differedBigDataToSendWrapper) {
+		if (requester==null)
+			throw new NullPointerException();
+		if (group==null)
+			throw new NullPointerException();
+		if (role==null)
+			throw new NullPointerException();
+		if (senderRole==null)
+			throw new NullPointerException();
+
+		if (differedBigDataTable==null) {
+			bugReport(new MadkitException("Cannot differ message when no database was loaded !"));
+			return null;
+		}
+
+		DifferedBigDataTable.Record r=differedBigDataTable.startDifferedBigData(
+				platform.getConfigOption().rootOfPathGroupUsedToFilterDifferedMessages, requester,
+				group, senderRole, role,
+				differedBigDataIdentifier, attachedData, messageDigestType, excludedFromEncryption, timeOutInMs,
+				differedBigDataToSendWrapper);
+		if (r==null)
+			return null;
+		else
+		{
+			return new DifferedBigDataTransferID(r.getDifferedBigDataInternalIdentifier(), r.getDifferedBigDataIdentifier(), this);
+		}
 	}
 
 	long cancelDifferedMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
@@ -3174,6 +3214,7 @@ class MadkitKernel extends Agent {
 		loggedKernel = null;
 		platform = null;
 		differedMessageTable=null;
+		differedBigDataTable=null;
 		operatingOverlookers.clear();
 		synchronized (state) {
 			state.set(TERMINATED);
@@ -3675,6 +3716,48 @@ class MadkitKernel extends Agent {
 			Group.addGroupChangesNotifier(args);
 	}
 
+	ReturnCode cancelBigDataTransfer(AbstractAgent requester, BigDataTransferID bigDataTransferID)
+	{
+		if (netAgent!=null) {
+			Message m=new CancelBigDataTransferMessage(bigDataTransferID);
+			m.getConversationID().setOrigin(getKernelAddress());
+			m.setSender(netUpdater);
+			m.setReceiver(netAgent);
+			netAgent.getAgent().receiveMessage(m);
+			return SUCCESS;
+		}
+		else
+			return IGNORED;
+	}
+
+	BigDataTransferID sendDifferedBigData(AbstractAgent requester, AgentAddress senderAA, AgentAddress receiverAA,
+										  DifferedBigDataTable.Record record)
+			throws IOException {
+		if (senderAA == null)
+			throw new NullPointerException("agentAddress");
+		if (receiverAA==null)
+			throw new NullPointerException();
+		RandomInputStream inputStream=record.getDifferedBigDataToSendWrapper().getRandomInputStream(record.getDifferedBigDataIdentifier());
+		if (inputStream==null) {
+			differedBigDataTable.cancelTransfer(requester, record);
+			return null;
+		}
+		RealTimeTransferStat stat = new RealTimeTransferStat(
+				getMadkitConfig().networkProperties.bigDataStatDurationMean,
+				getMadkitConfig().networkProperties.bigDataStatDurationMean / 10);
+		BigDataPropositionMessage message = new BigDataPropositionMessage(inputStream, record.getCurrentStreamPosition(),
+				inputStream.length()-record.getCurrentStreamPosition(), record.isTransferStarted()?null:record.getAttachedData(),
+				receiverAA.isFrom(getKernelAddress()), requester.getMadkitConfig().networkProperties.maxBufferSize,
+				stat, record.getMessageDigestType(), record.isExcludedFromEncryption());
+
+		ReturnCode rc = buildAndSendMessage(senderAA, receiverAA, message);
+		// get the role for the sender and then send
+		if (rc != ReturnCode.SUCCESS && rc != ReturnCode.TRANSFER_IN_PROGRESS)
+			return null;
+		else
+			return new BigDataTransferID(message.getConversationID(), stat);
+	}
+
 	BigDataTransferID sendBigData(AbstractAgent requester, AgentAddress agentAddress, RandomInputStream stream,
 			long pos, long length, SecureExternalizable attachedData, String senderRole, MessageDigestType messageDigestType, boolean excludeFromEncryption)
 			throws IOException {
@@ -3704,6 +3787,8 @@ class MadkitKernel extends Agent {
 			}
 		}
 	}
+
+
 
 	void acceptDistantBigDataTransfer(AbstractAgent requester, BigDataPropositionMessage originalMessage) {
 		broadcastMessage(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE,

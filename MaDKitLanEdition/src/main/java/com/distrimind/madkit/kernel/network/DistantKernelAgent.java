@@ -589,7 +589,8 @@ class DistantKernelAgent extends AgentFakeThread {
 						} else
 							sendReplyEmpty(m);
 					}
-				} else if (_message.getClass() == ObjectMessage.class) {
+				}
+				else if (_message.getClass() == ObjectMessage.class) {
 					Object o = ((ObjectMessage<?>) _message).getContent();
 					if (o.getClass() == AgentSocketData.class) {
 						AgentSocketData asd = (AgentSocketData) o;
