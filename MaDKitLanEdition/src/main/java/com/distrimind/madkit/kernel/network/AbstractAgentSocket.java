@@ -58,6 +58,7 @@ import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.Timer;
 import com.distrimind.util.crypto.AbstractSecureRandom;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
@@ -540,9 +541,9 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 
 	}
 
-	private ArrayList<AbstractData> getFilteredData(Collection<AbstractData> data, boolean checkTransferIds) {
-		ArrayList<AbstractData> res = new ArrayList<>(data.size());
-		for (AbstractData ad : data) {
+	private <T extends AbstractData> ArrayList<T> getFilteredData(Collection<T> data, boolean checkTransferIds) {
+		ArrayList<T> res = new ArrayList<>(data.size());
+		for (T ad : data) {
 			if ((ad.getIDTransfer()!=null && ad.getIDTransfer().equals(getTransferType()))
 					|| (checkTransferIds && this.transfer_ids.getLocal(Objects.requireNonNull(ad.getIDTransfer())) != null))
 				res.add(ad);
@@ -559,7 +560,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 	}
 
 	protected void disconnected(ConnectionClosedReason reason, Collection<AbstractData> _data_not_sent,
-								ArrayList<AbstractData> bigDataNotSent, Collection<AbstractData> dataToTransferNotSent) {
+								ArrayList<BigPacketData> bigDataNotSent, Collection<BlockDataToTransfer> dataToTransferNotSent) {
 
 		try {
 			cancelTaskTransferNodeChecker();
@@ -628,11 +629,11 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 
 
 		protected final Collection<AbstractData> shortDataNotSent;
-		protected final ArrayList<AbstractData> bigDataNotSent;
-		protected final Collection<AbstractData> dataToTransferNotSent;
+		protected final ArrayList<BigPacketData> bigDataNotSent;
+		protected final Collection<BlockDataToTransfer> dataToTransferNotSent;
 
-		AgentSocketKilled(Collection<AbstractData> _data_not_sent, ArrayList<AbstractData> bigDataNotSent,
-				Collection<AbstractData> dataToTransferNotSent) {
+		AgentSocketKilled(Collection<AbstractData> _data_not_sent, ArrayList<BigPacketData> bigDataNotSent,
+				Collection<BlockDataToTransfer> dataToTransferNotSent) {
 			this.shortDataNotSent = _data_not_sent;
 			this.bigDataNotSent = bigDataNotSent;
 			this.dataToTransferNotSent = dataToTransferNotSent;
@@ -651,39 +652,48 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		if (_message.getClass() == DistKernADataToUpgradeMessage.class) {
 
 			AbstractPacketData d = ((DistKernADataToUpgradeMessage) _message).dataToUpgrade;
-			
-			// d.setStat(getBytesPerSecondsStat());
-			if (d.isDataBuildInProgress()) {
-				try {
-					d.setNewBlock(getTransferType(), getBlock(d.packet, getTransferType().getID(), d.excludedFromEncryption));
-					if (logger != null && logger.isLoggable(Level.FINEST))
-						logger.finest("Data buffer updated (distant_inet_address=" + distant_inet_address
-								+ ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress
-								+ ", totalDataLe) : " + d);
-				} catch (NIOException e) {
-					if (logger != null)
-						logger.severeLog("Impossible to send packet " + d.getIDPacket(), e);
-					d.cancel();
-					
-				}
-					
-				
-			} 
-			else
+			if (d.isCanceled())
 			{
-				d.agentSocket=this;
 				if (logger != null && logger.isLoggable(Level.FINEST))
-					logger.finest("Sending data buffer (distant_inet_address=" + distant_inet_address
-						+ ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress + ") : " + d);
+					logger.finest("Ignoring canceled data buffer (distant_inet_address=" + distant_inet_address
+							+ ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress + ") : " + d);
 			}
-			boolean sendMessage = d.getReadDataLengthIncludingHash() == 0;
-			if (sendMessage) {
-				if (sendMessageWithRole(nio_agent_address, new DataToSendMessage(d, getSocketID()),
-						LocalCommunity.Roles.SOCKET_AGENT_ROLE).equals(ReturnCode.SUCCESS)) {
-					lastDistKernADataToUpgradeMessageSentUTC = System.currentTimeMillis();
+			else {
+				// d.setStat(getBytesPerSecondsStat());
+				if (d.isDataBuildInProgress()) {
+					try {
+						d.setNewBlock(getTransferType(), getBlock(d.packet, getTransferType().getID(), d.excludedFromEncryption));
+						if (logger != null && logger.isLoggable(Level.FINEST))
+							logger.finest("Data buffer updated (distant_inet_address=" + distant_inet_address
+									+ ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress
+									+ ", totalDataLe) : " + d);
+					} catch (NIOException e) {
+						if (logger != null)
+							logger.severeLog("Impossible to send packet " + d.getIDPacket(), e);
+						try {
+							d.cancel();
+						} catch (IOException ex) {
+							if (logger!=null)
+								logger.severeLog("Cannot close packet data", e);
+						}
+
+					}
+
+
+				} else {
+					d.agentSocket = this;
+					if (logger != null && logger.isLoggable(Level.FINEST))
+						logger.finest("Sending data buffer (distant_inet_address=" + distant_inet_address
+								+ ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress + ") : " + d);
+				}
+				boolean sendMessage = d.getReadDataLengthIncludingHash() == 0;
+				if (sendMessage) {
+					if (sendMessageWithRole(nio_agent_address, new DataToSendMessage(d, getSocketID()),
+							LocalCommunity.Roles.SOCKET_AGENT_ROLE).equals(ReturnCode.SUCCESS)) {
+						lastDistKernADataToUpgradeMessageSentUTC = System.currentTimeMillis();
+					}
 				}
 			}
-
 		} else if (_message.getClass() == SendPingMessage.class) {
 			if (logger != null && logger.isLoggable(Level.FINEST))
 				logger.finest("Sending ping message (distant_inet_address=" + distant_inet_address

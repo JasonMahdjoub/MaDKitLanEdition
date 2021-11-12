@@ -37,7 +37,9 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.distrimind.madkit.exceptions.MadkitException;
 import com.distrimind.madkit.exceptions.PacketException;
@@ -51,6 +53,7 @@ import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
  */
 abstract class AbstractData {
 	private final boolean priority;
+	private AtomicBoolean canceled=new AtomicBoolean(false);
 	
 
 	AbstractData(boolean priority) {
@@ -116,4 +119,12 @@ abstract class AbstractData {
 	}
 
 	abstract boolean isDataBuildInProgress();
+	void cancel() throws IOException {
+		canceled.set(true);
+	}
+
+	final boolean isCanceled()
+	{
+		return canceled.get();
+	}
 }

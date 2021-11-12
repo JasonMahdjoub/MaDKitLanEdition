@@ -3795,11 +3795,12 @@ class MadkitKernel extends Agent {
 				new ObjectMessage<>(originalMessage), false);
 	}
 
-	void connectionLostForBigDataTransfer(AbstractAgent requester, ConversationID conversationID, int idPacket,
-			AgentAddress sender, AgentAddress receiver, long readDataLength, long duration, AbstractDecentralizedID differedBigDataInternalIdentifier,
-										  DifferedBigDataIdentifier differedBigDataIdentifier) {
-		BigDataResultMessage m = new BigDataResultMessage(BigDataResultMessage.Type.CONNECTION_LOST, readDataLength,
-				idPacket, duration, differedBigDataInternalIdentifier, differedBigDataIdentifier);
+	void transferLostForBigDataTransfer(AbstractAgent requester, ConversationID conversationID, int idPacket,
+			AgentAddress sender, AgentAddress receiver, long readDataLength, long durationInMs, AbstractDecentralizedID differedBigDataInternalIdentifier,
+										  DifferedBigDataIdentifier differedBigDataIdentifier, BigDataResultMessage.Type cancelingType) {
+		assert cancelingType==BigDataResultMessage.Type.CONNECTION_LOST || cancelingType==BigDataResultMessage.Type.TRANSFER_CANCELED;
+		BigDataResultMessage m = new BigDataResultMessage(cancelingType, readDataLength,
+				idPacket, durationInMs, differedBigDataInternalIdentifier, differedBigDataIdentifier);
 		m.setSender(receiver);
 		m.setReceiver(sender);
 		sender.getAgent().receiveMessage(m);

@@ -422,9 +422,9 @@ class FakeKernel extends MadkitKernel {
 	}
 
 	@Override
-	void connectionLostForBigDataTransfer(AbstractAgent requester, ConversationID conversationID, int idPacket,
-			AgentAddress sender, AgentAddress receiver, long readDataLength, long duration, AbstractDecentralizedID differedBigDataInternalIdentifier,
-										  DifferedBigDataIdentifier differedBigDataIdentifier) {
+	void transferLostForBigDataTransfer(AbstractAgent requester, ConversationID conversationID, int idPacket,
+										AgentAddress sender, AgentAddress receiver, long readDataLength, long durationInMs, AbstractDecentralizedID differedBigDataInternalIdentifier,
+										DifferedBigDataIdentifier differedBigDataIdentifier, BigDataResultMessage.Type cancelingType) {
 		throw buildKernelException(requester);
 	}
 

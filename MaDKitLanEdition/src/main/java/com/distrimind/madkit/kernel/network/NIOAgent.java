@@ -1243,8 +1243,8 @@ final class NIOAgent extends Agent {
 		public final AgentSocket agentSocket;
 
 		protected LinkedList<AbstractData> shortDataToSend = new LinkedList<>();
-		protected ArrayList<AbstractData> bigDataToSend = new ArrayList<>();
-		protected LinkedList<AbstractData> dataToTransfer = new LinkedList<>();
+		protected ArrayList<DistantKernelAgent.BigPacketData> bigDataToSend = new ArrayList<>();
+		protected LinkedList<AbstractAgentSocket.BlockDataToTransfer> dataToTransfer = new LinkedList<>();
 		private final LinkedList<NoBackData> noBackDataToSend=new LinkedList<>();
 		// private LinkedList<FileData> bigDataWaiting=new LinkedList<>();
 		private DataTransferType dataTransferType = DataTransferType.SHORT_DATA;
@@ -1444,7 +1444,7 @@ final class NIOAgent extends Agent {
 						shortDataToSend.add(_data);
 					break;
 				case BIG_DATA:
-					bigDataToSend.add(_data);
+					bigDataToSend.add((DistantKernelAgent.BigPacketData) _data);
 					/*
 					 * if (dataToSend.size()==0) bigDataToSend.add(_data); else
 					 * bigDataWaiting.add(new FileData(_data, dataToSend.size()));
@@ -1452,7 +1452,7 @@ final class NIOAgent extends Agent {
 
 					break;
 				case DATA_TO_TRANSFER:
-					dataToTransfer.addLast(_data);
+					dataToTransfer.addLast((AbstractAgentSocket.BlockDataToTransfer) _data);
 					break;
 				}
 				
@@ -1878,9 +1878,8 @@ final class NIOAgent extends Agent {
 						dataNotAlreadyTwoTimes=false;
 						ByteBuffer buf = data.getBuffer();
 
-						if (buf == null) {
-							throw new TransferException("Unexpected exception !");
-						} else {
+
+						if (buf!=null) {
 							if (firstPacketSent) {
 								if (timer_send == null)
 									timer_send = new Timer(true);
@@ -1891,24 +1890,22 @@ final class NIOAgent extends Agent {
 							}
 
 							data_sent = socketChannel.write(buf);
+						}
+						if (firstPacketSent)
+						{
 
-							if (firstPacketSent)
-							{
-								
-								agentSocket.getStatistics().newDataSent(data.getIDTransfer(), data_sent);
-							}
+							agentSocket.getStatistics().newDataSent(data.getIDTransfer(), data_sent);
+						}
 
-							remaining = buf.remaining();
-							if (freeNoBackData() && remaining > 0)
-								throw new IllegalAccessError();
+						remaining = buf==null?0:buf.remaining();
+						if (freeNoBackData() && remaining > 0)
+							throw new IllegalAccessError();
 
-							if (data_sent > 0) {
-								if (logger != null && logger.isLoggable(Level.FINEST))
-									logger.finest("New data sent (" + data_sent + " bytes, bufferRemaining="
-											+ remaining + ", totalBufferLength=" + buf.capacity() + ")");
-								last_data_wrote_utc = System.currentTimeMillis();
-							}
-
+						if (data_sent > 0) {
+							if (logger != null && logger.isLoggable(Level.FINEST))
+								logger.finest("New data sent (" + data_sent + " bytes, bufferRemaining="
+										+ remaining + ", totalBufferLength=" + (buf==null?"Canceled":buf.capacity()) + ")");
+							last_data_wrote_utc = System.currentTimeMillis();
 						}
 					}
 					if (remaining > 0)

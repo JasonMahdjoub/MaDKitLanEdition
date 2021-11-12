@@ -165,7 +165,12 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 		/**
 		 * The proposed big data transfer is rejected
 		 */
-		BIG_DATA_TRANSFER_DENIED
+		BIG_DATA_TRANSFER_DENIED,
+
+		/**
+		 * The was canceled during its transfer
+		 */
+		TRANSFER_CANCELED
 	}
 	
 	public String toString()

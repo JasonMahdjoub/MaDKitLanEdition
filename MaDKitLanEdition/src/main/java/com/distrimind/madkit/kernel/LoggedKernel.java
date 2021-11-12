@@ -649,16 +649,16 @@ final class LoggedKernel extends MadkitKernel {
 	}
 
 	@Override
-	void connectionLostForBigDataTransfer(AbstractAgent requester, ConversationID conversationID, int idPacket,
-			AgentAddress sender, AgentAddress receiver, long readDataLength, long duration, AbstractDecentralizedID differedBigDataInternalIdentifier,
-										  DifferedBigDataIdentifier differedBigDataIdentifier) {
-		kernel.connectionLostForBigDataTransfer(requester, conversationID, idPacket, sender, receiver, readDataLength,
-				duration, differedBigDataInternalIdentifier, differedBigDataIdentifier);
+	void transferLostForBigDataTransfer(AbstractAgent requester, ConversationID conversationID, int idPacket,
+										  AgentAddress sender, AgentAddress receiver, long readDataLength, long durationInMs, AbstractDecentralizedID differedBigDataInternalIdentifier,
+										  DifferedBigDataIdentifier differedBigDataIdentifier, BigDataResultMessage.Type cancelingType) {
+		kernel.transferLostForBigDataTransfer(requester, conversationID, idPacket, sender, receiver, readDataLength,
+				durationInMs, differedBigDataInternalIdentifier, differedBigDataIdentifier, cancelingType);
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST,
-					"acceptDistantBigDataTransfer (Agent " + requester + ", conversation ID " + conversationID
-							+ ", ID Packet " + idPacket + ", sender " + sender + ", receiver " + receiver
-							+ ", read data length " + readDataLength + ", duration (ms) " + duration + ")");
+					"transferLostForBigDataTransfer (Agent " + requester + ", conversation ID " + conversationID
+							+ ", ID Packet " + idPacket + ", sender " + sender + ", receiver " + receiver +", cancelingType="+cancelingType
+							+ ", read data length " + readDataLength + ", duration (ms) " + durationInMs + ")");
 	}
 
 	@Override

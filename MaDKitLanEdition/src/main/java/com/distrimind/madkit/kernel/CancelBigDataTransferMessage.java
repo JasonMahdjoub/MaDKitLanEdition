@@ -46,14 +46,14 @@ import java.io.IOException;
  * @version 1.0
  * @since MaDKitLanEdition 2.3.0
  */
-class CancelBigDataTransferMessage extends Message implements SystemMessageWithoutInnerSizeControl {
+public class CancelBigDataTransferMessage extends Message implements SystemMessageWithoutInnerSizeControl {
 	private BigDataTransferID bigDataTransferID;
 
 	@SuppressWarnings("unused")
 	CancelBigDataTransferMessage() {
 	}
 
-	public CancelBigDataTransferMessage(BigDataTransferID bigDataTransferID) {
+	CancelBigDataTransferMessage(BigDataTransferID bigDataTransferID) {
 		if (bigDataTransferID==null)
 			throw new NullPointerException();
 		this.bigDataTransferID = bigDataTransferID;
