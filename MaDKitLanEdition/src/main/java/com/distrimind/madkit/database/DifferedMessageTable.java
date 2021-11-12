@@ -63,7 +63,7 @@ import static com.distrimind.util.ReflectionTools.invoke;
 public final class DifferedMessageTable extends Table<DifferedMessageTable.Record> {
 
 	public static final int MAX_DIFFERED_MESSAGE_LENGTH=512*1024;
-
+	public static final int MAX_PATH_LENGTH=Group.MAX_PATH_LENGTH+Group.MAX_COMMUNITY_LENGTH+20;
 
 	private DifferedMessageTable() throws DatabaseException {
 	}
@@ -71,12 +71,13 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 	public static class Record extends DatabaseRecord
 	{
 
+
 		@AutoPrimaryKey
 		private int id;
 
-		@Field(index = true, limit = Group.MAX_GROUP_SIZE_IN_BYTES)
+		@Field(index = true, limit = MAX_PATH_LENGTH)
 		@NotNull
-		private Group group;
+		private String groupPath;
 
 		@Field(index = true, limit=Group.MAX_PATH_LENGTH)
 		@NotNull
@@ -96,9 +97,9 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 		public Record() {
 		}
 
-		public Record(Group group, String roleSender, String roleReceiver, Message differedMessage) throws IOException {
+		public Record(String groupPath, String roleSender, String roleReceiver, Message differedMessage) throws IOException {
 			this.id=0;
-			if (group==null)
+			if (groupPath==null)
 				throw new NullPointerException();
 			if (roleSender==null)
 				throw new NullPointerException();
@@ -106,7 +107,7 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 				throw new NullPointerException();
 			if (differedMessage==null)
 				throw new NullPointerException();
-			this.group = group;
+			this.groupPath = groupPath;
 			this.roleSender = roleSender;
 			this.roleReceiver = roleReceiver;
 			try(RandomByteArrayOutputStream baos=new RandomByteArrayOutputStream())
@@ -128,8 +129,8 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 			return id;
 		}
 
-		public Group getGroup() {
-			return group;
+		public String getGroupPath() {
+			return groupPath;
 		}
 
 		public String getRoleSender() {
@@ -243,9 +244,9 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 	}
 
 	public void newAgentConnected(Collection<String> baseGroupPath, final AbstractAgent agent, final AgentAddress agentAddress) throws DatabaseException {
-		final String groupPath=agentAddress.getGroup().getPath();
+		final String groupPath=agentAddress.getGroup().toString();
 
-		if (!isConcerned(baseGroupPath, groupPath))
+		if (!isConcerned(baseGroupPath, agentAddress.getGroup().getPath()))
 			return ;
 		getDatabaseWrapper().runSynchronizedTransaction(new SynchronizedTransaction<Void>() {
 			@Override
@@ -374,7 +375,7 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 				public Void run() throws Exception {
 					Role role=new Role(group, roleSender);
 					availableSenders.putIfAbsent(role, requester);
-					addRecord(new Record(group, roleSender, roleReceiver, message));
+					addRecord(new Record(group.toString(), roleSender, roleReceiver, message));
 
 					return null;
 				}
@@ -400,32 +401,32 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 
 	}
 	public long cancelDifferedMessagesBySenderRole(Group group, String senderRole) throws DatabaseException {
-		return removeRecords("groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.getPath(), "roleSender", senderRole);
+		return removeRecords("groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
 	}
 	public long cancelDifferedMessagesByReceiverRole(Group group, String receiverRole) throws DatabaseException {
-		return removeRecords("groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.getPath(), "roleReceiver", receiverRole);
+		return removeRecords("groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.toString(), "roleReceiver", receiverRole);
 	}
 	public long cancelDifferedMessagesByGroup(Group group) throws DatabaseException {
-		return removeRecords("groupPath=%groupPath", "groupPath", group.getPath());
+		return removeRecords("groupPath=%groupPath", "groupPath", group.toString());
 	}
 
 	public List<Record> getDifferedMessagesBySenderRole(Group group, String senderRole) throws DatabaseException {
-		return getRecords("groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.getPath(), "roleSender", senderRole);
+		return getRecords("groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
 	}
 	public List<Record> getDifferedMessagesByReceiverRole(Group group, String receiverRole) throws DatabaseException {
-		return getRecords("groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.getPath(), "roleReceiver", receiverRole);
+		return getRecords("groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.toString(), "roleReceiver", receiverRole);
 	}
 	public List<Record> getDifferedMessagesByGroup(Group group) throws DatabaseException {
-		return getRecords("groupPath=%groupPath", "groupPath", group.getPath());
+		return getRecords("groupPath=%groupPath", "groupPath", group.toString());
 	}
 	public long getDifferedMessagesNumberBySenderRole(Group group, String senderRole) throws DatabaseException {
-		return getRecordsNumber("groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.getPath(), "roleSender", senderRole);
+		return getRecordsNumber("groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
 	}
 	public long getDifferedMessagesNumberByReceiverRole(Group group, String receiverRole) throws DatabaseException {
-		return getRecordsNumber("groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.getPath(), "roleReceiver", receiverRole);
+		return getRecordsNumber("groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.toString(), "roleReceiver", receiverRole);
 	}
 	public long getDifferedMessagesNumberByGroup(Group group) throws DatabaseException {
-		return getRecordsNumber("groupPath=%groupPath", "groupPath", group.getPath());
+		return getRecordsNumber("groupPath=%groupPath", "groupPath", group.toString());
 	}
 
 	private static final Method m_set_message_sender;

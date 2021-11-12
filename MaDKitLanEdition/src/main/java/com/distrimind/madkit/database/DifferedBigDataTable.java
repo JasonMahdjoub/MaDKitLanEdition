@@ -51,6 +51,7 @@ import com.distrimind.util.RenforcedDecentralizedIDGenerator;
 import com.distrimind.util.crypto.MessageDigestType;
 import com.distrimind.util.io.SecureExternalizable;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -67,8 +68,9 @@ import static com.distrimind.util.ReflectionTools.loadClass;
  * @version 1.0
  * @since MaDKitLanEdition 2.3.0
  */
-public class DifferedBigDataTable extends Table<DifferedBigDataTable.Record> {
+public final class DifferedBigDataTable extends Table<DifferedBigDataTable.Record> {
 	private final Map<AbstractDecentralizedIDGenerator, BigDataTransferID> transferIdsPerInternalDifferedId= Collections.synchronizedMap(new HashMap<>());
+	@SuppressWarnings("ProtectedMemberInFinalClass")
 	protected DifferedBigDataTable() throws DatabaseException {
 	}
 
@@ -76,9 +78,9 @@ public class DifferedBigDataTable extends Table<DifferedBigDataTable.Record> {
 		@PrimaryKey
 		private AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier;
 
-		@Field(index = true, limit = Group.MAX_GROUP_SIZE_IN_BYTES)
+		@Field(index = true, limit = DifferedMessageTable.MAX_PATH_LENGTH)
 		@NotNull
-		private Group group;
+		private String groupPath;
 
 		@Field(index = true, limit=Group.MAX_PATH_LENGTH)
 		@NotNull
@@ -127,12 +129,12 @@ public class DifferedBigDataTable extends Table<DifferedBigDataTable.Record> {
 		}
 
 		private Record(AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier,
-					   Group group, String roleSender, String roleReceiver,
+					   String groupPath, String roleSender, String roleReceiver,
 					  DifferedBigDataIdentifier differedBigDataIdentifier,
 					  SecureExternalizable attachedData,
 					  MessageDigestType messageDigestType, boolean excludedFromEncryption,
 					   long timeOutInMs) {
-			if (group==null)
+			if (groupPath==null)
 				throw new NullPointerException();
 			if (roleSender==null)
 				throw new NullPointerException();
@@ -142,7 +144,7 @@ public class DifferedBigDataTable extends Table<DifferedBigDataTable.Record> {
 				throw new NullPointerException();
 			if (differedBigDataInternalIdentifier==null)
 				throw new NullPointerException();
-			this.group=group;
+			this.groupPath=groupPath;
 			this.roleSender=roleSender;
 			this.roleReceiver=roleReceiver;
 			this.differedBigDataInternalIdentifier = differedBigDataInternalIdentifier;
@@ -158,13 +160,13 @@ public class DifferedBigDataTable extends Table<DifferedBigDataTable.Record> {
 
 		}
 		public Record(AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier,
-					  Group group, String roleSender, String roleReceiver,
+					  String groupPath, String roleSender, String roleReceiver,
 					  DifferedBigDataIdentifier differedBigDataIdentifier,
 					  SecureExternalizable attachedData,
 					  MessageDigestType messageDigestType, boolean excludedFromEncryption,long timeOutInMs,
 					  DifferedBigDataToSendWrapper differedBigDataToSendWrapper
 					  ) {
-			this(differedBigDataInternalIdentifier, group, roleSender, roleReceiver, differedBigDataIdentifier,
+			this(differedBigDataInternalIdentifier, groupPath, roleSender, roleReceiver, differedBigDataIdentifier,
 					attachedData, messageDigestType, excludedFromEncryption, timeOutInMs);
 			if (differedBigDataToSendWrapper==null)
 				throw new NullPointerException();
@@ -172,13 +174,13 @@ public class DifferedBigDataTable extends Table<DifferedBigDataTable.Record> {
 			this.transferStarted=false;
 		}
 		public Record(AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier,
-					  Group group, String roleSender, String roleReceiver,
+					  String groupPath, String roleSender, String roleReceiver,
 					  DifferedBigDataIdentifier differedBigDataIdentifier,
 					  SecureExternalizable attachedData,
 					  MessageDigestType messageDigestType, boolean excludedFromEncryption,long timeOutInMs,
 					  DifferedBigDataToReceiveWrapper differedBigDataToReceiveWrapper
 					  ) {
-			this(differedBigDataInternalIdentifier, group, roleSender, roleReceiver, differedBigDataIdentifier,
+			this(differedBigDataInternalIdentifier, groupPath, roleSender, roleReceiver, differedBigDataIdentifier,
 					attachedData, messageDigestType, excludedFromEncryption, timeOutInMs);
 			if (differedBigDataToReceiveWrapper==null)
 				throw new NullPointerException();
@@ -218,8 +220,8 @@ public class DifferedBigDataTable extends Table<DifferedBigDataTable.Record> {
 			return differedBigDataToReceiveWrapper;
 		}
 
-		public Group getGroup() {
-			return group;
+		public String getGroupPath() {
+			return groupPath;
 		}
 
 		public String getRoleSender() {
@@ -280,11 +282,11 @@ public class DifferedBigDataTable extends Table<DifferedBigDataTable.Record> {
 						return null;
 					if (differedBigDataToSendWrapper!=null)
 						r = addRecord(new Record(new RenforcedDecentralizedIDGenerator(false, true),
-							group, roleSender, roleReceiver, differedBigDataIdentifier,
+							group.toString(), roleSender, roleReceiver, differedBigDataIdentifier,
 							attachedData, messageDigestType, excludedFromEncryption, timeOutInMs, differedBigDataToSendWrapper));
 					else
 						r = addRecord(new Record(new RenforcedDecentralizedIDGenerator(false, true),
-								group, roleSender, roleReceiver, differedBigDataIdentifier,
+								group.toString(), roleSender, roleReceiver, differedBigDataIdentifier,
 								attachedData, messageDigestType, excludedFromEncryption, timeOutInMs, differedBigDataToReceiveWrapper));
 
 					return r;
@@ -350,10 +352,17 @@ public class DifferedBigDataTable extends Table<DifferedBigDataTable.Record> {
 
 	public void cancelTransfer(AbstractAgent requester, Record record)
 	{
+		Group group;
+		try {
+			group = Group.parseGroup(record.getGroupPath());
+		} catch (IOException e) {
+			e.printStackTrace();
+			return;
+		}
 		BigDataTransferID bigDataTransferID=transferIdsPerInternalDifferedId.remove(record.getDifferedBigDataInternalIdentifier());
 		if (bigDataTransferID==null && record.isTransferStarted())
 		{
-			sendMessageAndDifferItIfNecessary(requester, record.getGroup(), record.getRoleReceiver(), new CancelDifferedBigDataTransferMessage(record.getDifferedBigDataInternalIdentifier()), record.getRoleSender());
+			sendMessageAndDifferItIfNecessary(requester, group, record.getRoleReceiver(), new CancelDifferedBigDataTransferMessage(record.getDifferedBigDataInternalIdentifier()), record.getRoleSender());
 		}
 		try {
 			removeRecord(record);
@@ -377,8 +386,8 @@ public class DifferedBigDataTable extends Table<DifferedBigDataTable.Record> {
 	private static final Method m_cancel_big_data_transfer;
 	static
 	{
-		Class<?> madkitKernelClass= loadClass("com.distrimind.kernel.MadkitKernel");
-		Class<?> abstractAgentClass= loadClass("com.distrimind.kernel.AbstractAgent");
+		Class<?> madkitKernelClass= loadClass("com.distrimind.madkit.kernel.MadkitKernel");
+		Class<?> abstractAgentClass= loadClass("com.distrimind.madkit.kernel.AbstractAgent");
 		if (madkitKernelClass==null || abstractAgentClass==null) {
 			m_send_differed_big_data = null;
 			m_get_madkit_kernel=null;
