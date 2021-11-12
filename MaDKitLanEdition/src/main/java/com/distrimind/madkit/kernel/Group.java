@@ -457,7 +457,64 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 		
 		return 9+this.getCommunity().length()*2+this.getPath().length()*2;
 	}
-	
+	private final static String GroupAndSubGroupsString="GroupAndSubGroups";
+	private final static String GroupString="Group";
+	@Override
+	public String toString() {
+		StringBuilder sb=new StringBuilder();
+		if (m_use_sub_groups)
+			sb.append(GroupAndSubGroupsString);
+		else
+			sb.append(GroupString);
+		sb.append("(");
+		sb.append(getCommunity());
+		sb.append(":");
+		sb.append(getPath());
+		sb.append(":");
+		sb.append(m_use_sub_groups?"1":"0");
+		sb.append(":");
+		sb.append(isDistributed()?"1":"0");
+		sb.append(":");
+		sb.append(isReserved()?"1":"0");
+		sb.append(")");
+		return sb.toString();
+	}
+	public static Group parseGroup(String group) throws IOException {
+		String s=null;
+		if (group.startsWith(GroupAndSubGroupsString))
+			s=GroupAndSubGroupsString;
+		else if (group.startsWith(GroupString))
+			s=GroupString;
+		if (s==null)
+			throw new IOException();
+		if (group.length()<s.length()+11)
+			throw new IOException();
+		String[] parts =group.substring(s.length()+1, group.length()-1).split(":");
+		if (parts.length!=5)
+			throw new IOException();
+		for (String p : parts)
+			if (p.length()<1)
+				throw new IOException();
+		return new Group(0, readBoolean(parts[2]),readBoolean(parts[3]), null, readBoolean(parts[4]), parts[0], parts[1]);
+
+	}
+
+	private static boolean readBoolean(String p) throws IOException {
+		try {
+			int i = Integer.parseInt(p);
+			if (i==0)
+				return false;
+			else if (i==1)
+				return true;
+			else
+				throw new IOException();
+		}
+		catch (NumberFormatException e)
+		{
+			throw new IOException(e);
+		}
+	}
+
 	@Override
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		try {
@@ -1163,13 +1220,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	 * private GroupTree getGroupTree() { return m_group; }
 	 */
 
-	@Override
-	public String toString() {
-		if (m_use_sub_groups)
-			return "GroupAndSubGroups(" + getCommunity() + ":" + getPath() + ")";
-		else
-			return "Group(" + getCommunity() + ":" + getPath() + ")";
-	}
+
 
 	static String[] getGroupsStringFromPath(String _path) {
 		String[] r = _path.split("/");

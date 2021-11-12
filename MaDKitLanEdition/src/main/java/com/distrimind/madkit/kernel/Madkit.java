@@ -146,8 +146,10 @@ final public class Madkit {
 					.addDeveloper(new PersonDeveloper("Michel", "Fabien", "1997-02-01"))
 					.addDeveloper(new PersonDeveloper("Gutknecht", "Olivier", "1997-02-01"))
 					.addDeveloper(new PersonDeveloper("Ferber", "Jacques", "1997-02-01"))
-					.addDescription(new Description((short)2, (short)3, (short)0, Version.Type.STABLE, (short)0, "2021-11-04")
+					.addDescription(new Description((short)2, (short)3, (short)0, Version.Type.STABLE, (short)0, "2021-11-12")
 							.addItem(NEW_FEATURE, "Add possibility to send differed big data messages")
+							.addItem(NEW_FEATURE, "Add possibility to cancel big message sending, during its emission")
+							.addItem(INTERNAL_CHANGE, "Better cancel big message when connexion was lost")
 					)
 					.addDescription(new Description((short)2, (short)2, (short)3, Version.Type.STABLE, (short)0, "2021-11-02")
 							.addItem(INTERNAL_CHANGE, "Update Utils to 5.21.0 STABLE")
@@ -1139,7 +1141,8 @@ final public class Madkit {
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.JPakeMessageForAuthenticationOfCloudIdentifiers"),
 					ListGroupsRoles.class, GroupsRoles.class,
 					CancelBigDataTransferMessage.class,
-					CancelDifferedBigDataTransferMessage.class));
+					CancelDifferedBigDataTransferMessage.class,
+					CancelBigDataSystemMessage.class));
 			for (Class<?> c : classes)
 				assert !Modifier.isAbstract(c.getModifiers()):""+c;
 

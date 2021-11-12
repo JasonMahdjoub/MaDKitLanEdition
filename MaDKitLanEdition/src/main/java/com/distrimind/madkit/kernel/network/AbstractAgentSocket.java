@@ -694,15 +694,15 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					}
 				}
 			}
+		} else if (_message instanceof DataReceivedMessage) {
+			receiveData(((DataReceivedMessage) _message).getReceivedData());
 		} else if (_message.getClass() == SendPingMessage.class) {
 			if (logger != null && logger.isLoggable(Level.FINEST))
 				logger.finest("Sending ping message (distant_inet_address=" + distant_inet_address
 						+ ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress + ")");
 			waitingPongMessage = true;
 			sendData(new PingMessage(), true, false);
-		} else if (_message instanceof DataReceivedMessage) {
-			receiveData(((DataReceivedMessage) _message).getReceivedData());
-		} else if (_message instanceof ConnectionClosed) {
+		} else if (_message.getClass()==ConnectionClosed.class) {
 			ConnectionClosed cc = (ConnectionClosed) _message;
 			disconnected(cc.reason, cc.data_not_sent, cc.bigDataNotSent, cc.dataToTransferNotSent);
 		} else if (_message.getClass() == FailedCreateIndirectAgentSocket.class) {
@@ -716,7 +716,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				} else
 					startDisconnectionProcess(cc.connection_closed_reason);
 			}
-		} else if (_message instanceof ReceivedIndirectData) {
+		} else if (_message.getClass()==ReceivedIndirectData.class) {
 			ReceivedIndirectData m = ((ReceivedIndirectData) _message);
 			if (m.block.getTransferID() != getTransferType().getID()) {
 
@@ -1972,7 +1972,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			}
 			if (state.compareTo(State.CONNECTED_INITIALIZING_ACCESS) < 0
 					&& !((obj instanceof ConnectionMessage) || (obj instanceof ConnectionInfoSystemMessage)
-							|| (obj instanceof PingMessage) || (obj instanceof PongMessage))) {
+							|| (obj.getClass()==PingMessage.class) || (obj.getClass()==PongMessage.class))) {
 				processInvalidSerializedObject(
 						new ConnectionException("Attempting to transmit a message of type " + obj.getClass()
 								+ " with a connection not initialized !"),
@@ -1980,7 +1980,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				return;
 			} else if (state.compareTo(State.CONNECTED) < 0 && !((obj instanceof AccessMessage)
 					|| (obj instanceof ConnectionMessage) || (obj instanceof ConnectionInfoSystemMessage)
-					|| (obj instanceof PingMessage) || (obj instanceof PongMessage))) {
+					|| (obj.getClass()==PingMessage.class) || (obj.getClass()==PongMessage.class))) {
 				processInvalidSerializedObject(
 						new ConnectionException("Attempting to transmit a message of type " + obj.getClass()
 								+ " with a access not initialized !"),

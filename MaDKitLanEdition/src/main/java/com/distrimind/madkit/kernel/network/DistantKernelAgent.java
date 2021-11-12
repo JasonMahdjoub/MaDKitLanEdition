@@ -244,6 +244,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			}
 
 			try {
+
 				if (_message instanceof LocalLanMessage) {
 					if (distant_kernel_address == null || !kernelAddressActivated || !hasUsableDistantSocketAgent()) {
 						sendReplyEmpty(_message);
@@ -280,7 +281,7 @@ class DistantKernelAgent extends AgentFakeThread {
 							AgentSocketData asd = getBestAgentSocket(message.getOriginalMessage().getSender(), message.getOriginalMessage().getReceiver(), true);
 							if (asd != null) {
 								Message m = message.getOriginalMessage();
-								if (m instanceof BigDataPropositionMessage) {
+								if (m.getClass()==BigDataPropositionMessage.class) {
 									BigDataPropositionMessage bgpm = (BigDataPropositionMessage) m;
 									try {
 										addBigDataInQueue(asd, bgpm);
@@ -298,7 +299,13 @@ class DistantKernelAgent extends AgentFakeThread {
 										message.getMessageLocker().unlock();
 										throw e;
 									}
-								} else {
+								}
+								else {
+									/*if (m.getClass()==BigDataResultMessage.class)
+									{
+										BigDataResultMessage brm=(BigDataResultMessage) m;
+										cancelBigPacketDataInQueue(MadkitKernelAccess.getIDPacket(brm), false);
+									}*/
 									try {
 										sendData(asd.getAgentAddress(), new DirectLanMessage(m), false,
 												message.getMessageLocker(), false);
@@ -317,6 +324,22 @@ class DistantKernelAgent extends AgentFakeThread {
 					} finally {
 						sendReplyEmpty(_message);
 					}
+				} else if (_message.getClass()==ReceivedBlockData.class) {
+					receiveData(_message.getSender(), ((ReceivedBlockData) _message).getContent());
+				} else if (_message.getClass() == SendDataFromAgentSocket.class) {
+					if (logger != null && logger.isLoggable(Level.FINEST))
+						logger.finest("Rooting message to send from agent socket (distantInterfacedKernelAddress="
+								+ distant_kernel_address + ") : " + _message);
+					SendDataFromAgentSocket m = (SendDataFromAgentSocket) _message;
+					MessageLocker ml = (m.getContent().getClass()==DataToBroadcast.class)
+							? ((DataToBroadcast) m.getContent()).getMessageToBroadcast().getMessageLocker()
+							: null;
+					if (ml != null) {
+						ml.lock();
+					}
+
+
+					sendData(m.getSender(), m.getContent(), m.isItAPriority, ml, m.last_message);
 				} else if (_message.getClass() == AnomalyDetectedMessage.class) {
 					AnomalyDetectedMessage m = (AnomalyDetectedMessage) _message;
 					/*
@@ -370,32 +393,7 @@ class DistantKernelAgent extends AgentFakeThread {
 
 					}
 
-				} else if (_message.getClass() == SendDataFromAgentSocket.class) {
-					if (logger != null && logger.isLoggable(Level.FINEST))
-						logger.finest("Rooting message to send from agent socket (distantInterfacedKernelAddress="
-								+ distant_kernel_address + ") : " + _message);
-					SendDataFromAgentSocket m = (SendDataFromAgentSocket) _message;
-					MessageLocker ml = (m.getContent() instanceof DataToBroadcast)
-							? ((DataToBroadcast) m.getContent()).getMessageToBroadcast().getMessageLocker()
-							: null;
-					if (ml != null) {
-						ml.lock();
-					}
-					
-					
-					sendData(m.getSender(), m.getContent(), m.isItAPriority, ml, m.last_message);
-				} /*else if (_message.getClass() == DistKernADataToUpgradeMessage.class) {
-					DistKernADataToUpgradeMessage m = (DistKernADataToUpgradeMessage) _message;
-					AgentAddress aa = m.dataToUpgrade.getAgentSocketSender();
-					if ((aa == null || !sendMessage(aa, new DistKernADataToUpgradeMessage(m.dataToUpgrade))
-							.equals(ReturnCode.SUCCESS)) && !m.dataToUpgrade.isUnlocked())
-					{
-						if (logger!=null)
-							logger.warning("Impossible to send message to "+aa);
-						m.dataToUpgrade.unlockMessage();
-						m.dataToUpgrade.cancel();
-					}
-				} */else if (_message.getClass() == NetworkGroupsAccessEvent.class) {
+				} else if (_message.getClass() == NetworkGroupsAccessEvent.class) {
 					if (distant_kernel_address == null)
 						return;
 
@@ -439,9 +437,7 @@ class DistantKernelAgent extends AgentFakeThread {
 				} else if (_message.getClass() == KernelAddressValidation.class) {
 					activateDistantKernelAgent(_message.getSender(),
 							((KernelAddressValidation) _message).isKernelAddressInterfaceEnabled());
-				} else if (_message instanceof ReceivedBlockData) {
-					receiveData(_message.getSender(), ((ReceivedBlockData) _message).getContent());
-				} else if (_message.getClass() == KillYou.class) {
+				}  else if (_message.getClass() == KillYou.class) {
 					if (logger != null && logger.isLoggable(Level.FINER))
 						logger.finer("DistantKernelAgent disabled (distantInterfacedKernelAddress="
 								+ distant_kernel_address + ")");
@@ -461,25 +457,9 @@ class DistantKernelAgent extends AgentFakeThread {
 						updateSharedAcceptedGroups(false, true);
 						//updateLocalAcceptedGroups();
 						if (agents_socket.size() == 0 && indirect_agents_socket.size() == 0) {
-							/*for (AbstractData ad : m.shortDataNotSent) {
-								if (ad instanceof AbstractPacketData) {
-									BigPacketData bpd = cancelBigPacketDataInQueue(
-											((AbstractPacketData) ad).getIDPacket());
-									if (bpd != null) {
-										MadkitKernelAccess.connectionLostForBigDataTransfer(this,
-												bpd.getConversationID(), bpd.getIDPacket(), bpd.getCaller(),
-												bpd.getReceiver(), bpd.getReadDataLength(), bpd.getDuration(),
-												bpd.getDifferedBigDataInternalIdentifier(), bpd.getDifferedBigDataIdentifier());
-									}
-								}
-							}*/
 							for (BigPacketData bpd : m.bigDataNotSent) {
-								cancelBigPacketDataInQueue(bpd.getIDPacket());
+								cancelBigPacketDataToSendInQueue(bpd.getIDPacket(), false, BigDataResultMessage.Type.CONNECTION_LOST);
 
-								MadkitKernelAccess.transferLostForBigDataTransfer(this, bpd.getConversationID(),
-										bpd.getIDPacket(), bpd.getCaller(), bpd.getReceiver(),
-										bpd.getReadDataLength(), bpd.getDurationInMs(),
-										bpd.getDifferedBigDataInternalIdentifier(), bpd.getDifferedBigDataIdentifier(), BigDataResultMessage.Type.CONNECTION_LOST);
 							}
 							for (BigDataReading bdr : this.current_big_data_readings.values())
 							{
@@ -512,13 +492,27 @@ class DistantKernelAgent extends AgentFakeThread {
 								"Agent socket killed and but not found on distant kernel agent list (distantInterfacedKernelAddress="
 										+ distant_kernel_address + ")");
 
-				}/* else if (_message.getClass()==CancelBigDataTransferMessage.class)
+				} else if (_message.getClass()==CancelBigDataTransferMessage.class)
 				{
 					CancelBigDataTransferMessage m=(CancelBigDataTransferMessage)_message;
-					BigPacketData bpd=packetsDataInQueue.remove(m.getBigDataTransferID());
 
-					cancelBigPacketDataReceivingOrSending();
-				}*/
+					BigPacketData bpd=packetsDataInQueue.values().stream().filter(e -> e.getConversationID().equals(m.getBigDataTransferID())).findAny().orElse(null);
+
+					if (bpd==null)
+					{
+						BigDataReading bdr=current_big_data_readings.values().stream().filter(e -> e.getOriginalMessage().getConversationID().equals(m.getBigDataTransferID())).findAny().orElse(null);
+						if (bdr!=null)
+						{
+							AgentSocketData asd = getBestAgentSocket(false);
+							if (asd!=null)
+								sendData(asd.getAgentAddress(), new CancelBigDataSystemMessage(bdr.getIDPacket(), false), true, null, false);
+						}
+					}
+					else
+					{
+						cancelBigPacketDataToSendInQueue(bpd.getIDPacket(), true, BigDataResultMessage.Type.TRANSFER_CANCELED);
+					}
+				}
 				else if (_message.getClass() == ExceededDataQueueSize.class) {
 					final ExceededDataQueueSize exceededDataSize = (ExceededDataQueueSize) _message;
 					if (logger != null && logger.isLoggable(Level.FINEST))
@@ -671,21 +665,20 @@ class DistantKernelAgent extends AgentFakeThread {
 							return;
 						}
 
-						if (lm instanceof DirectLanMessage) {
+						if (lm.getClass()==DirectLanMessage.class) {
 							DirectLanMessage dlm = (DirectLanMessage) lm;
 							if (logger != null && logger.isLoggable(Level.FINEST))
 								logger.finest("Receiving direct lan message (distantInterfacedKernelAddress="
 										+ distant_kernel_address + ") : " + dlm);
 
-							if (dlm.message instanceof BigDataResultMessage) {
-								cancelBigPacketDataInQueue(
-										MadkitKernelAccess.getIDPacket((BigDataResultMessage) dlm.message));
-
+							if (dlm.message.getClass()==BigDataResultMessage.class) {
+								cancelBigPacketDataToSendInQueue(MadkitKernelAccess.getIDPacket((BigDataResultMessage) dlm.message), false, null);
+								//cancelBigPacketDataInQueue((BigDataResultMessage) dlm.message);
 							}
 							this.sendMessageWithRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.NET_AGENT,
 									new DirectLocalLanMessage(dlm.message, originalMessage),
 									LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
-						} else if (lm instanceof BroadcastLanMessage) {
+						} else if (lm.getClass()==BroadcastLanMessage.class) {
 							BroadcastLanMessage blm = (BroadcastLanMessage) lm;
 							if (logger != null && logger.isLoggable(Level.FINEST))
 								logger.finest("Receiving lan message to broadcast (distantInterfacedKernelAddress="
@@ -826,13 +819,26 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 	}
 
-	private BigPacketData cancelBigPacketDataInQueue(int idTransfer) {
+	private BigPacketData cancelBigPacketDataToSendInQueue(int idTransfer, boolean sendCancelMessageToDistantPeer, BigDataResultMessage.Type resultType) throws NIOException {
 		if (logger != null && logger.isLoggable(Level.FINEST))
 			logger.finest("Cancel big data in queue (distantInterfacedKernelAddress=" + distant_kernel_address
 					+ ", idTransfer=" + idTransfer + ")");
-
 		BigPacketData bpd=packetsDataInQueue.remove(idTransfer);
+
+
 		if (bpd!=null) {
+			if (sendCancelMessageToDistantPeer)
+			{
+				AgentSocketData asd = getBestAgentSocket(false);
+				if (asd!=null)
+					sendData(asd.getAgentAddress(), new CancelBigDataSystemMessage(bpd.getIDPacket(), true), true, null, false);
+			}
+			if (resultType!=null) {
+				MadkitKernelAccess.transferLostForBigDataTransfer(this, bpd.getConversationID(),
+						bpd.getIDPacket(), bpd.getCaller(), bpd.getReceiver(),
+						bpd.getReadDataLength(), bpd.getDurationInMs(),
+						bpd.getDifferedBigDataInternalIdentifier(), bpd.getDifferedBigDataIdentifier(), resultType);
+			}
 			try {
 				bpd.cancel();
 			} catch (IOException e) {
@@ -841,6 +847,37 @@ class DistantKernelAgent extends AgentFakeThread {
 			}
 		}
 		return bpd;
+	}
+	/*private void cancelBigPacketDataInQueue(int idPacket, boolean toSend)
+	{
+		try {
+			if (toSend)
+				cancelBigPacketDataToSendInQueue(idPacket, false, null);
+			else
+				cancelBigPacketDataToReceiveInQueue(idPacket);
+		}
+		catch (NIOException e)
+		{
+			if (logger!=null)
+				logger.severeLog("Unexpected exception", e);
+		}
+	}*/
+	private BigDataReading cancelBigPacketDataToReceiveInQueue(int idTransfer)
+	{
+		if (logger != null && logger.isLoggable(Level.FINEST))
+			logger.finest("Cancel big data in queue (distantInterfacedKernelAddress=" + distant_kernel_address
+					+ ", idTransfer=" + idTransfer + ")");
+
+		BigDataReading bdr=current_big_data_readings.remove(idTransfer);
+		if (bdr!=null) {
+			try {
+				bdr.cancel();
+			} catch (IOException e) {
+				if (logger != null)
+					logger.severeLog("Cannot close stream of BigDataReading", e);
+			}
+		}
+		return bdr;
 	}
 
 	private boolean validatePacketDataInQueue(int idTransfer) {
@@ -2000,9 +2037,11 @@ class DistantKernelAgent extends AgentFakeThread {
 		@Override
 		void cancel() throws IOException {
 			super.cancel();
-			synchronized(agentSocket)
-			{
-				agentSocket.notifyAll();
+			AbstractAgentSocket as=agentSocket;
+			if (as!=null) {
+				synchronized (as) {
+					as.notifyAll();
+				}
 			}
 			closeStream();
 		}
@@ -2651,11 +2690,11 @@ class DistantKernelAgent extends AgentFakeThread {
 								sr.freeDataSize();
 								processInvalidSerializedObject(agent_socket_sender, e, bytes, e.getIntegrity().equals(Integrity.FAIL_AND_CANDIDATE_TO_BAN));
 							}
-							catch (IOException | ClassNotFoundException e) {
+							catch (IOException | ClassNotFoundException | NIOException e) {
 								sr.freeDataSize();
 								processInvalidSerializedData(agent_socket_sender, e, sr.read_packet, bytes);
 							}
-							
+
 						} catch (IOException e) {
 
 							sr.freeDataSize();
@@ -2675,18 +2714,35 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 	}
 
-	public void receiveData(AgentAddress agent_socket_sender, Object obj, long dataSize) {
+	public void receiveData(AgentAddress agent_socket_sender, Object obj, long dataSize) throws NIOException {
 		if (obj instanceof SystemMessageWithoutInnerSizeControl) {
 			SystemMessageWithoutInnerSizeControl sm = ((SystemMessageWithoutInnerSizeControl) obj);
 			if (logger != null && logger.isLoggable(Level.FINEST))
 				logger.finest("Receiving system message from " + agent_socket_sender
 						+ " (distantInterfacedKernelAddress=" + distant_kernel_address + ") : " + sm);
-
-			sendMessageWithRole(agent_socket_sender, new ReceivedSerializableObject(sm, dataSize),
+			if (obj.getClass()==CancelBigDataSystemMessage.class)
+			{
+				CancelBigDataSystemMessage m=(CancelBigDataSystemMessage)obj;
+				if (m.isFromSender()) {
+					BigDataReading bdr = cancelBigPacketDataToReceiveInQueue(m.getIDTransfer());
+					if (bdr!=null)
+						MadkitKernelAccess.transferLostForBigDataTransfer(this, bdr.getOriginalMessage().getConversationID(),
+								bdr.getIDPacket(), bdr.getOriginalMessage().getSender(), bdr.getOriginalMessage().getReceiver(),
+								bdr.getStatistics().getNumberOfIdentifiedBytes(), bdr.getStatistics().getDurationMilli(),
+								bdr.getOriginalMessage().getDifferedBigDataInternalIdentifier(), bdr.getOriginalMessage().getDifferedBigDataIdentifier(), BigDataResultMessage.Type.TRANSFER_CANCELED);
+				}
+				else
+				{
+					cancelBigPacketDataToSendInQueue(m.getIDTransfer(), true, BigDataResultMessage.Type.TRANSFER_CANCELED);
+				}
+			}
+			else
+				sendMessageWithRole(agent_socket_sender, new ReceivedSerializableObject(sm, dataSize),
 					LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 		} else
 			processInvalidSerializedObject(agent_socket_sender, null, obj, true);
 	}
+
 
 	class ReceivedSerializableObject extends ObjectMessage<SystemMessageWithoutInnerSizeControl> {
 
