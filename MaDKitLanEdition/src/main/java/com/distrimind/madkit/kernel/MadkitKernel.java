@@ -155,7 +155,6 @@ class MadkitKernel extends Agent {
 	private ScheduledPoolExecutor serviceExecutor;
 
 	//private PoolExecutor lifeExecutor/* , lifeExecutorWithBlockQueue */;
-	private final HashMap<Long, LockerCondition> agentsSendingNetworkMessage = new HashMap<>();
     private volatile int maximumGlobalUploadSpeedInBytesPerSecond;
     private volatile int maximumGlobalDownloadSpeedInBytesPerSecond;
     private volatile boolean hasSpeedLimitation;
@@ -1847,9 +1846,10 @@ class MadkitKernel extends Agent {
 				remove = replies.areAllRepliesSent();
 			} else
 				remove = true;
-			if (remove)
+			if (remove) {
 				if (requester.removeConversation(replies) && numberOfReceivers.get() > 0)
 					requester.receiveMessage(replies);
+			}
 		}
 
         messageToSend.setReceiver(oneReceiver);
@@ -2320,17 +2320,13 @@ class MadkitKernel extends Agent {
 				if (agent.isAlive()) {// ! self kill -> safe to make this here
 
 					if (agent instanceof AgentFakeThread) {
-						if (agent.messageBox==null)
+						agent.messageBox.getLocker().lock();
+						try {
 							agent.state.set(LIVING);
-						else {
-							agent.messageBox.getLocker().lock();
-							try {
-								agent.state.set(LIVING);
-								if (!agent.messageBox.isEmpty())
-									((AgentFakeThread) agent).manageTaskMessage(true);
-							} finally {
-								agent.messageBox.getLocker().unlock();
-							}
+							if (!agent.messageBox.isEmpty())
+								((AgentFakeThread) agent).manageTaskMessage(true);
+						} finally {
+							agent.messageBox.getLocker().unlock();
 						}
 					} else
 						agent.state.set(LIVING);
@@ -2458,7 +2454,7 @@ class MadkitKernel extends Agent {
 
 							@Override
 							public boolean isLocked() {
-								return target.messageBox!=null && !target.messageBox.isEmpty();
+								return !target.messageBox.isEmpty();
 							}
 						});
 					//}
@@ -3405,50 +3401,6 @@ class MadkitKernel extends Agent {
 
 	private ScheduledPoolExecutor getDefaultScheduledExecutorService() {
 		return serviceExecutor;
-	}
-
-
-	void receivingPotentialNetworkMessage(AbstractAgent requester, LocalLanMessage m) {
-
-		if (m != null) {
-			LockerCondition curLock;
-			synchronized (agentsSendingNetworkMessage) {
-				curLock = agentsSendingNetworkMessage.remove(requester.getAgentID());
-				if (curLock != null)
-					curLock.cancelLock();
-
-			}
-		}
-
-	}
-
-
-	void waitMessageSent(AbstractAgent requester, LockerCondition locker) throws InterruptedException {
-		if (locker==null)
-			throw new NullPointerException();
-		boolean mustCancelLock = false;
-		if ((locker.getAttachment() instanceof LocalLanMessage) || (locker.getAttachment() instanceof CGRSynchro)) {
-			mustCancelLock = true;
-			synchronized (agentsSendingNetworkMessage) {
-				LockerCondition l = agentsSendingNetworkMessage.put(requester.getAgentID(), locker);
-				if (l != null) {
-					l.cancelLock();
-				}
-			}
-		}
-		try {
-			requester.wait(locker);
-		} finally {
-			if (mustCancelLock) {
-				synchronized (agentsSendingNetworkMessage) {
-					LockerCondition l = agentsSendingNetworkMessage.remove(requester.getAgentID());
-					if (l != locker && l != null)
-						agentsSendingNetworkMessage.put(requester.getAgentID(), l);
-				}
-
-			}
-		}
-
 	}
 
 

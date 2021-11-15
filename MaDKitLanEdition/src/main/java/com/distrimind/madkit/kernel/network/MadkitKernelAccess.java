@@ -265,7 +265,7 @@ class MadkitKernelAccess {
 
 	static void waitMessageSent(AbstractAgent requester, LockerCondition locker) throws InterruptedException {
 		try {
-			invoke(m_wait_message_sent, getMadkitKernel(requester), requester, locker);
+			invoke(m_wait_message_sent, requester, locker);
 		} catch (InvocationTargetException e) {
 			if (e.getTargetException() instanceof InterruptedException)
 				throw (InterruptedException) e.getTargetException();
@@ -348,7 +348,7 @@ class MadkitKernelAccess {
 				AbstractAgent.class, ConversationID.class, int.class, AgentAddress.class, AgentAddress.class,
 				long.class, long.class, AbstractDecentralizedID.class, AsynchronousBigDataIdentifier.class, BigDataResultMessage.Type.class);
 		m_message_mark_as_read = getMethod(Message.class, "markMessageAsRead");
-		m_wait_message_sent = getMethod(c_madkit_kernel, "waitMessageSent", AbstractAgent.class, LockerCondition.class);
+		m_wait_message_sent = getMethod(AbstractAgent.class, "waitMessageSent", LockerCondition.class);
 		m_get_global_interfaced_ids = getMethod(c_madkit_kernel, "getGlobalInterfacedIDs");
 		c_task_id = getConstructor(TaskID.class, ConversationID.class);
 	}

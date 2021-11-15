@@ -150,6 +150,7 @@ final public class Madkit {
 							.addItem(NEW_FEATURE, "Add possibility to send differed big data messages")
 							.addItem(NEW_FEATURE, "Add possibility to cancel big message sending, during its emission")
 							.addItem(INTERNAL_CHANGE, "Better cancel big message when connexion was lost")
+							.addItem(INTERNAL_CHANGE, "Optimize locking during the sending and the reception of messages")
 					)
 					.addDescription(new Description((short)2, (short)2, (short)3, Version.Type.STABLE, (short)0, "2021-11-02")
 							.addItem(INTERNAL_CHANGE, "Update Utils to 5.21.0 STABLE")

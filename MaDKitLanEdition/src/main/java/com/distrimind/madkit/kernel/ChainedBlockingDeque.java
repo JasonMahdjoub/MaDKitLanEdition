@@ -21,7 +21,7 @@ import java.util.function.Predicate;
 public class ChainedBlockingDeque<T> extends AbstractQueue<T> implements BlockingQueue<T>, Deque<T> {
 
 	private final boolean useCircularArrayList=true;
-	private final static int ARRAY_LIST_BASE_SIZE=5;
+	private final static int ARRAY_LIST_BASE_SIZE=4;
 	private final Deque<T> list;
 	private final Lock lock=new ReentrantLock();
 	private final Condition notEmpty=lock.newCondition();
@@ -84,6 +84,14 @@ public class ChainedBlockingDeque<T> extends AbstractQueue<T> implements Blockin
 			notEmpty.signal();
 			lock.unlock();
 		}
+	}
+
+	public Condition getNotEmpty() {
+		return notEmpty;
+	}
+
+	public boolean offerNotLocked(T t) {
+		return list.offer(t);
 	}
 
 	@Override

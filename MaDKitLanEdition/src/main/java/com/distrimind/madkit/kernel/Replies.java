@@ -138,17 +138,15 @@ public class Replies extends Message {
 	}
 
 
-	boolean addReply(Message m) {
-		synchronized (this) {
-			if (m != null && m.getClass() != EmptyMessage.class)
-			{
-			
+	boolean addReplyNotLocked(Message m) {
+		if (m != null && m.getClass() != EmptyMessage.class)
+		{
 
-				replies.add(m);
-			}
 
-			return numberOfReplies.decrementAndGet() <= 0 && this.allMessagesSent.get();
+			replies.add(m);
 		}
+
+		return numberOfReplies.decrementAndGet() <= 0 && this.allMessagesSent.get();
 	}
 
 	public boolean isConcernedBy(Message m) {

@@ -73,6 +73,7 @@ import com.distrimind.madkit.util.XMLUtilities;
 import com.distrimind.ood.database.DatabaseConfigurationsBuilder;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.AbstractDecentralizedIDGenerator;
+import com.distrimind.util.CircularArrayList;
 import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.crypto.MessageDigestType;
 import com.distrimind.util.io.RandomInputStream;
@@ -95,6 +96,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -174,9 +176,11 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 */
 	private String name;
 	final AtomicBoolean alive = new AtomicBoolean();
-	volatile ChainedBlockingDeque<Message> messageBox=null;
+	final ChainedBlockingDeque<Message> messageBox=new ChainedBlockingDeque<>();
+	private LockerCondition potentialNetworkMessageLocker=null;
 
-	private volatile ArrayList<Replies> conversations = null;
+	private CircularArrayList<Replies> conversations = null;
+
 
 	void setLivingButWaitingForMessages()
 	{
@@ -192,48 +196,61 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	}
 
 
-	@SuppressWarnings("unchecked")
 	void addConversation(Replies replies) {
 		if (replies != null) {
-			synchronized (this) {
-				ArrayList<Replies> c = conversations;
-				if (c == null)
-					c = new ArrayList<>();
-				else {
-					c = (ArrayList<Replies>) c.clone();
-				}
-				c.add(replies);
-				conversations = c;
+			Lock l=getMessageBox().getLocker();
+			l.lock();
+			try{
+				if (conversations == null)
+					conversations = new CircularArrayList<>(4, true);
+
+				conversations.add(replies);
+			}
+			finally {
+				l.unlock();
 			}
 		}
 	}
-
-	@SuppressWarnings("unchecked")
 	boolean removeConversation(Replies replies) {
 		if (replies != null) {
-			synchronized (this) {
-				ArrayList<Replies> c = conversations;
-				if (c == null)
+			Lock l=getMessageBox().getLocker();
+			l.lock();
+			try {
+				if (conversations == null)
 					return false;
-				c = (ArrayList<Replies>) c.clone();
-				if (c.remove(replies)) {
-					if (c.isEmpty())
+				if (conversations.remove(replies)) {
+					if (conversations.isEmpty())
 						conversations = null;
-					else
-						conversations = c;
+
 					return true;
 				}
+			}
+			finally {
+				l.unlock();
+			}
+		}
+		return false;
+	}
+	boolean removeConversationNotLocked(Replies replies) {
+		if (replies != null) {
+			if (conversations == null)
+				return false;
+			if (conversations.remove(replies)) {
+				if (conversations.isEmpty())
+					conversations = null;
+
+				return true;
 			}
 		}
 		return false;
 	}
 
-	Replies getConversation(Message m) {
-		ArrayList<Replies> c = conversations;
-		if (c == null)
+	Replies getConversationNotLocked(Message m) {
+
+		if (conversations == null)
 			return null;
 
-		for (Replies r : c) {
+		for (Replies r : conversations) {
 			if (r.isConcernedBy(m))
 				return r;
 		}
@@ -269,8 +286,6 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	public AbstractAgent() {
 		agentID = agentCounter.getAndIncrement();// TODO bench outside
 		logger = AgentLogger.defaultAgentLogger;
-
-
 	}
 
 	/**
@@ -475,15 +490,6 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	}
 	protected final ChainedBlockingDeque<Message> getMessageBox()
 	{
-		if (messageBox==null) {
-			synchronized (this) {
-				if (messageBox==null) {
-					messageBox = new ChainedBlockingDeque<>();
-					if (kernel != null)
-						messageBox.setKernel(kernel);
-				}
-			}
-		}
 		return messageBox;
 	}
 
@@ -1262,8 +1268,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 */
 	final void setKernel(MadkitKernel kernel) {
 		this.kernel = kernel;
-		if (messageBox!=null)
-			messageBox.setKernel(kernel);
+		messageBox.setKernel(kernel);
 	}
 
 	/**
@@ -2643,27 +2648,77 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	public Message receiveMessage(final Message m) {
 		if (m == null)
 			return null;
-		Message messageTaken = m;
-		Replies r = getConversation(m);
-		if (r != null) {
-			//noinspection SynchronizationOnLocalVariableOrMethodParameter
-			synchronized (r) {
-				if (r.addReply(m) && removeConversation(r)) {
+		ChainedBlockingDeque<Message> messageBox=getMessageBox();
+		Lock l=messageBox.getLocker();
+		l.lock();
+		try {
+			Message messageTaken = m;
+			Replies r = getConversationNotLocked(m);
+			if (r != null) {
+				if (r.addReplyNotLocked(m) && removeConversationNotLocked(r)) {
 					messageTaken = r;
-                } else {
+				} else {
 					messageTaken = null;
 				}
+			} else if (m.getClass() == BigDataPropositionMessage.class) {
+				BigDataPropositionMessage bm = (BigDataPropositionMessage) m;
+				if (bm.isAsynchronousMessage()) {
+					bm.setLocalMadkitKernel(getMadkitKernel());
+				}
+			}
+			if (messageTaken != null) {
+				if (potentialNetworkMessageLocker!=null && (messageTaken instanceof LocalLanMessage)) {
+					potentialNetworkMessageLocker.cancelLock();
+					potentialNetworkMessageLocker = null;
+				}
+
+
+				messageBox.offerNotLocked(messageTaken); // TODO test vs. arraylist and synchronized
+				messageBox.getNotEmpty().signal();
+
+			}
+			return messageTaken;
+		}
+		finally {
+			l.unlock();
+		}
+	}
+
+	@SuppressWarnings("unused")
+	void waitMessageSent(LockerCondition locker) throws InterruptedException {
+		if (locker==null)
+			throw new NullPointerException();
+		Lock l=null;
+		if ((locker.getAttachment() instanceof LocalLanMessage) || (locker.getAttachment() instanceof CGRSynchro)) {
+			l=getMessageBox().getLocker();
+			l.lock();
+			try {
+				if (potentialNetworkMessageLocker != null) {
+					potentialNetworkMessageLocker.cancelLock();
+				}
+				potentialNetworkMessageLocker = locker;
+			}
+			finally {
+				l.unlock();
+			}
+		}
+		try {
+			wait(locker);
+		} finally {
+			if (l!=null) {
+				l.lock();
+				try {
+					if (potentialNetworkMessageLocker == locker) {
+						potentialNetworkMessageLocker = null;
+					}
+				}
+				finally {
+					l.unlock();
+				}
+
 			}
 		}
 
-		if (messageTaken != null) {
-			if (messageTaken instanceof LocalLanMessage)
-				getMadkitKernel().receivingPotentialNetworkMessage(this, (LocalLanMessage) messageTaken);
-
-
-			getMessageBox().offer(messageTaken); // TODO test vs. arraylist and synchronized
-		}
-		return messageTaken;
 	}
 
 	/**

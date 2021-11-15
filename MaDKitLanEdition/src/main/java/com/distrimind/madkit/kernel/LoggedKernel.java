@@ -837,26 +837,6 @@ final class LoggedKernel extends MadkitKernel {
 			requester.logger.log(Level.FINEST, "wait (Requester=" + requester + ", millis=" + millis + ")");
 	}
 
-	@Override
-	void receivingPotentialNetworkMessage(AbstractAgent requester, LocalLanMessage m) {
-		kernel.receivingPotentialNetworkMessage(requester, m);
-
-		if (requester.isFinestLogOn())
-			requester.logger.log(Level.FINEST,
-					"receivingPotentialNetworkMessage (Requester=" + requester + ", message=" + m + ")");
-
-	}
-
-
-
-
-	@Override
-	void waitMessageSent(AbstractAgent requester, LockerCondition locker) throws InterruptedException {
-		kernel.waitMessageSent(requester, locker);
-
-		if (requester.isFinestLogOn())
-			requester.logger.log(Level.FINEST, "waitMessageSent (Requester=" + requester + ", locker=" + locker + ")");
-	}
 
 	@Override
 	ScheduledPoolExecutor getMaDKitServiceExecutor() {

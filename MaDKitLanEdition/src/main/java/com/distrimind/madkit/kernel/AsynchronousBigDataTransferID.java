@@ -38,6 +38,8 @@ knowledge of the CeCILL-C license and that you accept its terms.
 import com.distrimind.madkit.kernel.network.RealTimeTransferStat;
 import com.distrimind.util.AbstractDecentralizedIDGenerator;
 
+import java.util.Objects;
+
 /**
  * @author Jason Mahdjoub
  * @version 1.0
@@ -87,5 +89,25 @@ public class AsynchronousBigDataTransferID implements Cloneable {
 		{
 			return madkitKernel.getAsynchronousBigDataTable().getBytePerSecondsStat(differedBigDataInternalIdentifier);
 		}
+	}
+
+	@Override
+	public String toString() {
+		return "AsynchronousBigDataTransferID{" +
+				"asynchronousBigDataIdentifier=" + asynchronousBigDataIdentifier +
+				'}';
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		AsynchronousBigDataTransferID that = (AsynchronousBigDataTransferID) o;
+		return differedBigDataInternalIdentifier.equals(that.differedBigDataInternalIdentifier);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(differedBigDataInternalIdentifier);
 	}
 }

@@ -89,6 +89,7 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 	private boolean excludedFromEncryption;
 	private AbstractDecentralizedID asynchronousBigDataInternalIdentifier;
 	private AsynchronousBigDataIdentifier asynchronousBigDataIdentifier;
+	private transient MadkitKernel localMadkitKernel=null;
 	@SuppressWarnings("unused")
 	private BigDataPropositionMessage()
 	{
@@ -101,7 +102,12 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 				+(data==null?0:data.length)+(messageDigestType==null?0:messageDigestType.name().length()*2)
 				+SerializationTools.getInternalSize(asynchronousBigDataIdentifier)+(asynchronousBigDataIdentifier ==null?0:SerializationTools.getInternalSize(asynchronousBigDataInternalIdentifier));
 	}
-	
+
+	void setLocalMadkitKernel(MadkitKernel madkitKernel)
+	{
+		this.localMadkitKernel=madkitKernel;
+	}
+
 	@Override
 	public void readExternal(final SecuredObjectInputStream in) throws IOException, ClassNotFoundException
 	{
@@ -291,6 +297,7 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 	}
 	private void acceptDifferedTransfer(final AsynchronousBigDataToReceiveWrapper asynchronousBigDataToReceiveWrapper)
 	{
+
 		//TODO complete
 	}
 	void acceptTransferImpl(final RandomOutputStream outputStream) throws InterruptedException {

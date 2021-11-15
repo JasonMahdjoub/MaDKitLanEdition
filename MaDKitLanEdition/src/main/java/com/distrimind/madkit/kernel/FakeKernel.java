@@ -486,16 +486,6 @@ class FakeKernel extends MadkitKernel {
 	}
 
 	@Override
-	void receivingPotentialNetworkMessage(AbstractAgent requester, LocalLanMessage m) {
-		throw buildKernelException(requester);
-	}
-
-	@Override
-	void waitMessageSent(AbstractAgent requester, LockerCondition locker) {
-		throw buildKernelException(requester);
-	}
-
-	@Override
 	Object weakSetBoard(AbstractAgent requester, Group group, String name, Object data) {
 		throw buildKernelException(requester);
 	}
