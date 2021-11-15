@@ -35,13 +35,57 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-import com.distrimind.util.io.SecureExternalizable;
+import com.distrimind.madkit.kernel.network.RealTimeTransferStat;
+import com.distrimind.util.AbstractDecentralizedIDGenerator;
 
 /**
  * @author Jason Mahdjoub
  * @version 1.0
  * @since MaDKitLanEdition 2.3.0
  */
-public interface DifferedBigDataIdentifier extends SecureExternalizable {
-	int MAX_DIFFERED_BIG_DATA_IDENTIFIER_SIZE_IN_BYTES= 3000;
+public class AsynchronousBigDataTransferID implements Cloneable {
+	private AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier;
+	private AsynchronousBigDataIdentifier asynchronousBigDataIdentifier;
+	private MadkitKernel madkitKernel;
+
+	AsynchronousBigDataTransferID(AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier, AsynchronousBigDataIdentifier asynchronousBigDataIdentifier,
+								  MadkitKernel madkitKernel) {
+		if (differedBigDataInternalIdentifier==null)
+			throw new NullPointerException();
+		if (asynchronousBigDataIdentifier ==null)
+			throw new NullPointerException();
+		if (madkitKernel==null)
+			throw new NullPointerException();
+		this.differedBigDataInternalIdentifier = differedBigDataInternalIdentifier;
+		this.asynchronousBigDataIdentifier = asynchronousBigDataIdentifier;
+		this.madkitKernel=madkitKernel;
+	}
+
+	@SuppressWarnings("unused")
+	private AsynchronousBigDataTransferID() {
+	}
+
+	public AbstractDecentralizedIDGenerator getDifferedBigDataInternalIdentifier() {
+		return differedBigDataInternalIdentifier;
+	}
+
+	public AsynchronousBigDataIdentifier getDifferedBigDataIdentifier() {
+		return asynchronousBigDataIdentifier;
+	}
+
+	@SuppressWarnings("MethodDoesntCallSuperMethod")
+	@Override
+	public AsynchronousBigDataTransferID clone()
+	{
+		return this;
+	}
+	public RealTimeTransferStat getBytePerSecondsStat()
+	{
+		if (madkitKernel==null)
+			return null;
+		else
+		{
+			return madkitKernel.getAsynchronousBigDataTable().getBytePerSecondsStat(differedBigDataInternalIdentifier);
+		}
+	}
 }

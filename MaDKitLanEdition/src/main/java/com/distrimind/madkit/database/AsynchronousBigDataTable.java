@@ -68,17 +68,17 @@ import static com.distrimind.util.ReflectionTools.loadClass;
  * @version 1.0
  * @since MaDKitLanEdition 2.3.0
  */
-public final class DifferedBigDataTable extends Table<DifferedBigDataTable.Record> {
-	private final Map<AbstractDecentralizedIDGenerator, BigDataTransferID> transferIdsPerInternalDifferedId= Collections.synchronizedMap(new HashMap<>());
+public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTable.Record> {
+	private final Map<AbstractDecentralizedIDGenerator, BigDataTransferID> transferIdsPerInternalAsynchronousId = Collections.synchronizedMap(new HashMap<>());
 	@SuppressWarnings("ProtectedMemberInFinalClass")
-	protected DifferedBigDataTable() throws DatabaseException {
+	protected AsynchronousBigDataTable() throws DatabaseException {
 	}
 
 	public static class Record extends DatabaseRecord{
 		@PrimaryKey
-		private AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier;
+		private AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier;
 
-		@Field(index = true, limit = DifferedMessageTable.MAX_PATH_LENGTH)
+		@Field(index = true, limit = AsynchronousMessageTable.MAX_PATH_LENGTH)
 		@NotNull
 		private String groupPath;
 
@@ -93,11 +93,11 @@ public final class DifferedBigDataTable extends Table<DifferedBigDataTable.Recor
 
 
 		@NotNull
-		@Field(limit = DifferedBigDataIdentifier.MAX_DIFFERED_BIG_DATA_IDENTIFIER_SIZE_IN_BYTES)
+		@Field(limit = AsynchronousBigDataIdentifier.MAX_ASYNCHRONOUS_BIG_DATA_IDENTIFIER_SIZE_IN_BYTES)
 		@Unique
-		private DifferedBigDataIdentifier differedBigDataIdentifier;
+		private AsynchronousBigDataIdentifier asynchronousBigDataIdentifier;
 
-		@Field(limit = DifferedMessageTable.MAX_DIFFERED_MESSAGE_LENGTH)
+		@Field(limit = AsynchronousMessageTable.MAX_ASYNCHRONOUS_MESSAGE_LENGTH)
 		private SecureExternalizable attachedData;
 
 		@Field
@@ -110,10 +110,10 @@ public final class DifferedBigDataTable extends Table<DifferedBigDataTable.Recor
 		private boolean excludedFromEncryption;
 
 		@Field
-		private DifferedBigDataToSendWrapper differedBigDataToSendWrapper;
+		private AsynchronousBigDataToSendWrapper asynchronousBigDataToSendWrapper;
 
 		@Field
-		private DifferedBigDataToReceiveWrapper differedBigDataToReceiveWrapper;
+		private AsynchronousBigDataToReceiveWrapper asynchronousBigDataToReceiveWrapper;
 
 		@Field
 		private long timeOutInMs;
@@ -128,9 +128,9 @@ public final class DifferedBigDataTable extends Table<DifferedBigDataTable.Recor
 		private Record() {
 		}
 
-		private Record(AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier,
+		private Record(AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier,
 					   String groupPath, String roleSender, String roleReceiver,
-					  DifferedBigDataIdentifier differedBigDataIdentifier,
+					  AsynchronousBigDataIdentifier asynchronousBigDataIdentifier,
 					  SecureExternalizable attachedData,
 					  MessageDigestType messageDigestType, boolean excludedFromEncryption,
 					   long timeOutInMs) {
@@ -140,60 +140,60 @@ public final class DifferedBigDataTable extends Table<DifferedBigDataTable.Recor
 				throw new NullPointerException();
 			if (roleReceiver==null)
 				throw new NullPointerException();
-			if (differedBigDataIdentifier==null)
+			if (asynchronousBigDataIdentifier ==null)
 				throw new NullPointerException();
-			if (differedBigDataInternalIdentifier==null)
+			if (asynchronousBigDataInternalIdentifier ==null)
 				throw new NullPointerException();
 			this.groupPath=groupPath;
 			this.roleSender=roleSender;
 			this.roleReceiver=roleReceiver;
-			this.differedBigDataInternalIdentifier = differedBigDataInternalIdentifier;
-			this.differedBigDataIdentifier = differedBigDataIdentifier;
+			this.asynchronousBigDataInternalIdentifier = asynchronousBigDataInternalIdentifier;
+			this.asynchronousBigDataIdentifier = asynchronousBigDataIdentifier;
 			this.attachedData = attachedData;
 			this.messageDigestType = messageDigestType;
 			this.excludedFromEncryption = excludedFromEncryption;
-			this.differedBigDataToSendWrapper = null;
-			this.differedBigDataToReceiveWrapper = null;
+			this.asynchronousBigDataToSendWrapper = null;
+			this.asynchronousBigDataToReceiveWrapper = null;
 			this.currentStreamPosition=0;
 			this.timeOutInMs=timeOutInMs;
 			this.lastTimeUpdateUTCInMs=System.currentTimeMillis();
 
 		}
-		public Record(AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier,
+		public Record(AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier,
 					  String groupPath, String roleSender, String roleReceiver,
-					  DifferedBigDataIdentifier differedBigDataIdentifier,
+					  AsynchronousBigDataIdentifier asynchronousBigDataIdentifier,
 					  SecureExternalizable attachedData,
 					  MessageDigestType messageDigestType, boolean excludedFromEncryption,long timeOutInMs,
-					  DifferedBigDataToSendWrapper differedBigDataToSendWrapper
+					  AsynchronousBigDataToSendWrapper asynchronousBigDataToSendWrapper
 					  ) {
-			this(differedBigDataInternalIdentifier, groupPath, roleSender, roleReceiver, differedBigDataIdentifier,
+			this(asynchronousBigDataInternalIdentifier, groupPath, roleSender, roleReceiver, asynchronousBigDataIdentifier,
 					attachedData, messageDigestType, excludedFromEncryption, timeOutInMs);
-			if (differedBigDataToSendWrapper==null)
+			if (asynchronousBigDataToSendWrapper ==null)
 				throw new NullPointerException();
-			this.differedBigDataToSendWrapper=differedBigDataToSendWrapper;
+			this.asynchronousBigDataToSendWrapper = asynchronousBigDataToSendWrapper;
 			this.transferStarted=false;
 		}
-		public Record(AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier,
+		public Record(AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier,
 					  String groupPath, String roleSender, String roleReceiver,
-					  DifferedBigDataIdentifier differedBigDataIdentifier,
+					  AsynchronousBigDataIdentifier asynchronousBigDataIdentifier,
 					  SecureExternalizable attachedData,
 					  MessageDigestType messageDigestType, boolean excludedFromEncryption,long timeOutInMs,
-					  DifferedBigDataToReceiveWrapper differedBigDataToReceiveWrapper
+					  AsynchronousBigDataToReceiveWrapper asynchronousBigDataToReceiveWrapper
 					  ) {
-			this(differedBigDataInternalIdentifier, groupPath, roleSender, roleReceiver, differedBigDataIdentifier,
+			this(asynchronousBigDataInternalIdentifier, groupPath, roleSender, roleReceiver, asynchronousBigDataIdentifier,
 					attachedData, messageDigestType, excludedFromEncryption, timeOutInMs);
-			if (differedBigDataToReceiveWrapper==null)
+			if (asynchronousBigDataToReceiveWrapper ==null)
 				throw new NullPointerException();
-			this.differedBigDataToReceiveWrapper=differedBigDataToReceiveWrapper;
+			this.asynchronousBigDataToReceiveWrapper = asynchronousBigDataToReceiveWrapper;
 			this.transferStarted=true;
 		}
 
-		public AbstractDecentralizedIDGenerator getDifferedBigDataInternalIdentifier() {
-			return differedBigDataInternalIdentifier;
+		public AbstractDecentralizedIDGenerator getAsynchronousBigDataInternalIdentifier() {
+			return asynchronousBigDataInternalIdentifier;
 		}
 
-		public DifferedBigDataIdentifier getDifferedBigDataIdentifier() {
-			return differedBigDataIdentifier;
+		public AsynchronousBigDataIdentifier getAsynchronousBigDataIdentifier() {
+			return asynchronousBigDataIdentifier;
 		}
 
 		public SecureExternalizable getAttachedData() {
@@ -212,12 +212,12 @@ public final class DifferedBigDataTable extends Table<DifferedBigDataTable.Recor
 			return excludedFromEncryption;
 		}
 
-		public DifferedBigDataToSendWrapper getDifferedBigDataToSendWrapper() {
-			return differedBigDataToSendWrapper;
+		public AsynchronousBigDataToSendWrapper getAsynchronousBigDataToSendWrapper() {
+			return asynchronousBigDataToSendWrapper;
 		}
 
-		public DifferedBigDataToReceiveWrapper getDifferedBigDataToReceiveWrapper() {
-			return differedBigDataToReceiveWrapper;
+		public AsynchronousBigDataToReceiveWrapper getAsynchronousBigDataToReceiveWrapper() {
+			return asynchronousBigDataToReceiveWrapper;
 		}
 
 		public String getGroupPath() {
@@ -244,50 +244,50 @@ public final class DifferedBigDataTable extends Table<DifferedBigDataTable.Recor
 			return transferStarted;
 		}
 	}
-	private Record startDifferedBigData(Group group, String roleSender, String roleReceiver,
-										DifferedBigDataIdentifier differedBigDataIdentifier,
-										SecureExternalizable attachedData,
-										MessageDigestType messageDigestType, boolean excludedFromEncryption,long timeOutInMs,
-										DifferedBigDataToSendWrapper differedBigDataToSendWrapper
+	private Record startAsynchronousBigDataTransfer(Group group, String roleSender, String roleReceiver,
+													AsynchronousBigDataIdentifier asynchronousBigDataIdentifier,
+													SecureExternalizable attachedData,
+													MessageDigestType messageDigestType, boolean excludedFromEncryption, long timeOutInMs,
+													AsynchronousBigDataToSendWrapper asynchronousBigDataToSendWrapper
 	)
 	{
-		return startDifferedBigData(group, roleSender, roleReceiver, differedBigDataIdentifier, attachedData, messageDigestType, excludedFromEncryption, timeOutInMs,
-				differedBigDataToSendWrapper, null);
+		return startAsynchronousBigDataTransfer(group, roleSender, roleReceiver, asynchronousBigDataIdentifier, attachedData, messageDigestType, excludedFromEncryption, timeOutInMs,
+				asynchronousBigDataToSendWrapper, null);
 	}
-	public Record startDifferedBigData(Group group, String roleSender, String roleReceiver,
-									   DifferedBigDataIdentifier differedBigDataIdentifier,
-									   SecureExternalizable attachedData,
-									   MessageDigestType messageDigestType, boolean excludedFromEncryption,long timeOutInMs,
-									   DifferedBigDataToReceiveWrapper differedBigDataToReceiveWrapper
+	public Record startAsynchronousBigDataTransfer(Group group, String roleSender, String roleReceiver,
+												   AsynchronousBigDataIdentifier asynchronousBigDataIdentifier,
+												   SecureExternalizable attachedData,
+												   MessageDigestType messageDigestType, boolean excludedFromEncryption, long timeOutInMs,
+												   AsynchronousBigDataToReceiveWrapper asynchronousBigDataToReceiveWrapper
 	)
 	{
-		return startDifferedBigData(group, roleSender, roleReceiver, differedBigDataIdentifier, attachedData, messageDigestType, excludedFromEncryption, timeOutInMs,
-				null, differedBigDataToReceiveWrapper);
+		return startAsynchronousBigDataTransfer(group, roleSender, roleReceiver, asynchronousBigDataIdentifier, attachedData, messageDigestType, excludedFromEncryption, timeOutInMs,
+				null, asynchronousBigDataToReceiveWrapper);
 	}
-	private Record startDifferedBigData(Group group, String roleSender, String roleReceiver,
-									  DifferedBigDataIdentifier differedBigDataIdentifier,
-									  SecureExternalizable attachedData,
-									  MessageDigestType messageDigestType, boolean excludedFromEncryption,long timeOutInMs,
-									  DifferedBigDataToSendWrapper differedBigDataToSendWrapper,
-									  DifferedBigDataToReceiveWrapper differedBigDataToReceiveWrapper
+	private Record startAsynchronousBigDataTransfer(Group group, String roleSender, String roleReceiver,
+													AsynchronousBigDataIdentifier asynchronousBigDataIdentifier,
+													SecureExternalizable attachedData,
+													MessageDigestType messageDigestType, boolean excludedFromEncryption, long timeOutInMs,
+													AsynchronousBigDataToSendWrapper asynchronousBigDataToSendWrapper,
+													AsynchronousBigDataToReceiveWrapper asynchronousBigDataToReceiveWrapper
 									  ) {
-		assert differedBigDataToSendWrapper==null || differedBigDataToReceiveWrapper==null;
+		assert asynchronousBigDataToSendWrapper ==null || asynchronousBigDataToReceiveWrapper ==null;
 		try {
 
 			return getDatabaseWrapper().runSynchronizedTransaction(new SynchronizedTransaction<Record>() {
 				@Override
 				public Record run() throws Exception {
-					Record r = getRecords("differedBigDataIdentifier", differedBigDataIdentifier).stream().findAny().orElse(null);
+					Record r = getRecords("asynchronousBigDataIdentifier", asynchronousBigDataIdentifier).stream().findAny().orElse(null);
 					if (r != null)
 						return null;
-					if (differedBigDataToSendWrapper!=null)
+					if (asynchronousBigDataToSendWrapper !=null)
 						r = addRecord(new Record(new RenforcedDecentralizedIDGenerator(false, true),
-							group.toString(), roleSender, roleReceiver, differedBigDataIdentifier,
-							attachedData, messageDigestType, excludedFromEncryption, timeOutInMs, differedBigDataToSendWrapper));
+							group.toString(), roleSender, roleReceiver, asynchronousBigDataIdentifier,
+							attachedData, messageDigestType, excludedFromEncryption, timeOutInMs, asynchronousBigDataToSendWrapper));
 					else
 						r = addRecord(new Record(new RenforcedDecentralizedIDGenerator(false, true),
-								group.toString(), roleSender, roleReceiver, differedBigDataIdentifier,
-								attachedData, messageDigestType, excludedFromEncryption, timeOutInMs, differedBigDataToReceiveWrapper));
+								group.toString(), roleSender, roleReceiver, asynchronousBigDataIdentifier,
+								attachedData, messageDigestType, excludedFromEncryption, timeOutInMs, asynchronousBigDataToReceiveWrapper));
 
 					return r;
 				}
@@ -316,14 +316,14 @@ public final class DifferedBigDataTable extends Table<DifferedBigDataTable.Recor
 
 	}
 
-	public Record startDifferedBigData(Collection<String> baseGroupPath, final AbstractAgent requester, final Group group, String roleSender, String roleReceiver,
-									   DifferedBigDataIdentifier differedBigDataIdentifier,
-									   SecureExternalizable attachedData,
-									   MessageDigestType messageDigestType, boolean excludedFromEncryption,long timeOutInMs,
-									   DifferedBigDataToSendWrapper differedBigDataToSendWrapper
+	public Record startAsynchronousBigDataTransfer(Collection<String> baseGroupPath, final AbstractAgent requester, final Group group, String roleSender, String roleReceiver,
+												   AsynchronousBigDataIdentifier asynchronousBigDataIdentifier,
+												   SecureExternalizable attachedData,
+												   MessageDigestType messageDigestType, boolean excludedFromEncryption, long timeOutInMs,
+												   AsynchronousBigDataToSendWrapper asynchronousBigDataToSendWrapper
 	) {
 		final String groupPath=group.getPath();
-		if (!DifferedMessageTable.isConcerned(baseGroupPath, groupPath))
+		if (!AsynchronousMessageTable.isConcerned(baseGroupPath, groupPath))
 			return null;
 
 		if (!requester.hasGroup(group))
@@ -332,18 +332,18 @@ public final class DifferedBigDataTable extends Table<DifferedBigDataTable.Recor
 		if (senderAA==null)
 			return null;
 
-		AgentAddress receiverAA=requester.getAgentWithRole(group, roleReceiver);
-		Record r=startDifferedBigData(group, roleSender, roleReceiver, differedBigDataIdentifier, attachedData, messageDigestType, excludedFromEncryption, timeOutInMs,
-				differedBigDataToSendWrapper);
+		Record r= startAsynchronousBigDataTransfer(group, roleSender, roleReceiver, asynchronousBigDataIdentifier, attachedData, messageDigestType, excludedFromEncryption, timeOutInMs,
+				asynchronousBigDataToSendWrapper);
 		if (r!=null)
 		{
+			AgentAddress receiverAA=requester.getAgentWithRole(group, roleReceiver);
 			if (receiverAA!=null)
 			{
-				BigDataTransferID tid=sendDifferedBigData(requester, senderAA, receiverAA, r);
+				BigDataTransferID tid= sendAsynchronousBigData(requester, senderAA, receiverAA, r);
 				if (tid==null)
 					return null;
 				else
-					transferIdsPerInternalDifferedId.put(r.getDifferedBigDataInternalIdentifier(), tid);
+					transferIdsPerInternalAsynchronousId.put(r.getAsynchronousBigDataInternalIdentifier(), tid);
 			}
 		}
 		return r;
@@ -359,10 +359,10 @@ public final class DifferedBigDataTable extends Table<DifferedBigDataTable.Recor
 			e.printStackTrace();
 			return;
 		}
-		BigDataTransferID bigDataTransferID=transferIdsPerInternalDifferedId.remove(record.getDifferedBigDataInternalIdentifier());
+		BigDataTransferID bigDataTransferID= transferIdsPerInternalAsynchronousId.remove(record.getAsynchronousBigDataInternalIdentifier());
 		if (bigDataTransferID==null && record.isTransferStarted())
 		{
-			sendMessageAndDifferItIfNecessary(requester, group, record.getRoleReceiver(), new CancelDifferedBigDataTransferMessage(record.getDifferedBigDataInternalIdentifier()), record.getRoleSender());
+			sendMessageAndDifferItIfNecessary(requester, group, record.getRoleReceiver(), new CancelAsynchronousBigDataTransferMessage(record.getAsynchronousBigDataInternalIdentifier()), record.getRoleSender());
 		}
 		try {
 			removeRecord(record);
@@ -371,16 +371,16 @@ public final class DifferedBigDataTable extends Table<DifferedBigDataTable.Recor
 		}
 		cancelBigDataTransfer(requester, bigDataTransferID);
 	}
-	public RealTimeTransferStat getBytePerSecondsStat(AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier)
+	public RealTimeTransferStat getBytePerSecondsStat(AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier)
 	{
-		BigDataTransferID b=transferIdsPerInternalDifferedId.get(differedBigDataInternalIdentifier);
+		BigDataTransferID b= transferIdsPerInternalAsynchronousId.get(asynchronousBigDataInternalIdentifier);
 		if (b==null)
 			return null;
 		else
 			return b.getBytePerSecondsStat();
 	}
 
-	private static final Method m_send_differed_big_data;
+	private static final Method m_send_asynchronous_big_data;
 	private static final Method m_get_madkit_kernel;
 	private static final Method m_send_message_and_differ_it_if_necessary;
 	private static final Method m_cancel_big_data_transfer;
@@ -389,14 +389,14 @@ public final class DifferedBigDataTable extends Table<DifferedBigDataTable.Recor
 		Class<?> madkitKernelClass= loadClass("com.distrimind.madkit.kernel.MadkitKernel");
 		Class<?> abstractAgentClass= loadClass("com.distrimind.madkit.kernel.AbstractAgent");
 		if (madkitKernelClass==null || abstractAgentClass==null) {
-			m_send_differed_big_data = null;
+			m_send_asynchronous_big_data = null;
 			m_get_madkit_kernel=null;
 			m_send_message_and_differ_it_if_necessary=null;
 			m_cancel_big_data_transfer=null;
 			System.exit(-1);
 		}
 		else {
-			m_send_differed_big_data = getMethod(madkitKernelClass, "sendDifferedBigData", AbstractAgent.class,
+			m_send_asynchronous_big_data = getMethod(madkitKernelClass, "sendAsynchronousBigData", AbstractAgent.class,
 					AgentAddress.class, AgentAddress.class, Record.class);
 			m_send_message_and_differ_it_if_necessary = getMethod(madkitKernelClass, "sendMessageAndDifferItIfNecessary", AbstractAgent.class,
 					Group.class, String.class, Message.class, String.class);
@@ -416,11 +416,11 @@ public final class DifferedBigDataTable extends Table<DifferedBigDataTable.Recor
 			return null;
 		}
 	}
-	BigDataTransferID sendDifferedBigData(AbstractAgent requester, AgentAddress senderAA, AgentAddress receiverAA,
-										  DifferedBigDataTable.Record record)
+	BigDataTransferID sendAsynchronousBigData(AbstractAgent requester, AgentAddress senderAA, AgentAddress receiverAA,
+											  AsynchronousBigDataTable.Record record)
 	{
 		try {
-			return (BigDataTransferID)invoke(m_send_differed_big_data, getMadkitKernel(requester),requester, senderAA, receiverAA, requester, record);
+			return (BigDataTransferID)invoke(m_send_asynchronous_big_data, getMadkitKernel(requester),requester, senderAA, receiverAA, requester, record);
 		} catch (InvocationTargetException e) {
 			System.err.println("Unexpected error :");
 			e.printStackTrace();

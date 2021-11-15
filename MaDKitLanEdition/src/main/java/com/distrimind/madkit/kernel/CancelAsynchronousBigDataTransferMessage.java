@@ -35,20 +35,48 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-import com.distrimind.util.AbstractDecentralizedID;
-import com.distrimind.util.DecentralizedIDGenerator;
-import com.distrimind.util.io.RandomInputStream;
-import com.distrimind.util.io.SecureExternalizable;
+import com.distrimind.madkit.util.NetworkMessage;
+import com.distrimind.util.AbstractDecentralizedIDGenerator;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
+import com.distrimind.util.io.SerializationTools;
+
+import java.io.IOException;
 
 /**
  * @author Jason Mahdjoub
  * @version 1.0
  * @since MaDKitLanEdition 2.3.0
  */
-public interface DifferedBigDataToSendWrapper extends SecureExternalizable {
-	default AbstractDecentralizedID generateDecentralizedIDForDatabase()
-	{
-		return new DecentralizedIDGenerator(false, true);
+public class CancelAsynchronousBigDataTransferMessage extends Message implements NetworkMessage {
+	private AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier;
+
+	public CancelAsynchronousBigDataTransferMessage() {
 	}
-	RandomInputStream getRandomInputStream(DifferedBigDataIdentifier differedBigDataIdentifier);
+
+	public CancelAsynchronousBigDataTransferMessage(AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier) {
+		if (differedBigDataInternalIdentifier==null)
+			throw new NullPointerException();
+		this.differedBigDataInternalIdentifier = differedBigDataInternalIdentifier;
+	}
+
+	public AbstractDecentralizedIDGenerator getDifferedBigDataInternalIdentifier() {
+		return differedBigDataInternalIdentifier;
+	}
+
+
+	@Override
+	public void writeExternal(SecuredObjectOutputStream out) throws IOException {
+		out.writeObject(differedBigDataInternalIdentifier, false);
+	}
+
+	@Override
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+		differedBigDataInternalIdentifier=in.readObject(false);
+	}
+
+	@Override
+	public int getInternalSerializedSize() {
+		return SerializationTools.getInternalSize(differedBigDataInternalIdentifier);
+	}
 }

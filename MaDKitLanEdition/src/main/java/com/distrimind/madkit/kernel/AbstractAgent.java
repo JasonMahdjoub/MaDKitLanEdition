@@ -43,7 +43,7 @@ import com.distrimind.madkit.action.GUIManagerAction;
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.agr.LocalCommunity.Groups;
 import com.distrimind.madkit.agr.LocalCommunity.Roles;
-import com.distrimind.madkit.database.DifferedMessageTable;
+import com.distrimind.madkit.database.AsynchronousMessageTable;
 import com.distrimind.madkit.exceptions.KilledException;
 import com.distrimind.madkit.exceptions.SelfKillException;
 import com.distrimind.madkit.gui.AgentStatusPanel;
@@ -2184,7 +2184,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * database until a recipient becomes available.
 	 *
 	 * Messages that are not into the group path defined path
-	 * {@link MadkitProperties#rootOfPathGroupUsedToFilterDifferedMessages} are not sent
+	 * {@link MadkitProperties#rootOfPathGroupUsedToFilterAsynchronousMessages} are not sent
 	 *
 	 * @param group
 	 *            the group(s) and the community(ies) name
@@ -2217,7 +2217,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @see AbstractGroup
 	 * @see Group
 	 * @see MultiGroup
-	 * @see MadkitProperties#rootOfPathGroupUsedToFilterDifferedMessages
+	 * @see MadkitProperties#rootOfPathGroupUsedToFilterAsynchronousMessages
 	 * @since MadKitLanEdition 1.11
 	 */
 	public ReturnCode sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(Group group, final String role, final Message messageToSend,
@@ -2226,84 +2226,84 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	}
 
 	/**
-	 * Cancel differed messages according the message group and the sender role
+	 * Cancel asynchronous messages according the message group and the sender role
 	 * @param group the targeted group
 	 * @param senderRole the sender role
 	 * @return the number of deleted not sent messages
 	 */
-	public long cancelDifferedMessagesBySenderRole(Group group, String senderRole)  {
-		return getMadkitKernel().cancelDifferedMessagesBySenderRole(this, group, senderRole);
+	public long cancelAsynchronousMessagesBySenderRole(Group group, String senderRole)  {
+		return getMadkitKernel().cancelAsynchronousMessagesBySenderRole(this, group, senderRole);
 	}
 	/**
-	 * Cancel differed messages according the message group and the receiver role
+	 * Cancel asynchronous messages according the message group and the receiver role
 	 * @param group the targeted group
 	 * @param receiverRole the receiver role
 	 * @return the number of deleted not sent messages
 	 */
-	public long cancelDifferedMessagesByReceiverRole(Group group, String receiverRole)  {
-		return getMadkitKernel().cancelDifferedMessagesByReceiverRole(this, group, receiverRole);
+	public long cancelAsynchronousMessagesByReceiverRole(Group group, String receiverRole)  {
+		return getMadkitKernel().cancelAsynchronousMessagesByReceiverRole(this, group, receiverRole);
 	}
 	/**
-	 * Cancel differed messages according the message group
+	 * Cancel asynchronous messages according the message group
 	 * @param group the targeted group
 	 * @return the number of deleted not sent messages
 	 */
-	public long cancelDifferedMessagesByGroup(Group group)  {
-		return getMadkitKernel().cancelDifferedMessagesByGroup(this, group);
+	public long cancelAsynchronousMessagesByGroup(Group group)  {
+		return getMadkitKernel().cancelAsynchronousMessagesByGroup(this, group);
 	}
 
 	/**
-	 * Get the saved differed messages to send and according the message group and the sender role
+	 * Get the saved asynchronous messages to send and according the message group and the sender role
 	 * @param group the targeted group
 	 * @param senderRole the sender role
 	 * @return the differed asynchronous messages
 	 */
-	public List<DifferedMessageTable.Record> getDifferedMessagesBySenderRole(Group group, String senderRole)  {
-		return getMadkitKernel().getDifferedMessagesBySenderRole(this, group, senderRole);
+	public List<AsynchronousMessageTable.Record> getAsynchronousMessagesBySenderRole(Group group, String senderRole)  {
+		return getMadkitKernel().getAsynchronousMessagesBySenderRole(this, group, senderRole);
 	}
 	/**
-	 * Get the saved differed messages to send and according the message group and the receiver role
+	 * Get the saved asynchronous messages to send and according the message group and the receiver role
 	 * @param group the targeted group
 	 * @param receiverRole the receiver role
 	 * @return the differed asynchronous messages
 	 */
-	public List<DifferedMessageTable.Record> getDifferedMessagesByReceiverRole(Group group, String receiverRole)  {
-		return getMadkitKernel().getDifferedMessagesByReceiverRole(this, group, receiverRole);
+	public List<AsynchronousMessageTable.Record> getAsynchronousMessagesByReceiverRole(Group group, String receiverRole)  {
+		return getMadkitKernel().getAsynchronousMessagesByReceiverRole(this, group, receiverRole);
 	}
 	/**
-	 * Get the saved differed messages to send and according the message group
+	 * Get the saved asynchronous messages to send and according the message group
 	 * @param group the targeted group
 	 * @return the differed asynchronous messages
 	 */
-	public List<DifferedMessageTable.Record> getDifferedMessagesByGroup(Group group)  {
-		return getMadkitKernel().getDifferedMessagesByGroup(this, group);
+	public List<AsynchronousMessageTable.Record> getAsynchronousMessagesByGroup(Group group)  {
+		return getMadkitKernel().getAsynchronousMessagesByGroup(this, group);
 	}
 	/**
-	 * Get the number of saved differed messages to send and according the message group and the sender role
+	 * Get the number of saved asynchronous messages to send and according the message group and the sender role
 	 * @param group the targeted group
 	 * @param senderRole the sender role
 	 * @return the differed asynchronous messages
 	 */
-	public long getDifferedMessagesNumberBySenderRole(Group group, String senderRole)  {
-		return getMadkitKernel().getDifferedMessagesNumberBySenderRole(this, group, senderRole);
+	public long getAsynchronousMessagesNumberBySenderRole(Group group, String senderRole)  {
+		return getMadkitKernel().getAsynchronousMessagesNumberBySenderRole(this, group, senderRole);
 	}
 	/**
-	 * Get the number of saved differed messages to send and according the message group and the receiver role
+	 * Get the number of saved asynchronous messages to send and according the message group and the receiver role
 	 * @param group the targeted group
 	 * @param receiverRole the receiver role
 	 * @return the differed asynchronous messages
 	 */
-	public long getDifferedMessagesNumberByReceiverRole(Group group, String receiverRole)  {
-		return getMadkitKernel().getDifferedMessagesNumberByReceiverRole(this, group, receiverRole);
+	public long getAsynchronousMessagesNumberByReceiverRole(Group group, String receiverRole)  {
+		return getMadkitKernel().getAsynchronousMessagesNumberByReceiverRole(this, group, receiverRole);
 	}
 	/**
-	 * Get the number of saved differed messages to send and according the message group
+	 * Get the number of saved asynchronous messages to send and according the message group
 	 * @param group the targeted group
 	 * @return the differed asynchronous messages
 	 */
 
-	public long getDifferedMessagesNumberByGroup(Group group)  {
-		return getMadkitKernel().getDifferedMessagesNumberByGroup(this, group);
+	public long getAsynchronousMessagesNumberByGroup(Group group)  {
+		return getMadkitKernel().getAsynchronousMessagesNumberByGroup(this, group);
 	}
 
 	/**
@@ -2655,6 +2655,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 				}
 			}
 		}
+
 		if (messageTaken != null) {
 			if (messageTaken instanceof LocalLanMessage)
 				getMadkitKernel().receivingPotentialNetworkMessage(this, (LocalLanMessage) messageTaken);
@@ -3799,15 +3800,15 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		GET_AGENT_WITH_ROLE,
 		SEND_MESSAGE,
 		SEND_MESSAGE_AND_DIFFER_IT_IF_NECESSARY,
-		CANCEL_DIFFERED_MESSAGES_BY_SENDER_ROLE,
-		CANCEL_DIFFERED_MESSAGES_BY_RECEIVER_ROLE,
-		CANCEL_DIFFERED_MESSAGES_BY_GROUP,
-		GET_DIFFERED_MESSAGES_BY_SENDER_ROLE,
-		GET_DIFFERED_MESSAGES_BY_RECEIVER_ROLE,
-		GET_DIFFERED_MESSAGES_BY_GROUP,
-		GET_DIFFERED_MESSAGES_NUMBER_BY_SENDER_ROLE,
-		GET_DIFFERED_MESSAGES_NUMBER_BY_RECEIVER_ROLE,
-		GET_DIFFERED_MESSAGES_NUMBER_BY_GROUP,
+		CANCEL_ASYNCHRONOUS_MESSAGES_BY_SENDER_ROLE,
+		CANCEL_ASYNCHRONOUS_MESSAGES_BY_RECEIVER_ROLE,
+		CANCEL_ASYNCHRONOUS_MESSAGES_BY_GROUP,
+		GET_ASYNCHRONOUS_MESSAGES_BY_SENDER_ROLE,
+		GET_ASYNCHRONOUS_MESSAGES_BY_RECEIVER_ROLE,
+		GET_ASYNCHRONOUS_MESSAGES_BY_GROUP,
+		GET_ASYNCHRONOUS_MESSAGES_NUMBER_BY_SENDER_ROLE,
+		GET_ASYNCHRONOUS_MESSAGES_NUMBER_BY_RECEIVER_ROLE,
+		GET_ASYNCHRONOUS_MESSAGES_NUMBER_BY_GROUP,
 		BROADCAST_MESSAGE,
 		BROADCAST_MESSAGE_AND_WAIT,
 		LAUNCH_AGENT,
@@ -5040,9 +5041,9 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 
 	}
 
-	public DifferedBigDataTransferID getDifferedBigDataTransferIDInstance(AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier, DifferedBigDataIdentifier differedBigDataIdentifier)
+	public AsynchronousBigDataTransferID getAsynchronousBigDataTransferIDInstance(AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier, AsynchronousBigDataIdentifier asynchronousBigDataIdentifier)
 	{
-		return new DifferedBigDataTransferID(differedBigDataInternalIdentifier, differedBigDataIdentifier, getKernel().getKernel());
+		return new AsynchronousBigDataTransferID(asynchronousBigDataInternalIdentifier, asynchronousBigDataIdentifier, getKernel().getKernel());
 	}
 
 	public ReturnCode cancelBigDataTransfer(BigDataTransferID bigDataTransferID)

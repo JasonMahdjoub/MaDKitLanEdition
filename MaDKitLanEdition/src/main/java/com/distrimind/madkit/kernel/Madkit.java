@@ -1141,7 +1141,7 @@ final public class Madkit {
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.JPakeMessageForAuthenticationOfCloudIdentifiers"),
 					ListGroupsRoles.class, GroupsRoles.class,
 					CancelBigDataTransferMessage.class,
-					CancelDifferedBigDataTransferMessage.class,
+					CancelAsynchronousBigDataTransferMessage.class,
 					CancelBigDataSystemMessage.class));
 			for (Class<?> c : classes)
 				assert !Modifier.isAbstract(c.getModifiers()):""+c;

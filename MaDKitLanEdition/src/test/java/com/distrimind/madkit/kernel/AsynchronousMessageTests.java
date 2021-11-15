@@ -150,105 +150,105 @@ public class AsynchronousMessageTests extends JunitMadkit{
 				{
 				}
 				try {
-					getDifferedMessagesBySenderRole(JunitMadkit.GROUP, null);
+					getAsynchronousMessagesBySenderRole(JunitMadkit.GROUP, null);
 					AssertJUnit.fail();
 				}
 				catch(NullPointerException ignored)
 				{
 				}
 				try {
-					getDifferedMessagesBySenderRole(null, JunitMadkit.ROLE);
+					getAsynchronousMessagesBySenderRole(null, JunitMadkit.ROLE);
 					AssertJUnit.fail();
 				}
 				catch(NullPointerException ignored)
 				{
 				}
 				try {
-					getDifferedMessagesByReceiverRole(JunitMadkit.GROUP, null);
+					getAsynchronousMessagesByReceiverRole(JunitMadkit.GROUP, null);
 					AssertJUnit.fail();
 				}
 				catch(NullPointerException ignored)
 				{
 				}
 				try {
-					getDifferedMessagesByReceiverRole(null, JunitMadkit.ROLE);
+					getAsynchronousMessagesByReceiverRole(null, JunitMadkit.ROLE);
 					AssertJUnit.fail();
 				}
 				catch(NullPointerException ignored)
 				{
 				}
 				try {
-					getDifferedMessagesByGroup(null);
+					getAsynchronousMessagesByGroup(null);
 					AssertJUnit.fail();
 				}
 				catch(NullPointerException ignored)
 				{
 				}
 				try {
-					getDifferedMessagesNumberBySenderRole(JunitMadkit.GROUP, null);
+					getAsynchronousMessagesNumberBySenderRole(JunitMadkit.GROUP, null);
 					AssertJUnit.fail();
 				}
 				catch(NullPointerException ignored)
 				{
 				}
 				try {
-					getDifferedMessagesNumberBySenderRole(null, JunitMadkit.ROLE);
+					getAsynchronousMessagesNumberBySenderRole(null, JunitMadkit.ROLE);
 					AssertJUnit.fail();
 				}
 				catch(NullPointerException ignored)
 				{
 				}
 				try {
-					getDifferedMessagesNumberByReceiverRole(JunitMadkit.GROUP, null);
+					getAsynchronousMessagesNumberByReceiverRole(JunitMadkit.GROUP, null);
 					AssertJUnit.fail();
 				}
 				catch(NullPointerException ignored)
 				{
 				}
 				try {
-					getDifferedMessagesNumberByReceiverRole(null, JunitMadkit.ROLE);
+					getAsynchronousMessagesNumberByReceiverRole(null, JunitMadkit.ROLE);
 					AssertJUnit.fail();
 				}
 				catch(NullPointerException ignored)
 				{
 				}
 				try {
-					getDifferedMessagesNumberByGroup(null);
+					getAsynchronousMessagesNumberByGroup(null);
 					AssertJUnit.fail();
 				}
 				catch(NullPointerException ignored)
 				{
 				}
 				try {
-					cancelDifferedMessagesBySenderRole(JunitMadkit.GROUP, null);
+					cancelAsynchronousMessagesBySenderRole(JunitMadkit.GROUP, null);
 					AssertJUnit.fail();
 				}
 				catch(NullPointerException ignored)
 				{
 				}
 				try {
-					cancelDifferedMessagesBySenderRole(null, JunitMadkit.ROLE);
+					cancelAsynchronousMessagesBySenderRole(null, JunitMadkit.ROLE);
 					AssertJUnit.fail();
 				}
 				catch(NullPointerException ignored)
 				{
 				}
 				try {
-					cancelDifferedMessagesByReceiverRole(JunitMadkit.GROUP, null);
+					cancelAsynchronousMessagesByReceiverRole(JunitMadkit.GROUP, null);
 					AssertJUnit.fail();
 				}
 				catch(NullPointerException ignored)
 				{
 				}
 				try {
-					cancelDifferedMessagesByReceiverRole(null, JunitMadkit.ROLE);
+					cancelAsynchronousMessagesByReceiverRole(null, JunitMadkit.ROLE);
 					AssertJUnit.fail();
 				}
 				catch(NullPointerException ignored)
 				{
 				}
 				try {
-					cancelDifferedMessagesByGroup(null);
+					cancelAsynchronousMessagesByGroup(null);
 					AssertJUnit.fail();
 				}
 				catch(NullPointerException ignored)
@@ -292,9 +292,9 @@ public class AsynchronousMessageTests extends JunitMadkit{
 					m = receiver.nextMessage();
 					AssertJUnit.assertNull(m);
 					requestRole(JunitMadkit.GROUP2, JunitMadkit.ROLE);
-					AssertJUnit.assertEquals(0, getDifferedMessagesNumberByGroup(JunitMadkit.GROUP));
-					AssertJUnit.assertEquals(0, getDifferedMessagesNumberByReceiverRole(JunitMadkit.GROUP, JunitMadkit.ROLE));
-					AssertJUnit.assertEquals(0, getDifferedMessagesNumberBySenderRole(JunitMadkit.GROUP, JunitMadkit.ROLE));
+					AssertJUnit.assertEquals(0, getAsynchronousMessagesNumberByGroup(JunitMadkit.GROUP));
+					AssertJUnit.assertEquals(0, getAsynchronousMessagesNumberByReceiverRole(JunitMadkit.GROUP, JunitMadkit.ROLE));
+					AssertJUnit.assertEquals(0, getAsynchronousMessagesNumberBySenderRole(JunitMadkit.GROUP, JunitMadkit.ROLE));
 
 					rc = sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(JunitMadkit.GROUP2, JunitMadkit.ROLE, new StringMessage("ok2"), JunitMadkit.ROLE);
 					AssertJUnit.assertEquals(ReturnCode.MESSAGE_DIFFERED, rc);
@@ -306,30 +306,30 @@ public class AsynchronousMessageTests extends JunitMadkit{
 					AssertJUnit.assertNull(m);
 
 
-					AssertJUnit.assertEquals(2, getDifferedMessagesNumberByGroup(JunitMadkit.GROUP2));
-					AssertJUnit.assertEquals(1, getDifferedMessagesNumberByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE2));
-					AssertJUnit.assertEquals(1, getDifferedMessagesNumberByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE));
-					AssertJUnit.assertEquals(2, getDifferedMessagesNumberBySenderRole(JunitMadkit.GROUP2, JunitMadkit.ROLE));
+					AssertJUnit.assertEquals(2, getAsynchronousMessagesNumberByGroup(JunitMadkit.GROUP2));
+					AssertJUnit.assertEquals(1, getAsynchronousMessagesNumberByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE2));
+					AssertJUnit.assertEquals(1, getAsynchronousMessagesNumberByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE));
+					AssertJUnit.assertEquals(2, getAsynchronousMessagesNumberBySenderRole(JunitMadkit.GROUP2, JunitMadkit.ROLE));
 
-					AssertJUnit.assertEquals("ok2", ((StringMessage) getDifferedMessagesByGroup(JunitMadkit.GROUP2).get(0).getDifferedMessage()).getContent());
-					AssertJUnit.assertEquals("ok2", ((StringMessage) getDifferedMessagesByGroup(JunitMadkit.GROUP2).get(1).getDifferedMessage()).getContent());
-					AssertJUnit.assertEquals("ok2", ((StringMessage) getDifferedMessagesByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE).get(0).getDifferedMessage()).getContent());
-					AssertJUnit.assertEquals("ok2", ((StringMessage) getDifferedMessagesByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE2).get(0).getDifferedMessage()).getContent());
-					AssertJUnit.assertEquals("ok2", ((StringMessage) getDifferedMessagesBySenderRole(JunitMadkit.GROUP2, JunitMadkit.ROLE).get(0).getDifferedMessage()).getContent());
+					AssertJUnit.assertEquals("ok2", ((StringMessage) getAsynchronousMessagesByGroup(JunitMadkit.GROUP2).get(0).getAsynchronousMessage()).getContent());
+					AssertJUnit.assertEquals("ok2", ((StringMessage) getAsynchronousMessagesByGroup(JunitMadkit.GROUP2).get(1).getAsynchronousMessage()).getContent());
+					AssertJUnit.assertEquals("ok2", ((StringMessage) getAsynchronousMessagesByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE).get(0).getAsynchronousMessage()).getContent());
+					AssertJUnit.assertEquals("ok2", ((StringMessage) getAsynchronousMessagesByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE2).get(0).getAsynchronousMessage()).getContent());
+					AssertJUnit.assertEquals("ok2", ((StringMessage) getAsynchronousMessagesBySenderRole(JunitMadkit.GROUP2, JunitMadkit.ROLE).get(0).getAsynchronousMessage()).getContent());
 
-					cancelDifferedMessagesByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE2);
-					AssertJUnit.assertEquals(1, getDifferedMessagesNumberByGroup(JunitMadkit.GROUP2));
-					AssertJUnit.assertEquals(0, getDifferedMessagesNumberByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE2));
-					AssertJUnit.assertEquals(1, getDifferedMessagesNumberBySenderRole(JunitMadkit.GROUP2, JunitMadkit.ROLE));
+					cancelAsynchronousMessagesByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE2);
+					AssertJUnit.assertEquals(1, getAsynchronousMessagesNumberByGroup(JunitMadkit.GROUP2));
+					AssertJUnit.assertEquals(0, getAsynchronousMessagesNumberByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE2));
+					AssertJUnit.assertEquals(1, getAsynchronousMessagesNumberBySenderRole(JunitMadkit.GROUP2, JunitMadkit.ROLE));
 
-					AssertJUnit.assertEquals("ok2", ((StringMessage) getDifferedMessagesByGroup(JunitMadkit.GROUP2).get(0).getDifferedMessage()).getContent());
-					AssertJUnit.assertEquals("ok2", ((StringMessage) getDifferedMessagesBySenderRole(JunitMadkit.GROUP2, JunitMadkit.ROLE).get(0).getDifferedMessage()).getContent());
+					AssertJUnit.assertEquals("ok2", ((StringMessage) getAsynchronousMessagesByGroup(JunitMadkit.GROUP2).get(0).getAsynchronousMessage()).getContent());
+					AssertJUnit.assertEquals("ok2", ((StringMessage) getAsynchronousMessagesBySenderRole(JunitMadkit.GROUP2, JunitMadkit.ROLE).get(0).getAsynchronousMessage()).getContent());
 
-					cancelDifferedMessagesBySenderRole(JunitMadkit.GROUP2, JunitMadkit.ROLE);
-					AssertJUnit.assertEquals(0, getDifferedMessagesNumberByGroup(JunitMadkit.GROUP2));
-					AssertJUnit.assertEquals(0, getDifferedMessagesNumberByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE2));
-					AssertJUnit.assertEquals(0, getDifferedMessagesNumberBySenderRole(JunitMadkit.GROUP2, JunitMadkit.ROLE));
-					getMadkitConfig().rootOfPathGroupUsedToFilterDifferedMessages = Collections.singletonList(JunitMadkit.GROUP2.getPath());
+					cancelAsynchronousMessagesBySenderRole(JunitMadkit.GROUP2, JunitMadkit.ROLE);
+					AssertJUnit.assertEquals(0, getAsynchronousMessagesNumberByGroup(JunitMadkit.GROUP2));
+					AssertJUnit.assertEquals(0, getAsynchronousMessagesNumberByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE2));
+					AssertJUnit.assertEquals(0, getAsynchronousMessagesNumberBySenderRole(JunitMadkit.GROUP2, JunitMadkit.ROLE));
+					getMadkitConfig().rootOfPathGroupUsedToFilterAsynchronousMessages = Collections.singletonList(JunitMadkit.GROUP2.getPath());
 					rc = sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(JunitMadkit.GROUP2, JunitMadkit.ROLE, new StringMessage("ok2"), JunitMadkit.ROLE);
 					m = receiver.nextMessage();
 					AssertJUnit.assertNull(m);
@@ -338,20 +338,20 @@ public class AsynchronousMessageTests extends JunitMadkit{
 					m = receiver.nextMessage();
 					AssertJUnit.assertNull(m);
 					AssertJUnit.assertEquals(ReturnCode.MESSAGE_DIFFERED, rc);
-					AssertJUnit.assertEquals(2, getDifferedMessagesNumberByGroup(JunitMadkit.GROUP2));
-					AssertJUnit.assertEquals(1, getDifferedMessagesNumberByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE2));
-					AssertJUnit.assertEquals(1, getDifferedMessagesNumberByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE));
-					AssertJUnit.assertEquals(2, getDifferedMessagesNumberBySenderRole(JunitMadkit.GROUP2, JunitMadkit.ROLE));
-					AssertJUnit.assertEquals("ok2", ((StringMessage) getDifferedMessagesByGroup(JunitMadkit.GROUP2).get(0).getDifferedMessage()).getContent());
-					AssertJUnit.assertEquals("ok2", ((StringMessage) getDifferedMessagesByGroup(JunitMadkit.GROUP2).get(1).getDifferedMessage()).getContent());
-					AssertJUnit.assertEquals("ok2", ((StringMessage) getDifferedMessagesByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE).get(0).getDifferedMessage()).getContent());
-					AssertJUnit.assertEquals("ok2", ((StringMessage) getDifferedMessagesByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE2).get(0).getDifferedMessage()).getContent());
-					AssertJUnit.assertEquals("ok2", ((StringMessage) getDifferedMessagesBySenderRole(JunitMadkit.GROUP2, JunitMadkit.ROLE).get(0).getDifferedMessage()).getContent());
-					cancelDifferedMessagesByGroup(JunitMadkit.GROUP2);
-					AssertJUnit.assertEquals(0, getDifferedMessagesNumberByGroup(JunitMadkit.GROUP2));
-					AssertJUnit.assertEquals(0, getDifferedMessagesNumberByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE));
-					AssertJUnit.assertEquals(0, getDifferedMessagesNumberBySenderRole(JunitMadkit.GROUP2, JunitMadkit.ROLE));
-					getMadkitConfig().rootOfPathGroupUsedToFilterDifferedMessages = Collections.singletonList(JunitMadkit.GROUP2.getSubGroup("awesome sub group").getPath());
+					AssertJUnit.assertEquals(2, getAsynchronousMessagesNumberByGroup(JunitMadkit.GROUP2));
+					AssertJUnit.assertEquals(1, getAsynchronousMessagesNumberByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE2));
+					AssertJUnit.assertEquals(1, getAsynchronousMessagesNumberByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE));
+					AssertJUnit.assertEquals(2, getAsynchronousMessagesNumberBySenderRole(JunitMadkit.GROUP2, JunitMadkit.ROLE));
+					AssertJUnit.assertEquals("ok2", ((StringMessage) getAsynchronousMessagesByGroup(JunitMadkit.GROUP2).get(0).getAsynchronousMessage()).getContent());
+					AssertJUnit.assertEquals("ok2", ((StringMessage) getAsynchronousMessagesByGroup(JunitMadkit.GROUP2).get(1).getAsynchronousMessage()).getContent());
+					AssertJUnit.assertEquals("ok2", ((StringMessage) getAsynchronousMessagesByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE).get(0).getAsynchronousMessage()).getContent());
+					AssertJUnit.assertEquals("ok2", ((StringMessage) getAsynchronousMessagesByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE2).get(0).getAsynchronousMessage()).getContent());
+					AssertJUnit.assertEquals("ok2", ((StringMessage) getAsynchronousMessagesBySenderRole(JunitMadkit.GROUP2, JunitMadkit.ROLE).get(0).getAsynchronousMessage()).getContent());
+					cancelAsynchronousMessagesByGroup(JunitMadkit.GROUP2);
+					AssertJUnit.assertEquals(0, getAsynchronousMessagesNumberByGroup(JunitMadkit.GROUP2));
+					AssertJUnit.assertEquals(0, getAsynchronousMessagesNumberByReceiverRole(JunitMadkit.GROUP2, JunitMadkit.ROLE));
+					AssertJUnit.assertEquals(0, getAsynchronousMessagesNumberBySenderRole(JunitMadkit.GROUP2, JunitMadkit.ROLE));
+					getMadkitConfig().rootOfPathGroupUsedToFilterAsynchronousMessages = Collections.singletonList(JunitMadkit.GROUP2.getSubGroup("awesome sub group").getPath());
 					rc = sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(JunitMadkit.GROUP2, JunitMadkit.ROLE, new StringMessage("ok2"), JunitMadkit.ROLE);
 					m = receiver.nextMessage();
 					AssertJUnit.assertNull(m);
@@ -387,22 +387,22 @@ public class AsynchronousMessageTests extends JunitMadkit{
 					AssertJUnit.assertEquals(ReturnCode.MESSAGE_DIFFERED, rc);
 					Message m = receiver.nextMessage();
 					AssertJUnit.assertNull(m);
-					AssertJUnit.assertEquals(1, getDifferedMessagesNumberByGroup(JunitMadkit.GROUP));
-					AssertJUnit.assertEquals(1, getDifferedMessagesNumberByReceiverRole(JunitMadkit.GROUP, JunitMadkit.ROLE2));
-					AssertJUnit.assertEquals(1, getDifferedMessagesNumberBySenderRole(JunitMadkit.GROUP, JunitMadkit.ROLE));
+					AssertJUnit.assertEquals(1, getAsynchronousMessagesNumberByGroup(JunitMadkit.GROUP));
+					AssertJUnit.assertEquals(1, getAsynchronousMessagesNumberByReceiverRole(JunitMadkit.GROUP, JunitMadkit.ROLE2));
+					AssertJUnit.assertEquals(1, getAsynchronousMessagesNumberBySenderRole(JunitMadkit.GROUP, JunitMadkit.ROLE));
 
-					AssertJUnit.assertEquals("ok", ((StringMessage) getDifferedMessagesByGroup(JunitMadkit.GROUP).get(0).getDifferedMessage()).getContent());
-					AssertJUnit.assertEquals("ok", ((StringMessage) getDifferedMessagesByReceiverRole(JunitMadkit.GROUP, JunitMadkit.ROLE2).get(0).getDifferedMessage()).getContent());
-					AssertJUnit.assertEquals("ok", ((StringMessage) getDifferedMessagesBySenderRole(JunitMadkit.GROUP, JunitMadkit.ROLE).get(0).getDifferedMessage()).getContent());
+					AssertJUnit.assertEquals("ok", ((StringMessage) getAsynchronousMessagesByGroup(JunitMadkit.GROUP).get(0).getAsynchronousMessage()).getContent());
+					AssertJUnit.assertEquals("ok", ((StringMessage) getAsynchronousMessagesByReceiverRole(JunitMadkit.GROUP, JunitMadkit.ROLE2).get(0).getAsynchronousMessage()).getContent());
+					AssertJUnit.assertEquals("ok", ((StringMessage) getAsynchronousMessagesBySenderRole(JunitMadkit.GROUP, JunitMadkit.ROLE).get(0).getAsynchronousMessage()).getContent());
 
 					rc=receiver.requestRole(JunitMadkit.GROUP, JunitMadkit.ROLE2 );
 					AssertJUnit.assertEquals(ReturnCode.SUCCESS, rc);
 					m = receiver.nextMessage();
 					AssertJUnit.assertNotNull(m);
 					AssertJUnit.assertEquals("ok", ((StringMessage) m).getContent());
-					AssertJUnit.assertEquals(0, getDifferedMessagesNumberByGroup(JunitMadkit.GROUP));
-					AssertJUnit.assertEquals(0, getDifferedMessagesNumberByReceiverRole(JunitMadkit.GROUP, JunitMadkit.ROLE2));
-					AssertJUnit.assertEquals(0, getDifferedMessagesNumberBySenderRole(JunitMadkit.GROUP, JunitMadkit.ROLE));
+					AssertJUnit.assertEquals(0, getAsynchronousMessagesNumberByGroup(JunitMadkit.GROUP));
+					AssertJUnit.assertEquals(0, getAsynchronousMessagesNumberByReceiverRole(JunitMadkit.GROUP, JunitMadkit.ROLE2));
+					AssertJUnit.assertEquals(0, getAsynchronousMessagesNumberBySenderRole(JunitMadkit.GROUP, JunitMadkit.ROLE));
 
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -435,44 +435,44 @@ public class AsynchronousMessageTests extends JunitMadkit{
 					AssertJUnit.assertEquals(ReturnCode.MESSAGE_DIFFERED, rc);
 					Message m = receiver.nextMessage();
 					AssertJUnit.assertNull(m);
-					AssertJUnit.assertEquals(1, getDifferedMessagesNumberByGroup(JunitMadkit.GROUP));
-					AssertJUnit.assertEquals(1, getDifferedMessagesNumberByReceiverRole(JunitMadkit.GROUP, JunitMadkit.ROLE2));
-					AssertJUnit.assertEquals(1, getDifferedMessagesNumberBySenderRole(JunitMadkit.GROUP, JunitMadkit.ROLE));
+					AssertJUnit.assertEquals(1, getAsynchronousMessagesNumberByGroup(JunitMadkit.GROUP));
+					AssertJUnit.assertEquals(1, getAsynchronousMessagesNumberByReceiverRole(JunitMadkit.GROUP, JunitMadkit.ROLE2));
+					AssertJUnit.assertEquals(1, getAsynchronousMessagesNumberBySenderRole(JunitMadkit.GROUP, JunitMadkit.ROLE));
 
-					AssertJUnit.assertEquals("ok", ((StringMessage) getDifferedMessagesByGroup(JunitMadkit.GROUP).get(0).getDifferedMessage()).getContent());
-					AssertJUnit.assertEquals("ok", ((StringMessage) getDifferedMessagesByReceiverRole(JunitMadkit.GROUP, JunitMadkit.ROLE2).get(0).getDifferedMessage()).getContent());
-					AssertJUnit.assertEquals("ok", ((StringMessage) getDifferedMessagesBySenderRole(JunitMadkit.GROUP, JunitMadkit.ROLE).get(0).getDifferedMessage()).getContent());
+					AssertJUnit.assertEquals("ok", ((StringMessage) getAsynchronousMessagesByGroup(JunitMadkit.GROUP).get(0).getAsynchronousMessage()).getContent());
+					AssertJUnit.assertEquals("ok", ((StringMessage) getAsynchronousMessagesByReceiverRole(JunitMadkit.GROUP, JunitMadkit.ROLE2).get(0).getAsynchronousMessage()).getContent());
+					AssertJUnit.assertEquals("ok", ((StringMessage) getAsynchronousMessagesBySenderRole(JunitMadkit.GROUP, JunitMadkit.ROLE).get(0).getAsynchronousMessage()).getContent());
 
 					leaveRole(JunitMadkit.GROUP, JunitMadkit.ROLE);
 					m = receiver.nextMessage();
 					AssertJUnit.assertNull(m);
-					AssertJUnit.assertEquals(1, getDifferedMessagesNumberByGroup(JunitMadkit.GROUP));
-					AssertJUnit.assertEquals(1, getDifferedMessagesNumberByReceiverRole(JunitMadkit.GROUP, JunitMadkit.ROLE2));
-					AssertJUnit.assertEquals(1, getDifferedMessagesNumberBySenderRole(JunitMadkit.GROUP, JunitMadkit.ROLE));
+					AssertJUnit.assertEquals(1, getAsynchronousMessagesNumberByGroup(JunitMadkit.GROUP));
+					AssertJUnit.assertEquals(1, getAsynchronousMessagesNumberByReceiverRole(JunitMadkit.GROUP, JunitMadkit.ROLE2));
+					AssertJUnit.assertEquals(1, getAsynchronousMessagesNumberBySenderRole(JunitMadkit.GROUP, JunitMadkit.ROLE));
 
-					AssertJUnit.assertEquals("ok", ((StringMessage) getDifferedMessagesByGroup(JunitMadkit.GROUP).get(0).getDifferedMessage()).getContent());
-					AssertJUnit.assertEquals("ok", ((StringMessage) getDifferedMessagesByReceiverRole(JunitMadkit.GROUP, JunitMadkit.ROLE2).get(0).getDifferedMessage()).getContent());
-					AssertJUnit.assertEquals("ok", ((StringMessage) getDifferedMessagesBySenderRole(JunitMadkit.GROUP, JunitMadkit.ROLE).get(0).getDifferedMessage()).getContent());
+					AssertJUnit.assertEquals("ok", ((StringMessage) getAsynchronousMessagesByGroup(JunitMadkit.GROUP).get(0).getAsynchronousMessage()).getContent());
+					AssertJUnit.assertEquals("ok", ((StringMessage) getAsynchronousMessagesByReceiverRole(JunitMadkit.GROUP, JunitMadkit.ROLE2).get(0).getAsynchronousMessage()).getContent());
+					AssertJUnit.assertEquals("ok", ((StringMessage) getAsynchronousMessagesBySenderRole(JunitMadkit.GROUP, JunitMadkit.ROLE).get(0).getAsynchronousMessage()).getContent());
 
 					receiver.requestRole(JunitMadkit.GROUP, JunitMadkit.ROLE2 );
 					m = receiver.nextMessage();
 					AssertJUnit.assertNull(m);
-					AssertJUnit.assertEquals(1, getDifferedMessagesNumberByGroup(JunitMadkit.GROUP));
-					AssertJUnit.assertEquals(1, getDifferedMessagesNumberByReceiverRole(JunitMadkit.GROUP, JunitMadkit.ROLE2));
-					AssertJUnit.assertEquals(1, getDifferedMessagesNumberBySenderRole(JunitMadkit.GROUP, JunitMadkit.ROLE));
+					AssertJUnit.assertEquals(1, getAsynchronousMessagesNumberByGroup(JunitMadkit.GROUP));
+					AssertJUnit.assertEquals(1, getAsynchronousMessagesNumberByReceiverRole(JunitMadkit.GROUP, JunitMadkit.ROLE2));
+					AssertJUnit.assertEquals(1, getAsynchronousMessagesNumberBySenderRole(JunitMadkit.GROUP, JunitMadkit.ROLE));
 
-					AssertJUnit.assertEquals("ok", ((StringMessage) getDifferedMessagesByGroup(JunitMadkit.GROUP).get(0).getDifferedMessage()).getContent());
-					AssertJUnit.assertEquals("ok", ((StringMessage) getDifferedMessagesByReceiverRole(JunitMadkit.GROUP, JunitMadkit.ROLE2).get(0).getDifferedMessage()).getContent());
-					AssertJUnit.assertEquals("ok", ((StringMessage) getDifferedMessagesBySenderRole(JunitMadkit.GROUP, JunitMadkit.ROLE).get(0).getDifferedMessage()).getContent());
+					AssertJUnit.assertEquals("ok", ((StringMessage) getAsynchronousMessagesByGroup(JunitMadkit.GROUP).get(0).getAsynchronousMessage()).getContent());
+					AssertJUnit.assertEquals("ok", ((StringMessage) getAsynchronousMessagesByReceiverRole(JunitMadkit.GROUP, JunitMadkit.ROLE2).get(0).getAsynchronousMessage()).getContent());
+					AssertJUnit.assertEquals("ok", ((StringMessage) getAsynchronousMessagesBySenderRole(JunitMadkit.GROUP, JunitMadkit.ROLE).get(0).getAsynchronousMessage()).getContent());
 
 					requestRole(JunitMadkit.GROUP, JunitMadkit.ROLE);
 
 					m = receiver.nextMessage();
 					AssertJUnit.assertNotNull(m);
 					AssertJUnit.assertEquals("ok", ((StringMessage) m).getContent());
-					AssertJUnit.assertEquals(0, getDifferedMessagesNumberByGroup(JunitMadkit.GROUP));
-					AssertJUnit.assertEquals(0, getDifferedMessagesNumberByReceiverRole(JunitMadkit.GROUP, JunitMadkit.ROLE2));
-					AssertJUnit.assertEquals(0, getDifferedMessagesNumberBySenderRole(JunitMadkit.GROUP, JunitMadkit.ROLE));
+					AssertJUnit.assertEquals(0, getAsynchronousMessagesNumberByGroup(JunitMadkit.GROUP));
+					AssertJUnit.assertEquals(0, getAsynchronousMessagesNumberByReceiverRole(JunitMadkit.GROUP, JunitMadkit.ROLE2));
+					AssertJUnit.assertEquals(0, getAsynchronousMessagesNumberBySenderRole(JunitMadkit.GROUP, JunitMadkit.ROLE));
 
 				} catch (Exception e) {
 					e.printStackTrace();

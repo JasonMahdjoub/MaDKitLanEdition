@@ -40,6 +40,7 @@ package com.distrimind.madkit.kernel;
 import com.distrimind.util.AbstractDecentralizedID;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
+import com.distrimind.util.io.SerializationTools;
 
 import java.io.IOException;
 
@@ -57,12 +58,13 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 	private Type type;
 	private int idPacket;
 	private long duration;
-	private AbstractDecentralizedID differedBigDataInternalIdentifier;
-	private DifferedBigDataIdentifier differedBigDataIdentifier;
+	private AbstractDecentralizedID asynchronousBigDataInternalIdentifier;
+	private AsynchronousBigDataIdentifier asynchronousBigDataIdentifier;
 
 	@Override
 	public int getInternalSerializedSize() {
-		return super.getInternalSerializedSizeImpl()+22+(type.name().length()*2);
+		return super.getInternalSerializedSizeImpl()+22+(type.name().length()*2)
+				+ SerializationTools.getInternalSize(asynchronousBigDataIdentifier)+(asynchronousBigDataIdentifier ==null?0:SerializationTools.getInternalSize(asynchronousBigDataInternalIdentifier));
 	}
 	
 	@Override
@@ -75,7 +77,11 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 		type=in.readObject(false, Type.class);
 		idPacket=in.readInt();
 		duration=in.readLong();
-		
+		asynchronousBigDataIdentifier =in.readObject(true);
+		if (asynchronousBigDataIdentifier !=null)
+			asynchronousBigDataInternalIdentifier =in.readObject(false);
+		else
+			asynchronousBigDataInternalIdentifier =null;
 	}
 	@Override
 	public void writeExternal(final SecuredObjectOutputStream oos) throws IOException{
@@ -84,6 +90,9 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 		oos.writeObject(type, false);
 		oos.writeInt(idPacket);
 		oos.writeLong(duration);
+		oos.writeObject(asynchronousBigDataIdentifier, true);
+		if (asynchronousBigDataIdentifier !=null)
+			oos.writeObject(asynchronousBigDataInternalIdentifier, false);
 	}	
 	
 	@SuppressWarnings("unused")
@@ -91,8 +100,8 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 	{
 		
 	}
-	BigDataResultMessage(Type type, long transferredData, int idPacket, long duration, AbstractDecentralizedID differedBigDataInternalIdentifier,
-			DifferedBigDataIdentifier differedBigDataIdentifier) {
+	BigDataResultMessage(Type type, long transferredData, int idPacket, long duration, AbstractDecentralizedID asynchronousBigDataInternalIdentifier,
+			AsynchronousBigDataIdentifier asynchronousBigDataIdentifier) {
 		if (type == null)
 			throw new NullPointerException("type");
 		if (type == Type.BIG_DATA_TRANSFER_DENIED && transferredData != 0)
@@ -101,10 +110,10 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 		this.transferredData = transferredData;
 		this.idPacket = idPacket;
 		this.duration = duration;
-		if ((differedBigDataInternalIdentifier==null)!=(differedBigDataIdentifier==null))
+		if ((asynchronousBigDataInternalIdentifier ==null)!=(asynchronousBigDataIdentifier ==null))
 			throw new NullPointerException();
-		this.differedBigDataInternalIdentifier=differedBigDataInternalIdentifier;
-		this.differedBigDataIdentifier=differedBigDataIdentifier;
+		this.asynchronousBigDataInternalIdentifier = asynchronousBigDataInternalIdentifier;
+		this.asynchronousBigDataIdentifier = asynchronousBigDataIdentifier;
 	}
 
 	/**
@@ -178,11 +187,16 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 		return "BigDataResultMessage[type="+type+", dataTransferredInBytes="+ getTransferredDataLength()+", durationInMs="+getTransferDuration()/*+", sender="+getSender()+", receiver="+getReceiver()*/+"]";
 	}
 
-	AbstractDecentralizedID getDifferedBigDataInternalIdentifier() {
-		return differedBigDataInternalIdentifier;
+	AbstractDecentralizedID getAsynchronousBigDataInternalIdentifier() {
+		return asynchronousBigDataInternalIdentifier;
 	}
 
-	public DifferedBigDataIdentifier getDifferedBigDataIdentifier() {
-		return differedBigDataIdentifier;
+	public AsynchronousBigDataIdentifier getAsynchronousBigDataIdentifier() {
+		return asynchronousBigDataIdentifier;
+	}
+
+	public boolean isAsynchronousMessage()
+	{
+		return asynchronousBigDataIdentifier !=null;
 	}
 }

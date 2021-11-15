@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel;
 
-import com.distrimind.madkit.database.DifferedMessageTable;
+import com.distrimind.madkit.database.AsynchronousMessageTable;
 import com.distrimind.madkit.database.IPBanned;
 import com.distrimind.madkit.database.MKDatabase;
 import com.distrimind.madkit.gui.AgentFrame;
@@ -318,7 +318,7 @@ public class MadkitProperties extends MultiFormatProperties {
 					}
 					else {
 						databaseConfigurations = new DatabaseConfigurations(databaseConfigurations, new HashSet<>(Collections.singletonList(mkDatabase)));
-						assert databaseConfigurations.getDatabaseConfiguration(DifferedMessageTable.class.getPackage()) != null;
+						assert databaseConfigurations.getDatabaseConfiguration(AsynchronousMessageTable.class.getPackage()) != null;
 					}
 					databaseFactory.setDatabaseConfigurations(databaseConfigurations);
 
@@ -469,7 +469,7 @@ public class MadkitProperties extends MultiFormatProperties {
 	 * However, we recommend to define this variable in order to optimize MaDKit.
 	 * The more this path is restrictive, the more MaDKit is reactive.
 	 */
-	public Collection<String> rootOfPathGroupUsedToFilterDifferedMessages=null;
+	public Collection<String> rootOfPathGroupUsedToFilterAsynchronousMessages =null;
 
 	public MadkitProperties() {
 		super(new MultiFormatPropertiesObjectParser());

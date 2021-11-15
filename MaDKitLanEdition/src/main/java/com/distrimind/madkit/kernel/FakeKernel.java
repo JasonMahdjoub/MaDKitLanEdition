@@ -37,8 +37,8 @@
  */
 package com.distrimind.madkit.kernel;
 
-import com.distrimind.madkit.database.DifferedBigDataTable;
-import com.distrimind.madkit.database.DifferedMessageTable;
+import com.distrimind.madkit.database.AsynchronousBigDataTable;
+import com.distrimind.madkit.database.AsynchronousMessageTable;
 import com.distrimind.madkit.i18n.ErrorMessages;
 import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
 import com.distrimind.madkit.kernel.network.*;
@@ -166,45 +166,45 @@ class FakeKernel extends MadkitKernel {
 
 	}
 	@Override
-	long cancelDifferedMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole) {
+	long cancelAsynchronousMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole) {
 		throw buildKernelException(requester);
 	}
 	@Override
-	long cancelDifferedMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole) {
+	long cancelAsynchronousMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole) {
 		throw buildKernelException(requester);
 	}
 	@Override
-	long cancelDifferedMessagesByGroup(AbstractAgent requester, Group group) {
-		throw buildKernelException(requester);
-
-	}
-
-	@Override
-	List<DifferedMessageTable.Record> getDifferedMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
+	long cancelAsynchronousMessagesByGroup(AbstractAgent requester, Group group) {
 		throw buildKernelException(requester);
 
 	}
+
 	@Override
-	List<DifferedMessageTable.Record> getDifferedMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
+	List<AsynchronousMessageTable.Record> getAsynchronousMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
 		throw buildKernelException(requester);
 
 	}
 	@Override
-	List<DifferedMessageTable.Record> getDifferedMessagesByGroup(AbstractAgent requester, Group group)  {
+	List<AsynchronousMessageTable.Record> getAsynchronousMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
+		throw buildKernelException(requester);
+
+	}
+	@Override
+	List<AsynchronousMessageTable.Record> getAsynchronousMessagesByGroup(AbstractAgent requester, Group group)  {
 		throw buildKernelException(requester);
 
 
 	}
 	@Override
-	long getDifferedMessagesNumberBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
+	long getAsynchronousMessagesNumberBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
 		throw buildKernelException(requester);
 	}
 	@Override
-	long getDifferedMessagesNumberByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
+	long getAsynchronousMessagesNumberByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
 		throw buildKernelException(requester);
 	}
 	@Override
-	long getDifferedMessagesNumberByGroup(AbstractAgent requester, Group group)  {
+	long getAsynchronousMessagesNumberByGroup(AbstractAgent requester, Group group)  {
 		throw buildKernelException(requester);
 
 	}
@@ -423,8 +423,8 @@ class FakeKernel extends MadkitKernel {
 
 	@Override
 	void transferLostForBigDataTransfer(AbstractAgent requester, ConversationID conversationID, int idPacket,
-										AgentAddress sender, AgentAddress receiver, long readDataLength, long durationInMs, AbstractDecentralizedID differedBigDataInternalIdentifier,
-										DifferedBigDataIdentifier differedBigDataIdentifier, BigDataResultMessage.Type cancelingType) {
+										AgentAddress sender, AgentAddress receiver, long readDataLength, long durationInMs, AbstractDecentralizedID asynchronousBigDataInternalIdentifier,
+										AsynchronousBigDataIdentifier asynchronousBigDataIdentifier, BigDataResultMessage.Type cancelingType) {
 		throw buildKernelException(requester);
 	}
 
@@ -550,11 +550,11 @@ class FakeKernel extends MadkitKernel {
 		throw buildKernelException(null);
 	}
 	@Override
-	DifferedBigDataTransferID sendBigDataAndDifferItIfNecessary(AbstractAgent requester, Group group, final String role,String senderRole,
-																DifferedBigDataIdentifier differedBigDataIdentifier,
-																SecureExternalizable attachedData,
-																MessageDigestType messageDigestType, boolean excludedFromEncryption,long timeOutInMs,
-																DifferedBigDataToSendWrapper differedBigDataToSendWrapper)
+	AsynchronousBigDataTransferID sendBigDataAndDifferItIfNecessary(AbstractAgent requester, Group group, final String role, String senderRole,
+																	AsynchronousBigDataIdentifier asynchronousBigDataIdentifier,
+																	SecureExternalizable attachedData,
+																	MessageDigestType messageDigestType, boolean excludedFromEncryption, long timeOutInMs,
+																	AsynchronousBigDataToSendWrapper asynchronousBigDataToSendWrapper)
 	{
 		throw buildKernelException(null);
 	}
@@ -564,8 +564,8 @@ class FakeKernel extends MadkitKernel {
 		throw buildKernelException(null);
 	}
 	@Override
-	BigDataTransferID sendDifferedBigData(AbstractAgent requester, AgentAddress senderAA, AgentAddress receiverAA,
-										  DifferedBigDataTable.Record record)
+	BigDataTransferID sendAsynchronousBigData(AbstractAgent requester, AgentAddress senderAA, AgentAddress receiverAA,
+											  AsynchronousBigDataTable.Record record)
 			{
 		throw buildKernelException(null);
 	}

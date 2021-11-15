@@ -35,7 +35,9 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-import com.distrimind.util.io.RandomOutputStream;
+import com.distrimind.util.AbstractDecentralizedID;
+import com.distrimind.util.DecentralizedIDGenerator;
+import com.distrimind.util.io.RandomInputStream;
 import com.distrimind.util.io.SecureExternalizable;
 
 /**
@@ -43,6 +45,10 @@ import com.distrimind.util.io.SecureExternalizable;
  * @version 1.0
  * @since MaDKitLanEdition 2.3.0
  */
-public interface DifferedBigDataToReceiveWrapper extends SecureExternalizable {
-	RandomOutputStream getRandomOutputStream(DifferedBigDataIdentifier differedBigDataIdentifier);
+public interface AsynchronousBigDataToSendWrapper extends SecureExternalizable {
+	default AbstractDecentralizedID generateDecentralizedIDForDatabase()
+	{
+		return new DecentralizedIDGenerator(false, true);
+	}
+	RandomInputStream getRandomInputStream(AsynchronousBigDataIdentifier asynchronousBigDataIdentifier);
 }

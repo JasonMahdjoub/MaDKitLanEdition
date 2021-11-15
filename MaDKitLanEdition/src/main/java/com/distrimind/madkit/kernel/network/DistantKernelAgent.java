@@ -466,7 +466,7 @@ class DistantKernelAgent extends AgentFakeThread {
 								MadkitKernelAccess.transferLostForBigDataTransfer(this, bdr.getOriginalMessage().getConversationID(),
 										bdr.getIDPacket(), bdr.getOriginalMessage().getSender(), bdr.getOriginalMessage().getReceiver(),
 										bdr.getStatistics().getNumberOfIdentifiedBytes(), bdr.getStatistics().getDurationMilli(),
-										bdr.getOriginalMessage().getDifferedBigDataInternalIdentifier(), bdr.getOriginalMessage().getDifferedBigDataIdentifier(), BigDataResultMessage.Type.CONNECTION_LOST);
+										bdr.getOriginalMessage().getAsynchronousBigDataInternalIdentifier(), bdr.getOriginalMessage().getAsynchronousBigDataIdentifier(), BigDataResultMessage.Type.CONNECTION_LOST);
 							}
 							current_big_data_readings.clear();
 							/*
@@ -814,7 +814,7 @@ class DistantKernelAgent extends AgentFakeThread {
 					bgpm.bigDataExcludedFromEncryption()?0:getMadkitConfig().networkProperties.maxRandomPacketValues, random, inputStream,
 					bgpm.getStartStreamPosition(), bgpm.getTransferLength(), true, bgpm.getMessageDigestType());
 			BigPacketData packetData = new BigPacketData(chosenSocket.getAgentAddress(), packet, bgpm.getReceiver(),
-					bgpm.getSender(), bgpm.getConversationID(), bgpm.getStatistics(), bgpm.bigDataExcludedFromEncryption(), bgpm.getDifferedBigDataInternalIdentifier(), bgpm.getDifferedBigDataIdentifier());
+					bgpm.getSender(), bgpm.getConversationID(), bgpm.getStatistics(), bgpm.bigDataExcludedFromEncryption(), bgpm.getAsynchronousBigDataInternalIdentifier(), bgpm.getAsynchronousBigDataIdentifier());
 			packetsDataInQueue.put(id, packetData);
 		}
 	}
@@ -2039,6 +2039,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			super.cancel();
 			AbstractAgentSocket as=agentSocket;
 			if (as!=null) {
+				//noinspection SynchronizationOnLocalVariableOrMethodParameter
 				synchronized (as) {
 					as.notifyAll();
 				}
@@ -2307,12 +2308,12 @@ class DistantKernelAgent extends AgentFakeThread {
 		private final ConversationID conversationID;
 		private final long timeUTC;
 		private final AbstractDecentralizedID differedBigDataInternalIdentifier;
-		private final DifferedBigDataIdentifier differedBigDataIdentifier;
+		private final AsynchronousBigDataIdentifier asynchronousBigDataIdentifier;
 
 		protected BigPacketData(AgentAddress _firstAgentSocketSender, WritePacket _packet, AgentAddress _agentReceiver,
 								AgentAddress caller, ConversationID conversationID, RealTimeTransferStat stat, boolean excludedFromEncryption,
 								AbstractDecentralizedID differedBigDataInternalIdentifier,
-								DifferedBigDataIdentifier differedBigDataIdentifier) {
+								AsynchronousBigDataIdentifier asynchronousBigDataIdentifier) {
 			super(false, _firstAgentSocketSender, _packet, _agentReceiver, excludedFromEncryption);
 			if (!_packet.concernsBigData())
 				throw new IllegalArgumentException("_packet has to use big data !");
@@ -2320,10 +2321,10 @@ class DistantKernelAgent extends AgentFakeThread {
 				throw new NullPointerException("caller");
 			if (conversationID == null)
 				throw new NullPointerException("conversationID");
-			if ((differedBigDataInternalIdentifier==null)!=(differedBigDataIdentifier==null))
+			if ((differedBigDataInternalIdentifier==null)!=(asynchronousBigDataIdentifier ==null))
 				throw new NullPointerException();
 			this.differedBigDataInternalIdentifier=differedBigDataInternalIdentifier;
-			this.differedBigDataIdentifier=differedBigDataIdentifier;
+			this.asynchronousBigDataIdentifier = asynchronousBigDataIdentifier;
 			this.caller = caller;
 			this.conversationID = conversationID;
 			setStat(stat);
@@ -2351,8 +2352,8 @@ class DistantKernelAgent extends AgentFakeThread {
 			return differedBigDataInternalIdentifier;
 		}
 
-		public DifferedBigDataIdentifier getDifferedBigDataIdentifier() {
-			return differedBigDataIdentifier;
+		public AsynchronousBigDataIdentifier getDifferedBigDataIdentifier() {
+			return asynchronousBigDataIdentifier;
 		}
 	}
 
@@ -2729,7 +2730,7 @@ class DistantKernelAgent extends AgentFakeThread {
 						MadkitKernelAccess.transferLostForBigDataTransfer(this, bdr.getOriginalMessage().getConversationID(),
 								bdr.getIDPacket(), bdr.getOriginalMessage().getSender(), bdr.getOriginalMessage().getReceiver(),
 								bdr.getStatistics().getNumberOfIdentifiedBytes(), bdr.getStatistics().getDurationMilli(),
-								bdr.getOriginalMessage().getDifferedBigDataInternalIdentifier(), bdr.getOriginalMessage().getDifferedBigDataIdentifier(), BigDataResultMessage.Type.TRANSFER_CANCELED);
+								bdr.getOriginalMessage().getAsynchronousBigDataInternalIdentifier(), bdr.getOriginalMessage().getAsynchronousBigDataIdentifier(), BigDataResultMessage.Type.TRANSFER_CANCELED);
 				}
 				else
 				{

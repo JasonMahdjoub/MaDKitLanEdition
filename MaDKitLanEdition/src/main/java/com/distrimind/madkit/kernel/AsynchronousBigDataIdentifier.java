@@ -35,48 +35,13 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-import com.distrimind.madkit.util.NetworkMessage;
-import com.distrimind.util.AbstractDecentralizedIDGenerator;
-import com.distrimind.util.io.SecuredObjectInputStream;
-import com.distrimind.util.io.SecuredObjectOutputStream;
-import com.distrimind.util.io.SerializationTools;
-
-import java.io.IOException;
+import com.distrimind.util.io.SecureExternalizable;
 
 /**
  * @author Jason Mahdjoub
  * @version 1.0
  * @since MaDKitLanEdition 2.3.0
  */
-public class CancelDifferedBigDataTransferMessage extends Message implements NetworkMessage {
-	private AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier;
-
-	public CancelDifferedBigDataTransferMessage() {
-	}
-
-	public CancelDifferedBigDataTransferMessage(AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier) {
-		if (differedBigDataInternalIdentifier==null)
-			throw new NullPointerException();
-		this.differedBigDataInternalIdentifier = differedBigDataInternalIdentifier;
-	}
-
-	public AbstractDecentralizedIDGenerator getDifferedBigDataInternalIdentifier() {
-		return differedBigDataInternalIdentifier;
-	}
-
-
-	@Override
-	public void writeExternal(SecuredObjectOutputStream out) throws IOException {
-		out.writeObject(differedBigDataInternalIdentifier, false);
-	}
-
-	@Override
-	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
-		differedBigDataInternalIdentifier=in.readObject(false);
-	}
-
-	@Override
-	public int getInternalSerializedSize() {
-		return SerializationTools.getInternalSize(differedBigDataInternalIdentifier);
-	}
+public interface AsynchronousBigDataIdentifier extends SecureExternalizable {
+	int MAX_ASYNCHRONOUS_BIG_DATA_IDENTIFIER_SIZE_IN_BYTES = 3000;
 }

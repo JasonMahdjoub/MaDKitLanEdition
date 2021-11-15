@@ -60,12 +60,12 @@ import static com.distrimind.util.ReflectionTools.invoke;
  * @version 1.0
  * @since MaDKitLanEdition 1.11.0
  */
-public final class DifferedMessageTable extends Table<DifferedMessageTable.Record> {
+public final class AsynchronousMessageTable extends Table<AsynchronousMessageTable.Record> {
 
-	public static final int MAX_DIFFERED_MESSAGE_LENGTH=512*1024;
+	public static final int MAX_ASYNCHRONOUS_MESSAGE_LENGTH =512*1024;
 	public static final int MAX_PATH_LENGTH=Group.MAX_PATH_LENGTH+Group.MAX_COMMUNITY_LENGTH+20;
 
-	private DifferedMessageTable() throws DatabaseException {
+	private AsynchronousMessageTable() throws DatabaseException {
 	}
 
 	public static class Record extends DatabaseRecord
@@ -87,9 +87,9 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 		@NotNull
 		private String roleReceiver;
 
-		@Field(limit=MAX_DIFFERED_MESSAGE_LENGTH)
+		@Field(limit= MAX_ASYNCHRONOUS_MESSAGE_LENGTH)
 		@NotNull
-		private byte[] differedMessage;
+		private byte[] asynchronousMessage;
 
 		@Field
 		private long utcTimeUpdate;
@@ -97,7 +97,7 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 		public Record() {
 		}
 
-		public Record(String groupPath, String roleSender, String roleReceiver, Message differedMessage) throws IOException {
+		public Record(String groupPath, String roleSender, String roleReceiver, Message asynchronousMessage) throws IOException {
 			this.id=0;
 			if (groupPath==null)
 				throw new NullPointerException();
@@ -105,18 +105,18 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 				throw new NullPointerException();
 			if (roleReceiver==null)
 				throw new NullPointerException();
-			if (differedMessage==null)
+			if (asynchronousMessage ==null)
 				throw new NullPointerException();
 			this.groupPath = groupPath;
 			this.roleSender = roleSender;
 			this.roleReceiver = roleReceiver;
 			try(RandomByteArrayOutputStream baos=new RandomByteArrayOutputStream())
 			{
-				baos.writeObject(differedMessage, false);
+				baos.writeObject(asynchronousMessage, false);
 				baos.flush();
-				this.differedMessage = baos.getBytes();
-				if (this.differedMessage.length>MAX_DIFFERED_MESSAGE_LENGTH)
-					throw new IllegalArgumentException("Differed message size ("+HumanReadableBytesCount.convertToString(this.differedMessage.length)+") exceed limit of "+ HumanReadableBytesCount.convertToString(MAX_DIFFERED_MESSAGE_LENGTH));
+				this.asynchronousMessage = baos.getBytes();
+				if (this.asynchronousMessage.length> MAX_ASYNCHRONOUS_MESSAGE_LENGTH)
+					throw new IllegalArgumentException("Asynchronous message size ("+HumanReadableBytesCount.convertToString(this.asynchronousMessage.length)+") exceed limit of "+ HumanReadableBytesCount.convertToString(MAX_ASYNCHRONOUS_MESSAGE_LENGTH));
 			}
 			this.utcTimeUpdate=System.currentTimeMillis();
 		}
@@ -141,8 +141,8 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 			return roleReceiver;
 		}
 
-		public Message getDifferedMessage() throws IOException, ClassNotFoundException {
-			try(RandomByteArrayInputStream bais=new RandomByteArrayInputStream(differedMessage))
+		public Message getAsynchronousMessage() throws IOException, ClassNotFoundException {
+			try(RandomByteArrayInputStream bais=new RandomByteArrayInputStream(asynchronousMessage))
 			{
 				return bais.readObject(false, Message.class);
 			}
@@ -172,7 +172,7 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 				if (aa!=null) {
 					try {
 
-						if (abstractAgent.sendMessageWithRole(aa, _record.getDifferedMessage(), r)== AbstractAgent.ReturnCode.SUCCESS) {
+						if (abstractAgent.sendMessageWithRole(aa, _record.getAsynchronousMessage(), r)== AbstractAgent.ReturnCode.SUCCESS) {
 							if (where.length()>startQueryLength)
 								where.append(" OR ");
 
@@ -268,7 +268,7 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 						AgentAddress aa=abstractAgent.getAgentWithRole(agentAddress.getGroup(), _record.getRoleReceiver());
 						if (aa!=null) {
 							try {
-								if (abstractAgent.sendMessageWithRole(aa, _record.getDifferedMessage(), _record.getRoleSender())== AbstractAgent.ReturnCode.SUCCESS)
+								if (abstractAgent.sendMessageWithRole(aa, _record.getAsynchronousMessage(), _record.getRoleSender())== AbstractAgent.ReturnCode.SUCCESS)
 								{
 									if (where.length() > startQueryLength)
 										where.append(" OR ");
@@ -400,32 +400,32 @@ public final class DifferedMessageTable extends Table<DifferedMessageTable.Recor
 		}
 
 	}
-	public long cancelDifferedMessagesBySenderRole(Group group, String senderRole) throws DatabaseException {
+	public long cancelAsynchronousMessagesBySenderRole(Group group, String senderRole) throws DatabaseException {
 		return removeRecords("groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
 	}
-	public long cancelDifferedMessagesByReceiverRole(Group group, String receiverRole) throws DatabaseException {
+	public long cancelAsynchronousMessagesByReceiverRole(Group group, String receiverRole) throws DatabaseException {
 		return removeRecords("groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.toString(), "roleReceiver", receiverRole);
 	}
-	public long cancelDifferedMessagesByGroup(Group group) throws DatabaseException {
+	public long cancelAsynchronousMessagesByGroup(Group group) throws DatabaseException {
 		return removeRecords("groupPath=%groupPath", "groupPath", group.toString());
 	}
 
-	public List<Record> getDifferedMessagesBySenderRole(Group group, String senderRole) throws DatabaseException {
+	public List<Record> getAsynchronousMessagesBySenderRole(Group group, String senderRole) throws DatabaseException {
 		return getRecords("groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
 	}
-	public List<Record> getDifferedMessagesByReceiverRole(Group group, String receiverRole) throws DatabaseException {
+	public List<Record> getAsynchronousMessagesByReceiverRole(Group group, String receiverRole) throws DatabaseException {
 		return getRecords("groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.toString(), "roleReceiver", receiverRole);
 	}
-	public List<Record> getDifferedMessagesByGroup(Group group) throws DatabaseException {
+	public List<Record> getAsynchronousMessagesByGroup(Group group) throws DatabaseException {
 		return getRecords("groupPath=%groupPath", "groupPath", group.toString());
 	}
-	public long getDifferedMessagesNumberBySenderRole(Group group, String senderRole) throws DatabaseException {
+	public long getAsynchronousMessagesNumberBySenderRole(Group group, String senderRole) throws DatabaseException {
 		return getRecordsNumber("groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
 	}
-	public long getDifferedMessagesNumberByReceiverRole(Group group, String receiverRole) throws DatabaseException {
+	public long getAsynchronousMessagesNumberByReceiverRole(Group group, String receiverRole) throws DatabaseException {
 		return getRecordsNumber("groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.toString(), "roleReceiver", receiverRole);
 	}
-	public long getDifferedMessagesNumberByGroup(Group group) throws DatabaseException {
+	public long getAsynchronousMessagesNumberByGroup(Group group) throws DatabaseException {
 		return getRecordsNumber("groupPath=%groupPath", "groupPath", group.toString());
 	}
 

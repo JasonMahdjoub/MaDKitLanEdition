@@ -43,8 +43,8 @@ import com.distrimind.madkit.action.KernelAction;
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.agr.LocalCommunity.Groups;
 import com.distrimind.madkit.agr.LocalCommunity.Roles;
-import com.distrimind.madkit.database.DifferedBigDataTable;
-import com.distrimind.madkit.database.DifferedMessageTable;
+import com.distrimind.madkit.database.AsynchronousBigDataTable;
+import com.distrimind.madkit.database.AsynchronousMessageTable;
 import com.distrimind.madkit.exceptions.MadkitException;
 import com.distrimind.madkit.gui.AgentStatusPanel;
 import com.distrimind.madkit.gui.ConsoleAgent;
@@ -234,8 +234,8 @@ class MadkitKernel extends Agent {
 	private final Map<KernelAddress, InterfacedIDs> globalInterfacedIds;
 	//private final boolean lockSocketUntilCGRSynchroIsSent;
 
-	private volatile DifferedMessageTable differedMessageTable=null;
-	private volatile DifferedBigDataTable differedBigDataTable=null;
+	private volatile AsynchronousMessageTable asynchronousMessageTable =null;
+	private volatile AsynchronousBigDataTable asynchronousBigDataTable =null;
 
 	/**
 	 * Constructing the real one.
@@ -294,12 +294,12 @@ class MadkitKernel extends Agent {
 
 		madkitConfig.getApprovedRandomType();
 		madkitConfig.getApprovedRandomTypeForKeys();
-		differedMessageTable=null;
-		differedBigDataTable=null;
+		asynchronousMessageTable =null;
+		asynchronousBigDataTable =null;
 		if (madkitConfig.isDatabaseEnabled()) {
 			try {
-				differedMessageTable= madkitConfig.getDatabaseWrapper().getTableInstance(DifferedMessageTable.class);
-				differedBigDataTable= madkitConfig.getDatabaseWrapper().getTableInstance(DifferedBigDataTable.class);
+				asynchronousMessageTable = madkitConfig.getDatabaseWrapper().getTableInstance(AsynchronousMessageTable.class);
+				asynchronousBigDataTable = madkitConfig.getDatabaseWrapper().getTableInstance(AsynchronousBigDataTable.class);
 			} catch (DatabaseException e) {
 				bugReport(e);
 				try {
@@ -313,8 +313,8 @@ class MadkitKernel extends Agent {
 
 	}
 
-	DifferedBigDataTable getDifferedBigDataTable() {
-		return differedBigDataTable;
+	AsynchronousBigDataTable getAsynchronousBigDataTable() {
+		return asynchronousBigDataTable;
 	}
 
 	AgentThreadFactory getNormalAgentThreadFactory() {
@@ -1100,19 +1100,19 @@ class MadkitKernel extends Agent {
 	void informHooks(HookMessage hook_message) {
 		if (hook_message != null) {
 
-			if (differedMessageTable != null && hook_message.getClass() == OrganizationEvent.class)
+			if (asynchronousMessageTable != null && hook_message.getClass() == OrganizationEvent.class)
 			{
 				OrganizationEvent oe=(OrganizationEvent)hook_message;
 
 				if (oe.getContent()==AgentActionEvent.REQUEST_ROLE) {
 					try {
-						differedMessageTable.newAgentConnected(platform.getConfigOption().rootOfPathGroupUsedToFilterDifferedMessages, oe.getSourceAgent().getAgent(), oe.getSourceAgent());
+						asynchronousMessageTable.newAgentConnected(platform.getConfigOption().rootOfPathGroupUsedToFilterAsynchronousMessages, oe.getSourceAgent().getAgent(), oe.getSourceAgent());
 					} catch (DatabaseException e) {
 						logLifeException(e);
 					}
 				}
 				else if (oe.getContent()==AgentActionEvent.LEAVE_ROLE) {
-					differedMessageTable.newAgentDisconnected(platform.getConfigOption().rootOfPathGroupUsedToFilterDifferedMessages, oe.getSourceAgent());
+					asynchronousMessageTable.newAgentDisconnected(platform.getConfigOption().rootOfPathGroupUsedToFilterAsynchronousMessages, oe.getSourceAgent());
 				}
 
 			} else if (hook_message.getClass() == NetworkEventMessage.class) {
@@ -1473,24 +1473,24 @@ class MadkitKernel extends Agent {
 		if (!(message instanceof com.distrimind.madkit.util.NetworkMessage))
 			throw new IllegalArgumentException(message+" must implement NetworkMessage interface");
 
-		if (differedMessageTable==null) {
+		if (asynchronousMessageTable ==null) {
 			bugReport(new MadkitException("Cannot differ message when no database was loaded !"));
 			return IGNORED;
 		}
 		try {
 			message.setSender(new AgentAddress());
-			return differedMessageTable.differMessage(platform.getConfigOption().rootOfPathGroupUsedToFilterDifferedMessages, requester,group, senderRole, role, message);
+			return asynchronousMessageTable.differMessage(platform.getConfigOption().rootOfPathGroupUsedToFilterAsynchronousMessages, requester,group, senderRole, role, message);
 		} catch (DatabaseException e) {
 			bugReport(e);
 			return IGNORED;
 		}
 
 	}
-	DifferedBigDataTransferID sendBigDataAndDifferItIfNecessary(AbstractAgent requester, Group group, final String role,String senderRole,
-														DifferedBigDataIdentifier differedBigDataIdentifier,
-														SecureExternalizable attachedData,
-														MessageDigestType messageDigestType, boolean excludedFromEncryption,long timeOutInMs,
-														DifferedBigDataToSendWrapper differedBigDataToSendWrapper) {
+	AsynchronousBigDataTransferID sendBigDataAndDifferItIfNecessary(AbstractAgent requester, Group group, final String role, String senderRole,
+																	AsynchronousBigDataIdentifier asynchronousBigDataIdentifier,
+																	SecureExternalizable attachedData,
+																	MessageDigestType messageDigestType, boolean excludedFromEncryption, long timeOutInMs,
+																	AsynchronousBigDataToSendWrapper asynchronousBigDataToSendWrapper) {
 		if (requester==null)
 			throw new NullPointerException();
 		if (group==null)
@@ -1500,69 +1500,69 @@ class MadkitKernel extends Agent {
 		if (senderRole==null)
 			throw new NullPointerException();
 
-		if (differedBigDataTable==null) {
+		if (asynchronousBigDataTable ==null) {
 			bugReport(new MadkitException("Cannot differ message when no database was loaded !"));
 			return null;
 		}
 
-		DifferedBigDataTable.Record r=differedBigDataTable.startDifferedBigData(
-				platform.getConfigOption().rootOfPathGroupUsedToFilterDifferedMessages, requester,
+		AsynchronousBigDataTable.Record r= asynchronousBigDataTable.startAsynchronousBigDataTransfer(
+				platform.getConfigOption().rootOfPathGroupUsedToFilterAsynchronousMessages, requester,
 				group, senderRole, role,
-				differedBigDataIdentifier, attachedData, messageDigestType, excludedFromEncryption, timeOutInMs,
-				differedBigDataToSendWrapper);
+				asynchronousBigDataIdentifier, attachedData, messageDigestType, excludedFromEncryption, timeOutInMs,
+				asynchronousBigDataToSendWrapper);
 		if (r==null)
 			return null;
 		else
 		{
-			return new DifferedBigDataTransferID(r.getDifferedBigDataInternalIdentifier(), r.getDifferedBigDataIdentifier(), this);
+			return new AsynchronousBigDataTransferID(r.getAsynchronousBigDataInternalIdentifier(), r.getAsynchronousBigDataIdentifier(), this);
 		}
 	}
 
-	long cancelDifferedMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
+	long cancelAsynchronousMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
 		if (group==null)
 			throw new NullPointerException();
 		if (senderRole==null)
 			throw new NullPointerException();
 
-		if (differedMessageTable==null)
+		if (asynchronousMessageTable ==null)
 		{
-			bugReport(new MadkitException("Cannot differ cancel differed messages when no database was loaded !"));
+			bugReport(new MadkitException("Cannot cancel asynchronous messages when no database was loaded !"));
 			return 0;
 		}
 		try {
-			return differedMessageTable.cancelDifferedMessagesBySenderRole(group, senderRole);
+			return asynchronousMessageTable.cancelAsynchronousMessagesBySenderRole(group, senderRole);
 		} catch (DatabaseException e) {
 			bugReport(e);
 			return 0;
 		}
 	}
-	long cancelDifferedMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
+	long cancelAsynchronousMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
 		if (group==null)
 			throw new NullPointerException();
 		if (receiverRole==null)
 			throw new NullPointerException();
 
-		if (differedMessageTable==null) {
-			bugReport(new MadkitException("Cannot differ cancel differed messages when no database was loaded !"));
+		if (asynchronousMessageTable ==null) {
+			bugReport(new MadkitException("Cannot cancel asynchronous messages when no database was loaded !"));
 			return 0;
 		}
 		try {
-			return differedMessageTable.cancelDifferedMessagesByReceiverRole(group, receiverRole);
+			return asynchronousMessageTable.cancelAsynchronousMessagesByReceiverRole(group, receiverRole);
 		} catch (DatabaseException e) {
 			bugReport(e);
 			return 0;
 		}
 	}
-	long cancelDifferedMessagesByGroup(AbstractAgent requester, Group group)  {
+	long cancelAsynchronousMessagesByGroup(AbstractAgent requester, Group group)  {
 		if (group==null)
 			throw new NullPointerException();
 
-		if (differedMessageTable==null) {
-			bugReport(new MadkitException("Cannot differ cancel differed messages when no database was loaded !"));
+		if (asynchronousMessageTable ==null) {
+			bugReport(new MadkitException("Cannot cancel asynchronous messages when no database was loaded !"));
 			return 0;
 		}
 		try {
-			return differedMessageTable.cancelDifferedMessagesByGroup(group);
+			return asynchronousMessageTable.cancelAsynchronousMessagesByGroup(group);
 		} catch (DatabaseException e) {
 			bugReport(e);
 			return 0;
@@ -1570,102 +1570,102 @@ class MadkitKernel extends Agent {
 
 	}
 
-	List<DifferedMessageTable.Record> getDifferedMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
+	List<AsynchronousMessageTable.Record> getAsynchronousMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
 		if (group==null)
 			throw new NullPointerException();
 		if (senderRole==null)
 			throw new NullPointerException();
 
-		if (differedMessageTable==null)
+		if (asynchronousMessageTable ==null)
 		{
-			bugReport(new MadkitException("Cannot get differed messages when no database was loaded !"));
+			bugReport(new MadkitException("Cannot get asynchronous messages when no database was loaded !"));
 			return new ArrayList<>(0);
 		}
 		try {
-			return differedMessageTable.getDifferedMessagesBySenderRole(group, senderRole);
+			return asynchronousMessageTable.getAsynchronousMessagesBySenderRole(group, senderRole);
 		} catch (DatabaseException e) {
 			bugReport(e);
 			return new ArrayList<>(0);
 		}
 	}
-	List<DifferedMessageTable.Record> getDifferedMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
+	List<AsynchronousMessageTable.Record> getAsynchronousMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
 		if (group==null)
 			throw new NullPointerException();
 		if (receiverRole==null)
 			throw new NullPointerException();
 
-		if (differedMessageTable==null) {
-			bugReport(new MadkitException("Cannot get differed messages when no database was loaded !"));
+		if (asynchronousMessageTable ==null) {
+			bugReport(new MadkitException("Cannot get asynchronous messages when no database was loaded !"));
 			return new ArrayList<>(0);
 		}
 		try {
-			return differedMessageTable.getDifferedMessagesByReceiverRole(group, receiverRole);
+			return asynchronousMessageTable.getAsynchronousMessagesByReceiverRole(group, receiverRole);
 		} catch (DatabaseException e) {
 			bugReport(e);
 			return new ArrayList<>(0);
 		}
 	}
-	List<DifferedMessageTable.Record> getDifferedMessagesByGroup(AbstractAgent requester, Group group)  {
+	List<AsynchronousMessageTable.Record> getAsynchronousMessagesByGroup(AbstractAgent requester, Group group)  {
 		if (group==null)
 			throw new NullPointerException();
 
-		if (differedMessageTable==null) {
-			bugReport(new MadkitException("Cannot get differed messages when no database was loaded !"));
+		if (asynchronousMessageTable ==null) {
+			bugReport(new MadkitException("Cannot get asynchronous messages when no database was loaded !"));
 			return new ArrayList<>(0);
 		}
 		try {
-			return differedMessageTable.getDifferedMessagesByGroup(group);
+			return asynchronousMessageTable.getAsynchronousMessagesByGroup(group);
 		} catch (DatabaseException e) {
 			bugReport(e);
 			return new ArrayList<>(0);
 		}
 
 	}
-	long getDifferedMessagesNumberBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
+	long getAsynchronousMessagesNumberBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
 		if (group==null)
 			throw new NullPointerException();
 		if (senderRole==null)
 			throw new NullPointerException();
 
-		if (differedMessageTable==null)
+		if (asynchronousMessageTable ==null)
 		{
-			bugReport(new MadkitException("Cannot get differed messages when no database was loaded !"));
+			bugReport(new MadkitException("Cannot get asynchronous messages when no database was loaded !"));
 			return 0;
 		}
 		try {
-			return differedMessageTable.getDifferedMessagesNumberBySenderRole(group, senderRole);
+			return asynchronousMessageTable.getAsynchronousMessagesNumberBySenderRole(group, senderRole);
 		} catch (DatabaseException e) {
 			bugReport(e);
 			return 0;
 		}
 	}
-	long getDifferedMessagesNumberByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
+	long getAsynchronousMessagesNumberByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
 		if (group==null)
 			throw new NullPointerException();
 		if (receiverRole==null)
 			throw new NullPointerException();
 
-		if (differedMessageTable==null) {
-			bugReport(new MadkitException("Cannot get differed messages when no database was loaded !"));
+		if (asynchronousMessageTable ==null) {
+			bugReport(new MadkitException("Cannot get asynchronous messages when no database was loaded !"));
 			return 0;
 		}
 		try {
-			return differedMessageTable.getDifferedMessagesNumberByReceiverRole(group, receiverRole);
+			return asynchronousMessageTable.getAsynchronousMessagesNumberByReceiverRole(group, receiverRole);
 		} catch (DatabaseException e) {
 			bugReport(e);
 			return 0;
 		}
 	}
-	long getDifferedMessagesNumberByGroup(AbstractAgent requester, Group group)  {
+	long getAsynchronousMessagesNumberByGroup(AbstractAgent requester, Group group)  {
 		if (group==null)
 			throw new NullPointerException();
 
-		if (differedMessageTable==null) {
-			bugReport(new MadkitException("Cannot get differed messages when no database was loaded !"));
+		if (asynchronousMessageTable ==null) {
+			bugReport(new MadkitException("Cannot get asynchronous messages when no database was loaded !"));
 			return 0;
 		}
 		try {
-			return differedMessageTable.getDifferedMessagesNumberByGroup(group);
+			return asynchronousMessageTable.getAsynchronousMessagesNumberByGroup(group);
 		} catch (DatabaseException e) {
 			bugReport(e);
 			return 0;
@@ -3213,8 +3213,8 @@ class MadkitKernel extends Agent {
 		kernel = this;
 		loggedKernel = null;
 		platform = null;
-		differedMessageTable=null;
-		differedBigDataTable=null;
+		asynchronousMessageTable =null;
+		asynchronousBigDataTable =null;
 		operatingOverlookers.clear();
 		synchronized (state) {
 			state.set(TERMINATED);
@@ -3730,16 +3730,16 @@ class MadkitKernel extends Agent {
 			return IGNORED;
 	}
 
-	BigDataTransferID sendDifferedBigData(AbstractAgent requester, AgentAddress senderAA, AgentAddress receiverAA,
-										  DifferedBigDataTable.Record record)
+	BigDataTransferID sendAsynchronousBigData(AbstractAgent requester, AgentAddress senderAA, AgentAddress receiverAA,
+											  AsynchronousBigDataTable.Record record)
 			throws IOException {
 		if (senderAA == null)
 			throw new NullPointerException("agentAddress");
 		if (receiverAA==null)
 			throw new NullPointerException();
-		RandomInputStream inputStream=record.getDifferedBigDataToSendWrapper().getRandomInputStream(record.getDifferedBigDataIdentifier());
+		RandomInputStream inputStream=record.getAsynchronousBigDataToSendWrapper().getRandomInputStream(record.getAsynchronousBigDataIdentifier());
 		if (inputStream==null) {
-			differedBigDataTable.cancelTransfer(requester, record);
+			asynchronousBigDataTable.cancelTransfer(requester, record);
 			return null;
 		}
 		RealTimeTransferStat stat = new RealTimeTransferStat(
@@ -3796,11 +3796,11 @@ class MadkitKernel extends Agent {
 	}
 
 	void transferLostForBigDataTransfer(AbstractAgent requester, ConversationID conversationID, int idPacket,
-			AgentAddress sender, AgentAddress receiver, long readDataLength, long durationInMs, AbstractDecentralizedID differedBigDataInternalIdentifier,
-										  DifferedBigDataIdentifier differedBigDataIdentifier, BigDataResultMessage.Type cancelingType) {
+										AgentAddress sender, AgentAddress receiver, long readDataLength, long durationInMs, AbstractDecentralizedID asynchronousBigDataInternalIdentifier,
+										AsynchronousBigDataIdentifier asynchronousBigDataIdentifier, BigDataResultMessage.Type cancelingType) {
 		assert cancelingType==BigDataResultMessage.Type.CONNECTION_LOST || cancelingType==BigDataResultMessage.Type.TRANSFER_CANCELED;
 		BigDataResultMessage m = new BigDataResultMessage(cancelingType, readDataLength,
-				idPacket, durationInMs, differedBigDataInternalIdentifier, differedBigDataIdentifier);
+				idPacket, durationInMs, asynchronousBigDataInternalIdentifier, asynchronousBigDataIdentifier);
 		m.setSender(receiver);
 		m.setReceiver(sender);
 		sender.getAgent().receiveMessage(m);

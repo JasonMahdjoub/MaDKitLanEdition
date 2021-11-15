@@ -37,8 +37,8 @@
  */
 package com.distrimind.madkit.kernel;
 
-import com.distrimind.madkit.database.DifferedBigDataTable;
-import com.distrimind.madkit.database.DifferedMessageTable;
+import com.distrimind.madkit.database.AsynchronousBigDataTable;
+import com.distrimind.madkit.database.AsynchronousMessageTable;
 import com.distrimind.madkit.i18n.Words;
 import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
 import com.distrimind.madkit.kernel.network.*;
@@ -309,80 +309,80 @@ final class LoggedKernel extends MadkitKernel {
 
 	}
 	@Override
-	long cancelDifferedMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
-		long res= kernel.cancelDifferedMessagesBySenderRole(requester, group, senderRole);
+	long cancelAsynchronousMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
+		long res= kernel.cancelAsynchronousMessagesBySenderRole(requester, group, senderRole);
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST,
-					Influence.CANCEL_DIFFERED_MESSAGES_BY_SENDER_ROLE + " (group=" + group+" , senderRole="+senderRole + ", removedNumber="+res+")" + requester.getName());
+					Influence.CANCEL_ASYNCHRONOUS_MESSAGES_BY_SENDER_ROLE + " (group=" + group+" , senderRole="+senderRole + ", removedNumber="+res+")" + requester.getName());
 		return res;
 	}
 	@Override
-	long cancelDifferedMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
-		long res= kernel.cancelDifferedMessagesByReceiverRole(requester, group, receiverRole);
+	long cancelAsynchronousMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
+		long res= kernel.cancelAsynchronousMessagesByReceiverRole(requester, group, receiverRole);
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST,
-					Influence.CANCEL_DIFFERED_MESSAGES_BY_RECEIVER_ROLE + " (group=" + group+" , receiverRole="+receiverRole + ", removedNumber="+res+")" + requester.getName());
+					Influence.CANCEL_ASYNCHRONOUS_MESSAGES_BY_RECEIVER_ROLE + " (group=" + group+" , receiverRole="+receiverRole + ", removedNumber="+res+")" + requester.getName());
 		return res;
 	}
 	@Override
-	long cancelDifferedMessagesByGroup(AbstractAgent requester, Group group)  {
-		long res= kernel.cancelDifferedMessagesByGroup(requester, group);
+	long cancelAsynchronousMessagesByGroup(AbstractAgent requester, Group group)  {
+		long res= kernel.cancelAsynchronousMessagesByGroup(requester, group);
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST,
-					Influence.CANCEL_DIFFERED_MESSAGES_BY_GROUP + " (group=" + group+", removedNumber="+res+")" + requester.getName());
-		return res;
-
-	}
-	@Override
-	List<DifferedMessageTable.Record> getDifferedMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
-		List<DifferedMessageTable.Record> res= kernel.getDifferedMessagesBySenderRole(requester, group, senderRole);
-		if (requester.isFinestLogOn())
-			requester.logger.log(Level.FINEST,
-					Influence.GET_DIFFERED_MESSAGES_BY_SENDER_ROLE + " (group=" + group+" , senderRole="+senderRole + ", removedNumber="+res+")" + requester.getName());
+					Influence.CANCEL_ASYNCHRONOUS_MESSAGES_BY_GROUP + " (group=" + group+", removedNumber="+res+")" + requester.getName());
 		return res;
 
 	}
 	@Override
-	List<DifferedMessageTable.Record> getDifferedMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
-		List<DifferedMessageTable.Record> res= kernel.getDifferedMessagesByReceiverRole(requester, group, receiverRole);
+	List<AsynchronousMessageTable.Record> getAsynchronousMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
+		List<AsynchronousMessageTable.Record> res= kernel.getAsynchronousMessagesBySenderRole(requester, group, senderRole);
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST,
-					Influence.GET_DIFFERED_MESSAGES_BY_RECEIVER_ROLE + " (group=" + group+" , receiverRole="+receiverRole + ", removedNumber="+res+")" + requester.getName());
+					Influence.GET_ASYNCHRONOUS_MESSAGES_BY_SENDER_ROLE + " (group=" + group+" , senderRole="+senderRole + ", removedNumber="+res+")" + requester.getName());
 		return res;
 
 	}
 	@Override
-	List<DifferedMessageTable.Record> getDifferedMessagesByGroup(AbstractAgent requester, Group group)  {
-		List<DifferedMessageTable.Record> res= kernel.getDifferedMessagesByGroup(requester, group);
+	List<AsynchronousMessageTable.Record> getAsynchronousMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
+		List<AsynchronousMessageTable.Record> res= kernel.getAsynchronousMessagesByReceiverRole(requester, group, receiverRole);
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST,
-					Influence.GET_DIFFERED_MESSAGES_BY_GROUP + " (group=" + group+", removedNumber="+res+")" + requester.getName());
+					Influence.GET_ASYNCHRONOUS_MESSAGES_BY_RECEIVER_ROLE + " (group=" + group+" , receiverRole="+receiverRole + ", removedNumber="+res+")" + requester.getName());
+		return res;
+
+	}
+	@Override
+	List<AsynchronousMessageTable.Record> getAsynchronousMessagesByGroup(AbstractAgent requester, Group group)  {
+		List<AsynchronousMessageTable.Record> res= kernel.getAsynchronousMessagesByGroup(requester, group);
+		if (requester.isFinestLogOn())
+			requester.logger.log(Level.FINEST,
+					Influence.GET_ASYNCHRONOUS_MESSAGES_BY_GROUP + " (group=" + group+", removedNumber="+res+")" + requester.getName());
 		return res;
 
 
 	}
 	@Override
-	long getDifferedMessagesNumberBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
-		long res= kernel.getDifferedMessagesNumberBySenderRole(requester, group, senderRole);
+	long getAsynchronousMessagesNumberBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
+		long res= kernel.getAsynchronousMessagesNumberBySenderRole(requester, group, senderRole);
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST,
-					Influence.GET_DIFFERED_MESSAGES_NUMBER_BY_SENDER_ROLE + " (group=" + group+" , senderRole="+senderRole + ", removedNumber="+res+")" + requester.getName());
+					Influence.GET_ASYNCHRONOUS_MESSAGES_NUMBER_BY_SENDER_ROLE + " (group=" + group+" , senderRole="+senderRole + ", removedNumber="+res+")" + requester.getName());
 		return res;
 	}
 	@Override
-	long getDifferedMessagesNumberByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
-		long res= kernel.getDifferedMessagesNumberByReceiverRole(requester, group, receiverRole);
+	long getAsynchronousMessagesNumberByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
+		long res= kernel.getAsynchronousMessagesNumberByReceiverRole(requester, group, receiverRole);
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST,
-					Influence.GET_DIFFERED_MESSAGES_NUMBER_BY_RECEIVER_ROLE + " (group=" + group+" , receiverRole="+receiverRole + ", removedNumber="+res+")" + requester.getName());
+					Influence.GET_ASYNCHRONOUS_MESSAGES_NUMBER_BY_RECEIVER_ROLE + " (group=" + group+" , receiverRole="+receiverRole + ", removedNumber="+res+")" + requester.getName());
 		return res;
 	}
 	@Override
-	long getDifferedMessagesNumberByGroup(AbstractAgent requester, Group group)  {
-		long res= kernel.getDifferedMessagesNumberByGroup(requester, group);
+	long getAsynchronousMessagesNumberByGroup(AbstractAgent requester, Group group)  {
+		long res= kernel.getAsynchronousMessagesNumberByGroup(requester, group);
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST,
-					Influence.GET_DIFFERED_MESSAGES_NUMBER_BY_GROUP + " (group=" + group+", removedNumber="+res+")" + requester.getName());
+					Influence.GET_ASYNCHRONOUS_MESSAGES_NUMBER_BY_GROUP + " (group=" + group+", removedNumber="+res+")" + requester.getName());
 		return res;
 
 	}
@@ -505,8 +505,8 @@ final class LoggedKernel extends MadkitKernel {
 	}
 
 	@Override
-	DifferedBigDataTable getDifferedBigDataTable() {
-		return kernel.getDifferedBigDataTable();
+	AsynchronousBigDataTable getAsynchronousBigDataTable() {
+		return kernel.getAsynchronousBigDataTable();
 	}
 
 	@Override
@@ -650,10 +650,10 @@ final class LoggedKernel extends MadkitKernel {
 
 	@Override
 	void transferLostForBigDataTransfer(AbstractAgent requester, ConversationID conversationID, int idPacket,
-										  AgentAddress sender, AgentAddress receiver, long readDataLength, long durationInMs, AbstractDecentralizedID differedBigDataInternalIdentifier,
-										  DifferedBigDataIdentifier differedBigDataIdentifier, BigDataResultMessage.Type cancelingType) {
+										AgentAddress sender, AgentAddress receiver, long readDataLength, long durationInMs, AbstractDecentralizedID asynchronousBigDataInternalIdentifier,
+										AsynchronousBigDataIdentifier asynchronousBigDataIdentifier, BigDataResultMessage.Type cancelingType) {
 		kernel.transferLostForBigDataTransfer(requester, conversationID, idPacket, sender, receiver, readDataLength,
-				durationInMs, differedBigDataInternalIdentifier, differedBigDataIdentifier, cancelingType);
+				durationInMs, asynchronousBigDataInternalIdentifier, asynchronousBigDataIdentifier, cancelingType);
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST,
 					"transferLostForBigDataTransfer (Agent " + requester + ", conversation ID " + conversationID
@@ -971,20 +971,20 @@ final class LoggedKernel extends MadkitKernel {
 	}
 
 	@Override
-	DifferedBigDataTransferID sendBigDataAndDifferItIfNecessary(AbstractAgent requester, Group group, final String role,String senderRole,
-														DifferedBigDataIdentifier differedBigDataIdentifier,
-														SecureExternalizable attachedData,
-														MessageDigestType messageDigestType, boolean excludedFromEncryption,long timeOutInMs,
-														DifferedBigDataToSendWrapper differedBigDataToSendWrapper)
+	AsynchronousBigDataTransferID sendBigDataAndDifferItIfNecessary(AbstractAgent requester, Group group, final String role, String senderRole,
+																	AsynchronousBigDataIdentifier asynchronousBigDataIdentifier,
+																	SecureExternalizable attachedData,
+																	MessageDigestType messageDigestType, boolean excludedFromEncryption, long timeOutInMs,
+																	AsynchronousBigDataToSendWrapper asynchronousBigDataToSendWrapper)
 	{
-		DifferedBigDataTransferID r=kernel.sendBigDataAndDifferItIfNecessary(requester, group, role, senderRole,
-				differedBigDataIdentifier, attachedData, messageDigestType, excludedFromEncryption, timeOutInMs,
-				differedBigDataToSendWrapper);
+		AsynchronousBigDataTransferID r=kernel.sendBigDataAndDifferItIfNecessary(requester, group, role, senderRole,
+				asynchronousBigDataIdentifier, attachedData, messageDigestType, excludedFromEncryption, timeOutInMs,
+				asynchronousBigDataToSendWrapper);
 		if (kernel.isFinestLogOn())
 			kernel.logger.log(Level.FINEST, "sendBigDataAndDifferItIfNecessary (requester="+requester+", group="+group
 					+", destinationRole="+role
 					+", senderRole="+senderRole
-					+", differedBidDataIdentifier="+differedBigDataIdentifier
+					+", differedBidDataIdentifier="+ asynchronousBigDataIdentifier
 					+", messageDigestType="+messageDigestType
 					+", excludedFromEncryption="+excludedFromEncryption
 					+", timeOutInMs="+timeOutInMs
@@ -1001,10 +1001,10 @@ final class LoggedKernel extends MadkitKernel {
 		return r;
 	}
 	@Override
-	BigDataTransferID sendDifferedBigData(AbstractAgent requester, AgentAddress senderAA, AgentAddress receiverAA,
-										  DifferedBigDataTable.Record record)
+	BigDataTransferID sendAsynchronousBigData(AbstractAgent requester, AgentAddress senderAA, AgentAddress receiverAA,
+											  AsynchronousBigDataTable.Record record)
 			throws IOException {
-		BigDataTransferID r=kernel.sendDifferedBigData(requester, senderAA, receiverAA, record);
+		BigDataTransferID r=kernel.sendAsynchronousBigData(requester, senderAA, receiverAA, record);
 		if (kernel.isFinestLogOn())
 			kernel.logger.log(Level.FINEST, "sendBigDataAndDifferItIfNecessary (requester="+requester+", senderAA="+senderAA
 					+", receiverAA="+receiverAA
