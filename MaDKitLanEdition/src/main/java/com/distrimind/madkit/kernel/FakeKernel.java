@@ -46,7 +46,6 @@ import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.util.AbstractDecentralizedID;
 import com.distrimind.util.IDGeneratorInt;
-import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.crypto.MessageDigestType;
 import com.distrimind.util.io.RandomInputStream;
 import com.distrimind.util.io.SecureExternalizable;
@@ -557,6 +556,12 @@ class FakeKernel extends MadkitKernel {
 	BigDataTransferID sendAsynchronousBigData(AbstractAgent requester, AgentAddress senderAA, AgentAddress receiverAA,
 											  AsynchronousBigDataTable.Record record)
 			{
+		throw buildKernelException(null);
+	}
+
+	@Override
+	boolean receivedPotentialAsynchronousBigDataResultMessage(AbstractAgent requester, BigDataResultMessage m)
+	{
 		throw buildKernelException(null);
 	}
 }

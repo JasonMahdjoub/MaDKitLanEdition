@@ -991,4 +991,15 @@ final class LoggedKernel extends MadkitKernel {
 					+", res=" + r + ")");
 		return r;
 	}
+
+	@Override
+	boolean receivedPotentialAsynchronousBigDataResultMessage(AbstractAgent requester, BigDataResultMessage m)
+	{
+		boolean r=kernel.receivedPotentialAsynchronousBigDataResultMessage(requester, m);
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "receivedPotentialAsynchronousBigDataResultMessage (requester="+requester+", message="+m
+					+", res=" + r + ")");
+		return r;
+	}
+
 }

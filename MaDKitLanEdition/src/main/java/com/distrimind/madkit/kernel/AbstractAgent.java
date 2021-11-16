@@ -2645,26 +2645,37 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @param m the received message
 	 * @return the message actually received
 	 */
-	public Message receiveMessage(final Message m) {
-		if (m == null)
+	public Message receiveMessage(Message messageTaken) {
+		if (messageTaken == null)
 			return null;
 		ChainedBlockingDeque<Message> messageBox=getMessageBox();
 		Lock l=messageBox.getLocker();
 		l.lock();
 		try {
-			Message messageTaken = m;
-			Replies r = getConversationNotLocked(m);
+
+			Replies r = getConversationNotLocked(messageTaken);
 			if (r != null) {
-				if (r.addReplyNotLocked(m) && removeConversationNotLocked(r)) {
+				if (r.addReplyNotLocked(messageTaken) && removeConversationNotLocked(r)) {
 					messageTaken = r;
 				} else {
 					messageTaken = null;
 				}
-			} else if (m.getClass() == BigDataPropositionMessage.class) {
-				BigDataPropositionMessage bm = (BigDataPropositionMessage) m;
+			} else if (messageTaken.getClass() == BigDataPropositionMessage.class) {
+				BigDataPropositionMessage bm = (BigDataPropositionMessage) messageTaken;
 				if (bm.isAsynchronousMessage()) {
 					bm.setLocalMadkitKernel(getMadkitKernel());
+					try {
+						if (bm.checkIfMustRestartTransfer())
+							messageTaken=null;
+					} catch (DatabaseException | InterruptedException e) {
+						getLogger().severeLog("Unexpected exception", e);
+					}
 				}
+			} else if (messageTaken.getClass()==BigDataResultMessage.class)
+			{
+				BigDataResultMessage br=(BigDataResultMessage) messageTaken;
+				if (getKernel().receivedPotentialAsynchronousBigDataResultMessage(this, br))
+					messageTaken=null;
 			}
 			if (messageTaken != null) {
 				if (potentialNetworkMessageLocker!=null && (messageTaken instanceof LocalLanMessage)) {

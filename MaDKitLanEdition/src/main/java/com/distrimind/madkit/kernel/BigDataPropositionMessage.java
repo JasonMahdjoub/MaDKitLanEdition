@@ -37,10 +37,13 @@
  */
 package com.distrimind.madkit.kernel;
 
+import com.distrimind.madkit.database.AsynchronousBigDataTable;
 import com.distrimind.madkit.kernel.network.Block;
 import com.distrimind.madkit.kernel.network.RealTimeTransferStat;
 import com.distrimind.madkit.util.NetworkMessage;
+import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.AbstractDecentralizedID;
+import com.distrimind.util.AbstractDecentralizedIDGenerator;
 import com.distrimind.util.crypto.MessageDigestType;
 import com.distrimind.util.io.*;
 
@@ -85,9 +88,10 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 	private boolean isLocal;
 	private int idPacket;
 	private long timeUTC;
+	private long timeOutInMs;
 	private MessageDigestType messageDigestType;
 	private boolean excludedFromEncryption;
-	private AbstractDecentralizedID asynchronousBigDataInternalIdentifier;
+	private AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier;
 	private AsynchronousBigDataIdentifier asynchronousBigDataIdentifier;
 	private transient MadkitKernel localMadkitKernel=null;
 	@SuppressWarnings("unused")
@@ -100,7 +104,7 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		return super.getInternalSerializedSizeImpl()+37
 				+(attachedData==null?0:attachedData.getInternalSerializedSize())
 				+(data==null?0:data.length)+(messageDigestType==null?0:messageDigestType.name().length()*2)
-				+SerializationTools.getInternalSize(asynchronousBigDataIdentifier)+(asynchronousBigDataIdentifier ==null?0:SerializationTools.getInternalSize(asynchronousBigDataInternalIdentifier));
+				+SerializationTools.getInternalSize(asynchronousBigDataIdentifier)+(asynchronousBigDataIdentifier ==null?0:8+SerializationTools.getInternalSize(asynchronousBigDataInternalIdentifier));
 	}
 
 	void setLocalMadkitKernel(MadkitKernel madkitKernel)
@@ -130,8 +134,10 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		
 		excludedFromEncryption=in.readBoolean();
 		asynchronousBigDataIdentifier =in.readObject(true);
-		if (asynchronousBigDataIdentifier !=null)
-			asynchronousBigDataInternalIdentifier =in.readObject(false);
+		if (asynchronousBigDataIdentifier !=null) {
+			asynchronousBigDataInternalIdentifier = in.readObject(false);
+			timeOutInMs = in.readLong();
+		}
 		else
 			asynchronousBigDataInternalIdentifier =null;
 		
@@ -152,8 +158,10 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		
 		oos.writeBoolean(excludedFromEncryption);
 		oos.writeObject(asynchronousBigDataIdentifier, true);
-		if (asynchronousBigDataIdentifier !=null)
+		if (asynchronousBigDataIdentifier !=null) {
 			oos.writeObject(asynchronousBigDataInternalIdentifier, false);
+			oos.writeLong(timeOutInMs);
+		}
 	}
 
 
@@ -176,9 +184,7 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 			this.data = null;
 		} else {
 			this.inputStream = null;
-			this.data = new byte[(int) stream.length()];
-			if (stream.read(this.data)!=data.length)
-				throw new IOException();
+			this.data = stream.readAllBytes();
 		}
 		this.isLocal = local;
 		this.stat = stat;
@@ -190,8 +196,8 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 	}
 	BigDataPropositionMessage(RandomInputStream stream, long pos, SecureExternalizable attachedData, boolean local,
 							  int maxBufferSize, RealTimeTransferStat stat, MessageDigestType messageDigestType, boolean excludedFromEncryption,
-							  AbstractDecentralizedID asynchronousBigDataInternalIdentifier,
-							  AsynchronousBigDataIdentifier asynchronousBigDataIdentifier) throws IOException {
+							  AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier,
+							  AsynchronousBigDataIdentifier asynchronousBigDataIdentifier, long timeOutInMs) throws IOException {
 		this(stream, pos, stream.length(), attachedData, local, maxBufferSize, stat, messageDigestType, excludedFromEncryption);
 		if (asynchronousBigDataIdentifier ==null)
 			throw new NullPointerException();
@@ -199,6 +205,7 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 			throw new NullPointerException();
 		this.asynchronousBigDataIdentifier = asynchronousBigDataIdentifier;
 		this.asynchronousBigDataInternalIdentifier = asynchronousBigDataInternalIdentifier;
+		this.timeOutInMs=timeOutInMs;
 	}
 
 	public boolean bigDataExcludedFromEncryption()
@@ -293,65 +300,96 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		if (outputStream==null)
 			throw new NullPointerException();
 		acceptDifferedTransfer(asynchronousBigDataToReceiveWrapper);
-		acceptTransferImpl(outputStream);
-	}
-	private void acceptDifferedTransfer(final AsynchronousBigDataToReceiveWrapper asynchronousBigDataToReceiveWrapper)
-	{
 
-		//TODO complete
+	}
+	boolean checkIfMustRestartTransfer() throws DatabaseException, InterruptedException {
+		AsynchronousBigDataTable.Record r=localMadkitKernel.getAsynchronousBigDataTable().getRecord("asynchronousBigDataInternalIdentifier", asynchronousBigDataInternalIdentifier);
+		if (r!=null && r.getAsynchronousBigDataToReceiveWrapper()!=null)
+		{
+			acceptTransferImpl(r.getAsynchronousBigDataToReceiveWrapper().getRandomOutputStream(asynchronousBigDataIdentifier));
+			return true;
+		}
+		else
+			return false;
+	}
+	private void acceptDifferedTransfer(final AsynchronousBigDataToReceiveWrapper asynchronousBigDataToReceiveWrapper) throws InterruptedException {
+		AsynchronousBigDataTable.Record r=localMadkitKernel.getAsynchronousBigDataTable().startAsynchronousBigDataTransfer(getReceiver().getGroup(),
+				getSender().getRole(),getReceiver().getRole(),asynchronousBigDataIdentifier,
+				messageDigestType, excludedFromEncryption, timeOutInMs, asynchronousBigDataToReceiveWrapper, asynchronousBigDataInternalIdentifier
+				);
+		if (r==null)
+		{
+			dataCorrupted(0, new MessageExternalizationException(Integrity.FAIL));
+		}
+		else
+			acceptTransferImpl(outputStream);
 	}
 	void acceptTransferImpl(final RandomOutputStream outputStream) throws InterruptedException {
 		if (outputStream == null)
 			throw new NullPointerException("outputStream");
 		final AbstractAgent receiver = getReceiver().getAgent();
 		this.outputStream = outputStream;
-		if (isLocal()) {
-			try {
+		try {
 
-				receiver.scheduleTask(new Task<>((Callable<Void>) () -> {
-					long remaining = length;
-					try {
-						byte[] buffer = new byte[(int) Math.min(length, maxBufferSize)];
-						inputStream.seek(pos);
-						outputStream.setLength(length);
-						while (remaining > 0) {
-							int s = (int) Math.min(buffer.length, remaining);
-							if (inputStream.read(buffer, 0, s)!=s)
-								throw new IOException();
-							outputStream.write(buffer, 0, s);
-							remaining -= s;
-						}
-					} catch(MessageExternalizationException e)
-					{
-						dataCorrupted(length - remaining, e);
-					}
-					catch (Exception e) {
-						sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_PARTIALLY_TRANSFERRED,
-								length - remaining);
-						throw e;
-					}
-					sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_TRANSFERRED, length);
-					return null;
-				})).waitTaskFinished();
-			} catch (ExecutionException e) {
-				e.printStackTrace();
-			}
 
-		} else {
-			if (data != null) {
+
+			if (isLocal()) {
 				try {
-					outputStream.write(data);
-				} catch(MessageExternalizationException e)
-				{
-					dataCorrupted(0, e);
-				}catch (IOException e) {
-					sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_PARTIALLY_TRANSFERRED, 0);
-				}
-				sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_TRANSFERRED, length);
-			} else {
 
-				receiver.getKernel().acceptDistantBigDataTransfer(receiver, this);
+					receiver.scheduleTask(new Task<>((Callable<Void>) () -> {
+						try {
+							outputStream.setLength(length+pos);
+							outputStream.seek(pos);
+							inputStream.seek(pos);
+							outputStream.write(inputStream, length);
+							sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_TRANSFERRED, length);
+						} catch (MessageExternalizationException e) {
+							long p;
+							try {
+								p=outputStream.currentPosition();
+							} catch (IOException ex) {
+								p=0;
+							}
+							dataCorrupted(p, e);
+						} catch (Exception e) {
+							long p;
+							try {
+								p=outputStream.currentPosition();
+							} catch (IOException ex) {
+								p=0;
+							}
+							sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_PARTIALLY_TRANSFERRED,
+									p);
+							throw e;
+						}
+
+						return null;
+					})).waitTaskFinished();
+				} catch (ExecutionException e) {
+					e.printStackTrace();
+				}
+
+			} else {
+				if (data != null) {
+					outputStream.setLength(length+pos);
+					outputStream.seek(pos);
+					outputStream.write(data);
+					sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_TRANSFERRED, length);
+				} else {
+
+					receiver.getKernel().acceptDistantBigDataTransfer(receiver, this);
+				}
 			}
+		} catch (MessageExternalizationException e) {
+			dataCorrupted(0, e);
+		} catch (IOException e) {
+			long p;
+			try {
+				p=outputStream.currentPosition();
+			} catch (IOException ex) {
+				p=0;
+			}
+			sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_PARTIALLY_TRANSFERRED, p);
 		}
 	}
 

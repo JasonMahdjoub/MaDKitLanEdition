@@ -252,43 +252,56 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 	)
 	{
 		return startAsynchronousBigDataTransfer(group, roleSender, roleReceiver, asynchronousBigDataIdentifier, attachedData, messageDigestType, excludedFromEncryption, timeOutInMs,
-				asynchronousBigDataToSendWrapper, null);
+				asynchronousBigDataToSendWrapper, null, new RenforcedDecentralizedIDGenerator(false, true));
 	}
 	public Record startAsynchronousBigDataTransfer(Group group, String roleSender, String roleReceiver,
 												   AsynchronousBigDataIdentifier asynchronousBigDataIdentifier,
-												   SecureExternalizable attachedData,
 												   MessageDigestType messageDigestType, boolean excludedFromEncryption, long timeOutInMs,
-												   AsynchronousBigDataToReceiveWrapper asynchronousBigDataToReceiveWrapper
+												   AsynchronousBigDataToReceiveWrapper asynchronousBigDataToReceiveWrapper,
+												   AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier
 	)
 	{
-		return startAsynchronousBigDataTransfer(group, roleSender, roleReceiver, asynchronousBigDataIdentifier, attachedData, messageDigestType, excludedFromEncryption, timeOutInMs,
-				null, asynchronousBigDataToReceiveWrapper);
+		return startAsynchronousBigDataTransfer(group, roleSender, roleReceiver, asynchronousBigDataIdentifier, null, messageDigestType, excludedFromEncryption, timeOutInMs,
+				null, asynchronousBigDataToReceiveWrapper, asynchronousBigDataInternalIdentifier);
 	}
 	private Record startAsynchronousBigDataTransfer(Group group, String roleSender, String roleReceiver,
 													AsynchronousBigDataIdentifier asynchronousBigDataIdentifier,
 													SecureExternalizable attachedData,
 													MessageDigestType messageDigestType, boolean excludedFromEncryption, long timeOutInMs,
 													AsynchronousBigDataToSendWrapper asynchronousBigDataToSendWrapper,
-													AsynchronousBigDataToReceiveWrapper asynchronousBigDataToReceiveWrapper
+													AsynchronousBigDataToReceiveWrapper asynchronousBigDataToReceiveWrapper,
+													AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier
 									  ) {
 		assert asynchronousBigDataToSendWrapper ==null || asynchronousBigDataToReceiveWrapper ==null;
+		assert asynchronousBigDataInternalIdentifier!=null;
 		try {
 
 			return getDatabaseWrapper().runSynchronizedTransaction(new SynchronizedTransaction<Record>() {
 				@Override
 				public Record run() throws Exception {
 					Record r = getRecords("asynchronousBigDataIdentifier", asynchronousBigDataIdentifier).stream().findAny().orElse(null);
-					if (r != null)
-						return null;
-					if (asynchronousBigDataToSendWrapper !=null)
-						r = addRecord(new Record(new RenforcedDecentralizedIDGenerator(false, true),
-							group.toString(), roleSender, roleReceiver, asynchronousBigDataIdentifier,
-							attachedData, messageDigestType, excludedFromEncryption, timeOutInMs, asynchronousBigDataToSendWrapper));
-					else
-						r = addRecord(new Record(new RenforcedDecentralizedIDGenerator(false, true),
+					if (asynchronousBigDataToSendWrapper !=null) {
+						if (r != null)
+							return null;
+						r = addRecord(new Record(asynchronousBigDataInternalIdentifier,
 								group.toString(), roleSender, roleReceiver, asynchronousBigDataIdentifier,
-								attachedData, messageDigestType, excludedFromEncryption, timeOutInMs, asynchronousBigDataToReceiveWrapper));
-
+								attachedData, messageDigestType, excludedFromEncryption, timeOutInMs, asynchronousBigDataToSendWrapper));
+					}
+					else {
+						if (r==null) {
+							r = addRecord(new Record(asynchronousBigDataInternalIdentifier,
+									group.toString(), roleSender, roleReceiver, asynchronousBigDataIdentifier,
+									null, messageDigestType, excludedFromEncryption, timeOutInMs, asynchronousBigDataToReceiveWrapper));
+						}
+						else
+						{
+							if (r.getAsynchronousBigDataToReceiveWrapper()!=null)
+								return null;
+							if (!r.getAsynchronousBigDataInternalIdentifier().equals(asynchronousBigDataInternalIdentifier))
+								return null;
+							updateRecord(r, "asynchronousBigDataToReceiveWrapper", asynchronousBigDataToReceiveWrapper, "attachedData", null);
+						}
+					}
 					return r;
 				}
 

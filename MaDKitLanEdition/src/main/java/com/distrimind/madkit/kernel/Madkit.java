@@ -146,7 +146,7 @@ final public class Madkit {
 					.addDeveloper(new PersonDeveloper("Michel", "Fabien", "1997-02-01"))
 					.addDeveloper(new PersonDeveloper("Gutknecht", "Olivier", "1997-02-01"))
 					.addDeveloper(new PersonDeveloper("Ferber", "Jacques", "1997-02-01"))
-					.addDescription(new Description((short)2, (short)3, (short)0, Version.Type.STABLE, (short)0, "2021-11-12")
+					.addDescription(new Description((short)2, (short)3, (short)0, Version.Type.STABLE, (short)0, "2021-11-15")
 							.addItem(NEW_FEATURE, "Add possibility to send differed big data messages")
 							.addItem(NEW_FEATURE, "Add possibility to cancel big message sending, during its emission")
 							.addItem(INTERNAL_CHANGE, "Better cancel big message when connexion was lost")
