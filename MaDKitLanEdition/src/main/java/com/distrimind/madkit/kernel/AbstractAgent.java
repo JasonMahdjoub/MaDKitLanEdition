@@ -2677,6 +2677,12 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 				if (getKernel().receivedPotentialAsynchronousBigDataResultMessage(this, br))
 					messageTaken=null;
 			}
+			else if (messageTaken.getClass()==BigDataToRestartMessage.class)
+			{
+				getKernel().receivedBigDataToRestartMessage(this, (BigDataToRestartMessage)messageTaken);
+				messageTaken=null;
+			}
+
 			if (messageTaken != null) {
 				if (potentialNetworkMessageLocker!=null && (messageTaken instanceof LocalLanMessage)) {
 					potentialNetworkMessageLocker.cancelLock();

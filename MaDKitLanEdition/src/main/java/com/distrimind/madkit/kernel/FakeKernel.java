@@ -44,7 +44,7 @@ import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
 import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
-import com.distrimind.util.AbstractDecentralizedID;
+import com.distrimind.util.AbstractDecentralizedIDGenerator;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.crypto.MessageDigestType;
 import com.distrimind.util.io.RandomInputStream;
@@ -422,7 +422,7 @@ class FakeKernel extends MadkitKernel {
 
 	@Override
 	void transferLostForBigDataTransfer(AbstractAgent requester, ConversationID conversationID, int idPacket,
-										AgentAddress sender, AgentAddress receiver, long readDataLength, long durationInMs, AbstractDecentralizedID asynchronousBigDataInternalIdentifier,
+										AgentAddress sender, AgentAddress receiver, long readDataLength, long durationInMs, AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier,
 										AsynchronousBigDataIdentifier asynchronousBigDataIdentifier, BigDataResultMessage.Type cancelingType) {
 		throw buildKernelException(requester);
 	}
@@ -561,6 +561,12 @@ class FakeKernel extends MadkitKernel {
 
 	@Override
 	boolean receivedPotentialAsynchronousBigDataResultMessage(AbstractAgent requester, BigDataResultMessage m)
+	{
+		throw buildKernelException(null);
+	}
+
+	@Override
+	void receivedBigDataToRestartMessage(AbstractAgent requester, BigDataToRestartMessage message)
 	{
 		throw buildKernelException(null);
 	}

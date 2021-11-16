@@ -37,10 +37,7 @@ knowledge of the CeCILL-C license and that you accept its terms.
 
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.network.RealTimeTransferStat;
-import com.distrimind.ood.database.DatabaseRecord;
-import com.distrimind.ood.database.SynchronizedTransaction;
-import com.distrimind.ood.database.Table;
-import com.distrimind.ood.database.TransactionIsolation;
+import com.distrimind.ood.database.*;
 import com.distrimind.ood.database.annotations.Field;
 import com.distrimind.ood.database.annotations.NotNull;
 import com.distrimind.ood.database.annotations.PrimaryKey;
@@ -144,6 +141,8 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 				throw new NullPointerException();
 			if (asynchronousBigDataInternalIdentifier ==null)
 				throw new NullPointerException();
+			if (roleReceiver.equals(roleSender))
+				throw new IllegalArgumentException();
 			this.groupPath=groupPath;
 			this.roleSender=roleSender;
 			this.roleReceiver=roleReceiver;
@@ -328,7 +327,45 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		}
 
 	}
+	public boolean receivedPotentialAsynchronousBigDataResultMessage(BigDataResultMessage.Type resultType,
+																	 AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier,
+																	 long transferedDataLength) throws DatabaseException {
+		if (resultType== BigDataResultMessage.Type.CONNECTION_LOST) {
+			return getDatabaseWrapper().runSynchronizedTransaction(new SynchronizedTransaction<Boolean>() {
+				@Override
+				public Boolean run() throws Exception {
+					Record r = getRecord("asynchronousBigDataInternalIdentifier", asynchronousBigDataInternalIdentifier);
+					if (r != null) {
+						updateRecord(r, "currentStreamPosition", transferedDataLength + r.getCurrentStreamPosition());
+						return true;
+					}
+					return false;
+				}
 
+				@Override
+				public TransactionIsolation getTransactionIsolation() {
+					return TransactionIsolation.TRANSACTION_REPEATABLE_READ;
+				}
+
+				@Override
+				public boolean doesWriteData() {
+					return true;
+				}
+
+				@Override
+				public void initOrReset() {
+
+				}
+			});
+
+		}
+		else
+		{
+			removeRecord("asynchronousBigDataInternalIdentifier", asynchronousBigDataInternalIdentifier);
+		}
+		transferIdsPerInternalAsynchronousId.remove(asynchronousBigDataInternalIdentifier);
+		return false;
+	}
 	public Record startAsynchronousBigDataTransfer(Collection<String> baseGroupPath, final AbstractAgent requester, final Group group, String roleSender, String roleReceiver,
 												   AsynchronousBigDataIdentifier asynchronousBigDataIdentifier,
 												   SecureExternalizable attachedData,
@@ -349,18 +386,35 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 				asynchronousBigDataToSendWrapper);
 		if (r!=null)
 		{
-			AgentAddress receiverAA=requester.getAgentWithRole(group, roleReceiver);
-			if (receiverAA!=null)
-			{
-				BigDataTransferID tid= sendAsynchronousBigData(requester, senderAA, receiverAA, r);
-				if (tid==null)
-					return null;
-				else
-					transferIdsPerInternalAsynchronousId.put(r.getAsynchronousBigDataInternalIdentifier(), tid);
+			return sendAsynchronousBigData(requester, senderAA, group, roleReceiver,r);
+		}
+		else
+			return null;
+	}
+	private Record sendAsynchronousBigData2(AbstractAgent requester, AgentAddress senderAA, AgentAddress receiverAA, Record r)
+	{
+		BigDataTransferID tid= sendAsynchronousBigData(requester, senderAA, receiverAA, r);
+		if (tid!=null)
+			return null;
+		else {
+			try {
+				if (!r.isTransferStarted())
+					updateRecord(r, "transferStarted", true);
+			} catch (DatabaseException e) {
+				e.printStackTrace();
 			}
+			transferIdsPerInternalAsynchronousId.put(r.getAsynchronousBigDataInternalIdentifier(), tid);
 		}
 		return r;
-
+	}
+	private Record sendAsynchronousBigData(AbstractAgent requester, AgentAddress senderAA, Group group, String roleReceiver, Record r)
+	{
+		AgentAddress receiverAA=requester.getAgentWithRole(group, roleReceiver);
+		if (receiverAA!=null)
+		{
+			return sendAsynchronousBigData2(requester, senderAA, receiverAA,r);
+		}
+		return r;
 	}
 
 	public void cancelTransfer(AbstractAgent requester, Record record)
@@ -393,19 +447,64 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			return b.getBytePerSecondsStat();
 	}
 
+	public void groupRoleAvailable(AbstractAgent kernel, Group distantGroup, String distantRole) throws DatabaseException {
+		String path=distantGroup.toString();
+		getRecords(new Filter<Record>() {
+			@Override
+			public boolean nextRecord(Record _record) {
+				if (_record.getRoleSender().equals(distantRole))
+				{
+					AgentAddress senderAA=kernel.getAgentWithRole(distantGroup, _record.roleReceiver);
+
+					if (senderAA!=null) {
+						AbstractAgent sender=getAgent(senderAA);
+						if (sender!=null) {
+							AgentAddress receiverAA = kernel.getAgentWithRole(distantGroup, _record.roleSender);
+							if (receiverAA!=null) {
+								sender.sendMessageWithRole(receiverAA, new BigDataToRestartMessage(_record.getAsynchronousBigDataInternalIdentifier(), _record.getCurrentStreamPosition()), _record.roleSender);
+							}
+						}
+					}
+				}
+				else
+				{
+					AgentAddress senderAA=kernel.getAgentWithRole(distantGroup, _record.roleSender);
+					if (senderAA!=null)
+						sendAsynchronousBigData(kernel, senderAA, distantGroup, _record.roleReceiver, _record);
+				}
+				return false;
+			}
+		}, "groupPath=%gp and (roleSender=%rs or (transferStarted==%ts and roleReceiver=%rr))", "gp", path, "rs", distantRole, "ts", false, "rr", distantRole);
+
+	}
+
+	public void receiveAskingForTransferRestart(AbstractAgent requester, AgentAddress senderAA, AgentAddress receiverAA,
+										 AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier,
+										 long position) throws DatabaseException {
+		Record r=getRecord("asynchronousBigDataInternalIdentifier", asynchronousBigDataInternalIdentifier);
+		if (r!=null)
+		{
+			if (r.getCurrentStreamPosition()!=position)
+				updateRecord(r, "currentStreamPosition", position);
+			sendAsynchronousBigData(requester, senderAA, receiverAA, r);
+		}
+	}
+
 	private static final Method m_send_asynchronous_big_data;
 	private static final Method m_get_madkit_kernel;
 	private static final Method m_send_message_and_differ_it_if_necessary;
 	private static final Method m_cancel_big_data_transfer;
+	private static final Method m_get_agent;
 	static
 	{
 		Class<?> madkitKernelClass= loadClass("com.distrimind.madkit.kernel.MadkitKernel");
-		Class<?> abstractAgentClass= loadClass("com.distrimind.madkit.kernel.AbstractAgent");
-		if (madkitKernelClass==null || abstractAgentClass==null) {
+
+		if (madkitKernelClass==null) {
 			m_send_asynchronous_big_data = null;
 			m_get_madkit_kernel=null;
 			m_send_message_and_differ_it_if_necessary=null;
 			m_cancel_big_data_transfer=null;
+			m_get_agent=null;
 			System.exit(-1);
 		}
 		else {
@@ -415,7 +514,19 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 					Group.class, String.class, Message.class, String.class);
 			m_cancel_big_data_transfer = getMethod(madkitKernelClass, "cancelBigDataTransfer", AbstractAgent.class,
 					BigDataTransferID.class);
-			m_get_madkit_kernel = getMethod(abstractAgentClass, "getMadkitKernel");
+			m_get_madkit_kernel = getMethod(AbstractAgent.class, "getMadkitKernel");
+			m_get_agent = getMethod(AgentAddress.class, "getAgent");
+		}
+	}
+	AbstractAgent getAgent(AgentAddress aa)
+	{
+		try {
+			return (AbstractAgent)invoke(m_get_agent, aa);
+		} catch (InvocationTargetException e) {
+			System.err.println("Unexpected error :");
+			e.printStackTrace();
+			System.exit(-1);
+			return null;
 		}
 	}
 	Agent getMadkitKernel(AbstractAgent abstractAgent)

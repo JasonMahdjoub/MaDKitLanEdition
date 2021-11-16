@@ -41,11 +41,14 @@ import com.distrimind.madkit.database.AsynchronousBigDataTable;
 import com.distrimind.madkit.database.AsynchronousMessageTable;
 import com.distrimind.madkit.i18n.Words;
 import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
-import com.distrimind.madkit.kernel.network.*;
+import com.distrimind.madkit.kernel.network.AskForConnectionMessage;
+import com.distrimind.madkit.kernel.network.AskForTransferMessage;
+import com.distrimind.madkit.kernel.network.Connection;
+import com.distrimind.madkit.kernel.network.ConnectionIdentifier;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.ood.database.exceptions.DatabaseException;
-import com.distrimind.util.AbstractDecentralizedID;
+import com.distrimind.util.AbstractDecentralizedIDGenerator;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.concurrent.ScheduledPoolExecutor;
@@ -650,7 +653,7 @@ final class LoggedKernel extends MadkitKernel {
 
 	@Override
 	void transferLostForBigDataTransfer(AbstractAgent requester, ConversationID conversationID, int idPacket,
-										AgentAddress sender, AgentAddress receiver, long readDataLength, long durationInMs, AbstractDecentralizedID asynchronousBigDataInternalIdentifier,
+										AgentAddress sender, AgentAddress receiver, long readDataLength, long durationInMs, AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier,
 										AsynchronousBigDataIdentifier asynchronousBigDataIdentifier, BigDataResultMessage.Type cancelingType) {
 		kernel.transferLostForBigDataTransfer(requester, conversationID, idPacket, sender, receiver, readDataLength,
 				durationInMs, asynchronousBigDataInternalIdentifier, asynchronousBigDataIdentifier, cancelingType);
@@ -660,6 +663,7 @@ final class LoggedKernel extends MadkitKernel {
 							+ ", ID Packet " + idPacket + ", sender " + sender + ", receiver " + receiver +", cancelingType="+cancelingType
 							+ ", read data length " + readDataLength + ", duration (ms) " + durationInMs + ")");
 	}
+
 
 	@Override
 	ReturnCode anomalyDetectedWithOneConnection(AbstractAgent requester, boolean candidateToBan,
@@ -1002,4 +1006,12 @@ final class LoggedKernel extends MadkitKernel {
 		return r;
 	}
 
+	@Override
+	void receivedBigDataToRestartMessage(AbstractAgent requester, BigDataToRestartMessage message)
+	{
+		kernel.receivedBigDataToRestartMessage(requester, message);
+		if (requester.isFinestLogOn())
+			requester.logger.log(Level.FINEST,
+					"receivedBigDataToRestartMessage (Requester=" + requester + ", message=" + message+")");
+	}
 }

@@ -38,6 +38,7 @@
 package com.distrimind.madkit.kernel;
 
 import com.distrimind.util.AbstractDecentralizedID;
+import com.distrimind.util.AbstractDecentralizedIDGenerator;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
 import com.distrimind.util.io.SerializationTools;
@@ -58,7 +59,7 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 	private Type type;
 	private int idPacket;
 	private long duration;
-	private AbstractDecentralizedID asynchronousBigDataInternalIdentifier;
+	private AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier;
 	private AsynchronousBigDataIdentifier asynchronousBigDataIdentifier;
 
 	@Override
@@ -100,7 +101,7 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 	{
 		
 	}
-	BigDataResultMessage(Type type, long transferredData, int idPacket, long duration, AbstractDecentralizedID asynchronousBigDataInternalIdentifier,
+	BigDataResultMessage(Type type, long transferredData, int idPacket, long duration, AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier,
 			AsynchronousBigDataIdentifier asynchronousBigDataIdentifier) {
 		if (type == null)
 			throw new NullPointerException("type");
@@ -187,7 +188,7 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 		return "BigDataResultMessage[type="+type+", dataTransferredInBytes="+ getTransferredDataLength()+", durationInMs="+getTransferDuration()/*+", sender="+getSender()+", receiver="+getReceiver()*/+"]";
 	}
 
-	AbstractDecentralizedID getAsynchronousBigDataInternalIdentifier() {
+	AbstractDecentralizedIDGenerator getAsynchronousBigDataInternalIdentifier() {
 		return asynchronousBigDataInternalIdentifier;
 	}
 

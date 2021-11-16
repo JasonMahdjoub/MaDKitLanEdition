@@ -65,7 +65,7 @@ import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.message.task.TasksExecutionConfirmationMessage;
 import com.distrimind.madkit.util.XMLUtilities;
 import com.distrimind.ood.database.exceptions.DatabaseException;
-import com.distrimind.util.AbstractDecentralizedID;
+import com.distrimind.util.AbstractDecentralizedIDGenerator;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.Reference;
 import com.distrimind.util.Utils;
@@ -943,8 +943,20 @@ class MadkitKernel extends Agent {
 		if (hooks.size() > 0) {
 			HookMessage hm = null;
 			switch (action) {
-			case CREATE_GROUP:
+
 			case REQUEST_ROLE:
+				if (asynchronousBigDataTable!=null) {
+					AgentAddress aa=(AgentAddress) parameters[0];
+					if (!aa.isFrom(getKernelAddress())) {
+						try {
+							asynchronousBigDataTable.groupRoleAvailable(this, aa.getGroup(), aa.getRole());
+						} catch (DatabaseException e) {
+							getLogger().severeLog("Unexpected exception", e);
+						}
+					}
+				}
+
+			case CREATE_GROUP:
 			case LEAVE_GROUP:
 			case LEAVE_ROLE:
 				hm = new OrganizationEvent(action, (AgentAddress) parameters[0]);
@@ -1455,28 +1467,26 @@ class MadkitKernel extends Agent {
 		return groups;
 
 	}
+	void receivedBigDataToRestartMessage(AbstractAgent requester, BigDataToRestartMessage message)
+	{
+		try {
+			asynchronousBigDataTable.receiveAskingForTransferRestart(requester, message.getReceiver(), message.getSender(),
+				message.getAsynchronousBigDataInternalIdentifier(), message.getPosition());
+		} catch (DatabaseException e) {
+			requester.getLogger().severeLog("Unexpected exception", e);
+		}
+	}
 
 	boolean receivedPotentialAsynchronousBigDataResultMessage(AbstractAgent requester, BigDataResultMessage m)
 	{
 		if (m.isAsynchronousMessage())
 		{
-			if (m.getType()== BigDataResultMessage.Type.CONNECTION_LOST) {
-				try {
-					if (asynchronousBigDataTable.hasRecordsWithAllFields("asynchronousBigDataInternalIdentifier", m.getAsynchronousBigDataInternalIdentifier()))
-					{
-						return true;
-					}
-				} catch (DatabaseException e) {
-					requester.getLogger().severeLog("Unexpected exception", e);
-				}
-			}
-			else
-			{
-				try {
-					asynchronousBigDataTable.removeRecord("asynchronousBigDataInternalIdentifier", m.getAsynchronousBigDataInternalIdentifier());
-				} catch (DatabaseException e) {
-					requester.getLogger().severeLog("Unexpected exception", e);
-				}
+			try {
+				return asynchronousBigDataTable.receivedPotentialAsynchronousBigDataResultMessage(m.getType(),
+						m.getAsynchronousBigDataInternalIdentifier(),
+						m.getTransferredDataLength());
+			} catch (DatabaseException e) {
+				requester.getLogger().severeLog("Unexpected exception", e);
 			}
 
 
@@ -3776,7 +3786,7 @@ class MadkitKernel extends Agent {
 	}
 
 	void transferLostForBigDataTransfer(AbstractAgent requester, ConversationID conversationID, int idPacket,
-										AgentAddress sender, AgentAddress receiver, long readDataLength, long durationInMs, AbstractDecentralizedID asynchronousBigDataInternalIdentifier,
+										AgentAddress sender, AgentAddress receiver, long readDataLength, long durationInMs, AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier,
 										AsynchronousBigDataIdentifier asynchronousBigDataIdentifier, BigDataResultMessage.Type cancelingType) {
 		assert cancelingType==BigDataResultMessage.Type.CONNECTION_LOST || cancelingType==BigDataResultMessage.Type.TRANSFER_CANCELED;
 		BigDataResultMessage m = new BigDataResultMessage(cancelingType, readDataLength,

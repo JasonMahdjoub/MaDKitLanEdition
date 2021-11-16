@@ -303,14 +303,20 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 
 	}
 	boolean checkIfMustRestartTransfer() throws DatabaseException, InterruptedException {
-		AsynchronousBigDataTable.Record r=localMadkitKernel.getAsynchronousBigDataTable().getRecord("asynchronousBigDataInternalIdentifier", asynchronousBigDataInternalIdentifier);
-		if (r!=null && r.getAsynchronousBigDataToReceiveWrapper()!=null)
+		AsynchronousBigDataTable t=localMadkitKernel.getAsynchronousBigDataTable();
+		if (t==null)
 		{
-			acceptTransferImpl(r.getAsynchronousBigDataToReceiveWrapper().getRandomOutputStream(asynchronousBigDataIdentifier));
+			denyTransfer();
 			return true;
 		}
-		else
-			return false;
+		else {
+			AsynchronousBigDataTable.Record r =t.getRecord("asynchronousBigDataInternalIdentifier", asynchronousBigDataInternalIdentifier);
+			if (r != null && r.getAsynchronousBigDataToReceiveWrapper() != null) {
+				acceptTransferImpl(r.getAsynchronousBigDataToReceiveWrapper().getRandomOutputStream(asynchronousBigDataIdentifier));
+				return true;
+			} else
+				return false;
+		}
 	}
 	private void acceptDifferedTransfer(final AsynchronousBigDataToReceiveWrapper asynchronousBigDataToReceiveWrapper) throws InterruptedException {
 		AsynchronousBigDataTable.Record r=localMadkitKernel.getAsynchronousBigDataTable().startAsynchronousBigDataTransfer(getReceiver().getGroup(),
@@ -425,10 +431,6 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 			e.printStackTrace();
 		}
 
-	}
-
-	void connectionLost(long dataTransferred) {
-		sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_PARTIALLY_TRANSFERRED, dataTransferred);
 	}
 
 	void dataCorrupted(long dataTransferred, MessageExternalizationException e) {
