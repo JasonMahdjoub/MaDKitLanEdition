@@ -52,7 +52,7 @@ import java.util.Map;
  * @since MadkitLanEdition 1.0
  * @see AbstractAgent#sendBigDataWithRole(AgentAddress, com.distrimind.util.io.RandomInputStream, long, long, com.distrimind.util.io.SecureExternalizable, com.distrimind.util.crypto.MessageDigestType, String, boolean)
  */
-public class BigDataTransferID extends ConversationID {
+public final class BigDataTransferID extends ConversationID implements IBigDataTransferID{
 
 	private transient RealTimeTransferStat stat;
 
@@ -147,6 +147,7 @@ public class BigDataTransferID extends ConversationID {
 	 * @return statistics in bytes per seconds related to the concerned big data
 	 *         transfer
 	 */
+	@Override
 	public RealTimeTransferStat getBytePerSecondsStat() {
 		return stat;
 	}

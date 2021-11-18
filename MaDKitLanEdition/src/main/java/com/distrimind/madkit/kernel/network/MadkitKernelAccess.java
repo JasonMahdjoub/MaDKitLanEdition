@@ -252,10 +252,10 @@ class MadkitKernelAccess {
 
 	static void transferLostForBigDataTransfer(AbstractAgent requester, ConversationID conversationID, int idPacket,
 											   AgentAddress sender, AgentAddress receiver, long readDataLength, long durationInMs, AbstractDecentralizedID differedBigDataInternalIdentifier,
-											   AsynchronousBigDataIdentifier asynchronousBigDataIdentifier, BigDataResultMessage.Type cancelingType) {
+											   ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier, BigDataResultMessage.Type cancelingType) {
 		try {
 			invoke(m_transferLostForBigDataTransfer, getMadkitKernel(requester), requester, conversationID,
-					idPacket, sender, receiver, readDataLength, durationInMs, differedBigDataInternalIdentifier, asynchronousBigDataIdentifier, cancelingType);
+					idPacket, sender, receiver, readDataLength, durationInMs, differedBigDataInternalIdentifier, externalAsynchronousBigDataIdentifier, cancelingType);
 		} catch (InvocationTargetException e) {
 			System.err.println("Unexpected error :");
 			e.printStackTrace();
@@ -346,7 +346,7 @@ class MadkitKernelAccess {
 		m_big_data_complete = getMethod(BigDataPropositionMessage.class, "transferCompleted", long.class);
 		m_transferLostForBigDataTransfer = getMethod(c_madkit_kernel, "transferLostForBigDataTransfer",
 				AbstractAgent.class, ConversationID.class, int.class, AgentAddress.class, AgentAddress.class,
-				long.class, long.class, AbstractDecentralizedID.class, AsynchronousBigDataIdentifier.class, BigDataResultMessage.Type.class);
+				long.class, long.class, AbstractDecentralizedID.class, ExternalAsynchronousBigDataIdentifier.class, BigDataResultMessage.Type.class);
 		m_message_mark_as_read = getMethod(Message.class, "markMessageAsRead");
 		m_wait_message_sent = getMethod(AbstractAgent.class, "waitMessageSent", LockerCondition.class);
 		m_get_global_interfaced_ids = getMethod(c_madkit_kernel, "getGlobalInterfacedIDs");

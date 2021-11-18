@@ -1482,7 +1482,7 @@ class MadkitKernel extends Agent {
 		if (m.isAsynchronousMessage())
 		{
 			try {
-				return asynchronousBigDataTable.receivedPotentialAsynchronousBigDataResultMessage(m.getType(),
+				return asynchronousBigDataTable.receivedPotentialAsynchronousBigDataResultMessage(requester, m.getType(),
 						m.getAsynchronousBigDataInternalIdentifier(),
 						m.getTransferredDataLength());
 			} catch (DatabaseException e) {
@@ -1524,7 +1524,7 @@ class MadkitKernel extends Agent {
 
 	}
 	AsynchronousBigDataTransferID sendBigDataAndDifferItIfNecessary(AbstractAgent requester, Group group, final String role, String senderRole,
-																	AsynchronousBigDataIdentifier asynchronousBigDataIdentifier,
+																	ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier,
 																	SecureExternalizable attachedData,
 																	MessageDigestType messageDigestType, boolean excludedFromEncryption, long timeOutInMs,
 																	AsynchronousBigDataToSendWrapper asynchronousBigDataToSendWrapper) {
@@ -1545,7 +1545,7 @@ class MadkitKernel extends Agent {
 		AsynchronousBigDataTable.Record r= asynchronousBigDataTable.startAsynchronousBigDataTransfer(
 				platform.getConfigOption().rootOfPathGroupUsedToFilterAsynchronousMessages, requester,
 				group, senderRole, role,
-				asynchronousBigDataIdentifier, attachedData, messageDigestType, excludedFromEncryption, timeOutInMs,
+				externalAsynchronousBigDataIdentifier, attachedData, messageDigestType, excludedFromEncryption, timeOutInMs,
 				asynchronousBigDataToSendWrapper);
 		if (r==null)
 			return null;
@@ -3720,6 +3720,33 @@ class MadkitKernel extends Agent {
 			return IGNORED;
 	}
 
+	ReturnCode cancelAsynchronousBigData(AbstractAgent requester, AsynchronousBigDataTransferID asynchronousBigDataTransferID)
+	{
+		if (asynchronousBigDataTable!=null)
+			return asynchronousBigDataTable.cancelTransfer(requester, asynchronousBigDataTransferID.getAsynchronousBigDataInternalIdentifier());
+		else
+			return IGNORED;
+	}
+
+	public AsynchronousBigDataTransferID getAsynchronousBigDataTransferIDInstance(AbstractAgent requester, ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier)
+	{
+		if (externalAsynchronousBigDataIdentifier==null)
+			throw new NullPointerException();
+		if (asynchronousMessageTable==null)
+			return null;
+		try {
+			AsynchronousBigDataTable.Record r = asynchronousBigDataTable.getRecordsWithAllFields("asynchronousBigDataIdentifier", externalAsynchronousBigDataIdentifier).stream().findAny().orElse(null);
+			if (r==null)
+				return null;
+			else
+				return new AsynchronousBigDataTransferID(r.getAsynchronousBigDataInternalIdentifier(), externalAsynchronousBigDataIdentifier, this);
+		} catch (DatabaseException e) {
+			getLogger().severeLog("Unexpected exception", e);
+			return null;
+		}
+
+	}
+
 	BigDataTransferID sendAsynchronousBigData(AbstractAgent requester, AgentAddress senderAA, AgentAddress receiverAA,
 											  AsynchronousBigDataTable.Record record)
 			throws IOException {
@@ -3745,7 +3772,7 @@ class MadkitKernel extends Agent {
 		if (rc != ReturnCode.SUCCESS && rc != ReturnCode.TRANSFER_IN_PROGRESS)
 			return null;
 		else
-			return new BigDataTransferID(message.getConversationID(), stat);
+			return message.getConversationID();
 	}
 
 	BigDataTransferID sendBigData(AbstractAgent requester, AgentAddress agentAddress, RandomInputStream stream,
@@ -3787,10 +3814,10 @@ class MadkitKernel extends Agent {
 
 	void transferLostForBigDataTransfer(AbstractAgent requester, ConversationID conversationID, int idPacket,
 										AgentAddress sender, AgentAddress receiver, long readDataLength, long durationInMs, AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier,
-										AsynchronousBigDataIdentifier asynchronousBigDataIdentifier, BigDataResultMessage.Type cancelingType) {
+										ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier, BigDataResultMessage.Type cancelingType) {
 		assert cancelingType==BigDataResultMessage.Type.CONNECTION_LOST || cancelingType==BigDataResultMessage.Type.TRANSFER_CANCELED;
 		BigDataResultMessage m = new BigDataResultMessage(cancelingType, readDataLength,
-				idPacket, durationInMs, asynchronousBigDataInternalIdentifier, asynchronousBigDataIdentifier);
+				idPacket, durationInMs, asynchronousBigDataInternalIdentifier, externalAsynchronousBigDataIdentifier);
 		m.setSender(receiver);
 		m.setReceiver(sender);
 		sender.getAgent().receiveMessage(m);

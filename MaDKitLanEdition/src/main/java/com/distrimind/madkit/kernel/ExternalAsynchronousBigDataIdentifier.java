@@ -42,6 +42,6 @@ import com.distrimind.util.io.SecureExternalizable;
  * @version 1.0
  * @since MaDKitLanEdition 2.3.0
  */
-public interface AsynchronousBigDataIdentifier extends SecureExternalizable {
+public interface ExternalAsynchronousBigDataIdentifier extends SecureExternalizable {
 	int MAX_ASYNCHRONOUS_BIG_DATA_IDENTIFIER_SIZE_IN_BYTES = 3000;
 }

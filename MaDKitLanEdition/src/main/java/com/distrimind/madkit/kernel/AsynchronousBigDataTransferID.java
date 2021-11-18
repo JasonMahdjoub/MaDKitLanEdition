@@ -45,21 +45,21 @@ import java.util.Objects;
  * @version 1.0
  * @since MaDKitLanEdition 2.3.0
  */
-public class AsynchronousBigDataTransferID implements Cloneable {
-	private AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier;
-	private AsynchronousBigDataIdentifier asynchronousBigDataIdentifier;
+public final class AsynchronousBigDataTransferID implements Cloneable, IBigDataTransferID {
+	private AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier;
+	private ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier;
 	private MadkitKernel madkitKernel;
 
-	AsynchronousBigDataTransferID(AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier, AsynchronousBigDataIdentifier asynchronousBigDataIdentifier,
+	AsynchronousBigDataTransferID(AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier, ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier,
 								  MadkitKernel madkitKernel) {
-		if (differedBigDataInternalIdentifier==null)
+		if (asynchronousBigDataInternalIdentifier ==null)
 			throw new NullPointerException();
-		if (asynchronousBigDataIdentifier ==null)
+		if (externalAsynchronousBigDataIdentifier ==null)
 			throw new NullPointerException();
 		if (madkitKernel==null)
 			throw new NullPointerException();
-		this.differedBigDataInternalIdentifier = differedBigDataInternalIdentifier;
-		this.asynchronousBigDataIdentifier = asynchronousBigDataIdentifier;
+		this.asynchronousBigDataInternalIdentifier = asynchronousBigDataInternalIdentifier;
+		this.externalAsynchronousBigDataIdentifier = externalAsynchronousBigDataIdentifier;
 		this.madkitKernel=madkitKernel;
 	}
 
@@ -67,12 +67,12 @@ public class AsynchronousBigDataTransferID implements Cloneable {
 	private AsynchronousBigDataTransferID() {
 	}
 
-	public AbstractDecentralizedIDGenerator getDifferedBigDataInternalIdentifier() {
-		return differedBigDataInternalIdentifier;
+	public AbstractDecentralizedIDGenerator getAsynchronousBigDataInternalIdentifier() {
+		return asynchronousBigDataInternalIdentifier;
 	}
 
-	public AsynchronousBigDataIdentifier getDifferedBigDataIdentifier() {
-		return asynchronousBigDataIdentifier;
+	public ExternalAsynchronousBigDataIdentifier getDifferedBigDataIdentifier() {
+		return externalAsynchronousBigDataIdentifier;
 	}
 
 	@SuppressWarnings("MethodDoesntCallSuperMethod")
@@ -81,20 +81,29 @@ public class AsynchronousBigDataTransferID implements Cloneable {
 	{
 		return this;
 	}
+
+	/**
+	 * Gets statistics in bytes per seconds related to the concerned big data
+	 * transfer
+	 *
+	 * @return statistics in bytes per seconds related to the concerned big data
+	 *         transfer
+	 */
+	@Override
 	public RealTimeTransferStat getBytePerSecondsStat()
 	{
 		if (madkitKernel==null)
 			return null;
 		else
 		{
-			return madkitKernel.getAsynchronousBigDataTable().getBytePerSecondsStat(differedBigDataInternalIdentifier);
+			return madkitKernel.getAsynchronousBigDataTable().getBytePerSecondsStat(asynchronousBigDataInternalIdentifier);
 		}
 	}
 
 	@Override
 	public String toString() {
 		return "AsynchronousBigDataTransferID{" +
-				"asynchronousBigDataIdentifier=" + asynchronousBigDataIdentifier +
+				"asynchronousBigDataIdentifier=" + externalAsynchronousBigDataIdentifier +
 				'}';
 	}
 
@@ -103,11 +112,11 @@ public class AsynchronousBigDataTransferID implements Cloneable {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		AsynchronousBigDataTransferID that = (AsynchronousBigDataTransferID) o;
-		return differedBigDataInternalIdentifier.equals(that.differedBigDataInternalIdentifier);
+		return asynchronousBigDataInternalIdentifier.equals(that.asynchronousBigDataInternalIdentifier);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(differedBigDataInternalIdentifier);
+		return Objects.hash(asynchronousBigDataInternalIdentifier);
 	}
 }

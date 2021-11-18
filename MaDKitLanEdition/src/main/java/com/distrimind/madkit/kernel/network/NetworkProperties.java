@@ -183,6 +183,12 @@ public class NetworkProperties extends MultiFormatProperties {
 	public long bigDataStatDurationMean = 1000L;
 
 	/**
+	 * Asynchronous big messages sent to the same group/role agent will be differed
+	 * while the current number of messages destined to this group has reached this value
+	 */
+	public long maxNumberOfSimultaneousAsynchronousBigDataMessagesSentToTheSameGroup=1;
+
+	/**
 	 * When received data are incorrect or when an anomaly has been detected through
 	 * the lan, and if the problem does not correspond to a security problem, the
 	 * system can temporary expel the distant host temporary. This variable

@@ -423,7 +423,7 @@ class FakeKernel extends MadkitKernel {
 	@Override
 	void transferLostForBigDataTransfer(AbstractAgent requester, ConversationID conversationID, int idPacket,
 										AgentAddress sender, AgentAddress receiver, long readDataLength, long durationInMs, AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier,
-										AsynchronousBigDataIdentifier asynchronousBigDataIdentifier, BigDataResultMessage.Type cancelingType) {
+										ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier, BigDataResultMessage.Type cancelingType) {
 		throw buildKernelException(requester);
 	}
 
@@ -540,7 +540,7 @@ class FakeKernel extends MadkitKernel {
 	}
 	@Override
 	AsynchronousBigDataTransferID sendBigDataAndDifferItIfNecessary(AbstractAgent requester, Group group, final String role, String senderRole,
-																	AsynchronousBigDataIdentifier asynchronousBigDataIdentifier,
+																	ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier,
 																	SecureExternalizable attachedData,
 																	MessageDigestType messageDigestType, boolean excludedFromEncryption, long timeOutInMs,
 																	AsynchronousBigDataToSendWrapper asynchronousBigDataToSendWrapper)
@@ -567,6 +567,18 @@ class FakeKernel extends MadkitKernel {
 
 	@Override
 	void receivedBigDataToRestartMessage(AbstractAgent requester, BigDataToRestartMessage message)
+	{
+		throw buildKernelException(null);
+	}
+
+	@Override
+	ReturnCode cancelAsynchronousBigData(AbstractAgent requester, AsynchronousBigDataTransferID asynchronousBigDataTransferID)
+	{
+		throw buildKernelException(null);
+	}
+
+	@Override
+	public AsynchronousBigDataTransferID getAsynchronousBigDataTransferIDInstance(AbstractAgent requester, ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier)
 	{
 		throw buildKernelException(null);
 	}

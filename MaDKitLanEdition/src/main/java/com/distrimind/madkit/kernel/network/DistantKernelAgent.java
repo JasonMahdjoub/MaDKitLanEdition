@@ -2308,12 +2308,12 @@ class DistantKernelAgent extends AgentFakeThread {
 		private final ConversationID conversationID;
 		private final long timeUTC;
 		private final AbstractDecentralizedID differedBigDataInternalIdentifier;
-		private final AsynchronousBigDataIdentifier asynchronousBigDataIdentifier;
+		private final ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier;
 
 		protected BigPacketData(AgentAddress _firstAgentSocketSender, WritePacket _packet, AgentAddress _agentReceiver,
 								AgentAddress caller, ConversationID conversationID, RealTimeTransferStat stat, boolean excludedFromEncryption,
 								AbstractDecentralizedID differedBigDataInternalIdentifier,
-								AsynchronousBigDataIdentifier asynchronousBigDataIdentifier) {
+								ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier) {
 			super(false, _firstAgentSocketSender, _packet, _agentReceiver, excludedFromEncryption);
 			if (!_packet.concernsBigData())
 				throw new IllegalArgumentException("_packet has to use big data !");
@@ -2321,10 +2321,10 @@ class DistantKernelAgent extends AgentFakeThread {
 				throw new NullPointerException("caller");
 			if (conversationID == null)
 				throw new NullPointerException("conversationID");
-			if ((differedBigDataInternalIdentifier==null)!=(asynchronousBigDataIdentifier ==null))
+			if ((differedBigDataInternalIdentifier==null)!=(externalAsynchronousBigDataIdentifier ==null))
 				throw new NullPointerException();
 			this.differedBigDataInternalIdentifier=differedBigDataInternalIdentifier;
-			this.asynchronousBigDataIdentifier = asynchronousBigDataIdentifier;
+			this.externalAsynchronousBigDataIdentifier = externalAsynchronousBigDataIdentifier;
 			this.caller = caller;
 			this.conversationID = conversationID;
 			setStat(stat);
@@ -2352,8 +2352,8 @@ class DistantKernelAgent extends AgentFakeThread {
 			return differedBigDataInternalIdentifier;
 		}
 
-		public AsynchronousBigDataIdentifier getDifferedBigDataIdentifier() {
-			return asynchronousBigDataIdentifier;
+		public ExternalAsynchronousBigDataIdentifier getDifferedBigDataIdentifier() {
+			return externalAsynchronousBigDataIdentifier;
 		}
 	}
 

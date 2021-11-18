@@ -92,8 +92,9 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 	private MessageDigestType messageDigestType;
 	private boolean excludedFromEncryption;
 	private AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier;
-	private AsynchronousBigDataIdentifier asynchronousBigDataIdentifier;
+	private ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier;
 	private transient MadkitKernel localMadkitKernel=null;
+	private transient BigDataTransferID bigDataTransferID=null;
 	@SuppressWarnings("unused")
 	private BigDataPropositionMessage()
 	{
@@ -104,7 +105,14 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		return super.getInternalSerializedSizeImpl()+37
 				+(attachedData==null?0:attachedData.getInternalSerializedSize())
 				+(data==null?0:data.length)+(messageDigestType==null?0:messageDigestType.name().length()*2)
-				+SerializationTools.getInternalSize(asynchronousBigDataIdentifier)+(asynchronousBigDataIdentifier ==null?0:8+SerializationTools.getInternalSize(asynchronousBigDataInternalIdentifier));
+				+SerializationTools.getInternalSize(externalAsynchronousBigDataIdentifier)+(externalAsynchronousBigDataIdentifier ==null?0:8+SerializationTools.getInternalSize(asynchronousBigDataInternalIdentifier));
+	}
+
+	@Override
+	public BigDataTransferID getConversationID() {
+		if (bigDataTransferID==null)
+			bigDataTransferID=new BigDataTransferID(super.getConversationID(), getStatistics());
+		return bigDataTransferID;
 	}
 
 	void setLocalMadkitKernel(MadkitKernel madkitKernel)
@@ -133,8 +141,8 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		}
 		
 		excludedFromEncryption=in.readBoolean();
-		asynchronousBigDataIdentifier =in.readObject(true);
-		if (asynchronousBigDataIdentifier !=null) {
+		externalAsynchronousBigDataIdentifier =in.readObject(true);
+		if (externalAsynchronousBigDataIdentifier !=null) {
 			asynchronousBigDataInternalIdentifier = in.readObject(false);
 			timeOutInMs = in.readLong();
 		}
@@ -157,8 +165,8 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		oos.writeString(messageDigestType==null?null:messageDigestType.name(), true, 1000);
 		
 		oos.writeBoolean(excludedFromEncryption);
-		oos.writeObject(asynchronousBigDataIdentifier, true);
-		if (asynchronousBigDataIdentifier !=null) {
+		oos.writeObject(externalAsynchronousBigDataIdentifier, true);
+		if (externalAsynchronousBigDataIdentifier !=null) {
 			oos.writeObject(asynchronousBigDataInternalIdentifier, false);
 			oos.writeLong(timeOutInMs);
 		}
@@ -191,19 +199,19 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		timeUTC = System.currentTimeMillis();
 		this.messageDigestType = messageDigestType;
 		this.excludedFromEncryption=excludedFromEncryption;
-		this.asynchronousBigDataIdentifier =null;
+		this.externalAsynchronousBigDataIdentifier =null;
 		this.asynchronousBigDataInternalIdentifier =null;
 	}
 	BigDataPropositionMessage(RandomInputStream stream, long pos, SecureExternalizable attachedData, boolean local,
 							  int maxBufferSize, RealTimeTransferStat stat, MessageDigestType messageDigestType, boolean excludedFromEncryption,
 							  AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier,
-							  AsynchronousBigDataIdentifier asynchronousBigDataIdentifier, long timeOutInMs) throws IOException {
+							  ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier, long timeOutInMs) throws IOException {
 		this(stream, pos, stream.length(), attachedData, local, maxBufferSize, stat, messageDigestType, excludedFromEncryption);
-		if (asynchronousBigDataIdentifier ==null)
+		if (externalAsynchronousBigDataIdentifier ==null)
 			throw new NullPointerException();
 		if (asynchronousBigDataInternalIdentifier ==null)
 			throw new NullPointerException();
-		this.asynchronousBigDataIdentifier = asynchronousBigDataIdentifier;
+		this.externalAsynchronousBigDataIdentifier = externalAsynchronousBigDataIdentifier;
 		this.asynchronousBigDataInternalIdentifier = asynchronousBigDataInternalIdentifier;
 		this.timeOutInMs=timeOutInMs;
 	}
@@ -296,7 +304,7 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 			throw new NullPointerException("outputStream");
 		if (asynchronousBigDataInternalIdentifier ==null)
 			throw new IllegalAccessException("This function cannot be used when big data to transfer can't be differed. Please use instead function acceptTransfer(RandomOutputStream).");
-		final RandomOutputStream outputStream= asynchronousBigDataToReceiveWrapper.getRandomOutputStream(asynchronousBigDataIdentifier);
+		final RandomOutputStream outputStream= asynchronousBigDataToReceiveWrapper.getRandomOutputStream(externalAsynchronousBigDataIdentifier);
 		if (outputStream==null)
 			throw new NullPointerException();
 		acceptDifferedTransfer(asynchronousBigDataToReceiveWrapper);
@@ -312,7 +320,7 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		else {
 			AsynchronousBigDataTable.Record r =t.getRecord("asynchronousBigDataInternalIdentifier", asynchronousBigDataInternalIdentifier);
 			if (r != null && r.getAsynchronousBigDataToReceiveWrapper() != null) {
-				acceptTransferImpl(r.getAsynchronousBigDataToReceiveWrapper().getRandomOutputStream(asynchronousBigDataIdentifier));
+				acceptTransferImpl(r.getAsynchronousBigDataToReceiveWrapper().getRandomOutputStream(externalAsynchronousBigDataIdentifier));
 				return true;
 			} else
 				return false;
@@ -320,9 +328,9 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 	}
 	private void acceptDifferedTransfer(final AsynchronousBigDataToReceiveWrapper asynchronousBigDataToReceiveWrapper) throws InterruptedException {
 		AsynchronousBigDataTable.Record r=localMadkitKernel.getAsynchronousBigDataTable().startAsynchronousBigDataTransfer(getReceiver().getGroup(),
-				getSender().getRole(),getReceiver().getRole(),asynchronousBigDataIdentifier,
-				messageDigestType, excludedFromEncryption, timeOutInMs, asynchronousBigDataToReceiveWrapper, asynchronousBigDataInternalIdentifier
-				);
+				getSender().getRole(),getReceiver().getRole(), externalAsynchronousBigDataIdentifier,
+				messageDigestType, excludedFromEncryption, timeOutInMs, asynchronousBigDataToReceiveWrapper, asynchronousBigDataInternalIdentifier,
+				getConversationID());
 		if (r==null)
 		{
 			dataCorrupted(0, new MessageExternalizationException(Integrity.FAIL));
@@ -421,7 +429,7 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 			receiver.scheduleTask(new Task<>((Callable<Void>) () -> {
 				if (receiver.isAlive()) {
 					Message m = new BigDataResultMessage(BigDataResultMessage.Type.BIG_DATA_TRANSFER_DENIED, 0,
-							idPacket, System.currentTimeMillis() - timeUTC, asynchronousBigDataInternalIdentifier, asynchronousBigDataIdentifier);
+							idPacket, System.currentTimeMillis() - timeUTC, asynchronousBigDataInternalIdentifier, externalAsynchronousBigDataIdentifier);
 					m.setIDFrom(BigDataPropositionMessage.this);
 					receiver.sendMessage(getSender(), m);
 				}
@@ -450,13 +458,13 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		final AbstractAgent receiver = getReceiver().getAgent();
 
 		receiver.scheduleTask(new Task<>((Callable<Void>) () -> {
-			Message m = new BigDataResultMessage(type, length, idPacket, System.currentTimeMillis() - timeUTC, asynchronousBigDataInternalIdentifier, asynchronousBigDataIdentifier);
+			Message m = new BigDataResultMessage(type, length, idPacket, System.currentTimeMillis() - timeUTC, asynchronousBigDataInternalIdentifier, externalAsynchronousBigDataIdentifier);
 			m.setIDFrom(BigDataPropositionMessage.this);
 			receiver.sendMessage(getSender(), m);
 			return null;
 		}));
 
-		Message m = new BigDataResultMessage(type, length, idPacket, System.currentTimeMillis() - timeUTC, asynchronousBigDataInternalIdentifier, asynchronousBigDataIdentifier);
+		Message m = new BigDataResultMessage(type, length, idPacket, System.currentTimeMillis() - timeUTC, asynchronousBigDataInternalIdentifier, externalAsynchronousBigDataIdentifier);
 		m.setReceiver(getReceiver());
 		m.setSender(getSender());
 		m.setIDFrom(BigDataPropositionMessage.this);
@@ -483,12 +491,12 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		return asynchronousBigDataInternalIdentifier;
 	}
 
-	public AsynchronousBigDataIdentifier getAsynchronousBigDataIdentifier() {
-		return asynchronousBigDataIdentifier;
+	public ExternalAsynchronousBigDataIdentifier getAsynchronousBigDataIdentifier() {
+		return externalAsynchronousBigDataIdentifier;
 	}
 
 	public boolean isAsynchronousMessage()
 	{
-		return asynchronousBigDataIdentifier !=null;
+		return externalAsynchronousBigDataIdentifier !=null;
 	}
 }

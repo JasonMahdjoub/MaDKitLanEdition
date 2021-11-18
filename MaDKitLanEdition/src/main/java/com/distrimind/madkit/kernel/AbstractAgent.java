@@ -72,7 +72,6 @@ import com.distrimind.madkit.message.task.TasksExecutionConfirmationMessage;
 import com.distrimind.madkit.util.XMLUtilities;
 import com.distrimind.ood.database.DatabaseConfigurationsBuilder;
 import com.distrimind.ood.database.exceptions.DatabaseException;
-import com.distrimind.util.AbstractDecentralizedIDGenerator;
 import com.distrimind.util.CircularArrayList;
 import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.crypto.MessageDigestType;
@@ -2183,12 +2182,12 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	}
 
 	/**
-	 * Sends a message to an agent having this position in the organization. If
+	 * Sends a message to an agent having the given position in the organization. If
 	 * several agents match, the target is chosen randomly. The sender is excluded
 	 * from this search. If no recipient was found, the message is stored into the
 	 * database until a recipient becomes available.
 	 *
-	 * Messages that are not into the group path defined path
+	 * Messages that are not into the group defined path
 	 * {@link MadkitProperties#rootOfPathGroupUsedToFilterAsynchronousMessages} are not sent
 	 *
 	 * @param group
@@ -5113,14 +5112,144 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 
 	}
 
-	public AsynchronousBigDataTransferID getAsynchronousBigDataTransferIDInstance(AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier, AsynchronousBigDataIdentifier asynchronousBigDataIdentifier)
+	/**
+	 * Get the asynchronous transfer id corresponding to the given asynchronous external identifier
+	 * @param externalAsynchronousBigDataIdentifier the external identifier
+	 * @return the transfer id if found, null else
+	 */
+	public AsynchronousBigDataTransferID getAsynchronousBigDataTransferIDInstance(ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier)
 	{
-		return new AsynchronousBigDataTransferID(asynchronousBigDataInternalIdentifier, asynchronousBigDataIdentifier, getKernel().getKernel());
+		return getKernel().getAsynchronousBigDataTransferIDInstance(this, externalAsynchronousBigDataIdentifier);
 	}
 
-	public ReturnCode cancelBigDataTransfer(BigDataTransferID bigDataTransferID)
+	/**
+	 * Cancel big data transfer that is actually in progress. Asynchronous transfers are also concerned.
+	 *
+	 * @param bigDataTransferID the transfer id. It can be an instance of {@link BigDataTransferID}
+	 *                          if the transfer is direct, or an instance of {@link AsynchronousBigDataTransferID}
+	 *                          if the transfer is asynchronous
+	 * @return SUCCESS if the transfer was found, IGNORED if not
+	 */
+	public ReturnCode cancelAsynchronousBigData(IBigDataTransferID bigDataTransferID)
 	{
-		return getKernel().cancelBigDataTransfer(this, bigDataTransferID);
+		if (bigDataTransferID==null)
+			throw new NullPointerException();
+		if (bigDataTransferID.getClass()==BigDataTransferID.class)
+			return getKernel().cancelBigDataTransfer(this, (BigDataTransferID)bigDataTransferID);
+		else if (bigDataTransferID.getClass()==AsynchronousBigDataTransferID.class)
+			return getKernel().cancelAsynchronousBigData(this, (AsynchronousBigDataTransferID)bigDataTransferID);
+		else
+			throw new IllegalAccessError();
+	}
+
+	/**
+	 * Sends a big data to an agent having a given position in the organization.
+	 * If several agents match, the target is chosen randomly. The sender is excluded
+	 * from this search. If no recipient was found, the message is differed and the database
+	 * is used to store message parameters.
+	 *
+	 * @param group the group(s) and the community(ies) name
+	 * @param role the role name
+	 * @param externalAsynchronousBigDataIdentifier the external asynchronous message identifier
+	 * @param asynchronousBigDataToSendWrapper the input stream wrapper
+	 * @param timeOutInMs the delay to wait before considering the message as not send
+	 * @param attachedData optionally attached data that is send with the big data
+	 * @param messageDigestType message digest type used to check the data sent. Can be null.
+	 * @param senderRole the agent's role with which the message has to be sent
+	 * @param excludedFromEncryption if set to true, en encryption is not used during the network transfer
+	 *
+	 * @return an asynchronous big data transfer ID that identify the transfer, and that gives
+	 * statistics about the transfer speed in real time. Returns null if a problem occurs.
+	 */
+	public AsynchronousBigDataTransferID sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(Group group, final String role,
+																				ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier,
+																				AsynchronousBigDataToSendWrapper asynchronousBigDataToSendWrapper,
+																				long timeOutInMs,
+																				SecureExternalizable attachedData,
+																				MessageDigestType messageDigestType,
+																				final String senderRole,
+																				boolean excludedFromEncryption)  {
+		return getKernel().sendBigDataAndDifferItIfNecessary(this,
+				group, role, senderRole, externalAsynchronousBigDataIdentifier, attachedData, messageDigestType, excludedFromEncryption, timeOutInMs, asynchronousBigDataToSendWrapper);
+	}
+	/**
+	 * Sends a big data to an agent having a given position in the organization.
+	 * If several agents match, the target is chosen randomly. The sender is excluded
+	 * from this search. If no recipient was found, the message is differed and the database
+	 * is used to store message parameters.
+	 *
+	 * @param group the group(s) and the community(ies) name
+	 * @param role the role name
+	 * @param externalAsynchronousBigDataIdentifier the external asynchronous message identifier
+	 * @param asynchronousBigDataToSendWrapper the input stream wrapper
+	 * @param timeOutInMs the delay to wait before considering the message as not send
+	 * @param attachedData optionally attached data that is send with the big data
+	 * @param messageDigestType message digest type used to check the data sent. Can be null.
+	 * @param senderRole the agent's role with which the message has to be sent
+	 *
+	 * @return an asynchronous big data transfer ID that identify the transfer, and that gives
+	 * statistics about the transfer speed in real time. Returns null if a problem occurs.
+	 */
+	public AsynchronousBigDataTransferID sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(Group group, final String role,
+																								  ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier,
+																								  AsynchronousBigDataToSendWrapper asynchronousBigDataToSendWrapper,
+																								  long timeOutInMs,
+																								  SecureExternalizable attachedData,
+																								  MessageDigestType messageDigestType,
+																								  final String senderRole)  {
+		return sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(group, role, externalAsynchronousBigDataIdentifier, asynchronousBigDataToSendWrapper, timeOutInMs,
+				attachedData, messageDigestType, senderRole, false);
+	}
+
+	/**
+	 * Sends a big data to an agent having a given position in the organization.
+	 * If several agents match, the target is chosen randomly. The sender is excluded
+	 * from this search. If no recipient was found, the message is differed and the database
+	 * is used to store message parameters.
+	 *
+	 * @param group the group(s) and the community(ies) name
+	 * @param role the role name
+	 * @param externalAsynchronousBigDataIdentifier the external asynchronous message identifier
+	 * @param asynchronousBigDataToSendWrapper the input stream wrapper
+	 * @param timeOutInMs the delay to wait before considering the message as not send
+	 * @param attachedData optionally attached data that is send with the big data
+	 * @param senderRole the agent's role with which the message has to be sent
+	 *
+	 * @return an asynchronous big data transfer ID that identify the transfer, and that gives
+	 * statistics about the transfer speed in real time. Returns null if a problem occurs.
+	 */
+	public AsynchronousBigDataTransferID sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(Group group, final String role,
+																								  ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier,
+																								  AsynchronousBigDataToSendWrapper asynchronousBigDataToSendWrapper,
+																								  long timeOutInMs,
+																								  SecureExternalizable attachedData,
+																								  final String senderRole)  {
+		return sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(group, role, externalAsynchronousBigDataIdentifier, asynchronousBigDataToSendWrapper, timeOutInMs,
+				attachedData, null, senderRole);
+	}
+	/**
+	 * Sends a big data to an agent having a given position in the organization.
+	 * If several agents match, the target is chosen randomly. The sender is excluded
+	 * from this search. If no recipient was found, the message is differed and the database
+	 * is used to store message parameters.
+	 *
+	 * @param group the group(s) and the community(ies) name
+	 * @param role the role name
+	 * @param externalAsynchronousBigDataIdentifier the external asynchronous message identifier
+	 * @param asynchronousBigDataToSendWrapper the input stream wrapper
+	 * @param timeOutInMs the delay to wait before considering the message as not send
+	 * @param senderRole the agent's role with which the message has to be sent
+	 *
+	 * @return an asynchronous big data transfer ID that identify the transfer, and that gives
+	 * statistics about the transfer speed in real time. Returns null if a problem occurs.
+	 */
+	public AsynchronousBigDataTransferID sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(Group group, final String role,
+																								  ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier,
+																								  AsynchronousBigDataToSendWrapper asynchronousBigDataToSendWrapper,
+																								  long timeOutInMs,
+																								  final String senderRole)  {
+		return sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(group, role, externalAsynchronousBigDataIdentifier, asynchronousBigDataToSendWrapper, timeOutInMs,
+				null, senderRole);
 	}
 
 }

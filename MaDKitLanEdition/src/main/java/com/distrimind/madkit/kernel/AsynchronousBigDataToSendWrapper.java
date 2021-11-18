@@ -50,5 +50,5 @@ public interface AsynchronousBigDataToSendWrapper extends SecureExternalizable {
 	{
 		return new DecentralizedIDGenerator(false, true);
 	}
-	RandomInputStream getRandomInputStream(AsynchronousBigDataIdentifier asynchronousBigDataIdentifier);
+	RandomInputStream getRandomInputStream(ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier);
 }

@@ -101,6 +101,29 @@ class InternalRole implements SecureExternalizable {
 
 	private Group group;
 	private String roleName;
+	private transient long numberOfSimultaneousAsynchronousMessages=0;
+
+
+	@SuppressWarnings("unused")
+	boolean incrementNumberOfSimultaneousAsynchronousMessages(long maxNumberOfSimultaneousAsynchronousMessages) {
+		synchronized (this) {
+			if (numberOfSimultaneousAsynchronousMessages>=maxNumberOfSimultaneousAsynchronousMessages)
+				return false;
+			else {
+				++this.numberOfSimultaneousAsynchronousMessages;
+				return true;
+			}
+
+		}
+	}
+	@SuppressWarnings("unused")
+	void decrementNumberOfSimultaneousAsynchronousMessages() {
+		synchronized (this) {
+			--this.numberOfSimultaneousAsynchronousMessages;
+			assert this.numberOfSimultaneousAsynchronousMessages>=0;
+		}
+	}
+
 	InternalRole()
 	{
 		

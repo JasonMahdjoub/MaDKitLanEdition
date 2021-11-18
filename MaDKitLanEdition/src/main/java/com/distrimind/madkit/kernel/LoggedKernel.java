@@ -654,9 +654,9 @@ final class LoggedKernel extends MadkitKernel {
 	@Override
 	void transferLostForBigDataTransfer(AbstractAgent requester, ConversationID conversationID, int idPacket,
 										AgentAddress sender, AgentAddress receiver, long readDataLength, long durationInMs, AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier,
-										AsynchronousBigDataIdentifier asynchronousBigDataIdentifier, BigDataResultMessage.Type cancelingType) {
+										ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier, BigDataResultMessage.Type cancelingType) {
 		kernel.transferLostForBigDataTransfer(requester, conversationID, idPacket, sender, receiver, readDataLength,
-				durationInMs, asynchronousBigDataInternalIdentifier, asynchronousBigDataIdentifier, cancelingType);
+				durationInMs, asynchronousBigDataInternalIdentifier, externalAsynchronousBigDataIdentifier, cancelingType);
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST,
 					"transferLostForBigDataTransfer (Agent " + requester + ", conversation ID " + conversationID
@@ -956,19 +956,19 @@ final class LoggedKernel extends MadkitKernel {
 
 	@Override
 	AsynchronousBigDataTransferID sendBigDataAndDifferItIfNecessary(AbstractAgent requester, Group group, final String role, String senderRole,
-																	AsynchronousBigDataIdentifier asynchronousBigDataIdentifier,
+																	ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier,
 																	SecureExternalizable attachedData,
 																	MessageDigestType messageDigestType, boolean excludedFromEncryption, long timeOutInMs,
 																	AsynchronousBigDataToSendWrapper asynchronousBigDataToSendWrapper)
 	{
 		AsynchronousBigDataTransferID r=kernel.sendBigDataAndDifferItIfNecessary(requester, group, role, senderRole,
-				asynchronousBigDataIdentifier, attachedData, messageDigestType, excludedFromEncryption, timeOutInMs,
+				externalAsynchronousBigDataIdentifier, attachedData, messageDigestType, excludedFromEncryption, timeOutInMs,
 				asynchronousBigDataToSendWrapper);
 		if (kernel.isFinestLogOn())
 			kernel.logger.log(Level.FINEST, "sendBigDataAndDifferItIfNecessary (requester="+requester+", group="+group
 					+", destinationRole="+role
 					+", senderRole="+senderRole
-					+", differedBidDataIdentifier="+ asynchronousBigDataIdentifier
+					+", differedBidDataIdentifier="+ externalAsynchronousBigDataIdentifier
 					+", messageDigestType="+messageDigestType
 					+", excludedFromEncryption="+excludedFromEncryption
 					+", timeOutInMs="+timeOutInMs
@@ -1013,5 +1013,21 @@ final class LoggedKernel extends MadkitKernel {
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST,
 					"receivedBigDataToRestartMessage (Requester=" + requester + ", message=" + message+")");
+	}
+
+	@Override
+	ReturnCode cancelAsynchronousBigData(AbstractAgent requester, AsynchronousBigDataTransferID asynchronousBigDataTransferID)
+	{
+		ReturnCode r=kernel.cancelAsynchronousBigData(requester, asynchronousBigDataTransferID);
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "cancelAsynchronousBigData (requester="+requester+", asynchronousBigDataTransferID="+asynchronousBigDataTransferID
+					+", res=" + r + ")");
+		return r;
+	}
+
+	@Override
+	public AsynchronousBigDataTransferID getAsynchronousBigDataTransferIDInstance(AbstractAgent requester, ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier)
+	{
+		return kernel.getAsynchronousBigDataTransferIDInstance(requester, externalAsynchronousBigDataIdentifier);
 	}
 }

@@ -35,14 +35,20 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-import com.distrimind.util.io.RandomOutputStream;
-import com.distrimind.util.io.SecureExternalizable;
+import com.distrimind.madkit.kernel.network.RealTimeTransferStat;
 
 /**
  * @author Jason Mahdjoub
  * @version 1.0
  * @since MaDKitLanEdition 2.3.0
  */
-public interface AsynchronousBigDataToReceiveWrapper extends SecureExternalizable {
-	RandomOutputStream getRandomOutputStream(ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier);
+public interface IBigDataTransferID extends Cloneable {
+	/**
+	 * Gets statistics in bytes per seconds related to the concerned big data
+	 * transfer
+	 *
+	 * @return statistics in bytes per seconds related to the concerned big data
+	 *         transfer
+	 */
+	RealTimeTransferStat getBytePerSecondsStat();
 }
