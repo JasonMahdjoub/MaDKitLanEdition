@@ -191,7 +191,7 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 				if (aa!=null) {
 					try {
 
-						if (abstractAgent.sendMessageWithRole(aa, _record.getAsynchronousMessage(), r)== AbstractAgent.ReturnCode.SUCCESS) {
+						if (canForgiveMessage(abstractAgent.sendMessageWithRole(aa, _record.getAsynchronousMessage(), r))) {
 							if (where.length()>startQueryLength)
 								where.append(" OR ");
 
@@ -287,7 +287,7 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 						AgentAddress aa=abstractAgent.getAgentWithRole(agentAddress.getGroup(), _record.getRoleReceiver());
 						if (aa!=null) {
 							try {
-								if (abstractAgent.sendMessageWithRole(aa, _record.getAsynchronousMessage(), _record.getRoleSender())== AbstractAgent.ReturnCode.SUCCESS)
+								if (canForgiveMessage(abstractAgent.sendMessageWithRole(aa, _record.getAsynchronousMessage(), _record.getRoleSender())))
 								{
 									if (where.length() > startQueryLength)
 										where.append(" OR ");
@@ -367,7 +367,10 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 		availableSenders.remove(role);
 
 	}
-
+	boolean canForgiveMessage(AbstractAgent.ReturnCode r)
+	{
+		return r== AbstractAgent.ReturnCode.SUCCESS || r== AbstractAgent.ReturnCode.TRANSFER_IN_PROGRESS || r==AbstractAgent.ReturnCode.INVALID_AGENT_ADDRESS;
+	}
 	public AbstractAgent.ReturnCode differMessage(Collection<String> baseGroupPath, final AbstractAgent requester,
 												  final Group group, final String roleSender,
 												  final String roleReceiver, final Message message,
@@ -389,38 +392,36 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 
 		if (receiverAA!=null)
 		{
-			return requester.sendMessageWithRole(receiverAA, message, roleSender);
+			AbstractAgent.ReturnCode r=requester.sendMessageWithRole(receiverAA, message, roleSender);
+			if (canForgiveMessage(r))
+				return r;
 		}
-		else {
-			getDatabaseWrapper().runSynchronizedTransaction(new SynchronizedTransaction<Void>() {
-				@Override
-				public Void run() throws Exception {
-					Role role=new Role(group, roleSender);
-					availableSenders.putIfAbsent(role, requester);
-					addRecord(new Record(group.toString(), roleSender, roleReceiver, message,timeOutInMs));
+		getDatabaseWrapper().runSynchronizedTransaction(new SynchronizedTransaction<Void>() {
+			@Override
+			public Void run() throws Exception {
+				Role role=new Role(group, roleSender);
+				availableSenders.putIfAbsent(role, requester);
+				addRecord(new Record(group.toString(), roleSender, roleReceiver, message,timeOutInMs));
 
-					return null;
-				}
+				return null;
+			}
 
-				@Override
-				public TransactionIsolation getTransactionIsolation() {
-					return TransactionIsolation.TRANSACTION_READ_UNCOMMITTED;
-				}
+			@Override
+			public TransactionIsolation getTransactionIsolation() {
+				return TransactionIsolation.TRANSACTION_READ_UNCOMMITTED;
+			}
 
-				@Override
-				public boolean doesWriteData() {
-					return true;
-				}
+			@Override
+			public boolean doesWriteData() {
+				return true;
+			}
 
-				@Override
-				public void initOrReset() {
+			@Override
+			public void initOrReset() {
 
-				}
-			});
-			return AbstractAgent.ReturnCode.MESSAGE_DIFFERED;
-
-		}
-
+			}
+		});
+		return AbstractAgent.ReturnCode.MESSAGE_DIFFERED;
 	}
 	public long cancelAsynchronousMessagesBySenderRole(Group group, String senderRole) throws DatabaseException {
 		return removeRecords("groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
