@@ -92,12 +92,15 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 		private byte[] asynchronousMessage;
 
 		@Field
-		private long utcTimeUpdate;
+		private long queryTimeUTC;
+
+		@Field
+		private long timeOutInMs;
 
 		public Record() {
 		}
 
-		public Record(String groupPath, String roleSender, String roleReceiver, Message asynchronousMessage) throws IOException {
+		public Record(String groupPath, String roleSender, String roleReceiver, Message asynchronousMessage, long timeOutInMs) throws IOException {
 			this.id=0;
 			if (groupPath==null)
 				throw new NullPointerException();
@@ -107,6 +110,8 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 				throw new NullPointerException();
 			if (asynchronousMessage ==null)
 				throw new NullPointerException();
+			if (timeOutInMs<1)
+				throw new IllegalArgumentException();
 			this.groupPath = groupPath;
 			this.roleSender = roleSender;
 			this.roleReceiver = roleReceiver;
@@ -118,11 +123,12 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 				if (this.asynchronousMessage.length> MAX_ASYNCHRONOUS_MESSAGE_LENGTH)
 					throw new IllegalArgumentException("Asynchronous message size ("+HumanReadableBytesCount.convertToString(this.asynchronousMessage.length)+") exceed limit of "+ HumanReadableBytesCount.convertToString(MAX_ASYNCHRONOUS_MESSAGE_LENGTH));
 			}
-			this.utcTimeUpdate=System.currentTimeMillis();
+			this.queryTimeUTC =System.currentTimeMillis();
+			this.timeOutInMs=timeOutInMs;
 		}
 
-		public long getUtcTimeUpdate() {
-			return utcTimeUpdate;
+		public long getQueryTimeUTC() {
+			return queryTimeUTC;
 		}
 
 		public int getId() {
@@ -147,8 +153,21 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 				return bais.readObject(false, Message.class);
 			}
 		}
+
+		public long getTimeOutInMs() {
+			return timeOutInMs;
+		}
 	}
 
+
+	public void cleanObsoleteData()
+	{
+		try {
+			removeRecords("timeOutInMs+queryTimeUTC<%mt", "mt", System.currentTimeMillis());
+		} catch (DatabaseException e) {
+			e.printStackTrace();
+		}
+	}
 
 	private final Map<Role, AbstractAgent> availableSenders= Collections.synchronizedMap(new HashMap<>());
 
@@ -198,7 +217,7 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 				}
 				return false;
 			}
-		},"groupPath=%groupPath AND roleSender=%roleSender", new Object[]{"groupPath", groupPath, "roleSender", r}, true, "utcTimeUpdate");
+		},"groupPath=%groupPath AND roleSender=%roleSender", new Object[]{"groupPath", groupPath, "roleSender", r}, true, "queryTimeUTC");
 		if (!allRemoved.get() || where.length() > startQueryLength || wheres.size()>0) {
 			if (allRemoved.get()) {
 				removeAllRecordsWithCascade();
@@ -299,7 +318,7 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 						}
 						return false;
 					}
-				},"groupPath=%groupPath AND roleReceiver=%roleReceiver", new Object[]{"groupPath", groupPath, "roleReceiver", agentAddress.getRole()}, true, "utcTimeUpdate");
+				},"groupPath=%groupPath AND roleReceiver=%roleReceiver", new Object[]{"groupPath", groupPath, "roleReceiver", agentAddress.getRole()}, true, "queryTimeUTC");
 				if (!allRemoved.get() || where.length() > startQueryLength || wheres.size()>0) {
 
 
@@ -349,7 +368,10 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 
 	}
 
-	public AbstractAgent.ReturnCode differMessage(Collection<String> baseGroupPath, final AbstractAgent requester, final Group group, final String roleSender, final String roleReceiver, final Message message) throws DatabaseException {
+	public AbstractAgent.ReturnCode differMessage(Collection<String> baseGroupPath, final AbstractAgent requester,
+												  final Group group, final String roleSender,
+												  final String roleReceiver, final Message message,
+												  final long timeOutInMs) throws DatabaseException {
 
 		final String groupPath=group.getPath();
 		if (!isConcerned(baseGroupPath, groupPath))
@@ -375,7 +397,7 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 				public Void run() throws Exception {
 					Role role=new Role(group, roleSender);
 					availableSenders.putIfAbsent(role, requester);
-					addRecord(new Record(group.toString(), roleSender, roleReceiver, message));
+					addRecord(new Record(group.toString(), roleSender, roleReceiver, message,timeOutInMs));
 
 					return null;
 				}

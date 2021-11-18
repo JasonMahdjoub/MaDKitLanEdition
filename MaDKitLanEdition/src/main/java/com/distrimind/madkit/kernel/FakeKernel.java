@@ -160,7 +160,7 @@ class FakeKernel extends MadkitKernel {
 
 	@Override
 	ReturnCode sendMessageAndDifferItIfNecessary(final AbstractAgent requester, Group group, final String role, final Message message,
-												 final String senderRole) {
+												 final String senderRole, final long timeOutInMs) {
 		throw buildKernelException(requester);
 
 	}
@@ -579,6 +579,28 @@ class FakeKernel extends MadkitKernel {
 
 	@Override
 	public AsynchronousBigDataTransferID getAsynchronousBigDataTransferIDInstance(AbstractAgent requester, ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier)
+	{
+		throw buildKernelException(null);
+	}
+	@Override
+	void setAsynchronousTransferAsStarted(AbstractAgent requester, AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier)
+	{
+		throw buildKernelException(null);
+	}
+	@Override
+	void cleanObsoleteMaDKitData(AbstractAgent requester)
+	{
+		throw buildKernelException(null);
+	}
+
+	@Override
+	void setAutomaticObsoleteDataCleaningDelay(AbstractAgent requester, MadkitKernel parentMadkitKernel, long delayInMsBeforeCleaningObsoleteMadkitData)
+	{
+		throw buildKernelException(null);
+	}
+
+	@Override
+	void setAdditionalObsoleteDataCleaner(AbstractAgent requester, Runnable additionalDataCleaner)
 	{
 		throw buildKernelException(null);
 	}

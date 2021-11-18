@@ -42,7 +42,6 @@ import com.distrimind.madkit.kernel.network.Block;
 import com.distrimind.madkit.kernel.network.RealTimeTransferStat;
 import com.distrimind.madkit.util.NetworkMessage;
 import com.distrimind.ood.database.exceptions.DatabaseException;
-import com.distrimind.util.AbstractDecentralizedID;
 import com.distrimind.util.AbstractDecentralizedIDGenerator;
 import com.distrimind.util.crypto.MessageDigestType;
 import com.distrimind.util.io.*;
@@ -338,7 +337,7 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		else
 			acceptTransferImpl(outputStream);
 	}
-	void acceptTransferImpl(final RandomOutputStream outputStream) throws InterruptedException {
+	private void acceptTransferImpl(final RandomOutputStream outputStream) throws InterruptedException {
 		if (outputStream == null)
 			throw new NullPointerException("outputStream");
 		final AbstractAgent receiver = getReceiver().getAgent();
@@ -487,7 +486,7 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		return outputStream;
 	}
 
-	public AbstractDecentralizedID getAsynchronousBigDataInternalIdentifier() {
+	public AbstractDecentralizedIDGenerator getAsynchronousBigDataInternalIdentifier() {
 		return asynchronousBigDataInternalIdentifier;
 	}
 

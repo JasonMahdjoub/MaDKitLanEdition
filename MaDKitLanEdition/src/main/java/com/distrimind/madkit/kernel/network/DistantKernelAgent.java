@@ -58,7 +58,7 @@ import com.distrimind.madkit.message.hook.DistantKernelAgentEventMessage;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.message.hook.NetworkGroupsAccessEvent;
 import com.distrimind.madkit.message.hook.NetworkLoginAccessEvent;
-import com.distrimind.util.AbstractDecentralizedID;
+import com.distrimind.util.AbstractDecentralizedIDGenerator;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.crypto.AbstractSecureRandom;
@@ -892,7 +892,9 @@ class DistantKernelAgent extends AgentFakeThread {
 			if (logger != null && logger.isLoggable(Level.FINEST))
 				logger.finest("Big data in queue valid (distantInterfacedKernelAddress=" + distant_kernel_address
 						+ ", idTransfer=" + idTransfer + ")");
-
+			AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier = bpd.getDifferedBigDataInternalIdentifier();
+			if (asynchronousBigDataInternalIdentifier!=null)
+				MadkitKernelAccess.setAsynchronousTransferAsStarted(this, asynchronousBigDataInternalIdentifier);
 			sendMessage(bpd.getAgentSocketSender(), new DistKernADataToUpgradeMessage(bpd));
 			return true;
 		}
@@ -2307,12 +2309,12 @@ class DistantKernelAgent extends AgentFakeThread {
 		private final AgentAddress caller;
 		private final ConversationID conversationID;
 		private final long timeUTC;
-		private final AbstractDecentralizedID differedBigDataInternalIdentifier;
+		private final AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier;
 		private final ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier;
 
 		protected BigPacketData(AgentAddress _firstAgentSocketSender, WritePacket _packet, AgentAddress _agentReceiver,
 								AgentAddress caller, ConversationID conversationID, RealTimeTransferStat stat, boolean excludedFromEncryption,
-								AbstractDecentralizedID differedBigDataInternalIdentifier,
+								AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier,
 								ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier) {
 			super(false, _firstAgentSocketSender, _packet, _agentReceiver, excludedFromEncryption);
 			if (!_packet.concernsBigData())
@@ -2348,7 +2350,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			return System.currentTimeMillis() - timeUTC;
 		}
 
-		public AbstractDecentralizedID getDifferedBigDataInternalIdentifier() {
+		public AbstractDecentralizedIDGenerator getDifferedBigDataInternalIdentifier() {
 			return differedBigDataInternalIdentifier;
 		}
 

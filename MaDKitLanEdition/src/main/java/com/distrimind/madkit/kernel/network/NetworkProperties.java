@@ -189,6 +189,16 @@ public class NetworkProperties extends MultiFormatProperties {
 	public long maxNumberOfSimultaneousAsynchronousBigDataMessagesSentToTheSameGroup=1;
 
 	/**
+	 * Default time out in milliseconds before MKLE consider old asynchronous messages as obsolete whose sending must be canceled
+	 */
+	public long defaultTimeOutInMsBeforeConsideringAsynchronousMessageAsObsolete=90L*24L*60L*60L*1000L;
+	/**
+	 * Default time out in milliseconds before MKLE consider old asynchronous big data transfer as obsolete whose sending must be canceled
+	 */
+	public long defaultTimeOutInMsBeforeConsideringAsynchronousBigDataMessageAsObsolete=defaultTimeOutInMsBeforeConsideringAsynchronousMessageAsObsolete;
+
+
+	/**
 	 * When received data are incorrect or when an anomaly has been detected through
 	 * the lan, and if the problem does not correspond to a security problem, the
 	 * system can temporary expel the distant host temporary. This variable

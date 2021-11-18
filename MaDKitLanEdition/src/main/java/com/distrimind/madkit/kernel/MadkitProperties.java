@@ -199,6 +199,13 @@ public class MadkitProperties extends MultiFormatProperties {
 
 	public File MadkitLogFile = null;
 
+	/**
+	 * Delay in milliseconds before cleaning obsolete Madkit data
+	 */
+	long delayInMsBeforeCleaningObsoleteMadkitData=-1;
+
+
+
 	//public Level orgLogLevel = Level.OFF;
 
 

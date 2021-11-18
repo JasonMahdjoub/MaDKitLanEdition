@@ -65,6 +65,7 @@ import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.message.task.TasksExecutionConfirmationMessage;
 import com.distrimind.madkit.util.XMLUtilities;
 import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.ood.database.exceptions.DatabaseLoadingException;
 import com.distrimind.util.AbstractDecentralizedIDGenerator;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.Reference;
@@ -235,6 +236,8 @@ class MadkitKernel extends Agent {
 
 	private volatile AsynchronousMessageTable asynchronousMessageTable =null;
 	private volatile AsynchronousBigDataTable asynchronousBigDataTable =null;
+	private volatile TaskID databaseCleanerTaskID=null;
+	private volatile Runnable additionalDataCleaner=null;
 
 	/**
 	 * Constructing the real one.
@@ -299,6 +302,7 @@ class MadkitKernel extends Agent {
 			try {
 				asynchronousMessageTable = madkitConfig.getDatabaseWrapper().getTableInstance(AsynchronousMessageTable.class);
 				asynchronousBigDataTable = madkitConfig.getDatabaseWrapper().getTableInstance(AsynchronousBigDataTable.class);
+				setAutomaticObsoleteDataCleaningDelay(madkitConfig.delayInMsBeforeCleaningObsoleteMadkitData);
 			} catch (DatabaseException e) {
 				bugReport(e);
 				try {
@@ -1496,7 +1500,8 @@ class MadkitKernel extends Agent {
 
 
 	ReturnCode sendMessageAndDifferItIfNecessary(final AbstractAgent requester, Group group, final String role,
-												 final Message message, final String senderRole)  {
+												 final Message message, final String senderRole,
+												 final long timeOutInMs)  {
 		if (requester==null)
 			throw new NullPointerException();
 		if (message==null)
@@ -1516,12 +1521,12 @@ class MadkitKernel extends Agent {
 		}
 		try {
 			message.setSender(new AgentAddress());
-			return asynchronousMessageTable.differMessage(platform.getConfigOption().rootOfPathGroupUsedToFilterAsynchronousMessages, requester,group, senderRole, role, message);
+			return asynchronousMessageTable.differMessage(platform.getConfigOption().rootOfPathGroupUsedToFilterAsynchronousMessages,
+					requester,group, senderRole, role, message, timeOutInMs);
 		} catch (DatabaseException e) {
 			bugReport(e);
 			return IGNORED;
 		}
-
 	}
 	AsynchronousBigDataTransferID sendBigDataAndDifferItIfNecessary(AbstractAgent requester, Group group, final String role, String senderRole,
 																	ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier,
@@ -1605,6 +1610,44 @@ class MadkitKernel extends Agent {
 			return 0;
 		}
 
+	}
+
+	void cleanObsoleteMaDKitData(AbstractAgent requester)
+	{
+		if (asynchronousMessageTable!=null)
+		{
+			asynchronousBigDataTable.cleanObsoleteData(this);
+			asynchronousMessageTable.cleanObsoleteData();
+			Runnable additionalDataCleaner=this.additionalDataCleaner;
+			if (additionalDataCleaner!=null)
+				additionalDataCleaner.run();
+		}
+	}
+
+	void setAutomaticObsoleteDataCleaningDelay(AbstractAgent requester, MadkitKernel parentMadkitKernel, long delayInMsBeforeCleaningObsoleteMadkitData)
+	{
+		MadkitKernel madkitKernel=parentMadkitKernel==null?this:parentMadkitKernel;
+		if (databaseCleanerTaskID!=null) {
+			cancelTask(requester, databaseCleanerTaskID, false);
+			databaseCleanerTaskID=null;
+		}
+		if (delayInMsBeforeCleaningObsoleteMadkitData>0)
+		{
+			getMadkitConfig().delayInMsBeforeCleaningObsoleteMadkitData=delayInMsBeforeCleaningObsoleteMadkitData=Math.max(20L*60L*1000L, delayInMsBeforeCleaningObsoleteMadkitData);
+			databaseCleanerTaskID=scheduleTask(requester, new Task<>((Callable<Void>) () -> {
+				madkitKernel.cleanObsoleteMaDKitData(madkitKernel);
+				return null;
+			}, System.currentTimeMillis()+delayInMsBeforeCleaningObsoleteMadkitData, delayInMsBeforeCleaningObsoleteMadkitData),false);
+		}
+		else {
+
+			getMadkitConfig().delayInMsBeforeCleaningObsoleteMadkitData = delayInMsBeforeCleaningObsoleteMadkitData;
+		}
+	}
+
+	void setAdditionalObsoleteDataCleaner(AbstractAgent requester, Runnable additionalDataCleaner)
+	{
+		this.additionalDataCleaner=additionalDataCleaner;
 	}
 
 	List<AsynchronousMessageTable.Record> getAsynchronousMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
@@ -3805,7 +3848,17 @@ class MadkitKernel extends Agent {
 		}
 	}
 
-
+	void setAsynchronousTransferAsStarted(AbstractAgent requester, AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier)
+	{
+		if (asynchronousBigDataTable==null)
+		{
+			logLifeException(new DatabaseLoadingException("The MKLE database was not loaded"));
+		}
+		else
+		{
+			asynchronousBigDataTable.setAsynchronousTransferAsStarted(asynchronousBigDataInternalIdentifier);
+		}
+	}
 
 	void acceptDistantBigDataTransfer(AbstractAgent requester, BigDataPropositionMessage originalMessage) {
 		broadcastMessage(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE,

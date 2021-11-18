@@ -41,6 +41,7 @@ import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.message.hook.HookMessage;
 import com.distrimind.util.AbstractDecentralizedID;
+import com.distrimind.util.AbstractDecentralizedIDGenerator;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.io.MessageExternalizationException;
@@ -263,6 +264,16 @@ class MadkitKernelAccess {
 		}
 	}
 
+	static void setAsynchronousTransferAsStarted(AbstractAgent requester, AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier) {
+		try {
+			invoke(m_setAsynchronousTransferAsStarted, getMadkitKernel(requester), requester, asynchronousBigDataInternalIdentifier);
+		} catch (InvocationTargetException e) {
+			System.err.println("Unexpected error :");
+			e.printStackTrace();
+			System.exit(-1);
+		}
+	}
+
 	static void waitMessageSent(AbstractAgent requester, LockerCondition locker) throws InterruptedException {
 		try {
 			invoke(m_wait_message_sent, requester, locker);
@@ -319,6 +330,7 @@ class MadkitKernelAccess {
 	private static final Method m_message_mark_as_read;
 	private static final Method m_wait_message_sent;
 	private static final Method m_get_global_interfaced_ids;
+	private static final Method m_setAsynchronousTransferAsStarted;
 
 	//private static final Constructor<BigDataTransferID> c_big_data_transfer_id;
 	private static final Constructor<TaskID> c_task_id;
@@ -351,6 +363,7 @@ class MadkitKernelAccess {
 		m_wait_message_sent = getMethod(AbstractAgent.class, "waitMessageSent", LockerCondition.class);
 		m_get_global_interfaced_ids = getMethod(c_madkit_kernel, "getGlobalInterfacedIDs");
 		c_task_id = getConstructor(TaskID.class, ConversationID.class);
+		m_setAsynchronousTransferAsStarted = getMethod(c_madkit_kernel, "setAsynchronousTransferAsStarted", AbstractAgent.class, AbstractDecentralizedIDGenerator.class);
 	}
 
 

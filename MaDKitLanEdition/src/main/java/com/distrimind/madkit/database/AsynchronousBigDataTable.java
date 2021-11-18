@@ -149,6 +149,8 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 				throw new NullPointerException();
 			if (roleReceiver.equals(roleSender))
 				throw new IllegalArgumentException();
+			if (timeOutInMs<1)
+				throw new IllegalArgumentException();
 			this.groupPath=groupPath;
 			this.roleSender=roleSender;
 			this.roleReceiver=roleReceiver;
@@ -315,7 +317,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 								return null;
 							if (!r.getAsynchronousBigDataInternalIdentifier().equals(asynchronousBigDataInternalIdentifier))
 								return null;
-							updateRecord(r, "asynchronousBigDataToReceiveWrapper", asynchronousBigDataToReceiveWrapper, "attachedData", null);
+							updateRecord(r, "asynchronousBigDataToReceiveWrapper", asynchronousBigDataToReceiveWrapper, "attachedData", null, "lastTimeUpdateUTCInMs", System.currentTimeMillis());
 						}
 					}
 					return r;
@@ -344,6 +346,39 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		}
 
 	}
+	public void setAsynchronousTransferAsStarted(AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier)
+	{
+		try {
+			getDatabaseWrapper().runSynchronizedTransaction(new SynchronizedTransaction<Void>() {
+				@Override
+				public Void run() throws Exception {
+					Record r = getRecord("asynchronousBigDataInternalIdentifier", asynchronousBigDataInternalIdentifier);
+					if (r != null && !r.isTransferStarted())
+						updateRecord(r, "transferStarted", true);
+					return null;
+				}
+
+				@Override
+				public TransactionIsolation getTransactionIsolation() {
+					return TransactionIsolation.TRANSACTION_REPEATABLE_READ;
+				}
+
+				@Override
+				public boolean doesWriteData() {
+					return true;
+				}
+
+				@Override
+				public void initOrReset() {
+
+				}
+			});
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
 	public boolean receivedPotentialAsynchronousBigDataResultMessage(AbstractAgent requester, BigDataResultMessage.Type resultType,
 																	 AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier,
 																	 long transferedDataLength) throws DatabaseException {
@@ -355,7 +390,8 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 					Record r = getRecord("asynchronousBigDataInternalIdentifier", asynchronousBigDataInternalIdentifier);
 					if (r != null) {
 						record.set(r);
-						updateRecord(r, "currentStreamPosition", transferedDataLength + r.getCurrentStreamPosition(), "currentPositionNeedConfirmationFromReceiver", true);
+						long pos=transferedDataLength+r.getCurrentStreamPosition();
+						updateRecord(r, "currentStreamPosition", pos, "currentPositionNeedConfirmationFromReceiver", true);
 						return true;
 					}
 
@@ -427,8 +463,8 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 				return null;
 			else {
 				try {
-					if (!r.isTransferStarted())
-						updateRecord(r, "transferStarted", true);
+					if (r.isTransferStarted())
+						updateRecord(r, "lastTimeUpdateUTCInMs", System.currentTimeMillis());
 				} catch (DatabaseException e) {
 					e.printStackTrace();
 				}
@@ -466,35 +502,60 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 	}
 	public AbstractAgent.ReturnCode cancelTransfer(AbstractAgent requester, Record record)
 	{
-		Group group;
-		try {
-			group = Group.parseGroup(record.getGroupPath());
-		} catch (IOException e) {
-			e.printStackTrace();
-			return AbstractAgent.ReturnCode.INVALID_AGENT_ADDRESS;
-		}
-		BigDataTransferID bigDataTransferID= transferIdsPerInternalAsynchronousId.remove(record.getAsynchronousBigDataInternalIdentifier());
-		if (bigDataTransferID==null) {
-			if (record.isTransferStarted())
-			{
-				sendMessageAndDifferItIfNecessary(requester, group, record.getRoleReceiver(), new CancelAsynchronousBigDataTransferMessage(record.getAsynchronousBigDataInternalIdentifier()), record.getRoleSender());
-			}
-		}
-		else
-		{
-			try {
-				decrementNumberOfSimultaneousAsynchronousMessagesIfNecessary(requester, group, record);
-			} catch (DatabaseException e) {
-				e.printStackTrace();
-			}
-			cancelBigDataTransfer(requester, bigDataTransferID);
-		}
+		AbstractAgent.ReturnCode r=cancelTransferImpl(requester, record);
 		try {
 			removeRecord(record);
 		} catch (DatabaseException e) {
 			e.printStackTrace();
 		}
-		return AbstractAgent.ReturnCode.SUCCESS;
+		return r;
+	}
+	private AbstractAgent.ReturnCode cancelTransferImpl(AbstractAgent requester, Record record)
+	{
+		try {
+			Group group = Group.parseGroup(record.getGroupPath());
+			BigDataTransferID bigDataTransferID= transferIdsPerInternalAsynchronousId.remove(record.getAsynchronousBigDataInternalIdentifier());
+			if (bigDataTransferID==null) {
+				if (record.isTransferStarted())
+				{
+					sendMessageAndDifferItIfNecessary(requester, group, record.getRoleReceiver(), new CancelAsynchronousBigDataTransferMessage(record.getAsynchronousBigDataInternalIdentifier()), record.getRoleSender());
+				}
+			}
+			else
+			{
+				try {
+					decrementNumberOfSimultaneousAsynchronousMessagesIfNecessary(requester, group, record);
+				} catch (DatabaseException e) {
+					e.printStackTrace();
+				}
+				cancelBigDataTransfer(requester, bigDataTransferID);
+			}
+			return AbstractAgent.ReturnCode.SUCCESS;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return AbstractAgent.ReturnCode.INVALID_AGENT_ADDRESS;
+		}
+
+
+	}
+	public void cleanObsoleteData(AbstractAgent madkitKernel)
+	{
+		try {
+			removeRecords(new Filter<Record>() {
+				@Override
+				public boolean nextRecord(Record _record)  {
+					if (!transferIdsPerInternalAsynchronousId.containsKey(_record.getAsynchronousBigDataInternalIdentifier()))
+					{
+						cancelTransferImpl(madkitKernel, _record);
+						return true;
+					}
+					else
+						return false;
+				}
+			}, "timeOutInMs+lastTimeUpdateUTCInMs<%mt", "mt", System.currentTimeMillis());
+		} catch (DatabaseException e) {
+			e.printStackTrace();
+		}
 	}
 	private void decrementNumberOfSimultaneousAsynchronousMessagesIfNecessary(AbstractAgent requester, Record record) throws DatabaseException {
 		try {
@@ -595,7 +656,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		if (r!=null)
 		{
 			if (r.getCurrentStreamPosition()!=position || r.currentPositionNeedConfirmationFromReceiver)
-				updateRecord(r, "currentStreamPosition", position, "currentPositionNeedConfirmationFromReceiver", false);
+				updateRecord(r, "currentStreamPosition", position, "currentPositionNeedConfirmationFromReceiver", false, "lastTimeUpdateUTCInMs", System.currentTimeMillis());
 			if (incrementNumberOfSimultaneousAsynchronousMessages(receiverAA, getMaxNumberOfSimultaneousAsynchronousBigDataMessagesSentToTheSameGroup(requester))) {
 
 				BigDataTransferID bigDataTransferID=sendAsynchronousBigData(requester, senderAA, receiverAA, r);

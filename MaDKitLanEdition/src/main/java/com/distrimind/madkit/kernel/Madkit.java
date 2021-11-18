@@ -151,6 +151,8 @@ final public class Madkit {
 							.addItem(NEW_FEATURE, "Add possibility to cancel big message sending, during its emission")
 							.addItem(INTERNAL_CHANGE, "Better cancel big message when connexion was lost")
 							.addItem(INTERNAL_CHANGE, "Optimize locking during the sending and the reception of messages")
+							.addItem(NEW_FEATURE, "Permit to cancel asynchronous messages sending if a time out has been reached")
+							.addItem(NEW_FEATURE, "Add possibility to schedule obsolete data cleaning into MaDKit database")
 					)
 					.addDescription(new Description((short)2, (short)2, (short)3, Version.Type.STABLE, (short)0, "2021-11-02")
 							.addItem(INTERNAL_CHANGE, "Update Utils to 5.21.0 STABLE")
@@ -1143,7 +1145,8 @@ final public class Madkit {
 					ListGroupsRoles.class, GroupsRoles.class,
 					CancelBigDataTransferMessage.class,
 					CancelAsynchronousBigDataTransferMessage.class,
-					CancelBigDataSystemMessage.class));
+					CancelBigDataSystemMessage.class,
+					BigDataToRestartMessage.class));
 			for (Class<?> c : classes)
 				assert !Modifier.isAbstract(c.getModifiers()):""+c;
 

@@ -287,8 +287,8 @@ final class LoggedKernel extends MadkitKernel {
 
 	@Override
 	ReturnCode sendMessageAndDifferItIfNecessary(final AbstractAgent requester, Group group, final String role, final Message message,
-												 final String senderRole) {
-		ReturnCode r = kernel.sendMessageAndDifferItIfNecessary(requester, group, role, message, senderRole);
+												 final String senderRole, final long timeOutInMs) {
+		ReturnCode r = kernel.sendMessageAndDifferItIfNecessary(requester, group, role, message, senderRole, timeOutInMs);
 		if (r == SUCCESS || r == ReturnCode.TRANSFER_IN_PROGRESS || r == MESSAGE_DIFFERED) {
 			if (requester.isFinestLogOn()) {
 				requester.logger.log(Level.FINEST,
@@ -1029,5 +1029,34 @@ final class LoggedKernel extends MadkitKernel {
 	public AsynchronousBigDataTransferID getAsynchronousBigDataTransferIDInstance(AbstractAgent requester, ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier)
 	{
 		return kernel.getAsynchronousBigDataTransferIDInstance(requester, externalAsynchronousBigDataIdentifier);
+	}
+	@Override
+	void setAsynchronousTransferAsStarted(AbstractAgent requester, AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier)
+	{
+		kernel.setAsynchronousTransferAsStarted(requester, asynchronousBigDataInternalIdentifier);
+	}
+
+	@Override
+	void cleanObsoleteMaDKitData(AbstractAgent requester)
+	{
+		kernel.cleanObsoleteMaDKitData(requester);
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "cleanData (requester="+requester+ ")");
+	}
+
+	@Override
+	void setAutomaticObsoleteDataCleaningDelay(AbstractAgent requester, MadkitKernel parentMadkitKernel, long delayInMsBeforeCleaningObsoleteMadkitData)
+	{
+		kernel.setAutomaticObsoleteDataCleaningDelay(requester, parentMadkitKernel==null?this:parentMadkitKernel, delayInMsBeforeCleaningObsoleteMadkitData);
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "setCleanDataDelay (requester="+requester+ ", delayInMsBeforeCleaningObsoleteMadkitData="+delayInMsBeforeCleaningObsoleteMadkitData+")");
+	}
+
+	@Override
+	void setAdditionalObsoleteDataCleaner(AbstractAgent requester, Runnable additionalDataCleaner)
+	{
+		kernel.setAdditionalObsoleteDataCleaner(requester, additionalDataCleaner);
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "setAdditionalDataCleaner (requester="+requester+")");
 	}
 }

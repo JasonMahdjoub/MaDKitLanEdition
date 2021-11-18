@@ -611,11 +611,9 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 
 				end();
 				//send empty replies for non read messages
-				if (messageBox!=null) {
-					for (Message m : messageBox)
-						if (m.needReply())
-							sendReplyEmpty(m);
-				}
+				for (Message m : messageBox)
+					if (m.needReply())
+						sendReplyEmpty(m);
 			} catch (InterruptedException ignored) {
 			} catch (Throwable e) {
 				validateDeathOnException(e, TERMINATED);
@@ -656,11 +654,9 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		terminate(true);
 	}
 	void terminate(boolean changeState) {
-		if (messageBox!=null) {
-			for (Message m : messageBox) {
-				if (m.needReply())
-					sendReplyEmpty(m);
-			}
+		for (Message m : messageBox) {
+			if (m.needReply())
+				sendReplyEmpty(m);
 		}
 
 		Thread.currentThread().setName(getAgentThreadName(TERMINATED));
@@ -1877,7 +1873,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @return The next message or <code>null</code> if the message box is empty.
 	 */
 	public Message nextMessage() {
-		final Message m = messageBox==null?null:messageBox.poll();
+		final Message m = messageBox.poll();
 		if (logger != null && logger.isLoggable(Level.FINEST)) {
 			logger.finest("nextMessage = " + m);
 		}
@@ -1896,8 +1892,6 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *         not been found.
 	 */
 	public Message nextMessage(final MessageFilter filter) {
-		if (messageBox==null)
-			return null;
 		messageBox.getLocker().lock();
 		try {
 			for (final Iterator<Message> iterator = messageBox.iterator(); iterator.hasNext();) {
@@ -1924,8 +1918,6 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *         been found.
 	 */
 	public List<Message> nextMessages(final MessageFilter filter) {
-		if (messageBox==null)
-			return Collections.emptyList();
 		if (filter == null) {
 			messageBox.getLocker().lock();
 			try {
@@ -1966,7 +1958,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *         empty.
 	 */
 	public Message getLastReceivedMessage() {
-		Message m = messageBox==null?null:messageBox.pollLast();
+		Message m = messageBox.pollLast();
 		if (m == null)
 			return null;
 		else
@@ -1983,8 +1975,6 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *         <code>null</code> if such message has not been found.
 	 */
 	public Message getLastReceivedMessage(final MessageFilter filter) {
-		if (messageBox==null)
-			return null;
 		messageBox.getLocker().lock();
 		try {
 			for (final Iterator<Message> iterator = messageBox.descendingIterator(); iterator.hasNext();) {
@@ -2010,8 +2000,6 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *         is already empty.
 	 */
 	public Message purgeMailbox() {
-		if (messageBox==null)
-			return null;
 		messageBox.getLocker().lock();
 		try {
 			Message m = null;
@@ -2037,7 +2025,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @return <code>true</code> if there is no message in the mailbox.
 	 */
 	public boolean isMessageBoxEmpty() {
-		return messageBox==null || messageBox.isEmpty();
+		return messageBox.isEmpty();
 	}
 
 	/**
@@ -2198,6 +2186,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *            the message to send
 	 * @param senderRole
 	 *            the agent's role with which the message has to be sent
+	 * @param timeOutInMs time out in milliseconds before MKLE consider old asynchronous messages as obsolete whose sending must be canceled
 	 * @return
 	 *         <ul>
 	 *         <li><code>{@link ReturnCode#SUCCESS}</code>: If the send has
@@ -2225,10 +2214,56 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @since MadKitLanEdition 1.11
 	 */
 	public ReturnCode sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(Group group, final String role, final Message messageToSend,
-												 final String senderRole)  {
-		return getKernel().sendMessageAndDifferItIfNecessary(this, group, role, messageToSend, senderRole);
+												 final String senderRole, final long timeOutInMs)  {
+		return getKernel().sendMessageAndDifferItIfNecessary(this, group, role, messageToSend, senderRole, timeOutInMs);
 	}
-
+	/**
+	 * Sends a message to an agent having the given position in the organization. If
+	 * several agents match, the target is chosen randomly. The sender is excluded
+	 * from this search. If no recipient was found, the message is stored into the
+	 * database until a recipient becomes available.
+	 *
+	 * Messages that are not into the group defined path
+	 * {@link MadkitProperties#rootOfPathGroupUsedToFilterAsynchronousMessages} are not sent
+	 *
+	 * @param group
+	 *            the group(s) and the community(ies) name
+	 * @param role
+	 *            the role name
+	 * @param messageToSend
+	 *            the message to send
+	 * @param senderRole
+	 *            the agent's role with which the message has to be sent
+	 * @return
+	 *         <ul>
+	 *         <li><code>{@link ReturnCode#SUCCESS}</code>: If the send has
+	 *         succeeded.</li>
+	 *         <li><code>{@link ReturnCode#MESSAGE_DIFFERED}</code>: If no recipient was found
+	 *         and if the message sending was differed.</li>
+	 *         <li><code>{@link ReturnCode#NOT_COMMUNITY}</code>: If the community
+	 *         does not exist.</li>
+	 *         <li><code>{@link ReturnCode#NOT_GROUP}</code>: If the group does not
+	 *         exist.</li>
+	 *         <li><code>{@link ReturnCode#NOT_ROLE}</code>: If the role does not
+	 *         exist.</li>
+	 *         <li><code>{@link ReturnCode#ROLE_NOT_HANDLED}</code>: If
+	 *         <code>senderRole</code> is not handled by this agent.</li>
+	 *         <li><code>{@link ReturnCode#NOT_IN_GROUP}</code>: If this agent is
+	 *         not a member of the targeted group.</li>
+	 *         <li><code>{@link ReturnCode#IGNORED}</code>: If the MaDKitLanEdition
+	 *         database was not loaded.</li>
+	 *         </ul>
+	 * @see ReturnCode
+	 * @see AbstractGroup
+	 * @see Group
+	 * @see MultiGroup
+	 * @see MadkitProperties#rootOfPathGroupUsedToFilterAsynchronousMessages
+	 * @since MadKitLanEdition 1.11
+	 */
+	public ReturnCode sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(Group group, final String role, final Message messageToSend,
+																			   final String senderRole)  {
+		return sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(group, role, messageToSend, senderRole, getMadkitConfig().networkProperties.defaultTimeOutInMsBeforeConsideringAsynchronousMessageAsObsolete);
+	}
 	/**
 	 * Cancel asynchronous messages according the message group and the sender role
 	 * @param group the targeted group
@@ -2641,7 +2676,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * Agents, especially threaded agents. For instance when a GUI wants to discuss
 	 * with its linked agent: This allows to enqueue work to do in their life cycle
 	 * 
-	 * @param m the received message
+	 * @param messageTaken the received message
 	 * @return the message actually received
 	 */
 	public Message receiveMessage(Message messageTaken) {
@@ -5237,6 +5272,31 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @param role the role name
 	 * @param externalAsynchronousBigDataIdentifier the external asynchronous message identifier
 	 * @param asynchronousBigDataToSendWrapper the input stream wrapper
+	 * @param attachedData optionally attached data that is send with the big data
+	 * @param senderRole the agent's role with which the message has to be sent
+	 *
+	 * @return an asynchronous big data transfer ID that identify the transfer, and that gives
+	 * statistics about the transfer speed in real time. Returns null if a problem occurs.
+	 */
+	public AsynchronousBigDataTransferID sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(Group group, final String role,
+																								  ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier,
+																								  AsynchronousBigDataToSendWrapper asynchronousBigDataToSendWrapper,
+																								  SecureExternalizable attachedData,
+																								  final String senderRole)  {
+		return sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(group, role, externalAsynchronousBigDataIdentifier, asynchronousBigDataToSendWrapper,
+				getMadkitConfig().networkProperties.defaultTimeOutInMsBeforeConsideringAsynchronousBigDataMessageAsObsolete,
+				attachedData, null, senderRole);
+	}
+	/**
+	 * Sends a big data to an agent having a given position in the organization.
+	 * If several agents match, the target is chosen randomly. The sender is excluded
+	 * from this search. If no recipient was found, the message is differed and the database
+	 * is used to store message parameters.
+	 *
+	 * @param group the group(s) and the community(ies) name
+	 * @param role the role name
+	 * @param externalAsynchronousBigDataIdentifier the external asynchronous message identifier
+	 * @param asynchronousBigDataToSendWrapper the input stream wrapper
 	 * @param timeOutInMs the delay to wait before considering the message as not send
 	 * @param senderRole the agent's role with which the message has to be sent
 	 *
@@ -5251,5 +5311,56 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		return sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(group, role, externalAsynchronousBigDataIdentifier, asynchronousBigDataToSendWrapper, timeOutInMs,
 				null, senderRole);
 	}
+	/**
+	 * Sends a big data to an agent having a given position in the organization.
+	 * If several agents match, the target is chosen randomly. The sender is excluded
+	 * from this search. If no recipient was found, the message is differed and the database
+	 * is used to store message parameters.
+	 *
+	 * @param group the group(s) and the community(ies) name
+	 * @param role the role name
+	 * @param externalAsynchronousBigDataIdentifier the external asynchronous message identifier
+	 * @param asynchronousBigDataToSendWrapper the input stream wrapper
+	 * @param senderRole the agent's role with which the message has to be sent
+	 *
+	 * @return an asynchronous big data transfer ID that identify the transfer, and that gives
+	 * statistics about the transfer speed in real time. Returns null if a problem occurs.
+	 */
+	public AsynchronousBigDataTransferID sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(Group group, final String role,
+																								  ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier,
+																								  AsynchronousBigDataToSendWrapper asynchronousBigDataToSendWrapper,
+																								  final String senderRole)  {
+		return sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(group, role, externalAsynchronousBigDataIdentifier, asynchronousBigDataToSendWrapper,
+				getMadkitConfig().networkProperties.defaultTimeOutInMsBeforeConsideringAsynchronousBigDataMessageAsObsolete,
+				null, senderRole);
+	}
 
+	/**
+	 * Clean obsolete MaDKit data from its database.
+	 * Do the same thing by calling external data cleaner set by the function {@link #setAdditionalObsoleteDataCleaner}
+	 */
+	public void cleanObsoleteMaDKitDataNow()
+	{
+		getMadkitKernel().cleanObsoleteMaDKitData(this);
+	}
+
+	/**
+	 * Set a period in millisecond that define when obsolete MaDKit data and other data is cleaned
+	 * @see #cleanObsoleteMaDKitDataNow
+	 * @param delayInMsBeforeCleaningObsoleteMadkitData the delay in milliseconds between each cleaning.
+	 *                                                     If this delay is lower than 1, then the cleaning is not scheduled
+	 */
+	public void setAutomaticObsoleteDataCleaningDelay(long delayInMsBeforeCleaningObsoleteMadkitData)
+	{
+		getMadkitKernel().setAutomaticObsoleteDataCleaningDelay(this, getMadkitKernel(), delayInMsBeforeCleaningObsoleteMadkitData);
+	}
+
+	/**
+	 * Set an additional external data cleaner that is called by the function {@link #cleanObsoleteMaDKitDataNow()}
+	 * @param additionalDataCleaner the additional data cleaner
+	 */
+	public void setAdditionalObsoleteDataCleaner(Runnable additionalDataCleaner)
+	{
+		getMadkitKernel().setAdditionalObsoleteDataCleaner(this, additionalDataCleaner);
+	}
 }
