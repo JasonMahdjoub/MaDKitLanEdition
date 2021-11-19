@@ -292,11 +292,12 @@ public class LocalAsynchronousMessageTests extends TestNGMadkit {
 					m = receiver.nextMessage();
 					AssertJUnit.assertNull(m);
 					requestRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE);
+					requestRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE2);
 					AssertJUnit.assertEquals(0, getCurrentAsynchronousMessagesNumberByGroup(TestNGMadkit.GROUP));
 					AssertJUnit.assertEquals(0, getCurrentAsynchronousMessagesNumberByReceiverRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE));
 					AssertJUnit.assertEquals(0, getCurrentAsynchronousMessagesNumberBySenderRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE));
 
-					rc = sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(TestNGMadkit.GROUP2, TestNGMadkit.ROLE, new StringMessage("ok2"), TestNGMadkit.ROLE);
+					rc = sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(TestNGMadkit.GROUP2, TestNGMadkit.ROLE, new StringMessage("ok2"), TestNGMadkit.ROLE2);
 					AssertJUnit.assertEquals(ReturnCode.MESSAGE_DIFFERED, rc);
 					m = receiver.nextMessage();
 					AssertJUnit.assertNull(m);
@@ -309,7 +310,8 @@ public class LocalAsynchronousMessageTests extends TestNGMadkit {
 					AssertJUnit.assertEquals(2, getCurrentAsynchronousMessagesNumberByGroup(TestNGMadkit.GROUP2));
 					AssertJUnit.assertEquals(1, getCurrentAsynchronousMessagesNumberByReceiverRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE2));
 					AssertJUnit.assertEquals(1, getCurrentAsynchronousMessagesNumberByReceiverRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE));
-					AssertJUnit.assertEquals(2, getCurrentAsynchronousMessagesNumberBySenderRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE));
+					AssertJUnit.assertEquals(1, getCurrentAsynchronousMessagesNumberBySenderRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE));
+					AssertJUnit.assertEquals(1, getCurrentAsynchronousMessagesNumberBySenderRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE2));
 
 					AssertJUnit.assertEquals("ok2", ((StringMessage) getCurrentAsynchronousMessagesByGroup(TestNGMadkit.GROUP2).get(0).getAsynchronousMessage()).getContent());
 					AssertJUnit.assertEquals("ok2", ((StringMessage) getCurrentAsynchronousMessagesByGroup(TestNGMadkit.GROUP2).get(1).getAsynchronousMessage()).getContent());
@@ -320,17 +322,19 @@ public class LocalAsynchronousMessageTests extends TestNGMadkit {
 					cancelCurrentAsynchronousMessagesByReceiverRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE2);
 					AssertJUnit.assertEquals(1, getCurrentAsynchronousMessagesNumberByGroup(TestNGMadkit.GROUP2));
 					AssertJUnit.assertEquals(0, getCurrentAsynchronousMessagesNumberByReceiverRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE2));
-					AssertJUnit.assertEquals(1, getCurrentAsynchronousMessagesNumberBySenderRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE));
+					AssertJUnit.assertEquals(1, getCurrentAsynchronousMessagesNumberByReceiverRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE));
+					AssertJUnit.assertEquals(0, getCurrentAsynchronousMessagesNumberBySenderRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE));
+					AssertJUnit.assertEquals(1, getCurrentAsynchronousMessagesNumberBySenderRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE2));
 
 					AssertJUnit.assertEquals("ok2", ((StringMessage) getCurrentAsynchronousMessagesByGroup(TestNGMadkit.GROUP2).get(0).getAsynchronousMessage()).getContent());
-					AssertJUnit.assertEquals("ok2", ((StringMessage) getCurrentAsynchronousMessagesBySenderRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE).get(0).getAsynchronousMessage()).getContent());
+					AssertJUnit.assertEquals("ok2", ((StringMessage) getCurrentAsynchronousMessagesBySenderRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE2).get(0).getAsynchronousMessage()).getContent());
 
-					cancelCurrentAsynchronousMessagesBySenderRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE);
+					cancelCurrentAsynchronousMessagesBySenderRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE2);
 					AssertJUnit.assertEquals(0, getCurrentAsynchronousMessagesNumberByGroup(TestNGMadkit.GROUP2));
 					AssertJUnit.assertEquals(0, getCurrentAsynchronousMessagesNumberByReceiverRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE2));
 					AssertJUnit.assertEquals(0, getCurrentAsynchronousMessagesNumberBySenderRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE));
 					getMadkitConfig().rootOfPathGroupUsedToFilterAsynchronousMessages = Collections.singletonList(TestNGMadkit.GROUP2.getPath());
-					rc = sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(TestNGMadkit.GROUP2, TestNGMadkit.ROLE, new StringMessage("ok2"), TestNGMadkit.ROLE);
+					rc = sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(TestNGMadkit.GROUP2, TestNGMadkit.ROLE, new StringMessage("ok2"), TestNGMadkit.ROLE2);
 					m = receiver.nextMessage();
 					AssertJUnit.assertNull(m);
 					AssertJUnit.assertEquals(ReturnCode.MESSAGE_DIFFERED, rc);
@@ -341,7 +345,8 @@ public class LocalAsynchronousMessageTests extends TestNGMadkit {
 					AssertJUnit.assertEquals(2, getCurrentAsynchronousMessagesNumberByGroup(TestNGMadkit.GROUP2));
 					AssertJUnit.assertEquals(1, getCurrentAsynchronousMessagesNumberByReceiverRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE2));
 					AssertJUnit.assertEquals(1, getCurrentAsynchronousMessagesNumberByReceiverRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE));
-					AssertJUnit.assertEquals(2, getCurrentAsynchronousMessagesNumberBySenderRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE));
+					AssertJUnit.assertEquals(1, getCurrentAsynchronousMessagesNumberBySenderRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE));
+					AssertJUnit.assertEquals(1, getCurrentAsynchronousMessagesNumberBySenderRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE2));
 					AssertJUnit.assertEquals("ok2", ((StringMessage) getCurrentAsynchronousMessagesByGroup(TestNGMadkit.GROUP2).get(0).getAsynchronousMessage()).getContent());
 					AssertJUnit.assertEquals("ok2", ((StringMessage) getCurrentAsynchronousMessagesByGroup(TestNGMadkit.GROUP2).get(1).getAsynchronousMessage()).getContent());
 					AssertJUnit.assertEquals("ok2", ((StringMessage) getCurrentAsynchronousMessagesByReceiverRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE).get(0).getAsynchronousMessage()).getContent());
@@ -356,6 +361,88 @@ public class LocalAsynchronousMessageTests extends TestNGMadkit {
 					m = receiver.nextMessage();
 					AssertJUnit.assertNull(m);
 					AssertJUnit.assertEquals(ReturnCode.IGNORED, rc);
+
+				} catch (Exception e) {
+					e.printStackTrace();
+					AssertJUnit.fail();
+				}
+			}
+		}, AbstractAgent.ReturnCode.SUCCESS, false, madkitEventListener);
+	}
+	@Test
+	public void testSynchronousMessageWithTimeOut()
+	{
+		launchTest(new AbstractAgent() {
+			@Override
+			protected void activate() throws InterruptedException {
+				super.activate();
+				requestRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE);
+				AbstractAgent receiver = new AbstractAgent() {
+					@Override
+					protected void activate() throws InterruptedException {
+						super.activate();
+						requestRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE2);
+					}
+				};
+				launchAgent(receiver);
+				try {
+
+
+					ReturnCode rc = sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(TestNGMadkit.GROUP, TestNGMadkit.ROLE2, new StringMessage("ok"), TestNGMadkit.ROLE);
+					AssertJUnit.assertEquals(ReturnCode.SUCCESS, rc);
+					Message m = receiver.nextMessage();
+					AssertJUnit.assertNotNull(m);
+					AssertJUnit.assertEquals("ok", ((StringMessage) m).getContent());
+					rc = sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(TestNGMadkit.GROUP, TestNGMadkit.ROLE2, new StringMessage("ok2"), TestNGMadkit.ROLE2);
+					AssertJUnit.assertEquals(ReturnCode.ROLE_NOT_HANDLED, rc);
+					m = receiver.nextMessage();
+					AssertJUnit.assertNull(m);
+					rc = sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(TestNGMadkit.GROUP2, TestNGMadkit.ROLE2, new StringMessage("ok2"), TestNGMadkit.ROLE);
+					AssertJUnit.assertEquals(ReturnCode.NOT_IN_GROUP, rc);
+					m = receiver.nextMessage();
+					AssertJUnit.assertNull(m);
+					requestRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE);
+					requestRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE2);
+					AssertJUnit.assertEquals(0, getCurrentAsynchronousMessagesNumberByGroup(TestNGMadkit.GROUP));
+					AssertJUnit.assertEquals(0, getCurrentAsynchronousMessagesNumberByReceiverRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE));
+					AssertJUnit.assertEquals(0, getCurrentAsynchronousMessagesNumberBySenderRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE));
+
+					rc = sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(TestNGMadkit.GROUP2, TestNGMadkit.ROLE, new StringMessage("ok2"), TestNGMadkit.ROLE2);
+					AssertJUnit.assertEquals(ReturnCode.MESSAGE_DIFFERED, rc);
+					m = receiver.nextMessage();
+					AssertJUnit.assertNull(m);
+					rc = sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(TestNGMadkit.GROUP2, TestNGMadkit.ROLE2, new StringMessage("ok2"), TestNGMadkit.ROLE, 1000);
+					AssertJUnit.assertEquals(ReturnCode.MESSAGE_DIFFERED, rc);
+					m = receiver.nextMessage();
+					AssertJUnit.assertNull(m);
+
+
+					AssertJUnit.assertEquals(2, getCurrentAsynchronousMessagesNumberByGroup(TestNGMadkit.GROUP2));
+					AssertJUnit.assertEquals(1, getCurrentAsynchronousMessagesNumberByReceiverRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE2));
+					AssertJUnit.assertEquals(1, getCurrentAsynchronousMessagesNumberByReceiverRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE));
+					AssertJUnit.assertEquals(1, getCurrentAsynchronousMessagesNumberBySenderRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE));
+					AssertJUnit.assertEquals(1, getCurrentAsynchronousMessagesNumberBySenderRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE2));
+
+					AssertJUnit.assertEquals("ok2", ((StringMessage) getCurrentAsynchronousMessagesByGroup(TestNGMadkit.GROUP2).get(0).getAsynchronousMessage()).getContent());
+					AssertJUnit.assertEquals("ok2", ((StringMessage) getCurrentAsynchronousMessagesByGroup(TestNGMadkit.GROUP2).get(1).getAsynchronousMessage()).getContent());
+					AssertJUnit.assertEquals("ok2", ((StringMessage) getCurrentAsynchronousMessagesByReceiverRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE).get(0).getAsynchronousMessage()).getContent());
+					AssertJUnit.assertEquals("ok2", ((StringMessage) getCurrentAsynchronousMessagesByReceiverRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE2).get(0).getAsynchronousMessage()).getContent());
+					AssertJUnit.assertEquals("ok2", ((StringMessage) getCurrentAsynchronousMessagesBySenderRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE).get(0).getAsynchronousMessage()).getContent());
+
+					sleep(2000);
+					AssertJUnit.assertEquals(1, getCurrentAsynchronousMessagesNumberByGroup(TestNGMadkit.GROUP2));
+					AssertJUnit.assertEquals(0, getCurrentAsynchronousMessagesNumberByReceiverRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE2));
+					AssertJUnit.assertEquals(1, getCurrentAsynchronousMessagesNumberByReceiverRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE));
+					AssertJUnit.assertEquals(0, getCurrentAsynchronousMessagesNumberBySenderRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE));
+					AssertJUnit.assertEquals(1, getCurrentAsynchronousMessagesNumberBySenderRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE2));
+
+					AssertJUnit.assertEquals("ok2", ((StringMessage) getCurrentAsynchronousMessagesByGroup(TestNGMadkit.GROUP2).get(0).getAsynchronousMessage()).getContent());
+					AssertJUnit.assertEquals("ok2", ((StringMessage) getCurrentAsynchronousMessagesBySenderRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE2).get(0).getAsynchronousMessage()).getContent());
+
+					cancelCurrentAsynchronousMessagesBySenderRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE2);
+					AssertJUnit.assertEquals(0, getCurrentAsynchronousMessagesNumberByGroup(TestNGMadkit.GROUP2));
+					AssertJUnit.assertEquals(0, getCurrentAsynchronousMessagesNumberByReceiverRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE2));
+					AssertJUnit.assertEquals(0, getCurrentAsynchronousMessagesNumberBySenderRole(TestNGMadkit.GROUP2, TestNGMadkit.ROLE));
 
 				} catch (Exception e) {
 					e.printStackTrace();

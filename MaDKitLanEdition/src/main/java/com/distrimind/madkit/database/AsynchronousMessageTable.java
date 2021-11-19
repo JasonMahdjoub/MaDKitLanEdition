@@ -110,6 +110,8 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 				throw new NullPointerException();
 			if (asynchronousMessage ==null)
 				throw new NullPointerException();
+			if (roleReceiver.equals(roleSender))
+				throw new IllegalArgumentException();
 			if (timeOutInMs<1)
 				throw new IllegalArgumentException();
 			this.groupPath = groupPath;
@@ -145,6 +147,11 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 
 		public String getRoleReceiver() {
 			return roleReceiver;
+		}
+
+		public boolean isObsolete()
+		{
+			return timeOutInMs+this.queryTimeUTC<System.currentTimeMillis();
 		}
 
 		public Message getAsynchronousMessage() throws IOException, ClassNotFoundException {
@@ -191,7 +198,7 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 				if (aa!=null) {
 					try {
 
-						if (canForgiveMessage(abstractAgent.sendMessageWithRole(aa, _record.getAsynchronousMessage(), r))) {
+						if (_record.isObsolete() || canForgiveMessage(abstractAgent.sendMessageWithRole(aa, _record.getAsynchronousMessage(), r))) {
 							if (where.length()>startQueryLength)
 								where.append(" OR ");
 
@@ -287,7 +294,7 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 						AgentAddress aa=abstractAgent.getAgentWithRole(agentAddress.getGroup(), _record.getRoleReceiver());
 						if (aa!=null) {
 							try {
-								if (canForgiveMessage(abstractAgent.sendMessageWithRole(aa, _record.getAsynchronousMessage(), _record.getRoleSender())))
+								if (_record.isObsolete() || canForgiveMessage(abstractAgent.sendMessageWithRole(aa, _record.getAsynchronousMessage(), _record.getRoleSender())))
 								{
 									if (where.length() > startQueryLength)
 										where.append(" OR ");
@@ -434,22 +441,52 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 	}
 
 	public List<Record> getAsynchronousMessagesBySenderRole(Group group, String senderRole) throws DatabaseException {
-		return getRecords("groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
+		return getRecords(new Filter<Record>() {
+			@Override
+			public boolean nextRecord(Record _record) {
+				return !_record.isObsolete();
+			}
+		},"groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
 	}
 	public List<Record> getAsynchronousMessagesByReceiverRole(Group group, String receiverRole) throws DatabaseException {
-		return getRecords("groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.toString(), "roleReceiver", receiverRole);
+		return getRecords(new Filter<Record>() {
+			@Override
+			public boolean nextRecord(Record _record) {
+				return !_record.isObsolete();
+			}
+		},"groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.toString(), "roleReceiver", receiverRole);
 	}
 	public List<Record> getAsynchronousMessagesByGroup(Group group) throws DatabaseException {
-		return getRecords("groupPath=%groupPath", "groupPath", group.toString());
+		return getRecords(new Filter<Record>() {
+			@Override
+			public boolean nextRecord(Record _record) {
+				return !_record.isObsolete();
+			}
+		},"groupPath=%groupPath", "groupPath", group.toString());
 	}
 	public long getAsynchronousMessagesNumberBySenderRole(Group group, String senderRole) throws DatabaseException {
-		return getRecordsNumber("groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
+		return getRecordsNumber(new Filter<Record>() {
+			@Override
+			public boolean nextRecord(Record _record) {
+				return !_record.isObsolete();
+			}
+		},"groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
 	}
 	public long getAsynchronousMessagesNumberByReceiverRole(Group group, String receiverRole) throws DatabaseException {
-		return getRecordsNumber("groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.toString(), "roleReceiver", receiverRole);
+		return getRecordsNumber(new Filter<Record>() {
+			@Override
+			public boolean nextRecord(Record _record) {
+				return !_record.isObsolete();
+			}
+		},"groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.toString(), "roleReceiver", receiverRole);
 	}
 	public long getAsynchronousMessagesNumberByGroup(Group group) throws DatabaseException {
-		return getRecordsNumber("groupPath=%groupPath", "groupPath", group.toString());
+		return getRecordsNumber(new Filter<Record>() {
+			@Override
+			public boolean nextRecord(Record _record) {
+				return !_record.isObsolete();
+			}
+		}, "groupPath=%groupPath", "groupPath", group.toString());
 	}
 
 	private static final Method m_set_message_sender;
