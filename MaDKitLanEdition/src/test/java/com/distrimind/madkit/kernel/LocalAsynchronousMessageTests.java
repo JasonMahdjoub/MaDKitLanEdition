@@ -51,7 +51,7 @@ import java.util.Collections;
  * @version 1.0
  * @since MaDKitLanEdition 1.11
  */
-public class AsynchronousMessageTests extends TestNGMadkit {
+public class LocalAsynchronousMessageTests extends TestNGMadkit {
 	private static final File databaseFile=new File("asynchronousDatabaseFile");
 	private static final MadkitEventListener madkitEventListener= properties -> {
 		try {
