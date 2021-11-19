@@ -65,7 +65,7 @@ import java.util.logging.Level;
  * 
  */
 
-public class NetworkSpeed extends JunitMadkit {
+public class NetworkSpeed extends TestNGMadkit {
 
 	final MadkitEventListener eventListener1;
 	final NetworkEventListener eventListener2;
@@ -73,7 +73,7 @@ public class NetworkSpeed extends JunitMadkit {
 
 	public NetworkSpeed() throws UnknownHostException {
 		final ListGroupsRoles defaultGroupAccess=new ListGroupsRoles();
-		defaultGroupAccess.addGroupsRoles(JunitMadkit.GROUP);
+		defaultGroupAccess.addGroupsRoles(TestNGMadkit.GROUP);
 
 		this.eventListener1 = _properties -> {
 			AbstractAccessProtocolProperties app = new AccessProtocolWithP2PAgreementProperties();

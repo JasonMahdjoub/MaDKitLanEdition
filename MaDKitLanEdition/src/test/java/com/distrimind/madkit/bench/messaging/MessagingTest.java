@@ -37,10 +37,10 @@
  */
 package com.distrimind.madkit.bench.messaging;
 
-import static com.distrimind.madkit.kernel.JunitMadkit.GROUP;
-import static com.distrimind.madkit.kernel.JunitMadkit.ROLE;
-import static com.distrimind.madkit.kernel.JunitMadkit.startTimer;
-import static com.distrimind.madkit.kernel.JunitMadkit.stopTimer;
+import static com.distrimind.madkit.kernel.TestNGMadkit.GROUP;
+import static com.distrimind.madkit.kernel.TestNGMadkit.ROLE;
+import static com.distrimind.madkit.kernel.TestNGMadkit.startTimer;
+import static com.distrimind.madkit.kernel.TestNGMadkit.stopTimer;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.AgentAddress;

@@ -54,7 +54,7 @@ import com.distrimind.madkit.testing.util.agent.NormalAA;
  * 
  */
 
-public class MassLaunchBench extends JunitMadkit {
+public class MassLaunchBench extends TestNGMadkit {
 
 	@Test
 	public void massAALaunchWithBucketAndNoRoles() {

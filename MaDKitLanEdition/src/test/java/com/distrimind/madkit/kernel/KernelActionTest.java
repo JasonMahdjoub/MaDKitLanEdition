@@ -39,7 +39,7 @@ package com.distrimind.madkit.kernel;
 
 import org.testng.annotations.Test;
 
-public class KernelActionTest extends JunitMadkit {
+public class KernelActionTest extends TestNGMadkit {
 
 	@Test
 	public final void testToString() {

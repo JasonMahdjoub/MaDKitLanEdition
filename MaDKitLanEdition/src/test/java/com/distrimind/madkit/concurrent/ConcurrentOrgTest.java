@@ -40,7 +40,7 @@ package com.distrimind.madkit.concurrent;
 import org.testng.annotations.Test;
 import java.util.logging.Level;
 
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.testing.util.agent.NormalAgent;
 
 /**
@@ -53,7 +53,7 @@ import com.distrimind.madkit.testing.util.agent.NormalAgent;
  * 
  */
 
-public class ConcurrentOrgTest extends JunitMadkit {
+public class ConcurrentOrgTest extends TestNGMadkit {
 	protected final int testSize = 8;
 
 	@Test

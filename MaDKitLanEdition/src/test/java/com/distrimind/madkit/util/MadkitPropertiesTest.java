@@ -40,12 +40,12 @@ package com.distrimind.madkit.util;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.Test;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
-import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.MadkitProperties;
 
 /**
@@ -97,7 +97,7 @@ public class MadkitPropertiesTest {
 	public void testLoadPropertiesFromFile() {
 		try {
 			new MadkitProperties().loadXML(new File("notExist"));
-			JunitMadkit.noExceptionFailure();
+			TestNGMadkit.noExceptionFailure();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

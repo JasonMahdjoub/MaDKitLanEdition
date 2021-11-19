@@ -43,7 +43,7 @@ import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Activator;
 import com.distrimind.madkit.kernel.Group;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.Scheduler;
 
 /**
@@ -54,7 +54,7 @@ import com.distrimind.madkit.kernel.Scheduler;
  * 
  */
 
-public class BasicSchedulerTest extends JunitMadkit {
+public class BasicSchedulerTest extends TestNGMadkit {
 
 	@Test
 	public void addingNullActivator() {

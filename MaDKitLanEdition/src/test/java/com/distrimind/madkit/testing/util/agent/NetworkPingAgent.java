@@ -37,10 +37,10 @@
  */
 package com.distrimind.madkit.testing.util.agent;
 
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.AssertJUnit;
 
 import com.distrimind.madkit.kernel.AgentAddress;
-import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.message.NetworkObjectMessage;
 import com.distrimind.madkit.message.ObjectMessage;
@@ -73,11 +73,11 @@ public class NetworkPingAgent extends AgentAddressAgentTester {
 	public void activate() {
 		System.out.println("Ping activating : " + getKernelAddress());
 		AssertJUnit.assertEquals(ReturnCode.SUCCESS,
-				this.requestRole(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, pingRole));
+				this.requestRole(TestNGMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, pingRole));
 
-		ReturnCode rc = broadcastMessage(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, pongRole,
+		ReturnCode rc = broadcastMessage(TestNGMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, pongRole,
 				new NetworkObjectMessage<>(new Object[]{messagePing,
-						getAgentAddressIn(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, pingRole)}));
+						getAgentAddressIn(TestNGMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, pingRole)}));
 		AssertJUnit.assertTrue(rc.toString(), ReturnCode.SUCCESS == rc || ReturnCode.TRANSFER_IN_PROGRESS == rc);
 		System.out.println("Ping activated : " + getKernelAddress());
 		/*
@@ -106,12 +106,12 @@ public class NetworkPingAgent extends AgentAddressAgentTester {
 				++localPongReceived;
 			} else {
 				System.out.println("Receiving distant pong message : " + getKernelAddress());
-				testReceiver &= testAgentAddressReceiver(_message, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA,
+				testReceiver &= testAgentAddressReceiver(_message, TestNGMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA,
 						pingRole);
-				testSender &= testAgentAddressSender(_message, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA,
+				testSender &= testAgentAddressSender(_message, TestNGMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA,
 						pongRole);
 				testTraveledAgentAddress &= testTraveledAgentAddress(aa, true,
-						JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, pingRole);
+						TestNGMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, pingRole);
 				++distantPongReceived;
 			}
 

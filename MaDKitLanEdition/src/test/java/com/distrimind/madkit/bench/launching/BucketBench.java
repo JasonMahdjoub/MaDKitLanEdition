@@ -37,8 +37,8 @@
  */
 package com.distrimind.madkit.bench.launching;
 
-import static com.distrimind.madkit.kernel.JunitMadkit.startTimer;
-import static com.distrimind.madkit.kernel.JunitMadkit.stopTimer;
+import static com.distrimind.madkit.kernel.TestNGMadkit.startTimer;
+import static com.distrimind.madkit.kernel.TestNGMadkit.stopTimer;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
 

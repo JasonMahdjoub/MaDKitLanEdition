@@ -43,7 +43,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import org.testng.annotations.Test;
 import com.distrimind.madkit.agr.Organization;
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 
 /**
  * @author Fabien Michel
@@ -54,7 +54,7 @@ import com.distrimind.madkit.kernel.JunitMadkit;
  * 
  */
 @SuppressWarnings("all")
-public class HasRoleTest extends JunitMadkit {
+public class HasRoleTest extends TestNGMadkit {
 
 	@Test
 	public void hasRoleTest() {

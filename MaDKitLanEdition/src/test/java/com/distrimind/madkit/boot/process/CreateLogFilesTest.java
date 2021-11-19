@@ -41,6 +41,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
@@ -53,7 +54,6 @@ import java.util.List;
 import java.util.Objects;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.Madkit;
 
 /**
@@ -66,7 +66,7 @@ import com.distrimind.madkit.kernel.Madkit;
  */
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
-public class CreateLogFilesTest extends JunitMadkit {
+public class CreateLogFilesTest extends TestNGMadkit {
 
 	File f;
 	public static final FilenameFilter filter = (dir, s) -> !s.contains(".lck");
@@ -83,7 +83,7 @@ public class CreateLogFilesTest extends JunitMadkit {
 
 	@Test
 	public void logDirectoryUniqueness() {
-		new JunitMadkit();
+		new TestNGMadkit();
 		String dir = System.getProperty("java.io.tmpdir") + File.separatorChar + testName;
 		try {
 			delete(new File(dir));

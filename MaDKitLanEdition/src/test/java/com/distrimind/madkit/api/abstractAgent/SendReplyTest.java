@@ -38,14 +38,15 @@
 package com.distrimind.madkit.api.abstractAgent;
 
 import static org.testng.AssertJUnit.assertEquals;
+
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.INVALID_AGENT_ADDRESS;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_IN_GROUP;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
-import static com.distrimind.madkit.kernel.JunitMadkit.GROUP;
-import static com.distrimind.madkit.kernel.JunitMadkit.ROLE;
+import static com.distrimind.madkit.kernel.TestNGMadkit.GROUP;
+import static com.distrimind.madkit.kernel.TestNGMadkit.ROLE;
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.testing.util.agent.NormalAA;
@@ -59,7 +60,7 @@ import com.distrimind.madkit.testing.util.agent.NormalAA;
  * 
  */
 
-public class SendReplyTest extends JunitMadkit {
+public class SendReplyTest extends TestNGMadkit {
 
 	@Test
 	public void returnNotInGroup() {

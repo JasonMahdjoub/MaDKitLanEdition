@@ -40,12 +40,13 @@ package com.distrimind.madkit.scenari.bug;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
+
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ALREADY_KILLED;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.testing.util.agent.FaultyAA;
 
@@ -60,7 +61,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * 
  */
 
-public class RuntimeExceptionTest extends JunitMadkit {
+public class RuntimeExceptionTest extends TestNGMadkit {
 
 	@Test
 	public void nullPointerInActivate() {

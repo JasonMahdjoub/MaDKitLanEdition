@@ -38,6 +38,8 @@
 package com.distrimind.madkit.api.abstractAgent;
 
 import static org.testng.AssertJUnit.assertNull;
+
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.Test;
 import org.testng.Assert;
 import com.distrimind.madkit.kernel.AbstractAgent;
@@ -49,7 +51,7 @@ import com.distrimind.madkit.kernel.AbstractAgent;
  * 
  */
 
-public class setLogLevelTest extends com.distrimind.madkit.kernel.JunitMadkit {
+public class setLogLevelTest extends TestNGMadkit {
 
 	@Test
 	public void nullArgs() {

@@ -37,16 +37,13 @@
  */
 package com.distrimind.madkit.api.abstractAgent;
 
+import com.distrimind.madkit.kernel.*;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
-import com.distrimind.madkit.kernel.Message;
-import com.distrimind.madkit.kernel.Task;
-import com.distrimind.madkit.kernel.TaskID;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.message.task.TasksExecutionConfirmationMessage;
 
 /**
@@ -55,7 +52,7 @@ import com.distrimind.madkit.message.task.TasksExecutionConfirmationMessage;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-public class TaskExecutionTest extends JunitMadkit {
+public class TaskExecutionTest extends TestNGMadkit {
 
 	@Test
 	public void testDefaultTaskManagerAgentWithOneCore() {
@@ -80,10 +77,10 @@ class TaskAgentTester extends AbstractAgent {
 
 		SC(new Task<>(callable), false);
 
-		JunitMadkit.pause(this, 20);
+		TestNGMadkit.pause(this, 20);
 		AssertJUnit.assertEquals(1, taskExecutionNumber.get());
 		TaskID id = SC(new Task<>(callable), true);
-		JunitMadkit.pause(this, 20);
+		TestNGMadkit.pause(this, 20);
 		AssertJUnit.assertEquals(2, taskExecutionNumber.get());
 		Message m = nextMessage();
 		AssertJUnit.assertNotNull(m);
@@ -91,35 +88,35 @@ class TaskAgentTester extends AbstractAgent {
 		AssertJUnit.assertEquals(id, m.getConversationID());
 
 		SC(new Task<>(callable, System.currentTimeMillis() + 1000), false);
-		JunitMadkit.pause(this, 100);
+		TestNGMadkit.pause(this, 100);
 		AssertJUnit.assertEquals(2, taskExecutionNumber.get());
-		JunitMadkit.pause(this, 1000);
+		TestNGMadkit.pause(this, 1000);
 		AssertJUnit.assertEquals(3, taskExecutionNumber.get());
 		id = SC(new Task<>(callable, System.currentTimeMillis() + 1000), false);
-		JunitMadkit.pause(this, 100);
+		TestNGMadkit.pause(this, 100);
 		AssertJUnit.assertEquals(3, taskExecutionNumber.get());
 		CT(id);
-		JunitMadkit.pause(this, 1000);
+		TestNGMadkit.pause(this, 1000);
 		AssertJUnit.assertEquals(3, taskExecutionNumber.get());
 		id = SC(new Task<>(callable, System.currentTimeMillis() + 500, 500), false);
-		JunitMadkit.pause(this, 100);
+		TestNGMadkit.pause(this, 100);
 		AssertJUnit.assertEquals(3, taskExecutionNumber.get());
-		JunitMadkit.pause(this, 500);
+		TestNGMadkit.pause(this, 500);
 		AssertJUnit.assertEquals(4, taskExecutionNumber.get());
-		JunitMadkit.pause(this, 600);
+		TestNGMadkit.pause(this, 600);
 		AssertJUnit.assertEquals(5, taskExecutionNumber.get());
 		CT(id);
 		AssertJUnit.assertTrue(id.isCanceled());
-		JunitMadkit.pause(this, 1200);
+		TestNGMadkit.pause(this, 1200);
 		AssertJUnit.assertTrue(id.isCanceled());
 		AssertJUnit.assertEquals(5, taskExecutionNumber.get());
 		for (int i = 0; i < 100; i++)
 			SC(new Task<>(callable), false);
-		JunitMadkit.pause(this, 200);
+		TestNGMadkit.pause(this, 200);
 		AssertJUnit.assertEquals(105, taskExecutionNumber.get());
 		for (int i = 0; i < 100; i++)
 			SC(new Task<>(callable, System.currentTimeMillis() + ((long) (Math.random() * 200.0))), false);
-		JunitMadkit.pause(this, 1000);
+		TestNGMadkit.pause(this, 1000);
 		AssertJUnit.assertEquals(205, taskExecutionNumber.get());
 
 		/*

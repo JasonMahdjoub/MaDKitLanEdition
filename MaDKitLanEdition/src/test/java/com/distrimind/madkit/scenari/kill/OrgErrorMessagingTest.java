@@ -41,6 +41,8 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
+
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.INVALID_AGENT_ADDRESS;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_COMMUNITY;
@@ -54,7 +56,6 @@ import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import com.distrimind.madkit.agr.Organization;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Group;
-import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.testing.util.agent.NormalAgent;
 
@@ -68,7 +69,7 @@ import com.distrimind.madkit.testing.util.agent.NormalAgent;
  * 
  */
 
-public class OrgErrorMessagingTest extends JunitMadkit {
+public class OrgErrorMessagingTest extends TestNGMadkit {
 
 	final static String OTHER = "other";
 	final static String UNKNOWN = "unknown";

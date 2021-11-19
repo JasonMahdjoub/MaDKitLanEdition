@@ -40,12 +40,13 @@ package com.distrimind.madkit.api.abstractAgent;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
+
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import com.distrimind.madkit.agr.Organization;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Group;
-import com.distrimind.madkit.kernel.JunitMadkit;
 
 /**
  * @author Fabien Michel
@@ -55,7 +56,7 @@ import com.distrimind.madkit.kernel.JunitMadkit;
  * @version 1.0
  * 
  */
-public class isCGRTest extends JunitMadkit {
+public class isCGRTest extends TestNGMadkit {
 
 	@Test
 	public void nullCommunity() {

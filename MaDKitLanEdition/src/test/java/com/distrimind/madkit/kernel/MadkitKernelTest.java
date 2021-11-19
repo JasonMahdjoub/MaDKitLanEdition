@@ -41,7 +41,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import org.testng.annotations.Test;
 import java.lang.reflect.InvocationTargetException;
 
-public class MadkitKernelTest extends JunitMadkit {
+public class MadkitKernelTest extends TestNGMadkit {
 
 	@Test
 	public void testCreateBucket() {

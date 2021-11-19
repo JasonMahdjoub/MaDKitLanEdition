@@ -39,7 +39,7 @@ package com.distrimind.madkit.api.agent;
 
 import static org.testng.AssertJUnit.assertEquals;
 import org.testng.annotations.Test;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.testing.util.agent.NormalAgent;
 
 /**
@@ -50,7 +50,7 @@ import com.distrimind.madkit.testing.util.agent.NormalAgent;
  * @version 1.0
  * 
  */
-public class setThreadPriorityTest extends JunitMadkit {
+public class setThreadPriorityTest extends TestNGMadkit {
 
 	@Test
 	public void nullCommunity() {

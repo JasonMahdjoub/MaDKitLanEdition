@@ -38,9 +38,9 @@
 package com.distrimind.madkit.gui;
 
 
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 
-public class HeadLessTest extends JunitMadkit {
+public class HeadLessTest extends TestNGMadkit {
 
 	/*@Test
 	public void testAA() {

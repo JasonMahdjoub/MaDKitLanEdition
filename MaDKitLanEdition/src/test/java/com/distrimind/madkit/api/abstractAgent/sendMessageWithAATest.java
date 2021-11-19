@@ -49,7 +49,7 @@ import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import com.distrimind.madkit.agr.Organization;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.AgentAddress;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 
@@ -62,7 +62,7 @@ import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
  * 
  */
 
-public class sendMessageWithAATest extends JunitMadkit {
+public class sendMessageWithAATest extends TestNGMadkit {
 
 	AbstractAgent target = null;
 

@@ -41,6 +41,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ALREADY_GROUP;
@@ -50,7 +51,6 @@ import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_IN_GROUP
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Group;
-import com.distrimind.madkit.kernel.JunitMadkit;
 
 /**
  * @author Fabien Michel
@@ -61,7 +61,7 @@ import com.distrimind.madkit.kernel.JunitMadkit;
  * 
  */
 
-public class LeaveGroupTest extends JunitMadkit {
+public class LeaveGroupTest extends TestNGMadkit {
 
 	AbstractAgent target = null;
 	@BeforeMethod

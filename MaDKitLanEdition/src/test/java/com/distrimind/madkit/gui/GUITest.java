@@ -47,7 +47,7 @@ import javax.swing.JFrame;
 import com.distrimind.madkit.action.AgentAction;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Agent;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.testing.util.agent.AlwaysInCGRNormalAA;
 
@@ -58,7 +58,7 @@ import com.distrimind.madkit.testing.util.agent.AlwaysInCGRNormalAA;
  * 
  */
 
-public class GUITest extends JunitMadkit {
+public class GUITest extends TestNGMadkit {
 
 	@Test
 	public void hasGUITest() {

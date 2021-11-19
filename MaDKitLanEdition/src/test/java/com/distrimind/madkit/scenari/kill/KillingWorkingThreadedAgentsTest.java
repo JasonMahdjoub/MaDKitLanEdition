@@ -40,6 +40,7 @@ package com.distrimind.madkit.scenari.kill;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ALREADY_KILLED;
@@ -50,7 +51,6 @@ import java.util.logging.Level;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Agent;
 import com.distrimind.madkit.kernel.JUnitAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.testing.util.agent.UnstopableAgent;
 import com.distrimind.madkit.testing.util.agent.WorkingAgent;
 
@@ -63,7 +63,7 @@ import com.distrimind.madkit.testing.util.agent.WorkingAgent;
  * 
  */
 
-public class KillingWorkingThreadedAgentsTest extends JunitMadkit {
+public class KillingWorkingThreadedAgentsTest extends TestNGMadkit {
 
 	@Test
 	public void killUnstopable() {
@@ -93,23 +93,23 @@ public class KillingWorkingThreadedAgentsTest extends JunitMadkit {
 				ReturnCode r = launchAgent(a, 1);
 				assertTrue(TIMEOUT == r || r == SUCCESS);
 				killAgent(a, 1);
-				JunitMadkit.pause(this, 1000);
+				TestNGMadkit.pause(this, 1000);
 				assertAgentIsTerminated(a);
 
 				a = new WorkingAgent(false, true, false);
 				assertEquals(SUCCESS, launchAgent(a));
-				JunitMadkit.pause(this, 3000);
+				TestNGMadkit.pause(this, 3000);
 				r = killAgent(a, 0);
 				assertTrue(r == ALREADY_KILLED || r == TIMEOUT);
-				JunitMadkit.pause(this, 100);
+				TestNGMadkit.pause(this, 100);
 				assertAgentIsTerminated(a);
 
 				a = new WorkingAgent(false, false, true);
 				assertEquals(SUCCESS, launchAgent(a));
-				JunitMadkit.pause(this, 3000);
+				TestNGMadkit.pause(this, 3000);
 				r = killAgent(a, 0);
 				assertTrue(ALREADY_KILLED == r || r == TIMEOUT);
-				JunitMadkit.pause(this, 100);
+				TestNGMadkit.pause(this, 100);
 				assertAgentIsTerminated(a);
 
 				a = new WorkingAgent(true, false, true);
@@ -117,7 +117,7 @@ public class KillingWorkingThreadedAgentsTest extends JunitMadkit {
 				r = killAgent(a, 0);
 				assertTrue(r == TIMEOUT || r == ReturnCode.KILLING_ALREADY_IN_PROGRESS);
 				assertAgentIsZombie(a);
-				JunitMadkit.pause(this, 4200);
+				TestNGMadkit.pause(this, 4200);
 				assertAgentIsTerminated(a);
 			}
 		});
@@ -133,9 +133,9 @@ public class KillingWorkingThreadedAgentsTest extends JunitMadkit {
 				Agent a;
 				a = new WorkingAgent(false, false, true);
 				assertEquals(SUCCESS, launchAgent(a));
-				JunitMadkit.pause(this, 200);
+				TestNGMadkit.pause(this, 200);
 				killAgent(a, 0);
-				JunitMadkit.pause(this, 10000);
+				TestNGMadkit.pause(this, 10000);
 				assertAgentIsTerminated(a);
 			}
 		});
@@ -159,7 +159,7 @@ public class KillingWorkingThreadedAgentsTest extends JunitMadkit {
 				assertTrue(TIMEOUT == r || r == SUCCESS);
 				killAgent(a, 1);
 
-				JunitMadkit.pause(this, 5500);
+				TestNGMadkit.pause(this, 5500);
 				assertAgentIsTerminated(a);
 			}
 		});
@@ -175,10 +175,10 @@ public class KillingWorkingThreadedAgentsTest extends JunitMadkit {
 				Agent a;
 				a = new WorkingAgent(false, true, false);
 				successOnLaunch(a);
-				JunitMadkit.pause(this, 100);
+				TestNGMadkit.pause(this, 100);
 				killAgent(a, 0);
 				assertAgentIsZombie(a);
-				JunitMadkit.pause(this, 3000);
+				TestNGMadkit.pause(this, 3000);
 				assertAgentIsTerminated(a);
 			}
 		});
@@ -194,18 +194,18 @@ public class KillingWorkingThreadedAgentsTest extends JunitMadkit {
 				Agent a;
 				a = new WorkingAgent(false, true, true);
 				successOnLaunch(a);
-				JunitMadkit.pause(this, 10);
+				TestNGMadkit.pause(this, 10);
 				killAgent(a, 0);
 				assertAgentIsZombie(a);
-				JunitMadkit.pause(this, 5500);
+				TestNGMadkit.pause(this, 5500);
 				assertAgentIsTerminated(a);
 				a = new WorkingAgent(false, true, false);
 				successOnLaunch(a);
-				JunitMadkit.pause(this, 10);
+				TestNGMadkit.pause(this, 10);
 				killAgent(a, 0);
-				JunitMadkit.pause(this, 100);
+				TestNGMadkit.pause(this, 100);
 				assertAgentIsZombie(a);
-				JunitMadkit.pause(this, 3200);
+				TestNGMadkit.pause(this, 3200);
 				assertAgentIsTerminated(a);
 
 			}
@@ -223,7 +223,7 @@ public class KillingWorkingThreadedAgentsTest extends JunitMadkit {
 				ReturnCode r = killAgent(a, 0);
 				assertTrue(r.toString(), TIMEOUT == r || r == SUCCESS);
 				assertAgentIsZombie(a);
-				JunitMadkit.pause(this, 8500);
+				TestNGMadkit.pause(this, 8500);
 				assertAgentIsTerminated(a);
 			}
 		}, true);
@@ -241,7 +241,7 @@ public class KillingWorkingThreadedAgentsTest extends JunitMadkit {
 				r = killAgent(a, 0);
 				AssertJUnit.assertEquals(TIMEOUT, r);
 				assertAgentIsZombie(a);
-				JunitMadkit.pause(this, 10000);
+				TestNGMadkit.pause(this, 10000);
 				assertAgentIsTerminated(a);
 			}
 		}, true);
@@ -258,7 +258,7 @@ public class KillingWorkingThreadedAgentsTest extends JunitMadkit {
 				ReturnCode r = launchAgent(a, 1);
 				assertTrue(TIMEOUT == r || r == SUCCESS);
 				killAgent(a);
-				JunitMadkit.pause(this, 200);
+				TestNGMadkit.pause(this, 200);
 				assertAgentIsTerminated(a);
 
 				a = new WorkingAgent(false, true, false);
@@ -268,7 +268,7 @@ public class KillingWorkingThreadedAgentsTest extends JunitMadkit {
 
 				a = new WorkingAgent(false, false, true);
 				assertEquals(SUCCESS, launchAgent(a));
-				JunitMadkit.pause(this, 100);
+				TestNGMadkit.pause(this, 100);
 				killAgent(a, 3);
 				assertEquals(State.TERMINATED, a.getState());
 

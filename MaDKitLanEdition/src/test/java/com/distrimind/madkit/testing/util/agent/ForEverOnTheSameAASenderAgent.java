@@ -42,8 +42,8 @@ import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.message.StringMessage;
 
-import static com.distrimind.madkit.kernel.JunitMadkit.GROUP;
-import static com.distrimind.madkit.kernel.JunitMadkit.ROLE;
+import static com.distrimind.madkit.kernel.TestNGMadkit.GROUP;
+import static com.distrimind.madkit.kernel.TestNGMadkit.ROLE;
 
 /**
  * @author Fabien Michel

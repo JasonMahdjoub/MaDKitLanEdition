@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.util;
 
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
@@ -77,7 +77,7 @@ public class XMLUtilitiesTest {
 			e.printStackTrace();
 			return;
 		}
-        JunitMadkit.noExceptionFailure();
+        TestNGMadkit.noExceptionFailure();
 	}
 
 	@Test

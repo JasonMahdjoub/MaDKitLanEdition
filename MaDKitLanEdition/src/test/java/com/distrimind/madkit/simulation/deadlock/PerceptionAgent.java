@@ -37,9 +37,9 @@
  */
 package com.distrimind.madkit.simulation.deadlock;
 
-import static com.distrimind.madkit.kernel.JunitMadkit.GROUP;
-import static com.distrimind.madkit.kernel.JunitMadkit.ROLE;
-import static com.distrimind.madkit.kernel.JunitMadkit.ROLE2;
+import static com.distrimind.madkit.kernel.TestNGMadkit.GROUP;
+import static com.distrimind.madkit.kernel.TestNGMadkit.ROLE;
+import static com.distrimind.madkit.kernel.TestNGMadkit.ROLE2;
 
 import com.distrimind.madkit.kernel.Group;
 import com.distrimind.madkit.kernel.Probe;

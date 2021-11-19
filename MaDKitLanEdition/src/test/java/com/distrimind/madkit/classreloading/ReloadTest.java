@@ -38,6 +38,8 @@
 package com.distrimind.madkit.classreloading;
 
 import static org.testng.AssertJUnit.assertNotSame;
+
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.Test;
 import java.io.File;
 import java.io.FileInputStream;
@@ -47,7 +49,6 @@ import java.net.URL;
 import java.nio.channels.FileChannel;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.MadkitClassLoader;
 import com.distrimind.madkit.testing.util.agent.NormalAA;
 
@@ -60,7 +61,7 @@ import com.distrimind.madkit.testing.util.agent.NormalAA;
  * @version 0.9
  * 
  */
-public class ReloadTest extends JunitMadkit {
+public class ReloadTest extends TestNGMadkit {
 
 	// @Test //TODO one file for each test
 	// public void reloadTest() {

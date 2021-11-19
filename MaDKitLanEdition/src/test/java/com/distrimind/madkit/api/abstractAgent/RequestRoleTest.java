@@ -56,7 +56,7 @@ import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.*;
  * 
  */
 
-public class RequestRoleTest extends JunitMadkit {
+public class RequestRoleTest extends TestNGMadkit {
 
 	final AbstractAgent helper = new AbstractAgent() {
 		@Override

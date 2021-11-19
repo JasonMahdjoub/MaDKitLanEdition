@@ -38,6 +38,8 @@
 package com.distrimind.madkit.xml;
 
 import static org.testng.AssertJUnit.assertEquals;
+
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.Test;
 import org.testng.Assert;
 import java.io.File;
@@ -51,7 +53,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.util.XMLUtilities;
 
 /**
@@ -63,7 +64,7 @@ import com.distrimind.madkit.util.XMLUtilities;
  * 
  */
 
-public class XmlFeaturesTest extends JunitMadkit {
+public class XmlFeaturesTest extends TestNGMadkit {
 
 	@Test
 	public void launchNodeSuccess() {
@@ -97,7 +98,7 @@ public class XmlFeaturesTest extends JunitMadkit {
 				final int expected = 3;
 				while ((getAgentsWithRole(GROUP, ROLE, false) == null
 						|| getAgentsWithRole(GROUP, ROLE, false).size() != expected) && i++ < 10)
-					JunitMadkit.pause(this, 200);
+					TestNGMadkit.pause(this, 200);
 				assertEquals(expected, getAgentsWithRole(GROUP, ROLE).size());
 			}
 		});
@@ -115,7 +116,7 @@ public class XmlFeaturesTest extends JunitMadkit {
 				int i = 0;
 				while ((getAgentsWithRole(GROUP, ROLE, false) == null
 						|| getAgentsWithRole(GROUP, ROLE, false).size() != expected) && i++ < 20)
-					JunitMadkit.pause(this, 200);
+					TestNGMadkit.pause(this, 200);
 				assertEquals(expected, getAgentsWithRole(GROUP, ROLE).size());
 				assertKernelIsAlive(getKernelAddress());
 			}

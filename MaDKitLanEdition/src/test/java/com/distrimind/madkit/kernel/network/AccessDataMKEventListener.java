@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.MadkitEventListener;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.connection.access.*;
@@ -321,8 +321,8 @@ public class AccessDataMKEventListener implements MadkitEventListener {
 		ArrayList<AccessDataMKEventListener> res = new ArrayList<>();
 		ListGroupsRoles defaultGroupAccess=new ListGroupsRoles();
 		ListGroupsRoles groupAccess=new ListGroupsRoles();
-		defaultGroupAccess.addGroupsRoles(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA);
-		groupAccess.addGroupsRoles(JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA);
+		defaultGroupAccess.addGroupsRoles(TestNGMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA);
+		groupAccess.addGroupsRoles(TestNGMadkit.NETWORK_GROUP_FOR_LOGIN_DATA);
 		AccessData ad1 = getDefaultAccessData(defaultGroupAccess);
 		AccessData ad2 = getDefaultLoginData(getClientOrPeerToPeerLogins(hostIdentifier, loginIndexes),
 				defaultGroupAccess, groupAccess,

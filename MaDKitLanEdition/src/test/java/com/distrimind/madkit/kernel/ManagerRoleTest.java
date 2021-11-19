@@ -50,7 +50,7 @@ import static org.testng.AssertJUnit.assertEquals;
  * @version 1.0
  * 
  */
-public class ManagerRoleTest extends JunitMadkit {
+public class ManagerRoleTest extends TestNGMadkit {
 
 	@Test
 	public void oneManager() {

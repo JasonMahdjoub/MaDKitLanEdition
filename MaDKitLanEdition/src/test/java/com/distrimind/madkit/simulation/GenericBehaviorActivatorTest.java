@@ -37,10 +37,10 @@
  */
 package com.distrimind.madkit.simulation;
 
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.Scheduler;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.simulation.activator.GenericBehaviorActivator;
@@ -59,7 +59,7 @@ import com.distrimind.madkit.testing.util.agent.NormalAA;
  * 
  */
 
-public class GenericBehaviorActivatorTest extends JunitMadkit {
+public class GenericBehaviorActivatorTest extends TestNGMadkit {
 
 	protected static GenericBehaviorActivator<AbstractAgent> buggy;
 

@@ -50,7 +50,7 @@ import com.distrimind.madkit.message.EnumMessage;
  * @version 1.0
  * 
  */
-public class AgentActionTest extends JunitMadkit {
+public class AgentActionTest extends TestNGMadkit {
 
 	@Test
 	public void LAUNCH_AGENT() {

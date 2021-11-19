@@ -51,7 +51,7 @@ import java.util.logging.Level;
 import com.distrimind.madkit.agr.Organization;
 import com.distrimind.madkit.kernel.Agent;
 import com.distrimind.madkit.kernel.AgentAddress;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.message.StringMessage;
 import com.distrimind.madkit.testing.util.agent.ForEverReplierAgent;
@@ -65,7 +65,7 @@ import com.distrimind.madkit.testing.util.agent.NormalAgent;
  * @version 1.0
  * 
  */
-public class sendMessageAndWaitForReplyWithAATest extends JunitMadkit {
+public class sendMessageAndWaitForReplyWithAATest extends TestNGMadkit {
 
 	Agent target ;
 	@BeforeMethod

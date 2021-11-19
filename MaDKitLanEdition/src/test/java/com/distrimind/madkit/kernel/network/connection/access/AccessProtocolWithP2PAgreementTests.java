@@ -38,7 +38,7 @@
 package com.distrimind.madkit.kernel.network.connection.access;
 
 import com.distrimind.madkit.database.KeysPairs;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.madkit.kernel.KernelAddressTest;
 import com.distrimind.madkit.kernel.MadkitProperties;
@@ -130,8 +130,8 @@ public class AccessProtocolWithP2PAgreementTests implements AccessGroupsNotifier
 		Object[] o = new Object[8];
 		ListGroupsRoles defaultGroupAccess=new ListGroupsRoles();
 		ListGroupsRoles groupAccess=new ListGroupsRoles();
-		defaultGroupAccess.addGroupsRoles(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA);
-		groupAccess.addGroupsRoles(JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA);
+		defaultGroupAccess.addGroupsRoles(TestNGMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA);
+		groupAccess.addGroupsRoles(TestNGMadkit.NETWORK_GROUP_FOR_LOGIN_DATA);
 
 
 		adasker.add(AccessDataMKEventListener.getDefaultAccessData(defaultGroupAccess));

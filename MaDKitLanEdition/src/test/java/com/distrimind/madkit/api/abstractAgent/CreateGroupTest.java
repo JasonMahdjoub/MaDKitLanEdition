@@ -46,7 +46,7 @@ import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Gatekeeper;
 import com.distrimind.madkit.kernel.Group;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.kernel.AgentNetworkID;
 
@@ -59,7 +59,7 @@ import com.distrimind.madkit.kernel.AgentNetworkID;
  * 
  */
 @SuppressWarnings("all")
-public class CreateGroupTest extends JunitMadkit {
+public class CreateGroupTest extends TestNGMadkit {
 
 	final Gatekeeper gi = new Gatekeeper() {
 

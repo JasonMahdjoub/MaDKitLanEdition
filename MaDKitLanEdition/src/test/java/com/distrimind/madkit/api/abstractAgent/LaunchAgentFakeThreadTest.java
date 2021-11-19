@@ -46,7 +46,7 @@ import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ALREADY_LAUN
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.TIMEOUT;
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.testing.util.agent.SelfLaunchAgentFakeThread;
 import com.distrimind.madkit.testing.util.agent.SimpleAgentFakeThread;
 
@@ -56,7 +56,7 @@ import com.distrimind.madkit.testing.util.agent.SimpleAgentFakeThread;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-public class LaunchAgentFakeThreadTest extends JunitMadkit {
+public class LaunchAgentFakeThreadTest extends TestNGMadkit {
 	final AbstractAgent target = new SimpleAgentFakeThread() {
 		@Override
 		protected void activate() throws InterruptedException {
@@ -74,7 +74,7 @@ public class LaunchAgentFakeThreadTest extends JunitMadkit {
 			@Override
 			protected void activate() throws InterruptedException {
 				super.activate();
-				JunitMadkit.pause(this, 2000);
+				TestNGMadkit.pause(this, 2000);
 
 			}
 

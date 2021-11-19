@@ -39,7 +39,7 @@ package com.distrimind.madkit.kernel.network;
 
 import com.distrimind.madkit.exceptions.NIOException;
 import com.distrimind.madkit.exceptions.PacketException;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol;
 import com.distrimind.madkit.kernel.network.connection.unsecured.UnsecuredConnectionProtocolProperties;
@@ -68,7 +68,7 @@ import java.util.Random;
  * @since MadkitLanEdition 1.0
  */
 @SuppressWarnings("ResultOfMethodCallIgnored")
-public class ReadWritePacketTests extends JunitMadkit {
+public class ReadWritePacketTests extends TestNGMadkit {
 	public static final int testsNumber = 300;
 	final AbstractSecureRandom rand;
 	private final byte[] originalData;

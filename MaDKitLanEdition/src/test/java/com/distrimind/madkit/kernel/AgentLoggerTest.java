@@ -57,7 +57,7 @@ import static org.testng.AssertJUnit.*;
  * 
  * 
  */
-public class AgentLoggerTest extends JunitMadkit {
+public class AgentLoggerTest extends TestNGMadkit {
 
 	@Test
 	public void noLogger() {
@@ -137,7 +137,7 @@ public class AgentLoggerTest extends JunitMadkit {
 			protected void activate() {
 				getLogger().severeLog("test", null);
 				getLogger().severeLog("test", new Exception());
-				JunitMadkit.pause(this, 1000);
+				TestNGMadkit.pause(this, 1000);
 			}
 		}, ReturnCode.SUCCESS, true);
 	}

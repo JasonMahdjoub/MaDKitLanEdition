@@ -39,6 +39,8 @@ package com.distrimind.madkit.api.abstractAgent;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
+
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 import java.util.Enumeration;
@@ -46,7 +48,6 @@ import java.util.Enumeration;
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Group;
-import com.distrimind.madkit.kernel.JunitMadkit;
 
 /**
  * @author Fabien Michel
@@ -57,7 +58,7 @@ import com.distrimind.madkit.kernel.JunitMadkit;
  * 
  */
 
-public class GetExistingGroupsTest extends JunitMadkit {
+public class GetExistingGroupsTest extends TestNGMadkit {
 
 	@Test
 	public void onlyLocal() {

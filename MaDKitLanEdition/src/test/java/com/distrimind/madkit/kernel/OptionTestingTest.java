@@ -55,7 +55,7 @@ import static org.testng.AssertJUnit.assertTrue;
  * 
  */
 
-public class OptionTestingTest extends JunitMadkit {
+public class OptionTestingTest extends TestNGMadkit {
 
 	@Test
 	public void correctness() {

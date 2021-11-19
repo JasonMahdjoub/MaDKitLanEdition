@@ -55,7 +55,7 @@ import com.distrimind.madkit.agr.Organization;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.kernel.Group;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.Message;
 
 /**
@@ -67,7 +67,7 @@ import com.distrimind.madkit.kernel.Message;
  * 
  */
 
-public class SendMessageWithCGRTest extends JunitMadkit {
+public class SendMessageWithCGRTest extends TestNGMadkit {
 
 	AbstractAgent target =null;
 	@BeforeMethod

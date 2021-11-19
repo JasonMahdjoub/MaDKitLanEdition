@@ -43,7 +43,7 @@ import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.TIMEOUT;
 import java.util.logging.Level;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.testing.util.agent.UnstoppableAgentFakeThread;
 
 /**
@@ -52,7 +52,7 @@ import com.distrimind.madkit.testing.util.agent.UnstoppableAgentFakeThread;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-public class KillUnstoppableAgentFakeThreadTest extends JunitMadkit {
+public class KillUnstoppableAgentFakeThreadTest extends TestNGMadkit {
 	@Test
 	public void killUnstoppableInActivate() {
 		launchTest(new AbstractAgent() {
@@ -63,12 +63,12 @@ public class KillUnstoppableAgentFakeThreadTest extends JunitMadkit {
 				startTimer();
 				assertEquals(TIMEOUT, launchAgent(unstopableAgent, 0));
 				stopTimer("launch time out ");
-				JunitMadkit.pause(this, 200);
+				TestNGMadkit.pause(this, 200);
 
 				assertEquals(TIMEOUT, killAgent(unstopableAgent, 0));
-				JunitMadkit.pause(this, 100);
+				TestNGMadkit.pause(this, 100);
 				assertAgentIsZombie(unstopableAgent);
-				JunitMadkit.pause(this, 6000);
+				TestNGMadkit.pause(this, 6000);
 				assertAgentIsTerminated(unstopableAgent);
 
 			}
@@ -99,12 +99,12 @@ public class KillUnstoppableAgentFakeThreadTest extends JunitMadkit {
 				assertEquals(TIMEOUT, launchAgent(unstopableAgent, 1));
 				assertEquals(TIMEOUT, unstopableAgent.killAgent(unstopableAgent, 1));
 				assertAgentIsZombie(unstopableAgent);
-				JunitMadkit.pause(this, 1000);
+				TestNGMadkit.pause(this, 1000);
 				unstopableAgent = new UnstoppableAgentFakeThread(true, true);
 				assertEquals(TIMEOUT, launchAgent(unstopableAgent, 1));
 				assertEquals(TIMEOUT, unstopableAgent.killAgent(unstopableAgent, 1));
 				assertAgentIsZombie(unstopableAgent);
-				JunitMadkit.pause(this, 1000);
+				TestNGMadkit.pause(this, 1000);
 			}
 		});
 	}

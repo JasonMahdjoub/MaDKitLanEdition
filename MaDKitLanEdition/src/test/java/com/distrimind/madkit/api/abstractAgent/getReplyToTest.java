@@ -44,7 +44,7 @@ import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.AGENT_CRASH;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import com.distrimind.madkit.kernel.AgentAddress;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.testing.util.agent.ForEverAgent;
 import com.distrimind.madkit.testing.util.agent.ForEverReplierAgent;
@@ -58,7 +58,7 @@ import com.distrimind.madkit.testing.util.agent.NormalAgent;
  * @version 1.0
  * 
  */
-public class getReplyToTest extends JunitMadkit {
+public class getReplyToTest extends TestNGMadkit {
 
 	@Test
 	public void getReplyToSuccess() {

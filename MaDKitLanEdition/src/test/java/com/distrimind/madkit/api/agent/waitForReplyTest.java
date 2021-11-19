@@ -43,7 +43,7 @@ import static org.testng.AssertJUnit.assertNull;
 import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.AGENT_CRASH;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.message.MessageFilter;
 import com.distrimind.madkit.testing.util.agent.ForEverReplierAgent;
@@ -59,7 +59,7 @@ import com.distrimind.madkit.util.message.EmptyMessage;
  * 
  */
 @SuppressWarnings("all")
-public class waitForReplyTest extends JunitMadkit {
+public class waitForReplyTest extends TestNGMadkit {
 
 	protected MessageFilter filter = new MessageFilter() {
 		@Override

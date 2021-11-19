@@ -68,7 +68,7 @@ import java.util.logging.Level;
  * @version 1.0
  * @since MaDKitLanEdition 2.0.0
  */
-public class MKDatabaseSynchronizerTest extends JunitMadkit{
+public class MKDatabaseSynchronizerTest extends TestNGMadkit {
 	private static final Level DatabaseLogLevel=Level.OFF;
 	private static class EncryptionProfileCollection extends com.distrimind.util.crypto.EncryptionProfileCollection
 	{
@@ -496,7 +496,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 			ArrayList<IdentifierPassword> idpws=AccessDataMKEventListener
 					.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(3), 6);
 			ListGroupsRoles defaultGroupAccess=new ListGroupsRoles();
-			defaultGroupAccess.addGroupsRoles(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA);
+			defaultGroupAccess.addGroupsRoles(TestNGMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA);
 			loginDataClient1=AccessDataMKEventListener.getDefaultLoginData(
 					idpws,
 					null, defaultGroupAccess, true, AssertJUnit::fail, AssertJUnit::fail);
@@ -507,7 +507,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 			idpws=AccessDataMKEventListener
 					.getClientOrPeerToPeerLogins(AccessDataMKEventListener.getCustomHostIdentifier(4), 6);
 			defaultGroupAccess=new ListGroupsRoles();
-			defaultGroupAccess.addGroupsRoles(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA);
+			defaultGroupAccess.addGroupsRoles(TestNGMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA);
 			loginDataClient2=AccessDataMKEventListener.getDefaultLoginData(
 					idpws,
 					null, defaultGroupAccess, true, AssertJUnit::fail, AssertJUnit::fail);
@@ -528,7 +528,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 
 
 			defaultGroupAccess = new ListGroupsRoles();
-			defaultGroupAccess.addGroupsRoles(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA);
+			defaultGroupAccess.addGroupsRoles(TestNGMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA);
 
 
 			loginDataServer = AccessDataMKEventListener.getDefaultLoginData(
@@ -647,7 +647,7 @@ public class MKDatabaseSynchronizerTest extends JunitMadkit{
 
 		ListGroupsRoles defaultGroupAccess=new ListGroupsRoles();
 
-		defaultGroupAccess.addGroupsRoles(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA);
+		defaultGroupAccess.addGroupsRoles(TestNGMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA);
 
 		EncryptionProfileCollection encryptionProfileCollectionForP2PSignature1=new EncryptionProfileCollection();
 		encryptionProfileCollectionForP2PSignature1.putProfile((short)1, MessageDigestType.DEFAULT, null, null, secretKeyForSignature1, null, false, false);

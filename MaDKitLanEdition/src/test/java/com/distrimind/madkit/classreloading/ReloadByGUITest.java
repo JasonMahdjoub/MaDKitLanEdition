@@ -37,13 +37,13 @@
  */
 package com.distrimind.madkit.classreloading;
 
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.Test;
 import org.testng.Assert;
 import java.util.logging.Level;
 
 import com.distrimind.madkit.action.AgentAction;
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.MadkitClassLoader;
 import com.distrimind.madkit.testing.util.agent.NormalAA;
 
@@ -56,7 +56,7 @@ import com.distrimind.madkit.testing.util.agent.NormalAA;
  * @version 0.9
  * 
  */
-public class ReloadByGUITest extends JunitMadkit {
+public class ReloadByGUITest extends TestNGMadkit {
 
 	@Test
 	public void noExceptionTest() {

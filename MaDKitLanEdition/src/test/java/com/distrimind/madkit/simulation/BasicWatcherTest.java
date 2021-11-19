@@ -41,7 +41,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.Probe;
 import com.distrimind.madkit.kernel.Watcher;
 
@@ -52,7 +52,7 @@ import com.distrimind.madkit.kernel.Watcher;
  * 
  */
 
-public class BasicWatcherTest extends JunitMadkit {
+public class BasicWatcherTest extends TestNGMadkit {
 
 	@Test
 	public void addingNullProbe() {

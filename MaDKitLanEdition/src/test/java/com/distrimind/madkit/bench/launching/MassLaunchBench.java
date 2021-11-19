@@ -56,7 +56,7 @@ import com.distrimind.madkit.testing.util.agent.PongAgent;
  * @version 1.0
  * 
  */
-public class MassLaunchBench extends JunitMadkit {
+public class MassLaunchBench extends TestNGMadkit {
 
 	@Test
 	public void massAALaunchWithBucket() {// TODO more cases
@@ -246,7 +246,7 @@ public class MassLaunchBench extends JunitMadkit {
 					launchAgent(abstractAgent);
 				}
 				stopTimer("done ");
-				JunitMadkit.pause(this, 100000);
+				TestNGMadkit.pause(this, 100000);
 			}
 		});
 	}

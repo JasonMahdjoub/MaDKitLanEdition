@@ -49,7 +49,7 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.Message;
 
 /**
@@ -61,7 +61,7 @@ import com.distrimind.madkit.kernel.Message;
  * 
  */
 
-public class DefaultLoggingLevelTest extends JunitMadkit {
+public class DefaultLoggingLevelTest extends TestNGMadkit {
 
 	@Test
 	public void noLog() {

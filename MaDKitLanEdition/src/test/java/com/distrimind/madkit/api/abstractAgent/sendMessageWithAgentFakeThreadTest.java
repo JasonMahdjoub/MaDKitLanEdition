@@ -53,7 +53,7 @@ import java.util.List;
 import com.distrimind.madkit.agr.Organization;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.AgentAddress;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.testing.util.agent.SimpleAgentFakeThread;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
@@ -64,7 +64,7 @@ import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-public class sendMessageWithAgentFakeThreadTest extends JunitMadkit {
+public class sendMessageWithAgentFakeThreadTest extends TestNGMadkit {
 	AgentFakeThreadReceiver target ;
 	@BeforeMethod
 	public void setTarget()
@@ -85,14 +85,14 @@ public class sendMessageWithAgentFakeThreadTest extends JunitMadkit {
 
 				// Without role
 				assertEquals(SUCCESS, sendMessage(aa, new Message()));
-				JunitMadkit.pause(this, 100);
+				TestNGMadkit.pause(this, 100);
 				Message m = target.messagesRead.get(0);
 				assertNotNull(m);
 				assertEquals(ROLE, m.getReceiver().getRole());
 
 				// With role
 				assertEquals(SUCCESS, sendMessageWithRole(aa, new Message(), ROLE));
-				JunitMadkit.pause(this, 100);
+				TestNGMadkit.pause(this, 100);
 				m = target.messagesRead.get(1);
 				assertNotNull(m);
 				assertEquals(ROLE, m.getReceiver().getRole());
@@ -111,7 +111,7 @@ public class sendMessageWithAgentFakeThreadTest extends JunitMadkit {
 				AgentAddress aa = getAgentWithRole(GROUP, Organization.GROUP_MANAGER_ROLE);
 				assertNotNull(aa);
 				assertEquals(SUCCESS, sendMessage(aa, new Message()));
-				JunitMadkit.pause(this, 100);
+				TestNGMadkit.pause(this, 100);
 				Message m = target.messagesRead.get(0);
 				assertNotNull(m);
 				assertEquals(Organization.GROUP_MANAGER_ROLE, m.getReceiver().getRole());
@@ -121,7 +121,7 @@ public class sendMessageWithAgentFakeThreadTest extends JunitMadkit {
 				aa = getAgentWithRole(GROUP, Organization.GROUP_MANAGER_ROLE);
 				assertNotNull(aa);
 				assertEquals(SUCCESS, sendMessageWithRole(aa, new Message(), Organization.GROUP_CANDIDATE_ROLE));
-				JunitMadkit.pause(this, 100);
+				TestNGMadkit.pause(this, 100);
 				m = target.messagesRead.get(1);
 				assertNotNull(m);
 				assertEquals(Organization.GROUP_MANAGER_ROLE, m.getReceiver().getRole());
@@ -223,7 +223,7 @@ class AgentFakeThreadReceiver extends SimpleAgentFakeThread {
 	@Override
 	protected void activate() throws InterruptedException {
 		super.activate();
-		assertEquals(SUCCESS, requestRole(JunitMadkit.GROUP, JunitMadkit.ROLE));
+		assertEquals(SUCCESS, requestRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE));
 	}
 
 	@Override

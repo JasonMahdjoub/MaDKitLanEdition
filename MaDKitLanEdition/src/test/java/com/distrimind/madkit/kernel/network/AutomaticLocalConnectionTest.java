@@ -1,7 +1,7 @@
 package com.distrimind.madkit.kernel.network;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.Madkit;
 import org.testng.AssertJUnit;
 import org.testng.annotations.DataProvider;
@@ -10,7 +10,7 @@ import org.testng.annotations.Test;
 
 import java.util.logging.Level;
 
-public class AutomaticLocalConnectionTest extends JunitMadkit {
+public class AutomaticLocalConnectionTest extends TestNGMadkit {
 
 	final NetworkEventListener eventListener1;
 	final NetworkEventListener eventListener2;

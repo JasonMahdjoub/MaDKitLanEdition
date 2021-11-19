@@ -38,9 +38,10 @@
 package com.distrimind.madkit.boot.process;
 
 import static org.testng.AssertJUnit.assertEquals;
+
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.Test;
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
 
 /**
  * @author Fabien Michel
@@ -51,7 +52,7 @@ import com.distrimind.madkit.kernel.JunitMadkit;
  * 
  */
 
-public class OtherMadkitPropertyTest extends JunitMadkit {
+public class OtherMadkitPropertyTest extends TestNGMadkit {
 
 	@Test
 	public void undefinedProperty() {

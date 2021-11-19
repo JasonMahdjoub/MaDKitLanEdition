@@ -43,10 +43,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.Gatekeeper;
-import com.distrimind.madkit.kernel.Group;
-import com.distrimind.madkit.kernel.JunitMadkit;
-import com.distrimind.madkit.kernel.AgentNetworkID;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 
 /**
  * @author Fabien Michel
@@ -56,7 +53,7 @@ import com.distrimind.madkit.kernel.AgentNetworkID;
  * @version 0.92
  * 
  */
-public class CreateGroupIfAbsentTest extends JunitMadkit {
+public class CreateGroupIfAbsentTest extends TestNGMadkit {
 
 	/*final Gatekeeper gi = new Gatekeeper() {
 

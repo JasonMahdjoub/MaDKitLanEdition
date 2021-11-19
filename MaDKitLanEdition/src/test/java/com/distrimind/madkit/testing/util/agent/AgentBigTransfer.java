@@ -155,11 +155,11 @@ public class AgentBigTransfer extends AgentFakeThread {
 
 			AssertJUnit.assertEquals(ReturnCode.SUCCESS, requestHookEvents(AgentActionEvent.REQUEST_ROLE));
 
-			requestRole(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, thisRole);
+			requestRole(TestNGMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, thisRole);
 
 			if (isLocal) {
 				if (launchOtherLocalAgent) {
-					AgentAddress myAgentAddress = getAgentAddressIn(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA,
+					AgentAddress myAgentAddress = getAgentAddressIn(TestNGMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA,
 							thisRole);
 					otherBigTransferAgent = new AgentBigTransfer(thisPeerNumber, accept, useMessageDigest, sendShortData,
 							otherSendData, sendData, 1, isLocal, false, null);
@@ -170,7 +170,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 					AssertJUnit.assertTrue(ok);
 
 					AgentAddress otherAgentAddress = otherBigTransferAgent
-							.getAgentAddressIn(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, thisRole);
+							.getAgentAddressIn(TestNGMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, thisRole);
 					ok &= otherAgentAddress != null;
 					AssertJUnit.assertNotNull(otherAgentAddress);
 					otherConnected.put(otherAgentAddress, Boolean.TRUE);
@@ -230,12 +230,12 @@ public class AgentBigTransfer extends AgentFakeThread {
 				// !m.getSourceAgent().representsSameAgentThan(getAgentAddressIn(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA,
 				// thisRole) ))
 				if (m.getSourceAgent().getRole().equals(thisRole) && (!m.getSourceAgent().representsSameAgentThan(
-						getAgentAddressIn(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, thisRole)) && !isLocal)) {
+						getAgentAddressIn(TestNGMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, thisRole)) && !isLocal)) {
 					if (otherConnected.put(m.getSourceAgent(), Boolean.TRUE) == null) {
 
 						sendMessageWithRole(m.getSourceAgent(),
 								new OrganizationEvent(AgentActionEvent.REQUEST_ROLE,
-										getAgentAddressIn(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, thisRole)),
+										getAgentAddressIn(TestNGMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, thisRole)),
 								thisRole);
 
 						/*

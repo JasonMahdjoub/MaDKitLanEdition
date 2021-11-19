@@ -43,7 +43,7 @@ import org.testng.annotations.Test;
 import java.util.logging.Level;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 
 /**
  * @author Fabien Michel
@@ -55,7 +55,7 @@ import com.distrimind.madkit.kernel.JunitMadkit;
  * 
  */
 
-public class NetworkOnTest extends JunitMadkit {
+public class NetworkOnTest extends TestNGMadkit {
 
 	@Test
 	public void networkOn() {

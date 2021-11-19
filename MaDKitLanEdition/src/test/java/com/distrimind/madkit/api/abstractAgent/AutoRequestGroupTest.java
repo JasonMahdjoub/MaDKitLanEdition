@@ -37,17 +37,17 @@
  */
 package com.distrimind.madkit.api.abstractAgent;
 
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
 
 /**
  * 
  * @author Jason Mahdjoub
  * @version 1.0
  */
-public class AutoRequestGroupTest extends JunitMadkit {
+public class AutoRequestGroupTest extends TestNGMadkit {
 	@Test
 	public void testAutoRequest() {
 		launchTest(new AbstractAgent() {

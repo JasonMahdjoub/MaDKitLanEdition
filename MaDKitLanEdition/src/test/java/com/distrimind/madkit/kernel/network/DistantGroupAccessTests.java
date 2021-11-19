@@ -61,7 +61,7 @@ import java.util.logging.Level;
  * @version 1.0
  * @since MaDKitLanEdition 2.1.0
  */
-public class DistantGroupAccessTests extends JunitMadkit{
+public class DistantGroupAccessTests extends TestNGMadkit {
 	final NetworkEventListener eventListener1;
 	final NetworkEventListener eventListener2;
 	static final Group groupWithAllRoles=new Group(true, null, false, DistantGroupAccessTests.class.getSimpleName(), "groupWithAllRoles");

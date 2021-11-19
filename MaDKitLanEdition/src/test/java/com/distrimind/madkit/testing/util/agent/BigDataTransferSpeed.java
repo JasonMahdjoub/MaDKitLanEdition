@@ -64,7 +64,7 @@ import java.util.logging.Level;
  * @version 1.0
  * 
  */
-public class BigDataTransferSpeed extends JunitMadkit {
+public class BigDataTransferSpeed extends TestNGMadkit {
 	final NetworkEventListener eventListener1;
 	final NetworkEventListener eventListener2;
     final int downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond;
@@ -77,7 +77,7 @@ public class BigDataTransferSpeed extends JunitMadkit {
         p2pprotocol.symmetricEncryptionType=SymmetricEncryptionType.AES_CTR;
         p2pprotocol.symmetricSignatureType= SymmetricAuthenticatedSignatureType.HMAC_SHA2_384;
         ListGroupsRoles defaultGroupAccess=new ListGroupsRoles();
-        defaultGroupAccess.addGroupsRoles(JunitMadkit.GROUP);
+        defaultGroupAccess.addGroupsRoles(TestNGMadkit.GROUP);
 
         AbstractAccessProtocolProperties app = new AccessProtocolWithP2PAgreementProperties();
         this.eventListener1 = new NetworkEventListener(true, false, false, null,

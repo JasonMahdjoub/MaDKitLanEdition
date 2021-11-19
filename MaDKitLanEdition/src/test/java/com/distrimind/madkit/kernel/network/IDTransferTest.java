@@ -42,7 +42,7 @@ import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 import com.distrimind.madkit.exceptions.OverflowException;
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
 import com.distrimind.util.io.RandomByteArrayInputStream;
 import com.distrimind.util.io.RandomByteArrayOutputStream;
@@ -55,7 +55,7 @@ import java.io.IOException;
  * @version 1.0
  * 
  */
-public class IDTransferTest extends JunitMadkit {
+public class IDTransferTest extends TestNGMadkit {
 	@Test
 	public void testIDTransfer() {
 		launchTest(new AbstractAgent() {

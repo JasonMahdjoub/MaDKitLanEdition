@@ -38,6 +38,8 @@
 package com.distrimind.madkit.logging;
 
 import static org.testng.AssertJUnit.assertEquals;
+
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.AGENT_CRASH;
@@ -46,7 +48,6 @@ import java.util.logging.Level;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Agent;
-import com.distrimind.madkit.kernel.JunitMadkit;
 
 /**
  * @author Fabien Michel
@@ -55,7 +56,7 @@ import com.distrimind.madkit.kernel.JunitMadkit;
  * @version 1.0
  * 
  */
-public class LoggingWithGUIStartingWithOFFTest extends JunitMadkit {
+public class LoggingWithGUIStartingWithOFFTest extends TestNGMadkit {
 
 	@BeforeMethod
 	public void init() {

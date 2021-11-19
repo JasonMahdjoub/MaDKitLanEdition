@@ -39,7 +39,7 @@ package com.distrimind.madkit.testing.util.agent;
 
 
 import com.distrimind.madkit.kernel.AgentAddress;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.message.NetworkObjectMessage;
 import com.distrimind.madkit.message.ObjectMessage;
@@ -81,7 +81,7 @@ public class NetworkPongAgent extends AgentAddressAgentTester {
 		AssertJUnit.assertEquals(ReturnCode.SUCCESS, requestHookEvents(AgentActionEvent.DISTANT_KERNEL_CONNECTED));
 
 		AssertJUnit.assertEquals(ReturnCode.SUCCESS,
-				this.requestRole(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, NetworkPingAgent.pongRole));
+				this.requestRole(TestNGMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, NetworkPingAgent.pongRole));
 		System.out.println("Pong activated : " + getKernelAddress());
 	}
 
@@ -126,12 +126,12 @@ public class NetworkPongAgent extends AgentAddressAgentTester {
 			} else {
 
 				System.out.println("Receiving and replied to network ping message : " + getKernelAddress());
-				testReceiver &= testAgentAddressReceiver(_message, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA,
+				testReceiver &= testAgentAddressReceiver(_message, TestNGMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA,
 						NetworkPingAgent.pongRole);
-				testSender &= testAgentAddressSender(_message, JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA,
+				testSender &= testAgentAddressSender(_message, TestNGMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA,
 						NetworkPingAgent.pingRole);
 				testTraveledAgentAddress &= testTraveledAgentAddress(aa, false,
-						JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, NetworkPingAgent.pingRole);
+						TestNGMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, NetworkPingAgent.pingRole);
 
 			}
 			AssertJUnit.assertEquals(ReturnCode.SUCCESS, sendReply(_message,

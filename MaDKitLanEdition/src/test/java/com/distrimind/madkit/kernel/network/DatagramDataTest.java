@@ -37,7 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.KernelAddress;
 import com.distrimind.util.Bits;
 import com.distrimind.util.version.Version;
@@ -68,8 +68,8 @@ public class DatagramDataTest {
 		KernelAddress ka1 = null;
 		KernelAddress ka2 = null;
 		try {
-			ka1 = JunitMadkit.getKernelAddressInstance();
-			ka2 = JunitMadkit.getKernelAddressInstance();
+			ka1 = TestNGMadkit.getKernelAddressInstance();
+			ka2 = TestNGMadkit.getKernelAddressInstance();
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(-1);

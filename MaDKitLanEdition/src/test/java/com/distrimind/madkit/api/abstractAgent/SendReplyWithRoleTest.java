@@ -44,7 +44,7 @@ import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.NOT_IN_GROUP
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ROLE_NOT_HANDLED;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 
@@ -57,7 +57,7 @@ import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
  * 
  */
 
-public class SendReplyWithRoleTest extends JunitMadkit {
+public class SendReplyWithRoleTest extends TestNGMadkit {
 
 	@Test
 	public void returnNotInGroup() {

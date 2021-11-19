@@ -38,7 +38,7 @@
 package com.distrimind.madkit.performance;
 
 import com.distrimind.madkit.kernel.Agent;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.testing.util.agent.NormalAgent;
 
 /**
@@ -48,7 +48,7 @@ import com.distrimind.madkit.testing.util.agent.NormalAgent;
  * 
  */
 
-public class MemoryLeak extends JunitMadkit {
+public class MemoryLeak extends TestNGMadkit {
 
 	// @Test
 	public void massAALaunchWithBucket() {// TODO more cases

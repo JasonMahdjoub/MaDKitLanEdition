@@ -38,7 +38,7 @@
 package com.distrimind.madkit.api.abstractAgent;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.testing.util.agent.DoItDuringLifeCycleAgent;
 import com.distrimind.madkit.testing.util.agent.UnstopableAgent;
 import org.testng.annotations.Test;
@@ -57,7 +57,7 @@ import static org.testng.AssertJUnit.assertEquals;
  * 
  *
  */
-public class KillUnstoppableAgentTest extends JunitMadkit {
+public class KillUnstoppableAgentTest extends TestNGMadkit {
 
 	@Test
 	public void killUnstoppableInActivate() {
@@ -87,7 +87,7 @@ public class KillUnstoppableAgentTest extends JunitMadkit {
 					logger.info(unstopableAgent.getState().toString());
 				assertEquals(TIMEOUT, killAgent(unstopableAgent, 0));
 				//assertAgentIsZombie(unstopableAgent);
-				JunitMadkit.pause(this, 100);
+				TestNGMadkit.pause(this, 100);
 				assertAgentIsZombie(unstopableAgent);
 
 			}
@@ -111,7 +111,7 @@ public class KillUnstoppableAgentTest extends JunitMadkit {
 				if (logger != null)
 					logger.info(unstopableAgent.getState().toString());
 				assertEquals(ReturnCode.SUCCESS, killAgent(unstopableAgent));
-				JunitMadkit.pause(this, 100);
+				TestNGMadkit.pause(this, 100);
 				assertAgentIsTerminated(unstopableAgent);
 
 			}
@@ -134,9 +134,9 @@ public class KillUnstoppableAgentTest extends JunitMadkit {
 				assertEquals(ReturnCode.SUCCESS, launchAgent(unstopableAgent, 1));
 				if (logger != null)
 					logger.info(unstopableAgent.getState().toString());
-				JunitMadkit.pause(this, 100);
+				TestNGMadkit.pause(this, 100);
 				assertEquals(ReturnCode.SUCCESS, killAgent(unstopableAgent, 2));
-				JunitMadkit.pause(this, 100);
+				TestNGMadkit.pause(this, 100);
 				assertAgentIsTerminated(unstopableAgent);
 
 			}
@@ -159,9 +159,9 @@ public class KillUnstoppableAgentTest extends JunitMadkit {
 				assertEquals(ReturnCode.SUCCESS, launchAgent(unstopableAgent, 1));
 				if (logger != null)
 					logger.info(unstopableAgent.getState().toString());
-				JunitMadkit.pause(this, 100);
+				TestNGMadkit.pause(this, 100);
 				assertEquals(ReturnCode.ALREADY_KILLED, killAgent(unstopableAgent, 2));
-				JunitMadkit.pause(this, 100);
+				TestNGMadkit.pause(this, 100);
 				assertAgentIsTerminated(unstopableAgent);
 
 			}
@@ -179,7 +179,7 @@ public class KillUnstoppableAgentTest extends JunitMadkit {
 					logger.info(unstopableAgent.getState().toString());
 				assertEquals(TIMEOUT, killAgent(unstopableAgent, 1));
 				assertAgentIsZombie(unstopableAgent);
-				JunitMadkit.pause(this, 1000);
+				TestNGMadkit.pause(this, 1000);
 			}
 		});
 	}
@@ -193,12 +193,12 @@ public class KillUnstoppableAgentTest extends JunitMadkit {
 				assertEquals(TIMEOUT, launchAgent(unstopableAgent, 1));
 				assertEquals(TIMEOUT, unstopableAgent.killAgent(unstopableAgent, 1));
 				assertAgentIsZombie(unstopableAgent);
-				JunitMadkit.pause(this, 1000);
+				TestNGMadkit.pause(this, 1000);
 				unstopableAgent = new UnstopableAgent(true, false, true);
 				assertEquals(TIMEOUT, launchAgent(unstopableAgent, 1));
 				assertEquals(TIMEOUT, unstopableAgent.killAgent(unstopableAgent, 1));
 				assertAgentIsZombie(unstopableAgent);
-				JunitMadkit.pause(this, 1000);
+				TestNGMadkit.pause(this, 1000);
 			}
 		});
 	}

@@ -43,7 +43,7 @@ import java.util.logging.Level;
 
 import com.distrimind.madkit.action.GUIManagerAction;
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 
 /**
  * @author Fabien Michel
@@ -54,7 +54,7 @@ import com.distrimind.madkit.kernel.JunitMadkit;
  * 
  */
 
-public class WrongArgTest extends JunitMadkit {
+public class WrongArgTest extends TestNGMadkit {
 
 	@Test
 	public void agentDoesNotExist() {

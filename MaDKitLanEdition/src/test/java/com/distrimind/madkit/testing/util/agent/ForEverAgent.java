@@ -38,8 +38,8 @@
 package com.distrimind.madkit.testing.util.agent;
 
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
-import static com.distrimind.madkit.kernel.JunitMadkit.GROUP;
-import static com.distrimind.madkit.kernel.JunitMadkit.ROLE;
+import static com.distrimind.madkit.kernel.TestNGMadkit.GROUP;
+import static com.distrimind.madkit.kernel.TestNGMadkit.ROLE;
 
 import java.util.logging.Level;
 

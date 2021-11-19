@@ -58,7 +58,7 @@ import static org.testng.AssertJUnit.assertNotNull;
  * 
  */
 
-public class MadkitClassLoaderTest extends JunitMadkit {
+public class MadkitClassLoaderTest extends TestNGMadkit {
 
 	/*@Test
 	public void scanFolderForMDKConfigFileAgentClassesTest() {

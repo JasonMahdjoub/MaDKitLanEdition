@@ -38,6 +38,7 @@
 package com.distrimind.madkit.api.abstractAgent;
 
 import com.distrimind.madkit.JUnitFunctions;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
@@ -53,7 +54,6 @@ import java.util.logging.Level;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.AgentAddress;
-import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.testing.util.agent.DoItDuringLifeCycleAgentFakeThread;
 import com.distrimind.madkit.testing.util.agent.FaultyAgentFakeThread;
@@ -66,7 +66,7 @@ import com.distrimind.madkit.testing.util.agent.SimpleAgentFakeThread;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-public class KillAgentFakeThreadTest extends JunitMadkit {
+public class KillAgentFakeThreadTest extends TestNGMadkit {
 	final SimpleAgentFakeThread target = new SimpleAgentFakeThread() {
 		@Override
 		protected void activate() throws InterruptedException {
@@ -129,11 +129,11 @@ public class KillAgentFakeThreadTest extends JunitMadkit {
 				AssertJUnit.assertEquals(ReturnCode.SUCCESS, sendMessage(aa, new Message()));
 				AssertJUnit.assertEquals(ReturnCode.TIMEOUT,
 						killAgent(target2, 0, KillingType.WAIT_AGENT_PURGE_ITS_MESSAGES_BOX_BEFORE_KILLING_IT));
-				JunitMadkit.pause(this, 200);
+				TestNGMadkit.pause(this, 200);
 				AssertJUnit.assertEquals(State.ZOMBIE, target2.getState());
 				JUnitFunctions.assertNotEquals(ReturnCode.SUCCESS, sendMessage(aa, new Message()));
 				AssertJUnit.assertEquals(1, numberOfReadMessages.get());
-				JunitMadkit.pause(this, 3000);
+				TestNGMadkit.pause(this, 3000);
 				AssertJUnit.assertEquals(2, numberOfReadMessages.get());
 
 			}
@@ -158,9 +158,9 @@ public class KillAgentFakeThreadTest extends JunitMadkit {
 			protected void activate() {
 				SelfKillAgentFakeThread a = new SelfKillAgentFakeThread(true);
 				AssertJUnit.assertEquals(SUCCESS, launchAgent(a));
-				JunitMadkit.pause(this, 200);
+				TestNGMadkit.pause(this, 200);
 				AssertJUnit.assertEquals(ALREADY_KILLED, killAgent(a));
-				JunitMadkit.pause(this, 200);
+				TestNGMadkit.pause(this, 200);
 				assertAgentIsTerminated(a);
 			}
 		}, true);
@@ -188,7 +188,7 @@ public class KillAgentFakeThreadTest extends JunitMadkit {
 			protected void activate() {
 				SelfKillAgentFakeThread a = new SelfKillAgentFakeThread(false, false, true);
 				AssertJUnit.assertEquals(SUCCESS, launchAgent(a));
-				JunitMadkit.pause(this, 100);
+				TestNGMadkit.pause(this, 100);
 				AssertJUnit.assertEquals(SUCCESS, killAgent(a));
 				assertAgentIsTerminated(a);
 			}
@@ -216,7 +216,7 @@ public class KillAgentFakeThreadTest extends JunitMadkit {
 				AssertJUnit.assertEquals(TIMEOUT, launchAgent(timeOutAgent, 0));
 				ReturnCode r = killAgent(timeOutAgent);
 				AssertJUnit.assertTrue(NOT_YET_LAUNCHED == r || SUCCESS == r);
-				JunitMadkit.pause(this, 2000);
+				TestNGMadkit.pause(this, 2000);
 				if (r == NOT_YET_LAUNCHED) {
 					AssertJUnit.assertEquals(SUCCESS, killAgent(timeOutAgent));
 				}
@@ -231,7 +231,7 @@ public class KillAgentFakeThreadTest extends JunitMadkit {
 			protected void activate() {
 				AbstractAgent a = new FaultyAgentFakeThread(true);
 				AssertJUnit.assertEquals(AGENT_CRASH, launchAgent(a));
-				JunitMadkit.pause(this, 100);
+				TestNGMadkit.pause(this, 100);
 				AssertJUnit.assertEquals(ALREADY_KILLED, killAgent(a));
 				a = new FaultyAgentFakeThread(false, true);
 				AssertJUnit.assertEquals(SUCCESS, launchAgent(a));
@@ -248,7 +248,7 @@ public class KillAgentFakeThreadTest extends JunitMadkit {
 			protected void activate() {
 				AbstractAgent a = new FaultyAgentFakeThread(true);
 				AssertJUnit.assertEquals(AGENT_CRASH, launchAgent(a));
-				JunitMadkit.pause(this, 100);
+				TestNGMadkit.pause(this, 100);
 			}
 		});
 	}
@@ -322,15 +322,15 @@ public class KillAgentFakeThreadTest extends JunitMadkit {
 						SimpleAgentFakeThread agt = (SimpleAgentFakeThread) launchAgent(
 								SimpleAgentFakeThread.class.getName(), Math.random() < .5);
 						AssertJUnit.assertNotNull(agt);
-						JunitMadkit.pause(This, (int) (Math.random() * 1000));
+						TestNGMadkit.pause(This, (int) (Math.random() * 1000));
 						ReturnCode r2 = killAgent(agt, (int) (Math.random() * 2));
 						AssertJUnit.assertTrue(SUCCESS == r2 || TIMEOUT == r2);
 					}
-					JunitMadkit.pause(This, 5000);
+					TestNGMadkit.pause(This, 5000);
 				};
 				Thread t = new Thread(job);
 				t.start();
-				JunitMadkit.pause(this, 1000);
+				TestNGMadkit.pause(this, 1000);
 				t = new Thread(job);
 				t.start();
 				try {
@@ -354,7 +354,7 @@ public class KillAgentFakeThreadTest extends JunitMadkit {
 				KillTargetAgentFakeThread ka = new KillTargetAgentFakeThread(a);
 				launchAgent(ka);
 				killAgent(ka);
-				JunitMadkit.pause(this, 500);
+				TestNGMadkit.pause(this, 500);
 				assertAgentIsTerminated(ka);
 				assertAgentIsTerminated(a);
 			}
@@ -372,7 +372,7 @@ public class KillAgentFakeThreadTest extends JunitMadkit {
 				AssertJUnit.assertEquals(SUCCESS, killAgent(a, 2));
 				ReturnCode res = killAgent(a, 2);
 				AssertJUnit.assertSame(ALREADY_KILLED, res);
-				JunitMadkit.pause(this, 1500);
+				TestNGMadkit.pause(this, 1500);
 				assertAgentIsTerminated(a);
 			}
 		});
@@ -385,14 +385,14 @@ public class KillAgentFakeThreadTest extends JunitMadkit {
 			protected void activate() {
 				SimpleAgentFakeThread a = new SimpleAgentFakeThread();
 				AssertJUnit.assertEquals(SUCCESS, launchAgent(a));
-				JunitMadkit.pause(this, 1000);
+				TestNGMadkit.pause(this, 1000);
 				AssertJUnit.assertEquals(SUCCESS, killAgent(a));
-				JunitMadkit.pause(this, 100);
+				TestNGMadkit.pause(this, 100);
 				assertAgentIsTerminated(a);
 				SimpleAgentFakeThread b = (SimpleAgentFakeThread) launchAgent(SimpleAgentFakeThread.class.getName(),
 						10);
 				killAgent(b, 1);
-				JunitMadkit.pause(this, 100);
+				TestNGMadkit.pause(this, 100);
 				assertAgentIsTerminated(b);
 			}
 		});

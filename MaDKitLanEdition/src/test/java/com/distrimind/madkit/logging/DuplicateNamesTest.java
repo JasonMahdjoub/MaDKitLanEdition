@@ -40,6 +40,7 @@ package com.distrimind.madkit.logging;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
@@ -50,7 +51,6 @@ import java.util.logging.Level;
 
 import com.distrimind.madkit.boot.process.CreateLogFilesTest;
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
 
 /**
  * @author Fabien Michel
@@ -59,7 +59,7 @@ import com.distrimind.madkit.kernel.JunitMadkit;
  * @version 1.0
  * 
  */
-public class DuplicateNamesTest extends JunitMadkit {
+public class DuplicateNamesTest extends TestNGMadkit {
 
 	protected File f;
 
@@ -104,7 +104,7 @@ public class DuplicateNamesTest extends JunitMadkit {
 class SetNameAgent extends AbstractAgent {
 
 	public SetNameAgent() {
-		setName(JunitMadkit.C);
+		setName(TestNGMadkit.C);
 	}
 
 	@Override

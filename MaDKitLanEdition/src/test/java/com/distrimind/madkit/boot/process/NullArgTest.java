@@ -39,12 +39,13 @@ package com.distrimind.madkit.boot.process;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
+
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.Test;
 
 import java.util.logging.Level;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
 
 /**
  * @author Fabien Michel
@@ -55,7 +56,7 @@ import com.distrimind.madkit.kernel.JunitMadkit;
  * 
  */
 
-public class NullArgTest extends JunitMadkit {
+public class NullArgTest extends TestNGMadkit {
 
 	@Test
 	public void desktopOn() {

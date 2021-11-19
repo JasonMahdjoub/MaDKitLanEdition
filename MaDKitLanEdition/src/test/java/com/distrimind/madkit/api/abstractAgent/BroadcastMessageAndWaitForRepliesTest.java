@@ -39,17 +39,14 @@ package com.distrimind.madkit.api.abstractAgent;
 
 import static org.testng.AssertJUnit.assertEquals;
 
+import com.distrimind.madkit.kernel.*;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.AGENT_CRASH;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import java.util.logging.Level;
 
-import com.distrimind.madkit.kernel.Agent;
-import com.distrimind.madkit.kernel.AgentAddress;
-import com.distrimind.madkit.kernel.Group;
-import com.distrimind.madkit.kernel.JunitMadkit;
-import com.distrimind.madkit.kernel.Message;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.message.StringMessage;
 import com.distrimind.madkit.testing.util.agent.NormalAgent;
 
@@ -59,7 +56,7 @@ import com.distrimind.madkit.testing.util.agent.NormalAgent;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-public class BroadcastMessageAndWaitForRepliesTest extends JunitMadkit {
+public class BroadcastMessageAndWaitForRepliesTest extends TestNGMadkit {
 
 	Agent target =null;
 
@@ -408,7 +405,7 @@ class sendReplyInLiveAgent extends Agent {
 
 	@Override
 	protected void activate() {
-		assertEquals(SUCCESS, requestRole(JunitMadkit.GROUP, JunitMadkit.ROLE));
+		assertEquals(SUCCESS, requestRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE));
 	}
 
 	@Override
@@ -444,7 +441,7 @@ class sendEmptyReplyInLiveAgent extends Agent {
 
 	@Override
 	protected void activate() {
-		assertEquals(SUCCESS, requestRole(JunitMadkit.GROUP, JunitMadkit.ROLE));
+		assertEquals(SUCCESS, requestRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE));
 	}
 
 	@Override

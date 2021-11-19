@@ -39,12 +39,13 @@ package com.distrimind.madkit.api.abstractAgent;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
+
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.Test;
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.agr.Organization;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Group;
-import com.distrimind.madkit.kernel.JunitMadkit;
 
 /**
  * @author Fabien Michel
@@ -54,7 +55,7 @@ import com.distrimind.madkit.kernel.JunitMadkit;
  * @version 1.0
  * 
  */
-public class GetExistingRolesTest extends JunitMadkit {
+public class GetExistingRolesTest extends TestNGMadkit {
 
 	@Test
 	public void onlyLocal() {

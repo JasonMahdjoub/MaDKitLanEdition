@@ -53,7 +53,7 @@ import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ROLE_NOT_HAN
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Group;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.kernel.Replies;
 import com.distrimind.madkit.message.StringMessage;
@@ -68,7 +68,7 @@ import com.distrimind.madkit.testing.util.agent.NormalAgent;
  * 
  */
 
-public class BroadcastMessageTest extends JunitMadkit {
+public class BroadcastMessageTest extends TestNGMadkit {
 
 	AbstractAgent target =null;
 

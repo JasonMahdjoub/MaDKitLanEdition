@@ -41,7 +41,7 @@ import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 import java.util.Random;
 
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 
 /**
  * 
@@ -49,7 +49,7 @@ import com.distrimind.madkit.kernel.JunitMadkit;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-public class StatTests extends JunitMadkit {
+public class StatTests extends TestNGMadkit {
 	@Test
 	public void testTransferSpeedStat() {
 		Random rand = new Random(System.currentTimeMillis());

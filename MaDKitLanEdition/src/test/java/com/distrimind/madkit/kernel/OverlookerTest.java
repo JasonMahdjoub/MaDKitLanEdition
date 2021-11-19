@@ -53,7 +53,7 @@ import static org.testng.AssertJUnit.assertEquals;
  * 
  */
 
-public class OverlookerTest extends JunitMadkit {
+public class OverlookerTest extends TestNGMadkit {
 
 	@Test
 	public void buggyActivator() {

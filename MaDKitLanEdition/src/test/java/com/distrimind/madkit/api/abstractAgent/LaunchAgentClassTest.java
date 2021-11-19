@@ -45,7 +45,7 @@ import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.AGENT_CRASH;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ALREADY_LAUNCHED;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.testing.util.agent.NoPublicConstructorAA;
 import com.distrimind.madkit.testing.util.agent.SelfLaunchAA;
 
@@ -59,7 +59,7 @@ import com.distrimind.madkit.testing.util.agent.SelfLaunchAA;
  */
 
 @SuppressWarnings("unused")
-public class LaunchAgentClassTest extends JunitMadkit {
+public class LaunchAgentClassTest extends TestNGMadkit {
 
 	final AbstractAgent target = new AbstractAgent() {
 		@Override

@@ -60,7 +60,7 @@ import static org.testng.AssertJUnit.*;
  * 
  */
 
-public class LaunchAgentBucketTest extends JunitMadkit {
+public class LaunchAgentBucketTest extends TestNGMadkit {
 
 	static final int size = 1001;
 

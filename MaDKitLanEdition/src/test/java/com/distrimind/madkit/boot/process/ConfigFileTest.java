@@ -38,12 +38,13 @@
 package com.distrimind.madkit.boot.process;
 
 import static org.testng.AssertJUnit.assertEquals;
+
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.Test;
 import java.net.URL;
 import java.util.logging.Level;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
 
 /**
  * @author Fabien Michel
@@ -54,7 +55,7 @@ import com.distrimind.madkit.kernel.JunitMadkit;
  * 
  */
 
-public class ConfigFileTest extends JunitMadkit {
+public class ConfigFileTest extends TestNGMadkit {
 
 	// TODO rehabilitate this test
 

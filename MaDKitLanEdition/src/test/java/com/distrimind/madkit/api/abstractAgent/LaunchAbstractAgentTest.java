@@ -47,7 +47,7 @@ import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.ALREADY_LAUN
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.TIMEOUT;
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.testing.util.agent.BuggedConstructorAgent;
 import com.distrimind.madkit.testing.util.agent.BuggedFrameAgent;
 import com.distrimind.madkit.testing.util.agent.SelfLaunchAA;
@@ -62,7 +62,7 @@ import com.distrimind.madkit.testing.util.agent.SelfLaunchAA;
  * 
  */
 
-public class LaunchAbstractAgentTest extends JunitMadkit {
+public class LaunchAbstractAgentTest extends TestNGMadkit {
 
 	AbstractAgent target=null;
 	@BeforeMethod
@@ -197,7 +197,7 @@ public class LaunchAbstractAgentTest extends JunitMadkit {
 
 			@Override
 			protected void activate() {
-				assertEquals(SUCCESS, createGroup(JunitMadkit.GROUP));
+				assertEquals(SUCCESS, createGroup(TestNGMadkit.GROUP));
 				startTimer();
 				for (int i = 0; i < number; i++) {
 					assertEquals(SUCCESS, launchAgent(new AbstractAgent()));
@@ -221,7 +221,7 @@ public class LaunchAbstractAgentTest extends JunitMadkit {
 
 			@Override
 			protected void activate() {
-				assertEquals(SUCCESS, createGroup(JunitMadkit.GROUP));
+				assertEquals(SUCCESS, createGroup(TestNGMadkit.GROUP));
 				startTimer();
 				for (int i = 0; i < number; i++) {
 					assertEquals(SUCCESS, launchAgent(new AbstractAgent(), true));

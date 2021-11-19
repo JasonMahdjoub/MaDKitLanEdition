@@ -42,7 +42,7 @@ import java.awt.Component;
 import javax.swing.AbstractButton;
 
 import com.distrimind.madkit.gui.menu.LaunchAgentsMenu;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -53,7 +53,7 @@ import org.testng.annotations.Test;
  * 
  */
 
-public class NoPackageTest extends JunitMadkit {
+public class NoPackageTest extends TestNGMadkit {
 
 	@Test
 	public void inMenuTest() {

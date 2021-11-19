@@ -63,7 +63,7 @@ import com.distrimind.madkit.testing.util.agent.SimulatedAgentThatLaunchesASimul
  * 
  */
 
-public class LaunchAgentBucketWithRolesWithListTest extends JunitMadkit {
+public class LaunchAgentBucketWithRolesWithListTest extends TestNGMadkit {
 
 	GenericBehaviorActivator<AbstractAgent> buggy;
 	static final int size = 1001;
@@ -104,7 +104,7 @@ public class LaunchAgentBucketWithRolesWithListTest extends JunitMadkit {
 			@Override
 			protected void activate() {
 				launchAgentBucket(FaultyAA.class.getName(), size, new Role(GROUP, ROLE));
-				JunitMadkit.noExceptionFailure();
+				TestNGMadkit.noExceptionFailure();
 			}
 		}, ReturnCode.AGENT_CRASH, false, properties -> properties.killAllNonThreadedAgentsDuringMaDKitClosing=false);
 	}

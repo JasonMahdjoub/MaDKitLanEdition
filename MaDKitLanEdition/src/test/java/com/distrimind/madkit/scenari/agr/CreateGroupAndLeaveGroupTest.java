@@ -49,7 +49,7 @@ import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import com.distrimind.madkit.agr.Organization;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Group;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 
 /**
  * @author Fabien Michel
@@ -60,7 +60,7 @@ import com.distrimind.madkit.kernel.JunitMadkit;
  * 
  */
 
-public class CreateGroupAndLeaveGroupTest extends JunitMadkit {
+public class CreateGroupAndLeaveGroupTest extends TestNGMadkit {
 
 	@Test
 	public void testCreateGroup() {

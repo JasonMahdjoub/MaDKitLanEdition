@@ -39,7 +39,7 @@ package com.distrimind.madkit.simulation;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.Watcher;
 import com.distrimind.madkit.simulation.probe.PropertyProbe;
 import com.distrimind.madkit.testing.util.agent.NormalAA;
@@ -60,7 +60,7 @@ import static org.testng.AssertJUnit.assertEquals;
  * 
  */
 
-public class PropertyProbeTest extends JunitMadkit {
+public class PropertyProbeTest extends TestNGMadkit {
 
 	@Test
 	public void primitiveTypeProbing() {

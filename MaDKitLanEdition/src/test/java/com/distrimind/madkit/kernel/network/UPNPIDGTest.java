@@ -52,9 +52,7 @@ import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.exceptions.SelfKillException;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.AgentFakeThread;
-import com.distrimind.madkit.kernel.JunitMadkit;
-import com.distrimind.madkit.kernel.MadkitEventListener;
-import com.distrimind.madkit.kernel.MadkitProperties;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.kernel.network.UpnpIGDAgent.AskForConnectionStatusMessage;
 import com.distrimind.madkit.kernel.network.UpnpIGDAgent.AskForExternalIPMessage;
@@ -67,7 +65,7 @@ import com.distrimind.madkit.kernel.network.UpnpIGDAgent.IGDRouterFoundMessage;
 import com.distrimind.madkit.kernel.network.UpnpIGDAgent.MappingReturnCode;
 import com.distrimind.madkit.kernel.network.UpnpIGDAgent.PortMappingAnswerMessage;
 
-public class UPNPIDGTest extends JunitMadkit {
+public class UPNPIDGTest extends TestNGMadkit {
 	static final int internalPort = 32110;
 	static final int portStart = 55000;
 	static final int portEnd = 55002;
@@ -166,7 +164,7 @@ public class UPNPIDGTest extends JunitMadkit {
 												m.getExternalPort() <= portEnd && m.getExternalPort() >= portStart);
 	
 										portUnmapped.set(true);
-										JunitMadkit.pause(this, 1000);
+										TestNGMadkit.pause(this, 1000);
 										this.killAgent(this);
 									}
 									else
@@ -219,7 +217,7 @@ public class UPNPIDGTest extends JunitMadkit {
 						}
 					});
 					do {
-						JunitMadkit.pause(this, 1000);
+						TestNGMadkit.pause(this, 1000);
 						System.out.println("-------------------");
 						System.out.println("connection status : " + connectionStatus.get());
 						System.out.println("external ip : " + externalIPReceived.get());

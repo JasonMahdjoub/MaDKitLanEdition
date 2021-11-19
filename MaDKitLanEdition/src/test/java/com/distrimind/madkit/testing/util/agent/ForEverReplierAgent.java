@@ -37,8 +37,8 @@
  */
 package com.distrimind.madkit.testing.util.agent;
 
-import static com.distrimind.madkit.kernel.JunitMadkit.GROUP;
-import static com.distrimind.madkit.kernel.JunitMadkit.ROLE;
+import static com.distrimind.madkit.kernel.TestNGMadkit.GROUP;
+import static com.distrimind.madkit.kernel.TestNGMadkit.ROLE;
 
 import java.lang.reflect.InvocationTargetException;
 

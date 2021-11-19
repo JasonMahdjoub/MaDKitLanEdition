@@ -55,7 +55,7 @@ import java.util.Random;
  * @since MadkitLanEdition 1.0
  */
 @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
-public class ConversationIDTest extends JunitMadkit {
+public class ConversationIDTest extends TestNGMadkit {
 	static final Random rand = new Random(System.currentTimeMillis());
 
 	@Test

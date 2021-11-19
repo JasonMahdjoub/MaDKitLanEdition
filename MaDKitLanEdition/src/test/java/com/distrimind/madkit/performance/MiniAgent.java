@@ -38,7 +38,7 @@
 package com.distrimind.madkit.performance;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 
 /**
  * @author Fabien Michel
@@ -51,6 +51,6 @@ import com.distrimind.madkit.kernel.JunitMadkit;
 public class MiniAgent extends AbstractAgent {
 	@Override
 	protected void activate() {
-		requestRole(JunitMadkit.GROUP, JunitMadkit.ROLE);
+		requestRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE);
 	}
 }

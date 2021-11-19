@@ -37,14 +37,14 @@
  */
 package com.distrimind.madkit.concurrent;
 
-import static com.distrimind.madkit.kernel.JunitMadkit.GROUP;
-import static com.distrimind.madkit.kernel.JunitMadkit.ROLE;
-import static com.distrimind.madkit.kernel.JunitMadkit.testFails;
+import static com.distrimind.madkit.kernel.TestNGMadkit.GROUP;
+import static com.distrimind.madkit.kernel.TestNGMadkit.ROLE;
+import static com.distrimind.madkit.kernel.TestNGMadkit.testFails;
 
 import com.distrimind.madkit.kernel.Agent;
 import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.kernel.Group;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 
 /**
  * @author Fabien Michel
@@ -121,7 +121,7 @@ class ConcurrentTestAgentBis extends ConcurrentTestAgent {
 	@Override
 	protected void liveCycle() {
 
-		Group groupName = new Group(JunitMadkit.C, JunitMadkit.G + ((int) (Math.random() * 10)));
+		Group groupName = new Group(TestNGMadkit.C, TestNGMadkit.G + ((int) (Math.random() * 10)));
 		if (Math.random() < .5) {
 			if (createGroup(groupName) == ReturnCode.SUCCESS) {
 				if (requestRole(groupName, ROLE) != ReturnCode.SUCCESS) {

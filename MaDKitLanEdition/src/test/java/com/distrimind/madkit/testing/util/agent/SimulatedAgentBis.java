@@ -38,7 +38,7 @@
 package com.distrimind.madkit.testing.util.agent;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 
 /**
  * @author Fabien Michel
@@ -53,7 +53,7 @@ public class SimulatedAgentBis extends AbstractAgent {
 
 	@Override
 	protected void activate() {
-		JunitMadkit.createDefaultCGR(this);
+		TestNGMadkit.createDefaultCGR(this);
 	}
 
 	/**

@@ -47,7 +47,7 @@ import com.distrimind.madkit.kernel.Agent;
 import com.distrimind.madkit.kernel.AgentNetworkID;
 import com.distrimind.madkit.kernel.Gatekeeper;
 import com.distrimind.madkit.kernel.Group;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.testing.util.agent.NormalAgent;
 
@@ -59,7 +59,7 @@ import com.distrimind.madkit.testing.util.agent.NormalAgent;
  * @version 1.0
  * 
  */
-public class CandidateTest extends JunitMadkit {
+public class CandidateTest extends TestNGMadkit {
 
 	@Test
 	public void createGroupHook() {

@@ -37,6 +37,7 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.*;
 import org.testng.AssertJUnit;
 import com.distrimind.madkit.database.KeysPairs;
@@ -44,7 +45,6 @@ import com.distrimind.madkit.exceptions.BlockParserException;
 import com.distrimind.madkit.exceptions.ConnectionException;
 import com.distrimind.madkit.exceptions.NIOException;
 import com.distrimind.madkit.exceptions.PacketException;
-import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.connection.*;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionState;
@@ -75,7 +75,7 @@ import java.util.Iterator;
  * @version 1.3
  * @since MadkitLanEdition 1.0
  */
-public class ConnectionsProtocolsTests extends JunitMadkit {
+public class ConnectionsProtocolsTests extends TestNGMadkit {
 	private static final EmbeddedH2DatabaseWrapper sql_connection_asker;
 	private static final EmbeddedH2DatabaseWrapper sql_connection_recveiver;
 	private static final File dbasker = new File("dbasker.database");

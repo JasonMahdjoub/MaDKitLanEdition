@@ -37,10 +37,10 @@
  */
 package com.distrimind.madkit.api.abstractAgent;
 
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.Test;
 import org.testng.Assert;
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.MadkitClassLoader;
 
 /**
@@ -50,7 +50,7 @@ import com.distrimind.madkit.kernel.MadkitClassLoader;
  * 
  */
 
-public class ReloadClassTest extends JunitMadkit {
+public class ReloadClassTest extends TestNGMadkit {
 
 	@Test
 	public void nullArgs() {

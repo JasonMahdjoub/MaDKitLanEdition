@@ -38,13 +38,14 @@
 package com.distrimind.madkit.action;
 
 import static org.testng.AssertJUnit.assertEquals;
+
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.Test;
 import org.testng.Assert;
 import java.io.File;
 import java.util.logging.Level;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.kernel.MadkitClassLoader;
 
 /**
@@ -53,7 +54,7 @@ import com.distrimind.madkit.kernel.MadkitClassLoader;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-public class KernelActionTest extends JunitMadkit {
+public class KernelActionTest extends TestNGMadkit {
 
 	@Test
 	public final void test() {// TODO no test here...
@@ -66,7 +67,7 @@ public class KernelActionTest extends JunitMadkit {
 					e.printStackTrace();
 					Assert.fail();
 				}
-				JunitMadkit.pause(this, 100);
+				TestNGMadkit.pause(this, 100);
 			}
 		});
 	}

@@ -72,7 +72,7 @@ import java.util.logging.Level;
  * 
  */
 
-public class TransferConnectionTest extends JunitMadkit {
+public class TransferConnectionTest extends TestNGMadkit {
 
 	public static final int HOST_NUMBERS = 4;
 

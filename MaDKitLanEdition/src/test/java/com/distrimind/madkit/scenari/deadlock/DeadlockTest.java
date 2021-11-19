@@ -40,7 +40,7 @@ package com.distrimind.madkit.scenari.deadlock;
 import org.testng.annotations.Test;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Agent;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 
 /**
  * @author Fabien Michel
@@ -51,7 +51,7 @@ import com.distrimind.madkit.kernel.JunitMadkit;
  * 
  */
 
-public class DeadlockTest extends JunitMadkit {
+public class DeadlockTest extends TestNGMadkit {
 
 	@Test
 	public void multipleWaits() {

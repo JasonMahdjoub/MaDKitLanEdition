@@ -73,7 +73,7 @@ import static com.distrimind.madkit.kernel.AbstractAgent.State.TERMINATED;
  * @version 1.0
  * 
  */
-public class JunitMadkit {
+public class TestNGMadkit {
 
 	public String testName = "";
 
@@ -216,7 +216,7 @@ public class JunitMadkit {
 			System.err.println("------------------------------------\n\n\n");
 			oneFailed = true;
 
-			AssertJUnit.fail(JunitMadkit.class.getSimpleName()+" ; "+ throwable.getMessage());
+			AssertJUnit.fail(TestNGMadkit.class.getSimpleName()+" ; "+ throwable.getMessage());
 
 		} finally {
 			System.err.println("\n\n------------------------ " + testName
@@ -402,7 +402,7 @@ public class JunitMadkit {
 		try {
 			AssertJUnit.assertEquals(SUCCESS, a.requestRole(GROUP, ROLE, null));
 		} catch (AssertionError e) {
-			JunitMadkit.testFails(e);
+			TestNGMadkit.testFails(e);
 		}
 	}
 
@@ -760,10 +760,10 @@ public class JunitMadkit {
 		AssertJUnit.assertFalse(LocalCommunity.Groups.SYSTEM_ROOT.hasMadKitTraces(m.kernelAddress));
 		AssertJUnit.assertFalse(LocalCommunity.Groups.TASK_AGENTS.hasMadKitTraces(m.kernelAddress));
 
-		AssertJUnit.assertFalse(JunitMadkit.GROUP.hasMadKitTraces(m.kernelAddress));
-		AssertJUnit.assertFalse(JunitMadkit.GROUP2.hasMadKitTraces(m.kernelAddress));
-		AssertJUnit.assertFalse(JunitMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA.hasMadKitTraces(m.kernelAddress));
-		AssertJUnit.assertFalse(JunitMadkit.NETWORK_GROUP_FOR_LOGIN_DATA.hasMadKitTraces(m.kernelAddress));
+		AssertJUnit.assertFalse(TestNGMadkit.GROUP.hasMadKitTraces(m.kernelAddress));
+		AssertJUnit.assertFalse(TestNGMadkit.GROUP2.hasMadKitTraces(m.kernelAddress));
+		AssertJUnit.assertFalse(TestNGMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA.hasMadKitTraces(m.kernelAddress));
+		AssertJUnit.assertFalse(TestNGMadkit.NETWORK_GROUP_FOR_LOGIN_DATA.hasMadKitTraces(m.kernelAddress));
 
 	}
 

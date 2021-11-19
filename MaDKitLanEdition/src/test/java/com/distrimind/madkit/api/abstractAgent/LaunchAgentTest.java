@@ -47,7 +47,7 @@ import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.TIMEOUT;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Agent;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.testing.util.agent.SelfLaunch;
 
 /**
@@ -59,7 +59,7 @@ import com.distrimind.madkit.testing.util.agent.SelfLaunch;
  * 
  */
 
-public class LaunchAgentTest extends JunitMadkit {
+public class LaunchAgentTest extends TestNGMadkit {
 
 	final AbstractAgent target = new Agent() {
 		@Override

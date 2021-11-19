@@ -38,12 +38,13 @@
 package com.distrimind.madkit.logging;
 
 import static org.testng.AssertJUnit.assertEquals;
+
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.Test;
 import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.JunitMadkit;
 import com.distrimind.madkit.testing.util.agent.NormalAA;
 
-public class LoggingNameTest extends JunitMadkit {
+public class LoggingNameTest extends TestNGMadkit {
 
 	@Test
 	public void setNameTest() {

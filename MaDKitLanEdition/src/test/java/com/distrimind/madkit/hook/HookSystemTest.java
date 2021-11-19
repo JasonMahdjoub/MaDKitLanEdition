@@ -45,7 +45,7 @@ import java.util.logging.Level;
 
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.agr.Organization;
-import com.distrimind.madkit.kernel.JunitMadkit;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.message.hook.AgentLifeEvent;
 import com.distrimind.madkit.message.hook.HookMessage;
@@ -64,7 +64,7 @@ import com.distrimind.madkit.testing.util.agent.NormalAgent;
  * 
  */
 
-public class HookSystemTest extends JunitMadkit {
+public class HookSystemTest extends TestNGMadkit {
 
 	@Test
 	public void createGroupHook() {
