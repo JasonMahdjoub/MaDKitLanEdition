@@ -619,6 +619,103 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 			}
 		}, AbstractAgent.ReturnCode.SUCCESS, false, madkitEventListener);
 	}
+
+	@Test(dataProvider = "provideDataIdentifier")
+	public void testSynchronousMessageWithTimeOut(BigDataIdentifier dataIdentifier, AttachedData attachedData)
+	{
+		launchTest(new AbstractAgent() {
+			@Override
+			protected void activate() throws InterruptedException {
+				super.activate();
+				requestRole(GROUP, ROLE);
+				AbstractAgent receiver = new AbstractAgent() {
+					@Override
+					protected void activate() throws InterruptedException {
+						super.activate();
+						requestRole(GROUP, ROLE2);
+					}
+				};
+				launchAgent(receiver);
+				try {
+
+
+					AsynchronousBigDataTransferID transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE2, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
+					testReceptionOK(dataIdentifier, attachedData, receiver, transferID);
+
+					transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE2, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE2);
+					testReceptionNotOK(receiver, transferID);
+					transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP2, ROLE2, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
+					testReceptionNotOK(receiver, transferID);
+					requestRole(GROUP2, ROLE);
+					requestRole(GROUP2, ROLE2);
+					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUP));
+					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberByReceiverRole(GROUP, ROLE));
+					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberBySenderRole(GROUP, ROLE));
+
+					transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP2, ROLE, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE2);
+					testReceptionDiffered(receiver, transferID);
+					transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP2, ROLE2, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE, 1000);
+					testReceptionDiffered(receiver, transferID);
+
+
+					AssertJUnit.assertEquals(2, getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUP2));
+					AssertJUnit.assertEquals(1, getCurrentAsynchronousBigDataMessagesNumberByReceiverRole(GROUP2, ROLE2));
+					AssertJUnit.assertEquals(1, getCurrentAsynchronousBigDataMessagesNumberByReceiverRole(GROUP2, ROLE));
+					AssertJUnit.assertEquals(1, getCurrentAsynchronousBigDataMessagesNumberBySenderRole(GROUP2, ROLE));
+					AssertJUnit.assertEquals(1, getCurrentAsynchronousBigDataMessagesNumberBySenderRole(GROUP2, ROLE2));
+
+					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(0).getAttachedData());
+					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(1).getAttachedData());
+					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP2, ROLE).get(0).getAttachedData());
+					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP2, ROLE2).get(0).getAttachedData());
+					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE).get(0).getAttachedData());
+
+					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(1).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP2, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP2, ROLE2).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
+
+					sleep(2000);
+					AssertJUnit.assertEquals(1, getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUP2));
+					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberByReceiverRole(GROUP2, ROLE2));
+					AssertJUnit.assertEquals(1, getCurrentAsynchronousBigDataMessagesNumberByReceiverRole(GROUP2, ROLE));
+					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberBySenderRole(GROUP2, ROLE));
+					AssertJUnit.assertEquals(1, getCurrentAsynchronousBigDataMessagesNumberBySenderRole(GROUP2, ROLE2));
+
+					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(0).getAttachedData());
+					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE2).get(0).getAttachedData());
+
+					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
+
+					cleanObsoleteMaDKitDataNow();
+
+					AssertJUnit.assertEquals(1, getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUP2));
+					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberByReceiverRole(GROUP2, ROLE2));
+					AssertJUnit.assertEquals(1, getCurrentAsynchronousBigDataMessagesNumberByReceiverRole(GROUP2, ROLE));
+					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberBySenderRole(GROUP2, ROLE));
+					AssertJUnit.assertEquals(1, getCurrentAsynchronousBigDataMessagesNumberBySenderRole(GROUP2, ROLE2));
+
+					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(0).getAttachedData());
+					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE2).get(0).getAttachedData());
+
+					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
+
+					cancelCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE2);
+					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUP2));
+					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberByReceiverRole(GROUP2, ROLE2));
+					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberBySenderRole(GROUP2, ROLE));
+
+				} catch (Exception e) {
+					e.printStackTrace();
+					AssertJUnit.fail();
+				}
+			}
+		}, AbstractAgent.ReturnCode.SUCCESS, false, madkitEventListener);
+	}
+
 	@Test(dataProvider = "provideDataIdentifier")
 	public void testASynchronousMessageWithSenderAvailable(BigDataIdentifier dataIdentifier, AttachedData attachedData)
 	{

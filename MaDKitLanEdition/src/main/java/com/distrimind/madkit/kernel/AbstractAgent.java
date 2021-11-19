@@ -5188,23 +5188,19 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @param role the role name
 	 * @param externalAsynchronousBigDataIdentifier the external asynchronous message identifier
 	 * @param asynchronousBigDataToSendWrapper the input stream wrapper
-	 * @param timeOutInMs the delay to wait before considering the message as not send
 	 * @param attachedData optionally attached data that is send with the big data
 	 * @param messageDigestType message digest type used to check the data sent. Can be null.
 	 * @param senderRole the agent's role with which the message has to be sent
 	 * @param excludedFromEncryption if set to true, en encryption is not used during the network transfer
 	 *
+	 * @param timeOutInMs the delay to wait before considering the message as not send
 	 * @return an asynchronous big data transfer ID that identify the transfer, and that gives
 	 * statistics about the transfer speed in real time. Returns null if a problem occurs.
 	 */
 	public AsynchronousBigDataTransferID sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(Group group, final String role,
-																				ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier,
-																				AsynchronousBigDataToSendWrapper asynchronousBigDataToSendWrapper,
-																				long timeOutInMs,
-																				SecureExternalizable attachedData,
-																				MessageDigestType messageDigestType,
-																				final String senderRole,
-																				boolean excludedFromEncryption)  {
+																								  ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier,
+																								  AsynchronousBigDataToSendWrapper asynchronousBigDataToSendWrapper,
+																								  SecureExternalizable attachedData, MessageDigestType messageDigestType, final String senderRole, boolean excludedFromEncryption, long timeOutInMs)  {
 		return getKernel().sendBigDataAndDifferItIfNecessary(this,
 				group, role, senderRole, externalAsynchronousBigDataIdentifier, attachedData, messageDigestType, excludedFromEncryption, timeOutInMs, asynchronousBigDataToSendWrapper);
 	}
@@ -5218,23 +5214,20 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @param role the role name
 	 * @param externalAsynchronousBigDataIdentifier the external asynchronous message identifier
 	 * @param asynchronousBigDataToSendWrapper the input stream wrapper
-	 * @param timeOutInMs the delay to wait before considering the message as not send
 	 * @param attachedData optionally attached data that is send with the big data
 	 * @param messageDigestType message digest type used to check the data sent. Can be null.
 	 * @param senderRole the agent's role with which the message has to be sent
 	 *
+	 * @param timeOutInMs the delay to wait before considering the message as not send
 	 * @return an asynchronous big data transfer ID that identify the transfer, and that gives
 	 * statistics about the transfer speed in real time. Returns null if a problem occurs.
 	 */
 	public AsynchronousBigDataTransferID sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(Group group, final String role,
 																								  ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier,
 																								  AsynchronousBigDataToSendWrapper asynchronousBigDataToSendWrapper,
-																								  long timeOutInMs,
-																								  SecureExternalizable attachedData,
-																								  MessageDigestType messageDigestType,
-																								  final String senderRole)  {
-		return sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(group, role, externalAsynchronousBigDataIdentifier, asynchronousBigDataToSendWrapper, timeOutInMs,
-				attachedData, messageDigestType, senderRole, false);
+																								  SecureExternalizable attachedData, MessageDigestType messageDigestType, final String senderRole, long timeOutInMs)  {
+		return sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(group, role, externalAsynchronousBigDataIdentifier, asynchronousBigDataToSendWrapper, attachedData, messageDigestType, senderRole, false, timeOutInMs
+		);
 	}
 
 	/**
@@ -5247,21 +5240,19 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @param role the role name
 	 * @param externalAsynchronousBigDataIdentifier the external asynchronous message identifier
 	 * @param asynchronousBigDataToSendWrapper the input stream wrapper
-	 * @param timeOutInMs the delay to wait before considering the message as not send
 	 * @param attachedData optionally attached data that is send with the big data
 	 * @param senderRole the agent's role with which the message has to be sent
 	 *
+	 * @param timeOutInMs the delay to wait before considering the message as not send
 	 * @return an asynchronous big data transfer ID that identify the transfer, and that gives
 	 * statistics about the transfer speed in real time. Returns null if a problem occurs.
 	 */
 	public AsynchronousBigDataTransferID sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(Group group, final String role,
 																								  ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier,
 																								  AsynchronousBigDataToSendWrapper asynchronousBigDataToSendWrapper,
-																								  long timeOutInMs,
-																								  SecureExternalizable attachedData,
-																								  final String senderRole)  {
-		return sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(group, role, externalAsynchronousBigDataIdentifier, asynchronousBigDataToSendWrapper, timeOutInMs,
-				attachedData, null, senderRole);
+																								  SecureExternalizable attachedData, final String senderRole, long timeOutInMs)  {
+		return sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(group, role, externalAsynchronousBigDataIdentifier, asynchronousBigDataToSendWrapper, attachedData, null, senderRole, timeOutInMs
+		);
 	}
 	/**
 	 * Sends a big data to an agent having a given position in the organization.
@@ -5285,8 +5276,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 																								  SecureExternalizable attachedData,
 																								  final String senderRole)  {
 		return sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(group, role, externalAsynchronousBigDataIdentifier, asynchronousBigDataToSendWrapper,
-				getMadkitConfig().networkProperties.defaultTimeOutInMsBeforeConsideringAsynchronousBigDataMessageAsObsolete,
-				attachedData, null, senderRole);
+				attachedData, null, senderRole, getMadkitConfig().networkProperties.defaultTimeOutInMsBeforeConsideringAsynchronousBigDataMessageAsObsolete
+		);
 	}
 	/**
 	 * Sends a big data to an agent having a given position in the organization.
@@ -5298,19 +5289,18 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @param role the role name
 	 * @param externalAsynchronousBigDataIdentifier the external asynchronous message identifier
 	 * @param asynchronousBigDataToSendWrapper the input stream wrapper
-	 * @param timeOutInMs the delay to wait before considering the message as not send
 	 * @param senderRole the agent's role with which the message has to be sent
 	 *
+	 * @param timeOutInMs the delay to wait before considering the message as not send
 	 * @return an asynchronous big data transfer ID that identify the transfer, and that gives
 	 * statistics about the transfer speed in real time. Returns null if a problem occurs.
 	 */
 	public AsynchronousBigDataTransferID sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(Group group, final String role,
 																								  ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier,
 																								  AsynchronousBigDataToSendWrapper asynchronousBigDataToSendWrapper,
-																								  long timeOutInMs,
-																								  final String senderRole)  {
-		return sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(group, role, externalAsynchronousBigDataIdentifier, asynchronousBigDataToSendWrapper, timeOutInMs,
-				null, senderRole);
+																								  final String senderRole, long timeOutInMs)  {
+		return sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(group, role, externalAsynchronousBigDataIdentifier, asynchronousBigDataToSendWrapper, null, senderRole, timeOutInMs
+		);
 	}
 	/**
 	 * Sends a big data to an agent having a given position in the organization.
@@ -5332,8 +5322,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 																								  AsynchronousBigDataToSendWrapper asynchronousBigDataToSendWrapper,
 																								  final String senderRole)  {
 		return sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(group, role, externalAsynchronousBigDataIdentifier, asynchronousBigDataToSendWrapper,
-				getMadkitConfig().networkProperties.defaultTimeOutInMsBeforeConsideringAsynchronousBigDataMessageAsObsolete,
-				null, senderRole);
+				null, senderRole, getMadkitConfig().networkProperties.defaultTimeOutInMsBeforeConsideringAsynchronousBigDataMessageAsObsolete
+		);
 	}
 
 	/**
