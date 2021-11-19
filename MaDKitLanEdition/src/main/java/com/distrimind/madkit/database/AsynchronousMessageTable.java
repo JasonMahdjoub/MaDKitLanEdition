@@ -245,7 +245,13 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 			}
 		}
 	}
-
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
+	static boolean isConcerned(Collection<String> baseGroupPathList, Group group)
+	{
+		if (baseGroupPathList==null)
+			return true;
+		return isConcerned(baseGroupPathList, group.getPath());
+	}
 	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	static boolean isConcerned(Collection<String> baseGroupPathList, String groupPath)
 	{
@@ -274,10 +280,10 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 		return false;
 	}
 
-	public void newAgentConnected(Collection<String> baseGroupPath, final AbstractAgent agent, final AgentAddress agentAddress) throws DatabaseException {
+	public void groupRoleAvailable(Collection<String> baseGroupPath, final AbstractAgent agent, final AgentAddress agentAddress) throws DatabaseException {
 		final String groupPath=agentAddress.getGroup().toString();
 
-		if (!isConcerned(baseGroupPath, agentAddress.getGroup().getPath()))
+		if (!isConcerned(baseGroupPath, agentAddress.getGroup()))
 			return ;
 		getDatabaseWrapper().runSynchronizedTransaction(new SynchronizedTransaction<Void>() {
 			@Override
@@ -371,8 +377,7 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 
 	public void newAgentDisconnected(Collection<String> baseGroupPath, AgentAddress agentAddress)
 	{
-		final String groupPath=agentAddress.getGroup().getPath();
-		if (!isConcerned(baseGroupPath, groupPath))
+		if (!isConcerned(baseGroupPath, agentAddress.getGroup()))
 			return ;
 
 		Role role=new Role(agentAddress.getGroup(), agentAddress.getRole());
@@ -388,8 +393,7 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 												  final String roleReceiver, final Message message,
 												  final long timeOutInMs) throws DatabaseException {
 
-		final String groupPath=group.getPath();
-		if (!isConcerned(baseGroupPath, groupPath))
+		if (!isConcerned(baseGroupPath, group))
 			return AbstractAgent.ReturnCode.IGNORED;
 
 		if (!requester.hasGroup(group))

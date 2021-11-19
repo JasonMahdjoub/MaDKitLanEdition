@@ -953,7 +953,7 @@ class MadkitKernel extends Agent {
 					AgentAddress aa=(AgentAddress) parameters[0];
 					if (!aa.isFrom(getKernelAddress())) {
 						try {
-							asynchronousBigDataTable.groupRoleAvailable(this, aa.getGroup(), aa.getRole());
+							asynchronousBigDataTable.groupRoleAvailable(this, platform.getConfigOption().rootOfPathGroupUsedToFilterAsynchronousMessages, aa.getGroup(), aa.getRole());
 						} catch (DatabaseException e) {
 							getLogger().severeLog("Unexpected exception", e);
 						}
@@ -1121,7 +1121,7 @@ class MadkitKernel extends Agent {
 
 				if (oe.getContent()==AgentActionEvent.REQUEST_ROLE) {
 					try {
-						asynchronousMessageTable.newAgentConnected(platform.getConfigOption().rootOfPathGroupUsedToFilterAsynchronousMessages, oe.getSourceAgent().getAgent(), oe.getSourceAgent());
+						asynchronousMessageTable.groupRoleAvailable(platform.getConfigOption().rootOfPathGroupUsedToFilterAsynchronousMessages, oe.getSourceAgent().getAgent(), oe.getSourceAgent());
 					} catch (DatabaseException e) {
 						logLifeException(e);
 					}

@@ -434,8 +434,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 												   MessageDigestType messageDigestType, boolean excludedFromEncryption, long timeOutInMs,
 												   AsynchronousBigDataToSendWrapper asynchronousBigDataToSendWrapper
 	) {
-		final String groupPath=group.getPath();
-		if (!AsynchronousMessageTable.isConcerned(baseGroupPath, groupPath))
+		if (!AsynchronousMessageTable.isConcerned(baseGroupPath, group))
 			return null;
 
 		if (!requester.hasGroup(group))
@@ -644,7 +643,9 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			return b.getBytePerSecondsStat();
 	}
 
-	public void groupRoleAvailable(AbstractAgent kernel, Group distantGroup, String distantRole) throws DatabaseException {
+	public void groupRoleAvailable(AbstractAgent kernel, Collection<String> baseGroupPath, Group distantGroup, String distantRole) throws DatabaseException {
+		if (!AsynchronousMessageTable.isConcerned(baseGroupPath, distantGroup))
+			return ;
 		String path=distantGroup.toString();
 		getOrderedRecords(new Filter<Record>() {
 			final Reference<Boolean> maxNumberOfSimultaneousTransfersReached=new Reference<>(false);
