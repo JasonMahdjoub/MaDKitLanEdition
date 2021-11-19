@@ -170,7 +170,12 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 	public void cleanObsoleteData()
 	{
 		try {
-			removeRecords("timeOutInMs+queryTimeUTC<%mt", "mt", System.currentTimeMillis());
+			removeRecords(new Filter<Record>() {
+				@Override
+				public boolean nextRecord(Record _record) {
+					return _record.isObsolete();
+				}
+			});
 		} catch (DatabaseException e) {
 			e.printStackTrace();
 		}
