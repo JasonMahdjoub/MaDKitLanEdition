@@ -1556,7 +1556,7 @@ class MadkitKernel extends Agent {
 			return null;
 		else
 		{
-			return new AsynchronousBigDataTransferID(r.getAsynchronousBigDataInternalIdentifier(), r.getAsynchronousBigDataIdentifier(), this);
+			return new AsynchronousBigDataTransferID(r.getAsynchronousBigDataInternalIdentifier(), r.getExternalAsynchronousBigDataIdentifier(), this);
 		}
 	}
 
@@ -1755,7 +1755,7 @@ class MadkitKernel extends Agent {
 	{
 		List<AsynchronousBigDataTransferID> res=new ArrayList<>(l.size());
 		for (AsynchronousBigDataTable.Record r : l)
-			res.add(getAsynchronousBigDataTransferIDInstance(requester, r.getAsynchronousBigDataIdentifier()));
+			res.add(getAsynchronousBigDataTransferIDInstance(requester, r.getExternalAsynchronousBigDataIdentifier()));
 		return res;
 	}
 	List<AsynchronousBigDataTransferID> getAsynchronousBigDataTransferIDsByGroup(AbstractAgent requester, Group group)
@@ -3962,7 +3962,7 @@ class MadkitKernel extends Agent {
 			throw new NullPointerException("agentAddress");
 		if (receiverAA==null)
 			throw new NullPointerException();
-		RandomInputStream inputStream=record.getAsynchronousBigDataToSendWrapper().getRandomInputStream(record.getAsynchronousBigDataIdentifier());
+		RandomInputStream inputStream=record.getAsynchronousBigDataToSendWrapper().getRandomInputStream(record.getExternalAsynchronousBigDataIdentifier());
 		if (inputStream==null) {
 			try {
 				asynchronousBigDataTable.cancelTransfer(requester, record);

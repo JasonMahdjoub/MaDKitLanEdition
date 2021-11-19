@@ -466,7 +466,7 @@ class DistantKernelAgent extends AgentFakeThread {
 								MadkitKernelAccess.transferLostForBigDataTransfer(this, bdr.getOriginalMessage().getConversationID(),
 										bdr.getIDPacket(), bdr.getOriginalMessage().getSender(), bdr.getOriginalMessage().getReceiver(),
 										bdr.getStatistics().getNumberOfIdentifiedBytes(), bdr.getStatistics().getDurationMilli(),
-										bdr.getOriginalMessage().getAsynchronousBigDataInternalIdentifier(), bdr.getOriginalMessage().getAsynchronousBigDataIdentifier(), BigDataResultMessage.Type.CONNECTION_LOST);
+										bdr.getOriginalMessage().getAsynchronousBigDataInternalIdentifier(), bdr.getOriginalMessage().getExternalAsynchronousBigDataIdentifier(), BigDataResultMessage.Type.CONNECTION_LOST);
 							}
 							current_big_data_readings.clear();
 							/*
@@ -814,7 +814,7 @@ class DistantKernelAgent extends AgentFakeThread {
 					bgpm.bigDataExcludedFromEncryption()?0:getMadkitConfig().networkProperties.maxRandomPacketValues, random, inputStream,
 					bgpm.getStartStreamPosition(), bgpm.getTransferLength(), true, bgpm.getMessageDigestType());
 			BigPacketData packetData = new BigPacketData(chosenSocket.getAgentAddress(), packet, bgpm.getReceiver(),
-					bgpm.getSender(), bgpm.getConversationID(), bgpm.getStatistics(), bgpm.bigDataExcludedFromEncryption(), bgpm.getAsynchronousBigDataInternalIdentifier(), bgpm.getAsynchronousBigDataIdentifier());
+					bgpm.getSender(), bgpm.getConversationID(), bgpm.getStatistics(), bgpm.bigDataExcludedFromEncryption(), bgpm.getAsynchronousBigDataInternalIdentifier(), bgpm.getExternalAsynchronousBigDataIdentifier());
 			packetsDataInQueue.put(id, packetData);
 		}
 	}
@@ -2732,7 +2732,7 @@ class DistantKernelAgent extends AgentFakeThread {
 						MadkitKernelAccess.transferLostForBigDataTransfer(this, bdr.getOriginalMessage().getConversationID(),
 								bdr.getIDPacket(), bdr.getOriginalMessage().getSender(), bdr.getOriginalMessage().getReceiver(),
 								bdr.getStatistics().getNumberOfIdentifiedBytes(), bdr.getStatistics().getDurationMilli(),
-								bdr.getOriginalMessage().getAsynchronousBigDataInternalIdentifier(), bdr.getOriginalMessage().getAsynchronousBigDataIdentifier(), BigDataResultMessage.Type.TRANSFER_CANCELED);
+								bdr.getOriginalMessage().getAsynchronousBigDataInternalIdentifier(), bdr.getOriginalMessage().getExternalAsynchronousBigDataIdentifier(), BigDataResultMessage.Type.TRANSFER_CANCELED);
 				}
 				else
 				{

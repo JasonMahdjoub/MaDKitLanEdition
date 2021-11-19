@@ -201,7 +201,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			return asynchronousBigDataInternalIdentifier;
 		}
 
-		public ExternalAsynchronousBigDataIdentifier getAsynchronousBigDataIdentifier() {
+		public ExternalAsynchronousBigDataIdentifier getExternalAsynchronousBigDataIdentifier() {
 			return externalAsynchronousBigDataIdentifier;
 		}
 

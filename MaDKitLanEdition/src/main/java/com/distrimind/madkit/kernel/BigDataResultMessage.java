@@ -191,7 +191,7 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 		return asynchronousBigDataInternalIdentifier;
 	}
 
-	public ExternalAsynchronousBigDataIdentifier getAsynchronousBigDataIdentifier() {
+	public ExternalAsynchronousBigDataIdentifier getExternalAsynchronousBigDataIdentifier() {
 		return externalAsynchronousBigDataIdentifier;
 	}
 

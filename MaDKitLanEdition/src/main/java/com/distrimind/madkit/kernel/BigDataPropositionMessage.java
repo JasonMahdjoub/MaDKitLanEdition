@@ -490,7 +490,7 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		return asynchronousBigDataInternalIdentifier;
 	}
 
-	public ExternalAsynchronousBigDataIdentifier getAsynchronousBigDataIdentifier() {
+	public ExternalAsynchronousBigDataIdentifier getExternalAsynchronousBigDataIdentifier() {
 		return externalAsynchronousBigDataIdentifier;
 	}
 
