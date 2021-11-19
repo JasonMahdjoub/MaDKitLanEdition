@@ -178,6 +178,11 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			this.transferStarted=false;
 		}
 
+		public boolean isObsolete()
+		{
+			return this.timeOutInMs+this.lastTimeUpdateUTCInMs<System.currentTimeMillis();
+		}
+
 		public boolean isCurrentPositionNeedConfirmationFromReceiver() {
 			return currentPositionNeedConfirmationFromReceiver;
 		}
@@ -314,7 +319,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 								return null;
 							if (!r.getAsynchronousBigDataInternalIdentifier().equals(asynchronousBigDataInternalIdentifier))
 								return null;
-							updateRecord(r, "asynchronousBigDataToReceiveWrapper", asynchronousBigDataToReceiveWrapper, "attachedData", null, "lastTimeUpdateUTCInMs", System.currentTimeMillis());
+							updateRecord(r, "asynchronousBigDataToReceiveWrapper", asynchronousBigDataToReceiveWrapper, "attachedData", null/*, "lastTimeUpdateUTCInMs", System.currentTimeMillis()*/);
 						}
 					}
 					return r;
@@ -459,12 +464,12 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			if (tid == null)
 				return null;
 			else {
-				try {
+				/*try {
 					if (r.isTransferStarted())
 						updateRecord(r, "lastTimeUpdateUTCInMs", System.currentTimeMillis());
 				} catch (DatabaseException e) {
 					e.printStackTrace();
-				}
+				}*/
 				transferIdsPerInternalAsynchronousId.put(r.getAsynchronousBigDataInternalIdentifier(), tid);
 			}
 		}
@@ -564,7 +569,8 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			removeRecords(new Filter<Record>() {
 				@Override
 				public boolean nextRecord(Record _record)  {
-					if (!transferIdsPerInternalAsynchronousId.containsKey(_record.getAsynchronousBigDataInternalIdentifier()))
+
+					if (_record.isObsolete() && !transferIdsPerInternalAsynchronousId.containsKey(_record.getAsynchronousBigDataInternalIdentifier()))
 					{
 						try {
 							cancelTransferImpl(madkitKernel, _record);
@@ -576,7 +582,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 					else
 						return false;
 				}
-			}, "timeOutInMs+lastTimeUpdateUTCInMs<%mt", "mt", System.currentTimeMillis());
+			});
 		} catch (DatabaseException e) {
 			e.printStackTrace();
 		}
@@ -595,11 +601,13 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			AgentAddress receiverAA = aa.getAgentWithRole(group, record.getRoleReceiver());
 			if (receiverAA != null) {
 				decrementNumberOfSimultaneousAsynchronousMessages(receiverAA);
-				getRecords(new Filter<Record>() {
+				getOrderedRecords(new Filter<Record>() {
 					final Reference<Boolean> maxNumberOfSimultaneousTransfersReached=new Reference<>(false);
 					@Override
 					public boolean nextRecord(Record _record) {
 
+						if (_record.isObsolete())
+							return false;
 						AbstractAgent aa2=getAgent(receiverAA);
 						if (aa2==null)
 							aa2=aa;
@@ -611,7 +619,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 						}
 						return false;
 					}
-				}, "groupPath=%gp and currentPositionNeedConfirmationFromReceiver=%cp and roleReceiver=%rr", "gp", record.getGroupPath(), "cp", false, "rr", record.getRoleReceiver());
+				}, "groupPath=%gp and currentPositionNeedConfirmationFromReceiver=%cp and roleReceiver=%rr", new Object[]{"gp", record.getGroupPath(), "cp", false, "rr", record.getRoleReceiver()}, true, "lastTimeUpdateUTCInMs");
 			}
 			else {
 				decrementNumberOfSimultaneousAsynchronousMessagesIfPossible(requester, group, record.getRoleReceiver());
@@ -638,11 +646,12 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 
 	public void groupRoleAvailable(AbstractAgent kernel, Group distantGroup, String distantRole) throws DatabaseException {
 		String path=distantGroup.toString();
-		getRecords(new Filter<Record>() {
+		getOrderedRecords(new Filter<Record>() {
 			final Reference<Boolean> maxNumberOfSimultaneousTransfersReached=new Reference<>(false);
 			@Override
 			public boolean nextRecord(Record _record) {
-
+				if (_record.isObsolete())
+					return false;
 				if (_record.getRoleSender().equals(distantRole))
 				{
 					AgentAddress senderAA=kernel.getAgentWithRole(distantGroup, _record.roleReceiver);
@@ -669,7 +678,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 				}
 				return false;
 			}
-		}, "groupPath=%gp and (roleSender=%rs or (transferStarted==%ts and roleReceiver=%rr))", "gp", path, "rs", distantRole, "ts", false, "rr", distantRole);
+		}, "groupPath=%gp and (roleSender=%rs or (transferStarted==%ts and roleReceiver=%rr))", new Object[]{"gp", path, "rs", distantRole, "ts", false, "rr", distantRole}, true, "lastTimeUpdateUTCInMs");
 
 	}
 
@@ -680,7 +689,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		if (r!=null)
 		{
 			if (r.getCurrentStreamPosition()!=position || r.currentPositionNeedConfirmationFromReceiver)
-				updateRecord(r, "currentStreamPosition", position, "currentPositionNeedConfirmationFromReceiver", false, "lastTimeUpdateUTCInMs", System.currentTimeMillis());
+				updateRecord(r, "currentStreamPosition", position, "currentPositionNeedConfirmationFromReceiver", false/*, "lastTimeUpdateUTCInMs", System.currentTimeMillis()*/);
 			if (incrementNumberOfSimultaneousAsynchronousMessages(receiverAA, getMaxNumberOfSimultaneousAsynchronousBigDataMessagesSentToTheSameGroup(requester))) {
 
 				BigDataTransferID bigDataTransferID=sendAsynchronousBigData(requester, senderAA, receiverAA, r);
@@ -824,22 +833,52 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 
 
 	public List<Record> getAsynchronousMessagesBySenderRole(Group group, String senderRole) throws DatabaseException {
-		return getRecords("groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
+		return getRecords(new Filter<Record>() {
+			@Override
+			public boolean nextRecord(Record _record) {
+				return !_record.isObsolete();
+			}
+		}, "groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
 	}
 	public List<Record> getAsynchronousMessagesByReceiverRole(Group group, String receiverRole) throws DatabaseException {
-		return getRecords("groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.toString(), "roleReceiver", receiverRole);
+		return getRecords(new Filter<Record>() {
+			@Override
+			public boolean nextRecord(Record _record) {
+				return !_record.isObsolete();
+			}
+		}, "groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.toString(), "roleReceiver", receiverRole);
 	}
 	public List<Record> getAsynchronousMessagesByGroup(Group group) throws DatabaseException {
-		return getRecords("groupPath=%groupPath", "groupPath", group.toString());
+		return getRecords(new Filter<Record>() {
+			@Override
+			public boolean nextRecord(Record _record) {
+				return !_record.isObsolete();
+			}
+		}, "groupPath=%groupPath", "groupPath", group.toString());
 	}
 	public long getAsynchronousMessagesNumberBySenderRole(Group group, String senderRole) throws DatabaseException {
-		return getRecordsNumber("groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
+		return getRecordsNumber(new Filter<Record>() {
+			@Override
+			public boolean nextRecord(Record _record) {
+				return !_record.isObsolete();
+			}
+		}, "groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
 	}
 	public long getAsynchronousMessagesNumberByReceiverRole(Group group, String receiverRole) throws DatabaseException {
-		return getRecordsNumber("groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.toString(), "roleReceiver", receiverRole);
+		return getRecordsNumber(new Filter<Record>() {
+			@Override
+			public boolean nextRecord(Record _record) {
+				return !_record.isObsolete();
+			}
+		}, "groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.toString(), "roleReceiver", receiverRole);
 	}
 	public long getAsynchronousMessagesNumberByGroup(Group group) throws DatabaseException {
-		return getRecordsNumber("groupPath=%groupPath", "groupPath", group.toString());
+		return getRecordsNumber(new Filter<Record>() {
+			@Override
+			public boolean nextRecord(Record _record) {
+				return !_record.isObsolete();
+			}
+		},"groupPath=%groupPath", "groupPath", group.toString());
 	}
 
 
