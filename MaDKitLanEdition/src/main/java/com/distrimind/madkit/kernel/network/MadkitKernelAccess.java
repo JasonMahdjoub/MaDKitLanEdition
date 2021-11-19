@@ -358,7 +358,7 @@ class MadkitKernelAccess {
 		m_big_data_complete = getMethod(BigDataPropositionMessage.class, "transferCompleted", long.class);
 		m_transferLostForBigDataTransfer = getMethod(c_madkit_kernel, "transferLostForBigDataTransfer",
 				AbstractAgent.class, ConversationID.class, int.class, AgentAddress.class, AgentAddress.class,
-				long.class, long.class, AbstractDecentralizedID.class, ExternalAsynchronousBigDataIdentifier.class, BigDataResultMessage.Type.class);
+				long.class, long.class, AbstractDecentralizedIDGenerator.class, ExternalAsynchronousBigDataIdentifier.class, BigDataResultMessage.Type.class);
 		m_message_mark_as_read = getMethod(Message.class, "markMessageAsRead");
 		m_wait_message_sent = getMethod(AbstractAgent.class, "waitMessageSent", LockerCondition.class);
 		m_get_global_interfaced_ids = getMethod(c_madkit_kernel, "getGlobalInterfacedIDs");

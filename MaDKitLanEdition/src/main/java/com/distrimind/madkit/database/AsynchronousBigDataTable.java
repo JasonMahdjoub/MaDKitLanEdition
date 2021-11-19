@@ -518,7 +518,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			if (bigDataTransferID==null) {
 				if (record.isTransferStarted())
 				{
-					sendMessageAndDifferItIfNecessary(requester, group, record.getRoleReceiver(), new CancelAsynchronousBigDataTransferMessage(record.getAsynchronousBigDataInternalIdentifier()), record.getRoleSender());
+					sendMessageAndDifferItIfNecessary(requester, group, record.getRoleReceiver(), new CancelAsynchronousBigDataTransferMessage(record.getAsynchronousBigDataInternalIdentifier()), record.getRoleSender(), record.getTimeOutInMs());
 				}
 			}
 			else
@@ -694,7 +694,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			m_send_asynchronous_big_data = getMethod(madkitKernelClass, "sendAsynchronousBigData", AbstractAgent.class,
 					AgentAddress.class, AgentAddress.class, Record.class);
 			m_send_message_and_differ_it_if_necessary = getMethod(madkitKernelClass, "sendMessageAndDifferItIfNecessary", AbstractAgent.class,
-					Group.class, String.class, Message.class, String.class);
+					Group.class, String.class, Message.class, String.class, long.class);
 			m_cancel_big_data_transfer = getMethod(madkitKernelClass, "cancelBigDataTransfer", AbstractAgent.class,
 					BigDataTransferID.class);
 			m_get_madkit_kernel = getMethod(AbstractAgent.class, "getMadkitKernel");
@@ -775,9 +775,9 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 
 	}
 	void sendMessageAndDifferItIfNecessary(final AbstractAgent requester, Group group, final String role,
-															   final Message message, final String senderRole)  {
+															   final Message message, final String senderRole, final long timeOutInMs)  {
 		try {
-			invoke(m_send_message_and_differ_it_if_necessary, getMadkitKernel(requester), requester, group, role, message, senderRole);
+			invoke(m_send_message_and_differ_it_if_necessary, getMadkitKernel(requester), requester, group, role, message, senderRole, timeOutInMs);
 		} catch (InvocationTargetException e) {
 			System.err.println("Unexpected error :");
 			e.printStackTrace();
