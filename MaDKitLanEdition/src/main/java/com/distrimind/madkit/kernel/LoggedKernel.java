@@ -1059,4 +1059,118 @@ final class LoggedKernel extends MadkitKernel {
 		if (kernel.isFinestLogOn())
 			kernel.logger.log(Level.FINEST, "setAdditionalDataCleaner (requester="+requester+")");
 	}
+	@Override
+	List<AsynchronousBigDataTransferID> getAsynchronousBigDataTransferIDsByGroup(AbstractAgent requester, Group group)
+	{
+		List<AsynchronousBigDataTransferID> r=kernel.getAsynchronousBigDataTransferIDsByGroup(requester, group);
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "getAsynchronousBigDataTransferIDByGroup (requester="+requester+", group="+group
+					+", res=" + r + ")");
+		return r;
+	}
+	@Override
+	List<AsynchronousBigDataTransferID> getAsynchronousBigDataTransferIDsBySenderRole(AbstractAgent requester, Group group, String senderRole)
+	{
+		List<AsynchronousBigDataTransferID> r=kernel.getAsynchronousBigDataTransferIDsBySenderRole(requester, group, senderRole);
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "getAsynchronousBigDataTransferIDsBySenderRole (requester="+requester+", group="+group
+					+", senderRole="+senderRole
+					+", res=" + r + ")");
+		return r;
+	}
+	@Override
+	List<AsynchronousBigDataTransferID> getAsynchronousBigDataTransferIDsByReceiverRole(AbstractAgent requester, Group group, String receiverRole)
+	{
+		List<AsynchronousBigDataTransferID> r=kernel.getAsynchronousBigDataTransferIDsByReceiverRole(requester, group, receiverRole);
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "getAsynchronousBigDataTransferIDsByReceiverRole (requester="+requester+", group="+group
+					+", receiverRole="+receiverRole
+					+", res=" + r + ")");
+		return r;
+	}
+	@Override
+	List<AsynchronousBigDataTable.Record> getAsynchronousBigDataMessagesByGroup(AbstractAgent requester, Group group)
+	{
+		List<AsynchronousBigDataTable.Record> r=kernel.getAsynchronousBigDataMessagesByGroup(requester, group);
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "getAsynchronousBigDataMessagesByGroup (requester="+requester+", group="+group
+					+", res=" + r + ")");
+		return r;
+	}
+	@Override
+	List<AsynchronousBigDataTable.Record> getAsynchronousBigDataMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole)
+	{
+		List<AsynchronousBigDataTable.Record> r=kernel.getAsynchronousBigDataMessagesBySenderRole(requester, group, senderRole);
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "getAsynchronousBigDataMessagesBySenderRole (requester="+requester+", group="+group
+					+", senderRole="+senderRole
+					+", res=" + r + ")");
+		return r;
+	}
+	@Override
+	List<AsynchronousBigDataTable.Record> getAsynchronousBigDataMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole)
+	{
+		List<AsynchronousBigDataTable.Record> r=kernel.getAsynchronousBigDataMessagesByReceiverRole(requester, group, receiverRole);
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "getAsynchronousBigDataMessagesByReceiverRole (requester="+requester+", group="+group
+					+", receiverRole="+receiverRole
+					+", res=" + r + ")");
+		return r;
+	}
+	@Override
+	long getAsynchronousBigDataMessagesNumberByGroup(AbstractAgent requester, Group group)
+	{
+		long r=kernel.getAsynchronousBigDataMessagesNumberByGroup(requester, group);
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "getAsynchronousBigDataMessagesNumberByGroup (requester="+requester+", group="+group
+					+", res=" + r + ")");
+		return r;
+	}
+	@Override
+	long getAsynchronousBigDataMessagesNumberBySenderRole(AbstractAgent requester, Group group, String senderRole)
+	{
+		long r=kernel.getAsynchronousBigDataMessagesNumberBySenderRole(requester, group, senderRole);
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "getAsynchronousBigDataMessagesNumberBySenderRole (requester="+requester+", group="+group
+					+", senderRole="+senderRole
+					+", res=" + r + ")");
+		return r;
+	}
+	@Override
+	long getAsynchronousBigDataMessagesNumberByReceiverRole(AbstractAgent requester, Group group, String receiverRole)
+	{
+		long r=kernel.getAsynchronousBigDataMessagesNumberByReceiverRole(requester, group, receiverRole);
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "getAsynchronousBigDataMessagesNumberByReceiverRole (requester="+requester+", group="+group
+					+", receiverRole="+receiverRole
+					+", res=" + r + ")");
+		return r;
+	}
+	@Override
+	long cancelAsynchronousBigDataMessagesByGroup(AbstractAgent requester, Group group)  {
+		long r=kernel.cancelAsynchronousBigDataMessagesByGroup(requester, group);
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "cancelAsynchronousBigDataMessagesByGroup (requester="+requester+", group="+group
+					+", res=" + r + ")");
+		return r;
+	}
+	@Override
+	long cancelAsynchronousBigDataMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
+		long r=kernel.cancelAsynchronousBigDataMessagesBySenderRole(requester, group, senderRole);
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "cancelAsynchronousBigDataMessagesBySenderRole (requester="+requester+", group="+group
+					+", senderRole="+senderRole
+					+", res=" + r + ")");
+		return r;
+	}
+	@Override
+	long cancelAsynchronousBigDataMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
+		long r=kernel.cancelAsynchronousBigDataMessagesByReceiverRole(requester, group, receiverRole);
+		if (kernel.isFinestLogOn())
+			kernel.logger.log(Level.FINEST, "cancelAsynchronousBigDataMessagesByReceiverRole (requester="+requester+", group="+group
+					+", receiverRole="+receiverRole
+					+", res=" + r + ")");
+		return r;
+	}
+
 }

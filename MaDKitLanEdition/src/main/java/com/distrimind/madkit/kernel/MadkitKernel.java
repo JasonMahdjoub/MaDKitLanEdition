@@ -1699,8 +1699,8 @@ class MadkitKernel extends Agent {
 			bugReport(e);
 			return new ArrayList<>(0);
 		}
-
 	}
+
 	long getAsynchronousMessagesNumberBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
 		if (group==null)
 			throw new NullPointerException();
@@ -1750,7 +1750,166 @@ class MadkitKernel extends Agent {
 			bugReport(e);
 			return 0;
 		}
+	}
+	private List<AsynchronousBigDataTransferID> getAsynchronousBigDataTransferIDs(AbstractAgent requester, List<AsynchronousBigDataTable.Record> l)
+	{
+		List<AsynchronousBigDataTransferID> res=new ArrayList<>(l.size());
+		for (AsynchronousBigDataTable.Record r : l)
+			res.add(getAsynchronousBigDataTransferIDInstance(requester, r.getAsynchronousBigDataIdentifier()));
+		return res;
+	}
+	List<AsynchronousBigDataTransferID> getAsynchronousBigDataTransferIDsByGroup(AbstractAgent requester, Group group)
+	{
+		return getAsynchronousBigDataTransferIDs(requester, getAsynchronousBigDataMessagesByGroup(requester, group));
+	}
+	List<AsynchronousBigDataTransferID> getAsynchronousBigDataTransferIDsBySenderRole(AbstractAgent requester, Group group, String senderRole)
+	{
+		return getAsynchronousBigDataTransferIDs(requester, getAsynchronousBigDataMessagesBySenderRole(requester, group, senderRole));
+	}
+	List<AsynchronousBigDataTransferID> getAsynchronousBigDataTransferIDsByReceiverRole(AbstractAgent requester, Group group, String receiverRole)
+	{
+		return getAsynchronousBigDataTransferIDs(requester, getAsynchronousBigDataMessagesByReceiverRole(requester, group, receiverRole));
+	}
+	List<AsynchronousBigDataTable.Record> getAsynchronousBigDataMessagesByGroup(AbstractAgent requester, Group group)
+	{
+		if (group==null)
+			throw new NullPointerException();
 
+		if (asynchronousBigDataTable ==null) {
+			bugReport(new MadkitException("Cannot get asynchronous messages when no database was loaded !"));
+			return Collections.emptyList();
+		}
+		try {
+			return asynchronousBigDataTable.getAsynchronousMessagesByGroup(group);
+		} catch (DatabaseException e) {
+			bugReport(e);
+			return Collections.emptyList();
+		}
+	}
+	List<AsynchronousBigDataTable.Record> getAsynchronousBigDataMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole)
+	{
+		if (group==null)
+			throw new NullPointerException();
+
+		if (asynchronousBigDataTable ==null) {
+			bugReport(new MadkitException("Cannot get asynchronous messages when no database was loaded !"));
+			return Collections.emptyList();
+		}
+		try {
+			return asynchronousBigDataTable.getAsynchronousMessagesBySenderRole(group, senderRole);
+		} catch (DatabaseException e) {
+			bugReport(e);
+			return Collections.emptyList();
+		}
+	}
+	List<AsynchronousBigDataTable.Record> getAsynchronousBigDataMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole)
+	{
+		if (group==null)
+			throw new NullPointerException();
+
+		if (asynchronousBigDataTable ==null) {
+			bugReport(new MadkitException("Cannot get asynchronous messages when no database was loaded !"));
+			return Collections.emptyList();
+		}
+		try {
+			return asynchronousBigDataTable.getAsynchronousMessagesByReceiverRole(group, receiverRole);
+		} catch (DatabaseException e) {
+			bugReport(e);
+			return Collections.emptyList();
+		}
+	}
+	long getAsynchronousBigDataMessagesNumberByGroup(AbstractAgent requester, Group group)
+	{
+		if (group==null)
+			throw new NullPointerException();
+
+		if (asynchronousBigDataTable ==null) {
+			bugReport(new MadkitException("Cannot get asynchronous messages when no database was loaded !"));
+			return 0;
+		}
+		try {
+			return asynchronousBigDataTable.getAsynchronousMessagesNumberByGroup(group);
+		} catch (DatabaseException e) {
+			bugReport(e);
+			return 0;
+		}
+	}
+	long getAsynchronousBigDataMessagesNumberBySenderRole(AbstractAgent requester, Group group, String senderRole)
+	{
+		if (group==null)
+			throw new NullPointerException();
+
+		if (asynchronousBigDataTable ==null) {
+			bugReport(new MadkitException("Cannot get asynchronous messages when no database was loaded !"));
+			return 0;
+		}
+		try {
+			return asynchronousBigDataTable.getAsynchronousMessagesNumberBySenderRole(group, senderRole);
+		} catch (DatabaseException e) {
+			bugReport(e);
+			return 0;
+		}
+	}
+	long getAsynchronousBigDataMessagesNumberByReceiverRole(AbstractAgent requester, Group group, String receiverRole)
+	{
+		if (group==null)
+			throw new NullPointerException();
+
+		if (asynchronousBigDataTable ==null) {
+			bugReport(new MadkitException("Cannot get asynchronous messages when no database was loaded !"));
+			return 0;
+		}
+		try {
+			return asynchronousBigDataTable.getAsynchronousMessagesNumberByReceiverRole(group, receiverRole);
+		} catch (DatabaseException e) {
+			bugReport(e);
+			return 0;
+		}
+	}
+	long cancelAsynchronousBigDataMessagesByGroup(AbstractAgent requester, Group group)  {
+		if (group==null)
+			throw new NullPointerException();
+
+		if (asynchronousBigDataTable ==null) {
+			bugReport(new MadkitException("Cannot cancel asynchronous messages when no database was loaded !"));
+			return 0;
+		}
+		try {
+			return asynchronousBigDataTable.cancelAsynchronousMessagesByGroup(requester, group);
+		} catch (DatabaseException e) {
+			bugReport(e);
+			return 0;
+		}
+	}
+	long cancelAsynchronousBigDataMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
+		if (group==null)
+			throw new NullPointerException();
+
+		if (asynchronousBigDataTable ==null) {
+			bugReport(new MadkitException("Cannot cancel asynchronous messages when no database was loaded !"));
+			return 0;
+		}
+		try {
+			return asynchronousBigDataTable.cancelAsynchronousMessagesBySenderRole(requester, group, senderRole);
+		} catch (DatabaseException e) {
+			bugReport(e);
+			return 0;
+		}
+	}
+	long cancelAsynchronousBigDataMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
+		if (group==null)
+			throw new NullPointerException();
+
+		if (asynchronousBigDataTable ==null) {
+			bugReport(new MadkitException("Cannot cancel asynchronous messages when no database was loaded !"));
+			return 0;
+		}
+		try {
+			return asynchronousBigDataTable.cancelAsynchronousMessagesByReceiverRole(requester, group, receiverRole);
+		} catch (DatabaseException e) {
+			bugReport(e);
+			return 0;
+		}
 	}
 	ReturnCode sendMessage(final AbstractAgent requester, AbstractGroup group, final String role, final Message message,
 			final String senderRole) {
@@ -3765,8 +3924,14 @@ class MadkitKernel extends Agent {
 
 	ReturnCode cancelAsynchronousBigData(AbstractAgent requester, AsynchronousBigDataTransferID asynchronousBigDataTransferID)
 	{
-		if (asynchronousBigDataTable!=null)
-			return asynchronousBigDataTable.cancelTransfer(requester, asynchronousBigDataTransferID.getAsynchronousBigDataInternalIdentifier());
+		if (asynchronousBigDataTable!=null) {
+			try {
+				return asynchronousBigDataTable.cancelTransfer(requester, asynchronousBigDataTransferID.getAsynchronousBigDataInternalIdentifier());
+			} catch (DatabaseException e) {
+				getLogger().severeLog("Unexpected exception", e);
+				return IGNORED;
+			}
+		}
 		else
 			return IGNORED;
 	}
@@ -3799,7 +3964,11 @@ class MadkitKernel extends Agent {
 			throw new NullPointerException();
 		RandomInputStream inputStream=record.getAsynchronousBigDataToSendWrapper().getRandomInputStream(record.getAsynchronousBigDataIdentifier());
 		if (inputStream==null) {
-			asynchronousBigDataTable.cancelTransfer(requester, record);
+			try {
+				asynchronousBigDataTable.cancelTransfer(requester, record);
+			} catch (DatabaseException e) {
+				getLogger().severeLog("Unexpected exception", e);
+			}
 			return null;
 		}
 		RealTimeTransferStat stat = new RealTimeTransferStat(

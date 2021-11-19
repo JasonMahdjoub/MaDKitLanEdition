@@ -43,6 +43,7 @@ import com.distrimind.madkit.action.GUIManagerAction;
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.agr.LocalCommunity.Groups;
 import com.distrimind.madkit.agr.LocalCommunity.Roles;
+import com.distrimind.madkit.database.AsynchronousBigDataTable;
 import com.distrimind.madkit.database.AsynchronousMessageTable;
 import com.distrimind.madkit.exceptions.KilledException;
 import com.distrimind.madkit.exceptions.SelfKillException;
@@ -2265,83 +2266,83 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		return sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(group, role, messageToSend, senderRole, getMadkitConfig().networkProperties.defaultTimeOutInMsBeforeConsideringAsynchronousMessageAsObsolete);
 	}
 	/**
-	 * Cancel asynchronous messages according the message group and the sender role
+	 * Cancel asynchronous messages that correspond to the given message's group and the given sender's role
 	 * @param group the targeted group
 	 * @param senderRole the sender role
 	 * @return the number of deleted not sent messages
 	 */
-	public long cancelAsynchronousMessagesBySenderRole(Group group, String senderRole)  {
+	public long cancelCurrentAsynchronousMessagesBySenderRole(Group group, String senderRole)  {
 		return getMadkitKernel().cancelAsynchronousMessagesBySenderRole(this, group, senderRole);
 	}
 	/**
-	 * Cancel asynchronous messages according the message group and the receiver role
+	 * Cancel asynchronous messages that correspond to the given message's group and the given receiver's role
 	 * @param group the targeted group
 	 * @param receiverRole the receiver role
 	 * @return the number of deleted not sent messages
 	 */
-	public long cancelAsynchronousMessagesByReceiverRole(Group group, String receiverRole)  {
+	public long cancelCurrentAsynchronousMessagesByReceiverRole(Group group, String receiverRole)  {
 		return getMadkitKernel().cancelAsynchronousMessagesByReceiverRole(this, group, receiverRole);
 	}
 	/**
-	 * Cancel asynchronous messages according the message group
+	 * Cancel asynchronous messages that correspond to the given message's group
 	 * @param group the targeted group
 	 * @return the number of deleted not sent messages
 	 */
-	public long cancelAsynchronousMessagesByGroup(Group group)  {
+	public long cancelCurrentAsynchronousMessagesByGroup(Group group)  {
 		return getMadkitKernel().cancelAsynchronousMessagesByGroup(this, group);
 	}
 
 	/**
-	 * Get the saved asynchronous messages to send and according the message group and the sender role
+	 * Get the saved asynchronous messages to send that correspond to the given message's group and the given sender's role
 	 * @param group the targeted group
 	 * @param senderRole the sender role
 	 * @return the differed asynchronous messages
 	 */
-	public List<AsynchronousMessageTable.Record> getAsynchronousMessagesBySenderRole(Group group, String senderRole)  {
+	public List<AsynchronousMessageTable.Record> getCurrentAsynchronousMessagesBySenderRole(Group group, String senderRole)  {
 		return getMadkitKernel().getAsynchronousMessagesBySenderRole(this, group, senderRole);
 	}
 	/**
-	 * Get the saved asynchronous messages to send and according the message group and the receiver role
+	 * Get the saved asynchronous messages to send that correspond to the given message's group and the given receiver's role
 	 * @param group the targeted group
 	 * @param receiverRole the receiver role
 	 * @return the differed asynchronous messages
 	 */
-	public List<AsynchronousMessageTable.Record> getAsynchronousMessagesByReceiverRole(Group group, String receiverRole)  {
+	public List<AsynchronousMessageTable.Record> getCurrentAsynchronousMessagesByReceiverRole(Group group, String receiverRole)  {
 		return getMadkitKernel().getAsynchronousMessagesByReceiverRole(this, group, receiverRole);
 	}
 	/**
-	 * Get the saved asynchronous messages to send and according the message group
+	 * Get the saved asynchronous messages to send that correspond to the given message's group
 	 * @param group the targeted group
 	 * @return the differed asynchronous messages
 	 */
-	public List<AsynchronousMessageTable.Record> getAsynchronousMessagesByGroup(Group group)  {
+	public List<AsynchronousMessageTable.Record> getCurrentAsynchronousMessagesByGroup(Group group)  {
 		return getMadkitKernel().getAsynchronousMessagesByGroup(this, group);
 	}
 	/**
-	 * Get the number of saved asynchronous messages to send and according the message group and the sender role
+	 * Get the number of saved asynchronous messages to send that correspond to the given message's group and the given sender's role
 	 * @param group the targeted group
 	 * @param senderRole the sender role
 	 * @return the differed asynchronous messages
 	 */
-	public long getAsynchronousMessagesNumberBySenderRole(Group group, String senderRole)  {
+	public long getCurrentAsynchronousMessagesNumberBySenderRole(Group group, String senderRole)  {
 		return getMadkitKernel().getAsynchronousMessagesNumberBySenderRole(this, group, senderRole);
 	}
 	/**
-	 * Get the number of saved asynchronous messages to send and according the message group and the receiver role
+	 * Get the number of saved asynchronous messages to send that correspond to the given message's group and the given receiver role
 	 * @param group the targeted group
 	 * @param receiverRole the receiver role
 	 * @return the differed asynchronous messages
 	 */
-	public long getAsynchronousMessagesNumberByReceiverRole(Group group, String receiverRole)  {
+	public long getCurrentAsynchronousMessagesNumberByReceiverRole(Group group, String receiverRole)  {
 		return getMadkitKernel().getAsynchronousMessagesNumberByReceiverRole(this, group, receiverRole);
 	}
 	/**
-	 * Get the number of saved asynchronous messages to send and according the message group
+	 * Get the number of saved asynchronous messages to send that correspond to the given message's group
 	 * @param group the targeted group
 	 * @return the differed asynchronous messages
 	 */
 
-	public long getAsynchronousMessagesNumberByGroup(Group group)  {
+	public long getCurrentAsynchronousMessagesNumberByGroup(Group group)  {
 		return getMadkitKernel().getAsynchronousMessagesNumberByGroup(this, group);
 	}
 
@@ -5362,5 +5363,122 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	public void setAdditionalObsoleteDataCleaner(Runnable additionalDataCleaner)
 	{
 		getMadkitKernel().setAdditionalObsoleteDataCleaner(this, additionalDataCleaner);
+	}
+
+	/**
+	 * Get the number of saved asynchronous big data messages to send that correspond to the given message's group
+	 * @param group the targeted group
+	 * @return the differed asynchronous messages
+	 */
+	public List<AsynchronousBigDataTable.Record> getCurrentAsynchronousBigDataMessagesByGroup(Group group)
+	{
+		return getMadkitKernel().getAsynchronousBigDataMessagesByGroup(this, group);
+	}
+	/**
+	 * Get the number of saved asynchronous big data messages to send that correspond to the given message's group and the given sender's role
+	 * @param group the targeted group
+	 * @param senderRole the sender role
+	 * @return the differed asynchronous messages
+	 */
+	public List<AsynchronousBigDataTable.Record> getCurrentAsynchronousBigDataMessagesBySenderRole(Group group, String senderRole)
+	{
+		return getMadkitKernel().getAsynchronousBigDataMessagesBySenderRole(this, group, senderRole);
+	}
+	/**
+	 * Get the number of saved asynchronous big data messages to send that correspond to the given message's group and the given receiver's role
+	 * @param group the targeted group
+	 * @param receiverRole the receiver role
+	 * @return the differed asynchronous messages
+	 */
+	public List<AsynchronousBigDataTable.Record> getCurrentAsynchronousBigDataMessagesByReceiverRole(Group group, String receiverRole)
+	{
+		return getMadkitKernel().getAsynchronousBigDataMessagesByReceiverRole(this, group, receiverRole);
+	}
+	/**
+	 * Get the number of saved asynchronous big data messages number to send that correspond to the given message's group
+	 * @param group the targeted group
+	 * @return the differed asynchronous messages number
+	 */
+	public long getCurrentAsynchronousBigDataMessagesNumberByGroup(Group group)
+	{
+		return getMadkitKernel().getAsynchronousBigDataMessagesNumberByGroup(this, group);
+	}
+	/**
+	 * Get the number of saved asynchronous big data messages number to send that correspond to the given message's group and the given sender's role
+	 * @param group the targeted group
+	 * @param senderRole the sender role
+	 * @return the differed asynchronous messages number
+	 */
+	public long getCurrentAsynchronousBigDataMessagesNumberBySenderRole(Group group, String senderRole)
+	{
+		return getMadkitKernel().getAsynchronousBigDataMessagesNumberBySenderRole(this, group, senderRole);
+	}
+	/**
+	 * Get the number of saved asynchronous big data messages number to send that correspond to the given message's group and the given receiver's role
+	 * @param group the targeted group
+	 * @param receiverRole the receiver role
+	 * @return the differed asynchronous messages number
+	 */
+	public long getCurrentAsynchronousBigDataMessagesNumberByReceiverRole(Group group, String receiverRole)
+	{
+		return getMadkitKernel().getAsynchronousBigDataMessagesNumberByReceiverRole(this, group, receiverRole);
+	}
+	/**
+	 * Get the number of saved asynchronous big data transfer identifiers concerning messages to send that correspond to the given message's group
+	 * @param group the targeted group
+	 * @return the differed asynchronous transfer identifiers
+	 */
+	public List<AsynchronousBigDataTransferID> getCurrentAsynchronousBigDataTransferIDsByGroup(Group group)
+	{
+		return getMadkitKernel().getAsynchronousBigDataTransferIDsByGroup(this, group);
+	}
+	/**
+	 * Get the number of saved asynchronous big data transfer identifiers concerning messages to send that correspond to the given message's group and the given sender's role
+	 * @param group the targeted group
+	 * @param senderRole the sender role
+	 * @return the differed asynchronous transfer identifiers
+	 */
+	public List<AsynchronousBigDataTransferID> getCurrentAsynchronousBigDataTransferIDsBySenderRole(Group group, String senderRole)
+	{
+		return getMadkitKernel().getAsynchronousBigDataTransferIDsBySenderRole(this, group, senderRole);
+	}
+	/**
+	 * Get the number of saved asynchronous big data transfer identifiers concerning messages to send that correspond to the given message's group and the given receiver's role
+	 * @param group the targeted group
+	 * @param receiverRole the receiver role
+	 * @return the differed asynchronous transfer identifiers
+	 */
+	public List<AsynchronousBigDataTransferID> getCurrentAsynchronousBigDataTransferIDsByReceiverRole(Group group, String receiverRole)
+	{
+		return getMadkitKernel().getAsynchronousBigDataTransferIDsByReceiverRole(this, group, receiverRole);
+	}
+	/**
+	 * Cancel current saved asynchronous big data messages to send that corresponds to the given message group
+	 * @param group the targeted group
+	 * @return the number of canceled messages
+	 */
+	public long cancelCurrentAsynchronousBigDataMessagesByGroup(Group group)
+	{
+		return getMadkitKernel().cancelAsynchronousBigDataMessagesByGroup(this, group);
+	}
+	/**
+	 * Cancel current saved asynchronous big data messages to send that corresponds to the given message group and the given sender's role
+	 * @param group the targeted group
+	 * @return the number of canceled messages
+	 */
+	public long cancelCurrentAsynchronousBigDataMessagesBySenderRole(Group group, String senderRole)
+	{
+		return getMadkitKernel().cancelAsynchronousBigDataMessagesBySenderRole(this, group, senderRole);
+	}
+	/**
+	 * Cancel current saved asynchronous big data messages to send that corresponds to the given message group and the given receiver's role
+	 * @param group the targeted group
+	 * @param senderRole the sender role
+	 * @param receiverRole the receiver role
+	 * @return the number of canceled messages
+	 */
+	public long cancelCurrentAsynchronousBigDataMessagesByReceiverRole(Group group, String receiverRole)
+	{
+		return getMadkitKernel().cancelAsynchronousBigDataMessagesByReceiverRole(this, group, receiverRole);
 	}
 }

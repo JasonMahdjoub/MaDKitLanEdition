@@ -41,7 +41,10 @@ import com.distrimind.madkit.database.AsynchronousBigDataTable;
 import com.distrimind.madkit.database.AsynchronousMessageTable;
 import com.distrimind.madkit.i18n.ErrorMessages;
 import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
-import com.distrimind.madkit.kernel.network.*;
+import com.distrimind.madkit.kernel.network.AskForConnectionMessage;
+import com.distrimind.madkit.kernel.network.AskForTransferMessage;
+import com.distrimind.madkit.kernel.network.Connection;
+import com.distrimind.madkit.kernel.network.ConnectionIdentifier;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.util.AbstractDecentralizedIDGenerator;
@@ -602,6 +605,65 @@ class FakeKernel extends MadkitKernel {
 	@Override
 	void setAdditionalObsoleteDataCleaner(AbstractAgent requester, Runnable additionalDataCleaner)
 	{
+		throw buildKernelException(null);
+	}
+
+
+	@Override
+	List<AsynchronousBigDataTransferID> getAsynchronousBigDataTransferIDsByGroup(AbstractAgent requester, Group group)
+	{
+		throw buildKernelException(null);
+	}
+	@Override
+	List<AsynchronousBigDataTransferID> getAsynchronousBigDataTransferIDsBySenderRole(AbstractAgent requester, Group group, String senderRole)
+	{
+		throw buildKernelException(null);
+	}
+	@Override
+	List<AsynchronousBigDataTransferID> getAsynchronousBigDataTransferIDsByReceiverRole(AbstractAgent requester, Group group, String receiverRole)
+	{
+		throw buildKernelException(null);
+	}
+	@Override
+	List<AsynchronousBigDataTable.Record> getAsynchronousBigDataMessagesByGroup(AbstractAgent requester, Group group)
+	{
+		throw buildKernelException(null);
+	}
+	@Override
+	List<AsynchronousBigDataTable.Record> getAsynchronousBigDataMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole)
+	{
+		throw buildKernelException(null);
+	}
+	@Override
+	List<AsynchronousBigDataTable.Record> getAsynchronousBigDataMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole)
+	{
+		throw buildKernelException(null);
+	}
+	@Override
+	long getAsynchronousBigDataMessagesNumberByGroup(AbstractAgent requester, Group group)
+	{
+		throw buildKernelException(null);
+	}
+	@Override
+	long getAsynchronousBigDataMessagesNumberBySenderRole(AbstractAgent requester, Group group, String senderRole)
+	{
+		throw buildKernelException(null);
+	}
+	@Override
+	long getAsynchronousBigDataMessagesNumberByReceiverRole(AbstractAgent requester, Group group, String receiverRole)
+	{
+		throw buildKernelException(null);
+	}
+	@Override
+	long cancelAsynchronousBigDataMessagesByGroup(AbstractAgent requester, Group group)  {
+		throw buildKernelException(null);
+	}
+	@Override
+	long cancelAsynchronousBigDataMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole)  {
+		throw buildKernelException(null);
+	}
+	@Override
+	long cancelAsynchronousBigDataMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
 		throw buildKernelException(null);
 	}
 }

@@ -52,10 +52,7 @@ import com.distrimind.util.io.SecureExternalizable;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.distrimind.util.ReflectionTools.getMethod;
@@ -487,8 +484,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		}
 		return r;
 	}
-	public AbstractAgent.ReturnCode cancelTransfer(AbstractAgent requester, AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier)
-	{
+	public AbstractAgent.ReturnCode cancelTransfer(AbstractAgent requester, AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier) throws DatabaseException {
 		Record r= null;
 		try {
 			r = getRecord("asynchronousBigDataInternalIdentifier", asynchronousBigDataInternalIdentifier);
@@ -500,41 +496,65 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		else
 			return cancelTransfer(requester, r);
 	}
-	public AbstractAgent.ReturnCode cancelTransfer(AbstractAgent requester, Record record)
-	{
+	public AbstractAgent.ReturnCode cancelTransfer(AbstractAgent requester, Record record) throws DatabaseException {
 		AbstractAgent.ReturnCode r=cancelTransferImpl(requester, record);
-		try {
-			removeRecord(record);
-		} catch (DatabaseException e) {
-			e.printStackTrace();
-		}
+		removeRecord(record);
 		return r;
 	}
-	private AbstractAgent.ReturnCode cancelTransferImpl(AbstractAgent requester, Record record)
-	{
+
+	public long cancelAsynchronousMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole) throws DatabaseException {
+
+		return removeRecords(new Filter<Record>() {
+			@Override
+			public boolean nextRecord(Record _record) throws DatabaseException {
+				cancelTransferImpl(requester, _record, group);
+				return true;
+			}
+		},"groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
+	}
+	public long cancelAsynchronousMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole) throws DatabaseException {
+		return removeRecords(new Filter<Record>() {
+			@Override
+			public boolean nextRecord(Record _record) throws DatabaseException {
+				cancelTransferImpl(requester, _record, group);
+				return true;
+			}
+		}, "groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.toString(), "roleReceiver", receiverRole);
+	}
+	public long cancelAsynchronousMessagesByGroup(AbstractAgent requester, Group group) throws DatabaseException {
+		return removeRecords(new Filter<Record>() {
+			@Override
+			public boolean nextRecord(Record _record) throws DatabaseException {
+				cancelTransferImpl(requester, _record, group);
+				return true;
+			}
+		}, "groupPath=%groupPath", "groupPath", group.toString());
+	}
+	private AbstractAgent.ReturnCode cancelTransferImpl(AbstractAgent requester, Record record) throws DatabaseException {
+		return cancelTransferImpl(requester, record,null);
+	}
+	private AbstractAgent.ReturnCode cancelTransferImpl(AbstractAgent requester, Record record, Group group) throws DatabaseException {
 		try {
-			Group group = Group.parseGroup(record.getGroupPath());
-			BigDataTransferID bigDataTransferID= transferIdsPerInternalAsynchronousId.remove(record.getAsynchronousBigDataInternalIdentifier());
-			if (bigDataTransferID==null) {
-				if (record.isTransferStarted())
-				{
-					sendMessageAndDifferItIfNecessary(requester, group, record.getRoleReceiver(), new CancelAsynchronousBigDataTransferMessage(record.getAsynchronousBigDataInternalIdentifier()), record.getRoleSender(), record.getTimeOutInMs());
-				}
-			}
-			else
-			{
-				try {
-					decrementNumberOfSimultaneousAsynchronousMessagesIfNecessary(requester, group, record);
-				} catch (DatabaseException e) {
-					e.printStackTrace();
-				}
-				cancelBigDataTransfer(requester, bigDataTransferID);
-			}
-			return AbstractAgent.ReturnCode.SUCCESS;
+			if (group==null)
+				group = Group.parseGroup(record.getGroupPath());
+
 		} catch (IOException e) {
 			e.printStackTrace();
 			return AbstractAgent.ReturnCode.INVALID_AGENT_ADDRESS;
 		}
+		BigDataTransferID bigDataTransferID= transferIdsPerInternalAsynchronousId.remove(record.getAsynchronousBigDataInternalIdentifier());
+		if (bigDataTransferID==null) {
+			if (record.isTransferStarted())
+			{
+				sendMessageAndDifferItIfNecessary(requester, group, record.getRoleReceiver(), new CancelAsynchronousBigDataTransferMessage(record.getAsynchronousBigDataInternalIdentifier()), record.getRoleSender(), record.getTimeOutInMs());
+			}
+		}
+		else
+		{
+			cancelBigDataTransfer(requester, bigDataTransferID);
+			decrementNumberOfSimultaneousAsynchronousMessagesIfNecessary(requester, group, record);
+		}
+		return AbstractAgent.ReturnCode.SUCCESS;
 
 
 	}
@@ -546,7 +566,11 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 				public boolean nextRecord(Record _record)  {
 					if (!transferIdsPerInternalAsynchronousId.containsKey(_record.getAsynchronousBigDataInternalIdentifier()))
 					{
-						cancelTransferImpl(madkitKernel, _record);
+						try {
+							cancelTransferImpl(madkitKernel, _record);
+						} catch (DatabaseException e) {
+							e.printStackTrace();
+						}
 						return true;
 					}
 					else
@@ -795,5 +819,28 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			System.exit(-1);
 		}
 	}
+
+
+
+
+	public List<Record> getAsynchronousMessagesBySenderRole(Group group, String senderRole) throws DatabaseException {
+		return getRecords("groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
+	}
+	public List<Record> getAsynchronousMessagesByReceiverRole(Group group, String receiverRole) throws DatabaseException {
+		return getRecords("groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.toString(), "roleReceiver", receiverRole);
+	}
+	public List<Record> getAsynchronousMessagesByGroup(Group group) throws DatabaseException {
+		return getRecords("groupPath=%groupPath", "groupPath", group.toString());
+	}
+	public long getAsynchronousMessagesNumberBySenderRole(Group group, String senderRole) throws DatabaseException {
+		return getRecordsNumber("groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
+	}
+	public long getAsynchronousMessagesNumberByReceiverRole(Group group, String receiverRole) throws DatabaseException {
+		return getRecordsNumber("groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.toString(), "roleReceiver", receiverRole);
+	}
+	public long getAsynchronousMessagesNumberByGroup(Group group) throws DatabaseException {
+		return getRecordsNumber("groupPath=%groupPath", "groupPath", group.toString());
+	}
+
 
 }
