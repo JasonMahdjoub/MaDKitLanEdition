@@ -819,7 +819,6 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByGroup(GROUP).get(0).getExternalAsynchronousBigDataIdentifier());
 					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP, ROLE2).get(0).getExternalAsynchronousBigDataIdentifier());
 					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
-
 					receiver.requestRole(GROUP, ROLE2);
 					testReceptionDiffered(receiver, transferID);
 					AssertJUnit.assertEquals(1, getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUP));
@@ -831,7 +830,6 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP, ROLE).get(0).getAttachedData());
 
 					requestRole(GROUP, ROLE);
-
 					testReceptionOK(dataIdentifier, attachedData, receiver, transferID);
 
 					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUP));

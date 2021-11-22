@@ -660,12 +660,12 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 					if (senderAA!=null) {
 						AbstractAgent sender=getAgent(senderAA);
 						if (sender!=null) {
-							AbstractAgent aa=getAgent(senderAA);
+							AbstractAgent aa=getMadkitKernel(sender);
 							if (aa==null)
 								aa=kernel;
 							AgentAddress receiverAA = aa.getAgentWithRole(distantGroup, _record.roleSender);
 							if (receiverAA!=null) {
-								sender.sendMessageWithRole(receiverAA, new BigDataToRestartMessage(_record.getAsynchronousBigDataInternalIdentifier(), _record.getCurrentStreamPosition()), _record.roleSender);
+								sender.sendMessageWithRole(receiverAA, new BigDataToRestartMessage(_record.getAsynchronousBigDataInternalIdentifier(), _record.getCurrentStreamPosition()), _record.roleReceiver);
 							}
 						}
 					}
