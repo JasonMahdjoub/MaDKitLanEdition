@@ -47,6 +47,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author Jason Mahdjoub
@@ -57,6 +58,8 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 	static class BigDataIdentifier implements ExternalAsynchronousBigDataIdentifier
 	{
 		boolean shortData;
+		private int number=counter.getAndIncrement();
+		private static final AtomicInteger counter=new AtomicInteger(0);
 
 		@SuppressWarnings("unused")
 		public BigDataIdentifier() {
@@ -66,19 +69,25 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 			this.shortData = shortData;
 		}
 
+		BigDataIdentifier getNewIdentifier()
+		{
+			return new BigDataIdentifier(shortData);
+		}
 		@Override
 		public int getInternalSerializedSize() {
-			return 1;
+			return 5;
 		}
 
 		@Override
 		public void writeExternal(SecuredObjectOutputStream out) throws IOException {
 			out.writeBoolean(shortData);
+			out.writeInt(number);
 		}
 
 		@Override
 		public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 			shortData=in.readBoolean();
+			number=in.readInt();
 		}
 
 		@Override
@@ -86,18 +95,19 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 			if (this == o) return true;
 			if (o == null || getClass() != o.getClass()) return false;
 			BigDataIdentifier that = (BigDataIdentifier) o;
-			return shortData == that.shortData;
+			return shortData == that.shortData && number == that.number;
 		}
 
 		@Override
 		public int hashCode() {
-			return Objects.hash(shortData);
+			return Objects.hash(shortData, number);
 		}
 
 		@Override
 		public String toString() {
 			return "BigDataIdentifier{" +
 					"shortData=" + shortData +
+					", number=" + number +
 					'}';
 		}
 	}
@@ -298,11 +308,11 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 					}
 				};
 				launchAgent(receiver);
-				AsynchronousBigDataTransferID transferID=sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE2, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
+				AsynchronousBigDataTransferID transferID=sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE2, dataIdentifier.getNewIdentifier(), new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
 				AssertJUnit.assertNull(transferID);
-				transferID=sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
+				transferID=sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE, dataIdentifier.getNewIdentifier(), new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
 				AssertJUnit.assertNull(transferID);
-				transferID=sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE2, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE2);
+				transferID=sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE2, dataIdentifier.getNewIdentifier(), new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE2);
 				AssertJUnit.assertNull(transferID);
 			}
 		}, AbstractAgent.ReturnCode.SUCCESS, false);
@@ -325,7 +335,7 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 				};
 				launchAgent(receiver);
 				try {
-					sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
+					sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE, dataIdentifier.getNewIdentifier(), new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
 					AssertJUnit.fail();
 				}
 				catch(IllegalArgumentException ignored)
@@ -333,14 +343,14 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 				}
 
 				try {
-					sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(null, ROLE2, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
+					sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(null, ROLE2, dataIdentifier.getNewIdentifier(), new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
 					AssertJUnit.fail();
 				}
 				catch(NullPointerException ignored)
 				{
 				}
 				try {
-					sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, null, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
+					sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, null, dataIdentifier.getNewIdentifier(), new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
 					AssertJUnit.fail();
 				}
 				catch(NullPointerException ignored)
@@ -354,14 +364,14 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 				{
 				}
 				try {
-					sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE2, dataIdentifier, null, attachedData, ROLE);
+					sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE2, dataIdentifier.getNewIdentifier(), null, attachedData, ROLE);
 					AssertJUnit.fail();
 				}
 				catch(NullPointerException ignored)
 				{
 				}
 				try {
-					sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE2, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, null);
+					sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE2, dataIdentifier.getNewIdentifier(), new RandomInputStreamWrapper(dataIdentifier), attachedData, null);
 					AssertJUnit.fail();
 				}
 				catch(NullPointerException ignored)
@@ -532,13 +542,13 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 				launchAgent(receiver);
 				try {
 
+					BigDataIdentifier id=dataIdentifier.getNewIdentifier();
+					AsynchronousBigDataTransferID transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE2, id, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
+					testReceptionOK(id, attachedData, receiver, transferID);
 
-					AsynchronousBigDataTransferID transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE2, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
-					testReceptionOK(dataIdentifier, attachedData, receiver, transferID);
-
-					transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE2, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE2);
+					transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE2, dataIdentifier.getNewIdentifier(), new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE2);
 					testReceptionNotOK(receiver, transferID);
-					transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP2, ROLE2, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
+					transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP2, ROLE2, dataIdentifier.getNewIdentifier(), new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
 					testReceptionNotOK(receiver, transferID);
 					requestRole(GROUP2, ROLE);
 					requestRole(GROUP2, ROLE2);
@@ -546,9 +556,10 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberByReceiverRole(GROUP, ROLE));
 					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberBySenderRole(GROUP, ROLE));
 
-					transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP2, ROLE, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE2);
+					transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP2, ROLE, id=dataIdentifier.getNewIdentifier(), new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE2);
 					testReceptionDiffered(receiver, transferID);
-					transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP2, ROLE2, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
+					BigDataIdentifier id2;
+					transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP2, ROLE2, id2=dataIdentifier.getNewIdentifier(), new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
 					testReceptionDiffered(receiver, transferID);
 
 
@@ -564,11 +575,11 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP2, ROLE2).get(0).getAttachedData());
 					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE).get(0).getAttachedData());
 
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(0).getExternalAsynchronousBigDataIdentifier());
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(1).getExternalAsynchronousBigDataIdentifier());
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP2, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP2, ROLE2).get(0).getExternalAsynchronousBigDataIdentifier());
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id2, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(1).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP2, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id2, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP2, ROLE2).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id2, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
 
 					cancelCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP2, ROLE2);
 					AssertJUnit.assertEquals(1, getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUP2));
@@ -580,18 +591,18 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(0).getAttachedData());
 					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE2).get(0).getAttachedData());
 
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(0).getExternalAsynchronousBigDataIdentifier());
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE2).get(0).getExternalAsynchronousBigDataIdentifier());
 
 					cancelCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE2);
 					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUP2));
 					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberByReceiverRole(GROUP2, ROLE2));
 					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberBySenderRole(GROUP2, ROLE));
 					getMadkitConfig().rootOfPathGroupUsedToFilterAsynchronousMessages = Collections.singletonList(GROUP2.getPath());
-					transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP2, ROLE, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE2);
+					transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP2, ROLE, id=dataIdentifier.getNewIdentifier(), new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE2);
 					testReceptionDiffered(receiver, transferID);
 
-					transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP2, ROLE2, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
+					transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP2, ROLE2, id2=dataIdentifier.getNewIdentifier(), new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
 					testReceptionDiffered(receiver, transferID);
 					AssertJUnit.assertEquals(2, getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUP2));
 					AssertJUnit.assertEquals(1, getCurrentAsynchronousBigDataMessagesNumberByReceiverRole(GROUP2, ROLE2));
@@ -605,11 +616,11 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP2, ROLE2).get(0).getAttachedData());
 					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE).get(0).getAttachedData());
 
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(0).getExternalAsynchronousBigDataIdentifier());
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(1).getExternalAsynchronousBigDataIdentifier());
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP2, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP2, ROLE2).get(0).getExternalAsynchronousBigDataIdentifier());
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id2, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(1).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP2, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id2, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP2, ROLE2).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id2, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
 
 					cancelCurrentAsynchronousBigDataMessagesByGroup(GROUP2);
 					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUP2));
@@ -659,9 +670,10 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberByReceiverRole(GROUP, ROLE));
 					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberBySenderRole(GROUP, ROLE));
 
-					transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP2, ROLE, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE2);
+					BigDataIdentifier id, id2;
+					transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP2, ROLE, id=dataIdentifier.getNewIdentifier(), new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE2);
 					testReceptionDiffered(receiver, transferID);
-					transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP2, ROLE2, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE, 1000);
+					transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP2, ROLE2, id2=dataIdentifier.getNewIdentifier(), new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE, 1000);
 					testReceptionDiffered(receiver, transferID);
 
 
@@ -677,11 +689,11 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP2, ROLE2).get(0).getAttachedData());
 					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE).get(0).getAttachedData());
 
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(0).getExternalAsynchronousBigDataIdentifier());
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(1).getExternalAsynchronousBigDataIdentifier());
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP2, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP2, ROLE2).get(0).getExternalAsynchronousBigDataIdentifier());
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id2, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(1).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP2, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id2, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP2, ROLE2).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id2, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
 
 					sleep(2000);
 					AssertJUnit.assertEquals(1, getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUP2));
@@ -693,8 +705,8 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(0).getAttachedData());
 					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE2).get(0).getAttachedData());
 
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(0).getExternalAsynchronousBigDataIdentifier());
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE2).get(0).getExternalAsynchronousBigDataIdentifier());
 
 					cleanObsoleteMaDKitDataNow();
 
@@ -707,8 +719,8 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(0).getAttachedData());
 					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE2).get(0).getAttachedData());
 
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(0).getExternalAsynchronousBigDataIdentifier());
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id, getCurrentAsynchronousBigDataMessagesByGroup(GROUP2).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE2).get(0).getExternalAsynchronousBigDataIdentifier());
 
 					cancelCurrentAsynchronousBigDataMessagesBySenderRole(GROUP2, ROLE2);
 					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUP2));
@@ -741,8 +753,8 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 				launchAgent(receiver);
 				try {
 
-
-					AsynchronousBigDataTransferID transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE2, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
+					BigDataIdentifier id;
+					AsynchronousBigDataTransferID transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE2, id=dataIdentifier.getNewIdentifier(), new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
 					testReceptionDiffered(receiver, transferID);
 					AssertJUnit.assertEquals(1, getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUP));
 					AssertJUnit.assertEquals(1, getCurrentAsynchronousBigDataMessagesNumberByReceiverRole(GROUP, ROLE2));
@@ -752,14 +764,14 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP, ROLE2).get(0).getAttachedData());
 					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP, ROLE).get(0).getAttachedData());
 
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByGroup(GROUP).get(0).getExternalAsynchronousBigDataIdentifier());
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP, ROLE2).get(0).getExternalAsynchronousBigDataIdentifier());
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id, getCurrentAsynchronousBigDataMessagesByGroup(GROUP).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP, ROLE2).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
 
 					ReturnCode rc=receiver.requestRole(GROUP, ROLE2);
 					AssertJUnit.assertEquals(ReturnCode.SUCCESS, rc);
 
-					testReceptionOK(dataIdentifier, attachedData, receiver, transferID);
+					testReceptionOK(id, attachedData, receiver, transferID);
 
 					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUP));
 					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberByReceiverRole(GROUP, ROLE2));
@@ -791,8 +803,8 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 				launchAgent(receiver);
 				try {
 
-
-					AsynchronousBigDataTransferID transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE2, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
+					BigDataIdentifier id;
+					AsynchronousBigDataTransferID transferID = sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE2, id=dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
 					testReceptionDiffered(receiver, transferID);
 					AssertJUnit.assertEquals(1, getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUP));
 					AssertJUnit.assertEquals(1, getCurrentAsynchronousBigDataMessagesNumberByReceiverRole(GROUP, ROLE2));
@@ -802,9 +814,9 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP, ROLE2).get(0).getAttachedData());
 					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP, ROLE).get(0).getAttachedData());
 
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByGroup(GROUP).get(0).getExternalAsynchronousBigDataIdentifier());
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP, ROLE2).get(0).getExternalAsynchronousBigDataIdentifier());
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id, getCurrentAsynchronousBigDataMessagesByGroup(GROUP).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP, ROLE2).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
 
 					leaveRole(GROUP, ROLE);
 					testReceptionDiffered(receiver, transferID);
@@ -816,9 +828,9 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP, ROLE2).get(0).getAttachedData());
 					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP, ROLE).get(0).getAttachedData());
 
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByGroup(GROUP).get(0).getExternalAsynchronousBigDataIdentifier());
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP, ROLE2).get(0).getExternalAsynchronousBigDataIdentifier());
-					AssertJUnit.assertEquals(dataIdentifier, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id, getCurrentAsynchronousBigDataMessagesByGroup(GROUP).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id, getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP, ROLE2).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
 					receiver.requestRole(GROUP, ROLE2);
 					testReceptionDiffered(receiver, transferID);
 					AssertJUnit.assertEquals(1, getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUP));
@@ -830,7 +842,7 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 					AssertJUnit.assertEquals(attachedData, getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP, ROLE).get(0).getAttachedData());
 
 					requestRole(GROUP, ROLE);
-					testReceptionOK(dataIdentifier, attachedData, receiver, transferID);
+					testReceptionOK(id, attachedData, receiver, transferID);
 
 					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUP));
 					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberByReceiverRole(GROUP, ROLE2));
