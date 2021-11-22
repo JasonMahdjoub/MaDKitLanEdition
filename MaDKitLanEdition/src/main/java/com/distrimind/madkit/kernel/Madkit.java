@@ -765,7 +765,7 @@ final public class Madkit {
 	 * Launch a new kernel with predefined options. The call returns when the new
 	 * kernel has finished to take care of all options. Moreover the kernel
 	 * automatically ends when all the agents living on this kernel are done.
-	 * <p>
+	 *
 	 * 
 	 * 
 	 * @param options
@@ -789,7 +789,7 @@ final public class Madkit {
 	 * <p>
 	 * 
 	 * Here is an example of use:
-	 * <p>
+	 *
 	 * 
 	 * 
 	 * @param eventListener
@@ -812,7 +812,7 @@ final public class Madkit {
      * <p>
      *
      * Here is an example of use:
-     * <p>
+     *
      *
      * @param madkitConfig the initial MadKit configuration
      * @param eventListener
@@ -835,7 +835,7 @@ final public class Madkit {
      * <p>
      *
      * Here is an example of use:
-     * <p>
+     *
      *
      *
      * @param madkitConfig

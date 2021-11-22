@@ -281,6 +281,8 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 	 * @param outputStream
 	 *            the output stream to use during the transfer
 	 * @throws InterruptedException if the current thread is interrupted
+	 * @throws IllegalAccessException if the current proposition concerns an asynchronous big transfer.
+	 * Then, this function cannot be used and the function {@link #acceptTransfer(AsynchronousBigDataToReceiveWrapper)} must be used instead
 	 */
 	public void acceptTransfer(final RandomOutputStream outputStream) throws InterruptedException, IllegalAccessException {
 		if (outputStream == null)
@@ -297,6 +299,8 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 	 * @param asynchronousBigDataToReceiveWrapper
 	 *            the wrapper that permit to give random output stream where to write data
 	 * @throws InterruptedException if the current thread is interrupted
+	 * @throws IllegalAccessException if the current proposition do not concern an asynchronous big transfer.
+	 * Then, this function cannot be used and the function {@link #acceptTransfer(RandomOutputStream)}  must be used instead
 	 */
 	public void acceptTransfer(final AsynchronousBigDataToReceiveWrapper asynchronousBigDataToReceiveWrapper) throws InterruptedException, IllegalAccessException {
 		if (outputStream == null)

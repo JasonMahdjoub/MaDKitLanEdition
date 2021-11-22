@@ -5454,6 +5454,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	/**
 	 * Cancel current saved asynchronous big data messages to send that corresponds to the given message group and the given sender's role
 	 * @param group the targeted group
+	 * @param senderRole the sender role
 	 * @return the number of canceled messages
 	 */
 	public long cancelCurrentAsynchronousBigDataMessagesBySenderRole(Group group, String senderRole)
@@ -5463,7 +5464,6 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	/**
 	 * Cancel current saved asynchronous big data messages to send that corresponds to the given message group and the given receiver's role
 	 * @param group the targeted group
-	 * @param senderRole the sender role
 	 * @param receiverRole the receiver role
 	 * @return the number of canceled messages
 	 */
