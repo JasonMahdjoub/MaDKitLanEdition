@@ -292,8 +292,18 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 													AsynchronousBigDataToReceiveWrapper asynchronousBigDataToReceiveWrapper,
 													AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier
 									  ) {
+		if (externalAsynchronousBigDataIdentifier==null)
+			throw new NullPointerException();
+		if (asynchronousBigDataInternalIdentifier==null)
+			throw new NullPointerException();
+		if (group==null)
+			throw new NullPointerException();
+		if (roleSender==null)
+			throw new NullPointerException();
+		if (roleReceiver==null)
+			throw new NullPointerException();
+
 		assert asynchronousBigDataToSendWrapper ==null || asynchronousBigDataToReceiveWrapper ==null;
-		assert asynchronousBigDataInternalIdentifier!=null;
 		try {
 
 			return getDatabaseWrapper().runSynchronizedTransaction(new SynchronizedTransaction<Record>() {
@@ -343,6 +353,10 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		}
 		catch (DatabaseException e)
 		{
+			if (e.getCause() instanceof IllegalArgumentException)
+				throw (IllegalArgumentException)e.getCause();
+			else if (e.getCause() instanceof NullPointerException)
+				throw (NullPointerException)e.getCause();
 			e.printStackTrace();
 			return null;
 		}
@@ -489,6 +503,10 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		return r;
 	}
 	public AbstractAgent.ReturnCode cancelTransfer(AbstractAgent requester, AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier) throws DatabaseException {
+		if (requester==null)
+			throw new NullPointerException();
+		if (asynchronousBigDataInternalIdentifier==null)
+			throw new NullPointerException();
 		Record r= null;
 		try {
 			r = getRecord("asynchronousBigDataInternalIdentifier", asynchronousBigDataInternalIdentifier);
@@ -507,7 +525,12 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 	}
 
 	public long cancelAsynchronousMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole) throws DatabaseException {
-
+		if (requester==null)
+			throw new NullPointerException();
+		if (senderRole==null)
+			throw new NullPointerException();
+		if (group==null)
+			throw new NullPointerException();
 		return removeRecords(new Filter<Record>() {
 			@Override
 			public boolean nextRecord(Record _record) throws DatabaseException {
@@ -517,6 +540,12 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		},"groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
 	}
 	public long cancelAsynchronousMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole) throws DatabaseException {
+		if (requester==null)
+			throw new NullPointerException();
+		if (receiverRole==null)
+			throw new NullPointerException();
+		if (group==null)
+			throw new NullPointerException();
 		return removeRecords(new Filter<Record>() {
 			@Override
 			public boolean nextRecord(Record _record) throws DatabaseException {
@@ -526,6 +555,10 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		}, "groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.toString(), "roleReceiver", receiverRole);
 	}
 	public long cancelAsynchronousMessagesByGroup(AbstractAgent requester, Group group) throws DatabaseException {
+		if (requester==null)
+			throw new NullPointerException();
+		if (group==null)
+			throw new NullPointerException();
 		return removeRecords(new Filter<Record>() {
 			@Override
 			public boolean nextRecord(Record _record) throws DatabaseException {
@@ -564,6 +597,8 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 	}
 	public void cleanObsoleteData(AbstractAgent madkitKernel)
 	{
+		if (madkitKernel==null)
+			throw new NullPointerException();
 		try {
 			removeRecords(new Filter<Record>() {
 				@Override
@@ -834,6 +869,10 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 
 
 	public List<Record> getAsynchronousMessagesBySenderRole(Group group, String senderRole) throws DatabaseException {
+		if (senderRole==null)
+			throw new NullPointerException();
+		if (group==null)
+			throw new NullPointerException();
 		return getRecords(new Filter<Record>() {
 			@Override
 			public boolean nextRecord(Record _record) {
@@ -842,6 +881,10 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		}, "groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
 	}
 	public List<Record> getAsynchronousMessagesByReceiverRole(Group group, String receiverRole) throws DatabaseException {
+		if (receiverRole==null)
+			throw new NullPointerException();
+		if (group==null)
+			throw new NullPointerException();
 		return getRecords(new Filter<Record>() {
 			@Override
 			public boolean nextRecord(Record _record) {
@@ -850,6 +893,8 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		}, "groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.toString(), "roleReceiver", receiverRole);
 	}
 	public List<Record> getAsynchronousMessagesByGroup(Group group) throws DatabaseException {
+		if (group==null)
+			throw new NullPointerException();
 		return getRecords(new Filter<Record>() {
 			@Override
 			public boolean nextRecord(Record _record) {
@@ -858,6 +903,10 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		}, "groupPath=%groupPath", "groupPath", group.toString());
 	}
 	public long getAsynchronousMessagesNumberBySenderRole(Group group, String senderRole) throws DatabaseException {
+		if (senderRole==null)
+			throw new NullPointerException();
+		if (group==null)
+			throw new NullPointerException();
 		return getRecordsNumber(new Filter<Record>() {
 			@Override
 			public boolean nextRecord(Record _record) {
@@ -866,6 +915,10 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		}, "groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
 	}
 	public long getAsynchronousMessagesNumberByReceiverRole(Group group, String receiverRole) throws DatabaseException {
+		if (receiverRole==null)
+			throw new NullPointerException();
+		if (group==null)
+			throw new NullPointerException();
 		return getRecordsNumber(new Filter<Record>() {
 			@Override
 			public boolean nextRecord(Record _record) {
@@ -874,6 +927,8 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		}, "groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.toString(), "roleReceiver", receiverRole);
 	}
 	public long getAsynchronousMessagesNumberByGroup(Group group) throws DatabaseException {
+		if (group==null)
+			throw new NullPointerException();
 		return getRecordsNumber(new Filter<Record>() {
 			@Override
 			public boolean nextRecord(Record _record) {

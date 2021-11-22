@@ -325,7 +325,7 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 				};
 				launchAgent(receiver);
 				try {
-					sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE2, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
+					sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
 					AssertJUnit.fail();
 				}
 				catch(IllegalArgumentException ignored)

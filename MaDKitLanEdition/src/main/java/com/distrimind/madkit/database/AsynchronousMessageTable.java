@@ -440,16 +440,30 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 		return AbstractAgent.ReturnCode.MESSAGE_DIFFERED;
 	}
 	public long cancelAsynchronousMessagesBySenderRole(Group group, String senderRole) throws DatabaseException {
+		if (senderRole==null)
+			throw new NullPointerException();
+		if (group==null)
+			throw new NullPointerException();
 		return removeRecords("groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
 	}
 	public long cancelAsynchronousMessagesByReceiverRole(Group group, String receiverRole) throws DatabaseException {
+		if (receiverRole==null)
+			throw new NullPointerException();
+		if (group==null)
+			throw new NullPointerException();
 		return removeRecords("groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.toString(), "roleReceiver", receiverRole);
 	}
 	public long cancelAsynchronousMessagesByGroup(Group group) throws DatabaseException {
+		if (group==null)
+			throw new NullPointerException();
 		return removeRecords("groupPath=%groupPath", "groupPath", group.toString());
 	}
 
 	public List<Record> getAsynchronousMessagesBySenderRole(Group group, String senderRole) throws DatabaseException {
+		if (senderRole==null)
+			throw new NullPointerException();
+		if (group==null)
+			throw new NullPointerException();
 		return getRecords(new Filter<Record>() {
 			@Override
 			public boolean nextRecord(Record _record) {
@@ -458,6 +472,10 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 		},"groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
 	}
 	public List<Record> getAsynchronousMessagesByReceiverRole(Group group, String receiverRole) throws DatabaseException {
+		if (receiverRole==null)
+			throw new NullPointerException();
+		if (group==null)
+			throw new NullPointerException();
 		return getRecords(new Filter<Record>() {
 			@Override
 			public boolean nextRecord(Record _record) {
@@ -466,6 +484,8 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 		},"groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.toString(), "roleReceiver", receiverRole);
 	}
 	public List<Record> getAsynchronousMessagesByGroup(Group group) throws DatabaseException {
+		if (group==null)
+			throw new NullPointerException();
 		return getRecords(new Filter<Record>() {
 			@Override
 			public boolean nextRecord(Record _record) {
@@ -474,6 +494,10 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 		},"groupPath=%groupPath", "groupPath", group.toString());
 	}
 	public long getAsynchronousMessagesNumberBySenderRole(Group group, String senderRole) throws DatabaseException {
+		if (senderRole==null)
+			throw new NullPointerException();
+		if (group==null)
+			throw new NullPointerException();
 		return getRecordsNumber(new Filter<Record>() {
 			@Override
 			public boolean nextRecord(Record _record) {
@@ -482,6 +506,10 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 		},"groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
 	}
 	public long getAsynchronousMessagesNumberByReceiverRole(Group group, String receiverRole) throws DatabaseException {
+		if (receiverRole==null)
+			throw new NullPointerException();
+		if (group==null)
+			throw new NullPointerException();
 		return getRecordsNumber(new Filter<Record>() {
 			@Override
 			public boolean nextRecord(Record _record) {
@@ -490,6 +518,8 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 		},"groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.toString(), "roleReceiver", receiverRole);
 	}
 	public long getAsynchronousMessagesNumberByGroup(Group group) throws DatabaseException {
+		if (group==null)
+			throw new NullPointerException();
 		return getRecordsNumber(new Filter<Record>() {
 			@Override
 			public boolean nextRecord(Record _record) {
