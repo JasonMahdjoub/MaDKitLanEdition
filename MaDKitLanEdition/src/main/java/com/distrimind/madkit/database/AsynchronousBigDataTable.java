@@ -799,7 +799,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 											  AsynchronousBigDataTable.Record record)
 	{
 		try {
-			return (BigDataTransferID)invoke(m_send_asynchronous_big_data, getMadkitKernel(requester),requester, senderAA, receiverAA, requester, record);
+			return (BigDataTransferID)invoke(m_send_asynchronous_big_data, getMadkitKernel(requester),requester, senderAA, receiverAA, record);
 		} catch (InvocationTargetException e) {
 			System.err.println("Unexpected error :");
 			e.printStackTrace();

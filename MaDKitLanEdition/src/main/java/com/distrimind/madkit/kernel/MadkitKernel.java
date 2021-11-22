@@ -942,6 +942,19 @@ class MadkitKernel extends Agent {
 
 	}
 
+	private void checkAsynchronousMessagesToSend(Object parameter)
+	{
+		if (asynchronousBigDataTable!=null) {
+
+			AgentAddress aa=(AgentAddress) parameter;
+			try {
+				asynchronousBigDataTable.groupRoleAvailable(this, platform.getConfigOption().rootOfPathGroupUsedToFilterAsynchronousMessages, aa.getGroup(), aa.getRole());
+			} catch (DatabaseException e) {
+				getLogger().severeLog("Unexpected exception", e);
+			}
+		}
+	}
+
 	@SuppressWarnings("unchecked")
 	void informHooks(AgentActionEvent action, Object... parameters) {
 		if (hooks.size() > 0) {
@@ -949,16 +962,7 @@ class MadkitKernel extends Agent {
 			switch (action) {
 
 			case REQUEST_ROLE:
-				if (asynchronousBigDataTable!=null) {
-					AgentAddress aa=(AgentAddress) parameters[0];
-					if (!aa.isFrom(getKernelAddress())) {
-						try {
-							asynchronousBigDataTable.groupRoleAvailable(this, platform.getConfigOption().rootOfPathGroupUsedToFilterAsynchronousMessages, aa.getGroup(), aa.getRole());
-						} catch (DatabaseException e) {
-							getLogger().severeLog("Unexpected exception", e);
-						}
-					}
-				}
+				checkAsynchronousMessagesToSend(parameters[0]);
 
 			case CREATE_GROUP:
 			case LEAVE_GROUP:
@@ -1023,6 +1027,7 @@ class MadkitKernel extends Agent {
 			HookMessage hm = null;
 			switch (action) {
 				case REQUEST_ROLE:
+					checkAsynchronousMessagesToSend(parameters[0]);
 				case LEAVE_ROLE:
 					hm = new OrganizationEvent(action, (AgentAddress) parameters[0]);
 					break;
@@ -1301,7 +1306,6 @@ class MadkitKernel extends Agent {
 						new AgentAddress(requester, g.get(role), kernelAddress, manually_requested),
 						manually_requested));
 			}
-
             informHooks(AgentActionEvent.REQUEST_ROLE,
                     new AgentAddress(requester, g.get(role), kernelAddress, manually_requested));
 		}
