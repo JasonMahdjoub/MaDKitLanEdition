@@ -201,11 +201,11 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		this.externalAsynchronousBigDataIdentifier =null;
 		this.asynchronousBigDataInternalIdentifier =null;
 	}
-	BigDataPropositionMessage(RandomInputStream stream, long pos, SecureExternalizable attachedData, boolean local,
+	BigDataPropositionMessage(RandomInputStream stream, long pos, long length, SecureExternalizable attachedData, boolean local,
 							  int maxBufferSize, RealTimeTransferStat stat, MessageDigestType messageDigestType, boolean excludedFromEncryption,
 							  AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier,
 							  ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier, long timeOutInMs) throws IOException {
-		this(stream, pos, stream.length(), attachedData, local, maxBufferSize, stat, messageDigestType, excludedFromEncryption);
+		this(stream, pos, length, attachedData, local, maxBufferSize, stat, messageDigestType, excludedFromEncryption);
 		if (externalAsynchronousBigDataIdentifier ==null)
 			throw new NullPointerException();
 		if (asynchronousBigDataInternalIdentifier ==null)
@@ -303,13 +303,11 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 	 * Then, this function cannot be used and the function {@link #acceptTransfer(RandomOutputStream)}  must be used instead
 	 */
 	public void acceptTransfer(final AsynchronousBigDataToReceiveWrapper asynchronousBigDataToReceiveWrapper) throws InterruptedException, IllegalAccessException {
-		if (outputStream == null)
-			throw new NullPointerException("outputStream");
+		if (asynchronousBigDataToReceiveWrapper == null)
+			throw new NullPointerException("asynchronousBigDataToReceiveWrapper");
 		if (asynchronousBigDataInternalIdentifier ==null)
 			throw new IllegalAccessException("This function cannot be used when big data to transfer can't be differed. Please use instead function acceptTransfer(RandomOutputStream).");
-		final RandomOutputStream outputStream= asynchronousBigDataToReceiveWrapper.getRandomOutputStream(externalAsynchronousBigDataIdentifier);
-		if (outputStream==null)
-			throw new NullPointerException();
+
 		acceptDifferedTransfer(asynchronousBigDataToReceiveWrapper);
 
 	}
@@ -330,6 +328,10 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		}
 	}
 	private void acceptDifferedTransfer(final AsynchronousBigDataToReceiveWrapper asynchronousBigDataToReceiveWrapper) throws InterruptedException {
+		final RandomOutputStream outputStream= asynchronousBigDataToReceiveWrapper.getRandomOutputStream(externalAsynchronousBigDataIdentifier);
+		if (outputStream==null)
+			throw new NullPointerException();
+
 		AsynchronousBigDataTable.Record r=localMadkitKernel.getAsynchronousBigDataTable().startAsynchronousBigDataTransfer(getReceiver().getGroup(),
 				getSender().getRole(),getReceiver().getRole(), externalAsynchronousBigDataIdentifier,
 				messageDigestType, excludedFromEncryption, timeOutInMs, asynchronousBigDataToReceiveWrapper, asynchronousBigDataInternalIdentifier,
