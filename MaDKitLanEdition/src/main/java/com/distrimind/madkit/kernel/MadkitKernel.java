@@ -3981,7 +3981,9 @@ class MadkitKernel extends Agent {
 		BigDataPropositionMessage message = new BigDataPropositionMessage(inputStream, record.getCurrentStreamPosition(),
 				inputStream.length()-record.getCurrentStreamPosition(), record.isTransferStarted()?null:record.getAttachedData(),
 				receiverAA.isFrom(getKernelAddress()), requester.getMadkitConfig().networkProperties.maxBufferSize,
-				stat, record.getMessageDigestType(), record.isExcludedFromEncryption());
+				stat, record.getMessageDigestType(), record.isExcludedFromEncryption(),
+				record.getAsynchronousBigDataInternalIdentifier(), record.getExternalAsynchronousBigDataIdentifier(),
+				record.getTimeOutInMs());
 
 		ReturnCode rc = buildAndSendMessage(senderAA, receiverAA, message);
 		// get the role for the sender and then send
