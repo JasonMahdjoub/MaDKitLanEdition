@@ -551,7 +551,7 @@ class FakeKernel extends MadkitKernel {
 		throw buildKernelException(null);
 	}
 	@Override
-	ReturnCode cancelBigDataTransfer(AbstractAgent requester, BigDataTransferID bigDataTransferID)
+	ReturnCode cancelBigDataTransfer(AbstractAgent requester, BigDataTransferID bigDataTransferID, BigDataResultMessage.Type reason)
 	{
 		throw buildKernelException(null);
 	}

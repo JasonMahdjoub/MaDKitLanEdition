@@ -505,12 +505,12 @@ class DistantKernelAgent extends AgentFakeThread {
 						{
 							AgentSocketData asd = getBestAgentSocket(false);
 							if (asd!=null)
-								sendData(asd.getAgentAddress(), new CancelBigDataSystemMessage(bdr.getIDPacket(), false), true, null, false);
+								sendData(asd.getAgentAddress(), new CancelBigDataSystemMessage(bdr.getIDPacket(), false, m.getReason()), true, null, false);
 						}
 					}
 					else
 					{
-						cancelBigPacketDataToSendInQueue(bpd.getIDPacket(), true, BigDataResultMessage.Type.TRANSFER_CANCELED);
+						cancelBigPacketDataToSendInQueue(bpd.getIDPacket(), true, m.getReason());
 					}
 				}
 				else if (_message.getClass() == ExceededDataQueueSize.class) {
@@ -831,7 +831,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			{
 				AgentSocketData asd = getBestAgentSocket(false);
 				if (asd!=null)
-					sendData(asd.getAgentAddress(), new CancelBigDataSystemMessage(bpd.getIDPacket(), true), true, null, false);
+					sendData(asd.getAgentAddress(), new CancelBigDataSystemMessage(bpd.getIDPacket(), true, resultType), true, null, false);
 			}
 			if (resultType!=null) {
 				MadkitKernelAccess.transferLostForBigDataTransfer(this, bpd.getConversationID(),
@@ -2732,11 +2732,11 @@ class DistantKernelAgent extends AgentFakeThread {
 						MadkitKernelAccess.transferLostForBigDataTransfer(this, bdr.getOriginalMessage().getConversationID(),
 								bdr.getIDPacket(), bdr.getOriginalMessage().getSender(), bdr.getOriginalMessage().getReceiver(),
 								bdr.getStatistics().getNumberOfIdentifiedBytes(), bdr.getStatistics().getDurationMilli(),
-								bdr.getOriginalMessage().getAsynchronousBigDataInternalIdentifier(), bdr.getOriginalMessage().getExternalAsynchronousBigDataIdentifier(), BigDataResultMessage.Type.TRANSFER_CANCELED);
+								bdr.getOriginalMessage().getAsynchronousBigDataInternalIdentifier(), bdr.getOriginalMessage().getExternalAsynchronousBigDataIdentifier(), m.getReason());
 				}
 				else
 				{
-					cancelBigPacketDataToSendInQueue(m.getIDTransfer(), true, BigDataResultMessage.Type.TRANSFER_CANCELED);
+					cancelBigPacketDataToSendInQueue(m.getIDTransfer(), true, m.getReason());
 				}
 			}
 			else

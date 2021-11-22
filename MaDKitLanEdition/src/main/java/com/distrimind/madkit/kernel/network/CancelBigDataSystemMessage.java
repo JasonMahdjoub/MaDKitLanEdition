@@ -35,6 +35,9 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL-C license and that you accept its terms.
  */
 
+import com.distrimind.madkit.kernel.BigDataResultMessage;
+import com.distrimind.util.io.Integrity;
+import com.distrimind.util.io.MessageExternalizationException;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
 
@@ -48,14 +51,20 @@ import java.io.IOException;
 public class CancelBigDataSystemMessage implements SystemMessageWithoutInnerSizeControl{
 	private int IDTransfer;
 	private boolean fromSender;
+	private BigDataResultMessage.Type reason;
 
 	@SuppressWarnings("unused")
 	CancelBigDataSystemMessage() {
 	}
 
-	public CancelBigDataSystemMessage(int IDTransfer, boolean fromSender) {
+	public CancelBigDataSystemMessage(int IDTransfer, boolean fromSender, BigDataResultMessage.Type reason) {
 		this.IDTransfer = IDTransfer;
 		this.fromSender=fromSender;
+		this.reason=reason;
+	}
+
+	public BigDataResultMessage.Type getReason() {
+		return reason;
 	}
 
 	public int getIDTransfer() {
@@ -71,12 +80,16 @@ public class CancelBigDataSystemMessage implements SystemMessageWithoutInnerSize
 	public void writeExternal(SecuredObjectOutputStream out) throws IOException {
 		out.writeInt(IDTransfer);
 		out.writeBoolean(fromSender);
+		out.writeEnum(reason, false);
 	}
 
 	@Override
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		IDTransfer=in.readInt();
 		fromSender=in.readBoolean();
+		reason=in.readEnum(false);
+		if (!reason.isCanceled())
+			throw new MessageExternalizationException(Integrity.FAIL);
 	}
 
 	public boolean isFromSender() {

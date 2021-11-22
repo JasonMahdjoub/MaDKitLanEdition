@@ -5171,7 +5171,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		if (bigDataTransferID==null)
 			throw new NullPointerException();
 		if (bigDataTransferID.getClass()==BigDataTransferID.class)
-			return getKernel().cancelBigDataTransfer(this, (BigDataTransferID)bigDataTransferID);
+			return getKernel().cancelBigDataTransfer(this, (BigDataTransferID)bigDataTransferID, BigDataResultMessage.Type.TRANSFER_CANCELED);
 		else if (bigDataTransferID.getClass()==AsynchronousBigDataTransferID.class)
 			return getKernel().cancelAsynchronousBigData(this, (AsynchronousBigDataTransferID)bigDataTransferID);
 		else

@@ -976,11 +976,12 @@ final class LoggedKernel extends MadkitKernel {
 		return r;
 	}
 	@Override
-	ReturnCode cancelBigDataTransfer(AbstractAgent requester, BigDataTransferID bigDataTransferID)
+	ReturnCode cancelBigDataTransfer(AbstractAgent requester, BigDataTransferID bigDataTransferID, BigDataResultMessage.Type reason)
 	{
-		ReturnCode r=kernel.cancelBigDataTransfer(requester, bigDataTransferID);
+		ReturnCode r=kernel.cancelBigDataTransfer(requester, bigDataTransferID, reason);
 		if (kernel.isFinestLogOn())
 			kernel.logger.log(Level.FINEST, "cancelBigDataTransfer (requester="+requester+", bigDataTransferID="+bigDataTransferID
+					+", reason="+reason
 					+", res=" + r + ")");
 		return r;
 	}

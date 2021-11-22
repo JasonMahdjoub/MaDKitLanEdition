@@ -3912,10 +3912,10 @@ class MadkitKernel extends Agent {
 			Group.addGroupChangesNotifier(args);
 	}
 
-	ReturnCode cancelBigDataTransfer(AbstractAgent requester, BigDataTransferID bigDataTransferID)
+	ReturnCode cancelBigDataTransfer(AbstractAgent requester, BigDataTransferID bigDataTransferID, BigDataResultMessage.Type reason )
 	{
 		if (netAgent!=null) {
-			Message m=new CancelBigDataTransferMessage(bigDataTransferID);
+			Message m=new CancelBigDataTransferMessage(bigDataTransferID, reason);
 			m.getConversationID().setOrigin(getKernelAddress());
 			m.setSender(netUpdater);
 			m.setReceiver(netAgent);

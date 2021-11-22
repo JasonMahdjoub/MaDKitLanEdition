@@ -36,6 +36,8 @@ knowledge of the CeCILL-C license and that you accept its terms.
  */
 
 import com.distrimind.madkit.kernel.network.SystemMessageWithoutInnerSizeControl;
+import com.distrimind.util.io.Integrity;
+import com.distrimind.util.io.MessageExternalizationException;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
 
@@ -48,29 +50,39 @@ import java.io.IOException;
  */
 public class CancelBigDataTransferMessage extends Message implements SystemMessageWithoutInnerSizeControl {
 	private BigDataTransferID bigDataTransferID;
+	private BigDataResultMessage.Type reason;
 
 	@SuppressWarnings("unused")
 	CancelBigDataTransferMessage() {
 	}
 
-	CancelBigDataTransferMessage(BigDataTransferID bigDataTransferID) {
+	CancelBigDataTransferMessage(BigDataTransferID bigDataTransferID, BigDataResultMessage.Type reason) {
 		if (bigDataTransferID==null)
 			throw new NullPointerException();
+		if (reason==null)
+			throw new NullPointerException();
 		this.bigDataTransferID = bigDataTransferID;
+		this.reason=reason;
 	}
 
 
 	@Override
 	public void writeExternal(SecuredObjectOutputStream out) throws IOException {
 		out.writeObject(bigDataTransferID, false);
+		out.writeEnum(reason, false);
 	}
 
 	@Override
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 		bigDataTransferID=in.readObject(false);
+		reason=in.readEnum(false);
+		if (!reason.isCanceled())
+			throw new MessageExternalizationException(Integrity.FAIL);
 	}
 
-
+	public BigDataResultMessage.Type getReason() {
+		return reason;
+	}
 
 	public BigDataTransferID getBigDataTransferID() {
 		return bigDataTransferID;

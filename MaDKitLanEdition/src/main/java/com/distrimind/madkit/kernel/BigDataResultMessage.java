@@ -179,7 +179,17 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 		/**
 		 * The was canceled during its transfer
 		 */
-		TRANSFER_CANCELED
+		TRANSFER_CANCELED,
+
+		/**
+		 * Asynchronous has been automatically canceled because it takes too much time
+		 */
+		TIME_OUT;
+
+		public boolean isCanceled()
+		{
+			return this==TIME_OUT || this==TRANSFER_CANCELED;
+		}
 	}
 	
 	public String toString()
