@@ -299,7 +299,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			return getDatabaseWrapper().runSynchronizedTransaction(new SynchronizedTransaction<Record>() {
 				@Override
 				public Record run() throws Exception {
-					Record r = getRecords("asynchronousBigDataIdentifier", externalAsynchronousBigDataIdentifier).stream().findAny().orElse(null);
+					Record r = getRecordsWithAllFields("externalAsynchronousBigDataIdentifier", externalAsynchronousBigDataIdentifier).stream().findAny().orElse(null);
 					if (asynchronousBigDataToSendWrapper !=null) {
 						if (r != null)
 							return null;
