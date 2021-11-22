@@ -361,7 +361,12 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 							outputStream.seek(pos);
 							inputStream.seek(pos);
 							outputStream.write(inputStream, length);
-							sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_TRANSFERRED, length);
+							long transferred=outputStream.currentPosition()-pos;
+							if (transferred==length)
+								sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_TRANSFERRED, length);
+							else
+								sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_PARTIALLY_TRANSFERRED,
+										transferred);
 						} catch (MessageExternalizationException e) {
 							long p;
 							try {

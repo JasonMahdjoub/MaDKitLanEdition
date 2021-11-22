@@ -188,7 +188,7 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 
 	public static byte[] getLargeData() {
 		if (largeData==null) {
-			largeData = new byte[4096];
+			largeData = new byte[100*1024*1024];
 			Random r = new Random(System.currentTimeMillis());
 			r.nextBytes(largeData);
 		}
@@ -490,8 +490,15 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 		m = receiver.nextMessage();
 		AssertJUnit.assertNotNull(m);
 		BigDataResultMessage bdrm=(BigDataResultMessage)m;
+		AssertJUnit.assertEquals(BigDataResultMessage.Type.BIG_DATA_TRANSFERRED, bdrm.getType());
+		AssertJUnit.assertEquals(bdrm.getTransferredDataLength(), dataIdentifier.shortData?getShortData().length:getLargeData().length);
 		AssertJUnit.assertEquals(dataIdentifier, bdrm.getExternalAsynchronousBigDataIdentifier());
-		AssertJUnit.assertEquals(outputStreamWrapper.getRandomOutputStream(outputStreamWrapper.identifier).getRandomInputStream().readAllBytes(), dataIdentifier.shortData?getShortData():getLargeData());
+		AssertJUnit.assertEquals(dataIdentifier, outputStreamWrapper.identifier);
+		AssertJUnit.assertEquals(dataIdentifier.shortData?receivedShortDataStream:receivedLargeDataStream, outputStreamWrapper.getRandomOutputStream(outputStreamWrapper.identifier));
+		AssertJUnit.assertEquals(dataIdentifier.shortData?getShortData().length:getLargeData().length, outputStreamWrapper.getRandomOutputStream(outputStreamWrapper.identifier).length());
+		RandomInputStream ris=outputStreamWrapper.getRandomOutputStream(outputStreamWrapper.identifier).getRandomInputStream();
+		ris.seek(0);
+		AssertJUnit.assertEquals(dataIdentifier.shortData?getShortData():getLargeData(), ris.readAllBytes());
 
 	}
 	private void testReceptionNotOK(AbstractAgent receiver, AsynchronousBigDataTransferID transferID)
