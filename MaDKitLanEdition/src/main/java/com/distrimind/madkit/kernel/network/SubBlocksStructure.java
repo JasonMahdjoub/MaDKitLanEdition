@@ -197,7 +197,7 @@ public class SubBlocksStructure {
 		return _block;
 	}
 
-	public SubBlock getSubBlockForChild(SubBlock _block, int sub_block_index) throws BlockParserException {
+	public void checkSubBlockForChild(SubBlock _block, int sub_block_index) throws BlockParserException {
 		if (sub_block_index < 0 || sub_block_index >= sub_block_sizes.length)
 			throw new BlockParserException(new ArrayIndexOutOfBoundsException("sub_block_index is invalid"));
 
@@ -217,7 +217,6 @@ public class SubBlocksStructure {
 			 * sub_block_sizes[sub_block_index]);
 			 */
 		}
-		return _block;
 	}
 
 	public static int getAbsoluteMaximumBufferSize(ConnectionProtocol<?> connection_protocol) throws NIOException {

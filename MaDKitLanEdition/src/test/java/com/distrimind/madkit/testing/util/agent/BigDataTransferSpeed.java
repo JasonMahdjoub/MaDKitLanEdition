@@ -68,7 +68,6 @@ public class BigDataTransferSpeed extends TestNGMadkit {
 	final NetworkEventListener eventListener1;
 	final NetworkEventListener eventListener2;
     final int downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond;
-
 	public BigDataTransferSpeed(final int downloadLimitInBytesPerSecond, final int uploadLimitInBytesPerSecond) throws UnknownHostException {
         this.downloadLimitInBytesPerSecond=downloadLimitInBytesPerSecond;
         this.uploadLimitInBytesPerSecond=uploadLimitInBytesPerSecond;
@@ -78,6 +77,7 @@ public class BigDataTransferSpeed extends TestNGMadkit {
         p2pprotocol.symmetricSignatureType= SymmetricAuthenticatedSignatureType.HMAC_SHA2_384;
         ListGroupsRoles defaultGroupAccess=new ListGroupsRoles();
         defaultGroupAccess.addGroupsRoles(TestNGMadkit.GROUP);
+
 
         AbstractAccessProtocolProperties app = new AccessProtocolWithP2PAgreementProperties();
         this.eventListener1 = new NetworkEventListener(true, false, false, null,
@@ -90,12 +90,12 @@ public class BigDataTransferSpeed extends TestNGMadkit {
             public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
                 super.onMaDKitPropertiesLoaded(_properties);
                 _properties.networkProperties.networkLogLevel = Level.INFO;
-                _properties.networkProperties.maxBufferSize=Short.MAX_VALUE*2;
                 _properties.networkProperties.maximumGlobalDownloadSpeedInBytesPerSecond=downloadLimitInBytesPerSecond;
                 _properties.networkProperties.maximumGlobalUploadSpeedInBytesPerSecond=uploadLimitInBytesPerSecond;
 
             }
         };
+        this.eventListener1.maxBufferSize=Short.MAX_VALUE;
 		/*this.eventListener1 = new MadkitEventListener() {
 
 			@Override
@@ -139,13 +139,12 @@ public class BigDataTransferSpeed extends TestNGMadkit {
 			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
 			    super.onMaDKitPropertiesLoaded(_properties);
                 _properties.networkProperties.networkLogLevel = Level.INFO;
-                _properties.networkProperties.maxBufferSize=Short.MAX_VALUE*2;
-
                 _properties.networkProperties.maximumGlobalDownloadSpeedInBytesPerSecond=downloadLimitInBytesPerSecond;
 				_properties.networkProperties.maximumGlobalUploadSpeedInBytesPerSecond=uploadLimitInBytesPerSecond;
 
 			}
 		};
+        this.eventListener2.maxBufferSize=this.eventListener1.maxBufferSize;
 	}
     private static final long timeOut = 20000;
 	public void bigDataTransfer() {

@@ -160,20 +160,27 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 		}
 
 		@Override
-		public SubBlockInfo getSubBlock(SubBlock _block) throws BlockParserException {
+		public SubBlockInfo getSubBlock(SubBlockInfo subBlockInfo) throws BlockParserException {
 			messageDigest.reset();
 			int sizeHead = getHeadSize();
-			byte[] tab=_block.getBytes();
-			SubBlock res = new SubBlock(tab, _block.getOffset() + sizeHead, _block.getSize() - sizeHead);
+			SubBlock subBlock=subBlockInfo.getSubBlock();
+			byte[] tab=subBlock.getBytes();
+			int offset=subBlock.getOffset();
+			subBlock.setOffsetAndSize(subBlock.getOffset() + sizeHead, subBlock.getSize() - sizeHead);
 
-			messageDigest.update(tab, res.getOffset(), res.getSize());
+
+			messageDigest.update(tab, subBlock.getOffset(), subBlock.getSize());
 			byte[] digest = messageDigest.digest();
-			int offset=_block.getOffset();
+
 			for (int i = 0; i < sizeHead; i++) {
 				if (digest[i] != tab[i + offset])
-					return new SubBlockInfo(res, false, false);
+				{
+					subBlockInfo.set(false, false);
+					return subBlockInfo;
+				}
 			}
-			return new SubBlockInfo(res, true, false);
+			subBlockInfo.set(true, false);
+			return subBlockInfo;
 		}
 
 		@Override

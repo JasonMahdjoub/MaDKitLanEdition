@@ -1708,6 +1708,7 @@ final class NIOAgent extends Agent {
 		}
 
 		private Timer timer_send = null;
+		private final Timer timer_send_static = new Timer(true);
 		private int data_sent = 0;
 
 		public void read(SelectionKey key) {
@@ -1881,8 +1882,10 @@ final class NIOAgent extends Agent {
 
 						if (buf!=null) {
 							if (firstPacketSent) {
-								if (timer_send == null)
-									timer_send = new Timer(true);
+								if (timer_send == null) {
+									timer_send = timer_send_static;
+									timer_send.reset();
+								}
 								else {
 									agentSocket.getStatistics().newDataSent(data.getIDTransfer(), data_sent,
 											timer_send.getDeltaMilli());

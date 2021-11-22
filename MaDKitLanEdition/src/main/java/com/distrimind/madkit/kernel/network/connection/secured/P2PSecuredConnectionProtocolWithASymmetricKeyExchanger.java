@@ -525,34 +525,37 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 		}
 
 		@Override
-		public SubBlockInfo getSubBlock(SubBlock _block) throws BlockParserException {
+		public SubBlockInfo getSubBlock(SubBlockInfo subBlockInfo) throws BlockParserException {
 
 			switch (current_step) {
 			case NOT_CONNECTED:
 			case WAITING_FOR_PUBLIC_KEY:
 			case WAITING_FOR_SECRET_KEY: {
 
-				return getSubBlockWithNoEncryption(_block);
+				return getSubBlockWithNoEncryption(subBlockInfo);
 			}
 			case WAITING_FIRST_MESSAGE:
 				if (isCurrentServerAskingConnection()) {
-					return getEncryptedSubBlock(_block, true);
+					return getEncryptedSubBlock(subBlockInfo, true);
 				} else {
-					return getSubBlockWithNoEncryption(_block);
+					return getSubBlockWithNoEncryption(subBlockInfo);
 				}
 
 			case WAITING_FOR_CONNECTION_CONFIRMATION:
 			case CONNECTED: {
-				return getEncryptedSubBlock(_block, true);
+				return getEncryptedSubBlock(subBlockInfo, true);
 			}
 
 			}
 			throw new BlockParserException("Unexpected exception");
 		}
 
-		public SubBlockInfo getSubBlockWithNoEncryption(SubBlock _block) throws BlockParserException {
-			return new SubBlockInfo(new SubBlock(_block.getBytes(), _block.getOffset() + getHeadSize(),
-					getBodyOutputSizeForDecryption(_block.getSize() - getHeadSize())), true, false);
+		public SubBlockInfo getSubBlockWithNoEncryption(SubBlockInfo subBlockInfo) throws BlockParserException {
+			SubBlock subBlock=subBlockInfo.getSubBlock();
+			subBlock.setOffsetAndSize(subBlock.getOffset() + getHeadSize(),
+					getBodyOutputSizeForDecryption(subBlock.getSize() - getHeadSize()));
+			subBlockInfo.set(true, false);
+			return subBlockInfo;
 		}
 
 
@@ -704,8 +707,8 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 		}
 
 		@Override
-		protected SubBlockInfo getEncryptedSubBlock(SubBlock _block, boolean enabledEncryption) throws BlockParserException {
-			return super.getEncryptedSubBlock(_block, false);
+		protected SubBlockInfo getEncryptedSubBlock(SubBlockInfo subBlockInfo, boolean enabledEncryption) throws BlockParserException {
+			return super.getEncryptedSubBlock(subBlockInfo, false);
 		}
 
 		@Override

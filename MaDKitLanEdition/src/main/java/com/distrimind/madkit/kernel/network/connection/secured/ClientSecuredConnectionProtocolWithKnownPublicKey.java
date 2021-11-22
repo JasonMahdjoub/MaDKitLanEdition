@@ -331,17 +331,19 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 		}
 
 		@Override
-		public SubBlockInfo getSubBlock(SubBlock _block) throws BlockParserException {
+		public SubBlockInfo getSubBlock(SubBlockInfo subBlockInfo) throws BlockParserException {
 
 			if (current_step==Step.NOT_CONNECTED)
 			{
-				SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getHeadSize(),
-						getBodyOutputSizeForDecryption(_block.getSize() - getHeadSize()));
-				return new SubBlockInfo(res, true, false);
+				SubBlock subBlock=subBlockInfo.getSubBlock();
+				subBlock.setOffsetAndSize(subBlock.getOffset() + getHeadSize(),
+						getBodyOutputSizeForDecryption(subBlock.getSize() - getHeadSize()));
+				subBlockInfo.set(true, false);
+				return subBlockInfo;
 			}
 			else
 			{
-				return getEncryptedSubBlock(_block, true);
+				return getEncryptedSubBlock(subBlockInfo, true);
 			}
 		}
 
@@ -425,8 +427,8 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 		}
 
 		@Override
-		protected SubBlockInfo getEncryptedSubBlock(SubBlock _block, boolean enabledEncryption) throws BlockParserException {
-			return super.getEncryptedSubBlock(_block, false);
+		protected SubBlockInfo getEncryptedSubBlock(SubBlockInfo subBlockInfo, boolean enabledEncryption) throws BlockParserException {
+			return super.getEncryptedSubBlock(subBlockInfo, false);
 		}
 
 		@Override

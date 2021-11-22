@@ -244,8 +244,10 @@ class DistantKernelAgent extends AgentFakeThread {
 			}
 
 			try {
-
-				if (_message instanceof LocalLanMessage) {
+				if (_message.getClass()==ReceivedBlockData.class) {
+					receiveData(_message.getSender(), ((ReceivedBlockData) _message).getContent());
+				}
+				else if (_message instanceof LocalLanMessage) {
 					if (distant_kernel_address == null || !kernelAddressActivated || !hasUsableDistantSocketAgent()) {
 						sendReplyEmpty(_message);
 						return;
@@ -324,9 +326,7 @@ class DistantKernelAgent extends AgentFakeThread {
 					} finally {
 						sendReplyEmpty(_message);
 					}
-				} else if (_message.getClass()==ReceivedBlockData.class) {
-					receiveData(_message.getSender(), ((ReceivedBlockData) _message).getContent());
-				} else if (_message.getClass() == SendDataFromAgentSocket.class) {
+				}  else if (_message.getClass() == SendDataFromAgentSocket.class) {
 					if (logger != null && logger.isLoggable(Level.FINEST))
 						logger.finest("Rooting message to send from agent socket (distantInterfacedKernelAddress="
 								+ distant_kernel_address + ") : " + _message);

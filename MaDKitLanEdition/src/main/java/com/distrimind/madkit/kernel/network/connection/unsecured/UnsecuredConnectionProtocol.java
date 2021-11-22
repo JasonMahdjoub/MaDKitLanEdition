@@ -146,8 +146,9 @@ public class UnsecuredConnectionProtocol extends ConnectionProtocol<UnsecuredCon
 			super(null, null, null, null, null);
 		}
 		@Override
-		public SubBlockInfo getSubBlock(SubBlock _block) throws BlockParserException {
-			return new SubBlockInfo(_block, true, false);
+		public SubBlockInfo getSubBlock(SubBlockInfo subBlockInfo) throws BlockParserException {
+			subBlockInfo.set(true, false);
+			return subBlockInfo;
 		}
 
 		@Override

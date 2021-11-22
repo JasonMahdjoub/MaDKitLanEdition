@@ -338,13 +338,18 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 			throw new NullPointerException("_block");
 		if (_block.getTransferID() != -1)
 			throw new NIOException("Unexpected exception !");
-		
-		SubBlockInfo sbi;
+
 		try {
-			sbi = new SubBlockInfo(new SubBlock(_block), true, false);
-		} catch (BlockParserException e) {
+			if (lastSubBlockInfo == null) {
+				lastSubBlockInfo = new SubBlockInfo(new SubBlock(_block), true, false);
+			} else {
+				lastSubBlockInfo.set(new SubBlock(_block), true, false);
+			}
+		}
+		catch (BlockParserException e) {
 			throw new NIOException("Unexpected exception", e);
 		}
+
 		if (lastSBS==null)
 			lastSBS = new SubBlocksStructure(_block, this);
 		else
@@ -360,16 +365,16 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 			boolean candidate_to_ban =false;
 			SubBlockParser sbp = cp.getParser();
 			try {
-				sbi = sbp.getSubBlock(sbi.getSubBlock());
-				valid = sbi.isValid();
-				candidate_to_ban = sbi.isCandidateToBan();
+				lastSubBlockInfo = sbp.getSubBlock(lastSubBlockInfo);
+				valid = lastSubBlockInfo.isValid();
+				candidate_to_ban = lastSubBlockInfo.isCandidateToBan();
 
 			} catch (BlockParserException e) {
 				valid = false;
 			}
 			if (valid) {
 				try {
-					sbi = new SubBlockInfo(lastSBS.getSubBlockForChild(sbi.getSubBlock(), i), true, false);
+					lastSBS.checkSubBlockForChild(lastSubBlockInfo.getSubBlock(), i);
 				} catch (BlockParserException e) {
 					valid = false;
 				}
@@ -380,7 +385,7 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 		}
 		try
 		{
-			return new PacketPart(sbi.getSubBlock(), properties.maxBufferSize,
+			return new PacketPart(lastSubBlockInfo.getSubBlock(), properties.maxBufferSize,
 				properties.maxRandomPacketValues);
 		}
 		catch(PacketException e)
@@ -433,6 +438,7 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 		
 	}
 	private SubBlocksStructure lastSBS;
+	private SubBlockInfo lastSubBlockInfo;
 
 	public SubBlock initSubBlock(int packetSize) throws NIOException
 	{

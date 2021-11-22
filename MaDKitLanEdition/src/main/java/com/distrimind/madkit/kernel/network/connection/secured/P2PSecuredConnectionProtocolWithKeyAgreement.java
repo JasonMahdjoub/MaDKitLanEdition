@@ -709,28 +709,31 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 		}
 
 		@Override
-		public SubBlockInfo getSubBlock(SubBlock _block) throws BlockParserException {
+		public SubBlockInfo getSubBlock(SubBlockInfo subBlockInfo) throws BlockParserException {
 
 			switch (current_step) {
 			case NOT_CONNECTED:
 			case WAITING_FOR_SIGNATURE_DATA:
-				return getSubBlockWithNoEncryption(_block);
+				return getSubBlockWithNoEncryption(subBlockInfo);
 			case WAITING_FOR_ENCRYPTION_DATA:
-				return getEncryptedSubBlock(_block, false);
+				return getEncryptedSubBlock(subBlockInfo, false);
 			case WAITING_FOR_SERVER_PROFILE_MESSAGE:
 			case WAITING_FOR_SERVER_SIGNATURE:
 			case WAITING_FOR_CONNECTION_CONFIRMATION:
 			case CONNECTED: {
-				return getEncryptedSubBlock(_block, true);
+				return getEncryptedSubBlock(subBlockInfo, true);
 			}
 
 			}
 			throw new BlockParserException("Unexpected exception");
 		}
 
-		public SubBlockInfo getSubBlockWithNoEncryption(SubBlock _block) throws BlockParserException {
-			return new SubBlockInfo(new SubBlock(_block.getBytes(), _block.getOffset() + getHeadSize(),
-					getBodyOutputSizeForDecryption(_block.getSize() - getHeadSize())), true, false);
+		public SubBlockInfo getSubBlockWithNoEncryption(SubBlockInfo subBlockInfo) throws BlockParserException {
+			SubBlock subBlock=subBlockInfo.getSubBlock();
+			subBlock.setOffsetAndSize(subBlock.getOffset() + getHeadSize(),
+					getBodyOutputSizeForDecryption(subBlock.getSize() - getHeadSize()));
+			subBlockInfo.set(true, false);
+			return subBlockInfo;
 		}
 
 		@Override
@@ -834,8 +837,8 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 		}
 
 		@Override
-		protected SubBlockInfo getEncryptedSubBlock(SubBlock _block, boolean enabledEncryption) throws BlockParserException {
-			return super.getEncryptedSubBlock(_block, false);
+		protected SubBlockInfo getEncryptedSubBlock(SubBlockInfo subBlockInfo, boolean enabledEncryption) throws BlockParserException {
+			return super.getEncryptedSubBlock(subBlockInfo, false);
 		}
 
 		@Override

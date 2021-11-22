@@ -1909,6 +1909,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 	}
 
 	private Timer timer_read = null;
+	private final Timer timer_read_static=new Timer(true);
 	private int dataRead = 0;
 
 	protected ReturnCode receiveData(Block _block) {
@@ -1916,8 +1917,10 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			if (_block.getTransferID() != getTransferType().getID()) {
 				processInvalidBlockToTransfer(_block);
 			}
-			if (timer_read == null)
-				timer_read = new Timer(true);
+			if (timer_read == null) {
+				timer_read=timer_read_static;
+				timer_read.reset();
+			}
 			else
 				getStatistics().newDataReceived(_block.getTransferID(), dataRead,
 						timer_read.getDeltaMilli());

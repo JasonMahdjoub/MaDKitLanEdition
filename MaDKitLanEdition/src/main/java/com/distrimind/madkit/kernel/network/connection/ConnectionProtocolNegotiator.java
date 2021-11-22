@@ -225,11 +225,13 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
         }
 
         @Override
-        public SubBlockInfo getSubBlock(SubBlock _block) throws BlockParserException {
-            if (selectedConnectionProtocol==null)
-                return new SubBlockInfo(_block, true, false);
+        public SubBlockInfo getSubBlock(SubBlockInfo subBlockInfo) throws BlockParserException {
+            if (selectedConnectionProtocol==null) {
+                subBlockInfo.set(true, false);
+                return subBlockInfo;
+            }
             else
-                return selectedConnectionProtocol.getParser().getSubBlock(_block);
+                return selectedConnectionProtocol.getParser().getSubBlock(subBlockInfo);
         }
 
         @Override

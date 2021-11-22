@@ -389,25 +389,25 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 		}
 
 		@Override
-		public SubBlockInfo getSubBlock(SubBlock _block) throws BlockParserException {
+		public SubBlockInfo getSubBlock(SubBlockInfo subBlockInfo) throws BlockParserException {
 			switch (current_step) {
 				case NOT_CONNECTED: {
-
-
+					SubBlock subBlock=subBlockInfo.getSubBlock();
 					if (!isProfileInitialized())
 					{
-						int identifier = Bits.getInt(_block.getBytes(), _block.getOffset());
+						int identifier = Bits.getInt(subBlock.getBytes(), subBlock.getOffset());
 						initMyKeyPair(identifier);
 					}
-					SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() + getHeadSize(),
-							getBodyOutputSizeForDecryption(_block.getSize() - getHeadSize()));
+					subBlock.setOffsetAndSize(subBlock.getOffset() + getHeadSize(),
+							getBodyOutputSizeForDecryption(subBlock.getSize() - getHeadSize()));
 					setFirstMessageReceived();
 
-					return new SubBlockInfo(res, true, false);
+					subBlockInfo.set(true, false);
+					return subBlockInfo;
 				}
 				case WAITING_FOR_CONNECTION_CONFIRMATION:
 				case CONNECTED: {
-					return getEncryptedSubBlock(_block, true);
+					return getEncryptedSubBlock(subBlockInfo, true);
 				}
 			}
 			throw new BlockParserException("Unexpected exception");
@@ -488,8 +488,8 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 		}
 
 		@Override
-		protected SubBlockInfo getEncryptedSubBlock(SubBlock _block, boolean enabledEncryption) throws BlockParserException {
-			return super.getEncryptedSubBlock(_block, false);
+		protected SubBlockInfo getEncryptedSubBlock(SubBlockInfo subBlockInfo, boolean enabledEncryption) throws BlockParserException {
+			return super.getEncryptedSubBlock(subBlockInfo, false);
 		}
 
 		@Override

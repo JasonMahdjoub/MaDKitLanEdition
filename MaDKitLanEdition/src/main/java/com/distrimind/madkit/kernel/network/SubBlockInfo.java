@@ -46,16 +46,12 @@ import com.distrimind.madkit.exceptions.BlockParserException;
  * @since MadkitLanEdition 1.0
  */
 public final class SubBlockInfo {
-	private final SubBlock sub_block;
-	private final boolean valid;
-	private final boolean candidate_to_ban;
+	private SubBlock sub_block;
+	private boolean valid;
+	private boolean candidate_to_ban;
 
 	public SubBlockInfo(SubBlock _sub_block, boolean _valid, boolean _candidate_to_ban) throws BlockParserException {
-		sub_block = _sub_block;
-		valid = _valid;
-		candidate_to_ban = _candidate_to_ban;
-		if (valid && candidate_to_ban)
-			throw new BlockParserException("The sub block can't be valid and canditate to ban at the same time !");
+		set(_sub_block, _valid, _candidate_to_ban);
 	}
 
 	public boolean isValid() {
@@ -68,5 +64,19 @@ public final class SubBlockInfo {
 
 	public SubBlock getSubBlock() {
 		return sub_block;
+	}
+
+	public void set(boolean valid, boolean candidate_to_ban) throws BlockParserException {
+		if (valid && candidate_to_ban)
+			throw new BlockParserException("The sub block can't be valid and canditate to ban at the same time !");
+		this.valid=valid;
+		this.candidate_to_ban=candidate_to_ban;
+	}
+	public void set(SubBlock sub_block, boolean valid, boolean candidate_to_ban) throws BlockParserException {
+		if (valid && candidate_to_ban)
+			throw new BlockParserException("The sub block can't be valid and canditate to ban at the same time !");
+		this.sub_block=sub_block;
+		this.valid=valid;
+		this.candidate_to_ban=candidate_to_ban;
 	}
 }

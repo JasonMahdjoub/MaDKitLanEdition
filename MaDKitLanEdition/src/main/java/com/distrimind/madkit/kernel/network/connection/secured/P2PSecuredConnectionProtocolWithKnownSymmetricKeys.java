@@ -295,21 +295,24 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 			super(decoderWithEncryption, decoderWithoutEncryption, encoderWithEncryption, encoderWithoutEncryption, packetCounter);
 		}
 		@Override
-		public SubBlockInfo getSubBlock(SubBlock _block) throws BlockParserException {
+		public SubBlockInfo getSubBlock(SubBlockInfo subBlockInfo) throws BlockParserException {
 			switch (status) {
 				case NOT_CONNECTED:
-					return getSubBlockWithNoEncryption(_block);
+					return getSubBlockWithNoEncryption(subBlockInfo);
 				case WAITING_FOR_CONNECTION_CONFIRMATION:
 
 				case CONNECTED:
-					return getEncryptedSubBlock(_block, true);
+					return getEncryptedSubBlock(subBlockInfo, true);
 
 			}
 			throw new BlockParserException("Unexpected exception");
 		}
-		public SubBlockInfo getSubBlockWithNoEncryption(SubBlock _block) throws BlockParserException {
-			return new SubBlockInfo(new SubBlock(_block.getBytes(), _block.getOffset() + getHeadSize(),
-					getBodyOutputSizeForDecryption(_block.getSize() - getHeadSize())), true, false);
+		public SubBlockInfo getSubBlockWithNoEncryption(SubBlockInfo subBlockInfo) throws BlockParserException {
+			SubBlock subBlock=subBlockInfo.getSubBlock();
+			subBlock.setOffsetAndSize(subBlock.getOffset() + getHeadSize(),
+					getBodyOutputSizeForDecryption(subBlock.getSize() - getHeadSize()));
+			subBlockInfo.set(true, false);
+			return subBlockInfo;
 		}
 
 
@@ -491,8 +494,8 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 			return size;
 		}
 		@Override
-		protected SubBlockInfo getEncryptedSubBlock(SubBlock _block, boolean enabledEncryption) throws BlockParserException {
-			return super.getEncryptedSubBlock(_block, false);
+		protected SubBlockInfo getEncryptedSubBlock(SubBlockInfo subBlockInfo, boolean enabledEncryption) throws BlockParserException {
+			return super.getEncryptedSubBlock(subBlockInfo, false);
 		}
 
 		@Override
