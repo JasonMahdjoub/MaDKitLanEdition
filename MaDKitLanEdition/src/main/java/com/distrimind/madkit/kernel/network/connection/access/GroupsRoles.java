@@ -306,18 +306,23 @@ public class GroupsRoles implements Cloneable, SecureExternalizable {
 		}
 	}
 
-	public boolean isConcernedByDistantAgentAddress(AgentAddress aa)
+	public boolean isConcernedByGroupRole(Group group, String role)
 	{
-		if (group.includes(aa.getGroup())) {
+		if (group.includes(group)) {
 			if (distantAcceptedRoles == null)
 				return true;
 			for (String r : distantAcceptedRoles) {
-				if (r.equals(aa.getRole()))
+				if (r.equals(role))
 					return true;
 			}
 		}
 		return false;
 
+	}
+
+	public boolean isConcernedByDistantAgentAddress(AgentAddress aa)
+	{
+		return isConcernedByGroupRole(aa.getGroup(), aa.getRole());
 	}
 	public boolean isConcernedByLocalAgentAddress(AgentAddress aa)
 	{

@@ -228,6 +228,30 @@ class DistantKernelAgent extends AgentFakeThread {
 	 * messageToResend) { this.messageToResend=messageToResend; } }
 	 */
 	private volatile boolean concurrent = false;
+	private boolean isSharedGroupRole(CGRSynchro cgrSynchro)
+	{
+		return isSharedGroupRole(cgrSynchro.getContent().getGroup(), cgrSynchro.getContent().getRole());
+	}
+	private boolean isSharedGroupRole(Group group, String role)
+	{
+		return distant_accepted_groups.includes(group, role) && isLocallyAcceptedGroupRole(group, role);
+	}
+	private boolean isLocallyAcceptedGroupRole(Group group, String role)
+	{
+
+		for (AgentSocketData asd : agents_socket)
+		{
+			if (asd.getAcceptedLocalGroups().getGroups().includes(group, role))
+				return true;
+		}
+		for (AgentSocketData asd : indirect_agents_socket)
+		{
+			if (asd.getAcceptedLocalGroups().getGroups().includes(group, role))
+				return true;
+		}
+		return false;
+	}
+
 
 
 	@SuppressWarnings({"SynchronizeOnNonFinalField"})
@@ -357,7 +381,7 @@ class DistantKernelAgent extends AgentFakeThread {
 					CGRSynchro m = (CGRSynchro) _message;
 
 					if (this.kernelAddressActivated) {
-						if (sharedAcceptedAndRequestedGroups.contains(m.getContent().getGroup())) {
+						if (isSharedGroupRole(m)) {
 
 							AgentSocketData asd = getBestAgentSocketForLocalAgentAddress(distant_kernel_address, m.getContent(),
 									false);
@@ -1798,12 +1822,8 @@ class DistantKernelAgent extends AgentFakeThread {
 			ArrayList<Group> ag = new ArrayList<>();
 			for (Group g : localAcceptedAndRequestedGroups.getRepresentedGroups(getKernelAddress()))
 			{
-				for (Group g2 : distant_accepted_groups.getRepresentedGroups(getKernelAddress())) {
-					if (g2.equals(g)) {
-						ag.add(g);
-						break;
-					}
-				}
+				if (distant_accepted_groups.includes(g))
+					ag.add(g);
 			}
 
 			ArrayList<Group> newAcceptedGroups = computeMissedGroups(this.sharedAcceptedAndRequestedGroups, ag);
@@ -1840,7 +1860,6 @@ class DistantKernelAgent extends AgentFakeThread {
 				}
 			}
 			this.sharedAcceptedAndRequestedGroups=ag;
-
 
 
 

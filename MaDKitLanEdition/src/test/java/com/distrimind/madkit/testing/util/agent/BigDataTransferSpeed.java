@@ -95,7 +95,7 @@ public class BigDataTransferSpeed extends TestNGMadkit {
 
             }
         };
-        this.eventListener1.maxBufferSize=Short.MAX_VALUE;
+        this.eventListener1.maxBufferSize=Short.MAX_VALUE*2;
 		/*this.eventListener1 = new MadkitEventListener() {
 
 			@Override

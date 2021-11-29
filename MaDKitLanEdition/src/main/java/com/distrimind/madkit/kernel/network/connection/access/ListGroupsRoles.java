@@ -59,7 +59,16 @@ public class ListGroupsRoles implements Cloneable, SecureExternalizable {
 			multiGroup=mg;
 		}
 		return multiGroup;
+	}
 
+	public boolean includes(Group group, String role)
+	{
+		return groupsRoles.values().stream().anyMatch(gr -> gr.isConcernedByGroupRole(group, role));
+	}
+
+	public boolean includes(Group group)
+	{
+		return groupsRoles.values().stream().anyMatch(gr -> gr.getGroup().includes(group));
 	}
 
 	public Group[] getRepresentedGroups(KernelAddress localKernelAddress)

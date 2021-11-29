@@ -285,6 +285,7 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 
 		if (!isConcerned(baseGroupPath, agentAddress.getGroup()))
 			return ;
+
 		getDatabaseWrapper().runSynchronizedTransaction(new SynchronizedTransaction<Void>() {
 			@Override
 			public Void run() throws Exception {

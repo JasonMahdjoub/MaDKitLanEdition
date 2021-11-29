@@ -89,11 +89,13 @@ public class TestNGMadkit {
 	public static final String C = "Tcommunity";
 	public static final String C2 = "Tcommunity2";
 	public static final String G = "Tgroup";
-	public static final String G2 = "Tgroup";
+	public static final String G2 = "Tgroup2";
+	public static final String GB = "TgroupB";
 	public static final String NGDAccessData = "TgroupNGDAccessData";
 	public static final String NGDLoginData = "TgroupNGDLoginData";
 	public static final String NGLD = "TgroupNGLD";
 	public static final Group GROUP = new Group(true, null, false, C, G);
+	public static final Group GROUPB = new Group(true, null, false, C, GB);
 	public static final Group GROUP2 = new Group(C2, G2);
 	public static final Group DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA = new Group(true, null, false, C, NGDAccessData);
 

@@ -82,7 +82,7 @@ public class NetworkEventListener implements MadkitEventListener {
 	private Integer globalDataAmountAcc = null;
 	private int gatewayDepth = 1;
 	public long durationBeforeCancelingTransferConnection = 20000L;
-	public int maxBufferSize=Short.MAX_VALUE;
+	public int maxBufferSize=Short.MAX_VALUE*2;
 	EncryptionProfileProviderFactory signatureProfileProviderForAuthenticatedMessagesDestinedToCentralDatabaseBackup;
 	EncryptionProfileProviderFactory encryptionProfileProviderForE2EDataDestinedCentralDatabaseBackup;
 	EncryptionProfileProviderFactory protectedEncryptionProfileFactoryProviderForAuthenticatedP2PMessages;

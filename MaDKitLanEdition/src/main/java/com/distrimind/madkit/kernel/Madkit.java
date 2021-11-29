@@ -154,6 +154,7 @@ final public class Madkit {
 							.addItem(NEW_FEATURE, "Permit to cancel asynchronous messages sending if a time out has been reached")
 							.addItem(NEW_FEATURE, "Add possibility to schedule obsolete data cleaning into MaDKit database")
 							.addItem(INTERNAL_CHANGE, "Minimize use of garbage collector during transfers")
+							.addItem(BUG_FIX, "Fix bad synchronization of distant available agents")
 					)
 					.addDescription(new Description((short)2, (short)2, (short)3, Version.Type.STABLE, (short)0, "2021-11-02")
 							.addItem(INTERNAL_CHANGE, "Update Utils to 5.21.0 STABLE")
