@@ -46,6 +46,7 @@ import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.AbstractDecentralizedIDGenerator;
 import com.distrimind.util.Reference;
 import com.distrimind.util.RenforcedDecentralizedIDGenerator;
+import com.distrimind.util.concurrent.ScheduledPoolExecutor;
 import com.distrimind.util.crypto.MessageDigestType;
 import com.distrimind.util.io.SecureExternalizable;
 
@@ -397,7 +398,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 	}
 	public boolean receivedPotentialAsynchronousBigDataResultMessage(AbstractAgent requester, BigDataResultMessage.Type resultType,
 																	 AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier,
-																	 long transferedDataLength) throws DatabaseException {
+																	 long transferedDataLength, ScheduledPoolExecutor serviceExecutor) throws DatabaseException {
 		AtomicReference<Record> record=new AtomicReference<>(null);
 		boolean r=getDatabaseWrapper().runSynchronizedTransaction(new SynchronizedTransaction<Boolean>() {
 			@Override
@@ -438,10 +439,19 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		BigDataTransferID btid=transferIdsPerInternalAsynchronousId.remove(asynchronousBigDataInternalIdentifier);
 		if (btid!=null && record.get()!=null)
 		{
-			decrementNumberOfSimultaneousAsynchronousMessagesIfNecessary(requester, record.get());
+			serviceExecutor.execute(() -> {
+				try {
+					decrementNumberOfSimultaneousAsynchronousMessagesIfNecessary(requester, record.get());
+				} catch (DatabaseException e) {
+					e.printStackTrace();
+				}
+			});
+
 		}
 		return r;
 	}
+
+
 	public Record startAsynchronousBigDataTransfer(Collection<String> baseGroupPath, final AbstractAgent requester, final Group group, String roleSender, String roleReceiver,
 												   ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier,
 												   SecureExternalizable attachedData,
@@ -767,7 +777,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			m_kernel_get_role = getMethod(madkitKernelClass, "getRole", Group.class, String.class);
 		}
 	}
-	AbstractAgent getAgent(AgentAddress aa)
+	static AbstractAgent getAgent(AgentAddress aa)
 	{
 		try {
 			return (AbstractAgent)invoke(m_get_agent, aa);
@@ -779,7 +789,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		}
 	}
 
-	boolean incrementNumberOfSimultaneousAsynchronousMessages(AgentAddress aa, long maxNumberOfSimultaneousAsynchronousMessages)
+	static boolean incrementNumberOfSimultaneousAsynchronousMessages(AgentAddress aa, long maxNumberOfSimultaneousAsynchronousMessages)
 	{
 		try {
 			return (boolean)invoke(m_incrementNumberOfSimultaneousAsynchronousMessages, invoke(m_get_role_object, aa), maxNumberOfSimultaneousAsynchronousMessages);
@@ -790,7 +800,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			return false;
 		}
 	}
-	void decrementNumberOfSimultaneousAsynchronousMessages(AgentAddress aa)
+	static void decrementNumberOfSimultaneousAsynchronousMessages(AgentAddress aa)
 	{
 		try {
 			invoke(m_decrementNumberOfSimultaneousAsynchronousMessages, invoke(m_get_role_object, aa));
@@ -800,7 +810,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			System.exit(-1);
 		}
 	}
-	void decrementNumberOfSimultaneousAsynchronousMessagesIfPossible(AbstractAgent agent, Group group, String role)
+	static void decrementNumberOfSimultaneousAsynchronousMessagesIfPossible(AbstractAgent agent, Group group, String role)
 	{
 		try {
 			Object internalRole=invoke(m_kernel_get_role, getMadkitKernel(agent), group, role);
@@ -812,7 +822,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			System.exit(-1);
 		}
 	}
-	Agent getMadkitKernel(AbstractAgent abstractAgent)
+	static Agent getMadkitKernel(AbstractAgent abstractAgent)
 	{
 		try {
 			return (Agent)invoke(m_get_madkit_kernel, abstractAgent);
@@ -823,7 +833,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			return null;
 		}
 	}
-	BigDataTransferID sendAsynchronousBigData(AbstractAgent requester, AgentAddress senderAA, AgentAddress receiverAA,
+	static BigDataTransferID sendAsynchronousBigData(AbstractAgent requester, AgentAddress senderAA, AgentAddress receiverAA,
 											  AsynchronousBigDataTable.Record record)
 	{
 		try {
@@ -847,7 +857,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		}
 	}*/
 
-	void cancelBigDataTransfer(AbstractAgent requester, BigDataTransferID bigDataTransferID, BigDataResultMessage.Type reason)
+	static void cancelBigDataTransfer(AbstractAgent requester, BigDataTransferID bigDataTransferID, BigDataResultMessage.Type reason)
 	{
 		try {
 			invoke(m_cancel_big_data_transfer, getMadkitKernel(requester), requester, bigDataTransferID, reason);

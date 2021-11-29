@@ -181,55 +181,56 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 		}
 	}
 
-	private final Map<Role, AbstractAgent> availableSenders= Collections.synchronizedMap(new HashMap<>());
+	//private final Map<Role, AbstractAgent> availableSenders= Collections.synchronizedMap(new HashMap<>());
 
-	private void checkSender(final AbstractAgent abstractAgent, final Group group, final String r, String groupPath) throws DatabaseException {
-		if (abstractAgent==null)
-			return ;
-		Role role=new Role(group, r);
-		AbstractAgent res=availableSenders.get(role);
-		if (res!=null)
-			return ;
+	private void checkSender(AbstractAgent sender, final Group group, final String roleSender, String groupPath) throws DatabaseException {
+		if (sender==null)
+			return;
+
+
+		if (sender.getAgentAddressIn(group, roleSender)==null)
+			return;
+
 		final AtomicBoolean allRemoved=new AtomicBoolean(true);
 
 		final StringBuilder where=new StringBuilder("groupPath=%groupPath AND roleSender=%roleSender and (");
 		final int startQueryLength=where.length();
 		final ArrayList<String> wheres=new ArrayList<>();
+
 		getOrderedRecords(new Filter<Record>(){
 			@Override
 			public boolean nextRecord(Record _record) {
 
-				AgentAddress aa=abstractAgent.getAgentWithRole(group, _record.getRoleReceiver());
-				if (aa!=null) {
+				AgentAddress aa = sender.getAgentWithRole(group, _record.getRoleReceiver());
+
+				if (aa != null) {
 					try {
 
-						if (_record.isObsolete() || canForgiveMessage(abstractAgent.sendMessageWithRole(aa, _record.getAsynchronousMessage(), r))) {
-							if (where.length()>startQueryLength)
+						if (_record.isObsolete() || canForgiveMessage(sender.sendMessageWithRole(aa, _record.getAsynchronousMessage(), roleSender))) {
+							if (where.length() > startQueryLength)
 								where.append(" OR ");
 
 							where.append("id=")
 									.append(_record.id);
-							if (where.length()>500000)
-							{
+							if (where.length() > 500000) {
 								where.append(")");
 								wheres.add(where.toString());
 								where.setLength(startQueryLength);
 							}
-						}
-						else {
+						} else {
 							allRemoved.set(false);
 						}
 					} catch (ClassNotFoundException | IOException e) {
 						e.printStackTrace();
 					}
 
-				}
-				else {
+				} else {
+
 					allRemoved.set(false);
 				}
 				return false;
 			}
-		},"groupPath=%groupPath AND roleSender=%roleSender", new Object[]{"groupPath", groupPath, "roleSender", r}, true, "queryTimeUTC");
+		},"groupPath=%groupPath AND roleSender=%roleSender", new Object[]{"groupPath", groupPath, "roleSender", roleSender}, true, "queryTimeUTC");
 		if (!allRemoved.get() || where.length() > startQueryLength || wheres.size()>0) {
 			if (allRemoved.get()) {
 				removeAllRecordsWithCascade();
@@ -239,9 +240,7 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 					wheres.add(where.toString());
 				}
 				for (String w : wheres)
-					removeRecords(w, "groupPath", groupPath, "roleSender", r);
-
-				availableSenders.put(role, abstractAgent);
+					removeRecords(w, "groupPath", groupPath, "roleSender", roleSender);
 			}
 		}
 	}
@@ -280,7 +279,9 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 		return false;
 	}
 
-	public void groupRoleAvailable(Collection<String> baseGroupPath, final AbstractAgent agent, final AgentAddress agentAddress) throws DatabaseException {
+	public void groupRoleAvailable(final AbstractAgent madkitKernel, Collection<String> baseGroupPath, AbstractAgent sender, final AgentAddress agentAddress) throws DatabaseException {
+		if (madkitKernel==null)
+			throw new NullPointerException();
 		final String groupPath=agentAddress.getGroup().toString();
 
 		if (!isConcerned(baseGroupPath, agentAddress.getGroup()))
@@ -289,7 +290,7 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 		getDatabaseWrapper().runSynchronizedTransaction(new SynchronizedTransaction<Void>() {
 			@Override
 			public Void run() throws Exception {
-				checkSender(agent, agentAddress.getGroup(), agentAddress.getRole(), groupPath);
+				checkSender(sender, agentAddress.getGroup(), agentAddress.getRole(), groupPath);
 				final StringBuilder where=new StringBuilder("groupPath=%groupPath AND roleReceiver=%roleReceiver and (");
 				final int startQueryLength=where.length();
 				final ArrayList<String> wheres=new ArrayList<>();
@@ -299,14 +300,21 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 
 					@Override
 					public boolean nextRecord(Record _record) {
+
 						Role r=new Role(agentAddress.getGroup(), _record.getRoleSender());
-						AbstractAgent abstractAgent=availableSenders.get(r);
-						if (abstractAgent==null)
+						AgentAddress aa=madkitKernel.getAgentWithRole(agentAddress.getGroup(), _record.getRoleSender());
+						if (aa==null)
 							return false;
-						AgentAddress aa=abstractAgent.getAgentWithRole(agentAddress.getGroup(), _record.getRoleReceiver());
+
+						AbstractAgent sender=AsynchronousBigDataTable.getAgent(aa);
+
+						if (sender==null)
+							return false;
+
+						aa=sender.getAgentWithRole(agentAddress.getGroup(), _record.getRoleReceiver());
 						if (aa!=null) {
 							try {
-								if (_record.isObsolete() || canForgiveMessage(abstractAgent.sendMessageWithRole(aa, _record.getAsynchronousMessage(), _record.getRoleSender())))
+								if (_record.isObsolete() || canForgiveMessage(sender.sendMessageWithRole(aa, _record.getAsynchronousMessage(), _record.getRoleSender())))
 								{
 									if (where.length() > startQueryLength)
 										where.append(" OR ");
@@ -329,7 +337,6 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 								allRemovedPerRole.put(r, false);
 								e.printStackTrace();
 							}
-
 						}
 						else {
 							allRemoved.set(false);
@@ -353,9 +360,9 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 						}
 					}
 				}
-				for (Map.Entry<Role, Boolean> e : allRemovedPerRole.entrySet())
+				/*for (Map.Entry<Role, Boolean> e : allRemovedPerRole.entrySet())
 					if (e.getValue())
-						availableSenders.remove(e.getKey());
+						availableSenders.remove(e.getKey());*/
 				return null;
 			}
 
@@ -376,7 +383,7 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 		});
 	}
 
-	public void newAgentDisconnected(Collection<String> baseGroupPath, AgentAddress agentAddress)
+	/*public void newAgentDisconnected(Collection<String> baseGroupPath, AgentAddress agentAddress)
 	{
 		if (!isConcerned(baseGroupPath, agentAddress.getGroup()))
 			return ;
@@ -384,7 +391,7 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 		Role role=new Role(agentAddress.getGroup(), agentAddress.getRole());
 		availableSenders.remove(role);
 
-	}
+	}*/
 	boolean canForgiveMessage(AbstractAgent.ReturnCode r)
 	{
 		return r== AbstractAgent.ReturnCode.SUCCESS || r== AbstractAgent.ReturnCode.TRANSFER_IN_PROGRESS || r==AbstractAgent.ReturnCode.INVALID_AGENT_ADDRESS;
@@ -417,7 +424,7 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 			@Override
 			public Void run() throws Exception {
 				Role role=new Role(group, roleSender);
-				availableSenders.putIfAbsent(role, requester);
+				//availableSenders.putIfAbsent(role, requester);
 				addRecord(new Record(group.toString(), roleSender, roleReceiver, message,timeOutInMs));
 
 				return null;

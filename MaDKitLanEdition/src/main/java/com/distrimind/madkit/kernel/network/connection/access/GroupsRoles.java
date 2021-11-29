@@ -308,7 +308,7 @@ public class GroupsRoles implements Cloneable, SecureExternalizable {
 
 	public boolean isConcernedByGroupRole(Group group, String role)
 	{
-		if (group.includes(group)) {
+		if (this.group.includes(group)) {
 			if (distantAcceptedRoles == null)
 				return true;
 			for (String r : distantAcceptedRoles) {

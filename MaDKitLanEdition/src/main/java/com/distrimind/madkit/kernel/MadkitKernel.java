@@ -1109,21 +1109,25 @@ class MadkitKernel extends Agent {
 				OrganizationEvent oe=(OrganizationEvent)hook_message;
 
 				if (oe.getContent()==AgentActionEvent.REQUEST_ROLE) {
-					try {
-						asynchronousMessageTable.groupRoleAvailable(platform.getConfigOption().rootOfPathGroupUsedToFilterAsynchronousMessages, oe.getSourceAgent().getAgent(), oe.getSourceAgent());
-					} catch (DatabaseException e) {
-						logLifeException(e);
-					}
-					try {
-						asynchronousBigDataTable.groupRoleAvailable(this, platform.getConfigOption().rootOfPathGroupUsedToFilterAsynchronousMessages, oe.getSourceAgent().getGroup(), oe.getSourceAgent().getRole());
-					} catch (DatabaseException e) {
-						logLifeException(e);
-					}
+					serviceExecutor.execute(() -> {
+						try {
+
+							asynchronousMessageTable.groupRoleAvailable(MadkitKernel.this.getKernel(), platform.getConfigOption().rootOfPathGroupUsedToFilterAsynchronousMessages, oe.getSourceAgent().getAgent(), oe.getSourceAgent());
+						} catch (DatabaseException e) {
+							logLifeException(e);
+						}
+						try {
+							asynchronousBigDataTable.groupRoleAvailable(MadkitKernel.this, platform.getConfigOption().rootOfPathGroupUsedToFilterAsynchronousMessages, oe.getSourceAgent().getGroup(), oe.getSourceAgent().getRole());
+						} catch (DatabaseException e) {
+							logLifeException(e);
+						}
+					});
+
 
 				}
-				else if (oe.getContent()==AgentActionEvent.LEAVE_ROLE) {
+				/*else if (oe.getContent()==AgentActionEvent.LEAVE_ROLE) {
 					asynchronousMessageTable.newAgentDisconnected(platform.getConfigOption().rootOfPathGroupUsedToFilterAsynchronousMessages, oe.getSourceAgent());
-				}
+				}*/
 
 			} else if (hook_message.getClass() == NetworkEventMessage.class) {
 				if (hook_message.getContent() == AgentActionEvent.CONNEXION_ESTABLISHED) {
@@ -1467,12 +1471,15 @@ class MadkitKernel extends Agent {
 	}
 	void receivedBigDataToRestartMessage(AbstractAgent requester, BigDataToRestartMessage message)
 	{
-		try {
-			asynchronousBigDataTable.receiveAskingForTransferRestart(requester, message.getReceiver(), message.getSender(),
-				message.getAsynchronousBigDataInternalIdentifier(), message.getPosition());
-		} catch (DatabaseException e) {
-			requester.getLogger().severeLog("Unexpected exception", e);
-		}
+		this.serviceExecutor.execute(() -> {
+			try {
+				asynchronousBigDataTable.receiveAskingForTransferRestart(requester, message.getReceiver(), message.getSender(),
+						message.getAsynchronousBigDataInternalIdentifier(), message.getPosition());
+			} catch (DatabaseException e) {
+				requester.getLogger().severeLog("Unexpected exception", e);
+			}
+		});
+
 	}
 
 	boolean receivedPotentialAsynchronousBigDataResultMessage(AbstractAgent requester, BigDataResultMessage m)
@@ -1482,7 +1489,7 @@ class MadkitKernel extends Agent {
 			try {
 				return asynchronousBigDataTable.receivedPotentialAsynchronousBigDataResultMessage(requester, m.getType(),
 						m.getAsynchronousBigDataInternalIdentifier(),
-						m.getTransferredDataLength());
+						m.getTransferredDataLength(), serviceExecutor);
 			} catch (DatabaseException e) {
 				requester.getLogger().severeLog("Unexpected exception", e);
 			}
