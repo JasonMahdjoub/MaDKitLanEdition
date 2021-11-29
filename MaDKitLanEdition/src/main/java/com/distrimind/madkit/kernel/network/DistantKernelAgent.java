@@ -1837,26 +1837,27 @@ class DistantKernelAgent extends AgentFakeThread {
 
 					CGRSynchrosSystemMessage message = new CGRSynchrosSystemMessage(agent_addresses, getKernelAddress(),
 							removedAcceptedGroups);
+					if (isAlive()) {
+						AgentSocketData asd = getBestAgentSocket(false);
+						if (asd != null) {
 
-					AgentSocketData asd = getBestAgentSocket(false);
-					if (asd != null) {
+							MessageLocker locker = null;
+							if (this.lockSocketUntilCGRSynchroIsSent) {
+								locker = new MessageLocker();
 
-						MessageLocker locker=null;
-						if (this.lockSocketUntilCGRSynchroIsSent) {
-							locker = new MessageLocker();
-
-							locker.lock();
-						}
-						sendData(asd.getAgentAddress(), message, true, locker, false);
-						if (locker!=null) {
-							try {
-								locker.waitUnlock(this, true);
-							} catch (InterruptedException e) {
-								logger.warning("Unexpected interrupted exception");
+								locker.lock();
 							}
-						}
-					} else if (logger != null)
-						logger.severe("Unexpected access (updateLocalAcceptedGroups)");
+							sendData(asd.getAgentAddress(), message, true, locker, false);
+							if (locker != null) {
+								try {
+									locker.waitUnlock(this, true);
+								} catch (InterruptedException e) {
+									logger.warning("Unexpected interrupted exception");
+								}
+							}
+						} else if (logger != null)
+							logger.severe("Unexpected access (updateLocalAcceptedGroups)");
+					}
 				}
 			}
 			this.sharedAcceptedAndRequestedGroups=ag;
