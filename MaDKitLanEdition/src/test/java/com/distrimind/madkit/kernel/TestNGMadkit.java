@@ -143,6 +143,18 @@ public class TestNGMadkit {
 		return new ArrayList<>(helperInstances);
 	}
 
+	public void closePeers(AbstractAgent launcher) throws InterruptedException {
+		for (Madkit mk : getHelperInstances(launcher, 2))
+			stopNetwork(mk);
+		for (Madkit mk : getHelperInstances(launcher, 2)) {
+			checkConnectedKernelsNb(launcher, mk, 0, 30000);
+			checkConnectedIntancesNb(launcher, mk, 0, 30000);
+		}
+		launcher.sleep(400);
+		cleanHelperMDKs(launcher);
+		AssertJUnit.assertEquals(getHelperInstances(launcher, 0).size(), 0);
+	}
+
 	protected List<String> mkArgs;
 
 	@BeforeMethod

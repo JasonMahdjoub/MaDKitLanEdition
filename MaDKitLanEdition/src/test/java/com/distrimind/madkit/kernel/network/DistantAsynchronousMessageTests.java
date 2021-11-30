@@ -65,65 +65,11 @@ import java.util.logging.Level;
  * @version 1.0
  * @since MaDKitLanEdition 1.11
  */
-public class DistantAsynchronousMessageTests extends TestNGMadkit {
-
-	final NetworkEventListener eventListener1;
-	final NetworkEventListener eventListener2;
-	final AtomicInteger counter=new AtomicInteger(0);
-
-	public DistantAsynchronousMessageTests() throws UnknownHostException {
-		P2PSecuredConnectionProtocolPropertiesWithKeyAgreement p2pprotocol=new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
-		p2pprotocol.isServer = true;
-		p2pprotocol.symmetricEncryptionType= SymmetricEncryptionType.AES_CTR;
-		p2pprotocol.symmetricSignatureType= SymmetricAuthenticatedSignatureType.HMAC_SHA2_384;
-		ListGroupsRoles defaultGroupAccess=new ListGroupsRoles();
-		defaultGroupAccess.addGroupsRoles(TestNGMadkit.GROUP,TestNGMadkit.ROLE, TestNGMadkit.ROLE2);
-		defaultGroupAccess.addGroupsRoles(TestNGMadkit.GROUP2,TestNGMadkit.ROLE, TestNGMadkit.ROLE2);
+public class DistantAsynchronousMessageTests extends AbstractAsynchronousMessageTests {
 
 
-		AbstractAccessProtocolProperties app = new AccessProtocolWithP2PAgreementProperties();
-		this.eventListener1 = new NetworkEventListener(true, false, false, null,
-				new ConnectionsProtocolsMKEventListener(p2pprotocol), new AccessProtocolPropertiesMKEventListener(app),
-				new AccessDataMKEventListener(AccessDataMKEventListener.getDefaultAccessData(defaultGroupAccess)), 5000,
-				Collections.emptyList(),
-				InetAddress.getByName("127.0.0.1"), InetAddress.getByName("::1")) {
 
-			@Override
-			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
-				super.onMaDKitPropertiesLoaded(_properties);
-				_properties.networkProperties.networkLogLevel = Level.INFO;
-				try {
-					_properties.setDatabaseFactory(new InMemoryEmbeddedH2DatabaseFactory("dbmem"+counter.getAndIncrement()));
-				} catch (DatabaseException e) {
-					e.printStackTrace();
-				}
-			}
-		};
-		P2PSecuredConnectionProtocolPropertiesWithKeyAgreement u = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
-		u.isServer = false;
-		u.symmetricEncryptionType=p2pprotocol.symmetricEncryptionType;
-		u.symmetricSignatureType= p2pprotocol.symmetricSignatureType;
 
-		app = new AccessProtocolWithP2PAgreementProperties();
-
-		this.eventListener2 = new NetworkEventListener(true, false, false, null,
-				new ConnectionsProtocolsMKEventListener(u), new AccessProtocolPropertiesMKEventListener(app),
-				new AccessDataMKEventListener(AccessDataMKEventListener.getDefaultAccessData(defaultGroupAccess)), 5000,
-				Collections.singletonList(new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"), (Inet6Address) InetAddress.getByName("::1")))
-		) {
-
-			@Override
-			public void onMaDKitPropertiesLoaded(MadkitProperties _properties) {
-				super.onMaDKitPropertiesLoaded(_properties);
-				_properties.networkProperties.networkLogLevel = Level.INFO;
-				try {
-					_properties.setDatabaseFactory(new InMemoryEmbeddedH2DatabaseFactory("dbmem"+counter.getAndIncrement()));
-				} catch (DatabaseException e) {
-					e.printStackTrace();
-				}
-			}
-		};
-	}
 
 	private static final File databaseFile=new File("asynchronousDatabaseFile");
 	private static final MadkitEventListener madkitEventListener= properties -> {
@@ -133,6 +79,10 @@ public class DistantAsynchronousMessageTests extends TestNGMadkit {
 			e.printStackTrace();
 		}
 	};
+
+	public DistantAsynchronousMessageTests() throws UnknownHostException {
+	}
+
 	@BeforeClass
 	public static void beforeClass()
 	{
@@ -144,31 +94,6 @@ public class DistantAsynchronousMessageTests extends TestNGMadkit {
 		EmbeddedH2DatabaseWrapper.deleteDatabasesFiles(databaseFile);
 	}
 
-	private void launchPeers(AbstractAgent launcher, AbstractAgent sender, AbstractAgent receiver) throws InterruptedException {
-		launchServer(launcher, receiver);
-		launchClient(launcher, sender);
-	}
-
-	private void launchClient(AbstractAgent launcher, AbstractAgent sender) throws InterruptedException {
-		launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, sender, eventListener2);
-		launcher.sleep(400);
-	}
-	private void launchServer(AbstractAgent launcher, AbstractAgent receiver) throws InterruptedException {
-		launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, receiver, eventListener1);
-		launcher.sleep(400);
-	}
-
-	private void closePeers(AbstractAgent launcher) throws InterruptedException {
-		for (Madkit mk : getHelperInstances(launcher, 2))
-			stopNetwork(mk);
-		for (Madkit mk : getHelperInstances(launcher, 2)) {
-			checkConnectedKernelsNb(launcher, mk, 0, 30000);
-			checkConnectedIntancesNb(launcher, mk, 0, 30000);
-		}
-		launcher.sleep(400);
-		cleanHelperMDKs(launcher);
-		AssertJUnit.assertEquals(getHelperInstances(launcher, 0).size(), 0);
-	}
 
 	@Test
 	public void testNullPointerExceptionsAndIllegalArgumentsException()

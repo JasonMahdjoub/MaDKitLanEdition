@@ -90,7 +90,7 @@ public class ChainedBlockingDeque<T> extends AbstractQueue<T> implements Blockin
 		return notEmpty;
 	}
 
-	public boolean offerNotLocked(T t) {
+	public boolean offerUnsafe(T t) {
 		return list.offer(t);
 	}
 

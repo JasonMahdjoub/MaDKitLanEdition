@@ -714,6 +714,8 @@ class DistantKernelAgent extends AgentFakeThread {
 								cancelBigPacketDataToSendInQueue(MadkitKernelAccess.getIDPacket((BigDataResultMessage) dlm.message), false, null);
 								//cancelBigPacketDataInQueue((BigDataResultMessage) dlm.message);
 							}
+							else if (dlm.message.getClass()==BigDataPropositionMessage.class)
+								MadkitKernelAccess.setLocalMadkitKernel((BigDataPropositionMessage) dlm.message, this);
 							this.sendMessageWithRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.NET_AGENT,
 									new DirectLocalLanMessage(dlm.message, originalMessage),
 									LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
@@ -778,6 +780,7 @@ class DistantKernelAgent extends AgentFakeThread {
 											+ ". So impossible to set given ConnectionInfoSystemMessage.");
 					} else if (o.getClass() == BigDataPropositionMessage.class) {
 						BigDataPropositionMessage bdpm = (BigDataPropositionMessage) o;
+
 						if (bdpm.getSender().getKernelAddress().equals(distant_kernel_address)) {
 							AgentSocketData asd = getBestAgentSocket(false);
 							if (asd != null) {

@@ -307,6 +307,17 @@ class MadkitKernelAccess {
 		return null;
 	}
 
+	static void setLocalMadkitKernel(BigDataPropositionMessage bdpm, AbstractAgent requester) {
+		try {
+			invoke(m_setLocalMadkitKernel, bdpm, getMadkitKernel(requester));
+		} catch (InvocationTargetException e) {
+			System.err.println("Unexpected error :");
+			e.printStackTrace();
+			System.exit(-1);
+		}
+	}
+
+
 
 	private static final String package_name;
 	private static final Class<?> c_madkit_kernel;
@@ -331,6 +342,7 @@ class MadkitKernelAccess {
 	private static final Method m_wait_message_sent;
 	private static final Method m_get_global_interfaced_ids;
 	private static final Method m_setAsynchronousTransferAsStarted;
+	private static final Method m_setLocalMadkitKernel;
 
 	//private static final Constructor<BigDataTransferID> c_big_data_transfer_id;
 	private static final Constructor<TaskID> c_task_id;
@@ -364,6 +376,7 @@ class MadkitKernelAccess {
 		m_get_global_interfaced_ids = getMethod(c_madkit_kernel, "getGlobalInterfacedIDs");
 		c_task_id = getConstructor(TaskID.class, ConversationID.class);
 		m_setAsynchronousTransferAsStarted = getMethod(c_madkit_kernel, "setAsynchronousTransferAsStarted", AbstractAgent.class, AbstractDecentralizedIDGenerator.class);
+		m_setLocalMadkitKernel=getMethod(BigDataPropositionMessage.class, "setLocalMadkitKernel", c_madkit_kernel);
 	}
 
 

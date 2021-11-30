@@ -2683,57 +2683,62 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	public Message receiveMessage(Message messageTaken) {
 		if (messageTaken == null)
 			return null;
-		ChainedBlockingDeque<Message> messageBox=getMessageBox();
+
 		Lock l=messageBox.getLocker();
 		l.lock();
 		try {
 
-			Replies r = getConversationNotLocked(messageTaken);
-			if (r != null) {
-				if (r.addReplyNotLocked(messageTaken) && removeConversationNotLocked(r)) {
-					messageTaken = r;
-				} else {
-					messageTaken = null;
-				}
-			} else if (messageTaken.getClass() == BigDataPropositionMessage.class) {
-				BigDataPropositionMessage bm = (BigDataPropositionMessage) messageTaken;
-				if (bm.isAsynchronousMessage()) {
-					bm.setLocalMadkitKernel(getMadkitKernel());
-					try {
-						if (bm.checkIfMustRestartTransfer())
-							messageTaken=null;
-					} catch (DatabaseException | InterruptedException e) {
-						getLogger().severeLog("Unexpected exception", e);
-					}
-				}
-			} else if (messageTaken.getClass()==BigDataResultMessage.class)
-			{
-				BigDataResultMessage br=(BigDataResultMessage) messageTaken;
-				if (getKernel().receivedPotentialAsynchronousBigDataResultMessage(this, br))
-					messageTaken=null;
-			}
-			else if (messageTaken.getClass()==BigDataToRestartMessage.class)
-			{
-				getKernel().receivedBigDataToRestartMessage(this, (BigDataToRestartMessage)messageTaken);
-				messageTaken=null;
-			}
-
-			if (messageTaken != null) {
-				if (potentialNetworkMessageLocker!=null && (messageTaken instanceof LocalLanMessage)) {
-					potentialNetworkMessageLocker.cancelLock();
-					potentialNetworkMessageLocker = null;
-				}
-
-
-				messageBox.offerNotLocked(messageTaken); // TODO test vs. arraylist and synchronized
-				messageBox.getNotEmpty().signal();
-
-			}
-			return messageTaken;
+			return receiveMessageUnsafe(messageTaken);
 		}
 		finally {
 			l.unlock();
 		}
+	}
+
+	Message receiveMessageUnsafe(Message messageTaken) {
+		if (messageTaken == null)
+			return null;
+
+		Replies r = getConversationNotLocked(messageTaken);
+		if (r != null) {
+			if (r.addReplyNotLocked(messageTaken) && removeConversationNotLocked(r)) {
+				messageTaken = r;
+			} else {
+				messageTaken = null;
+			}
+		} else if (messageTaken.getClass() == BigDataPropositionMessage.class) {
+			BigDataPropositionMessage bm = (BigDataPropositionMessage) messageTaken;
+			if (bm.isAsynchronousMessage()) {
+				bm.setLocalMadkitKernel(getMadkitKernel());
+				try {
+					if (bm.checkIfMustRestartTransfer())
+						messageTaken=null;
+				} catch (DatabaseException | InterruptedException e) {
+					getLogger().severeLog("Unexpected exception", e);
+				}
+			}
+		} else if (messageTaken.getClass()==BigDataResultMessage.class)
+		{
+			BigDataResultMessage br=(BigDataResultMessage) messageTaken;
+			if (getKernel().receivedPotentialAsynchronousBigDataResultMessage(this, br))
+				messageTaken=null;
+		}
+		else if (messageTaken.getClass()==BigDataToRestartMessage.class)
+		{
+			getKernel().receivedBigDataToRestartMessage(this, (BigDataToRestartMessage)messageTaken);
+			messageTaken=null;
+		}
+
+		if (messageTaken != null) {
+			if (potentialNetworkMessageLocker!=null && (messageTaken instanceof LocalLanMessage)) {
+				potentialNetworkMessageLocker.cancelLock();
+				potentialNetworkMessageLocker = null;
+			}
+			messageBox.offerUnsafe(messageTaken);
+			messageBox.getNotEmpty().signal();
+
+		}
+		return messageTaken;
 	}
 
 	@SuppressWarnings("unused")
@@ -3151,12 +3156,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 
 
 	void addAllToMessageBox(final List<Message> receptions) {
-		getMessageBox().getLocker().lock();
-		try {
-			messageBox.addAll(receptions);
-		} finally {
-			messageBox.getLocker().unlock();
-		}
+		messageBox.addAll(receptions);
 	}
 
 
