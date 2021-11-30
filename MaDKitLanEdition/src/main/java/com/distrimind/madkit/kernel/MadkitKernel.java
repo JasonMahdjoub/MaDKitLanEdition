@@ -3078,6 +3078,7 @@ class MadkitKernel extends Agent {
 				boolean empty=true;
 				for (Map<String, Collection<AgentAddress>> m : value.values())
 				{
+
 					for (Collection<AgentAddress> c : m.values()) {
 						if (c.size() > 0 && c.iterator().next() != null) {
 							empty=false;
@@ -3089,12 +3090,9 @@ class MadkitKernel extends Agent {
 				}
 				if (empty)
 					continue;
-
-				Organization org = new Organization(communityName, this);
-				Organization previous = organizations.putIfAbsent(communityName, org);
-				if (previous != null) {
-					org = previous;
-				}
+				Organization org=organizations.get(communityName);
+				if (org==null)
+					organizations.put(communityName, org=new Organization(communityName, this));
 				org.importDistantOrg(value, this);
 			}
 		}

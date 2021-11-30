@@ -61,7 +61,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class KernelAddressInterfaced extends KernelAddress {
 
 	private KernelAddress original_external_kernel_address;
-	private AtomicBoolean interfaced;
+	private volatile boolean interfaced;
 
 	
 	@SuppressWarnings("unused")
@@ -69,7 +69,15 @@ public class KernelAddressInterfaced extends KernelAddress {
 	{
 		
 	}
-	
+
+	@Override
+	public String toString() {
+		if (interfaced)
+			return super.toString();
+		else
+			return original_external_kernel_address.toString();
+	}
+
 	/**
 	 * @param _original_kernel_address
 	 *            the original kernel address to interface
@@ -91,7 +99,7 @@ public class KernelAddressInterfaced extends KernelAddress {
 		if (_original_kernel_address == null)
 			throw new NullPointerException("_original_kernel_address");
 		original_external_kernel_address = _original_kernel_address;
-		interfaced = new AtomicBoolean(!identical_from_original_kernel_interface);
+		interfaced = !identical_from_original_kernel_interface;
 		initName();
 		int s=SerializationTools.getInternalSize(original_external_kernel_address)+1+internalSize;
 		if (s>Short.MAX_VALUE)
@@ -102,7 +110,7 @@ public class KernelAddressInterfaced extends KernelAddress {
 	private KernelAddressInterfaced(KernelAddressInterfaced toClone) {
 		super(toClone.id, false);
 		original_external_kernel_address = toClone.original_external_kernel_address.clone();
-		interfaced = new AtomicBoolean(toClone.interfaced.get());
+		interfaced = toClone.interfaced;
 		initName();
 		int s=SerializationTools.getInternalSize(original_external_kernel_address)+1+internalSize;
 		if (s>Short.MAX_VALUE)
@@ -120,7 +128,7 @@ public class KernelAddressInterfaced extends KernelAddress {
 			if (s>Short.MAX_VALUE)
 				throw new IOException();
 			internalSize=(short)s;
-			interfaced=new AtomicBoolean(in.readBoolean());
+			interfaced=in.readBoolean();
 			initName();
 			
 				
@@ -134,7 +142,7 @@ public class KernelAddressInterfaced extends KernelAddress {
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
 		super.writeExternal(oos);
 		oos.writeObject(original_external_kernel_address, false);
-		oos.writeBoolean(interfaced.get());
+		oos.writeBoolean(interfaced);
 	}
 
 	/**
@@ -143,7 +151,7 @@ public class KernelAddressInterfaced extends KernelAddress {
 	 *         artificial kernel address
 	 */
 	public boolean isInterfaced() {
-		return interfaced.get();
+		return interfaced;
 	}
 
 	/**
@@ -161,7 +169,7 @@ public class KernelAddressInterfaced extends KernelAddress {
 
 	@Override
 	public AbstractDecentralizedID getAbstractDecentralizedID() {
-		if (interfaced.get())
+		if (interfaced)
 			return super.getAbstractDecentralizedID();
 		else
 			return original_external_kernel_address.getAbstractDecentralizedID();

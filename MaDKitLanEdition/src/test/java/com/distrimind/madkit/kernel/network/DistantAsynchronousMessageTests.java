@@ -145,9 +145,16 @@ public class DistantAsynchronousMessageTests extends TestNGMadkit {
 	}
 
 	private void launchPeers(AbstractAgent launcher, AbstractAgent sender, AbstractAgent receiver) throws InterruptedException {
-		launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, receiver, eventListener1);
-		launcher.sleep(400);
+		launchServer(launcher, receiver);
+		launchClient(launcher, sender);
+	}
+
+	private void launchClient(AbstractAgent launcher, AbstractAgent sender) throws InterruptedException {
 		launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, sender, eventListener2);
+		launcher.sleep(400);
+	}
+	private void launchServer(AbstractAgent launcher, AbstractAgent receiver) throws InterruptedException {
+		launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, receiver, eventListener1);
 		launcher.sleep(400);
 	}
 
@@ -155,49 +162,14 @@ public class DistantAsynchronousMessageTests extends TestNGMadkit {
 		for (Madkit mk : getHelperInstances(launcher, 2))
 			stopNetwork(mk);
 		for (Madkit mk : getHelperInstances(launcher, 2)) {
-			checkConnectedKernelsNb(launcher, mk, 0, 10000);
-			checkConnectedIntancesNb(launcher, mk, 0, 10000);
+			checkConnectedKernelsNb(launcher, mk, 0, 30000);
+			checkConnectedIntancesNb(launcher, mk, 0, 30000);
 		}
 		launcher.sleep(400);
 		cleanHelperMDKs(launcher);
 		AssertJUnit.assertEquals(getHelperInstances(launcher, 0).size(), 0);
 	}
 
-	@Test
-	public void testAsynchroneMessagesWhenNoDatabaseWasLoaded()
-	{
-		launchTest(new AbstractAgent(){
-			@Override
-			protected void activate() throws InterruptedException {
-				super.activate();
-
-				AbstractAgent receiver=new AbstractAgent(){
-					@Override
-					protected void activate() throws InterruptedException {
-						super.activate();
-						requestRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE2);
-					}
-				};
-				AbstractAgent sender=new AbstractAgent(){
-					@Override
-					protected void activate() throws InterruptedException {
-						super.activate();
-						requestRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE);
-					}
-				};
-				launchPeers(this, sender, receiver);
-
-				ReturnCode rc=sender.sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(TestNGMadkit.GROUP, TestNGMadkit.ROLE2, new StringMessage("ok"), TestNGMadkit.ROLE);
-				AssertJUnit.assertEquals(ReturnCode.IGNORED, rc);
-				rc=sender.sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(TestNGMadkit.GROUP, TestNGMadkit.ROLE, new StringMessage("ok"), TestNGMadkit.ROLE);
-				AssertJUnit.assertEquals(ReturnCode.IGNORED, rc);
-				rc=sender.sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(TestNGMadkit.GROUP, TestNGMadkit.ROLE2, new StringMessage("ok"), TestNGMadkit.ROLE2);
-				AssertJUnit.assertEquals(ReturnCode.IGNORED, rc);
-
-				closePeers(this);
-			}
-		}, AbstractAgent.ReturnCode.SUCCESS, false);
-	}
 	@Test
 	public void testNullPointerExceptionsAndIllegalArgumentsException()
 	{
@@ -398,6 +370,7 @@ public class DistantAsynchronousMessageTests extends TestNGMadkit {
 
 					ReturnCode rc = sender.sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(TestNGMadkit.GROUP, TestNGMadkit.ROLE2, new StringMessage("ok"), TestNGMadkit.ROLE);
 					AssertJUnit.assertEquals(ReturnCode.SUCCESS, rc);
+					sleep(400);
 					Message m = receiver.nextMessage();
 					AssertJUnit.assertNotNull(m);
 					AssertJUnit.assertEquals("ok", ((StringMessage) m).getContent());
@@ -409,8 +382,8 @@ public class DistantAsynchronousMessageTests extends TestNGMadkit {
 					AssertJUnit.assertEquals(ReturnCode.NOT_IN_GROUP, rc);
 					m = receiver.nextMessage();
 					AssertJUnit.assertNull(m);
-					requestRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE);
-					requestRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE2);
+					sender.requestRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE);
+					sender.requestRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE2);
 					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousMessagesNumberByGroup(TestNGMadkit.GROUP));
 					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousMessagesNumberByReceiverRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE));
 					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousMessagesNumberBySenderRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE));
@@ -440,7 +413,7 @@ public class DistantAsynchronousMessageTests extends TestNGMadkit {
 					AssertJUnit.assertEquals("ok2", ((StringMessage) sender.getCurrentAsynchronousMessagesByReceiverRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE2).get(0).getAsynchronousMessage()).getContent());
 					AssertJUnit.assertEquals("ok2", ((StringMessage) sender.getCurrentAsynchronousMessagesBySenderRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE).get(0).getAsynchronousMessage()).getContent());
 
-					cancelCurrentAsynchronousMessagesByReceiverRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE2);
+					AssertJUnit.assertEquals(1, sender.cancelCurrentAsynchronousMessagesByReceiverRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE2));
 					AssertJUnit.assertEquals(1, sender.getCurrentAsynchronousMessagesNumberByGroup(TestNGMadkit.GROUPB));
 					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousMessagesNumberByReceiverRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE2));
 					AssertJUnit.assertEquals(1, sender.getCurrentAsynchronousMessagesNumberByReceiverRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE));
@@ -450,7 +423,7 @@ public class DistantAsynchronousMessageTests extends TestNGMadkit {
 					AssertJUnit.assertEquals("ok2", ((StringMessage) sender.getCurrentAsynchronousMessagesByGroup(TestNGMadkit.GROUPB).get(0).getAsynchronousMessage()).getContent());
 					AssertJUnit.assertEquals("ok2", ((StringMessage) sender.getCurrentAsynchronousMessagesBySenderRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE2).get(0).getAsynchronousMessage()).getContent());
 
-					sender.cancelCurrentAsynchronousMessagesBySenderRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE2);
+					AssertJUnit.assertEquals(1, sender.cancelCurrentAsynchronousMessagesBySenderRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE2));
 					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousMessagesNumberByGroup(TestNGMadkit.GROUPB));
 					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousMessagesNumberByReceiverRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE2));
 					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousMessagesNumberBySenderRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE));
@@ -473,12 +446,13 @@ public class DistantAsynchronousMessageTests extends TestNGMadkit {
 					AssertJUnit.assertEquals("ok2", ((StringMessage) sender.getCurrentAsynchronousMessagesByReceiverRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE).get(0).getAsynchronousMessage()).getContent());
 					AssertJUnit.assertEquals("ok2", ((StringMessage) sender.getCurrentAsynchronousMessagesByReceiverRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE2).get(0).getAsynchronousMessage()).getContent());
 					AssertJUnit.assertEquals("ok2", ((StringMessage) sender.getCurrentAsynchronousMessagesBySenderRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE).get(0).getAsynchronousMessage()).getContent());
-					cancelCurrentAsynchronousMessagesByGroup(TestNGMadkit.GROUPB);
+					AssertJUnit.assertEquals(2, sender.cancelCurrentAsynchronousMessagesByGroup(TestNGMadkit.GROUPB));
 					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousMessagesNumberByGroup(TestNGMadkit.GROUPB));
 					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousMessagesNumberByReceiverRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE));
 					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousMessagesNumberBySenderRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE));
-					getMadkitConfig().rootOfPathGroupUsedToFilterAsynchronousMessages = Collections.singletonList(TestNGMadkit.GROUPB.getSubGroup("awesome sub group").getPath());
-					rc = sender.sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(TestNGMadkit.GROUPB, TestNGMadkit.ROLE, new StringMessage("ok2"), TestNGMadkit.ROLE);
+					sender.getMadkitConfig().rootOfPathGroupUsedToFilterAsynchronousMessages = Collections.singletonList(TestNGMadkit.GROUPB.getSubGroup("awesome sub group").getPath());
+					rc = sender.sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(TestNGMadkit.GROUPB, TestNGMadkit.ROLE, new StringMessage("ok2"), TestNGMadkit.ROLE2);
+					sleep(100);
 					m = receiver.nextMessage();
 					AssertJUnit.assertNull(m);
 					AssertJUnit.assertEquals(ReturnCode.IGNORED, rc);
@@ -519,6 +493,7 @@ public class DistantAsynchronousMessageTests extends TestNGMadkit {
 
 					ReturnCode rc = sender.sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(TestNGMadkit.GROUP, TestNGMadkit.ROLE2, new StringMessage("ok"), TestNGMadkit.ROLE);
 					AssertJUnit.assertEquals(ReturnCode.SUCCESS, rc);
+					sleep(400);
 					Message m = receiver.nextMessage();
 					AssertJUnit.assertNotNull(m);
 					AssertJUnit.assertEquals("ok", ((StringMessage) m).getContent());
@@ -526,12 +501,12 @@ public class DistantAsynchronousMessageTests extends TestNGMadkit {
 					AssertJUnit.assertEquals(ReturnCode.ROLE_NOT_HANDLED, rc);
 					m = receiver.nextMessage();
 					AssertJUnit.assertNull(m);
-					rc = sender.sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(TestNGMadkit.GROUP2, TestNGMadkit.ROLE2, new StringMessage("ok2"), TestNGMadkit.ROLE);
+					rc = sender.sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(TestNGMadkit.GROUPB, TestNGMadkit.ROLE2, new StringMessage("ok2"), TestNGMadkit.ROLE);
 					AssertJUnit.assertEquals(ReturnCode.NOT_IN_GROUP, rc);
 					m = receiver.nextMessage();
 					AssertJUnit.assertNull(m);
-					requestRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE);
-					requestRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE2);
+					sender.requestRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE);
+					sender.requestRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE2);
 					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousMessagesNumberByGroup(TestNGMadkit.GROUP));
 					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousMessagesNumberByReceiverRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE));
 					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousMessagesNumberBySenderRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE));
@@ -582,7 +557,7 @@ public class DistantAsynchronousMessageTests extends TestNGMadkit {
 					AssertJUnit.assertEquals("ok2", ((StringMessage) sender.getCurrentAsynchronousMessagesByGroup(TestNGMadkit.GROUPB).get(0).getAsynchronousMessage()).getContent());
 					AssertJUnit.assertEquals("ok2", ((StringMessage) sender.getCurrentAsynchronousMessagesBySenderRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE2).get(0).getAsynchronousMessage()).getContent());
 
-					sender.cancelCurrentAsynchronousMessagesBySenderRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE2);
+					AssertJUnit.assertEquals(1, sender.cancelCurrentAsynchronousMessagesBySenderRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE2));
 					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousMessagesNumberByGroup(TestNGMadkit.GROUPB));
 					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousMessagesNumberByReceiverRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE2));
 					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousMessagesNumberBySenderRole(TestNGMadkit.GROUPB, TestNGMadkit.ROLE));
@@ -678,7 +653,6 @@ public class DistantAsynchronousMessageTests extends TestNGMadkit {
 				};
 				launchPeers(this, sender, receiver);
 				try {
-					sleep(500);
 
 					ReturnCode rc = sender.sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(TestNGMadkit.GROUP, TestNGMadkit.ROLE2, new StringMessage("ok"), TestNGMadkit.ROLE);
 					AssertJUnit.assertEquals(ReturnCode.MESSAGE_DIFFERED, rc);
@@ -733,4 +707,61 @@ public class DistantAsynchronousMessageTests extends TestNGMadkit {
 			}
 		}, AbstractAgent.ReturnCode.SUCCESS, false, madkitEventListener);
 	}
+
+	@Test
+	public void testASynchronousMessageWithSenderNotConnected()
+	{
+		launchTest(new AbstractAgent() {
+			@Override
+			protected void activate() throws InterruptedException {
+				super.activate();
+
+				AbstractAgent receiver = new AbstractAgent() {
+					@Override
+					protected void activate() throws InterruptedException {
+						super.activate();
+						requestRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE2 );
+					}
+				};
+				AbstractAgent sender = new AbstractAgent() {
+					@Override
+					protected void activate() throws InterruptedException {
+						super.activate();
+						requestRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE);
+
+					}
+				};
+				launchServer(this, sender);
+				try {
+
+					ReturnCode rc = sender.sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(TestNGMadkit.GROUP, TestNGMadkit.ROLE2, new StringMessage("ok"), TestNGMadkit.ROLE);
+					AssertJUnit.assertEquals(ReturnCode.MESSAGE_DIFFERED, rc);
+					Message m = receiver.nextMessage();
+					AssertJUnit.assertNull(m);
+					AssertJUnit.assertEquals(1, sender.getCurrentAsynchronousMessagesNumberByGroup(TestNGMadkit.GROUP));
+					AssertJUnit.assertEquals(1, sender.getCurrentAsynchronousMessagesNumberByReceiverRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE2));
+					AssertJUnit.assertEquals(1, sender.getCurrentAsynchronousMessagesNumberBySenderRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE));
+
+					AssertJUnit.assertEquals("ok", ((StringMessage) sender.getCurrentAsynchronousMessagesByGroup(TestNGMadkit.GROUP).get(0).getAsynchronousMessage()).getContent());
+					AssertJUnit.assertEquals("ok", ((StringMessage) sender.getCurrentAsynchronousMessagesByReceiverRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE2).get(0).getAsynchronousMessage()).getContent());
+					AssertJUnit.assertEquals("ok", ((StringMessage) sender.getCurrentAsynchronousMessagesBySenderRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE).get(0).getAsynchronousMessage()).getContent());
+
+					launchClient(this, receiver);
+					m = receiver.nextMessage();
+
+					AssertJUnit.assertNotNull(m);
+					AssertJUnit.assertEquals("ok", ((StringMessage) m).getContent());
+					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousMessagesNumberByGroup(TestNGMadkit.GROUP));
+					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousMessagesNumberByReceiverRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE2));
+					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousMessagesNumberBySenderRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE));
+
+				} catch (Exception e) {
+					e.printStackTrace();
+					AssertJUnit.fail();
+				}
+				closePeers(this);
+			}
+		}, AbstractAgent.ReturnCode.SUCCESS, false, madkitEventListener);
+	}
+
 }

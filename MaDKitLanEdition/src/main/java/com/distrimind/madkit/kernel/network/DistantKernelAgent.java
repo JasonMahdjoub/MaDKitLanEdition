@@ -1168,6 +1168,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			throws MadkitException {
 		if (currentDistantKernelAgentEnabled) {
 			boolean previous_activated = kernelAddressActivated;
+
 			boolean inform_hooks = false;
 			if (!previous_activated) {
 				// activate the current distant kernel agent
@@ -1845,7 +1846,6 @@ class DistantKernelAgent extends AgentFakeThread {
 			ArrayList<Group> newAcceptedGroups = computeMissedGroups(this.sharedAcceptedAndRequestedGroups, ag);
 			ArrayList<Group> removedAcceptedGroups = computeMissedGroups(ag, this.sharedAcceptedAndRequestedGroups);
 			if (newAcceptedGroups.size() > 0 || removedAcceptedGroups.size() > 0) {
-
 				Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> agent_addresses = getOrganizationSnapShot(
 						newAcceptedGroups, distant_accepted_groups);
 
