@@ -118,7 +118,7 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 		gatekeeper = null;
 		group = _group;
 		this.manually_created = manually_created;
-		put(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE, new ManagerRole(this, manager));
+		//put(com.distrimind.madkit.agr.Organization.GROUP_MANAGER_ROLE, new ManagerRole(this, manager));
 	}
 
 	/*

@@ -633,10 +633,10 @@ public class DistantAsynchronousMessageTests extends TestNGMadkit {
 					AssertJUnit.assertEquals("ok", ((StringMessage) sender.getCurrentAsynchronousMessagesByGroup(TestNGMadkit.GROUP).get(0).getAsynchronousMessage()).getContent());
 					AssertJUnit.assertEquals("ok", ((StringMessage) sender.getCurrentAsynchronousMessagesByReceiverRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE2).get(0).getAsynchronousMessage()).getContent());
 					AssertJUnit.assertEquals("ok", ((StringMessage) sender.getCurrentAsynchronousMessagesBySenderRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE).get(0).getAsynchronousMessage()).getContent());
-System.out.println(receiver.getKernelAddress()+" : requestRole");
+
 					rc=receiver.requestRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE2 );
 					AssertJUnit.assertEquals(ReturnCode.SUCCESS, rc);
-					sleep(800);
+					sleep(400);
 					m = receiver.nextMessage();
 					AssertJUnit.assertNotNull(m);
 					AssertJUnit.assertEquals("ok", ((StringMessage) m).getContent());
@@ -678,7 +678,7 @@ System.out.println(receiver.getKernelAddress()+" : requestRole");
 				};
 				launchPeers(this, sender, receiver);
 				try {
-
+					sleep(500);
 
 					ReturnCode rc = sender.sendMessageWithRoleOrDifferSendingUntilRecipientWasFound(TestNGMadkit.GROUP, TestNGMadkit.ROLE2, new StringMessage("ok"), TestNGMadkit.ROLE);
 					AssertJUnit.assertEquals(ReturnCode.MESSAGE_DIFFERED, rc);
@@ -714,9 +714,11 @@ System.out.println(receiver.getKernelAddress()+" : requestRole");
 					AssertJUnit.assertEquals("ok", ((StringMessage) sender.getCurrentAsynchronousMessagesByReceiverRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE2).get(0).getAsynchronousMessage()).getContent());
 					AssertJUnit.assertEquals("ok", ((StringMessage) sender.getCurrentAsynchronousMessagesBySenderRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE).get(0).getAsynchronousMessage()).getContent());
 
-					requestRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE);
+					sender.requestRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE);
 
+					sleep(400);
 					m = receiver.nextMessage();
+
 					AssertJUnit.assertNotNull(m);
 					AssertJUnit.assertEquals("ok", ((StringMessage) m).getContent());
 					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousMessagesNumberByGroup(TestNGMadkit.GROUP));

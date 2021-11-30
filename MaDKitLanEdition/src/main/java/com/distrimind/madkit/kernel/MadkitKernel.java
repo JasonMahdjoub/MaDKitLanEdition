@@ -3178,6 +3178,7 @@ class MadkitKernel extends Agent {
 		try {
 			final InternalRole receiverRole = kernel.getRole(receiver.getGroup(), receiver.getRole());
 			receiver.setRoleObject(receiverRole);
+
 			if (sender != null && receiverRole.getMyGroup().isDistributed()) {
 				final InternalRole senderRole = kernel.getRole(sender.getGroup(), sender.getRole());
 				if (senderRole.getMyGroup().isDistributed()) {
@@ -3277,8 +3278,9 @@ class MadkitKernel extends Agent {
 		try {
 			g=getGroup(group);
 		} catch (CGRNotAvailable e) {
-			if (!injectGroupFromDistantPeer(group, agentAddress))
+			if (!injectGroupFromDistantPeer(group, agentAddress)) {
 				return false;
+			}
 
 		}
 		try {

@@ -183,9 +183,11 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 
 	//private final Map<Role, AbstractAgent> availableSenders= Collections.synchronizedMap(new HashMap<>());
 
-	private void checkSender(AbstractAgent sender, final Group group, final String roleSender, String groupPath) throws DatabaseException {
+	private void checkSender(AbstractAgent madkitKernel, AbstractAgent sender, final Group group, final String roleSender, String groupPath) throws DatabaseException {
 		if (sender==null)
-			return;
+		{
+			return ;
+		}
 
 
 		if (sender.getAgentAddressIn(group, roleSender)==null)
@@ -290,7 +292,7 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 		getDatabaseWrapper().runSynchronizedTransaction(new SynchronizedTransaction<Void>() {
 			@Override
 			public Void run() throws Exception {
-				checkSender(sender, agentAddress.getGroup(), agentAddress.getRole(), groupPath);
+				checkSender(madkitKernel, sender, agentAddress.getGroup(), agentAddress.getRole(), groupPath);
 				final StringBuilder where=new StringBuilder("groupPath=%groupPath AND roleReceiver=%roleReceiver and (");
 				final int startQueryLength=where.length();
 				final ArrayList<String> wheres=new ArrayList<>();
@@ -300,7 +302,6 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 
 					@Override
 					public boolean nextRecord(Record _record) {
-
 						Role r=new Role(agentAddress.getGroup(), _record.getRoleSender());
 						AgentAddress aa=madkitKernel.getAgentWithRole(agentAddress.getGroup(), _record.getRoleSender());
 						if (aa==null)
@@ -310,11 +311,11 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 
 						if (sender==null)
 							return false;
-
 						aa=sender.getAgentWithRole(agentAddress.getGroup(), _record.getRoleReceiver());
 						if (aa!=null) {
 							try {
-								if (_record.isObsolete() || canForgiveMessage(sender.sendMessageWithRole(aa, _record.getAsynchronousMessage(), _record.getRoleSender())))
+								AbstractAgent.ReturnCode rc=null;
+								if (_record.isObsolete() || canForgiveMessage(rc=sender.sendMessageWithRole(aa, _record.getAsynchronousMessage(), _record.getRoleSender())))
 								{
 									if (where.length() > startQueryLength)
 										where.append(" OR ");

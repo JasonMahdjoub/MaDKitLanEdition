@@ -428,8 +428,9 @@ class InternalRole implements SecureExternalizable {
 				ok=true;
 				agentAddresses = null;
 			}
-			else
-				ok=false;
+			else {
+				ok = false;
+			}
 		}
 		if (ok) {
 			if (content.isManuallyRequested())

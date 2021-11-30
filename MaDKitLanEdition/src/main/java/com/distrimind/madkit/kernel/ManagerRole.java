@@ -71,7 +71,7 @@ final class ManagerRole extends InternalRole {
 
 	ManagerRole(final InternalGroup groupObject, AgentAddress creator) {
 		super(groupObject, Organization.GROUP_MANAGER_ROLE);
-		addDistantMemberIfNecessary(creator);
+		//addDistantMemberIfNecessary(creator);
 	}
 
 	/*

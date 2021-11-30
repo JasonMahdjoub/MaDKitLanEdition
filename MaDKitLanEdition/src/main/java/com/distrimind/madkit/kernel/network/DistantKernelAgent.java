@@ -102,6 +102,7 @@ class DistantKernelAgent extends AgentFakeThread {
 	private List<Identifier> lastDeniedIdentifiersToOther = new ArrayList<>();
 	private List<PairOfIdentifiers> last_un_logged_identifiers = new ArrayList<>();
 	private ListGroupsRoles localAcceptedAndRequestedGroups = new ListGroupsRoles();
+	private ListGroupsRoles generalLocalMultiGroup =new ListGroupsRoles();
 	private ArrayList<Group> sharedAcceptedAndRequestedGroups = new ArrayList<>();
 	// private MultiGroup localGeneralAcceptedGroups=new MultiGroup();
 
@@ -234,12 +235,12 @@ class DistantKernelAgent extends AgentFakeThread {
 	}
 	private boolean isSharedGroupRole(Group group, String role)
 	{
-		return distant_accepted_groups.includes(group, role) && isLocallyAcceptedGroupRole(group, role);
+		return isDistantlyAcceptedGroupRole(group, role) && isLocallyAcceptedGroupRole(group, role);
 	}
 	private boolean isLocallyAcceptedGroupRole(Group group, String role)
 	{
-
-		for (AgentSocketData asd : agents_socket)
+		return generalLocalMultiGroup.includes(group, role);
+		/*for (AgentSocketData asd : agents_socket)
 		{
 			if (asd.getAcceptedLocalGroups().getGroups().includes(group, role))
 				return true;
@@ -249,7 +250,22 @@ class DistantKernelAgent extends AgentFakeThread {
 			if (asd.getAcceptedLocalGroups().getGroups().includes(group, role))
 				return true;
 		}
-		return false;
+		return false;*/
+	}
+	private boolean isDistantlyAcceptedGroupRole(Group group, String role)
+	{
+		return distant_accepted_groups.includes(group, role);
+		/*for (AgentSocketData asd : agents_socket)
+		{
+			if (asd.distant_general_accessible_groups.includes(group, role))
+				return true;
+		}
+		for (AgentSocketData asd : indirect_agents_socket)
+		{
+			if (asd.distant_general_accessible_groups.includes(group, role))
+				return true;
+		}
+		return false;*/
 	}
 
 
@@ -381,8 +397,8 @@ class DistantKernelAgent extends AgentFakeThread {
 					CGRSynchro m = (CGRSynchro) _message;
 
 					if (this.kernelAddressActivated) {
-						if (isSharedGroupRole(m)) {
 
+						if (isSharedGroupRole(m)) {
 							AgentSocketData asd = getBestAgentSocketForLocalAgentAddress(distant_kernel_address, m.getContent(),
 									false);
 
@@ -694,7 +710,6 @@ class DistantKernelAgent extends AgentFakeThread {
 							if (logger != null && logger.isLoggable(Level.FINEST))
 								logger.finest("Receiving direct lan message (distantInterfacedKernelAddress="
 										+ distant_kernel_address + ") : " + dlm);
-
 							if (dlm.message.getClass()==BigDataResultMessage.class) {
 								cancelBigPacketDataToSendInQueue(MadkitKernelAccess.getIDPacket((BigDataResultMessage) dlm.message), false, null);
 								//cancelBigPacketDataInQueue((BigDataResultMessage) dlm.message);
@@ -1768,7 +1783,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			updateDistantAcceptedGroups(indirect_agents_socket, generalDistantAcceptedGroups, groups);
 
 			old_distant_accepted_groups = distant_accepted_groups;
-			distant_accepted_groups = groups;
+			distant_accepted_groups = generalDistantAcceptedGroups;
 
 
 		}
@@ -1790,7 +1805,7 @@ class DistantKernelAgent extends AgentFakeThread {
 				}
 				localAcceptedAndRequestedGroups = localAcceptedGroup;
 			}*/
-		ListGroupsRoles generalLocalMultiGroup =null;
+
 		ListGroupsRoles localAcceptedGroup=null;
 		Group[] localRepresentedAcceptedGroup;
 		ArrayList<Group> localRemovedAcceptedGroups=null;
@@ -1806,10 +1821,11 @@ class DistantKernelAgent extends AgentFakeThread {
 				localRemovedAcceptedGroups = computeMissedGroups(localRepresentedAcceptedGroup, localRepresentedAcceptedAndRequestedGroups);
 
 				if (localNewAcceptedGroups.size() > 0 || localRemovedAcceptedGroups.size() > 0) {
-					generalLocalMultiGroup = computeLocalGeneralAcceptedGroups();
+					this.generalLocalMultiGroup = computeLocalGeneralAcceptedGroups();
 
 				}
 				this.localAcceptedAndRequestedGroups = localAcceptedGroup;
+
 			}
 
 			/*ListGroupsRoles ag=distant_accepted_groups.intersect(getKernelAddress(), this.localAcceptedAndRequestedGroups);
@@ -1891,6 +1907,8 @@ class DistantKernelAgent extends AgentFakeThread {
 
 	protected void sendData(AgentAddress receiver, SystemMessageWithoutInnerSizeControl _data, boolean isItAPriority,
 							MessageLocker _messageLocker, boolean last_message) throws NIOException {
+		if (!isAlive())
+			return;
 		try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
 			baos.setObjectResolver(filteredObjectResolver);
 			baos.writeObject(_data, false);
