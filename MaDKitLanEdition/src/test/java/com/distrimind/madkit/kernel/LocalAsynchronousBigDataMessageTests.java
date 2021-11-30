@@ -489,6 +489,7 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 	}
 	private void testReceptionOK(BigDataIdentifier dataIdentifier, AttachedData attachedData, AbstractAgent receiver, AsynchronousBigDataTransferID transferID) throws InterruptedException, IllegalAccessException, IOException {
 		AssertJUnit.assertNotNull(transferID);
+		receiver.sleep(400);
 		Message m = receiver.nextMessage();
 		AssertJUnit.assertNotNull(m);
 		BigDataPropositionMessage bdpm=(BigDataPropositionMessage)m;
@@ -511,15 +512,15 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 		AssertJUnit.assertEquals(dataIdentifier.shortData?getShortData():getLargeData(), ris.readAllBytes());
 
 	}
-	private void testReceptionNotOK(AbstractAgent receiver, AsynchronousBigDataTransferID transferID)
-	{
+	private void testReceptionNotOK(AbstractAgent receiver, AsynchronousBigDataTransferID transferID) throws InterruptedException {
 		AssertJUnit.assertNull(transferID);
+		receiver.sleep(400);
 		Message m = receiver.nextMessage();
 		AssertJUnit.assertNull(m);
 	}
-	private void testReceptionDiffered(AbstractAgent receiver, AsynchronousBigDataTransferID transferID)
-	{
+	private void testReceptionDiffered(AbstractAgent receiver, AsynchronousBigDataTransferID transferID) throws InterruptedException {
 		AssertJUnit.assertNotNull(transferID);
+		receiver.sleep(400);
 		Message m = receiver.nextMessage();
 		AssertJUnit.assertNull(m);
 	}
