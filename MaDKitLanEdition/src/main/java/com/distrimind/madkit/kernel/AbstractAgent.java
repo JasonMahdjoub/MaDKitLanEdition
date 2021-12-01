@@ -61,10 +61,7 @@ import com.distrimind.madkit.kernel.network.connection.access.AbstractAccessProt
 import com.distrimind.madkit.kernel.network.connection.access.AccessData;
 import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
-import com.distrimind.madkit.message.ConversationFilter;
-import com.distrimind.madkit.message.EnumMessage;
-import com.distrimind.madkit.message.GUIMessage;
-import com.distrimind.madkit.message.MessageFilter;
+import com.distrimind.madkit.message.*;
 import com.distrimind.madkit.message.hook.AgentLifeEvent;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.message.hook.MessageEvent;
@@ -2698,42 +2695,45 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	Message receiveMessageUnsafe(Message messageTaken) {
 		if (messageTaken == null)
 			return null;
-
-		Replies r = getConversationNotLocked(messageTaken);
+		if (potentialNetworkMessageLocker!=null && (messageTaken instanceof LocalLanMessage)) {
+			potentialNetworkMessageLocker.cancelLock();
+			potentialNetworkMessageLocker = null;
+		}
+		Message innerMessage=messageTaken.initSenderReceiverWhenReadingMessage();
+		if (innerMessage==null)
+			return null;
+		Replies r = getConversationNotLocked(innerMessage);
 		if (r != null) {
-			if (r.addReplyNotLocked(messageTaken) && removeConversationNotLocked(r)) {
+			if (r.addReplyNotLocked(innerMessage) && removeConversationNotLocked(r)) {
 				messageTaken = r;
 			} else {
 				messageTaken = null;
 			}
-		} else if (messageTaken.getClass() == BigDataPropositionMessage.class) {
-			BigDataPropositionMessage bm = (BigDataPropositionMessage) messageTaken;
-			if (bm.isAsynchronousMessage()) {
-				bm.setLocalMadkitKernel(getMadkitKernel());
-				try {
-					if (bm.checkIfMustRestartTransfer())
-						messageTaken=null;
-				} catch (DatabaseException | InterruptedException e) {
-					getLogger().severeLog("Unexpected exception", e);
+		} else if (innerMessage instanceof MessageWithSilentInference) {
+			Class<?> clazz=innerMessage.getClass();
+			if (clazz == BigDataPropositionMessage.class) {
+				BigDataPropositionMessage bm = (BigDataPropositionMessage) innerMessage;
+				if (bm.isAsynchronousMessage()) {
+					bm.setLocalMadkitKernel(getMadkitKernel());
+					try {
+						if (bm.checkIfMustRestartTransfer())
+							messageTaken = null;
+					} catch (DatabaseException | InterruptedException e) {
+						getLogger().severeLog("Unexpected exception", e);
+					}
 				}
+			} else if (clazz == BigDataResultMessage.class) {
+				BigDataResultMessage br = (BigDataResultMessage) innerMessage;
+				if (getKernel().receivedPotentialAsynchronousBigDataResultMessage(this, br))
+					messageTaken = null;
+			} else if (clazz == BigDataToRestartMessage.class) {
+				getKernel().receivedBigDataToRestartMessage(this, (BigDataToRestartMessage) innerMessage);
+				messageTaken = null;
 			}
-		} else if (messageTaken.getClass()==BigDataResultMessage.class)
-		{
-			BigDataResultMessage br=(BigDataResultMessage) messageTaken;
-			if (getKernel().receivedPotentialAsynchronousBigDataResultMessage(this, br))
-				messageTaken=null;
-		}
-		else if (messageTaken.getClass()==BigDataToRestartMessage.class)
-		{
-			getKernel().receivedBigDataToRestartMessage(this, (BigDataToRestartMessage)messageTaken);
-			messageTaken=null;
 		}
 
 		if (messageTaken != null) {
-			if (potentialNetworkMessageLocker!=null && (messageTaken instanceof LocalLanMessage)) {
-				potentialNetworkMessageLocker.cancelLock();
-				potentialNetworkMessageLocker = null;
-			}
+
 			messageBox.offerUnsafe(messageTaken);
 			messageBox.getNotEmpty().signal();
 

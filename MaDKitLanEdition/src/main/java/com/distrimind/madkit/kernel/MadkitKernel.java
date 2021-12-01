@@ -4044,9 +4044,7 @@ class MadkitKernel extends Agent {
 		assert cancelingType==BigDataResultMessage.Type.CONNECTION_LOST || cancelingType==BigDataResultMessage.Type.TRANSFER_CANCELED;
 		BigDataResultMessage m = new BigDataResultMessage(cancelingType, readDataLength,
 				idPacket, durationInMs, asynchronousBigDataInternalIdentifier, externalAsynchronousBigDataIdentifier);
-		m.setSender(receiver);
-		m.setReceiver(sender);
-		sender.getAgent().receiveMessage(m);
+		sendMessage(requester, receiver,m, sender.getRole());
 	}
 
 	class AutoRequestedGroups implements GroupChangesNotifier {

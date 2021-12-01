@@ -37,6 +37,7 @@
  */
 package com.distrimind.madkit.kernel;
 
+import com.distrimind.madkit.message.MessageWithSilentInference;
 import com.distrimind.util.AbstractDecentralizedIDGenerator;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
@@ -51,7 +52,7 @@ import java.io.IOException;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-public final class BigDataResultMessage extends Message implements com.distrimind.madkit.util.NetworkMessage {
+public final class BigDataResultMessage extends Message implements com.distrimind.madkit.util.NetworkMessage, MessageWithSilentInference {
 
 
 	private long transferredData;

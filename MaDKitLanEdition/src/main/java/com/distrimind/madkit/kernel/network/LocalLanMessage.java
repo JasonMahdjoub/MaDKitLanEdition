@@ -85,13 +85,21 @@ public class LocalLanMessage extends Message {
 		return getClass().getSimpleName() + "[conversationID=" + message.getConversationID() + ", readyForInjection="
 				+ readyForInjection + "]";
 	}
+	protected Message initSenderReceiverWhenReadingMessage()
+	{
+		if (readyForInjection)
+		{
+			MadkitKernelAccess.setReceiver(message, getReceiver());
+			MadkitKernelAccess.setSender(message, getSender());
+			return message;
+		}
+		else
+			return this;
 
+	}
 	@Override
 	protected Message markMessageAsRead() {
 		if (readyForInjection) {
-			MadkitKernelAccess.setReceiver(message, getReceiver());
-			MadkitKernelAccess.setSender(message, getSender());
-
 			if (originalMessage != null) {
 				originalMessage.markDataAsRead();
 				originalMessage = null;

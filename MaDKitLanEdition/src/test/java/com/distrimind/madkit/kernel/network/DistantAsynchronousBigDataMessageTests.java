@@ -320,7 +320,6 @@ public class DistantAsynchronousBigDataMessageTests extends AbstractAsynchronous
 					@Override
 					protected void activate() throws InterruptedException {
 						super.activate();
-						requestRole(GROUP, ROLE);
 					}
 				};
 				AbstractAgent receiver=new AbstractAgent(){
@@ -527,7 +526,7 @@ public class DistantAsynchronousBigDataMessageTests extends AbstractAsynchronous
 		AssertJUnit.assertEquals(dataIdentifier, bdpm.getExternalAsynchronousBigDataIdentifier());
 		RandomOutputStreamWrapper outputStreamWrapper=new RandomOutputStreamWrapper((BigDataIdentifier) bdpm.getExternalAsynchronousBigDataIdentifier());
 		bdpm.acceptTransfer(outputStreamWrapper);
-		receiver.sleep(1000);
+		receiver.sleep(2000);
 		m = receiver.nextMessage();
 
 		AssertJUnit.assertNotNull(m);
@@ -887,7 +886,7 @@ public class DistantAsynchronousBigDataMessageTests extends AbstractAsynchronous
 					AssertJUnit.assertEquals(id, sender.getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP, ROLE2).get(0).getExternalAsynchronousBigDataIdentifier());
 					AssertJUnit.assertEquals(id, sender.getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
 
-					leaveRole(GROUP, ROLE);
+					sender.leaveRole(GROUP, ROLE);
 					testReceptionDiffered(receiver, transferID);
 					AssertJUnit.assertEquals(1, sender.getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUP));
 					AssertJUnit.assertEquals(1, sender.getCurrentAsynchronousBigDataMessagesNumberByReceiverRole(GROUP, ROLE2));
@@ -911,6 +910,7 @@ public class DistantAsynchronousBigDataMessageTests extends AbstractAsynchronous
 					AssertJUnit.assertEquals(attachedData, sender.getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP, ROLE).get(0).getAttachedData());
 
 					sender.requestRole(GROUP, ROLE);
+
 					testReceptionOK(id, attachedData, sender, receiver, transferID);
 
 					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUP));

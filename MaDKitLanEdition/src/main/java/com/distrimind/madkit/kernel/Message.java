@@ -204,6 +204,11 @@ public class Message implements Cloneable {// TODO message already sent warning 
 		return this;
 	}
 
+	protected Message initSenderReceiverWhenReadingMessage()
+	{
+		return this;
+	}
+
 	/**
 	 * Tells if the message can be excluded from the lan encryption
 	 * @return true if the message can be excluded from the lan encryption

@@ -35,6 +35,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL-C license and that you accept its terms.
  */
 
+import com.distrimind.madkit.message.MessageWithSilentInference;
 import com.distrimind.madkit.util.NetworkMessage;
 import com.distrimind.util.AbstractDecentralizedIDGenerator;
 import com.distrimind.util.io.*;
@@ -47,7 +48,7 @@ import java.util.Objects;
  * @version 1.0
  * @since MaDKitLanEdition 2.3.0
  */
-public class BigDataToRestartMessage extends Message implements NetworkMessage {
+public class BigDataToRestartMessage extends Message implements NetworkMessage, MessageWithSilentInference {
 	private AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier;
 	private long position;
 

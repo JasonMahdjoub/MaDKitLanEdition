@@ -40,6 +40,7 @@ package com.distrimind.madkit.kernel;
 import com.distrimind.madkit.database.AsynchronousBigDataTable;
 import com.distrimind.madkit.kernel.network.Block;
 import com.distrimind.madkit.kernel.network.RealTimeTransferStat;
+import com.distrimind.madkit.message.MessageWithSilentInference;
 import com.distrimind.madkit.util.NetworkMessage;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.AbstractDecentralizedIDGenerator;
@@ -68,7 +69,7 @@ import java.util.concurrent.ExecutionException;
  * @see BigDataResultMessage
  */
 @SuppressWarnings({"unused"})
-public final class BigDataPropositionMessage extends Message implements NetworkMessage {
+public final class BigDataPropositionMessage extends Message implements NetworkMessage, MessageWithSilentInference {
 
 	/**
 	 * 
