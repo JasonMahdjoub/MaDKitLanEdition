@@ -679,6 +679,7 @@ public class DistantAsynchronousBigDataMessageTests extends AbstractAsynchronous
 					e.printStackTrace();
 					AssertJUnit.fail();
 				}
+				closePeers(this);
 			}
 		}, AbstractAgent.ReturnCode.SUCCESS, false, madkitEventListener);
 	}
@@ -783,6 +784,7 @@ public class DistantAsynchronousBigDataMessageTests extends AbstractAsynchronous
 					e.printStackTrace();
 					AssertJUnit.fail();
 				}
+				closePeers(this);
 			}
 		}, AbstractAgent.ReturnCode.SUCCESS, false, madkitEventListener);
 	}
@@ -841,6 +843,7 @@ public class DistantAsynchronousBigDataMessageTests extends AbstractAsynchronous
 					e.printStackTrace();
 					AssertJUnit.fail();
 				}
+				closePeers(this);
 			}
 		}, AbstractAgent.ReturnCode.SUCCESS, false, madkitEventListener);
 
@@ -899,6 +902,7 @@ public class DistantAsynchronousBigDataMessageTests extends AbstractAsynchronous
 					AssertJUnit.assertEquals(id, sender.getCurrentAsynchronousBigDataMessagesByGroup(GROUP).get(0).getExternalAsynchronousBigDataIdentifier());
 					AssertJUnit.assertEquals(id, sender.getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP, ROLE2).get(0).getExternalAsynchronousBigDataIdentifier());
 					AssertJUnit.assertEquals(id, sender.getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
+
 					receiver.requestRole(GROUP, ROLE2);
 					testReceptionDiffered(receiver, transferID);
 					AssertJUnit.assertEquals(1, sender.getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUP));
@@ -921,6 +925,7 @@ public class DistantAsynchronousBigDataMessageTests extends AbstractAsynchronous
 					e.printStackTrace();
 					AssertJUnit.fail();
 				}
+				closePeers(this);
 			}
 		}, AbstractAgent.ReturnCode.SUCCESS, false, madkitEventListener);
 	}

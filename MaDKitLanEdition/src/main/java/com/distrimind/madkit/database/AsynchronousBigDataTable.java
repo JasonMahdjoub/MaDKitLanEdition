@@ -691,7 +691,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			public boolean nextRecord(Record _record) {
 				if (_record.isObsolete())
 					return false;
-				if (_record.getRoleSender().equals(distantRole))
+				if (_record.isTransferStarted())
 				{
 					AgentAddress senderAA=kernel.getAgentWithRole(distantGroup, _record.roleReceiver);
 

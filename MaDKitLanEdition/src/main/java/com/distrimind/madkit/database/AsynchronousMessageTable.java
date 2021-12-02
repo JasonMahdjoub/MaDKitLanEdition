@@ -184,7 +184,7 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 	//private final Map<Role, AbstractAgent> availableSenders= Collections.synchronizedMap(new HashMap<>());
 
 	private void checkSender(AbstractAgent sender, final Group group, final String roleSender, String groupPath) throws DatabaseException {
-		if (sender==null)
+		if (sender==null || !sender.isAlive())
 		{
 			return ;
 		}
@@ -284,6 +284,7 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 	public void groupRoleAvailable(final AbstractAgent madkitKernel, Collection<String> baseGroupPath, AbstractAgent sender, final AgentAddress agentAddress) throws DatabaseException {
 		if (madkitKernel==null)
 			throw new NullPointerException();
+
 		final String groupPath=agentAddress.getGroup().toString();
 
 		if (!isConcerned(baseGroupPath, agentAddress.getGroup()))
