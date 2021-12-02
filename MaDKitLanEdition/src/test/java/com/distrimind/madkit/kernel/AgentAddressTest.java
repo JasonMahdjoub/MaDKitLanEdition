@@ -140,7 +140,7 @@ public class AgentAddressTest {
 	public void testToString() {
 		System.err.println(aa.getKernelAddress());
 		System.err.println(aa);
-		AssertJUnit.assertTrue(aa.toString(), aa.toString().contains("@(Group(c:/g/:0:0:0),r)"));
+		AssertJUnit.assertTrue(aa.toString(), aa.toString().contains("@(Group(c:/g/:0),r)"));
 	}
 
 

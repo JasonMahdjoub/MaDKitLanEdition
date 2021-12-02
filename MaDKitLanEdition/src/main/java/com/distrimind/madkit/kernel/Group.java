@@ -471,11 +471,12 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 		sb.append(":");
 		sb.append(getPath());
 		sb.append(":");
-		sb.append(m_use_sub_groups?"1":"0");
-		sb.append(":");
-		sb.append(isDistributed()?"1":"0");
-		sb.append(":");
-		sb.append(isReserved()?"1":"0");
+		int params=m_use_sub_groups?1:0;
+		if (isDistributed())
+			params|=2;
+		if (isReserved())
+			params|=4;
+		sb.append(params);
 		sb.append(")");
 		return sb.toString();
 	}
@@ -490,12 +491,18 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 		if (group.length()<s.length()+11)
 			throw new IOException();
 		String[] parts =group.substring(s.length()+1, group.length()-1).split(":");
-		if (parts.length!=5)
+		if (parts.length!=3)
 			throw new IOException();
-		for (String p : parts)
-			if (p.length()<1)
-				throw new IOException();
-		return new Group(0, readBoolean(parts[2]),readBoolean(parts[3]), null, readBoolean(parts[4]), parts[0], parts[1]);
+		try
+		{
+			int params=Integer.parseInt(parts[2]);
+			return new Group(0, (params & 1) == 1,(params & 2) == 2, null, (params & 4) == 4, parts[0], parts[1]);
+		}
+		catch (NumberFormatException e)
+		{
+			throw new IOException(e);
+		}
+
 
 	}
 

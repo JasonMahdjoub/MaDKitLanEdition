@@ -37,11 +37,14 @@
  */
 package com.distrimind.madkit.kernel;
 
+import org.testng.Assert;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 import com.distrimind.util.io.RandomByteArrayInputStream;
 import com.distrimind.util.io.RandomByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 
 
 /**
@@ -51,6 +54,35 @@ import java.io.IOException;
  * @since MadkitLanEdition 1.0
  */
 public class GroupTest {
+
+	@DataProvider
+	public Object[][] getGroups()
+	{
+		Object[][] res=new Object[4][1];
+		int i=0;
+		for (boolean useSubGroups : new boolean[]{true, false})
+		{
+			for (boolean isDistributed : new boolean[]{true, false})
+			{
+				res[i][0]=new Group(useSubGroups,isDistributed, (Gatekeeper)null, "com", "group"+i, "subgroup");
+				++i;
+			}
+		}
+		return res;
+	}
+
+	@Test(dataProvider = "getGroups")
+	public void testGroupSerialization(Group group) throws IOException {
+		String s=group.toString();
+		Group g=Group.parseGroup(s);
+		Assert.assertEquals(g, group);
+		Assert.assertEquals(g.isDistributed(), group.isDistributed());
+		Assert.assertEquals(g.isAnyRoleRequested(), group.isAnyRoleRequested());
+		Assert.assertEquals(g.isUsedSubGroups(), group.isUsedSubGroups());
+		Assert.assertEquals(g.isEmpty(), group.isEmpty());
+		Assert.assertEquals(g.isReserved(), group.isReserved());
+		Assert.assertEquals(g.isEmptyForSure(), group.isEmptyForSure());
+	}
 
 	@Test
 	public void testAll() throws ClassNotFoundException, IOException
