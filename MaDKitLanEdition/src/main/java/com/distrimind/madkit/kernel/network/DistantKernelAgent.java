@@ -1947,12 +1947,11 @@ class DistantKernelAgent extends AgentFakeThread {
 			if (logger != null && logger.isLoggable(Level.FINEST))
 				logger.finest("Sending data (distantInterfacedKernelAddress=" + distant_kernel_address + ", packetID="
 						+ packet.getID() + ") : " + _data);
-			
+			PacketData pd=new PacketData(receiver, _data, packet, _messageLocker, last_message, isItAPriority, _data.excludedFromEncryption());
 			if (!sendMessage(receiver,
-					new DistKernADataToUpgradeMessage(
-							new PacketData(receiver, _data, packet, _messageLocker, last_message, isItAPriority, _data.excludedFromEncryption())))
+					new DistKernADataToUpgradeMessage(pd))
 									.equals(ReturnCode.SUCCESS)) {
-				_messageLocker.unlock();
+				pd.unlockMessage();
 				if (logger!=null)
 					logger.warning("Fail sending data (distantInterfacedKernelAddress=" + distant_kernel_address
 						+ ", packetID=" + packet.getID() + ") : " + _data);
