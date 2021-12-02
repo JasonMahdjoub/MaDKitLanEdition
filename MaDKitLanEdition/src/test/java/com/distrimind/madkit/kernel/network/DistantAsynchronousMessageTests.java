@@ -615,7 +615,7 @@ public class DistantAsynchronousMessageTests extends AbstractAsynchronousMessage
 
 					sender.requestRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE);
 
-					sleep(400);
+					sleep(800);
 					m = receiver.nextMessage();
 
 					AssertJUnit.assertNotNull(m);

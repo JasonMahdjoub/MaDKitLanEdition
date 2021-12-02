@@ -271,24 +271,18 @@ class DistantKernelAgent extends AgentFakeThread {
 
 	private void unlockMessageIfNecessary(Message _message)
 	{
-		MessageLocker l=null;
-		if (_message instanceof LocalLanMessage) {
-			l = ((LocalLanMessage) _message).getMessageLocker();
-		}
-		else if (_message instanceof CGRSynchro)
-			l=((CGRSynchro) _message).getMessageLocker();
-		if (l!=null)
-		{
+		if (_message instanceof LockableMessage) {
 			try {
-				l.unlock();
-
+				((LockableMessage) _message).getMessageLocker().unlock();
 			} catch (MadkitException e) {
 				Logger logger=getLogger();
 				if (logger!=null)
 					logger.severe(e.getMessage());
 			}
-			sendReplyEmpty(_message);
+			if (_message instanceof LocalLanMessage)
+				sendReplyEmpty(_message);
 		}
+
 	}
 
 	@SuppressWarnings({"SynchronizeOnNonFinalField"})

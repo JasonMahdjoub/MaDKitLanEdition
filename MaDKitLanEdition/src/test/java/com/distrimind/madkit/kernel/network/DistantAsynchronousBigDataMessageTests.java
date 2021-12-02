@@ -717,8 +717,8 @@ public class DistantAsynchronousBigDataMessageTests extends AbstractAsynchronous
 					testReceptionNotOK(receiver, transferID);
 					transferID = sender.sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUPB, ROLE2, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
 					testReceptionNotOK(receiver, transferID);
-					requestRole(GROUPB, ROLE);
-					requestRole(GROUPB, ROLE2);
+					sender.requestRole(GROUPB, ROLE);
+					sender.requestRole(GROUPB, ROLE2);
 					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUP));
 					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousBigDataMessagesNumberByReceiverRole(GROUP, ROLE));
 					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousBigDataMessagesNumberBySenderRole(GROUP, ROLE));
@@ -914,6 +914,63 @@ public class DistantAsynchronousBigDataMessageTests extends AbstractAsynchronous
 					AssertJUnit.assertEquals(attachedData, sender.getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP, ROLE).get(0).getAttachedData());
 
 					sender.requestRole(GROUP, ROLE);
+
+					testReceptionOK(id, attachedData, sender, receiver, transferID);
+
+					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUP));
+					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousBigDataMessagesNumberByReceiverRole(GROUP, ROLE2));
+					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousBigDataMessagesNumberBySenderRole(GROUP, ROLE));
+
+				} catch (Exception e) {
+					e.printStackTrace();
+					AssertJUnit.fail();
+				}
+				closePeers(this);
+			}
+		}, AbstractAgent.ReturnCode.SUCCESS, false, madkitEventListener);
+	}
+	@Test(dataProvider = "provideDataIdentifier")
+	public void testASynchronousMessageWithSenderNotConnected(BigDataIdentifier dataIdentifier, AttachedData attachedData)
+	{
+		launchTest(new AbstractAgent() {
+			@Override
+			protected void activate() throws InterruptedException {
+				super.activate();
+
+				AbstractAgent sender = new AbstractAgent() {
+					@Override
+					protected void activate() throws InterruptedException {
+						super.activate();
+						requestRole(GROUP, ROLE);
+
+					}
+				};
+				AbstractAgent receiver = new AbstractAgent() {
+					@Override
+					protected void activate() throws InterruptedException {
+						super.activate();
+						requestRole(TestNGMadkit.GROUP, TestNGMadkit.ROLE2);
+					}
+				};
+				launchServer(this, sender);
+				try {
+
+					BigDataIdentifier id;
+					AsynchronousBigDataTransferID transferID = sender.sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE2, id=dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
+					testReceptionDiffered(receiver, transferID);
+					AssertJUnit.assertEquals(1, sender.getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUP));
+					AssertJUnit.assertEquals(1, sender.getCurrentAsynchronousBigDataMessagesNumberByReceiverRole(GROUP, ROLE2));
+					AssertJUnit.assertEquals(1, sender.getCurrentAsynchronousBigDataMessagesNumberBySenderRole(GROUP, ROLE));
+
+					AssertJUnit.assertEquals(attachedData, sender.getCurrentAsynchronousBigDataMessagesByGroup(GROUP).get(0).getAttachedData());
+					AssertJUnit.assertEquals(attachedData, sender.getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP, ROLE2).get(0).getAttachedData());
+					AssertJUnit.assertEquals(attachedData, sender.getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP, ROLE).get(0).getAttachedData());
+
+					AssertJUnit.assertEquals(id, sender.getCurrentAsynchronousBigDataMessagesByGroup(GROUP).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id, sender.getCurrentAsynchronousBigDataMessagesByReceiverRole(GROUP, ROLE2).get(0).getExternalAsynchronousBigDataIdentifier());
+					AssertJUnit.assertEquals(id, sender.getCurrentAsynchronousBigDataMessagesBySenderRole(GROUP, ROLE).get(0).getExternalAsynchronousBigDataIdentifier());
+
+					launchClient(this, receiver);
 
 					testReceptionOK(id, attachedData, sender, receiver, transferID);
 

@@ -37,6 +37,7 @@
  */
 package com.distrimind.madkit.kernel;
 
+import com.distrimind.madkit.kernel.network.LockableMessage;
 import com.distrimind.madkit.kernel.network.MessageLocker;
 import com.distrimind.madkit.message.ObjectMessage;
 import com.distrimind.util.io.SecureExternalizable;
@@ -52,7 +53,7 @@ import java.io.IOException;
  * @since MaDKitLanEdition 1.0
  *
  */
-public class CGRSynchro extends ObjectMessage<AgentAddress> implements SecureExternalizable {
+public class CGRSynchro extends ObjectMessage<AgentAddress> implements SecureExternalizable, LockableMessage {
 
 	public enum Code {
 		CREATE_GROUP, REQUEST_ROLE, LEAVE_ROLE, LEAVE_GROUP
@@ -140,6 +141,7 @@ public class CGRSynchro extends ObjectMessage<AgentAddress> implements SecureExt
 
 	}
 
+	@Override
 	public MessageLocker getMessageLocker()
 	{
 		return messageLocker;

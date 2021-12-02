@@ -48,7 +48,7 @@ import com.distrimind.madkit.util.NetworkMessage;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-public class LocalLanMessage extends Message {
+public class LocalLanMessage extends Message implements LockableMessage {
 
 
 	private final Message message;
@@ -134,6 +134,7 @@ public class LocalLanMessage extends Message {
 		return this;
 	}
 
+	@Override
 	public MessageLocker getMessageLocker() {
 		return locker;
 	}
