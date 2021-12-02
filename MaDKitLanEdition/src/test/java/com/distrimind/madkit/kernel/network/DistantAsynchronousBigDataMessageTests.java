@@ -595,8 +595,8 @@ public class DistantAsynchronousBigDataMessageTests extends AbstractAsynchronous
 					testReceptionNotOK(receiver, transferID);
 					transferID = sender.sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUPB, ROLE2, dataIdentifier.getNewIdentifier(), new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
 					testReceptionNotOK(receiver, transferID);
-					requestRole(GROUPB, ROLE);
-					requestRole(GROUPB, ROLE2);
+					sender.requestRole(GROUPB, ROLE);
+					sender.requestRole(GROUPB, ROLE2);
 					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUP));
 					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberByReceiverRole(GROUP, ROLE));
 					AssertJUnit.assertEquals(0, getCurrentAsynchronousBigDataMessagesNumberBySenderRole(GROUP, ROLE));
@@ -671,7 +671,7 @@ public class DistantAsynchronousBigDataMessageTests extends AbstractAsynchronous
 					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousBigDataMessagesNumberByGroup(GROUPB));
 					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousBigDataMessagesNumberByReceiverRole(GROUPB, ROLE));
 					AssertJUnit.assertEquals(0, sender.getCurrentAsynchronousBigDataMessagesNumberBySenderRole(GROUPB, ROLE));
-					getMadkitConfig().rootOfPathGroupUsedToFilterAsynchronousMessages = Collections.singletonList(GROUPB.getSubGroup("awesome sub group").getPath());
+					sender.getMadkitConfig().rootOfPathGroupUsedToFilterAsynchronousMessages = Collections.singletonList(GROUPB.getSubGroup("awesome sub group").getPath());
 					transferID = sender.sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUPB, ROLE2, dataIdentifier, new RandomInputStreamWrapper(dataIdentifier), attachedData, ROLE);
 					testReceptionNotOK(receiver, transferID);
 

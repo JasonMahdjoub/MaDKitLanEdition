@@ -128,7 +128,14 @@ class DistantKernelAgent extends AgentFakeThread {
 
 	@Override
 	public void end() {
-
+		for (BigDataReading bdr : this.current_big_data_readings.values())
+		{
+			MadkitKernelAccess.transferLostForBigDataTransfer(this, bdr.getOriginalMessage().getConversationID(),
+					bdr.getIDPacket(), bdr.getOriginalMessage().getSender(), bdr.getOriginalMessage().getReceiver(),
+					bdr.getStatistics().getNumberOfIdentifiedBytes(), bdr.getStatistics().getDurationMilli(),
+					bdr.getOriginalMessage().getAsynchronousBigDataInternalIdentifier(), bdr.getOriginalMessage().getExternalAsynchronousBigDataIdentifier(), BigDataResultMessage.Type.CONNECTION_LOST);
+		}
+		current_big_data_readings.clear();
 		for (BigPacketData bpd : this.packetsDataInQueue.values()) {
 			try {
 				bpd.cancel();
@@ -159,15 +166,8 @@ class DistantKernelAgent extends AgentFakeThread {
 		Message m;
 		while ((m=nextMessage())!=null)
 		{
-			MessageLocker ml=null;
-			if (m instanceof CGRSynchro)
-				ml=((CGRSynchro) m).getMessageLocker();
-			else if (m instanceof LocalLanMessage)
-				ml=((LocalLanMessage) m).getMessageLocker();
-			if (ml!=null) {
-				ml.cancelLock();
-				sendReplyEmpty(m);
-			}
+			unlockMessageIfNecessary(m);
+
 
 		}
 		if (stats != null && kernelAddressActivated)
@@ -269,7 +269,27 @@ class DistantKernelAgent extends AgentFakeThread {
 		return false;*/
 	}
 
+	private void unlockMessageIfNecessary(Message _message)
+	{
+		MessageLocker l=null;
+		if (_message instanceof LocalLanMessage) {
+			l = ((LocalLanMessage) _message).getMessageLocker();
+		}
+		else if (_message instanceof CGRSynchro)
+			l=((CGRSynchro) _message).getMessageLocker();
+		if (l!=null)
+		{
+			try {
+				l.unlock();
 
+			} catch (MadkitException e) {
+				Logger logger=getLogger();
+				if (logger!=null)
+					logger.severe(e.getMessage());
+			}
+			sendReplyEmpty(_message);
+		}
+	}
 
 	@SuppressWarnings({"SynchronizeOnNonFinalField"})
     @Override
@@ -279,15 +299,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		concurrent = true;
 		try {
 			if (getState().compareTo(AbstractAgent.State.WAIT_FOR_KILL) >= 0) {
-				if (_message instanceof LocalLanMessage) {
-					try {
-						((LocalLanMessage) _message).getMessageLocker().unlock();
-					} catch (MadkitException e) {
-						Logger logger=getLogger();
-						if (logger!=null)
-							logger.severe(e.getMessage());
-					}
-				}
+				unlockMessageIfNecessary(_message);
 				Logger logger=getLogger();
 				if (logger!=null)
 					logger.severe("Unexpected access");
@@ -518,14 +530,7 @@ class DistantKernelAgent extends AgentFakeThread {
 							cancelBigPacketDataToSendInQueue(bpd.getIDPacket(), false, BigDataResultMessage.Type.CONNECTION_LOST);
 
 						}
-						for (BigDataReading bdr : this.current_big_data_readings.values())
-						{
-							MadkitKernelAccess.transferLostForBigDataTransfer(this, bdr.getOriginalMessage().getConversationID(),
-									bdr.getIDPacket(), bdr.getOriginalMessage().getSender(), bdr.getOriginalMessage().getReceiver(),
-									bdr.getStatistics().getNumberOfIdentifiedBytes(), bdr.getStatistics().getDurationMilli(),
-									bdr.getOriginalMessage().getAsynchronousBigDataInternalIdentifier(), bdr.getOriginalMessage().getExternalAsynchronousBigDataIdentifier(), BigDataResultMessage.Type.CONNECTION_LOST);
-						}
-						current_big_data_readings.clear();
+
 						/*
 						 * if (this.kernelAddressActivated) MadkitKernelAccess.informHooks(this, new
 						 * DistantKernelAgentEventMessage(AgentActionEvent.DISTANT_KERNEL_DISCONNECTED,

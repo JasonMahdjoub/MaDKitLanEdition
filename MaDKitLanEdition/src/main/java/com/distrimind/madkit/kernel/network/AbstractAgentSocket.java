@@ -612,10 +612,16 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			if (logger != null)
 				logger.severeLog("", e);
 		}
-		if (this.agent_for_distant_kernel_aa != null)
-			this.sendMessageWithRole(agent_for_distant_kernel_aa,
+		if (this.agent_for_distant_kernel_aa != null) {
+			ReturnCode rc = this.sendMessageWithRole(agent_for_distant_kernel_aa,
 					new AgentSocketKilled(_data_not_sent, bigDataNotSent, dataToTransferNotSent),
 					LocalCommunity.Roles.SOCKET_AGENT_ROLE);
+			if (logger!=null && rc!=ReturnCode.SUCCESS)
+				logger.warning("Impossible to send kill message to distant kernel agent : "+rc);
+		}
+		else if (logger!=null)
+			logger.warning("Impossible to send kill message to distant kernel agent");
+
 		this.sendMessageWithRole(nio_agent_address,
 				new AgentSocketKilled(_data_not_sent, bigDataNotSent, dataToTransferNotSent),
 				LocalCommunity.Roles.SOCKET_AGENT_ROLE);
