@@ -74,6 +74,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Represent a distant Madkit kernel
@@ -278,7 +279,17 @@ class DistantKernelAgent extends AgentFakeThread {
 		concurrent = true;
 		try {
 			if (getState().compareTo(AbstractAgent.State.WAIT_FOR_KILL) >= 0) {
-				if (logger != null)
+				if (_message instanceof LocalLanMessage) {
+					try {
+						((LocalLanMessage) _message).getMessageLocker().unlock();
+					} catch (MadkitException e) {
+						Logger logger=getLogger();
+						if (logger!=null)
+							logger.severe(e.getMessage());
+					}
+				}
+				Logger logger=getLogger();
+				if (logger!=null)
 					logger.severe("Unexpected access");
 				return;
 			}
@@ -382,13 +393,7 @@ class DistantKernelAgent extends AgentFakeThread {
 					sendData(m.getSender(), m.getContent(), m.isItAPriority, ml, m.last_message);
 				} else if (_message.getClass() == AnomalyDetectedMessage.class) {
 					AnomalyDetectedMessage m = (AnomalyDetectedMessage) _message;
-					/*
-					 * if (logger != null) { if (m.isCandidateToBan())
-					 * logger.severe("Anomaly detected (distantInterfacedKernelAddress="
-					 * +distant_kernel_address+") : "+_message); else
-					 * logger.warning("Anomaly detected (distantInterfacedKernelAddress="
-					 * +distant_kernel_address+") : "+_message); }
-					 */
+
 
 					if (m.getKernelAddress() != null && m.getKernelAddress().equals(distant_kernel_address)) {
 						processInvalidProcess(null, m.getMessage(), m.isCandidateToBan());
@@ -449,9 +454,12 @@ class DistantKernelAgent extends AgentFakeThread {
 							asd.setDistantAccessibleGroups(message);
 							updateSharedAcceptedGroups(true, false);
 							//updateDistantAcceptedGroups();
-						} else if (logger != null)
-							logger.severe("Impossible to found agent socket data from agent address "
+						} else {
+							Logger logger=getLogger();
+							if (logger!=null)
+								logger.severe("Impossible to found agent socket data from agent address "
 									+ _message.getSender() + ". So impossible to set given NetworkGroupsAccessEvent.");
+						}
 
 					}
 
@@ -469,9 +477,12 @@ class DistantKernelAgent extends AgentFakeThread {
 						if (asd != null) {
 							asd.setAcceptedIdentifiers(message);
 							updateLoginData();
-						} else if (logger != null)
-							logger.severe("Impossible to found agent socket data from agent address "
+						} else {
+							Logger logger=getLogger();
+							if (logger!=null)
+								logger.severe("Impossible to found agent socket data from agent address "
 									+ _message.getSender() + ". So impossible to set given NetworkLoginAccessEvent.");
+						}
 					}
 
 				} else if (_message.getClass() == KernelAddressValidation.class) {
@@ -494,44 +505,46 @@ class DistantKernelAgent extends AgentFakeThread {
 							logger.finer(
 									"Agent socket killed and removed from distant kernel agent list (distantInterfacedKernelAddress="
 											+ distant_kernel_address + ")");
-						updateSharedAcceptedGroups(false, true);
-						//updateLocalAcceptedGroups();
-						if (agents_socket.size() == 0 && indirect_agents_socket.size() == 0) {
-							for (BigPacketData bpd : m.bigDataNotSent) {
-								cancelBigPacketDataToSendInQueue(bpd.getIDPacket(), false, BigDataResultMessage.Type.CONNECTION_LOST);
-
-							}
-							for (BigDataReading bdr : this.current_big_data_readings.values())
-							{
-								MadkitKernelAccess.transferLostForBigDataTransfer(this, bdr.getOriginalMessage().getConversationID(),
-										bdr.getIDPacket(), bdr.getOriginalMessage().getSender(), bdr.getOriginalMessage().getReceiver(),
-										bdr.getStatistics().getNumberOfIdentifiedBytes(), bdr.getStatistics().getDurationMilli(),
-										bdr.getOriginalMessage().getAsynchronousBigDataInternalIdentifier(), bdr.getOriginalMessage().getExternalAsynchronousBigDataIdentifier(), BigDataResultMessage.Type.CONNECTION_LOST);
-							}
-							current_big_data_readings.clear();
-							/*
-							 * if (this.kernelAddressActivated) MadkitKernelAccess.informHooks(this, new
-							 * DistantKernelAgentEventMessage(AgentActionEvent.DISTANT_KERNEL_DISCONNECTED,
-							 * this.distant_kernel_address));
-							 */
-							this.killAgent(this);
-						} else {
-							for (AbstractData ad : m.shortDataNotSent) {
-								ad.reset();
-							}
-							for (BigPacketData ad : m.bigDataNotSent) {
-								ad.reset();
-							}
-
-							// TODO manage transfer connections and associate them with the new agent
-							// socket, instead of actually closing them.
+					}
+					else {
+						if (logger != null)
+							logger.warning(
+									"Agent socket killed and but not found on distant kernel agent list (distantInterfacedKernelAddress="
+											+ distant_kernel_address + ")");
+					}
+					//updateLocalAcceptedGroups();
+					if (agents_socket.size() == 0 && indirect_agents_socket.size() == 0) {
+						for (BigPacketData bpd : m.bigDataNotSent) {
+							cancelBigPacketDataToSendInQueue(bpd.getIDPacket(), false, BigDataResultMessage.Type.CONNECTION_LOST);
 
 						}
-					} else if (logger != null)
-						logger.warning(
-								"Agent socket killed and but not found on distant kernel agent list (distantInterfacedKernelAddress="
-										+ distant_kernel_address + ")");
+						for (BigDataReading bdr : this.current_big_data_readings.values())
+						{
+							MadkitKernelAccess.transferLostForBigDataTransfer(this, bdr.getOriginalMessage().getConversationID(),
+									bdr.getIDPacket(), bdr.getOriginalMessage().getSender(), bdr.getOriginalMessage().getReceiver(),
+									bdr.getStatistics().getNumberOfIdentifiedBytes(), bdr.getStatistics().getDurationMilli(),
+									bdr.getOriginalMessage().getAsynchronousBigDataInternalIdentifier(), bdr.getOriginalMessage().getExternalAsynchronousBigDataIdentifier(), BigDataResultMessage.Type.CONNECTION_LOST);
+						}
+						current_big_data_readings.clear();
+						/*
+						 * if (this.kernelAddressActivated) MadkitKernelAccess.informHooks(this, new
+						 * DistantKernelAgentEventMessage(AgentActionEvent.DISTANT_KERNEL_DISCONNECTED,
+						 * this.distant_kernel_address));
+						 */
+						this.killAgent(this);
+					} else if (removed) {
+						updateSharedAcceptedGroups(false, true);
+						for (AbstractData ad : m.shortDataNotSent) {
+							ad.reset();
+						}
+						for (BigPacketData ad : m.bigDataNotSent) {
+							ad.reset();
+						}
 
+						// TODO manage transfer connections and associate them with the new agent
+						// socket, instead of actually closing them.
+
+					}
 				} else if (_message.getClass()==CancelBigDataTransferMessage.class)
 				{
 					CancelBigDataTransferMessage m=(CancelBigDataTransferMessage)_message;
@@ -751,7 +764,7 @@ class DistantKernelAgent extends AgentFakeThread {
 					} else if (o.getClass() == AbstractAgentSocket.Groups.class) {
 						AgentSocketData asd = getAgentSocketDataFromItsAgentAddress(_message.getSender());
 						if (asd == null) {
-							if (logger != null)
+							if (logger!=null)
 								logger.warning(
 										"Receiving message (AbstractAgentSocket.Groups) from unexpected agent address : "
 												+ _message.getSender());
@@ -774,10 +787,13 @@ class DistantKernelAgent extends AgentFakeThread {
 										+ " (distantInterfacedKernelAddress=" + distant_kernel_address + ") : " + o);
 
 							asd.setConnectionInfo((ConnectionInfoSystemMessage) o);
-						} else if (logger != null)
-							logger.severe(
+						} else {
+							Logger logger=getLogger();
+							if (logger!=null)
+								logger.severe(
 									"Impossible to found agent socket data from agent address " + _message.getSender()
 											+ ". So impossible to set given ConnectionInfoSystemMessage.");
+						}
 					} else if (o.getClass() == BigDataPropositionMessage.class) {
 						BigDataPropositionMessage bdpm = (BigDataPropositionMessage) o;
 
@@ -925,7 +941,7 @@ class DistantKernelAgent extends AgentFakeThread {
 	private boolean validatePacketDataInQueue(int idTransfer) {
 		BigPacketData bpd = packetsDataInQueue.remove(idTransfer);
 		if (bpd == null) {
-			if (logger != null)
+			if (logger!=null)
 				logger.warning("Big data in queue not valid (distantInterfacedKernelAddress=" + distant_kernel_address
 						+ ", idTransfer=" + idTransfer + ")");
 
@@ -1138,8 +1154,10 @@ class DistantKernelAgent extends AgentFakeThread {
 						new ObjectMessage<>(new TooMuchConnectionWithTheSamePeers(asd.distant_inet_socket_address)),
 						LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 
-		} else if (logger != null) {
-			logger.severe("Unknown agent socket " + sender);
+		} else {
+			Logger logger=getLogger();
+			if (logger!=null)
+				logger.severe("Unknown agent socket " + sender);
 		}
 	}
 
@@ -1154,7 +1172,8 @@ class DistantKernelAgent extends AgentFakeThread {
 			potentialChangesInGroups();
 			networkBoard.unlockSimultaneousConnections(distant_kernel_address);
 		} else {
-			if (logger != null)
+			Logger logger=getLogger();
+			if (logger!=null)
 				logger.severe("Unexpected return code during distant kernel agent activation : " + rc);
 		}
 	}
@@ -1258,9 +1277,12 @@ class DistantKernelAgent extends AgentFakeThread {
 			sendMessageWithRole(sender, new KernelAddressValidation(duplicate_group),
 					LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 
-		} else if (logger != null)
-			logger.warning("Setting distant kernel address already done (currentDistantKernelAddress="
+		}
+		else {
+			if (logger!=null)
+				logger.warning("Setting distant kernel address already done (currentDistantKernelAddress="
 					+ distant_kernel_address + ", receivedKernelAddress=" + distant_ka + ")");
+		}
 
 	}
 
@@ -1507,6 +1529,7 @@ class DistantKernelAgent extends AgentFakeThread {
 	static class AgentSocketData implements Comparable<AgentSocketData> {
 		// final AbstractAgentSocket agent;
 		private final AgentAddress global_address;
+		private final AbstractAgentSocket abstractAgentSocket;
 		private AgentAddress address;
 		final StatsBandwidth stat;
 		ListGroupsRoles distant_accessible_and_requested_groups = new ListGroupsRoles();
@@ -1527,6 +1550,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		//private final CounterSelector counterSelector;
 
 		AgentSocketData(AbstractAgentSocket _agent_socket) {
+			this.abstractAgentSocket=_agent_socket;
 			global_address = address = _agent_socket.getAgentAddressIn(LocalCommunity.Groups.NETWORK,
 					LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 			stat = _agent_socket.getStatistics();
@@ -1543,7 +1567,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 
 		public boolean isUsable() {
-			return distantKernelAddressValidated;
+			return distantKernelAddressValidated && abstractAgentSocket.getState()==State.LIVING;
 		}
 
 		@Override
@@ -1871,11 +1895,11 @@ class DistantKernelAgent extends AgentFakeThread {
 								try {
 									locker.waitUnlock(this, true);
 								} catch (InterruptedException e) {
-									logger.warning("Unexpected interrupted exception");
+									if (logger!=null)
+										logger.warning("Unexpected interrupted exception");
 								}
 							}
-						} else if (logger != null)
-							logger.severe("Unexpected access (updateLocalAcceptedGroups)");
+						}
 					}
 				}
 			}
@@ -1928,10 +1952,14 @@ class DistantKernelAgent extends AgentFakeThread {
 			if (!sendMessage(receiver,
 					new DistKernADataToUpgradeMessage(
 							new PacketData(receiver, _data, packet, _messageLocker, last_message, isItAPriority, _data.excludedFromEncryption())))
-									.equals(ReturnCode.SUCCESS))
-				logger.warning("Fail sending data (distantInterfacedKernelAddress=" + distant_kernel_address
+									.equals(ReturnCode.SUCCESS)) {
+				_messageLocker.unlock();
+				if (logger!=null)
+					logger.warning("Fail sending data (distantInterfacedKernelAddress=" + distant_kernel_address
 						+ ", packetID=" + packet.getID() + ") : " + _data);
-		} catch (PacketException | IOException e) {
+
+			}
+		} catch (IOException | MadkitException e) {
 			throw new NIOException(e);
 		}
 	}
@@ -2893,7 +2921,8 @@ class DistantKernelAgent extends AgentFakeThread {
 		long val = totalDataInQueue.addAndGet(-value);
 		if (val < 0) {
 			totalDataInQueue.addAndGet(-val);
-			if (logger != null)
+			Logger logger=getLogger();
+			if (logger!=null)
 				logger.severe("DistantKernelAgent.totalDataInQueue cannot be negative");
 		}
 		if (val < getMaxSizeForUnreadShortDataFromOneDistantKernel())
@@ -2964,7 +2993,8 @@ class DistantKernelAgent extends AgentFakeThread {
 		long val = networkBoard.totalDataInQueueForAllDistantKernelAgent.addAndGet(-value);
 		if (val < 0) {
 			networkBoard.totalDataInQueueForAllDistantKernelAgent.set(0);
-			if (logger != null)
+			Logger logger=getLogger();
+			if (logger!=null)
 				logger.severe("DistantKernelAgent.totalDataInQueueForAllDistantKernelAgent cannot be negative");
 		}
 		if (hasToPauseGlobalTransfers()) {
@@ -2999,14 +3029,16 @@ class DistantKernelAgent extends AgentFakeThread {
 
 	private void processTooMuchSimultaneousShortDataSent() {
 		processInvalidProcess(null, "Too much data sent from Kernel Address " + distant_kernel_address, true);
-		if (logger != null)
+		Logger logger=getLogger();
+		if (logger!=null)
 			logger.severe(
 					"Short data from " + this.distant_kernel_address + " sent too big. Killing related connections.");
 	}
 
 	protected void processPotentialDDOS() {
 		processInvalidProcess(null, "Potential DDOS from Kernel Address " + distant_kernel_address, true);
-		if (logger != null)
+		Logger logger=getLogger();
+		if (logger!=null)
 			logger.severe(
 					"Detected potential DDOS from " + this.distant_kernel_address + ". Killing related connections.");
 	}

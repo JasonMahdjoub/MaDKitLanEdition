@@ -365,7 +365,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	/**
 	 * Delay to wait in milliseconds before closing a connection, and in order to be sure to send the last packet.
 	 */
-	public long delayInMsBeforeClosingConnectionNormally=500;
+	public long delayInMsBeforeClosingConnectionNormally=0;
 
 	/**
 	 * Delay after a channel selector returns 0 network event and gives hand to the

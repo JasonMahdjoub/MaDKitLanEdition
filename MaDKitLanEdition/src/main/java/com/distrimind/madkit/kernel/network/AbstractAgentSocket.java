@@ -71,6 +71,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * 
@@ -392,20 +393,28 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			access_protocol = getMadkitConfig().networkProperties.getAccessProtocolProperties(distant_inet_address,local_interface_address).getAccessProtocolInstance(distant_inet_address, local_interface_address, lt, getMadkitConfig());
 			
 			if (!this.requestRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.SOCKET_AGENT_ROLE)
-					.equals(ReturnCode.SUCCESS) && logger != null)
-				logger.severe("Cannot request group " + LocalCommunity.Groups.NETWORK + " and role "
-						+ LocalCommunity.Roles.SOCKET_AGENT_ROLE);
+					.equals(ReturnCode.SUCCESS)) {
+				Logger logger = getLogger();
+				if (logger != null)
+					logger.severe("Cannot request group " + LocalCommunity.Groups.NETWORK + " and role "
+							+ LocalCommunity.Roles.SOCKET_AGENT_ROLE);
+			}
 
 			if (!this.requestRole(LocalCommunity.Groups.getAgentSocketGroup(getAgentID()),
-					LocalCommunity.Roles.MAIN_SOCKET_AGENT_ROLE).equals(ReturnCode.SUCCESS) && logger != null)
-				logger.severe("Cannot request group " + LocalCommunity.Groups.getAgentSocketGroup(getAgentID())
+					LocalCommunity.Roles.MAIN_SOCKET_AGENT_ROLE).equals(ReturnCode.SUCCESS)) {
+				Logger logger=getLogger();
+				if (logger!=null)
+					logger.severe("Cannot request group " + LocalCommunity.Groups.getAgentSocketGroup(getAgentID())
 						+ " and role " + LocalCommunity.Roles.SOCKET_AGENT_ROLE);
-
+			}
 			if (!requestRole(LocalCommunity.Groups.getDistantKernelAgentGroup(agent_for_distant_kernel_aa),
-					LocalCommunity.Roles.SOCKET_AGENT_ROLE).equals(ReturnCode.SUCCESS) && logger != null)
-				logger.severe("Cannot request group "
+					LocalCommunity.Roles.SOCKET_AGENT_ROLE).equals(ReturnCode.SUCCESS)) {
+				Logger logger=getLogger();
+				if (logger!=null)
+					logger.severe("Cannot request group "
 						+ LocalCommunity.Groups.getDistantKernelAgentGroup(agent_for_distant_kernel_aa) + " and role "
 						+ LocalCommunity.Roles.SOCKET_AGENT_ROLE);
+			}
 			access_protocol.setKernelAddress(getKernelAddress(), this_ask_connection);
 
 			sendMessageWithRole(this.agent_for_distant_kernel_aa,
@@ -598,31 +607,31 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			for (AbstractData ad : dataToTransferNotSent)
 				ad.unlockMessage();
 
-			if (this.agent_for_distant_kernel_aa != null)
-				this.sendMessageWithRole(agent_for_distant_kernel_aa,
-						new AgentSocketKilled(_data_not_sent, bigDataNotSent, dataToTransferNotSent),
-						LocalCommunity.Roles.SOCKET_AGENT_ROLE);
-			this.sendMessageWithRole(nio_agent_address,
-					new AgentSocketKilled(_data_not_sent, bigDataNotSent, dataToTransferNotSent),
-					LocalCommunity.Roles.SOCKET_AGENT_ROLE);
-			if (logger != null)
-				logger.info("Disconnection OK (distant_inet_address=" + distant_inet_address + ", local_interface="
-						+ local_interface_address + ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress
-						+ ", reason=" + reason + ")");
-			if (agent_for_distant_kernel_aa != null && distantInterfacedKernelAddress != null)
-				MadkitKernelAccess
-						.informHooks(this,
-								new NetworkEventMessage(connection_closed_reason,
-										new Connection(new ConnectionIdentifier(getTransferType(),
-												distant_inet_address, local_interface_address),
-												distantInterfacedKernelAddress)));
 
-			this.killAgent(this);
 		} catch (MadkitException e) {
 			if (logger != null)
 				logger.severeLog("", e);
-			this.killAgent(this);
 		}
+		if (this.agent_for_distant_kernel_aa != null)
+			this.sendMessageWithRole(agent_for_distant_kernel_aa,
+					new AgentSocketKilled(_data_not_sent, bigDataNotSent, dataToTransferNotSent),
+					LocalCommunity.Roles.SOCKET_AGENT_ROLE);
+		this.sendMessageWithRole(nio_agent_address,
+				new AgentSocketKilled(_data_not_sent, bigDataNotSent, dataToTransferNotSent),
+				LocalCommunity.Roles.SOCKET_AGENT_ROLE);
+		if (logger != null)
+			logger.info("Disconnection OK (distant_inet_address=" + distant_inet_address + ", local_interface="
+					+ local_interface_address + ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress
+					+ ", reason=" + reason + ")");
+		if (agent_for_distant_kernel_aa != null && distantInterfacedKernelAddress != null)
+			MadkitKernelAccess
+					.informHooks(this,
+							new NetworkEventMessage(connection_closed_reason,
+									new Connection(new ConnectionIdentifier(getTransferType(),
+											distant_inet_address, local_interface_address),
+											distantInterfacedKernelAddress)));
+
+		this.killAgent(this);
 	}
 
 	static class AgentSocketKilled extends Message {
@@ -873,10 +882,13 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 
 				if (!requestRole(LocalCommunity.Groups.getDistantKernelAgentGroup(_message.getSender()),
-						LocalCommunity.Roles.SOCKET_AGENT_ROLE).equals(ReturnCode.SUCCESS) && logger != null)
-					logger.severe("Cannot request group "
+						LocalCommunity.Roles.SOCKET_AGENT_ROLE).equals(ReturnCode.SUCCESS)) {
+					Logger logger=getLogger();
+					if (logger!=null)
+						logger.severe("Cannot request group "
 							+ LocalCommunity.Groups.getDistantKernelAgentGroup(_message.getSender()) + " and role "
 							+ LocalCommunity.Roles.SOCKET_AGENT_ROLE);
+				}
 
 				Collection<AgentAddress> c = getAgentsWithRole(
 						LocalCommunity.Groups.getDistantKernelAgentGroup(_message.getSender()),
@@ -885,11 +897,14 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				AgentAddress aa = null;
 				if (c.size() == 1)
 					aa = c.iterator().next();
-				else if (logger != null) {
-					if (c.size() == 0)
-						logger.severe("Distant kernel agent not found : " + o);
-					else
-						logger.severe("Distant kernel agent duplicated : " + o);
+				else {
+					Logger logger=getLogger();
+					if (logger!=null) {
+						if (c.size() == 0)
+							logger.severe("Distant kernel agent not found : " + o);
+						else
+							logger.severe("Distant kernel agent duplicated : " + o);
+					}
 				}
 				if (aa != null) {
 					distant_kernel_agent_activated = true;
@@ -2439,39 +2454,57 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				if (!requestRole(
 						LocalCommunity.Groups
 								.getDistantKernelAgentGroup(agent_for_distant_kernel_aa.getAgentNetworkID()),
-						LocalCommunity.Roles.SOCKET_AGENT_ROLE).equals(ReturnCode.SUCCESS) && logger != null)
-					logger.severe("Cannot request group "
+						LocalCommunity.Roles.SOCKET_AGENT_ROLE).equals(ReturnCode.SUCCESS)) {
+					Logger logger=getLogger();
+					if (logger!=null)
+						logger.severe("Cannot request group "
 							+ LocalCommunity.Groups
-									.getDistantKernelAgentGroup(agent_for_distant_kernel_aa.getAgentNetworkID())
+							.getDistantKernelAgentGroup(agent_for_distant_kernel_aa.getAgentNetworkID())
 							+ " and role " + LocalCommunity.Roles.SOCKET_AGENT_ROLE);
+				}
 				// send data to distant kernel agent
 				ReturnCode rc=sendMessageWithRole(this.agent_for_distant_kernel_aa,
 						new ObjectMessage<>(new AgentSocketData(this)),
 						LocalCommunity.Roles.SOCKET_AGENT_ROLE);
-				if (!rc.equals(ReturnCode.SUCCESS) && logger!=null)
-					logger.severe("Unable to send message to distant kernel agent");
+				if (!rc.equals(ReturnCode.SUCCESS)) {
+					Logger logger=getLogger();
+					if (logger!=null)
+						logger.severe("Unable to send message to distant kernel agent");
+				}
 				rc=sendMessageWithRole(this.agent_for_distant_kernel_aa,
 						new NetworkGroupsAccessEvent(AgentActionEvent.ACCESSIBLE_LAN_GROUPS_GIVEN_BY_DISTANT_PEER,
 								distant_general_accepted_groups, distant_accepted_and_requested_groups,
 								distant_kernel_address, false),
 						LocalCommunity.Roles.SOCKET_AGENT_ROLE);
-				if (!rc.equals(ReturnCode.SUCCESS) && logger!=null)
-					logger.severe("Unable to send message to distant kernel agent");
+				if (!rc.equals(ReturnCode.SUCCESS)) {
+					Logger logger=getLogger();
+					if (logger!=null)
+						logger.severe("Unable to send message to distant kernel agent");
+				}
 				rc=sendMessageWithRole(
 						this.agent_for_distant_kernel_aa, new NetworkLoginAccessEvent(distant_kernel_address,
 								my_accepted_logins.identifiers, my_accepted_logins.identifiers, null, null, null, null),
 						LocalCommunity.Roles.SOCKET_AGENT_ROLE);
-				if (!rc.equals(ReturnCode.SUCCESS) && logger!=null)
-					logger.severe("Unable to send message to distant kernel agent");
+				if (!rc.equals(ReturnCode.SUCCESS)) {
+					Logger logger=getLogger();
+					if (logger!=null)
+						logger.severe("Unable to send message to distant kernel agent");
+				}
 				rc=sendMessageWithRole(agent_for_distant_kernel_aa, new KernelAddressValidation(true),
 						LocalCommunity.Roles.SOCKET_AGENT_ROLE);
-				if (!rc.equals(ReturnCode.SUCCESS) && logger!=null)
-					logger.severe("Unable to send message to distant kernel agent");
+				if (!rc.equals(ReturnCode.SUCCESS)) {
+					Logger logger=getLogger();
+					if (logger!=null)
+						logger.severe("Unable to send message to distant kernel agent");
+				}
 				// validate kernel address
 				rc=this.sendMessageWithRole(aa, new KernelAddressValidation(false),
 						LocalCommunity.Roles.SOCKET_AGENT_ROLE);
-				if (!rc.equals(ReturnCode.SUCCESS) && logger!=null)
-					logger.severe("Unable to send message to distant kernel agent");
+				if (!rc.equals(ReturnCode.SUCCESS)) {
+					Logger logger=getLogger();
+					if (logger!=null)
+						logger.severe("Unable to send message to distant kernel agent");
+				}
 
 				if (my_accepted_groups != null)
 					my_accepted_groups.notifyDistantKernelAgent();
