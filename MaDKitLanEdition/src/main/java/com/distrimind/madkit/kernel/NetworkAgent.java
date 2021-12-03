@@ -198,7 +198,22 @@ public final class NetworkAgent extends AgentFakeThread {
 
 	@Override
 	protected void end() {
+		Message message;
+		while ((message=nextMessage())!=null)
+			receiveMessage(message);
 		stopNetwork();
+		messageLockers.values().forEach(ml ->  {
+			if (ml != null) {
+				try {
+
+					ml.unlock();
+				} catch (Exception e) {
+					if (logger != null)
+						logger.severeLog("Unexpected exception", e);
+				}
+			}
+		});
+		messageLockers.clear();
 		removeBoard(LocalCommunity.Groups.NETWORK, LocalCommunity.Boards.NETWORK_BOARD);
 		if (logger != null && logger.isLoggable(Level.FINE))
 			logger.fine("NetworkAgent in " + getKernelAddress() + " KILLED !");

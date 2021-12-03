@@ -58,16 +58,15 @@ class DatagramData {
 			throw new NullPointerException("message");
 		try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
 			message.writeTo(baos);
-			byte[] b = baos.getBytes();
-			int size = b.length;
-			if (size>DatagramLocalNetworkPresenceMessage.getMaxDatagramMessageLength())
-				throw new IllegalArgumentException();
-			byte[] res = new byte[Block.getBlockSizeLength() + size];
 
-			Bits.putUnsignedInt24Bits(res, 0, res.length);
-			//Bits.putInt(res, 0, size);
-			System.arraycopy(b, 0, res, Block.getBlockSizeLength(), size);
-			data = ByteBuffer.wrap(res);
+			baos.flush();
+			if (baos.length()>DatagramLocalNetworkPresenceMessage.getMaxDatagramMessageLength())
+				throw new IllegalArgumentException();
+			int size=(int)baos.length()+Block.getBlockSizeLength();
+			RandomByteArrayOutputStream res=new RandomByteArrayOutputStream(size);
+			res.writeUnsignedInt24Bits(size);
+			baos.getRandomInputStream().transferTo(res);
+			data = ByteBuffer.wrap(res.getBytes());
 		}
 	}
 

@@ -43,12 +43,17 @@ package com.distrimind.madkit.kernel.network;
  * @version 1.1
  * @since MadkitLanEdition 1.0
  */
-public class SubBlock {
+public final class SubBlock {
 	private byte[] block;
 	private int offset;
 	private int size;
 	
 	public SubBlock(Block _block) {
+		setBlock(_block);
+	}
+
+	public void setBlock(Block _block)
+	{
 		block = _block.getBytes();
 		offset = Block.getHeadSize();
 		size = block.length - offset;

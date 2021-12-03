@@ -1708,9 +1708,11 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 
 		void potentialChangesInGroups(DistantKernelAgent dka) throws MadkitException {
-			AcceptedGroups ag = getAcceptedLocalGroups().potentialChangesInGroups();
-			if (ag != null) {
-				dka.sendData(this.global_address, ag, true, null, false);
+			if (dka.isAlive()) {
+				AcceptedGroups ag = getAcceptedLocalGroups().potentialChangesInGroups();
+				if (ag != null) {
+					dka.sendData(this.global_address, ag, true, null, false);
+				}
 			}
 
 		}
@@ -1933,17 +1935,17 @@ class DistantKernelAgent extends AgentFakeThread {
 
 	protected void sendData(AgentAddress receiver, SystemMessageWithoutInnerSizeControl _data, boolean isItAPriority,
 							MessageLocker _messageLocker, boolean last_message) throws NIOException {
-		if (!isAlive())
-			return;
-		try (RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream()) {
+		int maxBufferSize=getMadkitConfig().networkProperties.maxBufferSize;
+		try  {
+			RandomByteArrayOutputStream baos = new RandomByteArrayOutputStream(new byte[maxBufferSize]);
 			baos.setObjectResolver(filteredObjectResolver);
 			baos.writeObject(_data, false);
 			baos.flush();
 
 			WritePacket packet = new WritePacket(PacketPartHead.TYPE_PACKET, getNewPacketID(),
-					getMadkitConfig().networkProperties.maxBufferSize,
+					maxBufferSize,
 					_data.excludedFromEncryption()?0:getMadkitConfig().networkProperties.maxRandomPacketValues, random,
-					new RandomByteArrayInputStream(baos.getBytes()));
+					new LimitedRandomInputStream(baos.getRandomInputStream(), 0, baos.currentPosition()));
 			if (logger != null && logger.isLoggable(Level.FINEST))
 				logger.finest("Sending data (distantInterfacedKernelAddress=" + distant_kernel_address + ", packetID="
 						+ packet.getID() + ") : " + _data);
@@ -2152,7 +2154,7 @@ class DistantKernelAgent extends AgentFakeThread {
 					currentByteBuffer=null;
 					if (!asking_new_buffer_in_process) {
 						if (!packet.isFinished()) {
-							updateNextByteBuffer();
+							updateNextByteBufferUnsafe();
 						}
 					}
 					
@@ -2239,31 +2241,25 @@ class DistantKernelAgent extends AgentFakeThread {
 			return packet.getID();
 		}
 
-		private void updateNextByteBuffer() throws PacketException  {
-			synchronized (this) {
-				try
+		private void updateNextByteBufferUnsafe() throws PacketException  {
+			try
+			{
+				asking_new_buffer_in_process = true;
+				if ((agentSocket == null || !agentSocket.isAlive())
+						&& !isUnlocked())
 				{
-					if (isCanceled())
-						return;
-					asking_new_buffer_in_process = true;
-					if ((agentSocket == null || !agentSocket.isAlive())
-							&& !isUnlocked())
-					{
-						if (logger!=null)
-							logger.warning("Impossible to send message to "+this.getAgentSocketSender());
-						unlockMessage();
-						cancel();
-						return;
-					}
-					agentSocket.receiveMessage(new DistKernADataToUpgradeMessage(this));
+					if (logger!=null)
+						logger.warning("Impossible to send message to "+this.getAgentSocketSender());
+					unlockMessage();
+					cancel();
+					return;
 				}
-				catch(MadkitException | IOException e)
-				{
-					throw new PacketException(e);
-				}
-
-				//DistantKernelAgent.this.receiveMessage(new DistKernADataToUpgradeMessage(this));
 			}
+			catch(MadkitException | IOException e)
+			{
+				throw new PacketException(e);
+			}
+			agentSocket.receiveMessage(new DistKernADataToUpgradeMessage(this));
 		}
 
 		public IDTransfer getIDTransfer() {
@@ -2528,14 +2524,14 @@ class DistantKernelAgent extends AgentFakeThread {
 		private final AgentAddress initialSocketAgent;
 
 		public SerializedReading(AgentAddress initialSocketAgent, PacketPart _part) throws PacketException, IOException {
-			super(null, _part, new RandomByteArrayOutputStream());
+			super(null, _part, new RandomByteArrayOutputStream((int)_part.getHead().getTotalLength()));
 			this.initialSocketAgent = initialSocketAgent;
 			dataSize = _part.getSubBlock().getSize();
 			incrementTotalDataQueue(dataSize);
 		}
 
-		public byte[] getBytes() {
-			return ((RandomByteArrayOutputStream) output_stream).getBytes();
+		public RandomInputStream getRandomInputStream() throws IOException {
+			return output_stream.getRandomInputStream();
 		}
 
 		@Override
@@ -2747,9 +2743,8 @@ class DistantKernelAgent extends AgentFakeThread {
 						sr.freeDataSize();
 					} else {
 						try {
-							sr.closeStream();
-							byte[] bytes = sr.getBytes();
-							try (RandomByteArrayInputStream bais = new RandomByteArrayInputStream(bytes)) {
+
+							try (RandomInputStream bais = sr.getRandomInputStream()) {
 								bais.setObjectResolver(filteredObjectResolver);
 								Object obj = bais.readObject(false);
 
@@ -2758,11 +2753,14 @@ class DistantKernelAgent extends AgentFakeThread {
 							catch(MessageExternalizationException e)
 							{
 								sr.freeDataSize();
-								processInvalidSerializedObject(agent_socket_sender, e, bytes, e.getIntegrity().equals(Integrity.FAIL_AND_CANDIDATE_TO_BAN));
+								processInvalidSerializedObject(agent_socket_sender, e, null, e.getIntegrity().equals(Integrity.FAIL_AND_CANDIDATE_TO_BAN));
 							}
 							catch (IOException | ClassNotFoundException | NIOException e) {
 								sr.freeDataSize();
-								processInvalidSerializedData(agent_socket_sender, e, sr.read_packet, bytes);
+								processInvalidSerializedData(agent_socket_sender, e, sr.read_packet, null);
+							}
+							finally {
+								sr.closeStream();
 							}
 
 						} catch (IOException e) {
@@ -2814,7 +2812,7 @@ class DistantKernelAgent extends AgentFakeThread {
 	}
 
 
-	class ReceivedSerializableObject extends ObjectMessage<SystemMessageWithoutInnerSizeControl> {
+	final class ReceivedSerializableObject extends ObjectMessage<SystemMessageWithoutInnerSizeControl> {
 
 
 		private final long dataIncrement;

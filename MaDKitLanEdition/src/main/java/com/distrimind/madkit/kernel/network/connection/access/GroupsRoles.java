@@ -297,6 +297,7 @@ public class GroupsRoles implements Cloneable, SecureExternalizable {
 				}
 			} else
 				out.writeShort(0);
+			out.flush();
 			return new RoleID(out.getBytes());
 		}
 		catch(IOException e)

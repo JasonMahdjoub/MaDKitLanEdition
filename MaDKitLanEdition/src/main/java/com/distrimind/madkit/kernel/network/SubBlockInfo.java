@@ -66,6 +66,11 @@ public final class SubBlockInfo {
 		return sub_block;
 	}
 
+	public void set(Block block, boolean valid, boolean candidate_to_ban) throws BlockParserException {
+		set(valid, candidate_to_ban);
+		sub_block.setBlock(block);
+	}
+
 	public void set(boolean valid, boolean candidate_to_ban) throws BlockParserException {
 		if (valid && candidate_to_ban)
 			throw new BlockParserException("The sub block can't be valid and canditate to ban at the same time !");
@@ -73,10 +78,7 @@ public final class SubBlockInfo {
 		this.candidate_to_ban=candidate_to_ban;
 	}
 	public void set(SubBlock sub_block, boolean valid, boolean candidate_to_ban) throws BlockParserException {
-		if (valid && candidate_to_ban)
-			throw new BlockParserException("The sub block can't be valid and canditate to ban at the same time !");
+		set(valid, candidate_to_ban);
 		this.sub_block=sub_block;
-		this.valid=valid;
-		this.candidate_to_ban=candidate_to_ban;
 	}
 }

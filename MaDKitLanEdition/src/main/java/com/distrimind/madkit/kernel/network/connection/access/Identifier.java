@@ -62,6 +62,7 @@ public class Identifier implements SecureExternalizable {
 
 	private CloudIdentifier cloud_identifier;
 	private HostIdentifier host_identifier;
+	private transient byte[] serializedObject=null;
 
 	@SuppressWarnings("unused")
 	Identifier()
@@ -159,6 +160,7 @@ public class Identifier implements SecureExternalizable {
 	@Override
 	public void readExternal(final SecuredObjectInputStream in) throws IOException, ClassNotFoundException
 	{
+		serializedObject=null;
 		cloud_identifier=in.readObject(false, CloudIdentifier.class);
 		if (in.readBoolean())
 			host_identifier=getNullHostIdentifierSingleton();
@@ -183,12 +185,14 @@ public class Identifier implements SecureExternalizable {
 	}
 
 	public byte[] toBytes() throws IOException {
-		try(RandomByteArrayOutputStream soos=new RandomByteArrayOutputStream())
-		{
-			soos.writeObject(this, false);
-			soos.flush();
-			return soos.getBytes();
+		if (serializedObject==null) {
+			try (RandomByteArrayOutputStream soos = new RandomByteArrayOutputStream()) {
+				soos.writeObject(this, false);
+				soos.flush();
+				serializedObject=soos.getBytes();
+			}
 		}
+		return serializedObject;
 	}
 
 	public enum AuthenticationMethod

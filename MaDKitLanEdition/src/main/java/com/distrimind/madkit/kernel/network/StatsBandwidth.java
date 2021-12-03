@@ -390,4 +390,33 @@ public class StatsBandwidth {
 		}
 	}
 
+	void newDataReceived(Integer id, int oldSize, long duration, int newSize) {
+		StatsBandwidth sb = null;
+		synchronized (this) {
+			for (TransferSpeedStat s : bytes_downloaded_in_real_bytes.values())
+				s.newBytesIdentified(oldSize, duration);
+			for (RealTimeTransferStat s : bytes_downloaded_in_real_time.values())
+				s.newBytesIdentified(newSize);
+
+			if (id != null && id != TransferAgent.NullIDTransfer.getID()) {
+				sb = transfer_agents_bandwidth.get(id);
+				if (sb == null)
+					throw new IllegalArgumentException("Impossible to found stats for IDTransfer " + id);
+				if (sb.statsForDistantKernelAddress.get() == statsForDistantKernelAddress.get())
+					sb.statsForDistantKernelAddress.set(null);
+			}
+		}
+		if (sb != null) {
+			sb.newDataReceived(null, oldSize, duration);
+			sb.newDataReceived(null, newSize);
+		}
+		sb = this.statsForDistantKernelAddress.get();
+		if (sb != null) {
+			sb.newDataReceived(null, oldSize, duration);
+			sb.newDataReceived(null, newSize);
+		}
+	}
+
+
+
 }

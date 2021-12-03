@@ -657,14 +657,10 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 
 	@Override
 	protected void liveByStep(Message _message) {
-		/*
-		 * if (state.compareTo(State.DISCONNECTION_IN_PROGRESS)>=0 &&
-		 * !(_message.getClass()==DistKernADataToUpgradeMessage.class &&
-		 * ((DistKernADataToUpgradeMessage) _message).dataToUpgrade.isLastMessage()) &&
-		 * _message.getClass()!=ConnectionClosed.class) return;
-		 */
-
-		if (_message.getClass() == DistKernADataToUpgradeMessage.class) {
+		if (_message==null)
+			return;
+		Class<?> clazz=_message.getClass();
+		if (clazz == DistKernADataToUpgradeMessage.class) {
 
 			AbstractPacketData d = ((DistKernADataToUpgradeMessage) _message).dataToUpgrade;
 			if (d.isCanceled())
@@ -709,20 +705,20 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					}
 				}
 			}
-		} else if (_message instanceof DataReceivedMessage) {
+		} else if (clazz == DataReceivedMessage.class) {
 			receiveData(((DataReceivedMessage) _message).getReceivedData());
-		} else if (_message.getClass() == SendPingMessage.class) {
+		} else if (clazz == SendPingMessage.class) {
 			if (logger != null && logger.isLoggable(Level.FINEST))
 				logger.finest("Sending ping message (distant_inet_address=" + distant_inet_address
 						+ ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress + ")");
 			waitingPongMessage = true;
 			sendData(new PingMessage(), true, false);
-		} else if (_message.getClass()==ConnectionClosed.class) {
+		} else if (clazz==ConnectionClosed.class) {
 			ConnectionClosed cc = (ConnectionClosed) _message;
 			disconnected(cc.reason, cc.data_not_sent, cc.bigDataNotSent, cc.dataToTransferNotSent);
-		} else if (_message.getClass() == FailedCreateIndirectAgentSocket.class) {
+		} else if (clazz == FailedCreateIndirectAgentSocket.class) {
 			((FailedCreateIndirectAgentSocket) _message).executeTask();
-		} else if (_message.getClass() == AskForConnectionMessage.class) {
+		} else if (clazz == AskForConnectionMessage.class) {
 			AskForConnectionMessage cc = (AskForConnectionMessage) _message;
 			if (cc.type.equals(ConnectionStatusMessage.Type.DISCONNECT)) {
 				if (cc.connection_closed_reason.equals(ConnectionClosedReason.CONNECTION_ANOMALY)) {
@@ -731,7 +727,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				} else
 					startDisconnectionProcess(cc.connection_closed_reason);
 			}
-		} else if (_message.getClass()==ReceivedIndirectData.class) {
+		} else if (clazz==ReceivedIndirectData.class) {
 			ReceivedIndirectData m = ((ReceivedIndirectData) _message);
 			if (m.block.getTransferID() != getTransferType().getID()) {
 
@@ -746,7 +742,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			} else {
 				receiveData(m.block);
 			}
-		} else if (_message.getClass() == ResendData.class) {
+		} else if (clazz == ResendData.class) {
 			ResendData rd = ((ResendData) _message);
 			InterfacedIDTransfer idt = getValidatedInterfacedIDTransfer(_message.getSender(),
 					rd.block_data.getIDTransfer());
@@ -769,10 +765,10 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 							LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 				}
 			}
-		} else if (_message instanceof ReceivedSerializableObject) {
+		} else if (clazz == ReceivedSerializableObject.class) {
 			ReceivedSerializableObject m = (ReceivedSerializableObject) _message;
 			receiveData(m.getContent(), m);
-		} else if (_message.getClass() == KernelAddressValidation.class) {
+		} else if (clazz == KernelAddressValidation.class) {
 			if ( access_protocol.isNotifyAccessGroupChanges())
 				notifyNewAccessChanges();
 			if (((KernelAddressValidation) _message).isKernelAddressInterfaceEnabled()) {
@@ -822,7 +818,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				
 			}
 			
-		} else if (_message.getClass() == ExceededDataQueueSize.class) {
+		} else if (clazz == ExceededDataQueueSize.class) {
 
 			boolean paused = ((ExceededDataQueueSize) _message).isPaused();
 
@@ -837,7 +833,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 								+ distant_inet_address + ") : " + false);
 				}
 			}
-		} else if (_message.getClass() == PossibleInetAddressesUsedForDirectConnectionChanged.class) {
+		} else if (clazz == PossibleInetAddressesUsedForDirectConnectionChanged.class) {
 			PossibleInetAddressesUsedForDirectConnectionChanged m = (PossibleInetAddressesUsedForDirectConnectionChanged) _message;
 			if (m.isConcernedBy(local_interface_address.getAddress())) {
 				if (logger != null && logger.isLoggable(Level.FINEST))
@@ -847,7 +843,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 
 				sendConnectionInfoSystemMessage();
 			}
-		} else if (_message.getClass() == CheckDeadTransferNodes.class) {
+		} else if (clazz == CheckDeadTransferNodes.class) {
 			if (logger != null && logger.isLoggable(Level.FINEST))
 				logger.finest("Checking dead transfer nodes (distant_inet_address=" + distant_inet_address
 						+ ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress + ")");
@@ -855,34 +851,37 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			transfer_ids.removeObsoleteData();
 			transfer_ids_to_finalize.removeObsoleteData();
 			this.removeTaskTransferCheckerIfNecessary();
-		} else if (_message.getClass() == AnomalyDetectedMessage.class) {
+		} else if (clazz == AnomalyDetectedMessage.class) {
 			AnomalyDetectedMessage m = (AnomalyDetectedMessage) _message;
 			if ((m.getInetSocketAddress() != null && m.getInetSocketAddress().equals(distant_inet_address))
 					|| (m.getKernelAddress() != null && m.getKernelAddress().equals(distantInterfacedKernelAddress))
 					|| m.getKernelAddress() == null) {
 				processExternalAnomaly(m.getMessage(), m.isCandidateToBan());
 			}
-		} else if (_message.getClass() == ObjectMessage.class) {
+		} else if (clazz == ObjectMessage.class) {
 			Object o = ((ObjectMessage<?>) _message).getContent();
-			if (o.getClass() == NewLocalLoginAddedMessage.class) {
+			if (o==null)
+				return;
+			clazz=o.getClass();
+			if (clazz == NewLocalLoginAddedMessage.class) {
 				if (logger != null && logger.isLoggable(Level.FINER))
 					logger.finer("Local login added (" + this.distant_inet_address + ", " + distant_inet_address + ")");
 
 				receiveData(o, null);
-			} else if (o.getClass() == SecretMessage.class) {
+			} else if (clazz == SecretMessage.class) {
 				if (logger != null && logger.isLoggable(Level.FINEST))
 					logger.finest("Send secret message (distant_inet_address=" + distant_inet_address
 							+ ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress + ")");
 				SecretMessage sm = (SecretMessage) o;
 				sm.removeAgentSocketAddress();
 				sendData(sm, true, false);
-			} else if (o.getClass() == StatsBandwidth.class) {
+			} else if (clazz == StatsBandwidth.class) {
 				if (logger != null && logger.isLoggable(Level.FINEST))
 					logger.finest("Updating statistics for distant kernel address (distant_inet_address="
 							+ distant_inet_address + ", distantInterfacedKernelAddress="
 							+ distantInterfacedKernelAddress + ")");
 				getStatistics().putStateForDistantKernelAddress((StatsBandwidth) o);
-			} else if (o.getClass() == KernelAddressInterfaced.class) {
+			} else if (clazz == KernelAddressInterfaced.class) {
 
 				leaveRole(LocalCommunity.Groups.getDistantKernelAgentGroup(agent_for_distant_kernel_aa),
 						LocalCommunity.Roles.SOCKET_AGENT_ROLE);
@@ -927,11 +926,11 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				} else {
 					this.startDisconnectionProcess(ConnectionClosedReason.CONNECTION_ANOMALY);
 				}
-			} else if (o.getClass() == InitiateTransferConnection.class) {
+			} else if (clazz == InitiateTransferConnection.class) {
 				InitiateTransferConnection candidate = (InitiateTransferConnection) o;
 
 				initiateTransferConnection(_message.getSender(), candidate);
-			} else if (o.getClass() == DataToBroadcast.class) {
+			} else if (clazz == DataToBroadcast.class) {
 				DataToBroadcast m = (DataToBroadcast) o;
 				if (logger != null)
 					logger.finest("broadcasting indirect data (distant_inet_address=" + distant_inet_address
@@ -940,13 +939,13 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 
 				receiveBroadcastData(_message.getSender(), m, false);
 				// }
-			} else if (o.getClass() == TransferConfirmationSystemMessage.class) {
+			} else if (clazz == TransferConfirmationSystemMessage.class) {
 				TransferConfirmationSystemMessage t = (TransferConfirmationSystemMessage) o;
 				broadcastPropositionAnswer(t);
-			} else if (o.getClass() == TransferImpossibleSystemMessageFromMiddlePeer.class) {
+			} else if (clazz == TransferImpossibleSystemMessageFromMiddlePeer.class) {
 				TransferImpossibleSystemMessageFromMiddlePeer t = (TransferImpossibleSystemMessageFromMiddlePeer) o;
 				broadcastPropositionImpossibleAnswer(t);
-			} else if (o.getClass() == TransferClosedSystemMessage.class) {
+			} else if (clazz == TransferClosedSystemMessage.class) {
 				TransferClosedSystemMessage t = (TransferClosedSystemMessage) o;
 				if (logger != null && logger.isLoggable(Level.FINEST))
 					logger.finest("closing indirect connection (distant_inet_address=" + distant_inet_address
@@ -976,19 +975,19 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 							receiveTransferClosedSystemMessage(aa, t, getKernelAddress(), true, true);
 					}
 				}
-			} else if (o.getClass() == TryDirectConnection.class) {
+			} else if (clazz == TryDirectConnection.class) {
 				sendData((TryDirectConnection) o, true, false);
-			} else if (o.getClass() == DirectConnectionFailed.class) {
+			} else if (clazz == DirectConnectionFailed.class) {
 				sendData((DirectConnectionFailed) o, true, false);
-			} else if (o.getClass() == DirectConnectionSucceeded.class) {
+			} else if (clazz == DirectConnectionSucceeded.class) {
 				sendData((DirectConnectionSucceeded) o, true, false);
-			} else if (o.getClass() == TooMuchConnectionWithTheSamePeers.class) {
+			} else if (clazz == TooMuchConnectionWithTheSamePeers.class) {
 				if (logger != null && logger.isLoggable(Level.FINER))
 					logger.finer(
 							"Too much connections with the same peers (distant_inet_address=" + distant_inet_address
 									+ ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress + ")");
 				sendData((TooMuchConnectionWithTheSamePeers) o, true, true);
-			} else if (o.getClass()==String.class)
+			} else if (clazz==String.class)
 			{
 				String m=(String)o;
 
@@ -1941,12 +1940,13 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			if (timer_read == null) {
 				timer_read=timer_read_static;
 				timer_read.reset();
+				getStatistics().newDataReceived(_block.getTransferID(), _block.getBlockSize());
 			}
-			else
+			else {
 				getStatistics().newDataReceived(_block.getTransferID(), dataRead,
-						timer_read.getDeltaMilli());
+						timer_read.getDeltaMilli(), _block.getBlockSize());
+			}
 			dataRead = _block.getBlockSize();
-			getStatistics().newDataReceived(_block.getTransferID(), _block.getBlockSize());
 			_block.setTransferID(TransferAgent.NullIDTransfer.getID());
 			PacketPart p = getPacketPart(_block);
 			ReturnCode rc = sendMessageWithRole(this.agent_for_distant_kernel_aa, new ReceivedBlockData(p),

@@ -43,7 +43,7 @@ package com.distrimind.madkit.kernel.network;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-class DataReceivedMessage extends NIOMessage {
+final class DataReceivedMessage extends NIOMessage {
 
 
 	private final byte[] received_data;
