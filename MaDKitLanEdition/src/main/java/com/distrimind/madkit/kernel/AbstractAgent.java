@@ -5166,7 +5166,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 *                          if the transfer is asynchronous
 	 * @return SUCCESS if the transfer was found, IGNORED if not
 	 */
-	public ReturnCode cancelAsynchronousBigData(IBigDataTransferID bigDataTransferID)
+	public ReturnCode cancelBigDataTransfer(IBigDataTransferID bigDataTransferID)
 	{
 		if (bigDataTransferID==null)
 			throw new NullPointerException();

@@ -37,12 +37,15 @@
  */
 package com.distrimind.madkit.testing.util.agent;
 
-import com.distrimind.madkit.kernel.Agent;
-import com.distrimind.madkit.kernel.BigDataPropositionMessage;
-import com.distrimind.madkit.kernel.BigDataResultMessage;
-import com.distrimind.madkit.kernel.Message;
+import com.distrimind.madkit.kernel.*;
+import com.distrimind.util.Reference;
 import com.distrimind.util.io.RandomByteArrayOutputStream;
+import com.distrimind.util.io.RandomOutputStream;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
 import org.testng.AssertJUnit;
+
+import java.io.IOException;
 
 import static com.distrimind.madkit.kernel.TestNGMadkit.GROUP;
 import static com.distrimind.madkit.kernel.TestNGMadkit.ROLE;
@@ -57,8 +60,13 @@ public class BigDataTransferReceiverAgent extends Agent {
 	private int dataToReceiveNumber;
 	private final int uploadLimitInBytesPerSecond;
 	private int downloadLimitInBytesPerSecond;
+	final boolean cancelTransfer, asynchronousMessage, restartMessage;
 
-	public BigDataTransferReceiverAgent(int dataToReceiveNumber, int uploadLimitInBytesPerSecond) {
+	public BigDataTransferReceiverAgent(int dataToReceiveNumber, int uploadLimitInBytesPerSecond,
+										boolean cancelTransfer, boolean asynchronousMessage, boolean restartMessage) {
+		this.cancelTransfer=cancelTransfer;
+		this.asynchronousMessage=asynchronousMessage;
+		this.restartMessage=restartMessage;
 		this.dataToReceiveNumber=dataToReceiveNumber;
 		this.uploadLimitInBytesPerSecond=uploadLimitInBytesPerSecond;
 	}
@@ -69,6 +77,31 @@ public class BigDataTransferReceiverAgent extends Agent {
 		downloadLimitInBytesPerSecond=getMaximumGlobalDownloadSpeedInBytesPerSecond();
 	}
 
+	static final class AsynchronousToReceive implements AsynchronousBigDataToReceiveWrapper
+	{
+
+		@Override
+		public RandomOutputStream getRandomOutputStream(ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier) {
+			return receivedData;
+		}
+
+		@Override
+		public int getInternalSerializedSize() {
+			return 0;
+		}
+
+		@Override
+		public void writeExternal(SecuredObjectOutputStream out) throws IOException {
+
+		}
+
+		@Override
+		public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+
+		}
+	}
+	static RandomByteArrayOutputStream receivedData=new RandomByteArrayOutputStream();
+
 	@Override
 	protected void liveCycle() throws InterruptedException {
 		Message m = waitNextMessage(10000);
@@ -76,8 +109,13 @@ public class BigDataTransferReceiverAgent extends Agent {
 		{
 			System.out.println("receiving big data proposition message");
 			BigDataPropositionMessage bdpm=((BigDataPropositionMessage) m);
+			byte[] arrayToSend=BigDataTransferSpeed.bigDataToSendArray.get();
 			try {
-				bdpm.acceptTransfer(new RandomByteArrayOutputStream());
+				if (asynchronousMessage)
+					bdpm.acceptTransfer(new AsynchronousToReceive());
+				else
+					bdpm.acceptTransfer(receivedData);
+
 			} catch (IllegalAccessException e) {
 				e.printStackTrace();
 				return;
@@ -95,6 +133,7 @@ public class BigDataTransferReceiverAgent extends Agent {
 				BigDataResultMessage rm=((BigDataResultMessage) m);
 				if (rm.getType()==BigDataResultMessage.Type.BIG_DATA_TRANSFERRED)
 				{
+					AssertJUnit.assertFalse(cancelTransfer);
 					System.out.println(rm.getTransferredDataLength() +" bytes transfered in "+rm.getTransferDuration()+" ms"+(bdpm.bigDataExcludedFromEncryption()?" without encryption":" with encryption"));
 					System.out.println("Transfer speed (MiO per seconds) : "+(((double)rm.getTransferredDataLength())/(((double)rm.getTransferDuration())/1000.0)/1024.0/1024.0));
 					if (getMaximumGlobalDownloadSpeedInBytesPerSecond()!=Integer.MAX_VALUE) {
@@ -103,9 +142,18 @@ public class BigDataTransferReceiverAgent extends Agent {
 						AssertJUnit.assertTrue(speed< getMaximumGlobalDownloadSpeedInBytesPerSecond() * 2);
 						AssertJUnit.assertTrue(speed> getMaximumGlobalDownloadSpeedInBytesPerSecond() / 2.0);
                     }
+					AssertJUnit.assertEquals(arrayToSend, receivedData.getBytes());
 				}
-				else
-					System.err.println("Problem during transfer : "+rm.getType());
+				else if (rm.getType()== BigDataResultMessage.Type.TRANSFER_CANCELED)
+				{
+					System.out.println("message canceled");
+					AssertJUnit.assertTrue(cancelTransfer);
+				}
+				else {
+					System.err.println("Problem during transfer : " + rm.getType());
+				}
+
+				receivedData=new RandomByteArrayOutputStream();
 				if (--dataToReceiveNumber<=0) {
 					this.sleep(1000);
 					this.killAgent(this);

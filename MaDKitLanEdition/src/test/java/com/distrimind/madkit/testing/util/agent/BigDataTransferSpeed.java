@@ -43,9 +43,13 @@ import com.distrimind.madkit.kernel.network.connection.access.AbstractAccessProt
 import com.distrimind.madkit.kernel.network.connection.access.AccessProtocolWithP2PAgreementProperties;
 import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
 import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolPropertiesWithKeyAgreement;
+import com.distrimind.util.Reference;
 import com.distrimind.util.crypto.SymmetricAuthenticatedSignatureType;
 import com.distrimind.util.crypto.SymmetricEncryptionType;
 import com.distrimind.util.io.RandomByteArrayInputStream;
+import com.distrimind.util.io.RandomInputStream;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
 import org.testng.AssertJUnit;
 
 import java.io.IOException;
@@ -54,6 +58,7 @@ import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Collections;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
@@ -68,7 +73,12 @@ public class BigDataTransferSpeed extends TestNGMadkit {
 	final NetworkEventListener eventListener1;
 	final NetworkEventListener eventListener2;
     final int downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond;
-	public BigDataTransferSpeed(final int downloadLimitInBytesPerSecond, final int uploadLimitInBytesPerSecond) throws UnknownHostException {
+    final boolean cancelTransfer, asynchronousMessage, restartMessage;
+	public BigDataTransferSpeed(final int downloadLimitInBytesPerSecond, final int uploadLimitInBytesPerSecond,
+                                boolean cancelTransfer, boolean asynchronousMessage, boolean restartMessage) throws UnknownHostException {
+        this.cancelTransfer=cancelTransfer;
+        this.asynchronousMessage=asynchronousMessage;
+        this.restartMessage=restartMessage;
         this.downloadLimitInBytesPerSecond=downloadLimitInBytesPerSecond;
         this.uploadLimitInBytesPerSecond=uploadLimitInBytesPerSecond;
         P2PSecuredConnectionProtocolPropertiesWithKeyAgreement p2pprotocol=new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
@@ -146,11 +156,71 @@ public class BigDataTransferSpeed extends TestNGMadkit {
 		};
         this.eventListener2.maxBufferSize=this.eventListener1.maxBufferSize;
 	}
+    public BigDataTransferSpeed(final int downloadLimitInBytesPerSecond, final int uploadLimitInBytesPerSecond) throws UnknownHostException {
+        this(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond, false, false, false);
+    }
     private static final long timeOut = 20000;
+
+    static final class AsynchronousIdentifier implements ExternalAsynchronousBigDataIdentifier {
+        private int id;
+        AsynchronousIdentifier()
+        {
+
+        }
+
+        public AsynchronousIdentifier(int id) {
+            this.id = id;
+        }
+
+        @Override
+        public int getInternalSerializedSize() {
+            return 4;
+        }
+
+        @Override
+        public void writeExternal(SecuredObjectOutputStream out) throws IOException {
+            out.writeInt(id);
+        }
+
+        @Override
+        public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+            id=in.readInt();
+        }
+
+    }
+    static class AsynchronousToSendWrapper implements AsynchronousBigDataToSendWrapper
+    {
+
+        @Override
+        public RandomInputStream getRandomInputStream(ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier) {
+            return new RandomByteArrayInputStream(bigDataToSendArray.get());
+        }
+
+        @Override
+        public int getInternalSerializedSize() {
+            return 0;
+        }
+
+        @Override
+        public void writeExternal(SecuredObjectOutputStream out) throws IOException {
+
+        }
+
+        @Override
+        public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+
+        }
+    }
+    static Reference<byte[]> bigDataToSendArray=new Reference<>(null);
+
 	public void bigDataTransfer() {
 
 		final AtomicReference<Boolean> transfered1=new AtomicReference<>(null);
 		final AtomicReference<Boolean> transfered2=new AtomicReference<>(null);
+        final int size=400000000;
+        bigDataToSendArray.set(new byte[size]);
+        Random r=new Random(System.currentTimeMillis());
+        r.nextBytes(bigDataToSendArray.get());
 		// addMadkitArgs("--kernelLogLevel",Level.INFO.toString(),"--networkLogLevel",Level.FINEST.toString());
 		launchTest(new AbstractAgent() {
             @Override
@@ -167,12 +237,53 @@ public class BigDataTransferSpeed extends TestNGMadkit {
 
 
                             }
+                            private boolean sendBigMessage(boolean encrypt, long delay) throws InterruptedException {
+                                try {
+                                    IBigDataTransferID transferID;
+                                    if (asynchronousMessage)
+                                        AssertJUnit.assertNotNull(transferID=this.sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE,
+                                                encrypt?new AsynchronousIdentifier(1):new AsynchronousIdentifier(0), new AsynchronousToSendWrapper(), ROLE2));
+                                    else {
+                                        AgentAddress aa=getAgentWithRole(GROUP, ROLE);
+                                        if (aa==null)
+                                            throw new NullPointerException();
+                                        AssertJUnit.assertNotNull(transferID = this.sendBigData(aa, new RandomByteArrayInputStream(bigDataToSendArray.get()), 0, bigDataToSendArray.get().length, null, null, !encrypt));
+                                    }
+                                    if (cancelTransfer)
+                                    {
+                                        wait(100);
+                                        AssertJUnit.assertEquals(AbstractAgent.ReturnCode.SUCCESS, this.cancelBigDataTransfer(transferID));
+                                    }
+                                    Message m=this.waitNextMessage(delay);
+                                    AssertJUnit.assertTrue(m instanceof BigDataResultMessage);
+                                    BigDataResultMessage bdrm=(BigDataResultMessage)m;
 
+                                    boolean tr1=false;
+                                    if (bdrm.getType() == BigDataResultMessage.Type.BIG_DATA_TRANSFERRED) {
+                                        tr1=true;
+                                        AssertJUnit.assertFalse(cancelTransfer);
+
+                                        if (this.getMaximumGlobalUploadSpeedInBytesPerSecond() != Integer.MAX_VALUE){
+                                            double speed=((double) bdrm.getTransferredDataLength()) / ((double) bdrm.getTransferDuration()) * 1000.0;
+                                            AssertJUnit.assertTrue(speed< getMaximumGlobalUploadSpeedInBytesPerSecond() * 2);
+                                            AssertJUnit.assertTrue(speed> getMaximumGlobalUploadSpeedInBytesPerSecond() / 2.0);
+                                        }
+                                    }
+                                    else if (bdrm.getType()== BigDataResultMessage.Type.TRANSFER_CANCELED)
+                                        AssertJUnit.assertTrue(cancelTransfer);
+                                    else
+                                        AssertJUnit.fail(""+bdrm.getType());
+                                    return tr1;
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                    return false;
+                                }
+                            }
                             @Override
                             protected void liveCycle() throws InterruptedException {
-                                requestRole(GROUP, ROLE);
+                                requestRole(GROUP, ROLE2);
                                 sleep(2000);
-                                int size=400000000;
+
                                 int delay;
                                 if (downloadLimitInBytesPerSecond!=Integer.MAX_VALUE || uploadLimitInBytesPerSecond!=Integer.MAX_VALUE)
                                     delay=Math.max(60000, size/Math.min(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond)*1000+20000);
@@ -182,45 +293,11 @@ public class BigDataTransferSpeed extends TestNGMadkit {
                                 if (aa==null)
                                     throw new NullPointerException();
 
-                                try {
 
-                                    AssertJUnit.assertNotNull(this.sendBigData(aa, new RandomByteArrayInputStream(new byte[size]), 0, size, null, null, true));
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                                Message m=this.waitNextMessage(delay);
-
-                                boolean tr1=m instanceof BigDataResultMessage && ((BigDataResultMessage) m).getType() == BigDataResultMessage.Type.BIG_DATA_TRANSFERRED;
-                                if (tr1) {
-                                    BigDataResultMessage br=(BigDataResultMessage)m;
-                                    if (this.getMaximumGlobalUploadSpeedInBytesPerSecond() != Integer.MAX_VALUE){
-                                        double speed=((double) br.getTransferredDataLength()) / ((double) br.getTransferDuration()) * 1000.0;
-                                        AssertJUnit.assertTrue(speed< getMaximumGlobalUploadSpeedInBytesPerSecond() * 2);
-                                        AssertJUnit.assertTrue(speed> getMaximumGlobalUploadSpeedInBytesPerSecond() / 2.0);
-                                    }
-                                }
-                                transfered1.set(tr1);
-
-                                AssertJUnit.assertTrue(""+m, transfered1.get());
-
-                                try {
-                                    AssertJUnit.assertNotNull(this.sendBigData(aa, new RandomByteArrayInputStream(new byte[size]), 0, size, null, null, false));
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
-                                m=this.waitNextMessage(delay);
-                                boolean tr2=m instanceof BigDataResultMessage && ((BigDataResultMessage) m).getType() == BigDataResultMessage.Type.BIG_DATA_TRANSFERRED;
-                                if (tr2) {
-                                    BigDataResultMessage br=(BigDataResultMessage)m;
-                                    if (this.getMaximumGlobalUploadSpeedInBytesPerSecond() != Integer.MAX_VALUE) {
-                                        double speed=((double) br.getTransferredDataLength()) / ((double) br.getTransferDuration()) * 1000.0;
-                                        AssertJUnit.assertTrue(speed< getMaximumGlobalUploadSpeedInBytesPerSecond() * 2);
-                                        AssertJUnit.assertTrue(speed> getMaximumGlobalUploadSpeedInBytesPerSecond() / 2.0);
-                                    }
-                                }
-                                transfered2.set(tr2);
-
-                                AssertJUnit.assertTrue(""+m, transfered2.get());
+                                transfered1.set(sendBigMessage(false, delay));
+                                AssertJUnit.assertTrue("", transfered1.get());
+                                transfered2.set(sendBigMessage(true, delay));
+                                AssertJUnit.assertTrue("", transfered2.get());
                                 this.killAgent(this);
                             }
 
@@ -231,7 +308,7 @@ public class BigDataTransferSpeed extends TestNGMadkit {
                         };
                 launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, bigDataSenderAgent, eventListener1);
                 sleep(400);
-                BigDataTransferReceiverAgent bigDataTransferAgent = new BigDataTransferReceiverAgent(2, uploadLimitInBytesPerSecond);
+                BigDataTransferReceiverAgent bigDataTransferAgent = new BigDataTransferReceiverAgent(2, uploadLimitInBytesPerSecond,cancelTransfer, asynchronousMessage, restartMessage);
                 launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, bigDataTransferAgent, eventListener2);
 
                 while(transfered1.get()==null || transfered2.get()==null)
@@ -239,6 +316,7 @@ public class BigDataTransferSpeed extends TestNGMadkit {
 
                     Thread.sleep(1000);
                 }
+                bigDataToSendArray.set(null);
                 AssertJUnit.assertTrue(transfered1.get());
                 AssertJUnit.assertTrue(transfered2.get());
 
