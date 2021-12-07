@@ -343,7 +343,7 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 			if (lastSubBlockInfo == null) {
 				lastSubBlockInfo = new SubBlockInfo(new SubBlock(_block), true, false);
 			} else {
-				lastSubBlockInfo.set(_block, true, false);
+				lastSubBlockInfo.set(new SubBlock(_block), true, false);
 			}
 		}
 		catch (BlockParserException e) {
