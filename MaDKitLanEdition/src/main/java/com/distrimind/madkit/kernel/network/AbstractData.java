@@ -119,7 +119,7 @@ abstract class AbstractData {
 	}
 
 	abstract boolean isDataBuildInProgress();
-	void cancel() throws IOException {
+	void cancel() throws IOException, MadkitException {
 		canceled.set(true);
 	}
 

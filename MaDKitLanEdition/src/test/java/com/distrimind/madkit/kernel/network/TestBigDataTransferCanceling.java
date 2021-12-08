@@ -35,64 +35,38 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-import com.distrimind.madkit.kernel.BigDataResultMessage;
-import com.distrimind.util.io.Integrity;
-import com.distrimind.util.io.MessageExternalizationException;
-import com.distrimind.util.io.SecuredObjectInputStream;
-import com.distrimind.util.io.SecuredObjectOutputStream;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
-import java.io.IOException;
+import java.net.UnknownHostException;
 
 /**
  * @author Jason Mahdjoub
  * @version 1.0
  * @since MaDKitLanEdition 2.3.0
  */
-public class CancelBigDataSystemMessage implements SystemMessageWithoutInnerSizeControl{
-	private int IDPacket;
-	private boolean fromSender;
-	private BigDataResultMessage.Type reason;
+public class TestBigDataTransferCanceling {
+	static class BigDataTransferTest extends com.distrimind.madkit.testing.util.agent.BigDataTransferSpeed
+	{
 
-	@SuppressWarnings("unused")
-	CancelBigDataSystemMessage() {
+		public BigDataTransferTest(int downloadLimitInBytesPerSecond, int uploadLimitInBytesPerSecond, boolean cancelTransfer, boolean asynchronousMessage, boolean restartMessage) throws UnknownHostException {
+			super(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond, cancelTransfer, asynchronousMessage, restartMessage);
+		}
 	}
 
-	public CancelBigDataSystemMessage(int IDPacket, boolean fromSender, BigDataResultMessage.Type reason) {
-		this.IDPacket = IDPacket;
-		this.fromSender=fromSender;
-		this.reason=reason;
+	@DataProvider
+	Object[][] getParameters()
+	{
+		return new Object[][]{
+				{true, false},
+				{true, true}};
 	}
 
-	public BigDataResultMessage.Type getReason() {
-		return reason;
+	@Test(dataProvider = "getParameters")
+	public void test(boolean cancelTransfer, boolean asynchronousMessage) throws UnknownHostException {
+		BigDataTransferTest b=new BigDataTransferTest(40000000, 40000000, cancelTransfer, asynchronousMessage, false);
+		b.bigDataTransfer();
 	}
 
-	public int getIDPacket() {
-		return IDPacket;
-	}
 
-	@Override
-	public boolean excludedFromEncryption() {
-		return false;
-	}
-
-	@Override
-	public void writeExternal(SecuredObjectOutputStream out) throws IOException {
-		out.writeInt(IDPacket);
-		out.writeBoolean(fromSender);
-		out.writeEnum(reason, false);
-	}
-
-	@Override
-	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
-		IDPacket =in.readInt();
-		fromSender=in.readBoolean();
-		reason=in.readEnum(false);
-		if (!reason.isCanceled())
-			throw new MessageExternalizationException(Integrity.FAIL);
-	}
-
-	public boolean isFromSender() {
-		return fromSender;
-	}
 }

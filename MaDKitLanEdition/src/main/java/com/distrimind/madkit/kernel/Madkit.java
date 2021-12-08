@@ -159,6 +159,7 @@ final public class Madkit {
 							.addItem(BUG_FIX, "Fix bad synchronization of distant available agents")
 							.addItem(BUG_FIX, "Fix bad asynchronous messages sending when using network")
 							.addItem(BUG_FIX, "Fix deadlock during asynchronous message sending")
+							.addItem(NEW_FEATURE, "Add function AgentFakeThread.synchronizeActionWithLiveByCycleFunction")
 					)
 					.addDescription(new Description((short)2, (short)2, (short)3, Version.Type.STABLE, (short)0, "2021-11-02")
 							.addItem(INTERNAL_CHANGE, "Update Utils to 5.21.0 STABLE")

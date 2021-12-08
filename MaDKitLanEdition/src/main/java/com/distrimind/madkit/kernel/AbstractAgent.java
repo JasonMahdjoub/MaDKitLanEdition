@@ -2691,7 +2691,16 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 			l.unlock();
 		}
 	}
+	final static class RunnableMessage extends Message implements MessageWithSilentInference
+	{
+		final Runnable action;
 
+		public RunnableMessage(Runnable action) {
+			if (action==null)
+				throw new NullPointerException();
+			this.action = action;
+		}
+	}
 	Message receiveMessageUnsafe(Message messageTaken) {
 		if (messageTaken == null)
 			return null;
@@ -2729,6 +2738,10 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 			} else if (clazz == BigDataToRestartMessage.class) {
 				getKernel().receivedBigDataToRestartMessage(this, (BigDataToRestartMessage) innerMessage);
 				messageTaken = null;
+			} else if (clazz== RunnableMessage.class)
+			{
+				((RunnableMessage)messageTaken).action.run();
+				messageTaken=null;
 			}
 		}
 
@@ -5471,4 +5484,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	{
 		return getMadkitKernel().cancelAsynchronousBigDataMessagesByReceiverRole(this, group, receiverRole);
 	}
+
+
+
 }

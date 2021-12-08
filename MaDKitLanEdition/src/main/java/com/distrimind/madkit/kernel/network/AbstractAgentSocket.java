@@ -683,7 +683,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 							logger.severeLog("Impossible to send packet " + d.getIDPacket(), e);
 						try {
 							d.cancel();
-						} catch (IOException ex) {
+						} catch (IOException | MadkitException ex) {
 							if (logger!=null)
 								logger.severeLog("Cannot close packet data", e);
 						}

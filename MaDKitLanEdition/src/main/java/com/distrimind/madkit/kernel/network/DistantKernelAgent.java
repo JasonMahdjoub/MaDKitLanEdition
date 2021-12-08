@@ -139,7 +139,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		for (BigPacketData bpd : this.packetsDataInQueue.values()) {
 			try {
 				bpd.cancel();
-			} catch (IOException e) {
+			} catch (IOException | MadkitException e) {
 				if (logger!=null)
 					logger.severeLog("Cannot close stream of BigPacketData", e);
 			}
@@ -552,6 +552,7 @@ class DistantKernelAgent extends AgentFakeThread {
 
 					if (bpd==null)
 					{
+
 						BigDataReading bdr=current_big_data_readings.values().stream().filter(e -> e.getOriginalMessage().getConversationID().equals(m.getBigDataTransferID())).findAny().orElse(null);
 						if (bdr!=null)
 						{
@@ -887,18 +888,19 @@ class DistantKernelAgent extends AgentFakeThread {
 			if (sendCancelMessageToDistantPeer)
 			{
 				AgentSocketData asd = getBestAgentSocket(false);
-				if (asd!=null)
+				if (asd!=null) {
 					sendData(asd.getAgentAddress(), new CancelBigDataSystemMessage(bpd.getIDPacket(), true, resultType), true, null, false);
+				}
 			}
 			if (resultType!=null) {
 				MadkitKernelAccess.transferLostForBigDataTransfer(this, bpd.getConversationID(),
-						bpd.getIDPacket(), bpd.getCaller(), bpd.getReceiver(),
+						bpd.getIDPacket(), bpd.getReceiver(), bpd.getCaller(),
 						bpd.getReadDataLength(), bpd.getDurationInMs(),
 						bpd.getDifferedBigDataInternalIdentifier(), bpd.getDifferedBigDataIdentifier(), resultType);
 			}
 			try {
 				bpd.cancel();
-			} catch (IOException e) {
+			} catch (IOException | MadkitException e) {
 				if (logger != null)
 					logger.severeLog("Cannot close stream of BigPacketData", e);
 			}
@@ -919,13 +921,13 @@ class DistantKernelAgent extends AgentFakeThread {
 				logger.severeLog("Unexpected exception", e);
 		}
 	}*/
-	private BigDataReading cancelBigPacketDataToReceiveInQueue(int idTransfer)
+	private BigDataReading cancelBigPacketDataToReceiveInQueue(int idPacket)
 	{
 		if (logger != null && logger.isLoggable(Level.FINEST))
 			logger.finest("Cancel big data in queue (distantInterfacedKernelAddress=" + distant_kernel_address
-					+ ", idTransfer=" + idTransfer + ")");
+					+ ", idPacket=" + idPacket + ")");
 
-		BigDataReading bdr=current_big_data_readings.remove(idTransfer);
+		BigDataReading bdr=current_big_data_readings.remove(idPacket);
 		if (bdr!=null) {
 			try {
 				bdr.cancel();
@@ -937,18 +939,18 @@ class DistantKernelAgent extends AgentFakeThread {
 		return bdr;
 	}
 
-	private boolean validatePacketDataInQueue(int idTransfer) {
-		BigPacketData bpd = packetsDataInQueue.remove(idTransfer);
+	private boolean validatePacketDataInQueue(int IDPacket) {
+		BigPacketData bpd = packetsDataInQueue.get(IDPacket);
 		if (bpd == null) {
 			if (logger!=null)
 				logger.warning("Big data in queue not valid (distantInterfacedKernelAddress=" + distant_kernel_address
-						+ ", idTransfer=" + idTransfer + ")");
+						+ ", IDPacket=" + IDPacket + ")");
 
 			return false;
 		} else {
 			if (logger != null && logger.isLoggable(Level.FINEST))
 				logger.finest("Big data in queue valid (distantInterfacedKernelAddress=" + distant_kernel_address
-						+ ", idTransfer=" + idTransfer + ")");
+						+ ", IDPacket=" + IDPacket + ")");
 			AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier = bpd.getDifferedBigDataInternalIdentifier();
 			if (asynchronousBigDataInternalIdentifier!=null)
 				MadkitKernelAccess.setAsynchronousTransferAsStarted(this, asynchronousBigDataInternalIdentifier);
@@ -2102,13 +2104,17 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 
 		public void closeStream() throws IOException {
-			packet.getInputStream().close();
+			if (!packet.getInputStream().isClosed())
+				packet.getInputStream().close();
 		}
 
 		@Override
-		void cancel() throws IOException {
-			super.cancel();
+		void cancel() throws IOException, MadkitException {
 			AbstractAgentSocket as=agentSocket;
+			super.cancel();
+
+
+			unlockMessage();
 			if (as!=null) {
 				//noinspection SynchronizationOnLocalVariableOrMethodParameter
 				synchronized (as) {
@@ -2116,6 +2122,7 @@ class DistantKernelAgent extends AgentFakeThread {
 				}
 			}
 			closeStream();
+
 		}
 		
 		@Override
@@ -2134,6 +2141,10 @@ class DistantKernelAgent extends AgentFakeThread {
 			}
 		}
 
+		public void removePendingBigDataPacket()
+		{
+
+		}
 		
 		@Override
 		public ByteBuffer getByteBuffer() throws PacketException {
@@ -2153,7 +2164,8 @@ class DistantKernelAgent extends AgentFakeThread {
 				if (currentByteBuffer == null || currentByteBuffer.remaining()==0) {
 					currentByteBuffer=null;
 					if (!asking_new_buffer_in_process) {
-						if (!packet.isFinished()) {
+						if (!packet.isFinished())
+						{
 							updateNextByteBufferUnsafe();
 						}
 					}
@@ -2206,17 +2218,24 @@ class DistantKernelAgent extends AgentFakeThread {
 		
 		@Override
 		public boolean isFinished() {
-			if (isCanceled.get() && isCurrentByteBufferFinished())
-				return true;
-			synchronized (this) {
-				if (asking_new_buffer_in_process) {
-					return false;
-				} else if (currentByteBuffer == null || currentByteBuffer.remaining() == 0) {
-					return this.packet.isFinished();
-				} else {
-					return false;
+			boolean res;
+			boolean canceled=isCanceled.get();
+			if (canceled && isCurrentByteBufferFinished()) {
+				res=true;
+			}
+			else {
+				synchronized (this) {
+					if (asking_new_buffer_in_process) {
+						res = canceled;
+					} else if (currentByteBuffer == null || currentByteBuffer.remaining() == 0) {
+						res = canceled || this.packet.isFinished();
+					} else {
+						res = false;
+					}
 				}
 			}
+
+			return res;
 		}
 
 		protected void finishLastStat() {
@@ -2276,6 +2295,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		@Override
 		public void unlockMessage() throws MadkitException {
 			unlocked.set(true);
+			removePendingBigDataPacket();
 		}
 
 		@Override
@@ -2374,6 +2394,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		private final long timeUTC;
 		private final AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier;
 		private final ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier;
+		private boolean pendingDataRemoved=false;
 
 		protected BigPacketData(AgentAddress _firstAgentSocketSender, WritePacket _packet, AgentAddress _agentReceiver,
 								AgentAddress caller, ConversationID conversationID, RealTimeTransferStat stat, boolean excludedFromEncryption,
@@ -2394,6 +2415,17 @@ class DistantKernelAgent extends AgentFakeThread {
 			this.conversationID = conversationID;
 			setStat(stat);
 			timeUTC = System.currentTimeMillis();
+		}
+
+		@Override
+		public void removePendingBigDataPacket()
+		{
+			synchronized (this) {
+				if (!pendingDataRemoved) {
+					pendingDataRemoved = true;
+					synchronizeActionWithLiveByCycleFunction(() -> packetsDataInQueue.remove(packet.getID()));
+				}
+			}
 		}
 
 		@Override
@@ -2792,16 +2824,17 @@ class DistantKernelAgent extends AgentFakeThread {
 			{
 				CancelBigDataSystemMessage m=(CancelBigDataSystemMessage)obj;
 				if (m.isFromSender()) {
-					BigDataReading bdr = cancelBigPacketDataToReceiveInQueue(m.getIDTransfer());
-					if (bdr!=null)
+					BigDataReading bdr = cancelBigPacketDataToReceiveInQueue(m.getIDPacket());
+					if (bdr!=null) {
 						MadkitKernelAccess.transferLostForBigDataTransfer(this, bdr.getOriginalMessage().getConversationID(),
 								bdr.getIDPacket(), bdr.getOriginalMessage().getSender(), bdr.getOriginalMessage().getReceiver(),
 								bdr.getStatistics().getNumberOfIdentifiedBytes(), bdr.getStatistics().getDurationMilli(),
 								bdr.getOriginalMessage().getAsynchronousBigDataInternalIdentifier(), bdr.getOriginalMessage().getExternalAsynchronousBigDataIdentifier(), m.getReason());
+					}
 				}
 				else
 				{
-					cancelBigPacketDataToSendInQueue(m.getIDTransfer(), true, m.getReason());
+					cancelBigPacketDataToSendInQueue(m.getIDPacket(), true, m.getReason());
 				}
 			}
 			else

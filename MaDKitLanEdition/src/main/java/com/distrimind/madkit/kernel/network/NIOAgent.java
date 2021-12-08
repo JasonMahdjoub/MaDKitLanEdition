@@ -1218,8 +1218,9 @@ final class NIOAgent extends Agent {
 		{
 			throwPendingException();
 			takeNextData();
-			if (buffer==null)
+			if (buffer==null) {
 				throw new InternalError();
+			}
 			return buffer;
 		}
 		
@@ -1483,7 +1484,7 @@ final class NIOAgent extends Agent {
 						return hasData.get();
 				if (first==null)
 					throw new NullPointerException();
-
+				System.out.println("wait");
                 NIOAgent.this.wait(new LockerCondition(first.getLocker()) {
 						
 						@Override
@@ -1504,6 +1505,7 @@ final class NIOAgent extends Agent {
 
 						
 					});
+				System.out.println("waitOK");
 					if (exception.get()!=null)
 						throw exception.get();
 					return validData.get();

@@ -39,6 +39,7 @@
 package com.distrimind.madkit.kernel;
 
 import com.distrimind.madkit.exceptions.SelfKillException;
+import com.distrimind.madkit.message.MessageWithSilentInference;
 import com.distrimind.util.concurrent.LockerCondition;
 
 import java.util.concurrent.Callable;
@@ -249,5 +250,16 @@ public abstract class AgentFakeThread extends AbstractAgent {
 			});
 		}
 	}
+
+	/**
+	 * Send a message to itself in order to execute runnable only when receiving the message, being synchronized
+	 * with the life cycle of the agent, and avoiding to use synchronized data
+	 * @param action the action to run
+	 */
+	public void synchronizeActionWithLiveByCycleFunction(Runnable action)
+	{
+		receiveMessage(new RunnableMessage(action));
+	}
+
 
 }
