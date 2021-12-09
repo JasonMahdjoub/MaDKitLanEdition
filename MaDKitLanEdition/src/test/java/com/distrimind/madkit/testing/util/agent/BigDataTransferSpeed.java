@@ -43,6 +43,7 @@ import com.distrimind.madkit.kernel.network.connection.access.AbstractAccessProt
 import com.distrimind.madkit.kernel.network.connection.access.AccessProtocolWithP2PAgreementProperties;
 import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
 import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolPropertiesWithKeyAgreement;
+import com.distrimind.madkit.message.BooleanMessage;
 import com.distrimind.util.Reference;
 import com.distrimind.util.crypto.SymmetricAuthenticatedSignatureType;
 import com.distrimind.util.crypto.SymmetricEncryptionType;
@@ -50,6 +51,7 @@ import com.distrimind.util.io.RandomByteArrayInputStream;
 import com.distrimind.util.io.RandomInputStream;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
+import org.testng.Assert;
 import org.testng.AssertJUnit;
 
 import java.io.IOException;
@@ -247,8 +249,7 @@ public class BigDataTransferSpeed extends TestNGMadkit {
                                                 encrypt?new AsynchronousIdentifier(1):new AsynchronousIdentifier(0), new AsynchronousToSendWrapper(), ROLE2));
                                     else {
                                         AgentAddress aa=getAgentWithRole(GROUP, ROLE);
-                                        if (aa==null)
-                                            throw new NullPointerException();
+                                        Assert.assertNotNull(aa);
                                         AssertJUnit.assertNotNull(transferID = this.sendBigData(aa, new RandomByteArrayInputStream(bigDataToSendArray.get()), 0, bigDataToSendArray.get().length, null, null, !encrypt));
                                     }
                                     if (cancelTransfer && !cancelTransferFromReceiver)
@@ -274,6 +275,14 @@ public class BigDataTransferSpeed extends TestNGMadkit {
                                     else if (bdrm.getType()== BigDataResultMessage.Type.TRANSFER_CANCELED) {
                                         tr1=true;
                                         AssertJUnit.assertTrue(cancelTransfer);
+                                        AgentAddress aa=getAgentWithRole(GROUP, ROLE);
+                                        Assert.assertNotNull(aa);
+                                        sendMessage(aa, new BooleanMessage(true));
+                                        m=waitNextMessage();
+                                        Assert.assertNotNull(m);
+                                        Assert.assertTrue(m instanceof BooleanMessage);
+                                        Assert.assertEquals(((BooleanMessage) m).getContent(), Boolean.TRUE);
+
                                     }
                                     else
                                         AssertJUnit.fail(""+bdrm.getType());

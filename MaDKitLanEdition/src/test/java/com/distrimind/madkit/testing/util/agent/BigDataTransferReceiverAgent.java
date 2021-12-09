@@ -38,16 +38,17 @@
 package com.distrimind.madkit.testing.util.agent;
 
 import com.distrimind.madkit.kernel.*;
+import com.distrimind.madkit.message.BooleanMessage;
 import com.distrimind.util.io.RandomByteArrayOutputStream;
 import com.distrimind.util.io.RandomOutputStream;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
+import org.testng.Assert;
 import org.testng.AssertJUnit;
 
 import java.io.IOException;
 
-import static com.distrimind.madkit.kernel.TestNGMadkit.GROUP;
-import static com.distrimind.madkit.kernel.TestNGMadkit.ROLE;
+import static com.distrimind.madkit.kernel.TestNGMadkit.*;
 
 /**
  * @author Jason Mahdjoub
@@ -153,6 +154,13 @@ public class BigDataTransferReceiverAgent extends Agent {
 				{
 					System.out.println("message canceled");
 					AssertJUnit.assertTrue(cancelTransfer);
+					AgentAddress aa=getAgentWithRole(GROUP, ROLE2);
+					Assert.assertNotNull(aa);
+					sendMessage(aa, new BooleanMessage(true));
+					m=waitNextMessage();
+					Assert.assertNotNull(m);
+					Assert.assertTrue(m instanceof BooleanMessage);
+					Assert.assertEquals(((BooleanMessage) m).getContent(), Boolean.TRUE);
 				}
 				else {
 					System.err.println("Problem during transfer : " + rm.getType());
