@@ -54,7 +54,6 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static com.distrimind.util.ReflectionTools.getMethod;
 import static com.distrimind.util.ReflectionTools.invoke;
@@ -399,7 +398,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 	public boolean receivedPotentialAsynchronousBigDataResultMessage(AbstractAgent requester, BigDataResultMessage.Type resultType,
 																	 AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier,
 																	 long transferedDataLength, ScheduledPoolExecutor serviceExecutor) throws DatabaseException {
-		AtomicReference<Record> record=new AtomicReference<>(null);
+		Reference<Record> record=new Reference<>(null);
 		boolean r=getDatabaseWrapper().runSynchronizedTransaction(new SynchronizedTransaction<Boolean>() {
 			@Override
 			public Boolean run() throws Exception {
@@ -417,6 +416,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 					record.set(getRecord("asynchronousBigDataInternalIdentifier", asynchronousBigDataInternalIdentifier));
 					if (record.get()!=null)
 						removeRecord("asynchronousBigDataInternalIdentifier", asynchronousBigDataInternalIdentifier);
+
 				}
 				return false;
 			}
@@ -437,6 +437,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			}
 		});
 		BigDataTransferID btid=transferIdsPerInternalAsynchronousId.remove(asynchronousBigDataInternalIdentifier);
+
 		if (btid!=null && record.get()!=null)
 		{
 			serviceExecutor.execute(() -> {
@@ -636,20 +637,23 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		if (record.getAsynchronousBigDataToSendWrapper()!=null) {
 			AbstractAgent aa=getMadkitKernel(requester);
 			AgentAddress receiverAA = aa.getAgentWithRole(group, record.getRoleReceiver());
-			if (receiverAA != null) {
+			if (receiverAA!=null)
+			{
 				decrementNumberOfSimultaneousAsynchronousMessages(receiverAA);
+
 				getOrderedRecords(new Filter<Record>() {
-					final Reference<Boolean> maxNumberOfSimultaneousTransfersReached=new Reference<>(false);
+					final Reference<Boolean> maxNumberOfSimultaneousTransfersReached = new Reference<>(false);
+
 					@Override
 					public boolean nextRecord(Record _record) {
 
 						if (_record.isObsolete())
 							return false;
-						AbstractAgent aa2=getAgent(receiverAA);
-						if (aa2==null)
-							aa2=aa;
-						AgentAddress senderAA=aa2.getAgentWithRole(receiverAA.getGroup(), _record.roleSender);
-						if (senderAA!=null) {
+						AbstractAgent aa2 = getAgent(receiverAA);
+						if (aa2 == null)
+							aa2 = aa;
+						AgentAddress senderAA = aa2.getAgentWithRole(receiverAA.getGroup(), _record.roleSender);
+						if (senderAA != null) {
 							sendAsynchronousBigData(requester, senderAA, receiverAA.getGroup(), _record.roleReceiver, _record, maxNumberOfSimultaneousTransfersReached);
 							if (maxNumberOfSimultaneousTransfersReached.get())
 								stopTableParsing();
@@ -657,9 +661,6 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 						return false;
 					}
 				}, "groupPath=%gp and currentPositionNeedConfirmationFromReceiver=%cp and roleReceiver=%rr", new Object[]{"gp", record.getGroupPath(), "cp", false, "rr", record.getRoleReceiver()}, true, "lastTimeUpdateUTCInMs");
-			}
-			else {
-				decrementNumberOfSimultaneousAsynchronousMessagesIfPossible(requester, group, record.getRoleReceiver());
 			}
 
 

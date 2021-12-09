@@ -44,6 +44,9 @@ import com.distrimind.madkit.kernel.network.connection.access.AccessProtocolWith
 import com.distrimind.madkit.kernel.network.connection.access.ListGroupsRoles;
 import com.distrimind.madkit.kernel.network.connection.secured.P2PSecuredConnectionProtocolPropertiesWithKeyAgreement;
 import com.distrimind.madkit.message.BooleanMessage;
+import com.distrimind.ood.database.InFileEmbeddedH2DatabaseFactory;
+import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.util.FileTools;
 import com.distrimind.util.Reference;
 import com.distrimind.util.crypto.SymmetricAuthenticatedSignatureType;
 import com.distrimind.util.crypto.SymmetricEncryptionType;
@@ -54,6 +57,7 @@ import com.distrimind.util.io.SecuredObjectOutputStream;
 import org.testng.Assert;
 import org.testng.AssertJUnit;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
@@ -76,8 +80,16 @@ public class BigDataTransferSpeed extends TestNGMadkit {
 	final NetworkEventListener eventListener2;
     final long downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond;
     final boolean cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage;
+
+    final File databaseFile1=new File("tmpDatabaseFile1");
+    final File databaseFile2=new File("tmpDatabaseFile2");
+
 	public BigDataTransferSpeed(final long downloadLimitInBytesPerSecond, final long uploadLimitInBytesPerSecond,
                                 boolean cancelTransfer, boolean cancelTransferFromReceiver, boolean asynchronousMessage, boolean restartMessage) throws UnknownHostException {
+        if(databaseFile1.exists())
+            FileTools.deleteDirectory(databaseFile1);
+        if(databaseFile2.exists())
+            FileTools.deleteDirectory(databaseFile2);
         this.cancelTransfer = cancelTransfer;
         this.cancelTransferFromReceiver=cancelTransferFromReceiver;
         this.asynchronousMessage=asynchronousMessage;
@@ -105,7 +117,11 @@ public class BigDataTransferSpeed extends TestNGMadkit {
                 _properties.networkProperties.networkLogLevel = Level.INFO;
                 _properties.networkProperties.maximumGlobalDownloadSpeedInBytesPerSecond=downloadLimitInBytesPerSecond;
                 _properties.networkProperties.maximumGlobalUploadSpeedInBytesPerSecond=uploadLimitInBytesPerSecond;
-
+                try {
+                    _properties.setDatabaseFactory(new InFileEmbeddedH2DatabaseFactory(databaseFile1));
+                } catch (DatabaseException e) {
+                    e.printStackTrace();
+                }
             }
         };
         this.eventListener1.maxBufferSize=Short.MAX_VALUE*2;
@@ -154,7 +170,11 @@ public class BigDataTransferSpeed extends TestNGMadkit {
                 _properties.networkProperties.networkLogLevel = Level.INFO;
                 _properties.networkProperties.maximumGlobalDownloadSpeedInBytesPerSecond=downloadLimitInBytesPerSecond;
 				_properties.networkProperties.maximumGlobalUploadSpeedInBytesPerSecond=uploadLimitInBytesPerSecond;
-
+                try {
+                    _properties.setDatabaseFactory(new InFileEmbeddedH2DatabaseFactory(databaseFile2));
+                } catch (DatabaseException e) {
+                    e.printStackTrace();
+                }
 			}
 		};
         this.eventListener2.maxBufferSize=this.eventListener1.maxBufferSize;
@@ -218,144 +238,150 @@ public class BigDataTransferSpeed extends TestNGMadkit {
     static Reference<byte[]> bigDataToSendArray=new Reference<>(null);
 
 	public void bigDataTransfer() {
+        try {
+            final AtomicReference<Boolean> transfered1 = new AtomicReference<>(null);
+            final AtomicReference<Boolean> transfered2 = new AtomicReference<>(null);
+            final int size = 400000000;
+            bigDataToSendArray.set(new byte[size]);
+            Random r = new Random(System.currentTimeMillis());
+            r.nextBytes(bigDataToSendArray.get());
+            // addMadkitArgs("--kernelLogLevel",Level.INFO.toString(),"--networkLogLevel",Level.FINEST.toString());
+            launchTest(new AbstractAgent() {
+                @Override
+                protected void end() {
+                    while (nextMessage() != null) ;
+                }
 
-		final AtomicReference<Boolean> transfered1=new AtomicReference<>(null);
-		final AtomicReference<Boolean> transfered2=new AtomicReference<>(null);
-        final int size=400000000;
-        bigDataToSendArray.set(new byte[size]);
-        Random r=new Random(System.currentTimeMillis());
-        r.nextBytes(bigDataToSendArray.get());
-		// addMadkitArgs("--kernelLogLevel",Level.INFO.toString(),"--networkLogLevel",Level.FINEST.toString());
-		launchTest(new AbstractAgent() {
-            @Override
-            protected void end() {
-                while(nextMessage()!=null);
-            }
-
-            @Override
-            protected void activate() throws InterruptedException {
-                AbstractAgent bigDataSenderAgent=new NormalAgent() {
-                            @Override
-                            protected void activate() {
+                @Override
+                protected void activate() throws InterruptedException {
+                    AbstractAgent bigDataSenderAgent = new NormalAgent() {
+                        @Override
+                        protected void activate() {
 
 
+                        }
 
-                            }
-                            private boolean sendBigMessage(boolean encrypt, long delay) throws InterruptedException {
-                                try {
-                                    IBigDataTransferID transferID;
-                                    if (asynchronousMessage)
-                                        AssertJUnit.assertNotNull(transferID=this.sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE,
-                                                encrypt?new AsynchronousIdentifier(1):new AsynchronousIdentifier(0), new AsynchronousToSendWrapper(), ROLE2));
-                                    else {
-                                        AgentAddress aa=getAgentWithRole(GROUP, ROLE);
-                                        Assert.assertNotNull(aa);
-                                        AssertJUnit.assertNotNull(transferID = this.sendBigData(aa, new RandomByteArrayInputStream(bigDataToSendArray.get()), 0, bigDataToSendArray.get().length, null, null, !encrypt));
-                                    }
-                                    if (cancelTransfer && !cancelTransferFromReceiver)
-                                    {
-                                        sleep(100);
-                                        AssertJUnit.assertEquals(AbstractAgent.ReturnCode.SUCCESS, this.cancelBigDataTransfer(transferID));
-                                    }
-                                    Message m=this.waitNextMessage(delay);
-                                    AssertJUnit.assertTrue(m instanceof BigDataResultMessage);
-                                    BigDataResultMessage bdrm=(BigDataResultMessage)m;
-
-                                    boolean tr1=false;
-                                    if (bdrm.getType() == BigDataResultMessage.Type.BIG_DATA_TRANSFERRED) {
-                                        tr1=true;
-                                        AssertJUnit.assertFalse(cancelTransfer);
-
-                                        if (this.getMaximumGlobalUploadSpeedInBytesPerSecond() != Long.MAX_VALUE){
-                                            double speed=((double) bdrm.getTransferredDataLength()) / ((double) bdrm.getTransferDuration()) * 1000.0;
-                                            AssertJUnit.assertTrue(speed< getMaximumGlobalUploadSpeedInBytesPerSecond() * 2);
-                                            AssertJUnit.assertTrue(speed> getMaximumGlobalUploadSpeedInBytesPerSecond() / 2.0);
-                                        }
-                                    }
-                                    else if (bdrm.getType()== BigDataResultMessage.Type.TRANSFER_CANCELED) {
-                                        tr1=true;
-                                        AssertJUnit.assertTrue(cancelTransfer);
-                                        AgentAddress aa=getAgentWithRole(GROUP, ROLE);
-                                        Assert.assertNotNull(aa);
-                                        sendMessage(aa, new BooleanMessage(true));
-                                        m=waitNextMessage();
-                                        Assert.assertNotNull(m);
-                                        Assert.assertTrue(m instanceof BooleanMessage);
-                                        Assert.assertEquals(((BooleanMessage) m).getContent(), Boolean.TRUE);
-
-                                    }
-                                    else
-                                        AssertJUnit.fail(""+bdrm.getType());
-                                    return tr1;
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                    return false;
+                        private boolean sendBigMessage(boolean encrypt, long delay) throws InterruptedException {
+                            try {
+                                IBigDataTransferID transferID;
+                                if (asynchronousMessage)
+                                    AssertJUnit.assertNotNull(transferID = this.sendBigDataWithRoleOrDifferSendingUntilRecipientWasFound(GROUP, ROLE,
+                                            encrypt ? new AsynchronousIdentifier(1) : new AsynchronousIdentifier(0), new AsynchronousToSendWrapper(),null,
+                                            null, ROLE2, !encrypt, 1000000));
+                                else {
+                                    AgentAddress aa = getAgentWithRole(GROUP, ROLE);
+                                    Assert.assertNotNull(aa);
+                                    AssertJUnit.assertNotNull(transferID = this.sendBigData(aa, new RandomByteArrayInputStream(bigDataToSendArray.get()), 0, bigDataToSendArray.get().length, null, null, !encrypt));
                                 }
+                                if (cancelTransfer && !cancelTransferFromReceiver) {
+                                    sleep(100);
+                                    AssertJUnit.assertEquals(AbstractAgent.ReturnCode.SUCCESS, this.cancelBigDataTransfer(transferID));
+                                }
+                                Message m = this.waitNextMessage(delay);
+                                AssertJUnit.assertTrue(m instanceof BigDataResultMessage);
+                                BigDataResultMessage bdrm = (BigDataResultMessage) m;
+
+                                boolean tr1 = false;
+                                if (bdrm.getType() == BigDataResultMessage.Type.BIG_DATA_TRANSFERRED) {
+                                    tr1 = true;
+                                    AssertJUnit.assertFalse(cancelTransfer);
+
+                                    if (this.getMaximumGlobalUploadSpeedInBytesPerSecond() != Long.MAX_VALUE) {
+                                        double speed = ((double) bdrm.getTransferredDataLength()) / ((double) bdrm.getTransferDuration()) * 1000.0;
+                                        AssertJUnit.assertTrue(speed < getMaximumGlobalUploadSpeedInBytesPerSecond() * 2);
+                                        AssertJUnit.assertTrue(speed > getMaximumGlobalUploadSpeedInBytesPerSecond() / 2.0);
+                                    }
+                                } else if (bdrm.getType() == BigDataResultMessage.Type.TRANSFER_CANCELED) {
+                                    tr1 = true;
+                                    AssertJUnit.assertTrue(cancelTransfer);
+                                    AgentAddress aa = getAgentWithRole(GROUP, ROLE);
+                                    Assert.assertNotNull(aa);
+                                    sendMessage(aa, new BooleanMessage(true));
+                                    m = waitNextMessage();
+                                    Assert.assertNotNull(m);
+                                    Assert.assertTrue(m instanceof BooleanMessage);
+                                    Assert.assertEquals(((BooleanMessage) m).getContent(), Boolean.TRUE);
+
+                                } else
+                                    AssertJUnit.fail("" + bdrm.getType());
+                                return tr1;
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                return false;
                             }
-                            @Override
-                            protected void liveCycle() throws InterruptedException {
-                                requestRole(GROUP, ROLE2);
-                                sleep(2000);
+                        }
 
-                                long delay;
-                                if (downloadLimitInBytesPerSecond!=Integer.MAX_VALUE || uploadLimitInBytesPerSecond!=Integer.MAX_VALUE)
-                                    delay=Math.max(60000, size/Math.min(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond)*1000+20000);
-                                else
-                                    delay=60000;
-                                AgentAddress aa=getAgentWithRole(GROUP, ROLE);
-                                if (aa==null)
-                                    throw new NullPointerException();
+                        @Override
+                        protected void liveCycle() throws InterruptedException {
+                            requestRole(GROUP, ROLE2);
+                            sleep(2000);
+
+                            long delay;
+                            if (downloadLimitInBytesPerSecond != Integer.MAX_VALUE || uploadLimitInBytesPerSecond != Integer.MAX_VALUE)
+                                delay = Math.max(60000, size / Math.min(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond) * 1000 + 20000);
+                            else
+                                delay = 60000;
+                            AgentAddress aa = getAgentWithRole(GROUP, ROLE);
+                            if (aa == null)
+                                throw new NullPointerException();
 
 
-                                transfered1.set(sendBigMessage(false, delay));
-                                AssertJUnit.assertTrue("", transfered1.get());
-                                sleep(400);
-                                transfered2.set(sendBigMessage(true, delay));
-                                AssertJUnit.assertTrue("", transfered2.get());
-                                this.killAgent(this);
-                            }
+                            transfered1.set(sendBigMessage(false, delay));
+                            AssertJUnit.assertTrue("", transfered1.get());
+                            sleep(400);
+                            transfered2.set(sendBigMessage(true, delay));
+                            AssertJUnit.assertTrue("", transfered2.get());
+                            this.killAgent(this);
+                        }
 
-                            @Override
-                            protected void end() {
-                                while(nextMessage()!=null);
-                            }
-                        };
-                launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, bigDataSenderAgent, eventListener1);
-                sleep(400);
-                BigDataTransferReceiverAgent bigDataTransferAgent = new BigDataTransferReceiverAgent(2, uploadLimitInBytesPerSecond, cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage);
-                launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, bigDataTransferAgent, eventListener2);
+                        @Override
+                        protected void end() {
+                            while (nextMessage() != null) ;
+                        }
+                    };
+                    launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, bigDataSenderAgent, eventListener1);
+                    sleep(400);
+                    BigDataTransferReceiverAgent bigDataTransferAgent = new BigDataTransferReceiverAgent(2, uploadLimitInBytesPerSecond, cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage);
+                    launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, bigDataTransferAgent, eventListener2);
 
-                while(transfered1.get()==null || transfered2.get()==null)
-                {
-                    sleep(1000);
+                    while (transfered1.get() == null || transfered2.get() == null) {
+                        sleep(1000);
+                    }
+                    bigDataToSendArray.set(null);
+                    AssertJUnit.assertTrue(transfered1.get());
+                    AssertJUnit.assertTrue(transfered2.get());
+
+                    //noinspection UnusedAssignment
+                    bigDataTransferAgent = null;
+                    //noinspection UnusedAssignment
+                    bigDataSenderAgent = null;
+                    for (Madkit mk : getHelperInstances(this, 2))
+                        stopNetwork(mk);
+
+                    for (Madkit mk : getHelperInstances(this, 2)) {
+                        checkConnectedKernelsNb(this, mk, 0, timeOut);
+                        checkConnectedIntancesNb(this, mk, 0, timeOut);
+                    }
+                    sleep(400);
+
+                    cleanHelperMDKs(this);
+                    AssertJUnit.assertEquals(getHelperInstances(this, 0).size(), 0);
+
+
                 }
-                bigDataToSendArray.set(null);
-                AssertJUnit.assertTrue(transfered1.get());
-                AssertJUnit.assertTrue(transfered2.get());
+            });
+            AssertJUnit.assertTrue(transfered1.get());
+            AssertJUnit.assertTrue(transfered2.get());
+        }
+        finally {
 
-                //noinspection UnusedAssignment
-                bigDataTransferAgent=null;
-                //noinspection UnusedAssignment
-                bigDataSenderAgent=null;
-                for (Madkit mk : getHelperInstances(this, 2))
-                    stopNetwork(mk);
+            cleanHelperMDKs();
+            if(databaseFile1.exists())
+                FileTools.deleteDirectory(databaseFile1);
+            if(databaseFile2.exists())
+                FileTools.deleteDirectory(databaseFile2);
+        }
 
-                for (Madkit mk : getHelperInstances(this, 2)) {
-                    checkConnectedKernelsNb(this, mk, 0, timeOut);
-                    checkConnectedIntancesNb(this, mk, 0, timeOut);
-                }
-                sleep(400);
-
-                cleanHelperMDKs(this);
-                AssertJUnit.assertEquals(getHelperInstances(this, 0).size(), 0);
-
-
-            }
-        });
-        AssertJUnit.assertTrue(transfered1.get());
-        AssertJUnit.assertTrue(transfered2.get());
-
-		cleanHelperMDKs();
 	}
 	
 	
