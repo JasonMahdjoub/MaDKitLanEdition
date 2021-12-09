@@ -38,7 +38,6 @@
 package com.distrimind.madkit.testing.util.agent;
 
 import com.distrimind.madkit.kernel.*;
-import com.distrimind.util.Reference;
 import com.distrimind.util.io.RandomByteArrayOutputStream;
 import com.distrimind.util.io.RandomOutputStream;
 import com.distrimind.util.io.SecuredObjectInputStream;
@@ -58,11 +57,11 @@ import static com.distrimind.madkit.kernel.TestNGMadkit.ROLE;
  */
 public class BigDataTransferReceiverAgent extends Agent {
 	private int dataToReceiveNumber;
-	private final int uploadLimitInBytesPerSecond;
-	private int downloadLimitInBytesPerSecond;
+	private final long uploadLimitInBytesPerSecond;
+	private long downloadLimitInBytesPerSecond;
 	final boolean cancelTransfer, asynchronousMessage, restartMessage;
 
-	public BigDataTransferReceiverAgent(int dataToReceiveNumber, int uploadLimitInBytesPerSecond,
+	public BigDataTransferReceiverAgent(int dataToReceiveNumber, long uploadLimitInBytesPerSecond,
 										boolean cancelTransfer, boolean asynchronousMessage, boolean restartMessage) {
 		this.cancelTransfer=cancelTransfer;
 		this.asynchronousMessage=asynchronousMessage;
@@ -120,7 +119,7 @@ public class BigDataTransferReceiverAgent extends Agent {
 				e.printStackTrace();
 				return;
 			}
-			int delay;
+			long delay;
 			int size=(int)bdpm.getTransferLength();
 			if (downloadLimitInBytesPerSecond!=Integer.MAX_VALUE || uploadLimitInBytesPerSecond!=Integer.MAX_VALUE)
 				delay=Math.max(60000, size/Math.min(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond)*1000+20000);
@@ -136,7 +135,7 @@ public class BigDataTransferReceiverAgent extends Agent {
 					AssertJUnit.assertFalse(cancelTransfer);
 					System.out.println(rm.getTransferredDataLength() +" bytes transfered in "+rm.getTransferDuration()+" ms"+(bdpm.bigDataExcludedFromEncryption()?" without encryption":" with encryption"));
 					System.out.println("Transfer speed (MiO per seconds) : "+(((double)rm.getTransferredDataLength())/(((double)rm.getTransferDuration())/1000.0)/1024.0/1024.0));
-					if (getMaximumGlobalDownloadSpeedInBytesPerSecond()!=Integer.MAX_VALUE) {
+					if (getMaximumGlobalDownloadSpeedInBytesPerSecond()!=Long.MAX_VALUE) {
 
                         double speed=((double) rm.getTransferredDataLength()) / ((double) rm.getTransferDuration()) * 1000.0;
 						AssertJUnit.assertTrue(speed< getMaximumGlobalDownloadSpeedInBytesPerSecond() * 2);

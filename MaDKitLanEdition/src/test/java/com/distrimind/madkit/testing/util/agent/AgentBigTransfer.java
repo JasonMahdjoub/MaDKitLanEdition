@@ -50,6 +50,7 @@ import org.testng.AssertJUnit;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * 
@@ -199,8 +200,10 @@ public class AgentBigTransfer extends AgentFakeThread {
 			// thisRole)), thisRole);
 			try {
 				BigDataTransferID myTransferID;
-
-				RandomByteArrayInputStream inputStream = new RandomByteArrayInputStream(new byte[inputStreamLengh]);
+				Random r=new Random(System.currentTimeMillis());
+				byte[] array=new byte[inputStreamLengh];
+				r.nextBytes(array);
+				RandomByteArrayInputStream inputStream = new RandomByteArrayInputStream(array);
 
 				myTransferID = sendBigDataWithRole(destination, inputStream, 0, inputStream.length(), attachedData,
 						useMessageDigest ? MessageDigestType.BC_FIPS_SHA3_512 : null, thisRole, false);
@@ -312,12 +315,12 @@ public class AgentBigTransfer extends AgentFakeThread {
 
 				if (accept) {
 
-					ok &= (inputStream == null || m.getTransferredDataLength() == inputStream.length())
+					ok &= (inputStream == null || m.getTransferredDataLength() == inputStreamLengh)
 							&& m.getType().equals(BigDataResultMessage.Type.BIG_DATA_TRANSFERRED);
 
 					if (!ok)
 						System.err.println(thisRole + " Error : Transfered length=" + m.getTransferredDataLength()
-								+ ", inputStreamLength=" + (inputStream == null ? -1 : inputStream.length()) + ", type="
+								+ ", inputStreamLength=" + (inputStream == null ? -1 : inputStreamLengh) + ", type="
 								+ m.getType());
 
 					AssertJUnit.assertTrue(ok);
@@ -361,7 +364,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 									/ ((double) globalStatDown.getDurationMilli()) * 1000.0));
 
 					if (inputStream != null)
-						AssertJUnit.assertEquals(inputStream.length(), m.getTransferredDataLength());
+						AssertJUnit.assertEquals(inputStreamLengh, m.getTransferredDataLength());
 					AssertJUnit.assertEquals(BigDataResultMessage.Type.BIG_DATA_TRANSFERRED, m.getType());
 
 				} else {

@@ -53,8 +53,8 @@ import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
  */
 abstract class AbstractData {
 	private final boolean priority;
-	private AtomicBoolean canceled=new AtomicBoolean(false);
-	
+	protected volatile boolean isCanceled=false;
+
 
 	AbstractData(boolean priority) {
 		this.priority = priority;
@@ -78,7 +78,7 @@ abstract class AbstractData {
 	abstract boolean isFinished() throws PacketException;
 
 	abstract boolean isCurrentByteBufferFinished() throws PacketException;
-
+	abstract boolean isCurrentByteBufferFinishedOrNotStarted() throws PacketException;
 	//abstract boolean isCurrentByteBufferStarted();
 
 	abstract DataTransferType getDataTransferType();
@@ -120,11 +120,14 @@ abstract class AbstractData {
 
 	abstract boolean isDataBuildInProgress();
 	void cancel() throws IOException, MadkitException {
-		canceled.set(true);
+		isCanceled=true;
+	}
+	void closeStream() throws IOException {
 	}
 
 	final boolean isCanceled()
 	{
-		return canceled.get();
+		return isCanceled;
 	}
+	abstract boolean isCanceledNow();
 }

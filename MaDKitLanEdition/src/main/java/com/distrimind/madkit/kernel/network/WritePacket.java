@@ -276,6 +276,7 @@ public final class WritePacket {
 			}
 			if (current_pos.get() == data_length_with_message_digest + start_position) {
 				finished = true;
+				input_stream.close();
 			}
 			res.finalizeTab();
 			int totalDataLength = res.getWrittenData() - headSize;

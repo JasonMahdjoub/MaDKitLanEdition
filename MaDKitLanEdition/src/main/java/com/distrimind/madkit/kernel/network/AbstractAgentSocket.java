@@ -568,8 +568,8 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 
 	}
 
-	protected void disconnected(ConnectionClosedReason reason, Collection<AbstractData> _data_not_sent,
-								ArrayList<BigPacketData> bigDataNotSent, Collection<BlockDataToTransfer> dataToTransferNotSent) {
+	protected void disconnected(ConnectionClosedReason reason, List<AbstractData> _data_not_sent,
+								List<BigPacketData> bigDataNotSent, List<BlockDataToTransfer> dataToTransferNotSent) {
 
 		try {
 			cancelTaskTransferNodeChecker();
@@ -643,12 +643,12 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 	static class AgentSocketKilled extends Message {
 
 
-		protected final Collection<AbstractData> shortDataNotSent;
-		protected final ArrayList<BigPacketData> bigDataNotSent;
-		protected final Collection<BlockDataToTransfer> dataToTransferNotSent;
+		protected final List<AbstractData> shortDataNotSent;
+		protected final List<BigPacketData> bigDataNotSent;
+		protected final List<BlockDataToTransfer> dataToTransferNotSent;
 
-		AgentSocketKilled(Collection<AbstractData> _data_not_sent, ArrayList<BigPacketData> bigDataNotSent,
-				Collection<BlockDataToTransfer> dataToTransferNotSent) {
+		AgentSocketKilled(List<AbstractData> _data_not_sent, List<BigPacketData> bigDataNotSent,
+						  List<BlockDataToTransfer> dataToTransferNotSent) {
 			this.shortDataNotSent = _data_not_sent;
 			this.bigDataNotSent = bigDataNotSent;
 			this.dataToTransferNotSent = dataToTransferNotSent;
@@ -2968,6 +2968,11 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				buffer=null;
 			}
 		}
+		@Override
+		boolean isCanceledNow()
+		{
+			return isCanceled() && (buffer==null || buffer.remaining()==0 || buffer.position()==0);
+		}
 
 		@Override
 		public boolean isFinished() {
@@ -2977,6 +2982,10 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		@Override
 		public boolean isCurrentByteBufferFinished() {
 			return buffer==null;//buffer.remaining() == 0;
+		}
+		@Override
+		public boolean isCurrentByteBufferFinishedOrNotStarted() {
+			return isCurrentByteBufferFinished();
 		}
 
 		@Override
@@ -3029,6 +3038,8 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		{
 			return null;
 		}
+
+
 	}
 
 	protected class TransferIDs {

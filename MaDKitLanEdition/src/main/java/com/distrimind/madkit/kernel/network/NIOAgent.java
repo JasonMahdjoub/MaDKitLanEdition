@@ -37,40 +37,29 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.IOException;
-import java.net.*;
-import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
-import java.nio.channels.DatagramChannel;
-import java.nio.channels.SelectableChannel;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.nio.channels.spi.SelectorProvider;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
-
 import com.distrimind.madkit.agr.LocalCommunity;
-import com.distrimind.madkit.exceptions.ConnectionException;
-import com.distrimind.madkit.exceptions.MadkitException;
-import com.distrimind.madkit.exceptions.OverflowException;
-import com.distrimind.madkit.exceptions.PacketException;
-import com.distrimind.madkit.exceptions.SelfKillException;
-import com.distrimind.madkit.exceptions.TransferException;
+import com.distrimind.madkit.exceptions.*;
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.network.AbstractData.DataTransferType;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
 import com.distrimind.madkit.kernel.network.TransferAgent.TryDirectConnection;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
 import com.distrimind.madkit.message.ObjectMessage;
+import com.distrimind.util.CircularArrayList;
+import com.distrimind.util.Reference;
 import com.distrimind.util.Timer;
 import com.distrimind.util.concurrent.LockerCondition;
+
+import java.io.IOException;
+import java.net.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.*;
+import java.nio.channels.spi.SelectorProvider;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.logging.Level;
 
 /**
  * Represent an server socket selector for {@link SocketChannel}, and
@@ -84,11 +73,6 @@ import com.distrimind.util.concurrent.LockerCondition;
 final class NIOAgent extends Agent {
 
 
-
-	/*
-	 * //the The host:port combination to listen on private final InetAddress
-	 * hostAddress; private final int port;
-	 */
 
 	protected static class Server {
 		protected final ServerSocketChannel serverChannels;
@@ -137,9 +121,6 @@ final class NIOAgent extends Agent {
     private double realTimeDownloadStatDuration=0.0, realTimeUploadStatDuration=0.0;
 
 	NIOAgent() throws ConnectionException {
-		/*
-		 * hostAddress=_hostAddress; port=_port;
-		 */
 
 		try {
 			selector = SelectorProvider.provider().openSelector();
@@ -460,14 +441,7 @@ final class NIOAgent extends Agent {
 					PersonalSocket ps = personal_sockets.get(pmr.socket);
 					ps.pongMessageReceived();
 				}
-				/*
-				 * else if (m instanceof LockReadMessage) { PersonalSocket
-				 * ps=personal_sockets.get(((LockReadMessage) m).socket); ps.lockRead(); } else
-				 * if (m instanceof UnlockReadMessage) { PersonalSocket
-				 * ps=personal_sockets.get(((UnlockReadMessage) m).socket);
-				 * 
-				 * ps.unlockRead(); }
-				 */
+
 				else if (m instanceof BindInetSocketAddressMessage) {
 					if (logger != null && logger.isLoggable(Level.FINER))
 						logger.finer("Receiving : " + m);
@@ -706,11 +680,7 @@ final class NIOAgent extends Agent {
 			while (selectedKeysIterator.hasNext()) {
 				SelectionKey key = selectedKeysIterator.next();
 
-				/*
-				 * if (((Map<?, ?>) key.attachment()).get(channelType).equals( serverChannel)) {
-				 * 
-				 * }
-				 */
+
 				if (!key.channel().isOpen() || !key.isValid()) {
 					if (hasSpeedLimitation)
                     	selectedKeysIterator.remove();
@@ -819,9 +789,7 @@ final class NIOAgent extends Agent {
 
 	private void addMulticastListener(MulticastListenerConnectionMessage mlcm) throws IOException {
 		DatagramChannel dc = mlcm.instantiateDatagramChannel();
-		/*
-		 * if (dc.isConnected()) {
-		 */
+
 		PersonalDatagramChannel pdc = new PersonalDatagramChannel(dc,
 				DatagramLocalNetworkPresenceMessage.getMaxDatagramMessageLength(), mlcm.getSender(),
 				mlcm.getNetworkInterfaceAddress(), mlcm.getGroupIPAddress(), mlcm.getPort());
@@ -830,11 +798,7 @@ final class NIOAgent extends Agent {
 		personal_datagram_channels_per_ni_address.put(mlcm.getNetworkInterfaceAddress(), pdc);
 		if (logger != null && logger.isLoggable(Level.FINER))
 			logger.finer("Multicast listener added : " + mlcm);
-		/*
-		 * } else if (logger!=null) logger.
-		 * warning("Impossible to initiate datagram channel and to listen local peers apparition : "
-		 * +mlcm);
-		 */
+
 	}
 
 	private PersonalSocket getPersonalSocket(InetSocketAddress _distant_inet_address,
@@ -894,9 +858,7 @@ final class NIOAgent extends Agent {
 		try {
 			InetSocketAddress isaRemote = (InetSocketAddress) sc.getRemoteAddress();
 			InetSocketAddress isaLocal = (InetSocketAddress) sc.getLocalAddress();
-			/*
-			 * if (ip==null) ip=new DoubleIP(isaRemote);
-			 */
+
 			if (logger != null)
 				logger.finer("Finishing connection (localInetAddress=" + isaLocal + ", removeInetAddress=" + isaRemote
 						+ "]");
@@ -1033,16 +995,6 @@ final class NIOAgent extends Agent {
 		}
 	}
 
-	/*
-	 * private static class FileData { public final AbstractData data; private int
-	 * count_before_sending;
-	 * 
-	 * public FileData(AbstractData _data, int count) { data=_data;
-	 * count_before_sending=count; }
-	 * 
-	 * public boolean decrement() { return (--count_before_sending)==0; } public
-	 * void increment() { if (count_before_sending!=0) ++count_before_sending; } }
-	 */
 
 	private static class FirstData extends AbstractData {
 
@@ -1084,6 +1036,14 @@ final class NIOAgent extends Agent {
 			}
 		}
 
+		@Override
+		boolean isCanceledNow()
+		{
+			if (isCanceled())
+				return data==null || data.remaining()==0 || data.position()==0;
+			else
+				return false;
+		}
 
 		@Override
 		boolean isFinished() {
@@ -1093,6 +1053,10 @@ final class NIOAgent extends Agent {
 		@Override
 		boolean isCurrentByteBufferFinished() {
 			return data==null;
+		}
+		@Override
+		public boolean isCurrentByteBufferFinishedOrNotStarted() {
+			return isCurrentByteBufferFinished();
 		}
 
 		@Override
@@ -1161,6 +1125,8 @@ final class NIOAgent extends Agent {
 		{
 			return data.isUnlocked();
 		}
+
+
 		
 		boolean isDataLoadingCanceled() throws TransferException, PacketException
 		{
@@ -1235,7 +1201,6 @@ final class NIOAgent extends Agent {
 		}
 
 
-		
 	}
 	
 	private class PersonalSocket {
@@ -1243,10 +1208,10 @@ final class NIOAgent extends Agent {
 		public final AgentAddress agentAddress;
 		public final AgentSocket agentSocket;
 
-		protected LinkedList<AbstractData> shortDataToSend = new LinkedList<>();
-		protected ArrayList<DistantKernelAgent.BigPacketData> bigDataToSend = new ArrayList<>();
-		protected LinkedList<AbstractAgentSocket.BlockDataToTransfer> dataToTransfer = new LinkedList<>();
-		private final LinkedList<NoBackData> noBackDataToSend=new LinkedList<>();
+		protected CircularArrayList<AbstractData> shortDataToSend ;
+		protected CircularArrayList<DistantKernelAgent.BigPacketData> bigDataToSend ;
+		protected CircularArrayList<AbstractAgentSocket.BlockDataToTransfer> dataToTransfer ;
+		private final Deque<NoBackData> noBackDataToSend;
 		// private LinkedList<FileData> bigDataWaiting=new LinkedList<>();
 		private DataTransferType dataTransferType = DataTransferType.SHORT_DATA;
 		protected int bigDataToSendIndex = 0;
@@ -1263,14 +1228,25 @@ final class NIOAgent extends Agent {
 		private final int maxBlockSize;
 		private volatile boolean canPrepareNextData=true;
 		private final SelectionKey clientKey;
+		private final int numberOfNoBackData;
 		public boolean isClosed() {
 			return is_closed;
+		}
+
+		private void initDataToSendLists()
+		{
+			shortDataToSend=new CircularArrayList<>(5);
+			bigDataToSend=new CircularArrayList<>(5);
+			dataToTransfer=new CircularArrayList<>(5);
 		}
 
 		public PersonalSocket(SocketChannel _socketChannel, AgentSocket _agent, SelectionKey clientKey)
 				throws OverflowException, IOException, NoSuchAlgorithmException, NoSuchProviderException, TransferException {
 			if (clientKey==null)
 				throw new NullPointerException();
+			initDataToSendLists();
+			numberOfNoBackData=3;
+			noBackDataToSend=new CircularArrayList<>(numberOfNoBackData);
 			socketChannel = _socketChannel;
 			this.clientKey=clientKey;
 			clientKey.attach(this);
@@ -1290,7 +1266,7 @@ final class NIOAgent extends Agent {
 		{
 
 			
-			if (canPrepareNextData && noBackDataToSend.size()<3)
+			if (canPrepareNextData && noBackDataToSend.size()<numberOfNoBackData)
 			{
 				AbstractData ad=getNextData();
 				if (ad!=null)
@@ -1412,108 +1388,101 @@ final class NIOAgent extends Agent {
 		}
 
 		public boolean addDataToSend(AbstractData _data) throws TransferException {
-			if (shortDataToSend != null && bigDataToSend != null) {
 
-				/*
-				 * if (sk==null || !sk.isValid()) return false;
-				 */
 
-				if (logger != null && logger.isLoggable(Level.FINEST))
-					logger.finest(this + " - data to send : " + _data);
 
-				switch (_data.getDataTransferType()) {
-				case SHORT_DATA:
+			if (logger != null && logger.isLoggable(Level.FINEST))
+				logger.finest(this + " - data to send : " + _data);
 
-					if (_data.isPriority() && shortDataToSend.size() > 0) {
+			switch (_data.getDataTransferType()) {
+			case SHORT_DATA:
 
-						ListIterator<AbstractData> itDataToSend = shortDataToSend.listIterator();
-						itDataToSend.next();
+				if (_data.isPriority() && shortDataToSend.size() > 0) {
 
-						while (itDataToSend.hasNext()) {
-							if (!itDataToSend.next().isPriority()) {
-								itDataToSend.previous();
-								break;
-							}
+					int i = 1;
+
+
+					while (i<shortDataToSend.size()) {
+						if (!shortDataToSend.get(i).isPriority()) {
+							break;
 						}
-						itDataToSend.add(_data);
+						else
+							++i;
+					}
+					shortDataToSend.add(i, _data);
 
-						/*
-						 * Iterator<FileData> it=bigDataWaiting.iterator(); while(it.hasNext()) {
-						 * it.next().increment(); }
-						 */
-					} else
-						shortDataToSend.add(_data);
-					break;
-				case BIG_DATA:
-					bigDataToSend.add((DistantKernelAgent.BigPacketData) _data);
-					/*
-					 * if (dataToSend.size()==0) bigDataToSend.add(_data); else
-					 * bigDataWaiting.add(new FileData(_data, dataToSend.size()));
-					 */
 
-					break;
-				case DATA_TO_TRANSFER:
-					dataToTransfer.addLast((AbstractAgentSocket.BlockDataToTransfer) _data);
-					break;
-				}
-				
-				checkValidTransferType();
-				prepareNextDataToNextIfNecessary();
+				} else
+					shortDataToSend.add(_data);
+				break;
+			case BIG_DATA:
+				bigDataToSend.add((DistantKernelAgent.BigPacketData) _data);
 
-				if (!is_closed && (clientKey.interestOps() & SelectionKey.OP_WRITE) != SelectionKey.OP_WRITE)
-					clientKey.interestOps(SelectionKey.OP_WRITE | SelectionKey.OP_READ);
-				
-				return true;
-			} else
-				return false;
+
+				break;
+			case DATA_TO_TRANSFER:
+				dataToTransfer.addLast((AbstractAgentSocket.BlockDataToTransfer) _data);
+				break;
+			}
+
+			checkValidTransferType();
+			prepareNextDataToNextIfNecessary();
+
+			if (!is_closed && (clientKey.interestOps() & SelectionKey.OP_WRITE) != SelectionKey.OP_WRITE)
+				clientKey.interestOps(SelectionKey.OP_WRITE | SelectionKey.OP_READ);
+
+			return true;
+
 		}
 
 		private boolean hasPriorityDataToSend() {
 			return shortDataToSend.size() > 0 && shortDataToSend.get(0).isPriority();
 		}
 
+
+
 		private boolean waitDataReady() throws TransferException {
 			try {
 				//synchronized (this.agentSocket) {
-					final AtomicBoolean hasData = new AtomicBoolean(this.noBackDataToSend.size()>0);
-					NoBackData first=null;
-					final AtomicBoolean validData = new AtomicBoolean(this.noBackDataToSend.size()>0 && (first=this.noBackDataToSend.getFirst()).isReady());
-					
-					final AtomicReference<TransferException> exception=new AtomicReference<>();
-					if (!hasData.get() || validData.get())
-						return hasData.get();
+				final Reference<Boolean> hasData = new Reference<>(this.noBackDataToSend.size()>0);
+				NoBackData first=null;
+				final Reference<Boolean> validData = new Reference<>(this.noBackDataToSend.size()>0 && (first=this.noBackDataToSend.getFirst()).isReady());
+
+
+				if (!hasData.get() || validData.get())
+					return hasData.get();
 				if (first==null)
 					throw new NullPointerException();
-				System.out.println("wait");
-                NIOAgent.this.wait(new LockerCondition(first.getLocker()) {
-						
-						@Override
-						public boolean isLocked() {
-							NoBackData first=noBackDataToSend.peekFirst();
-							try
-							{
-								hasData.set(first!=null);
-								validData.set(first!=null && first.isReady());
-							}
-							catch(TransferException e)
-							{
-								exception.set(e);
-								return false;
-							}
-							return exception.get()==null && first!=null && (!validData.get() || first.isCanceled() || agentSocket.getState().compareTo(AbstractAgent.State.ENDING)>=0);
-						}
+				final Reference<TransferException> exception=new Reference<>();
+				NIOAgent.this.wait(new LockerCondition(first.getLocker()) {
 
-						
-					});
-				System.out.println("waitOK");
-					if (exception.get()!=null)
-						throw exception.get();
-					return validData.get();
+					@Override
+					public boolean isLocked() {
+						NoBackData first=noBackDataToSend.peekFirst();
+						try
+						{
+							hasData.set(first!=null);
+							validData.set(first!=null && first.isReady());
+						}
+						catch(TransferException e)
+						{
+							exception.set(e);
+							return false;
+						}
+						return exception.get()==null && first!=null && !validData.get()  && agentSocket.getState().compareTo(AbstractAgent.State.ENDING)<0;
+					}
+
+
+				});
+				if (exception.get()!=null)
+					throw exception.get();
+				return validData.get();
 				//}
 			} catch (InterruptedException e) {
 				return false;
 			}
 		}
+
 		private boolean isTransferTypeChangePossible() throws TransferException {
 			AbstractData data = null;
 			switch (dataTransferType) {
@@ -1537,99 +1506,184 @@ final class NIOAgent extends Agent {
 				break;
 			}
 			try {
-				return data == null || data.isCurrentByteBufferFinished();
+				return data.isCurrentByteBufferFinishedOrNotStarted() ;
 			} catch (PacketException e) {
 				throw new TransferException(e);
 			}
 
 		}
 
-		private boolean checkValidTransferType() throws TransferException {
-				boolean change = isTransferTypeChangePossible();
-				if (!change)
-					return true;
-				boolean valid_data=hasDataToSend();
-				if (!valid_data || is_closed || hasPriorityDataToSend()) {
-					dataTransferType = DataTransferType.SHORT_DATA;
-					return !is_closed;
-				} else {
-					valid_data = false;
-					while (!valid_data) {
-						switch (dataTransferType) {
-						case SHORT_DATA:
-							if (shortDataToSend.size() == 0)
-								dataTransferType = DataTransferType.BIG_DATA;
-							else
-								valid_data = true;
-							break;
-						case BIG_DATA:
-							if (bigDataToSend.size() == 0)
-								dataTransferType = DataTransferType.DATA_TO_TRANSFER;
-							else
-								valid_data = true;
-							break;
-						case DATA_TO_TRANSFER:
-							if (dataToTransfer.size() == 0)
-								dataTransferType = DataTransferType.SHORT_DATA;
-							else
-								valid_data = true;
-							break;
+
+		private boolean purgeObsoleteDataAndTellsIfHasDataToSend()
+		{
+			boolean r=purgeObsoleteDataAndTellsIfHasDataToSend(shortDataToSend);
+			r|=purgeObsoleteDataAndTellsIfHasDataToSend(dataToTransfer);
+			{
+				while (bigDataToSend.size()>0)
+				{
+					AbstractData ad=bigDataToSend.get(bigDataToSendIndex);
+					if (ad.isCanceledNow()) {
+						try {
+							ad.closeStream();
+						} catch (IOException e) {
+							if (logger!=null)
+								logger.severeLog("", e);
 						}
+						bigDataToSend.remove(bigDataToSendIndex);
+						if (bigDataToSend.size()>0)
+							bigDataToSendIndex=bigDataToSendIndex%bigDataToSend.size();
+						else
+							bigDataToSendIndex=0;
 					}
-					return true;
+					else
+						return true;
 				}
-			
+			}
+			return r;
+		}
+		private boolean purgeObsoleteDataAndTellsIfHasDataToSend(CircularArrayList<? extends AbstractData> l)
+		{
+			while (l.size()>0)
+			{
+				AbstractData ad=l.getFirst();
+				if (ad.isCanceledNow()) {
+					try {
+						ad.closeStream();
+					} catch (IOException e) {
+						if (logger!=null)
+							logger.severeLog("", e);
+					}
+					l.removeFirst();
+				}
+				else
+					return true;
+			}
+			return false;
 		}
 
+		private void checkValidTransferType() throws TransferException {
+				if (!isTransferTypeChangePossible())
+					return;
+				boolean valid_data=purgeObsoleteDataAndTellsIfHasDataToSend();
+				if (!valid_data || is_closed || hasPriorityDataToSend()) {
+					dataTransferType = DataTransferType.SHORT_DATA;
+
+				} else {
+
+
+					switch (dataTransferType) {
+						case SHORT_DATA:
+							if (shortDataToSend.size() == 0) {
+								if (bigDataToSend.size()>0)
+									dataTransferType = DataTransferType.BIG_DATA;
+								else if (dataToTransfer.size()>0)
+									dataTransferType=DataTransferType.DATA_TO_TRANSFER;
+							}
+
+							break;
+						case BIG_DATA:
+							if (bigDataToSend.size() == 0) {
+								if (dataToTransfer.size()>0)
+									dataTransferType = DataTransferType.DATA_TO_TRANSFER;
+								else
+									dataTransferType = DataTransferType.SHORT_DATA;
+							}
+
+							break;
+						case DATA_TO_TRANSFER:
+							if (dataToTransfer.size() == 0) {
+								if (shortDataToSend.size()>0)
+									dataTransferType = DataTransferType.SHORT_DATA;
+								else if (bigDataToSend.size()>0)
+									dataTransferType=DataTransferType.BIG_DATA;
+								else
+									dataTransferType = DataTransferType.SHORT_DATA;
+
+							}
+
+							break;
+						}
+				}
+
+
+
+		}
 		private boolean setNextTransferType() throws TransferException {
-			switch (dataTransferType) {
-			case SHORT_DATA:
-				dataTransferType = DataTransferType.BIG_DATA;
-				break;
-			case BIG_DATA:
-				dataTransferType = DataTransferType.DATA_TO_TRANSFER;
-				break;
-			case DATA_TO_TRANSFER:
+
+			if (!purgeObsoleteDataAndTellsIfHasDataToSend() || is_closed) {
 				dataTransferType = DataTransferType.SHORT_DATA;
-				break;
+				return !is_closed;
 			}
-			return checkValidTransferType();
+			if (isTransferTypeChangePossible()) {
+				if (hasPriorityDataToSend())
+				{
+					dataTransferType = DataTransferType.SHORT_DATA;
+					return true;
+				}
+				switch (dataTransferType) {
+					case SHORT_DATA:
+						if (bigDataToSend.size() > 0)
+							dataTransferType = DataTransferType.BIG_DATA;
+						else if (dataToTransfer.size() > 0)
+							dataTransferType = DataTransferType.DATA_TO_TRANSFER;
+
+						break;
+					case BIG_DATA:
+						if (dataToTransfer.size() > 0)
+							dataTransferType = DataTransferType.DATA_TO_TRANSFER;
+						else if (shortDataToSend.size() > 0)
+							dataTransferType = DataTransferType.SHORT_DATA;
+
+						break;
+					case DATA_TO_TRANSFER:
+						if (shortDataToSend.size() > 0)
+							dataTransferType = DataTransferType.SHORT_DATA;
+						else if (bigDataToSend.size() > 0)
+							dataTransferType = DataTransferType.BIG_DATA;
+
+						break;
+				}
+				return true;
+			}
+			else
+				return false;
+
 		}
 
 		private AbstractData getNextData() throws TransferException {
 			if (is_closed)
 				return null;
 			switch (dataTransferType) {
-			case SHORT_DATA:
-				if (shortDataToSend.size() > 0)
-				{
-					AbstractData ad=shortDataToSend.getFirst();
-					if (ad.isDataBuildInProgress())
+				case SHORT_DATA:
+					if (shortDataToSend.size() > 0)
+					{
+						AbstractData ad=shortDataToSend.getFirst();
+						if (ad.isDataBuildInProgress())
+							return null;
+						return ad;
+					}
+					else
 						return null;
-					return ad;
-				}
-				else
-					return null;
-			case BIG_DATA:
-				if (bigDataToSend.size() > 0)
-				{
-					AbstractData ad=bigDataToSend.get(bigDataToSendIndex);
-					if (ad.isDataBuildInProgress())
-						return null;
-					return ad;
-				}
-				else
-					throw new TransferException("Unexpected exception !");
-			case DATA_TO_TRANSFER:
-				if (dataToTransfer.size() > 0)
-				{
-					AbstractData ad=dataToTransfer.getFirst();
-					if (ad.isDataBuildInProgress())
-						return null;
-					return ad;
-				}
-				else
-					throw new TransferException("Unexpected exception !");
+				case BIG_DATA:
+					if (bigDataToSend.size() > 0)
+					{
+						AbstractData ad=bigDataToSend.get(bigDataToSendIndex);
+						if (ad.isDataBuildInProgress())
+							return null;
+						return ad;
+					}
+					else
+						throw new TransferException("Unexpected exception !");
+				case DATA_TO_TRANSFER:
+					if (dataToTransfer.size() > 0)
+					{
+						AbstractData ad=dataToTransfer.getFirst();
+						if (ad.isDataBuildInProgress())
+							return null;
+						return ad;
+					}
+					else
+						throw new TransferException("Unexpected exception !");
 			}
 			return null;
 
@@ -1763,9 +1817,6 @@ final class NIOAgent extends Agent {
 				}
 
 			} catch (IOException e) {
-				/*
-				 * if (logger!=null) logger.severeLog("Unexpected exception : ", e);
-				 */
 
 				// The remote forcibly closed the connection, cancel
 				// the selection key and close the channel.
@@ -1933,12 +1984,7 @@ final class NIOAgent extends Agent {
 
 		}
 
-		/*
-		 * public void prepareCloseConnection(ConnectionClosedReason cs) {
-		 * NIOAgent.this.sendMessageWithRole(agentAddress, new
-		 * ConnectionClosed(socketChannel, cs, dataToSend, bigDataToSend),
-		 * LocalCommunity.Roles.NIO_ROLE); }
-		 */
+
 		public void closeConnection(ConnectionClosedReason cs)
 		{
 			closeConnection(cs, false);
@@ -2038,9 +2084,8 @@ final class NIOAgent extends Agent {
 			}
 			NIOAgent.this.sendMessageWithRole(agentAddress, new ConnectionClosed(this.agentAddress.getAgentNetworkID(),
 					cs, shortDataToSend, bigDataToSend, dataToTransfer), LocalCommunity.Roles.NIO_ROLE);
-			shortDataToSend = new LinkedList<>();
-			bigDataToSend = new ArrayList<>();
-			dataToTransfer = new LinkedList<>();
+			initDataToSendLists();
+
 			if (stopping && isAlive() && personal_sockets.isEmpty())
 			    killAgent(NIOAgent.this);
 		}
@@ -2086,11 +2131,7 @@ final class NIOAgent extends Agent {
 					+ ", localAddress=" + localAddress + "]";
 		}
 
-		/*
-		 * InetAddress getLocalAddress() { return localAddress; }
-		 * 
-		 * AgentAddress getMulticastAgent() { return multicastAgent; }
-		 */
+
 
 		void addDataToSend(DatagramData data) {
 			messagesToSend.add(data);
@@ -2153,9 +2194,6 @@ final class NIOAgent extends Agent {
 			}
 		}
 
-		/*
-		 * DatagramChannel getDatagramChannel() { return datagramChannel; }
-		 */
 
 		void closeConnection(boolean sentFromMulticastAgent) {
 			if (logger != null)

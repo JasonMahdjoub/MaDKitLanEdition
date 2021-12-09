@@ -37,27 +37,22 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.net.InetSocketAddress;
-import java.nio.channels.SocketChannel;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.concurrent.Callable;
-import java.util.logging.Level;
-
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.exceptions.ConnectionException;
-import com.distrimind.madkit.kernel.AgentAddress;
-import com.distrimind.madkit.kernel.AgentNetworkID;
-import com.distrimind.madkit.kernel.KernelAddress;
-import com.distrimind.madkit.kernel.Task;
-import com.distrimind.madkit.kernel.TaskID;
+import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
 import com.distrimind.madkit.kernel.network.TransferAgent.InterfacedIDTransfer;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
 import com.distrimind.madkit.kernel.network.connection.PointToPointTransferedBlockChecker;
 import com.distrimind.madkit.kernel.network.connection.TransferedBlockChecker;
 import com.distrimind.madkit.message.ObjectMessage;
+
+import java.net.InetSocketAddress;
+import java.nio.channels.SocketChannel;
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.logging.Level;
 
 /**
  * 
@@ -243,8 +238,8 @@ class IndirectAgentSocket extends AbstractAgentSocket {
 	}
 
 	@Override
-	protected void disconnected(ConnectionClosedReason reason, Collection<AbstractData> _data_not_sent,
-								ArrayList<DistantKernelAgent.BigPacketData> bigDataNotSent, Collection<BlockDataToTransfer> dataToTransferNotSent) {
+	protected void disconnected(ConnectionClosedReason reason, List<AbstractData> _data_not_sent,
+								List<DistantKernelAgent.BigPacketData> bigDataNotSent, List<BlockDataToTransfer> dataToTransferNotSent) {
 		cancelPingTaskID();
 		super.disconnected(reason, _data_not_sent, bigDataNotSent, dataToTransferNotSent);
 	}

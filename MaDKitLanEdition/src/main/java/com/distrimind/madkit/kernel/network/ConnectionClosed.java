@@ -37,11 +37,10 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import com.distrimind.madkit.kernel.AgentNetworkID;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol;
+
+import java.util.List;
 
 /**
  * 
@@ -54,13 +53,13 @@ class ConnectionClosed extends NIOMessage {
 
 	final AgentNetworkID socket;
 	final ConnectionProtocol.ConnectionClosedReason reason;
-	final Collection<AbstractData> data_not_sent;
-	final ArrayList<DistantKernelAgent.BigPacketData> bigDataNotSent;
-	final Collection<AbstractAgentSocket.BlockDataToTransfer> dataToTransferNotSent;
+	final List<AbstractData> data_not_sent;
+	final List<DistantKernelAgent.BigPacketData> bigDataNotSent;
+	final List<AbstractAgentSocket.BlockDataToTransfer> dataToTransferNotSent;
 
 	ConnectionClosed(AgentNetworkID _socket, ConnectionProtocol.ConnectionClosedReason _reason,
-			Collection<AbstractData> _data_not_sent, ArrayList<DistantKernelAgent.BigPacketData> _bigDataNotSent,
-			Collection<AbstractAgentSocket.BlockDataToTransfer> _dataToTransferNotSent) {
+					 List<AbstractData> _data_not_sent, List<DistantKernelAgent.BigPacketData> _bigDataNotSent,
+					 List<AbstractAgentSocket.BlockDataToTransfer> _dataToTransferNotSent) {
 		socket = _socket;
 		reason = _reason;
 		data_not_sent = _data_not_sent;

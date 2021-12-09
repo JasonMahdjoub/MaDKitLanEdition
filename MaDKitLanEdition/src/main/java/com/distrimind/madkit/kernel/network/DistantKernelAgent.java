@@ -2067,10 +2067,10 @@ class DistantKernelAgent extends AgentFakeThread {
 
 		private RealTimeTransferStat stat;
 		private IDTransfer idTransfer = null;
-		private final AtomicBoolean unlocked = new AtomicBoolean(false);
+		private volatile boolean unlocked = false;
 		protected final AgentAddress firstAgentSocketSender;
 		private final AgentAddress agentReceiver;
-		protected final AtomicBoolean isCanceled = new AtomicBoolean(false);
+
 		protected final boolean excludedFromEncryption;
 		AbstractAgentSocket agentSocket;
 
@@ -2094,8 +2094,8 @@ class DistantKernelAgent extends AgentFakeThread {
 
 		@Override
 		public String toString() {
-			return getClass().getSimpleName() + "[idPacket=" + packet.getID() + ", unlocked=" + unlocked.get()
-					+ ", canceled=" + isCanceled.get() + ", totalDataToSendLength(Without connection protocol)="
+			return getClass().getSimpleName() + "[idPacket=" + packet.getID() + ", unlocked=" + unlocked
+					+ ", canceled=" + isCanceled + ", totalDataToSendLength(Without connection protocol)="
 					+ this.packet.getDataLengthWithHashIncluded() + ", currentByteBuffer="
 					+ (currentByteBuffer == null ? null : currentByteBuffer.capacity())
 					+ ", currentByteBufferRemaining="
@@ -2103,7 +2103,8 @@ class DistantKernelAgent extends AgentFakeThread {
 					+ this.packet.getReadDataLengthIncludingHash() + "]";
 		}
 
-		public void closeStream() throws IOException {
+		@Override
+		void closeStream() throws IOException {
 			if (!packet.getInputStream().isClosed())
 				packet.getInputStream().close();
 		}
@@ -2121,7 +2122,7 @@ class DistantKernelAgent extends AgentFakeThread {
 					as.notifyAll();
 				}
 			}
-			closeStream();
+			//closeStream();
 
 		}
 		
@@ -2145,12 +2146,22 @@ class DistantKernelAgent extends AgentFakeThread {
 		{
 
 		}
-		
+		@Override
+		boolean isCanceledNow()
+		{
+			if (isCanceled) {
+				synchronized (this) {
+					return currentByteBuffer == null || currentByteBuffer.remaining() == 0 || currentByteBuffer.position() == 0;
+				}
+			}
+			else
+				return false;
+		}
 		@Override
 		public ByteBuffer getByteBuffer() throws PacketException {
 			
 			synchronized (this) {
-				if (isCanceled.get())
+				if (isCanceled)
 				{	
 					try
 					{
@@ -2219,7 +2230,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		@Override
 		public boolean isFinished() {
 			boolean res;
-			boolean canceled=isCanceled.get();
+			boolean canceled=isCanceled;
 			if (canceled && isCurrentByteBufferFinished()) {
 				res=true;
 			}
@@ -2255,6 +2266,12 @@ class DistantKernelAgent extends AgentFakeThread {
 			}
 		}
 
+		@Override
+		public boolean isCurrentByteBufferFinishedOrNotStarted() {
+			synchronized (this) {
+				return currentByteBuffer == null || currentByteBuffer.remaining() == 0 || currentByteBuffer.position()==0;
+			}
+		}
 
 		public int getIDPacket() {
 			return packet.getID();
@@ -2294,13 +2311,13 @@ class DistantKernelAgent extends AgentFakeThread {
 
 		@Override
 		public void unlockMessage() throws MadkitException {
-			unlocked.set(true);
+			unlocked=true;
 			removePendingBigDataPacket();
 		}
 
 		@Override
 		public boolean isUnlocked() {
-			return unlocked.get();
+			return unlocked;
 		}
 
 
@@ -2511,7 +2528,8 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 
 		public void closeStream() throws IOException {
-			output_stream.close();
+			if (!output_stream.isClosed())
+				output_stream.close();
 		}
 
 		public void cancel() throws IOException {

@@ -5101,7 +5101,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @param value global network upload speed in bytes per second
 	 * @see NetworkProperties#maximumGlobalUploadSpeedInBytesPerSecond to make this limit persistant
 	 */
-	public void setMaximumGlobalUploadSpeedInBytesPerSecond(int value)
+	public void setMaximumGlobalUploadSpeedInBytesPerSecond(long value)
 	{
 		getMadkitKernel().setMaximumGlobalUploadSpeedInBytesPerSecond(this, value);
 	}
@@ -5124,7 +5124,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @see NetworkProperties#maximumGlobalUploadSpeedInBytesPerSecond to get the persistant limit
 	 * @return global network upload speed in bytes per second. Return {@link Integer#MAX_VALUE} if there is no limit.
 	 */
-	public int getMaximumGlobalUploadSpeedInBytesPerSecond()
+	public long getMaximumGlobalUploadSpeedInBytesPerSecond()
 	{
 		return getMadkitKernel().getMaximumGlobalUploadSpeedInBytesPerSecond(this);
 	}
@@ -5144,7 +5144,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @see NetworkProperties#maximumGlobalDownloadSpeedInBytesPerSecond to get the persistant limit
 	 * @return global network download speed in bytes per second. Return {@link Integer#MAX_VALUE} if there is no limit.
 	 */
-	public int getMaximumGlobalDownloadSpeedInBytesPerSecond()
+	public long getMaximumGlobalDownloadSpeedInBytesPerSecond()
 	{
 		return getMadkitKernel().getMaximumGlobalDownloadSpeedInBytesPerSecond(this);
 	}

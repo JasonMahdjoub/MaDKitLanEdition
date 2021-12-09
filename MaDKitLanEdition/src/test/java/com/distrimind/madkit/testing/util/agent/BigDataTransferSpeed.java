@@ -72,9 +72,9 @@ import java.util.logging.Level;
 public class BigDataTransferSpeed extends TestNGMadkit {
 	final NetworkEventListener eventListener1;
 	final NetworkEventListener eventListener2;
-    final int downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond;
+    final long downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond;
     final boolean cancelTransfer, asynchronousMessage, restartMessage;
-	public BigDataTransferSpeed(final int downloadLimitInBytesPerSecond, final int uploadLimitInBytesPerSecond,
+	public BigDataTransferSpeed(final long downloadLimitInBytesPerSecond, final long uploadLimitInBytesPerSecond,
                                 boolean cancelTransfer, boolean asynchronousMessage, boolean restartMessage) throws UnknownHostException {
         this.cancelTransfer=cancelTransfer;
         this.asynchronousMessage=asynchronousMessage;
@@ -156,7 +156,7 @@ public class BigDataTransferSpeed extends TestNGMadkit {
 		};
         this.eventListener2.maxBufferSize=this.eventListener1.maxBufferSize;
 	}
-    public BigDataTransferSpeed(final int downloadLimitInBytesPerSecond, final int uploadLimitInBytesPerSecond) throws UnknownHostException {
+    public BigDataTransferSpeed(final long downloadLimitInBytesPerSecond, final long uploadLimitInBytesPerSecond) throws UnknownHostException {
         this(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond, false, false, false);
     }
     private static final long timeOut = 20000;
@@ -264,7 +264,7 @@ public class BigDataTransferSpeed extends TestNGMadkit {
                                         tr1=true;
                                         //AssertJUnit.assertFalse(cancelTransfer);
 
-                                        if (this.getMaximumGlobalUploadSpeedInBytesPerSecond() != Integer.MAX_VALUE){
+                                        if (this.getMaximumGlobalUploadSpeedInBytesPerSecond() != Long.MAX_VALUE){
                                             double speed=((double) bdrm.getTransferredDataLength()) / ((double) bdrm.getTransferDuration()) * 1000.0;
                                             AssertJUnit.assertTrue(speed< getMaximumGlobalUploadSpeedInBytesPerSecond() * 2);
                                             AssertJUnit.assertTrue(speed> getMaximumGlobalUploadSpeedInBytesPerSecond() / 2.0);
@@ -287,7 +287,7 @@ public class BigDataTransferSpeed extends TestNGMadkit {
                                 requestRole(GROUP, ROLE2);
                                 sleep(2000);
 
-                                int delay;
+                                long delay;
                                 if (downloadLimitInBytesPerSecond!=Integer.MAX_VALUE || uploadLimitInBytesPerSecond!=Integer.MAX_VALUE)
                                     delay=Math.max(60000, size/Math.min(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond)*1000+20000);
                                 else

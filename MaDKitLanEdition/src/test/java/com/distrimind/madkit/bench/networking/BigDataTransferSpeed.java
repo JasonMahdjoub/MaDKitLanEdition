@@ -51,7 +51,7 @@ public class BigDataTransferSpeed extends com.distrimind.madkit.testing.util.age
 
 
 	public BigDataTransferSpeed() throws UnknownHostException {
-		super(Integer.MAX_VALUE, Integer.MAX_VALUE);
+		super(Long.MAX_VALUE, Long.MAX_VALUE);
 	}
 	@Test
 	@Override

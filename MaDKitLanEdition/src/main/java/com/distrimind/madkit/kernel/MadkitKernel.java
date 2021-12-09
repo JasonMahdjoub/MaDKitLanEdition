@@ -156,8 +156,8 @@ class MadkitKernel extends Agent {
 	private ScheduledPoolExecutor serviceExecutor;
 
 	//private PoolExecutor lifeExecutor/* , lifeExecutorWithBlockQueue */;
-    private volatile int maximumGlobalUploadSpeedInBytesPerSecond;
-    private volatile int maximumGlobalDownloadSpeedInBytesPerSecond;
+    private volatile long maximumGlobalUploadSpeedInBytesPerSecond;
+    private volatile long maximumGlobalDownloadSpeedInBytesPerSecond;
     private volatile boolean hasSpeedLimitation;
 
 
@@ -397,7 +397,7 @@ class MadkitKernel extends Agent {
 
 	private void setHasSpeedLimitation()
 	{
-		hasSpeedLimitation=maximumGlobalUploadSpeedInBytesPerSecond!=Integer.MAX_VALUE || maximumGlobalDownloadSpeedInBytesPerSecond!=Integer.MAX_VALUE;
+		hasSpeedLimitation=maximumGlobalUploadSpeedInBytesPerSecond!=Long.MAX_VALUE || maximumGlobalDownloadSpeedInBytesPerSecond!=Long.MAX_VALUE;
 	}
 
 	boolean hasSpeedLimitation(@SuppressWarnings("unused") AbstractAgent requester) {
@@ -1125,9 +1125,6 @@ class MadkitKernel extends Agent {
 
 
 				}
-				/*else if (oe.getContent()==AgentActionEvent.LEAVE_ROLE) {
-					asynchronousMessageTable.newAgentDisconnected(platform.getConfigOption().rootOfPathGroupUsedToFilterAsynchronousMessages, oe.getSourceAgent());
-				}*/
 
 			} else if (hook_message.getClass() == NetworkEventMessage.class) {
 				if (hook_message.getContent() == AgentActionEvent.CONNEXION_ESTABLISHED) {
@@ -1249,7 +1246,7 @@ class MadkitKernel extends Agent {
 
 
     @SuppressWarnings("unused")
-	void setMaximumGlobalUploadSpeedInBytesPerSecond(AbstractAgent requester, int max)
+	void setMaximumGlobalUploadSpeedInBytesPerSecond(AbstractAgent requester, long max)
     {
         if (max<=0)
             throw new IllegalArgumentException("max must be greater than zero !");
@@ -1266,12 +1263,12 @@ class MadkitKernel extends Agent {
     }
 
     @SuppressWarnings("unused")
-    int getMaximumGlobalUploadSpeedInBytesPerSecond(AbstractAgent requester) {
+    long getMaximumGlobalUploadSpeedInBytesPerSecond(AbstractAgent requester) {
         return maximumGlobalUploadSpeedInBytesPerSecond;
     }
 
     @SuppressWarnings("unused")
-    int getMaximumGlobalDownloadSpeedInBytesPerSecond(AbstractAgent requester) {
+    long getMaximumGlobalDownloadSpeedInBytesPerSecond(AbstractAgent requester) {
         return maximumGlobalDownloadSpeedInBytesPerSecond;
     }
 

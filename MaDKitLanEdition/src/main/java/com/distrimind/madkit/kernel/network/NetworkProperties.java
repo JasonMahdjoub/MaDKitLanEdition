@@ -1424,13 +1424,13 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * Maximum global upload speed in bytes per second.
 	 * Set to {@link Integer#MAX_VALUE} if there is no limit
 	 */
-	public int maximumGlobalUploadSpeedInBytesPerSecond=Integer.MAX_VALUE;
+	public long maximumGlobalUploadSpeedInBytesPerSecond=Long.MAX_VALUE;
 
 	/**
 	 * Maximum global download speed in bytes per second.
 	 * Set to {@link Integer#MAX_VALUE} if there is no limit
 	 */
-	public int maximumGlobalDownloadSpeedInBytesPerSecond=Integer.MAX_VALUE;
+	public long maximumGlobalDownloadSpeedInBytesPerSecond=Long.MAX_VALUE;
 
 
 
