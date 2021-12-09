@@ -180,7 +180,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		if (distant_kernel_address != null && kernelAddressActivated) {
 			MadkitKernelAccess.informHooks(this, new DistantKernelAgentEventMessage(
 					AgentActionEvent.DISTANT_KERNEL_DISCONNECTED, distant_kernel_address));
-			if (logger != null)
+			if (logger != null && logger.isLoggable(Level.INFO))
 				logger.info("Distant kernel agent disconnected : " + distant_kernel_address);
 		}
 
@@ -2726,37 +2726,44 @@ class DistantKernelAgent extends AgentFakeThread {
 				if (reading == null) {
 					// new short data received
 					try {
-						if (logger != null)
-							logger.finest("Receiving block data for new short data transfer from " + agent_socket_sender
-									+ " (distantInterfacedKernelAddress=" + distant_kernel_address + ") : " + p);
-
-						reading = sr = new SerializedReading(agent_socket_sender, p);
-
-						if (sr.isInvalid()) {
+						if (!p.getHead().isFirstPacketPart())
+						{
 							processInvalidPacketPart(agent_socket_sender,
-									new PacketException("The given packet is not valid."), p, false);
-							try {
-								sr.closeStream();
-							} catch (Exception ignored) {
-
-							}
+									new PacketException("Receiving packet "+p.getHead().getID()+" that cannot be rooted"), p, false);
 						}
-						// check too simultaneous short data sent
-						boolean tooMuch = current_short_readings.size() >= this.agents_socket.size()
-								+ this.indirect_agents_socket.size();
-						if (!tooMuch) {
-							for (SerializedReading sr2 : current_short_readings.values()) {
-								if (sr2.getInitialAgentAddress().equals(agent_socket_sender)) {
-									tooMuch = true;
-									break;
+						else {
+							if (logger != null && logger.isLoggable(Level.FINEST))
+								logger.finest("Receiving block data for new short data transfer from " + agent_socket_sender
+										+ " (distantInterfacedKernelAddress=" + distant_kernel_address + ") : " + p);
+
+							reading = sr = new SerializedReading(agent_socket_sender, p);
+
+							if (sr.isInvalid()) {
+								processInvalidPacketPart(agent_socket_sender,
+										new PacketException("The given packet is not valid."), p, false);
+								try {
+									sr.closeStream();
+								} catch (Exception ignored) {
+
 								}
 							}
-						}
-						if (tooMuch) {
-							processTooMuchSimultaneousShortDataSent();
-						} else {
-							current_short_readings.put(p.getHead().getID(), sr);
+							// check too simultaneous short data sent
+							boolean tooMuch = current_short_readings.size() >= this.agents_socket.size()
+									+ this.indirect_agents_socket.size();
+							if (!tooMuch) {
+								for (SerializedReading sr2 : current_short_readings.values()) {
+									if (sr2.getInitialAgentAddress().equals(agent_socket_sender)) {
+										tooMuch = true;
+										break;
+									}
+								}
+							}
+							if (tooMuch) {
+								processTooMuchSimultaneousShortDataSent();
+							} else {
+								current_short_readings.put(p.getHead().getID(), sr);
 
+							}
 						}
 					} catch (PacketException | IOException e) {
 						boolean candidateToBan=(e instanceof MessageExternalizationException) && ((MessageExternalizationException) e).getIntegrity().equals(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
@@ -2766,7 +2773,7 @@ class DistantKernelAgent extends AgentFakeThread {
 					sr = ((SerializedReading) reading);
 					if (reading.isValid() || (reading.isTemporaryInvalid() && p.getHead().isRedownloadedPacketPart())) {
 						try {
-							if (logger != null)
+							if (logger != null && logger.isLoggable(Level.FINEST))
 								logger.finest("Receiving block data and updating short data transfer from "
 										+ agent_socket_sender + " (distantInterfacedKernelAddress="
 										+ distant_kernel_address + ") : " + p);
@@ -2880,7 +2887,7 @@ class DistantKernelAgent extends AgentFakeThread {
 				decrementTotalDataQueue(dataIncrement);
 			} else {
 				dataSize.set(0);
-				if (logger != null)
+				if (logger != null  && logger.isLoggable(Level.FINER))
 					logger.finer("Illegal computed data size queue !");
 			}
 		}
