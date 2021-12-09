@@ -50,7 +50,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static com.distrimind.util.ReflectionTools.getMethod;
 import static com.distrimind.util.ReflectionTools.invoke;
@@ -193,7 +193,7 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 		if (sender.getAgentAddressIn(group, roleSender)==null)
 			return;
 
-		final AtomicBoolean allRemoved=new AtomicBoolean(true);
+		final AtomicReference<Boolean> allRemoved=new AtomicReference(true);
 
 		final StringBuilder where=new StringBuilder("groupPath=%groupPath AND roleSender=%roleSender and (");
 		final int startQueryLength=where.length();
@@ -298,7 +298,7 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 				final StringBuilder where=new StringBuilder("groupPath=%groupPath AND roleReceiver=%roleReceiver and (");
 				final int startQueryLength=where.length();
 				final ArrayList<String> wheres=new ArrayList<>();
-				final AtomicBoolean allRemoved=new AtomicBoolean(true);
+				final AtomicReference<Boolean> allRemoved=new AtomicReference<>(true);
 				final Map<Role, Boolean> allRemovedPerRole=new HashMap<>();
 				getOrderedRecords(new Filter<Record>(){
 
