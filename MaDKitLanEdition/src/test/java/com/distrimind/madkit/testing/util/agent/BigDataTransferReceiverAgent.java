@@ -59,11 +59,12 @@ public class BigDataTransferReceiverAgent extends Agent {
 	private int dataToReceiveNumber;
 	private final long uploadLimitInBytesPerSecond;
 	private long downloadLimitInBytesPerSecond;
-	final boolean cancelTransfer, asynchronousMessage, restartMessage;
+	final boolean cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage;
 
 	public BigDataTransferReceiverAgent(int dataToReceiveNumber, long uploadLimitInBytesPerSecond,
-										boolean cancelTransfer, boolean asynchronousMessage, boolean restartMessage) {
-		this.cancelTransfer=cancelTransfer;
+										boolean cancelTransfer, boolean cancelTransferFromReceiver, boolean asynchronousMessage, boolean restartMessage) {
+		this.cancelTransfer = cancelTransfer;
+		this.cancelTransferFromReceiver=cancelTransferFromReceiver;
 		this.asynchronousMessage=asynchronousMessage;
 		this.restartMessage=restartMessage;
 		this.dataToReceiveNumber=dataToReceiveNumber;
@@ -118,6 +119,11 @@ public class BigDataTransferReceiverAgent extends Agent {
 			} catch (IllegalAccessException e) {
 				e.printStackTrace();
 				return;
+			}
+			if (cancelTransfer && cancelTransferFromReceiver)
+			{
+				sleep(100);
+				cancelBigDataTransfer(bdpm.getBigDataTransferID());
 			}
 			long delay;
 			int size=(int)bdpm.getTransferLength();

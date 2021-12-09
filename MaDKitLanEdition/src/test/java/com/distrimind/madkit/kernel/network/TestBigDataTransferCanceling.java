@@ -49,8 +49,8 @@ public class TestBigDataTransferCanceling {
 	static class BigDataTransferTest extends com.distrimind.madkit.testing.util.agent.BigDataTransferSpeed
 	{
 
-		public BigDataTransferTest(int downloadLimitInBytesPerSecond, int uploadLimitInBytesPerSecond, boolean cancelTransfer, boolean asynchronousMessage, boolean restartMessage) throws UnknownHostException {
-			super(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond, cancelTransfer, asynchronousMessage, restartMessage);
+		public BigDataTransferTest(int downloadLimitInBytesPerSecond, int uploadLimitInBytesPerSecond, boolean cancelTransfer, boolean cancelTransferFromReceiver, boolean asynchronousMessage, boolean restartMessage) throws UnknownHostException {
+			super(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond, cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage);
 		}
 	}
 
@@ -58,13 +58,16 @@ public class TestBigDataTransferCanceling {
 	Object[][] getParameters()
 	{
 		return new Object[][]{
-				{true, false},
-				{true, true}};
+				{true, false, false},
+				{true, true, false},
+				{true, false, true},
+				{true, true, true}
+		};
 	}
 
 	@Test(dataProvider = "getParameters")
-	public void test(boolean cancelTransfer, boolean asynchronousMessage) throws UnknownHostException {
-		BigDataTransferTest b=new BigDataTransferTest(40000000, 40000000, cancelTransfer, asynchronousMessage, false);
+	public void test(boolean cancelTransfer, boolean cancelTransferFromReceiver, boolean asynchronousMessage) throws UnknownHostException {
+		BigDataTransferTest b=new BigDataTransferTest(40000000, 40000000, cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, false);
 		b.bigDataTransfer();
 	}
 

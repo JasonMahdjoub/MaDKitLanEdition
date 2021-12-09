@@ -73,10 +73,11 @@ public class BigDataTransferSpeed extends TestNGMadkit {
 	final NetworkEventListener eventListener1;
 	final NetworkEventListener eventListener2;
     final long downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond;
-    final boolean cancelTransfer, asynchronousMessage, restartMessage;
+    final boolean cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage;
 	public BigDataTransferSpeed(final long downloadLimitInBytesPerSecond, final long uploadLimitInBytesPerSecond,
-                                boolean cancelTransfer, boolean asynchronousMessage, boolean restartMessage) throws UnknownHostException {
-        this.cancelTransfer=cancelTransfer;
+                                boolean cancelTransfer, boolean cancelTransferFromReceiver, boolean asynchronousMessage, boolean restartMessage) throws UnknownHostException {
+        this.cancelTransfer = cancelTransfer;
+        this.cancelTransferFromReceiver=cancelTransferFromReceiver;
         this.asynchronousMessage=asynchronousMessage;
         this.restartMessage=restartMessage;
         this.downloadLimitInBytesPerSecond=downloadLimitInBytesPerSecond;
@@ -157,12 +158,13 @@ public class BigDataTransferSpeed extends TestNGMadkit {
         this.eventListener2.maxBufferSize=this.eventListener1.maxBufferSize;
 	}
     public BigDataTransferSpeed(final long downloadLimitInBytesPerSecond, final long uploadLimitInBytesPerSecond) throws UnknownHostException {
-        this(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond, false, false, false);
+        this(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond, false, false, false, false);
     }
     private static final long timeOut = 20000;
 
     static final class AsynchronousIdentifier implements ExternalAsynchronousBigDataIdentifier {
         private int id;
+        @SuppressWarnings("unused")
         AsynchronousIdentifier()
         {
 
@@ -249,11 +251,10 @@ public class BigDataTransferSpeed extends TestNGMadkit {
                                             throw new NullPointerException();
                                         AssertJUnit.assertNotNull(transferID = this.sendBigData(aa, new RandomByteArrayInputStream(bigDataToSendArray.get()), 0, bigDataToSendArray.get().length, null, null, !encrypt));
                                     }
-                                    if (cancelTransfer)
+                                    if (cancelTransfer && !cancelTransferFromReceiver)
                                     {
                                         sleep(100);
                                         AssertJUnit.assertEquals(AbstractAgent.ReturnCode.SUCCESS, this.cancelBigDataTransfer(transferID));
-                                        System.out.println("here");
                                     }
                                     Message m=this.waitNextMessage(delay);
                                     AssertJUnit.assertTrue(m instanceof BigDataResultMessage);
@@ -262,7 +263,7 @@ public class BigDataTransferSpeed extends TestNGMadkit {
                                     boolean tr1=false;
                                     if (bdrm.getType() == BigDataResultMessage.Type.BIG_DATA_TRANSFERRED) {
                                         tr1=true;
-                                        //AssertJUnit.assertFalse(cancelTransfer);
+                                        AssertJUnit.assertFalse(cancelTransfer);
 
                                         if (this.getMaximumGlobalUploadSpeedInBytesPerSecond() != Long.MAX_VALUE){
                                             double speed=((double) bdrm.getTransferredDataLength()) / ((double) bdrm.getTransferDuration()) * 1000.0;
@@ -312,13 +313,12 @@ public class BigDataTransferSpeed extends TestNGMadkit {
                         };
                 launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, bigDataSenderAgent, eventListener1);
                 sleep(400);
-                BigDataTransferReceiverAgent bigDataTransferAgent = new BigDataTransferReceiverAgent(2, uploadLimitInBytesPerSecond,cancelTransfer, asynchronousMessage, restartMessage);
+                BigDataTransferReceiverAgent bigDataTransferAgent = new BigDataTransferReceiverAgent(2, uploadLimitInBytesPerSecond, cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage);
                 launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, bigDataTransferAgent, eventListener2);
 
                 while(transfered1.get()==null || transfered2.get()==null)
                 {
-
-                    Thread.sleep(1000);
+                    sleep(1000);
                 }
                 bigDataToSendArray.set(null);
                 AssertJUnit.assertTrue(transfered1.get());

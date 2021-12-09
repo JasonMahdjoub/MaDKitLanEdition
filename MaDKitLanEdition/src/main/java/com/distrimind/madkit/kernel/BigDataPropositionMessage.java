@@ -94,7 +94,8 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 	private AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier;
 	private ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier;
 	private transient MadkitKernel localMadkitKernel=null;
-	private transient BigDataTransferID bigDataTransferID=null;
+	private transient BigDataTransferID conversationID =null;
+	private transient IBigDataTransferID bigDataTransferID=null;
 	@SuppressWarnings("unused")
 	private BigDataPropositionMessage()
 	{
@@ -110,8 +111,18 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 
 	@Override
 	public BigDataTransferID getConversationID() {
-		if (bigDataTransferID==null)
-			bigDataTransferID=new BigDataTransferID(super.getConversationID(), getStatistics());
+		if (conversationID ==null)
+			conversationID =new BigDataTransferID(super.getConversationID(), getStatistics());
+		return conversationID;
+	}
+
+	public IBigDataTransferID getBigDataTransferID() {
+		if (bigDataTransferID ==null) {
+			if (this.asynchronousBigDataInternalIdentifier!=null)
+				bigDataTransferID=new AsynchronousBigDataTransferID(asynchronousBigDataInternalIdentifier, externalAsynchronousBigDataIdentifier, localMadkitKernel);
+			else
+				bigDataTransferID = new BigDataTransferID(super.getConversationID(), getStatistics());
+		}
 		return bigDataTransferID;
 	}
 

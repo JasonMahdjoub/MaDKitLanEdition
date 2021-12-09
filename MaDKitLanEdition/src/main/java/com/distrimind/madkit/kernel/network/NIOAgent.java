@@ -1704,9 +1704,11 @@ final class NIOAgent extends Agent {
 							} catch (Exception e) {
 								throw new TransferException("Unexpected exception !", e);
 							} finally {
-								AbstractData removed=shortDataToSend.removeFirst();
-								if (removed!=d)
-									throw new InternalError();
+								if (shortDataToSend.size()>0 && shortDataToSend.getFirst()==d) {
+									AbstractData removed = shortDataToSend.removeFirst();
+									if (removed != d)
+										throw new InternalError();
+								}
 							}
 						}
 						setNextTransferType();
@@ -1722,11 +1724,13 @@ final class NIOAgent extends Agent {
 							} catch (Exception e) {
 								throw new TransferException("Unexpected exception !", e);
 							}
-							AbstractData removed=bigDataToSend.remove(bigDataToSendIndex);
-							if (removed!=d)
-								throw new InternalError();
+							if (bigDataToSend.size()>0 && bigDataToSend.get(bigDataToSendIndex)==d) {
+								AbstractData removed = bigDataToSend.remove(bigDataToSendIndex);
+								if (removed != d)
+									throw new InternalError();
 
-							bigDataToSendIndex = bigDataToSend.size() == 0 ? 0 : bigDataToSendIndex % bigDataToSend.size();
+								bigDataToSendIndex = bigDataToSend.size() == 0 ? 0 : bigDataToSendIndex % bigDataToSend.size();
+							}
 						} else {
 							bigDataToSendIndex = bigDataToSend.size() == 0 ? 0
 									: (bigDataToSendIndex + 1) % bigDataToSend.size();
@@ -1745,9 +1749,11 @@ final class NIOAgent extends Agent {
 							} catch (Exception e) {
 								throw new TransferException("Unexpected exception !", e);
 							}
-							AbstractData removed=dataToTransfer.removeFirst();
-							if (removed!=d)
-								throw new InternalError();
+							if (dataToTransfer.size()>0 && dataToTransfer.getFirst()==d) {
+								AbstractData removed = dataToTransfer.removeFirst();
+								if (removed != d)
+									throw new InternalError();
+							}
 
 						}
 						setNextTransferType();
