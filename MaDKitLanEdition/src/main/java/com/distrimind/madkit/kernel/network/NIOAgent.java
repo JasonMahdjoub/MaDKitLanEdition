@@ -201,7 +201,7 @@ final class NIOAgent extends Agent {
 		this.personal_sockets_list.clear();
 
 
-		if (logger != null)
+		if (logger != null && logger.isLoggable(Level.FINER))
 			logger.finer("Closing all datagram channels !");
 		for (Object o : this.personal_datagram_channels.values().toArray()) {
 			PersonalDatagramChannel dc = (PersonalDatagramChannel) o;
@@ -211,7 +211,7 @@ final class NIOAgent extends Agent {
 		this.personal_datagram_channels_per_agent_address.clear();
 		this.personal_datagram_channels_per_ni_address.clear();
 
-		if (logger != null)
+		if (logger != null && logger.isLoggable(Level.FINER))
 			logger.finer("Closing all servers !");
 
 		for (Server s : this.serverChannels) {
@@ -223,7 +223,7 @@ final class NIOAgent extends Agent {
 			}
 		}
 		this.serverChannels.clear();
-		if (logger != null)
+		if (logger != null && logger.isLoggable(Level.FINER))
 			logger.finer("Closing selector !");
 		if (this.selector.isOpen()) {
 			try {
@@ -389,7 +389,7 @@ final class NIOAgent extends Agent {
 							pendingConnectionsCanceled.add(pc);
 						}
 					} catch (ConnectException e) {
-						if (logger != null)
+						if (logger != null && logger.isLoggable(Level.INFO))
 							logger.info(e + ", local_interface=" + pc.local_interface + ", ip="
 									+ pc.getInetSocketAddress());
 						pendingConnectionsCanceled.add(pc);
@@ -512,7 +512,7 @@ final class NIOAgent extends Agent {
 
 								if (personal_datagram_channels_per_ni_address.size() == 0)
 									break;
-								if (logger != null)
+								if (logger != null && logger.isLoggable(Level.FINER))
 									logger.finer("Server channel closed : " + s);
 
 							} else if (s.address.getAddress().equals(addr.getAddress()))
@@ -554,7 +554,7 @@ final class NIOAgent extends Agent {
 
 								if (mc!=null)
 									mc.closeConnection(false);
-								if (logger != null)
+								if (logger != null && logger.isLoggable(Level.FINER))
 									logger.finer("Server channel closed : " + s);
 
 							}
@@ -859,7 +859,7 @@ final class NIOAgent extends Agent {
 			InetSocketAddress isaRemote = (InetSocketAddress) sc.getRemoteAddress();
 			InetSocketAddress isaLocal = (InetSocketAddress) sc.getLocalAddress();
 
-			if (logger != null)
+			if (logger != null && logger.isLoggable(Level.FINER))
 				logger.finer("Finishing connection (localInetAddress=" + isaLocal + ", removeInetAddress=" + isaRemote
 						+ "]");
 
@@ -1996,7 +1996,7 @@ final class NIOAgent extends Agent {
 			closeConnection(cs, false);
 		}
 		public void closeConnection(ConnectionClosedReason cs, boolean delaying) {
-			if (logger != null)
+			if (logger != null && logger.isLoggable(Level.FINER))
 				logger.finer("Closing connection : " + this);
 			this.cs=cs;
 			is_closed = true;
@@ -2046,7 +2046,7 @@ final class NIOAgent extends Agent {
 				} else
 					socketChannel.close();
 			} catch (Exception e) {
-				if (logger != null)
+				if (logger != null && logger.isLoggable(Level.FINE))
 					logger.log(Level.FINE, "Unexpected exception", e);
 			}
 			try {
@@ -2066,7 +2066,7 @@ final class NIOAgent extends Agent {
 								}
 							}
 						} catch (Exception e) {
-							if (logger != null)
+							if (logger != null && logger.isLoggable(Level.FINE))
 								logger.log(Level.FINE, "Unexpected exception", e);
 						}
 					}
@@ -2202,7 +2202,7 @@ final class NIOAgent extends Agent {
 
 
 		void closeConnection(boolean sentFromMulticastAgent) {
-			if (logger != null)
+			if (logger != null && logger.isLoggable(Level.FINER))
 				logger.finer("Closing datagram channel : " + this);
 
 			try {
