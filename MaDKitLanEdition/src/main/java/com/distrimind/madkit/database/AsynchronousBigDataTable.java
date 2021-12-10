@@ -43,6 +43,7 @@ import com.distrimind.ood.database.annotations.NotNull;
 import com.distrimind.ood.database.annotations.PrimaryKey;
 import com.distrimind.ood.database.annotations.Unique;
 import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.ood.database.exceptions.RecordNotFoundDatabaseException;
 import com.distrimind.util.AbstractDecentralizedIDGenerator;
 import com.distrimind.util.Reference;
 import com.distrimind.util.RenforcedDecentralizedIDGenerator;
@@ -414,8 +415,9 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 				}
 				else {
 					record.set(getRecord("asynchronousBigDataInternalIdentifier", asynchronousBigDataInternalIdentifier));
-					if (record.get()!=null)
+					if (record.get()!=null) {
 						removeRecord("asynchronousBigDataInternalIdentifier", asynchronousBigDataInternalIdentifier);
+					}
 
 				}
 				return false;
@@ -530,9 +532,8 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			return cancelTransfer(requester, r);
 	}
 	public AbstractAgent.ReturnCode cancelTransfer(AbstractAgent requester, Record record) throws DatabaseException {
-		AbstractAgent.ReturnCode r=cancelTransferImpl(requester, record, BigDataResultMessage.Type.TRANSFER_CANCELED);
-		removeRecord(record);
-		return r;
+
+		return cancelTransferImpl(requester, record, BigDataResultMessage.Type.TRANSFER_CANCELED);
 	}
 
 	public long cancelAsynchronousMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole) throws DatabaseException {
@@ -589,6 +590,13 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		} catch (IOException e) {
 			e.printStackTrace();
 			return AbstractAgent.ReturnCode.INVALID_AGENT_ADDRESS;
+		}
+		if (reason== BigDataResultMessage.Type.TRANSFER_CANCELED) {
+			try {
+				removeRecord(record);
+			} catch (RecordNotFoundDatabaseException e) {
+				e.printStackTrace();
+			}
 		}
 		BigDataTransferID bigDataTransferID= transferIdsPerInternalAsynchronousId.remove(record.getAsynchronousBigDataInternalIdentifier());
 		if (bigDataTransferID!=null) {

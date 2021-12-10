@@ -159,7 +159,7 @@ public class BigDataTransferReceiverAgent extends Agent {
 					sendMessage(aa, new BooleanMessage(true));
 					m=waitNextMessage();
 					Assert.assertNotNull(m);
-					Assert.assertTrue(m instanceof BooleanMessage);
+					Assert.assertTrue(m instanceof BooleanMessage, m.toString());
 					Assert.assertEquals(((BooleanMessage) m).getContent(), Boolean.TRUE);
 				}
 				else {

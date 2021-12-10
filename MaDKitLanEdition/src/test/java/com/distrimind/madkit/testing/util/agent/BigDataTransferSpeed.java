@@ -211,6 +211,12 @@ public class BigDataTransferSpeed extends TestNGMadkit {
             id=in.readInt();
         }
 
+        @Override
+        public String toString() {
+            return "AsynchronousIdentifier{" +
+                    "id=" + id +
+                    '}';
+        }
     }
     static class AsynchronousToSendWrapper implements AsynchronousBigDataToSendWrapper
     {

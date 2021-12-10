@@ -1483,14 +1483,16 @@ class MadkitKernel extends Agent {
 	{
 		if (m.isAsynchronousMessage())
 		{
-			try {
-				return asynchronousBigDataTable.receivedPotentialAsynchronousBigDataResultMessage(requester, m.getType(),
-						m.getAsynchronousBigDataInternalIdentifier(),
-						m.getTransferredDataLength(), serviceExecutor);
-			} catch (DatabaseException e) {
-				requester.getLogger().severeLog("Unexpected exception", e);
-			}
-
+			this.serviceExecutor.execute(() -> {
+				try {
+					asynchronousBigDataTable.receivedPotentialAsynchronousBigDataResultMessage(requester, m.getType(),
+							m.getAsynchronousBigDataInternalIdentifier(),
+							m.getTransferredDataLength(), serviceExecutor);
+				} catch (DatabaseException e) {
+					requester.getLogger().severeLog("Unexpected exception", e);
+				}
+			});
+			return m.getType() == BigDataResultMessage.Type.CONNECTION_LOST;
 
 		}
 		return false;

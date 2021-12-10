@@ -552,7 +552,6 @@ class DistantKernelAgent extends AgentFakeThread {
 
 					if (bpd==null)
 					{
-
 						BigDataReading bdr=current_big_data_readings.values().stream().filter(e -> e.getOriginalMessage().getConversationID().equals(m.getBigDataTransferID())).findAny().orElse(null);
 						if (bdr!=null)
 						{

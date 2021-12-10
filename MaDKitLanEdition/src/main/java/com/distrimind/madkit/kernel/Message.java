@@ -148,7 +148,7 @@ public class Message implements Cloneable {// TODO message already sent warning 
 		String s = getClass().getSimpleName() + "." + getConversationID();
 		if (sender == null || receiver == null)
 			return s;
-		return s + ": " + sender + " -> " + receiver;
+		return s + "{" + sender + " -> " + receiver+"}";
 	}
 
 	/**

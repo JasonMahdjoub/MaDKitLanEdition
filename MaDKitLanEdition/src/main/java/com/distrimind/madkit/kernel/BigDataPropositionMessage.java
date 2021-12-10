@@ -521,4 +521,19 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 	{
 		return externalAsynchronousBigDataIdentifier !=null;
 	}
+
+	@Override
+	public String toString() {
+		String s=super.toString();
+		return s.substring(0, s.length()-1)+
+				"pos=" + pos +
+				", length=" + length +
+				", isLocal=" + isLocal +
+				", timeUTC=" + timeUTC +
+				", timeOutInMs=" + timeOutInMs +
+				", excludedFromEncryption=" + excludedFromEncryption +
+				", externalAsynchronousBigDataIdentifier=" + externalAsynchronousBigDataIdentifier +
+				", bigDataTransferID=" + getBigDataTransferID() +
+				'}';
+	}
 }
