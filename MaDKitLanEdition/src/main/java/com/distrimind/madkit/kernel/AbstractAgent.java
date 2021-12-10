@@ -71,6 +71,7 @@ import com.distrimind.madkit.util.XMLUtilities;
 import com.distrimind.ood.database.DatabaseConfigurationsBuilder;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.CircularArrayList;
+import com.distrimind.util.Reference;
 import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.crypto.MessageDigestType;
 import com.distrimind.util.io.RandomInputStream;
@@ -2678,7 +2679,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @return the message actually received
 	 */
 	public Message receiveMessage(Message messageTaken) {
-		if (messageTaken == null)
+		messageTaken=tryToInferReceivedMessage(messageTaken);
+		if (messageTaken==null)
 			return null;
 
 		Lock l=messageBox.getLocker();
@@ -2702,23 +2704,39 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		}
 	}
 	Message receiveMessageUnsafe(Message messageTaken) {
+
+		if (messageTaken!=null) {
+			Message innerMessage=messageTaken.getWrappedInnerMessage();
+			Replies r = getConversationNotLocked(innerMessage);
+			if (r != null) {
+				if (r.addReplyNotLocked(innerMessage) && removeConversationNotLocked(r)) {
+					messageTaken = r;
+				} else {
+					messageTaken = null;
+				}
+			}
+
+			if (messageTaken != null) {
+
+				messageBox.offerUnsafe(messageTaken);
+				messageBox.getNotEmpty().signal();
+
+			}
+		}
+		return messageTaken;
+	}
+
+	Message tryToInferReceivedMessage(Message messageTaken) {
 		if (messageTaken == null)
 			return null;
 		if (potentialNetworkMessageLocker!=null && (messageTaken instanceof LocalLanMessage)) {
 			potentialNetworkMessageLocker.cancelLock();
 			potentialNetworkMessageLocker = null;
 		}
-		Message innerMessage=messageTaken.initSenderReceiverWhenReadingMessage();
+		Message innerMessage=messageTaken.getWrappedInnerMessage();
 		if (innerMessage==null)
 			return null;
-		Replies r = getConversationNotLocked(innerMessage);
-		if (r != null) {
-			if (r.addReplyNotLocked(innerMessage) && removeConversationNotLocked(r)) {
-				messageTaken = r;
-			} else {
-				messageTaken = null;
-			}
-		} else if (innerMessage instanceof MessageWithSilentInference) {
+		if (innerMessage instanceof MessageWithSilentInference) {
 			Class<?> clazz=innerMessage.getClass();
 			if (clazz == BigDataPropositionMessage.class) {
 				BigDataPropositionMessage bm = (BigDataPropositionMessage) innerMessage;
@@ -2743,13 +2761,6 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 				((RunnableMessage)messageTaken).action.run();
 				messageTaken=null;
 			}
-		}
-
-		if (messageTaken != null) {
-
-			messageBox.offerUnsafe(messageTaken);
-			messageBox.getNotEmpty().signal();
-
 		}
 		return messageTaken;
 	}

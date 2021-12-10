@@ -144,7 +144,11 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 	public long getTransferredDataLength() {
 		return transferredData;
 	}
-
+	void setTransferredDataLength(long transferredData) {
+		if (transferredData<this.transferredData)
+			throw new IllegalArgumentException();
+		this.transferredData=transferredData;
+	}
 	@SuppressWarnings("unused")
 	int getIDPacket() {
 		return idPacket;
@@ -198,6 +202,7 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 		return "BigDataResultMessage[type="+type+", dataTransferredInBytes="+ getTransferredDataLength()+", durationInMs="+getTransferDuration()/*+", sender="+getSender()+", receiver="+getReceiver()*/+"]";
 	}
 
+	@SuppressWarnings("unused")
 	AbstractDecentralizedIDGenerator getAsynchronousBigDataInternalIdentifier() {
 		return asynchronousBigDataInternalIdentifier;
 	}

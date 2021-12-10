@@ -56,6 +56,7 @@ public class LocalLanMessage extends Message implements LockableMessage {
 	private final MessageLocker locker;
 	protected ReceivedSerializableObject originalMessage;
 	protected boolean readyForInjection = false;
+	private boolean innerMessageNotInitialized =true;
 	// int id_packet=-1;
 
 	
@@ -85,12 +86,15 @@ public class LocalLanMessage extends Message implements LockableMessage {
 		return getClass().getSimpleName() + "[conversationID=" + message.getConversationID() + ", readyForInjection="
 				+ readyForInjection + "]";
 	}
-	protected Message initSenderReceiverWhenReadingMessage()
+	protected Message getWrappedInnerMessage()
 	{
 		if (readyForInjection)
 		{
-			MadkitKernelAccess.setReceiver(message, getReceiver());
-			MadkitKernelAccess.setSender(message, getSender());
+			if (innerMessageNotInitialized) {
+				MadkitKernelAccess.setReceiver(message, getReceiver());
+				MadkitKernelAccess.setSender(message, getSender());
+				innerMessageNotInitialized = false;
+			}
 			return message;
 		}
 		else

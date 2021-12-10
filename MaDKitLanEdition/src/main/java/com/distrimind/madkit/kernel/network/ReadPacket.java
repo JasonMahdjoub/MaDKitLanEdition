@@ -279,8 +279,8 @@ final class ReadPacket {
 		return id_packet;
 	}
 
-	public long getWroteDataLength() {
-		return current_pos-start_position;
+	public long getWrittenDataLength() {
+		return current_pos;
 	}
 
 	static abstract class AbstractByteTabInputStream {

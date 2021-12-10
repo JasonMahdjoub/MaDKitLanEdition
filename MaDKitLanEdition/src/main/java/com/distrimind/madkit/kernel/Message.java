@@ -204,7 +204,7 @@ public class Message implements Cloneable {// TODO message already sent warning 
 		return this;
 	}
 
-	protected Message initSenderReceiverWhenReadingMessage()
+	protected Message getWrappedInnerMessage()
 	{
 		return this;
 	}

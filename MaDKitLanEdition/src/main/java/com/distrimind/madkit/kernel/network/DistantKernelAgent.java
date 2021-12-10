@@ -2639,7 +2639,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			if (read_packet==null)
 				return 0;
 			else
-				return read_packet.getWroteDataLength();
+				return read_packet.getWrittenDataLength();
 		}
 		public void freeDataSize() {
 			decrementTotalDataQueue(data);
@@ -2679,7 +2679,7 @@ class DistantKernelAgent extends AgentFakeThread {
 					sr.getStatistics().newBytesIdentified(p.getSubBlock().getSize());
 					if (sr.isInvalid()) {
 						MadkitKernelAccess.dataCorrupted(sr.getOriginalMessage(),
-								sr.getReadPacket().getWroteDataLength(), null);
+								sr.getReadPacket().getWrittenDataLength(), null);
 						current_big_data_readings.remove(reading.getIDPacket());
 						processInvalidPacketPart(agent_socket_sender,
 								new PacketException("The given packet is not valid."), p, false);
@@ -2691,13 +2691,13 @@ class DistantKernelAgent extends AgentFakeThread {
 					} else if (sr.isFinished()) {
 						sr.closeStream();
 						MadkitKernelAccess.transferCompleted(sr.getOriginalMessage(),
-								sr.getReadPacket().getWroteDataLength());
+								sr.getReadPacket().getWrittenDataLength());
 						current_big_data_readings.remove(reading.getIDPacket());
 					}
 				}
 				catch (PacketException | IOException e) {
 					boolean candidateToBan=(e instanceof MessageExternalizationException) && ((MessageExternalizationException) e).getIntegrity().equals(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-					MadkitKernelAccess.dataCorrupted(sr.getOriginalMessage(), sr.getReadPacket().getWroteDataLength(), null);
+					MadkitKernelAccess.dataCorrupted(sr.getOriginalMessage(), sr.getReadPacket().getWrittenDataLength(), null);
 					current_big_data_readings.remove(reading.getIDPacket());
 					processInvalidPacketPart(agent_socket_sender, e, p, candidateToBan);
 					try {
@@ -2709,7 +2709,7 @@ class DistantKernelAgent extends AgentFakeThread {
 				}
 				sr.freeDataSize();
 			} else if (sr.isInvalid()) {
-				MadkitKernelAccess.dataCorrupted(sr.getOriginalMessage(), sr.getReadPacket().getWroteDataLength(), null);
+				MadkitKernelAccess.dataCorrupted(sr.getOriginalMessage(), sr.getReadPacket().getWrittenDataLength(), null);
 				current_big_data_readings.remove(reading.getIDPacket());
 				processInvalidPacketPart(agent_socket_sender, new PacketException("The given packet is not valid."), p,
 						false);
