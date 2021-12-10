@@ -298,6 +298,8 @@ public class BigDataTransferSpeed extends TestNGMadkit {
                                         AssertJUnit.assertTrue(speed < getMaximumGlobalUploadSpeedInBytesPerSecond() * 2);
                                         AssertJUnit.assertTrue(speed > getMaximumGlobalUploadSpeedInBytesPerSecond() / 2.0);
                                     }
+                                    if (!restartMessage)
+                                        Assert.assertTrue(transferID.getBytePerSecondsStat().getNumberOfIdentifiedBytesFromCreationOfTheseStatistics()>=bigDataToSendArray.get().length, ""+transferID.getBytePerSecondsStat().getNumberOfIdentifiedBytesFromCreationOfTheseStatistics());
                                 } else if (bdrm.getType() == BigDataResultMessage.Type.TRANSFER_CANCELED) {
                                     tr1 = true;
                                     AssertJUnit.assertTrue(cancelTransfer);

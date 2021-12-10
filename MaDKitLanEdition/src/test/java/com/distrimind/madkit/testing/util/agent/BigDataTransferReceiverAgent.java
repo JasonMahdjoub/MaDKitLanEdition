@@ -162,7 +162,12 @@ public class BigDataTransferReceiverAgent extends Agent {
 						AssertJUnit.assertTrue(speed< getMaximumGlobalDownloadSpeedInBytesPerSecond() * 2);
 						AssertJUnit.assertTrue(speed> getMaximumGlobalDownloadSpeedInBytesPerSecond() / 2.0);
                     }
+
 					AssertJUnit.assertEquals(arrayToSend, receivedData.getBytes());
+					AssertJUnit.assertEquals(arrayToSend.length, rm.getTransferredDataLength());
+					if (!restartMessage) {
+						AssertJUnit.assertTrue("" + bdpm.getStatistics().getNumberOfIdentifiedBytesFromCreationOfTheseStatistics(), arrayToSend.length <= bdpm.getStatistics().getNumberOfIdentifiedBytesFromCreationOfTheseStatistics());
+					}
 				}
 				else if (rm.getType()== BigDataResultMessage.Type.TRANSFER_CANCELED)
 				{

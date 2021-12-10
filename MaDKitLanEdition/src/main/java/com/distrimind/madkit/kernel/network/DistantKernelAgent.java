@@ -598,7 +598,7 @@ class DistantKernelAgent extends AgentFakeThread {
 																	.getStatsBandwidth(getKernelAddress())
 																	.getBytesDownloadedInRealTime(
 																			NetworkProperties.DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS)
-																	.getNumberOfIdentifiedBytes() == 0) {
+																	.getNumberOfIdentifiedBytesDuringTheLastCycle() == 0) {
 																exceededDataSize.purgeCanceled(DistantKernelAgent.this);
 																processPotentialDDOS();
 															} else {

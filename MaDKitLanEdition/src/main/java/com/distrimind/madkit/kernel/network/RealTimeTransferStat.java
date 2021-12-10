@@ -55,11 +55,13 @@ import java.util.Arrays;
 public class RealTimeTransferStat {
 	private final long[] stats;
 	private long totalBytes;
+	private long totalBytesFromTheBeginning;
 	private int cursor;
 	private long previousUpdateTime;
 	private final long segment;
 	private final long duration;
 	private volatile boolean one_cycle_done ;
+	private final long timeUTC;
 
 	/**
 	 * Construct a metric that computes number of transferred bytes during the last
@@ -91,6 +93,7 @@ public class RealTimeTransferStat {
 		reset();
 		one_cycle_done = false;
 		previousUpdateTime=System.currentTimeMillis();
+		timeUTC=System.currentTimeMillis();
 	}
 
 	/**
@@ -141,6 +144,7 @@ public class RealTimeTransferStat {
 			update();
 			stats[cursor] += number;
 			totalBytes += number;
+			totalBytesFromTheBeginning+=number;
 		}
 	}
 
@@ -148,11 +152,23 @@ public class RealTimeTransferStat {
 	 * 
 	 * @return the average of bytes transferred during the given duration
 	 */
-	public long getNumberOfIdentifiedBytes() {
+	public long getNumberOfIdentifiedBytesDuringTheLastCycle() {
 		synchronized (this) {
 			update();
 			return totalBytes;
 		}
+	}
+
+	public long getNumberOfIdentifiedBytesFromCreationOfTheseStatistics()
+	{
+		synchronized (this)
+		{
+			return totalBytesFromTheBeginning;
+		}
+	}
+	public long getDurationInMsFromCreationTimeOfTheseStatistics()
+	{
+		return System.currentTimeMillis()-timeUTC;
 	}
 
 	/**

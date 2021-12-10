@@ -91,7 +91,7 @@ public class StatTests extends TestNGMadkit {
 			int duration = rand.nextInt(100) + 100;
 			int segment = rand.nextInt(8) + 2;
 			RealTimeTransferStat rtts = new RealTimeTransferStat(duration, segment);
-			AssertJUnit.assertEquals(0, rtts.getNumberOfIdentifiedBytes());
+			AssertJUnit.assertEquals(0, rtts.getNumberOfIdentifiedBytesDuringTheLastCycle());
 			int numberBytes = rand.nextInt(500) + 500;
 			int totalBytes = numberBytes;
 			rtts.newBytesIdentified(numberBytes);
@@ -107,11 +107,11 @@ public class StatTests extends TestNGMadkit {
 			rtts.newBytesIdentified(numberBytes);
 			totalBytes += numberBytes;
 			AssertJUnit.assertTrue(rtts.isOneCycleDone());
-			AssertJUnit.assertTrue(rtts.getNumberOfIdentifiedBytes() < totalBytes);
+			AssertJUnit.assertTrue(rtts.getNumberOfIdentifiedBytesDuringTheLastCycle() < totalBytes);
 
 			for (int j = 0; j < 10000; j++) {
 				rtts.newBytesIdentified(rand.nextInt(1000));
-				rtts.getNumberOfIdentifiedBytes();
+				rtts.getNumberOfIdentifiedBytesDuringTheLastCycle();
 
 			}
 		}
