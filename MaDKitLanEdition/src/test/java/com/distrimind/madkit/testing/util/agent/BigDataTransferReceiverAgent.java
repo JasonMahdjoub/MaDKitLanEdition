@@ -41,6 +41,8 @@ import com.distrimind.madkit.action.KernelAction;
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.agr.Organization;
 import com.distrimind.madkit.kernel.*;
+import com.distrimind.madkit.kernel.network.AskForConnectionMessage;
+import com.distrimind.madkit.kernel.network.ConnectionStatusMessage;
 import com.distrimind.madkit.message.BooleanMessage;
 import com.distrimind.madkit.message.KernelMessage;
 import com.distrimind.util.io.RandomByteArrayOutputStream;
@@ -64,16 +66,17 @@ public class BigDataTransferReceiverAgent extends Agent {
 	private int dataToReceiveNumber;
 	private final long uploadLimitInBytesPerSecond;
 	private long downloadLimitInBytesPerSecond;
-	final boolean cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage;
+	final boolean cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage, globalDisconnection;
 
 	public BigDataTransferReceiverAgent(int dataToReceiveNumber, long uploadLimitInBytesPerSecond,
-										boolean cancelTransfer, boolean cancelTransferFromReceiver, boolean asynchronousMessage, boolean restartMessage) {
+										boolean cancelTransfer, boolean cancelTransferFromReceiver, boolean asynchronousMessage, boolean restartMessage, boolean globalDisconnection) {
 		this.cancelTransfer = cancelTransfer;
 		this.cancelTransferFromReceiver=cancelTransferFromReceiver;
 		this.asynchronousMessage=asynchronousMessage;
 		this.restartMessage=restartMessage;
 		this.dataToReceiveNumber=dataToReceiveNumber;
 		this.uploadLimitInBytesPerSecond=uploadLimitInBytesPerSecond;
+		this.globalDisconnection=globalDisconnection;
 	}
 	@Override
 	protected void activate() {
@@ -132,13 +135,32 @@ public class BigDataTransferReceiverAgent extends Agent {
 			}
 			else if (restartMessage && asynchronousMessage && !cancelTransfer)
 			{
-
 				sleep(100);
-				System.out.println("Stop network");
-				this.sendMessage(LocalCommunity.Groups.SYSTEM, Organization.GROUP_MANAGER_ROLE, new KernelMessage(KernelAction.STOP_NETWORK));
-				sleep(1000);
-				System.out.println("Launch network");
-				this.sendMessage(LocalCommunity.Groups.SYSTEM, Organization.GROUP_MANAGER_ROLE, new KernelMessage(KernelAction.LAUNCH_NETWORK));
+				if (globalDisconnection) {
+
+					System.out.println("Stop network");
+					this.sendMessage(LocalCommunity.Groups.SYSTEM, Organization.GROUP_MANAGER_ROLE, new KernelMessage(KernelAction.STOP_NETWORK));
+					sleep(1000);
+					Assert.assertEquals(this.getEffectiveConnections().size(), 0);
+					System.out.println("Launch network");
+					this.sendMessage(LocalCommunity.Groups.SYSTEM, Organization.GROUP_MANAGER_ROLE, new KernelMessage(KernelAction.LAUNCH_NETWORK));
+				}
+				else
+				{
+
+					try {
+						System.out.println("Disconnect");
+						this.manageDirectConnection(new AskForConnectionMessage(ConnectionStatusMessage.Type.DISCONNECT, BigDataTransferSpeed.ipToConnect));
+						sleep(1000);
+						Assert.assertEquals(this.getEffectiveConnections().size(), 0);
+						System.out.println("Reconnect");
+						this.manageDirectConnection(new AskForConnectionMessage(ConnectionStatusMessage.Type.CONNECT, BigDataTransferSpeed.ipToConnect));
+					} catch (IllegalAccessException e) {
+						e.printStackTrace();
+					}
+
+				}
+
 			}
 			long delay;
 			int size=(int)bdpm.getTransferLength();

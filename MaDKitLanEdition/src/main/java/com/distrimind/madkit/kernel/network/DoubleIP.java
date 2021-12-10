@@ -192,5 +192,16 @@ public class DoubleIP extends AbstractIP {
 	}
 
 
-	
+	@Override
+	public String toString() {
+		InetAddress ia = inet4Address;
+		if (inet4Address == null && inet6Address==null)
+			return "null:" + getPort();
+		else if (inet4Address==null)
+			return inet6Address+":" + getPort();
+		else if (inet6Address==null)
+			return inet4Address+":" + getPort();
+		else
+			return "["+inet4Address+", "+inet6Address+"]"+":" + getPort();
+	}
 }

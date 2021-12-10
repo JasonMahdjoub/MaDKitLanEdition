@@ -59,6 +59,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 /**
@@ -436,6 +437,7 @@ final class NIOAgent extends Agent {
 				} else if (m.getClass() == AbstractAgentSocket.AgentSocketKilled.class) {
 					if (personal_sockets_list.size() == 0 && NIOAgent.this.stopping)
 						NIOAgent.this.killAgent(NIOAgent.this);
+
 				} else if (m instanceof PongMessageReceived) {
 					PongMessageReceived pmr = (PongMessageReceived) m;
 					PersonalSocket ps = personal_sockets.get(pmr.socket);
@@ -589,16 +591,17 @@ final class NIOAgent extends Agent {
 									initiateConnection(con.getIP(), con.getChosenIP(),
 											con.interface_address.getAddress(), con);
 							} else if (con.type.equals(ConnectionStatusMessage.Type.DISCONNECT)) {
-								PersonalSocket found = getPersonalSocket(con.getChosenIP(), con.interface_address);
-								if (con.connection_closed_reason == null || con.connection_closed_reason
-										.equals(ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED)) {
-									sendMessage(found.agentAddress,
-											new AskForConnectionMessage(
-													ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED, con.getIP(),
-													con.getChosenIP(), con.interface_address, false, false));
-								} else {
-									sendMessage(found.agentAddress, con);
-								}
+								parsePersonalSockets(con.getIP(), con.interface_address, found->{
+									if (con.connection_closed_reason == null || con.connection_closed_reason
+											.equals(ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED)) {
+										sendMessage(found.agentAddress,
+												new AskForConnectionMessage(
+														ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED, con.getIP(),
+														con.getChosenIP(), con.interface_address, false, false));
+									} else {
+										sendMessage(found.agentAddress, con);
+									}
+								});
 							}
 						}
 					} catch (Exception e) {
@@ -800,14 +803,36 @@ final class NIOAgent extends Agent {
 			logger.finer("Multicast listener added : " + mlcm);
 
 	}
+	private void parsePersonalSockets(AbstractIP _distant_inet_address,
+											 InetSocketAddress _local_interface_address, Consumer<PersonalSocket> consumer) {
+		for (PersonalSocket ps : personal_sockets_list) {
+			try {
+				InetSocketAddress isa_local = (InetSocketAddress) ps.socketChannel.getLocalAddress();
+				if (_local_interface_address==null || isa_local.equals(_local_interface_address)) {
+					InetSocketAddress isa_remote = (InetSocketAddress) ps.socketChannel.getRemoteAddress();
+					if (isa_remote.getPort()==_distant_inet_address.getPort()) {
+						for (InetAddress ia : _distant_inet_address.getInetAddresses()) {
+							if (isa_remote.getAddress().equals(ia)) {
+								consumer.accept(ps);
+							}
+						}
+					}
 
+				}
+			} catch (Exception e) {
+				if (logger != null)
+					logger.log(Level.SEVERE, "Unexpected exception", e);
+
+			}
+		}
+	}
 	private PersonalSocket getPersonalSocket(InetSocketAddress _distant_inet_address,
 			InetSocketAddress _local_interface_address) {
 		PersonalSocket found = null;
 		for (PersonalSocket ps : personal_sockets_list) {
 			try {
 				InetSocketAddress isa_local = (InetSocketAddress) ps.socketChannel.getLocalAddress();
-				if (isa_local.equals(_local_interface_address)) {
+				if (_local_interface_address==null || isa_local.equals(_local_interface_address)) {
 					InetSocketAddress isa_remote = (InetSocketAddress) ps.socketChannel.getRemoteAddress();
 					if (isa_remote.equals(_distant_inet_address)) {
 						found = ps;
@@ -834,11 +859,11 @@ final class NIOAgent extends Agent {
 
 			// socket.bind(new InetSocketAddress(local_interface, address.getPort()));
 			socket.configureBlocking(false);
-
 			boolean ok = socket.connect(address);
 			addPendingConnection(ip, socket, address, local_interface, originalMessage);
-			if (ok)
+			if (ok) {
 				finishConnection(ip, socket);
+			}
 
 			return socket;
 		} catch (IOException e) {
@@ -2033,8 +2058,11 @@ final class NIOAgent extends Agent {
 			
 
 			InetSocketAddress isa=null;
+			InetSocketAddress isaLocal=null;
 			try {
+
 				isa = (InetSocketAddress) this.socketChannel.getRemoteAddress();
+				isaLocal = (InetSocketAddress) this.socketChannel.getLocalAddress();
 				removeConnectedIP(isa.getAddress());
 
 
@@ -2051,39 +2079,44 @@ final class NIOAgent extends Agent {
 			}
 			try {
 
-				for (Server s : serverChannels) {
+				if (isa!=null && isaLocal!=null) {
 					boolean found = false;
-					for (PersonalSocket sc : personal_sockets_list) {
-						try {
-							if (sc.socketChannel.getLocalAddress().equals(s.address)) {
-								InetSocketAddress isa2 = (InetSocketAddress) sc.socketChannel.getRemoteAddress();
-								if (isa==null)
-									throw new NullPointerException();
+					boolean serverFound=false;
+					servers:for (Server s : serverChannels) {
+						if (!s.address.equals(isaLocal))
+							continue;
+						serverFound=true;
+						for (PersonalSocket sc : personal_sockets_list) {
+							try {
+								if (sc.socketChannel.getLocalAddress().equals(s.address)) {
+									InetSocketAddress isa2 = (InetSocketAddress) sc.socketChannel.getRemoteAddress();
 
-                                if (isa.equals(isa2)) {
-									found = true;
-									break;
+									if (isa.equals(isa2)) {
+										found = true;
+										break servers;
+									}
 								}
+							} catch (Exception e) {
+								if (logger != null && logger.isLoggable(Level.FINE))
+									logger.log(Level.FINE, "Unexpected exception", e);
 							}
-						} catch (Exception e) {
-							if (logger != null && logger.isLoggable(Level.FINE))
-								logger.log(Level.FINE, "Unexpected exception", e);
 						}
+
 					}
 					if (!found) {
-						if (!stopping) {
-							for (AgentAddress aa : getAgentsWithRole(LocalCommunity.Groups.LOCAL_NETWORKS,
-									LocalCommunity.Roles.LOCAL_NETWORK_ROLE)) {
-								if (isa==null)
-									throw new NullPointerException();
-                                sendMessageWithRole(aa,
-                                        new ConnectionStatusMessage(ConnectionStatusMessage.Type.DISCONNECT,
-                                                new DoubleIP(isa), isa, s.address, cs),
-                                        LocalCommunity.Roles.NIO_ROLE);
-                            }
+						for (AgentAddress aa : getAgentsWithRole(LocalCommunity.Groups.LOCAL_NETWORKS,
+								LocalCommunity.Roles.LOCAL_NETWORK_ROLE)) {
+
+							sendMessageWithRole(aa,
+								new ConnectionStatusMessage(ConnectionStatusMessage.Type.DISCONNECT,
+										new DoubleIP(isa), isa, isaLocal, cs),
+								LocalCommunity.Roles.NIO_ROLE);
 						}
 					}
+
 				}
+
+
 			} catch (Exception e) {
 				if (logger != null)
 					logger.log(Level.SEVERE, "Unexpected exception", e);

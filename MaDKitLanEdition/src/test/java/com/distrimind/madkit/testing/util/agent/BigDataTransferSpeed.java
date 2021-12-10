@@ -79,13 +79,23 @@ public class BigDataTransferSpeed extends TestNGMadkit {
 	final NetworkEventListener eventListener1;
 	final NetworkEventListener eventListener2;
     final long downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond;
-    final boolean cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage;
-
+    final boolean cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage, globalDisconnection;
+    static final DoubleIP ipToConnect;
+    static
+    {
+        DoubleIP ip=null;
+        try {
+            ip=new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"), (Inet6Address) InetAddress.getByName("::1"));
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+        ipToConnect=ip;
+    }
     final File databaseFile1=new File("tmpDatabaseFile1");
     final File databaseFile2=new File("tmpDatabaseFile2");
 
 	public BigDataTransferSpeed(final long downloadLimitInBytesPerSecond, final long uploadLimitInBytesPerSecond,
-                                boolean cancelTransfer, boolean cancelTransferFromReceiver, boolean asynchronousMessage, boolean restartMessage) throws UnknownHostException {
+                                boolean cancelTransfer, boolean cancelTransferFromReceiver, boolean asynchronousMessage, boolean restartMessage, boolean globalDisconnection) throws UnknownHostException {
         if(databaseFile1.exists())
             FileTools.deleteDirectory(databaseFile1);
         if(databaseFile2.exists())
@@ -96,6 +106,7 @@ public class BigDataTransferSpeed extends TestNGMadkit {
         this.restartMessage=restartMessage;
         this.downloadLimitInBytesPerSecond=downloadLimitInBytesPerSecond;
         this.uploadLimitInBytesPerSecond=uploadLimitInBytesPerSecond;
+        this.globalDisconnection=globalDisconnection;
         P2PSecuredConnectionProtocolPropertiesWithKeyAgreement p2pprotocol=new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
         p2pprotocol.isServer = true;
         p2pprotocol.symmetricEncryptionType=SymmetricEncryptionType.AES_CBC_PKCS5Padding;
@@ -161,7 +172,7 @@ public class BigDataTransferSpeed extends TestNGMadkit {
 		this.eventListener2 = new NetworkEventListener(true, false, false, null,
 				new ConnectionsProtocolsMKEventListener(u), new AccessProtocolPropertiesMKEventListener(app),
 				new AccessDataMKEventListener(AccessDataMKEventListener.getDefaultAccessData(defaultGroupAccess)), 5000,
-                Collections.singletonList(new DoubleIP(5000, (Inet4Address) InetAddress.getByName("127.0.0.1"), (Inet6Address) InetAddress.getByName("::1")))
+                Collections.singletonList(ipToConnect)
 				) {
 
 			@Override
@@ -180,7 +191,7 @@ public class BigDataTransferSpeed extends TestNGMadkit {
         this.eventListener2.maxBufferSize=this.eventListener1.maxBufferSize;
 	}
     public BigDataTransferSpeed(final long downloadLimitInBytesPerSecond, final long uploadLimitInBytesPerSecond) throws UnknownHostException {
-        this(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond, false, false, false, false);
+        this(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond, false, false, false, false, false);
     }
     private static final long timeOut = 20000;
 
@@ -350,7 +361,7 @@ public class BigDataTransferSpeed extends TestNGMadkit {
                     };
                     launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, bigDataSenderAgent, eventListener1);
                     sleep(400);
-                    BigDataTransferReceiverAgent bigDataTransferAgent = new BigDataTransferReceiverAgent(2, uploadLimitInBytesPerSecond, cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage);
+                    BigDataTransferReceiverAgent bigDataTransferAgent = new BigDataTransferReceiverAgent(2, uploadLimitInBytesPerSecond, cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage, globalDisconnection);
                     launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, bigDataTransferAgent, eventListener2);
 
                     while (transfered1.get() == null || transfered2.get() == null) {

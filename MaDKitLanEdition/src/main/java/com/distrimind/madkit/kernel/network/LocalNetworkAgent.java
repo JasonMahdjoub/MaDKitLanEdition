@@ -496,6 +496,7 @@ class LocalNetworkAgent extends AgentFakeThread {
 							break;
 						}
 					}
+
 					if (connection_not_already_established) {
 						if (logger != null && logger.isLoggable(Level.FINER))
 							logger.finer("Ask for connection : " + con);
@@ -525,11 +526,10 @@ class LocalNetworkAgent extends AgentFakeThread {
 
 						}
 						else {
-
 							boolean found = false;
 							con = con.clone();
-							con.chooseIP(isIPV6ConnectionPossible());
-							if (con.chosenIP != null) {
+							con.chooseIP(isIPV4ConnectionPossible(), isIPV6ConnectionPossible());
+							if (con.getChosenIP() != null) {
 								boolean local = isConcernedBy(con.getChosenIP().getAddress());
 								for (BindInetSocketAddressMessage b : effective_socket_binds) {
 									found = isConcernedBy(b, con, local);
@@ -588,7 +588,7 @@ class LocalNetworkAgent extends AgentFakeThread {
 				boolean retry=false;
 				for (Iterator<ConnectionStatusMessage> it = effective_connections.iterator(); it.hasNext();) {
 					ConnectionStatusMessage cs2 = it.next();
-					if (cs2.getIP().equals(cs.getIP()) && cs2.interface_address.equals(cs.interface_address)) {
+					if (cs2.getChosenIP().equals(cs.getChosenIP()) && cs2.interface_address.getAddress().equals(cs.interface_address.getAddress())) {
 						retry=cs2.getNumberOfAnomalies()>=0;
 						it.remove();
 						break;
@@ -629,7 +629,12 @@ class LocalNetworkAgent extends AgentFakeThread {
 		return false;
 	}
 
-
+	private boolean isIPV4ConnectionPossible() {
+		for (BindInetSocketAddressMessage bind : this.effective_socket_binds)
+			if (bind.getInetSocketAddress().getAddress() instanceof Inet4Address)
+				return true;
+		return false;
+	}
 	private boolean isConcernedBy(BindInetSocketAddressMessage b, ConnectionStatusMessage con, boolean local) {
 		InetSocketAddress chosenIP = con.getChosenIP();
 		if (chosenIP == null)
@@ -639,7 +644,6 @@ class LocalNetworkAgent extends AgentFakeThread {
 				&& (chosenIP.getAddress() instanceof Inet4Address)
 				|| (b.getInetSocketAddress().getAddress() instanceof Inet6Address)
 						&& (chosenIP.getAddress() instanceof Inet6Address))) {
-
 			if (chosenIP.getAddress().isAnyLocalAddress() || chosenIP.getAddress().isMulticastAddress()) {
 				return false;
 			} else if (b.getInetSocketAddress().getAddress().isLoopbackAddress()

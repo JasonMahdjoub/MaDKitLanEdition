@@ -80,7 +80,9 @@ public class AskForConnectionMessage extends ConnectionStatusMessage {
 
 	}
 
-
+	public AskForConnectionMessage(Type _type, AbstractIP _address) {
+		this(_type, _address, false);
+	}
 
 	public AskForConnectionMessage(Type _type, AbstractIP _address, boolean acceptConnectionRetry) {
 		this(_type, _address, acceptConnectionRetry, System.currentTimeMillis());
@@ -90,12 +92,12 @@ public class AskForConnectionMessage extends ConnectionStatusMessage {
 		return timeUTCOfConnection;
 	}
 
-	void chooseIP(boolean enableIPv6) {
+	void chooseIP(boolean enableIPV4, boolean enableIPv6) {
 		cleanAnomaliesIfNecessary();
-		InetAddress ia;
+		InetAddress ia=null;
 		if (enableIPv6)
 			ia = getIP().getInetAddress(rejectedIps);
-		else
+		if (ia==null && enableIPV4)
 			ia = getIP().getInet4Address(rejectedIps);
 
 		if (ia != null)

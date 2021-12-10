@@ -37,9 +37,12 @@
  */
 package com.distrimind.madkit.kernel.network;
 
+import com.distrimind.bcfips.util.Arrays;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
 
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.HashSet;
@@ -90,6 +93,20 @@ public class ConnectionStatusMessage extends Message {
 
 	ConnectionStatusMessage(Type _type, AbstractIP _address, InetSocketAddress chosenIP,
 			InetSocketAddress _interface_address, ConnectionClosedReason _connection_closed_reason) {
+		if (_interface_address!=null) {
+			boolean ipv6 = _interface_address.getAddress() instanceof Inet6Address;
+			boolean ipv6_2 = false;
+			boolean ipv4_2 = false;
+			for (InetAddress ia : _address.getInetAddresses()) {
+				if (ia instanceof Inet6Address) {
+					ipv6_2 = true;
+				}
+				else if (ia instanceof Inet4Address)
+					ipv4_2=true;
+			}
+			if ((ipv6 && !ipv6_2) || (!ipv6 && !ipv4_2))
+				throw new IllegalArgumentException("Incompatible address "+_address+" and interface address "+_interface_address);
+		}
 		address = _address;
 		type = _type;
 		interface_address = _interface_address;
@@ -165,4 +182,6 @@ public class ConnectionStatusMessage extends Message {
 		}
 		return true;
 	}
+
+
 }

@@ -35,6 +35,7 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL-C license and that you accept its terms.
  */
 
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.net.UnknownHostException;
@@ -48,14 +49,23 @@ public class TestBigDataTransferRestartAfterNetworkReconnection {
 	static class BigDataTransferTest extends com.distrimind.madkit.testing.util.agent.BigDataTransferSpeed
 	{
 
-		public BigDataTransferTest(int downloadLimitInBytesPerSecond, int uploadLimitInBytesPerSecond, boolean cancelTransfer, boolean cancelTransferFromReceiver, boolean asynchronousMessage, boolean restartMessage) throws UnknownHostException {
-			super(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond, cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage);
+		public BigDataTransferTest(int downloadLimitInBytesPerSecond, int uploadLimitInBytesPerSecond, boolean cancelTransfer, boolean cancelTransferFromReceiver, boolean asynchronousMessage, boolean restartMessage, boolean globalDisconnection) throws UnknownHostException {
+			super(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond, cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage, globalDisconnection);
 		}
 	}
 
-	@Test
-	public void test() throws UnknownHostException {
-		BigDataTransferTest b=new BigDataTransferTest(40000000, 40000000, false,false, true, true);
+	@DataProvider
+	Object[][] getParameters()
+	{
+		return new Object[][]{
+				{false},
+				{true}
+		};
+	}
+
+	@Test(dataProvider = "getParameters")
+	public void test(boolean globalDisconnection) throws UnknownHostException {
+		BigDataTransferTest b=new BigDataTransferTest(40000000, 40000000, false,false, true, true, globalDisconnection);
 		b.bigDataTransfer();
 	}
 

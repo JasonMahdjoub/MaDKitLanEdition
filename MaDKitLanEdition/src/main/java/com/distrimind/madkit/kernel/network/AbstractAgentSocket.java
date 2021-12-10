@@ -2319,7 +2319,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 
 					AskForConnectionMessage ask = new AskForConnectionMessage(ConnectionStatusMessage.Type.CONNECT,
 							new DoubleIP(tdc.getInetSocketAddress()), false);
-					ask.chooseIP(true);
+					ask.chooseIP(true, true);
 					ask.setJoinedPiece(tdc,
 							getAgentAddressIn(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.SOCKET_AGENT_ROLE));
 					broadcastMessageWithRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.LOCAL_NETWORK_ROLE,
