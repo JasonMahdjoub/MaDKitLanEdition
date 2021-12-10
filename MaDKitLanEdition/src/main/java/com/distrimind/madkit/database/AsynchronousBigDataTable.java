@@ -396,20 +396,19 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			e.printStackTrace();
 		}
 	}
-	public boolean receivedPotentialAsynchronousBigDataResultMessage(AbstractAgent requester, BigDataResultMessage.Type resultType,
+	public void receivedPotentialAsynchronousBigDataResultMessage(AbstractAgent requester, BigDataResultMessage.Type resultType,
 																	 AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier,
-																	 long transferedDataLength, ScheduledPoolExecutor serviceExecutor) throws DatabaseException {
+																	 long transferredDataLength, ScheduledPoolExecutor serviceExecutor) throws DatabaseException {
 		Reference<Record> record=new Reference<>(null);
-		boolean r=getDatabaseWrapper().runSynchronizedTransaction(new SynchronizedTransaction<Boolean>() {
+		getDatabaseWrapper().runSynchronizedTransaction(new SynchronizedTransaction<Void>() {
 			@Override
-			public Boolean run() throws Exception {
+			public Void run() throws Exception {
 				if (resultType== BigDataResultMessage.Type.CONNECTION_LOST) {
 					Record r = getRecord("asynchronousBigDataInternalIdentifier", asynchronousBigDataInternalIdentifier);
 					if (r != null) {
 						record.set(r);
-						long pos=transferedDataLength+r.getCurrentStreamPosition();
-						updateRecord(r, "currentStreamPosition", pos, "currentPositionNeedConfirmationFromReceiver", true);
-						return true;
+						long pos=transferredDataLength+r.getCurrentStreamPosition();
+						updateRecord(r, "currentStreamPosition", pos, "currentPositionNeedConfirmationFromReceiver", r.getAsynchronousBigDataToSendWrapper()!=null);
 					}
 
 				}
@@ -420,7 +419,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 					}
 
 				}
-				return false;
+				return null;
 			}
 
 			@Override
@@ -451,7 +450,6 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			});
 
 		}
-		return r;
 	}
 
 
@@ -485,7 +483,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 	}
 	private Record sendAsynchronousBigData2(AbstractAgent requester, AgentAddress senderAA, AgentAddress receiverAA, Record r, Reference<Boolean> maxNumberOfSimultaneousTransfersReached)
 	{
-		if (incrementNumberOfSimultaneousAsynchronousMessages(receiverAA, getMaxNumberOfSimultaneousAsynchronousBigDataMessagesSentToTheSameGroup(requester))) {
+		if (incrementNumberOfSimultaneousAsynchronousMessages(getMadkitKernel(requester), receiverAA, getMaxNumberOfSimultaneousAsynchronousBigDataMessagesSentToTheSameGroup(requester))) {
 			BigDataTransferID tid = sendAsynchronousBigData(requester, senderAA, receiverAA, r);
 			if (tid == null)
 				return null;
@@ -643,11 +641,13 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 	}
 	private void decrementNumberOfSimultaneousAsynchronousMessagesIfNecessary(AbstractAgent requester, Group group, Record record) throws DatabaseException {
 		if (record.getAsynchronousBigDataToSendWrapper()!=null) {
-			AbstractAgent aa=getMadkitKernel(requester);
-			AgentAddress receiverAA = aa.getAgentWithRole(group, record.getRoleReceiver());
+			AbstractAgent kernel=getMadkitKernel(requester);
+			if (kernel.getClass().getSimpleName().equals("FakeKernel") || !kernel.isAlive())
+				return;
+			AgentAddress receiverAA = kernel.getAgentWithRole(group, record.getRoleReceiver());
 			if (receiverAA!=null)
 			{
-				decrementNumberOfSimultaneousAsynchronousMessages(receiverAA);
+				decrementNumberOfSimultaneousAsynchronousMessages(kernel, receiverAA);
 
 				getOrderedRecords(new Filter<Record>() {
 					final Reference<Boolean> maxNumberOfSimultaneousTransfersReached = new Reference<>(false);
@@ -659,7 +659,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 							return false;
 						AbstractAgent aa2 = getAgent(receiverAA);
 						if (aa2 == null)
-							aa2 = aa;
+							aa2 = kernel;
 						AgentAddress senderAA = aa2.getAgentWithRole(receiverAA.getGroup(), _record.roleSender);
 						if (senderAA != null) {
 							sendAsynchronousBigData(requester, senderAA, receiverAA.getGroup(), _record.roleReceiver, _record, maxNumberOfSimultaneousTransfersReached);
@@ -738,11 +738,11 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		{
 			if (r.getCurrentStreamPosition()!=position || r.currentPositionNeedConfirmationFromReceiver)
 				updateRecord(r, "currentStreamPosition", position, "currentPositionNeedConfirmationFromReceiver", false/*, "lastTimeUpdateUTCInMs", System.currentTimeMillis()*/);
-			if (incrementNumberOfSimultaneousAsynchronousMessages(receiverAA, getMaxNumberOfSimultaneousAsynchronousBigDataMessagesSentToTheSameGroup(requester))) {
-
+			if (incrementNumberOfSimultaneousAsynchronousMessages(getMadkitKernel(requester), receiverAA, getMaxNumberOfSimultaneousAsynchronousBigDataMessagesSentToTheSameGroup(requester))) {
 				BigDataTransferID bigDataTransferID=sendAsynchronousBigData(requester, senderAA, receiverAA, r);
-				if (bigDataTransferID!=null)
+				if (bigDataTransferID!=null) {
 					transferIdsPerInternalAsynchronousId.put(r.getAsynchronousBigDataInternalIdentifier(), bigDataTransferID);
+				}
 			}
 		}
 	}
@@ -798,10 +798,13 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		}
 	}
 
-	static boolean incrementNumberOfSimultaneousAsynchronousMessages(AgentAddress aa, long maxNumberOfSimultaneousAsynchronousMessages)
+	static Object getInternalRole(AbstractAgent kernel, AgentAddress aa)
 	{
+		aa=kernel.getAgentWithRole(aa.getGroup(), aa.getRole());
+		if (aa==null)
+			throw new NullPointerException();
 		try {
-			return (boolean)invoke(m_incrementNumberOfSimultaneousAsynchronousMessages, invoke(m_get_role_object, aa), maxNumberOfSimultaneousAsynchronousMessages);
+			return invoke(m_get_role_object, aa);
 		} catch (InvocationTargetException e) {
 			System.err.println("Unexpected error :");
 			e.printStackTrace();
@@ -809,10 +812,22 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			return false;
 		}
 	}
-	static void decrementNumberOfSimultaneousAsynchronousMessages(AgentAddress aa)
+
+	static boolean incrementNumberOfSimultaneousAsynchronousMessages(AbstractAgent kernel, AgentAddress aa, long maxNumberOfSimultaneousAsynchronousMessages)
 	{
 		try {
-			invoke(m_decrementNumberOfSimultaneousAsynchronousMessages, invoke(m_get_role_object, aa));
+			return (boolean)invoke(m_incrementNumberOfSimultaneousAsynchronousMessages, getInternalRole(kernel, aa), maxNumberOfSimultaneousAsynchronousMessages);
+		} catch (InvocationTargetException e) {
+			System.err.println("Unexpected error :");
+			e.printStackTrace();
+			System.exit(-1);
+			return false;
+		}
+	}
+	static void decrementNumberOfSimultaneousAsynchronousMessages(AbstractAgent kernel, AgentAddress aa)
+	{
+		try {
+			invoke(m_decrementNumberOfSimultaneousAsynchronousMessages, getInternalRole(kernel, aa));
 		} catch (InvocationTargetException e) {
 			System.err.println("Unexpected error :");
 			e.printStackTrace();

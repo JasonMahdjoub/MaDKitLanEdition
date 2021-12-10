@@ -283,6 +283,7 @@ public class BigDataTransferSpeed extends TestNGMadkit {
                                     sleep(100);
                                     AssertJUnit.assertEquals(AbstractAgent.ReturnCode.SUCCESS, this.cancelBigDataTransfer(transferID));
                                 }
+
                                 Message m = this.waitNextMessage(delay);
                                 AssertJUnit.assertTrue(m instanceof BigDataResultMessage);
                                 BigDataResultMessage bdrm = (BigDataResultMessage) m;

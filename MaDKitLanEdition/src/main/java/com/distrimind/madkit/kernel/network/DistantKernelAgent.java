@@ -132,7 +132,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		{
 			MadkitKernelAccess.transferLostForBigDataTransfer(this, bdr.getOriginalMessage().getConversationID(),
 					bdr.getIDPacket(), bdr.getOriginalMessage().getSender(), bdr.getOriginalMessage().getReceiver(),
-					bdr.getStatistics().getNumberOfIdentifiedBytes(), bdr.getStatistics().getDurationMilli(),
+					bdr.getNumberOfReceivedBytes(), bdr.getStatistics().getDurationMilli(),
 					bdr.getOriginalMessage().getAsynchronousBigDataInternalIdentifier(), bdr.getOriginalMessage().getExternalAsynchronousBigDataIdentifier(), BigDataResultMessage.Type.CONNECTION_LOST);
 		}
 		current_big_data_readings.clear();
@@ -2634,6 +2634,13 @@ class DistantKernelAgent extends AgentFakeThread {
 
 		}
 
+		public long getNumberOfReceivedBytes()
+		{
+			if (read_packet==null)
+				return 0;
+			else
+				return read_packet.getWroteDataLength();
+		}
 		public void freeDataSize() {
 			decrementTotalDataQueue(data);
 			data = 0;
@@ -2852,7 +2859,7 @@ class DistantKernelAgent extends AgentFakeThread {
 					if (bdr!=null) {
 						MadkitKernelAccess.transferLostForBigDataTransfer(this, bdr.getOriginalMessage().getConversationID(),
 								bdr.getIDPacket(), bdr.getOriginalMessage().getSender(), bdr.getOriginalMessage().getReceiver(),
-								bdr.getStatistics().getNumberOfIdentifiedBytes(), bdr.getStatistics().getDurationMilli(),
+								bdr.getNumberOfReceivedBytes(), bdr.getStatistics().getDurationMilli(),
 								bdr.getOriginalMessage().getAsynchronousBigDataInternalIdentifier(), bdr.getOriginalMessage().getExternalAsynchronousBigDataIdentifier(), m.getReason());
 					}
 				}

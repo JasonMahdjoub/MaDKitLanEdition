@@ -3974,6 +3974,7 @@ class MadkitKernel extends Agent {
 		RealTimeTransferStat stat = new RealTimeTransferStat(
 				getMadkitConfig().networkProperties.bigDataStatDurationMean,
 				getMadkitConfig().networkProperties.bigDataStatDurationMean / 10);
+
 		BigDataPropositionMessage message = new BigDataPropositionMessage(inputStream, record.getCurrentStreamPosition(),
 				inputStream.length()-record.getCurrentStreamPosition(), record.isTransferStarted()?null:record.getAttachedData(),
 				receiverAA.isFrom(getKernelAddress()), requester.getMadkitConfig().networkProperties.maxBufferSize,

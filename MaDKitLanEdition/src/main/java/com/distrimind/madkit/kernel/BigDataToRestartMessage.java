@@ -52,6 +52,12 @@ public class BigDataToRestartMessage extends Message implements NetworkMessage, 
 	private AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier;
 	private long position;
 
+	@SuppressWarnings("unused")
+	private BigDataToRestartMessage()
+	{
+
+	}
+
 	public BigDataToRestartMessage(AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier, long position) {
 		this.asynchronousBigDataInternalIdentifier = asynchronousBigDataInternalIdentifier;
 		this.position = position;

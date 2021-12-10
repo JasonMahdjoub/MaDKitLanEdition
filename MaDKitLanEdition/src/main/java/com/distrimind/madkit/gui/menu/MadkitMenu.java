@@ -78,7 +78,7 @@ public class MadkitMenu extends JMenu {
 	 *            the agent for which this menu will be built.
 	 */
 	public MadkitMenu(final AbstractAgent agent) {
-		super("MaDKit");
+		super("MaDKitLanEdition");
 		setMnemonic(KeyEvent.VK_M);
 		SwingUtil.addMaDKitActionsTo(this, agent);
 	}

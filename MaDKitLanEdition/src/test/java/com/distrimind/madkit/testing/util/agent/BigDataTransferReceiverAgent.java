@@ -37,8 +37,12 @@
  */
 package com.distrimind.madkit.testing.util.agent;
 
+import com.distrimind.madkit.action.KernelAction;
+import com.distrimind.madkit.agr.LocalCommunity;
+import com.distrimind.madkit.agr.Organization;
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.message.BooleanMessage;
+import com.distrimind.madkit.message.KernelMessage;
 import com.distrimind.util.io.RandomByteArrayOutputStream;
 import com.distrimind.util.io.RandomOutputStream;
 import com.distrimind.util.io.SecuredObjectInputStream;
@@ -125,6 +129,16 @@ public class BigDataTransferReceiverAgent extends Agent {
 			{
 				sleep(100);
 				cancelBigDataTransfer(bdpm.getBigDataTransferID());
+			}
+			else if (restartMessage && asynchronousMessage && !cancelTransfer)
+			{
+
+				sleep(100);
+				System.out.println("Stop network");
+				this.sendMessage(LocalCommunity.Groups.SYSTEM, Organization.GROUP_MANAGER_ROLE, new KernelMessage(KernelAction.STOP_NETWORK));
+				sleep(1000);
+				System.out.println("Launch network");
+				this.sendMessage(LocalCommunity.Groups.SYSTEM, Organization.GROUP_MANAGER_ROLE, new KernelMessage(KernelAction.LAUNCH_NETWORK));
 			}
 			long delay;
 			int size=(int)bdpm.getTransferLength();
