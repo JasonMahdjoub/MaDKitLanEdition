@@ -51,20 +51,25 @@ import java.io.IOException;
 public class CancelBigDataTransferMessage extends Message implements SystemMessageWithoutInnerSizeControl {
 	private BigDataTransferID bigDataTransferID;
 	private BigDataResultMessage.Type reason;
+	private boolean updateDatabase;
 
 	@SuppressWarnings("unused")
 	CancelBigDataTransferMessage() {
 	}
 
-	CancelBigDataTransferMessage(BigDataTransferID bigDataTransferID, BigDataResultMessage.Type reason) {
+	CancelBigDataTransferMessage(BigDataTransferID bigDataTransferID, BigDataResultMessage.Type reason, boolean updateDatabase) {
 		if (bigDataTransferID==null)
 			throw new NullPointerException();
 		if (reason==null)
 			throw new NullPointerException();
 		this.bigDataTransferID = bigDataTransferID;
 		this.reason=reason;
+		this.updateDatabase=updateDatabase;
 	}
 
+	public boolean isUpdateDatabase() {
+		return updateDatabase;
+	}
 
 	@Override
 	public void writeExternal(SecuredObjectOutputStream out) throws IOException {

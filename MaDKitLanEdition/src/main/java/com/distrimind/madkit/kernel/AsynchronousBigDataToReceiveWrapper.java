@@ -45,4 +45,5 @@ import com.distrimind.util.io.SecureExternalizable;
  */
 public interface AsynchronousBigDataToReceiveWrapper extends SecureExternalizable {
 	RandomOutputStream getRandomOutputStream(ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier);
+	void deleteReceivedData();
 }

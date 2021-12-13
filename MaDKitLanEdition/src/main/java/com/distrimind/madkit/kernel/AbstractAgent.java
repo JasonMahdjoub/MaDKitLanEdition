@@ -71,7 +71,6 @@ import com.distrimind.madkit.util.XMLUtilities;
 import com.distrimind.ood.database.DatabaseConfigurationsBuilder;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.CircularArrayList;
-import com.distrimind.util.Reference;
 import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.crypto.MessageDigestType;
 import com.distrimind.util.io.RandomInputStream;
@@ -5195,7 +5194,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		if (bigDataTransferID==null)
 			throw new NullPointerException();
 		if (bigDataTransferID.getClass()==BigDataTransferID.class)
-			return getKernel().cancelBigDataTransfer(this, (BigDataTransferID)bigDataTransferID, BigDataResultMessage.Type.TRANSFER_CANCELED);
+			return getKernel().cancelBigDataTransfer(this, (BigDataTransferID)bigDataTransferID, BigDataResultMessage.Type.TRANSFER_CANCELED, true);
 		else if (bigDataTransferID.getClass()==AsynchronousBigDataTransferID.class)
 			return getKernel().cancelAsynchronousBigData(this, (AsynchronousBigDataTransferID)bigDataTransferID);
 		else

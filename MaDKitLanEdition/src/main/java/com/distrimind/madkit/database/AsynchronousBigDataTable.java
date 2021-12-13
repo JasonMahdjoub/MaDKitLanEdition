@@ -43,7 +43,6 @@ import com.distrimind.ood.database.annotations.NotNull;
 import com.distrimind.ood.database.annotations.PrimaryKey;
 import com.distrimind.ood.database.annotations.Unique;
 import com.distrimind.ood.database.exceptions.DatabaseException;
-import com.distrimind.ood.database.exceptions.RecordNotFoundDatabaseException;
 import com.distrimind.util.AbstractDecentralizedIDGenerator;
 import com.distrimind.util.Reference;
 import com.distrimind.util.RenforcedDecentralizedIDGenerator;
@@ -55,10 +54,9 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.Callable;
 
-import static com.distrimind.util.ReflectionTools.getMethod;
-import static com.distrimind.util.ReflectionTools.invoke;
-import static com.distrimind.util.ReflectionTools.loadClass;
+import static com.distrimind.util.ReflectionTools.*;
 
 /**
  * @author Jason Mahdjoub
@@ -397,12 +395,13 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		}
 	}
 	public boolean receivedPotentialAsynchronousBigDataResultMessage(AbstractAgent requester, BigDataResultMessage resultMessage, ScheduledPoolExecutor serviceExecutor) throws DatabaseException {
+
+
 		Reference<Record> record=new Reference<>(null);
 		AbstractDecentralizedIDGenerator internalID=getAsynchronousBigDataInternalIdentifier(resultMessage);
 		boolean r=getDatabaseWrapper().runSynchronizedTransaction(new SynchronizedTransaction<Boolean>() {
 			@Override
 			public Boolean run() throws Exception {
-
 				if (resultMessage.getType()== BigDataResultMessage.Type.CONNECTION_LOST) {
 					Record r = getRecord("asynchronousBigDataInternalIdentifier", internalID);
 					if (r != null) {
@@ -424,7 +423,10 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 								setTransferredDataLength(resultMessage, dataLength);
 							}
 						}
+						deleteReceivedData(record.get(), resultMessage.getType());
+
 						removeRecord("asynchronousBigDataInternalIdentifier", internalID);
+
 					}
 
 				}
@@ -461,7 +463,14 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		}
 		return r;
 	}
-
+	static AgentAddress getAgentAddressIn(AbstractAgent requester, Group group, String role)
+	{
+		if (requester.hasRole(group, role)) {
+			return requester.getAgentAddressIn(group, role);
+		}
+		else
+			return null;
+	}
 
 	public Record startAsynchronousBigDataTransfer(Collection<String> baseGroupPath, final AbstractAgent requester, final Group group, String roleSender, String roleReceiver,
 												   ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier,
@@ -474,7 +483,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 
 		if (!requester.hasGroup(group))
 			return null;
-		AgentAddress senderAA=requester.getAgentAddressIn(group, roleSender);
+		AgentAddress senderAA=getAgentAddressIn(requester, group, roleSender);
 		if (senderAA==null)
 			return null;
 
@@ -534,57 +543,55 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			return cancelTransfer(requester, r);
 	}
 	public AbstractAgent.ReturnCode cancelTransfer(AbstractAgent requester, Record record) throws DatabaseException {
-
-		return cancelTransferImpl(requester, record, BigDataResultMessage.Type.TRANSFER_CANCELED);
+		Reference<Callable<Void>> callable=new Reference<>();
+		AbstractAgent.ReturnCode r= cancelTransferImpl(requester, record, BigDataResultMessage.Type.TRANSFER_CANCELED, callable);
+		removeRecord(record);
+		call(callable);
+		return r;
 	}
-
-	public long cancelAsynchronousMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole) throws DatabaseException {
+	private long cancelAsynchronousMessagesBySenderRole(AbstractAgent requester, Group group, String whereCommand, Object... parameters) throws DatabaseException {
 		if (requester==null)
 			throw new NullPointerException();
+		if (group==null)
+			throw new NullPointerException();
+		Reference<Callable<Void>> toRunAfterDeletion=new Reference<>();
+
+		long r=removeRecords(new Filter<Record>() {
+			@Override
+			public boolean nextRecord(Record _record) throws DatabaseException {
+				call(toRunAfterDeletion);
+				cancelTransferImpl(requester, _record, group, BigDataResultMessage.Type.TRANSFER_CANCELED, toRunAfterDeletion);
+				return true;
+			}
+		}, whereCommand, parameters);
+		call(toRunAfterDeletion);
+		return r;
+	}
+	public long cancelAsynchronousMessagesBySenderRole(AbstractAgent requester, Group group, String senderRole) throws DatabaseException {
 		if (senderRole==null)
 			throw new NullPointerException();
-		if (group==null)
-			throw new NullPointerException();
-		return removeRecords(new Filter<Record>() {
-			@Override
-			public boolean nextRecord(Record _record) throws DatabaseException {
-				cancelTransferImpl(requester, _record, group, BigDataResultMessage.Type.TRANSFER_CANCELED);
-				return true;
-			}
-		},"groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
+		return cancelAsynchronousMessagesBySenderRole(requester, group,  "groupPath=%groupPath AND roleSender=%roleSender", "groupPath", group.toString(), "roleSender", senderRole);
 	}
 	public long cancelAsynchronousMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole) throws DatabaseException {
-		if (requester==null)
-			throw new NullPointerException();
 		if (receiverRole==null)
 			throw new NullPointerException();
-		if (group==null)
-			throw new NullPointerException();
-		return removeRecords(new Filter<Record>() {
-			@Override
-			public boolean nextRecord(Record _record) throws DatabaseException {
-				cancelTransferImpl(requester, _record, group, BigDataResultMessage.Type.TRANSFER_CANCELED);
-				return true;
-			}
-		}, "groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.toString(), "roleReceiver", receiverRole);
+		return cancelAsynchronousMessagesBySenderRole(requester, group,  "groupPath=%groupPath AND roleReceiver=%roleReceiver", "groupPath", group.toString(), "roleReceiver", receiverRole);
 	}
 	public long cancelAsynchronousMessagesByGroup(AbstractAgent requester, Group group) throws DatabaseException {
-		if (requester==null)
-			throw new NullPointerException();
-		if (group==null)
-			throw new NullPointerException();
-		return removeRecords(new Filter<Record>() {
-			@Override
-			public boolean nextRecord(Record _record) throws DatabaseException {
-				cancelTransferImpl(requester, _record, group, BigDataResultMessage.Type.TRANSFER_CANCELED);
-				return true;
-			}
-		}, "groupPath=%groupPath", "groupPath", group.toString());
+		return cancelAsynchronousMessagesBySenderRole(requester, group,  "groupPath=%groupPath", "groupPath", group.toString());
 	}
-	private AbstractAgent.ReturnCode cancelTransferImpl(AbstractAgent requester, Record record, BigDataResultMessage.Type reason) throws DatabaseException {
-		return cancelTransferImpl(requester, record,null, reason);
+	private AbstractAgent.ReturnCode cancelTransferImpl(AbstractAgent requester, Record record, BigDataResultMessage.Type reason, Reference<Callable<Void>> reference) throws DatabaseException {
+		return cancelTransferImpl(requester, record,null, reason, reference);
 	}
-	private AbstractAgent.ReturnCode cancelTransferImpl(AbstractAgent requester, Record record, Group group, BigDataResultMessage.Type reason) throws DatabaseException {
+	private void deleteReceivedData(Record record, BigDataResultMessage.Type reason)
+	{
+		if (reason== BigDataResultMessage.Type.TRANSFER_CANCELED || reason== BigDataResultMessage.Type.TIME_OUT) {
+			AsynchronousBigDataToReceiveWrapper w=record.getAsynchronousBigDataToReceiveWrapper();
+			if (w!=null)
+				w.deleteReceivedData();
+		}
+	}
+	private AbstractAgent.ReturnCode cancelTransferImpl(AbstractAgent requester, Record record, Group group, BigDataResultMessage.Type reason, Reference<Callable<Void>> toRunAfterDeletion) {
 		try {
 			if (group==null)
 				group = Group.parseGroup(record.getGroupPath());
@@ -593,35 +600,48 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			e.printStackTrace();
 			return AbstractAgent.ReturnCode.INVALID_AGENT_ADDRESS;
 		}
-		if (reason== BigDataResultMessage.Type.TRANSFER_CANCELED) {
-			try {
-				removeRecord(record);
-			} catch (RecordNotFoundDatabaseException e) {
-				e.printStackTrace();
-			}
-		}
+		final Group g=group;
+		deleteReceivedData(record, reason);
 		BigDataTransferID bigDataTransferID= transferIdsPerInternalAsynchronousId.remove(record.getAsynchronousBigDataInternalIdentifier());
-		if (bigDataTransferID!=null) {
-			cancelBigDataTransfer(requester, bigDataTransferID, reason);
-			decrementNumberOfSimultaneousAsynchronousMessagesIfNecessary(requester, group, record);
-		}
+
+		toRunAfterDeletion.set(() -> {
+			if (bigDataTransferID!=null) {
+				cancelBigDataTransfer(requester, bigDataTransferID, reason, false);
+				decrementNumberOfSimultaneousAsynchronousMessagesIfNecessary(requester, g, record);
+			}
+			return null;
+		});
 		return AbstractAgent.ReturnCode.SUCCESS;
 
 
+	}
+	private void call(Reference<Callable<Void>> callableReference) throws DatabaseException {
+		if (callableReference.get()!=null)
+		{
+			try {
+				callableReference.get().call();
+			} catch (Exception e) {
+				throw DatabaseException.getDatabaseException(e);
+			}
+			finally {
+				callableReference.set(null);
+			}
+		}
 	}
 	public void cleanObsoleteData(AbstractAgent madkitKernel)
 	{
 		if (madkitKernel==null)
 			throw new NullPointerException();
 		try {
+			Reference<Callable<Void>> callableReference=new Reference<>();
 			removeRecords(new Filter<Record>() {
 				@Override
-				public boolean nextRecord(Record _record)  {
-
+				public boolean nextRecord(Record _record) throws DatabaseException {
+					call(callableReference);
 					if (_record.isObsolete() && !transferIdsPerInternalAsynchronousId.containsKey(_record.getAsynchronousBigDataInternalIdentifier()))
 					{
 						try {
-							cancelTransferImpl(madkitKernel, _record, BigDataResultMessage.Type.TIME_OUT);
+							cancelTransferImpl(madkitKernel, _record, BigDataResultMessage.Type.TIME_OUT, callableReference);
 						} catch (DatabaseException e) {
 							e.printStackTrace();
 						}
@@ -631,6 +651,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 						return false;
 				}
 			});
+			call(callableReference);
 		} catch (DatabaseException e) {
 			e.printStackTrace();
 		}
@@ -780,7 +801,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			m_send_asynchronous_big_data = getMethod(madkitKernelClass, "sendAsynchronousBigData", AbstractAgent.class,
 					AgentAddress.class, AgentAddress.class, Record.class);
 			m_cancel_big_data_transfer = getMethod(madkitKernelClass, "cancelBigDataTransfer", AbstractAgent.class,
-					BigDataTransferID.class, BigDataResultMessage.Type.class);
+					BigDataTransferID.class, BigDataResultMessage.Type.class, boolean.class);
 			m_get_madkit_kernel = getMethod(AbstractAgent.class, "getMadkitKernel");
 			m_get_agent = getMethod(AgentAddress.class, "getAgent");
 			m_get_role_object = getMethod(AgentAddress.class, "getRoleObject");
@@ -887,10 +908,10 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 	}
 
 
-	static void cancelBigDataTransfer(AbstractAgent requester, BigDataTransferID bigDataTransferID, BigDataResultMessage.Type reason)
+	static void cancelBigDataTransfer(AbstractAgent requester, BigDataTransferID bigDataTransferID, BigDataResultMessage.Type reason, boolean updateDatabase)
 	{
 		try {
-			invoke(m_cancel_big_data_transfer, getMadkitKernel(requester), requester, bigDataTransferID, reason);
+			invoke(m_cancel_big_data_transfer, getMadkitKernel(requester), requester, bigDataTransferID, reason, updateDatabase);
 		} catch (InvocationTargetException e) {
 			System.err.println("Unexpected error :");
 			e.printStackTrace();

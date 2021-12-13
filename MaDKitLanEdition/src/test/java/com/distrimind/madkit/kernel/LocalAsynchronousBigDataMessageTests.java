@@ -163,6 +163,11 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 		}
 
 		@Override
+		public void deleteReceivedData() {
+			System.out.println("Data deleted");
+		}
+
+		@Override
 		public int getInternalSerializedSize() {
 			return SerializationTools.getInternalSize(identifier);
 		}
@@ -176,6 +181,7 @@ public class LocalAsynchronousBigDataMessageTests extends TestNGMadkit {
 		public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
 			identifier=in.readObject(false);
 		}
+
 	}
 	private static byte[] shortData=null, largeData=null;
 	private static final RandomByteArrayOutputStream receivedShortDataStream=new RandomByteArrayOutputStream();

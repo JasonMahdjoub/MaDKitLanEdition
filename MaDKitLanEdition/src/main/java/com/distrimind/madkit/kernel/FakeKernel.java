@@ -426,7 +426,7 @@ class FakeKernel extends MadkitKernel {
 	@Override
 	void transferLostForBigDataTransfer(AbstractAgent requester, ConversationID conversationID, int idPacket,
 										AgentAddress sender, AgentAddress receiver, long readDataLength, long durationInMs, AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier,
-										ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier, BigDataResultMessage.Type cancelingType) {
+										ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier, BigDataResultMessage.Type cancelingType, boolean updateDatabase) {
 		throw buildKernelException(requester);
 	}
 
@@ -551,7 +551,7 @@ class FakeKernel extends MadkitKernel {
 		throw buildKernelException(null);
 	}
 	@Override
-	ReturnCode cancelBigDataTransfer(AbstractAgent requester, BigDataTransferID bigDataTransferID, BigDataResultMessage.Type reason)
+	ReturnCode cancelBigDataTransfer(AbstractAgent requester, BigDataTransferID bigDataTransferID, BigDataResultMessage.Type reason, boolean updateDatabase)
 	{
 		throw buildKernelException(null);
 	}

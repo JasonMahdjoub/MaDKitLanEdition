@@ -1481,7 +1481,7 @@ class MadkitKernel extends Agent {
 
 	boolean receivedPotentialAsynchronousBigDataResultMessage(AbstractAgent requester, BigDataResultMessage m)
 	{
-		if (m.isAsynchronousMessage())
+		if (m.isAsynchronousMessage() && m.isUpdateDatabase())
 		{
 			try {
 				return asynchronousBigDataTable.receivedPotentialAsynchronousBigDataResultMessage(requester, m, serviceExecutor);
@@ -3903,10 +3903,10 @@ class MadkitKernel extends Agent {
 			Group.addGroupChangesNotifier(args);
 	}
 
-	ReturnCode cancelBigDataTransfer(AbstractAgent requester, BigDataTransferID bigDataTransferID, BigDataResultMessage.Type reason )
+	ReturnCode cancelBigDataTransfer(AbstractAgent requester, BigDataTransferID bigDataTransferID, BigDataResultMessage.Type reason, boolean updateDatabase )
 	{
 		if (netAgent!=null) {
-			Message m=new CancelBigDataTransferMessage(bigDataTransferID, reason);
+			Message m=new CancelBigDataTransferMessage(bigDataTransferID, reason, updateDatabase);
 			m.getConversationID().setOrigin(getKernelAddress());
 			m.setSender(netUpdater);
 			m.setReceiver(netAgent);
@@ -4035,10 +4035,11 @@ class MadkitKernel extends Agent {
 	void transferLostForBigDataTransfer(AbstractAgent requester, ConversationID conversationID, int idPacket,
 										AgentAddress sender, AgentAddress receiver, long readDataLength, long durationInMs, AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier,
 										ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier,
-										BigDataResultMessage.Type cancelingType) {
+										BigDataResultMessage.Type cancelingType, boolean updateDatabase) {
 		assert cancelingType==BigDataResultMessage.Type.CONNECTION_LOST || cancelingType==BigDataResultMessage.Type.TRANSFER_CANCELED;
 		BigDataResultMessage m = new BigDataResultMessage(cancelingType, readDataLength,
 				idPacket, durationInMs, asynchronousBigDataInternalIdentifier, externalAsynchronousBigDataIdentifier);
+		m.setUpdateDatabase(updateDatabase);
 		if (receiver.getAgent()!=null) {
 			m.setSender(sender);
 			m.setReceiver(receiver);

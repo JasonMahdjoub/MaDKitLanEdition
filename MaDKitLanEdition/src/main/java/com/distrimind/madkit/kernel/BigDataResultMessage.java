@@ -61,7 +61,7 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 	private long duration;
 	private AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier;
 	private ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier;
-
+	private transient boolean updateDatabase=true;
 	@Override
 	public int getInternalSerializedSize() {
 		return super.getInternalSerializedSizeImpl()+22+(type.name().length()*2)
@@ -95,7 +95,14 @@ public final class BigDataResultMessage extends Message implements com.distrimin
 		if (externalAsynchronousBigDataIdentifier !=null)
 			oos.writeObject(asynchronousBigDataInternalIdentifier, false);
 	}	
-	
+	void setUpdateDatabase(boolean updateDatabase)
+	{
+		this.updateDatabase=updateDatabase;
+	}
+	boolean isUpdateDatabase()
+	{
+		return updateDatabase;
+	}
 	@SuppressWarnings("unused")
 	private BigDataResultMessage()
 	{

@@ -169,6 +169,12 @@ public class DistantAsynchronousBigDataMessageTests extends AbstractAsynchronous
 		}
 
 		@Override
+		public void deleteReceivedData() {
+			System.out.println("Data deleted");
+		}
+
+
+		@Override
 		public int getInternalSerializedSize() {
 			return SerializationTools.getInternalSize(identifier);
 		}

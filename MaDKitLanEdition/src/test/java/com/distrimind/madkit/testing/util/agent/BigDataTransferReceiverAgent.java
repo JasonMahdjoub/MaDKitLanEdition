@@ -87,11 +87,17 @@ public class BigDataTransferReceiverAgent extends Agent {
 
 	static final class AsynchronousToReceive implements AsynchronousBigDataToReceiveWrapper
 	{
-
 		@Override
 		public RandomOutputStream getRandomOutputStream(ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier) {
 			return receivedData;
 		}
+
+		@Override
+		public void deleteReceivedData() {
+			dataDeleted=true;
+			System.out.println("Data deleted");
+		}
+
 
 		@Override
 		public int getInternalSerializedSize() {
@@ -100,16 +106,14 @@ public class BigDataTransferReceiverAgent extends Agent {
 
 		@Override
 		public void writeExternal(SecuredObjectOutputStream out) throws IOException {
-
 		}
 
 		@Override
 		public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
-
 		}
 	}
 	static RandomByteArrayOutputStream receivedData=new RandomByteArrayOutputStream();
-
+	static boolean dataDeleted=false;
 	@Override
 	protected void liveCycle() throws InterruptedException {
 		Message m = waitNextMessage(10000);
@@ -118,6 +122,7 @@ public class BigDataTransferReceiverAgent extends Agent {
 			System.out.println("receiving big data proposition message");
 			BigDataPropositionMessage bdpm=((BigDataPropositionMessage) m);
 			byte[] arrayToSend=BigDataTransferSpeed.bigDataToSendArray.get();
+			dataDeleted=false;
 			try {
 				if (asynchronousMessage)
 					bdpm.acceptTransfer(new AsynchronousToReceive());
@@ -170,6 +175,7 @@ public class BigDataTransferReceiverAgent extends Agent {
 				delay=60000;
 
 			m = waitNextMessage(delay);
+			sleep(300);
 			if (m instanceof BigDataResultMessage)
 			{
 				BigDataResultMessage rm=((BigDataResultMessage) m);
@@ -195,6 +201,10 @@ public class BigDataTransferReceiverAgent extends Agent {
 				{
 					System.out.println("message canceled");
 					AssertJUnit.assertTrue(cancelTransfer);
+					if (asynchronousMessage)
+						AssertJUnit.assertTrue(dataDeleted);
+					else
+						AssertJUnit.assertFalse(dataDeleted);
 					AgentAddress aa=getAgentWithRole(GROUP, ROLE2);
 					Assert.assertNotNull(aa);
 					sendMessage(aa, new BooleanMessage(true));

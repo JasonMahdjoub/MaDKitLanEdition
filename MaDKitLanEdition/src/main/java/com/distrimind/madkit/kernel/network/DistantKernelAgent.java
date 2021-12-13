@@ -133,7 +133,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			MadkitKernelAccess.transferLostForBigDataTransfer(this, bdr.getOriginalMessage().getConversationID(),
 					bdr.getIDPacket(), bdr.getOriginalMessage().getSender(), bdr.getOriginalMessage().getReceiver(),
 					bdr.getNumberOfReceivedBytes(), bdr.getStatistics().getDurationMilli(),
-					bdr.getOriginalMessage().getAsynchronousBigDataInternalIdentifier(), bdr.getOriginalMessage().getExternalAsynchronousBigDataIdentifier(), BigDataResultMessage.Type.CONNECTION_LOST);
+					bdr.getOriginalMessage().getAsynchronousBigDataInternalIdentifier(), bdr.getOriginalMessage().getExternalAsynchronousBigDataIdentifier(), BigDataResultMessage.Type.CONNECTION_LOST, true);
 		}
 		current_big_data_readings.clear();
 		for (BigPacketData bpd : this.packetsDataInQueue.values()) {
@@ -521,7 +521,7 @@ class DistantKernelAgent extends AgentFakeThread {
 					//updateLocalAcceptedGroups();
 					if (agents_socket.size() == 0 && indirect_agents_socket.size() == 0) {
 						for (BigPacketData bpd : m.bigDataNotSent) {
-							cancelBigPacketDataToSendInQueue(bpd.getIDPacket(), false, BigDataResultMessage.Type.CONNECTION_LOST);
+							cancelBigPacketDataToSendInQueue(bpd.getIDPacket(), false, BigDataResultMessage.Type.CONNECTION_LOST, true);
 
 						}
 
@@ -562,7 +562,7 @@ class DistantKernelAgent extends AgentFakeThread {
 					}
 					else
 					{
-						cancelBigPacketDataToSendInQueue(bpd.getIDPacket(), true, m.getReason());
+						cancelBigPacketDataToSendInQueue(bpd.getIDPacket(), true, m.getReason(), m.isUpdateDatabase());
 					}
 				}
 				else if (_message.getClass() == ExceededDataQueueSize.class) {
@@ -723,7 +723,7 @@ class DistantKernelAgent extends AgentFakeThread {
 								logger.finest("Receiving direct lan message (distantInterfacedKernelAddress="
 										+ distant_kernel_address + ") : " + dlm);
 							if (dlm.message.getClass()==BigDataResultMessage.class) {
-								cancelBigPacketDataToSendInQueue(MadkitKernelAccess.getIDPacket((BigDataResultMessage) dlm.message), false, null);
+								cancelBigPacketDataToSendInQueue(MadkitKernelAccess.getIDPacket((BigDataResultMessage) dlm.message), false, null, true);
 								//cancelBigPacketDataInQueue((BigDataResultMessage) dlm.message);
 							}
 							else if (dlm.message.getClass()==BigDataPropositionMessage.class)
@@ -876,7 +876,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 	}
 
-	private BigPacketData cancelBigPacketDataToSendInQueue(int idTransfer, boolean sendCancelMessageToDistantPeer, BigDataResultMessage.Type resultType) throws NIOException {
+	private BigPacketData cancelBigPacketDataToSendInQueue(int idTransfer, boolean sendCancelMessageToDistantPeer, BigDataResultMessage.Type resultType, boolean updateDatabase) throws NIOException {
 		if (logger != null && logger.isLoggable(Level.FINEST))
 			logger.finest("Cancel big data in queue (distantInterfacedKernelAddress=" + distant_kernel_address
 					+ ", idTransfer=" + idTransfer + ")");
@@ -891,11 +891,11 @@ class DistantKernelAgent extends AgentFakeThread {
 					sendData(asd.getAgentAddress(), new CancelBigDataSystemMessage(bpd.getIDPacket(), true, resultType), true, null, false);
 				}
 			}
-			if (resultType!=null) {
+			if (resultType!=null ) {
 				MadkitKernelAccess.transferLostForBigDataTransfer(this, bpd.getConversationID(),
 						bpd.getIDPacket(), bpd.getReceiver(), bpd.getCaller(),
 						bpd.getReadDataLength(), bpd.getDurationInMs(),
-						bpd.getDifferedBigDataInternalIdentifier(), bpd.getDifferedBigDataIdentifier(), resultType);
+						bpd.getDifferedBigDataInternalIdentifier(), bpd.getDifferedBigDataIdentifier(), resultType, updateDatabase);
 			}
 			try {
 				bpd.cancel();
@@ -2860,12 +2860,12 @@ class DistantKernelAgent extends AgentFakeThread {
 						MadkitKernelAccess.transferLostForBigDataTransfer(this, bdr.getOriginalMessage().getConversationID(),
 								bdr.getIDPacket(), bdr.getOriginalMessage().getSender(), bdr.getOriginalMessage().getReceiver(),
 								bdr.getNumberOfReceivedBytes(), bdr.getStatistics().getDurationMilli(),
-								bdr.getOriginalMessage().getAsynchronousBigDataInternalIdentifier(), bdr.getOriginalMessage().getExternalAsynchronousBigDataIdentifier(), m.getReason());
+								bdr.getOriginalMessage().getAsynchronousBigDataInternalIdentifier(), bdr.getOriginalMessage().getExternalAsynchronousBigDataIdentifier(), m.getReason(), true);
 					}
 				}
 				else
 				{
-					cancelBigPacketDataToSendInQueue(m.getIDPacket(), true, m.getReason());
+					cancelBigPacketDataToSendInQueue(m.getIDPacket(), true, m.getReason(), true);
 				}
 			}
 			else

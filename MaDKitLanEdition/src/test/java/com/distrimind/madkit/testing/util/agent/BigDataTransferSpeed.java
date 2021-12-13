@@ -296,7 +296,8 @@ public class BigDataTransferSpeed extends TestNGMadkit {
                                 }
 
                                 Message m = this.waitNextMessage(delay);
-                                AssertJUnit.assertTrue(m instanceof BigDataResultMessage);
+                                sleep(300);
+                                AssertJUnit.assertTrue(m.toString(),m instanceof BigDataResultMessage);
                                 BigDataResultMessage bdrm = (BigDataResultMessage) m;
 
                                 boolean tr1 = false;
@@ -324,6 +325,7 @@ public class BigDataTransferSpeed extends TestNGMadkit {
 
                                 } else
                                     AssertJUnit.fail("" + bdrm.getType());
+
                                 return tr1;
                             } catch (IOException e) {
                                 e.printStackTrace();

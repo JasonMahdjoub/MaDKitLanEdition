@@ -190,7 +190,7 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 		}
 
 
-		if (sender.getAgentAddressIn(group, roleSender)==null)
+		if (!sender.hasRole(group, roleSender))
 			return;
 
 		final AtomicReference<Boolean> allRemoved=new AtomicReference(true);
@@ -398,7 +398,7 @@ public final class AsynchronousMessageTable extends Table<AsynchronousMessageTab
 
 		if (!requester.hasGroup(group))
 			return AbstractAgent.ReturnCode.NOT_IN_GROUP;
-		AgentAddress senderAA=requester.getAgentAddressIn(group, roleSender);
+		AgentAddress senderAA=AsynchronousBigDataTable.getAgentAddressIn(requester, group, roleSender);
 		if (senderAA==null)
 			return AbstractAgent.ReturnCode.ROLE_NOT_HANDLED;
 

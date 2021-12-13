@@ -654,14 +654,14 @@ final class LoggedKernel extends MadkitKernel {
 	@Override
 	void transferLostForBigDataTransfer(AbstractAgent requester, ConversationID conversationID, int idPacket,
 										AgentAddress sender, AgentAddress receiver, long readDataLength, long durationInMs, AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier,
-										ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier, BigDataResultMessage.Type cancelingType) {
+										ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier, BigDataResultMessage.Type cancelingType, boolean updateDatabase) {
 		kernel.transferLostForBigDataTransfer(requester, conversationID, idPacket, sender, receiver, readDataLength,
-				durationInMs, asynchronousBigDataInternalIdentifier, externalAsynchronousBigDataIdentifier, cancelingType);
+				durationInMs, asynchronousBigDataInternalIdentifier, externalAsynchronousBigDataIdentifier, cancelingType, updateDatabase);
 		if (requester.isFinestLogOn())
 			requester.logger.log(Level.FINEST,
 					"transferLostForBigDataTransfer (Agent " + requester + ", conversation ID " + conversationID
 							+ ", ID Packet " + idPacket + ", sender " + sender + ", receiver " + receiver +", cancelingType="+cancelingType
-							+ ", read data length " + readDataLength + ", duration (ms) " + durationInMs + ")");
+							+ ", read data length " + readDataLength + ", duration (ms) " + durationInMs + ", updateDatabase="+updateDatabase+")");
 	}
 
 
@@ -976,12 +976,13 @@ final class LoggedKernel extends MadkitKernel {
 		return r;
 	}
 	@Override
-	ReturnCode cancelBigDataTransfer(AbstractAgent requester, BigDataTransferID bigDataTransferID, BigDataResultMessage.Type reason)
+	ReturnCode cancelBigDataTransfer(AbstractAgent requester, BigDataTransferID bigDataTransferID, BigDataResultMessage.Type reason, boolean updateDatabase)
 	{
-		ReturnCode r=kernel.cancelBigDataTransfer(requester, bigDataTransferID, reason);
+		ReturnCode r=kernel.cancelBigDataTransfer(requester, bigDataTransferID, reason, updateDatabase);
 		if (kernel.isFinestLogOn())
 			kernel.logger.log(Level.FINEST, "cancelBigDataTransfer (requester="+requester+", bigDataTransferID="+bigDataTransferID
 					+", reason="+reason
+					+", updateDatabase"+updateDatabase
 					+", res=" + r + ")");
 		return r;
 	}
