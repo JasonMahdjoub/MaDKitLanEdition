@@ -88,8 +88,6 @@ public class CancelBigDataSystemMessage implements SystemMessageWithoutInnerSize
 		IDPacket =in.readInt();
 		fromSender=in.readBoolean();
 		reason=in.readEnum(false);
-		if (!reason.isCanceled())
-			throw new MessageExternalizationException(Integrity.FAIL);
 	}
 
 	public boolean isFromSender() {

@@ -218,7 +218,7 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 	}
 
 
-	void importDistantOrg(Map<Group, Map<String, Collection<AgentAddress>>> map, MadkitKernel madkitKernel) {
+	void importDistantOrg(Map<Group, Map<String, Collection<AgentAddress>>> map, MadkitKernel madkitKernel, List<Runnable> differedActions) {
 		for (Group groupName : map.keySet()) {
 			if (groupName.isDistributed()) {
 				Map<String, Collection<AgentAddress>> groupContent=map.get(groupName);
@@ -246,7 +246,7 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 					put(groupName, group);
 				}
 				if (group.isDistributed())
-					group.importDistantOrg(groupContent, madkitKernel);
+					group.importDistantOrg(groupContent, madkitKernel, differedActions);
 			}
 
 
@@ -254,10 +254,10 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 		}
 	}
 
-	void removeDistantGroup(KernelAddress distantKernelAddress, Group distantGroup, MadkitKernel madkitKernel) {
+	void removeDistantGroup(KernelAddress distantKernelAddress, Group distantGroup, MadkitKernel madkitKernel, List<Runnable> differedActions) {
 		for (InternalGroup group : values()) {
 			if (group.isDistributed() && group.getGroup().equals(distantGroup)) {
-				group.removeAgentsFromDistantKernel(distantKernelAddress, madkitKernel);
+				group.removeAgentsFromDistantKernel(distantKernelAddress, madkitKernel, differedActions);
 			}
 		}
 	}

@@ -357,13 +357,13 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 	}
 
 
-	void importDistantOrg(final Map<String, Collection<AgentAddress>> map, MadkitKernel madkitKernel) {
+	void importDistantOrg(final Map<String, Collection<AgentAddress>> map, MadkitKernel madkitKernel, List<Runnable> differedActions) {
 		for (final String roleName : map.keySet()) {
 			final Collection<AgentAddress> list = map.get(roleName);
 			if (list == null)
 				continue;
 			synchronized (this) {
-				getOrCreateRole(roleName).importDistantOrg(list, madkitKernel);
+				getOrCreateRole(roleName).importDistantOrg(list, madkitKernel, differedActions);
 			}
 		}
 	}
@@ -397,11 +397,11 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 		return changed;
 	}
 
-	void removeAgentsFromDistantKernel(final KernelAddress kernelAddress, MadkitKernel madkitKernel) {
+	void removeAgentsFromDistantKernel(final KernelAddress kernelAddress, MadkitKernel madkitKernel, List<Runnable> differedActions) {
 		if (logger != null)
 			logger.finest("Removing all agents from distant kernel " + kernelAddress + " in" + this);
 		for (final InternalRole r : values()) {
-			r.removeAgentsFromDistantKernel(kernelAddress, madkitKernel);
+			r.removeAgentsFromDistantKernel(kernelAddress, madkitKernel, differedActions);
 		}
 	}
 

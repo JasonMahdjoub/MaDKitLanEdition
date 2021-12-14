@@ -50,7 +50,7 @@ public class TestBigDataTransferCanceling {
 	{
 
 		public BigDataTransferTest(int downloadLimitInBytesPerSecond, int uploadLimitInBytesPerSecond, boolean cancelTransfer, boolean cancelTransferFromReceiver, boolean asynchronousMessage, boolean restartMessage, boolean globalDisconnection) throws UnknownHostException {
-			super(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond, cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage, globalDisconnection);
+			super(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond, cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage, false, globalDisconnection);
 		}
 	}
 

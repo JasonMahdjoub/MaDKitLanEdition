@@ -66,14 +66,15 @@ public class BigDataTransferReceiverAgent extends Agent {
 	private int dataToReceiveNumber;
 	private final long uploadLimitInBytesPerSecond;
 	private long downloadLimitInBytesPerSecond;
-	final boolean cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage, globalDisconnection;
+	final boolean cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage, restartWithLeaveRequestRole, globalDisconnection;
 
 	public BigDataTransferReceiverAgent(int dataToReceiveNumber, long uploadLimitInBytesPerSecond,
-										boolean cancelTransfer, boolean cancelTransferFromReceiver, boolean asynchronousMessage, boolean restartMessage, boolean globalDisconnection) {
+										boolean cancelTransfer, boolean cancelTransferFromReceiver, boolean asynchronousMessage, boolean restartMessage, boolean restartWithLeaveRequestRole, boolean globalDisconnection) {
 		this.cancelTransfer = cancelTransfer;
 		this.cancelTransferFromReceiver=cancelTransferFromReceiver;
 		this.asynchronousMessage=asynchronousMessage;
 		this.restartMessage=restartMessage;
+		this.restartWithLeaveRequestRole=restartWithLeaveRequestRole;
 		this.dataToReceiveNumber=dataToReceiveNumber;
 		this.uploadLimitInBytesPerSecond=uploadLimitInBytesPerSecond;
 		this.globalDisconnection=globalDisconnection;
@@ -116,6 +117,7 @@ public class BigDataTransferReceiverAgent extends Agent {
 	static boolean dataDeleted=false;
 	@Override
 	protected void liveCycle() throws InterruptedException {
+
 		Message m = waitNextMessage(10000);
 		if (m instanceof BigDataPropositionMessage)
 		{
@@ -123,6 +125,7 @@ public class BigDataTransferReceiverAgent extends Agent {
 			BigDataPropositionMessage bdpm=((BigDataPropositionMessage) m);
 			byte[] arrayToSend=BigDataTransferSpeed.bigDataToSendArray.get();
 			dataDeleted=false;
+			receivedData=new RandomByteArrayOutputStream();
 			try {
 				if (asynchronousMessage)
 					bdpm.acceptTransfer(new AsynchronousToReceive());
@@ -146,9 +149,27 @@ public class BigDataTransferReceiverAgent extends Agent {
 					System.out.println("Stop network");
 					this.sendMessage(LocalCommunity.Groups.SYSTEM, Organization.GROUP_MANAGER_ROLE, new KernelMessage(KernelAction.STOP_NETWORK));
 					sleep(1000);
+					int nb=0;
+					while (this.getEffectiveConnections().size()>0 && nb++<10)
+						sleep(1000);
 					Assert.assertEquals(this.getEffectiveConnections().size(), 0);
 					System.out.println("Launch network");
 					this.sendMessage(LocalCommunity.Groups.SYSTEM, Organization.GROUP_MANAGER_ROLE, new KernelMessage(KernelAction.LAUNCH_NETWORK));
+				}
+				else if (restartWithLeaveRequestRole && cancelTransferFromReceiver)
+				{
+					System.out.println("Leave role from receiver");
+					this.leaveRole(GROUP, ROLE);
+					sleep(1000);
+
+					receivedData=new RandomByteArrayOutputStream(receivedData.getBytes());
+					System.out.println("Reconnect from receiver");
+					this.requestRole(GROUP, ROLE);
+				}
+				else if (restartWithLeaveRequestRole)
+				{
+					sleep(500);
+					receivedData=new RandomByteArrayOutputStream(receivedData.getBytes());
 				}
 				else
 				{
@@ -156,7 +177,12 @@ public class BigDataTransferReceiverAgent extends Agent {
 					try {
 						System.out.println("Disconnect");
 						this.manageDirectConnection(new AskForConnectionMessage(ConnectionStatusMessage.Type.DISCONNECT, BigDataTransferSpeed.ipToConnect));
+
 						sleep(1000);
+						int nb=0;
+						while (this.getEffectiveConnections().size()>0 && nb++<10)
+							sleep(1000);
+
 						Assert.assertEquals(this.getEffectiveConnections().size(), 0);
 						System.out.println("Reconnect");
 						this.manageDirectConnection(new AskForConnectionMessage(ConnectionStatusMessage.Type.CONNECT, BigDataTransferSpeed.ipToConnect));

@@ -120,6 +120,7 @@ final class NIOAgent extends Agent {
 	private long delayToWaitToRespectGlobalBandwidthLimit=0;
     private RealTimeTransferStat realTimeGlobalDownloadStat =null, realTimeGlobalUploadStat=null;
     private double realTimeDownloadStatDuration=0.0, realTimeUploadStatDuration=0.0;
+	//private volatile LockerCondition actualLocker=null;
 
 	NIOAgent() throws ConnectionException {
 
@@ -300,9 +301,355 @@ final class NIOAgent extends Agent {
 	public Message receiveMessage(Message _m) {
 		_m = super.receiveMessage(_m);
 		this.selector.wakeup();
+		/*LockerCondition lc=actualLocker;
+		if (lc!=null)
+			lc.notifyLocker();*/
 		return _m;
 	}
+	private void checkPingPongMessagesAndPendingConnections() throws IOException {
+		ArrayList<PersonalSocket> connections_to_close = new ArrayList<>();
+		for (PersonalSocket ps : personal_sockets_list) {
+			if (ps.isWaitingForPongMessage()) {
+				if (System.currentTimeMillis()
+						- ps.getTimeSendingPingMessage() > getMadkitConfig().networkProperties.connectionTimeOut) {
+					if (logger != null && logger.isLoggable(Level.FINER))
+						logger.finer("Pong not received, closing connection : " + ps);
 
+					connections_to_close.add(ps);
+				}
+			} else {
+				StatsBandwidth sb = ps.agentSocket.getStatistics();
+				RealTimeTransferStat upload = sb.getBytesUploadedInRealTime(
+						NetworkProperties.DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS);
+				boolean ping = false;
+				if (ps.hasDataToSend() && upload.getNumberOfIdentifiedBytesDuringTheLastCycle() == 0 && System.currentTimeMillis()
+						- ps.getLastDataWroteUTC() > getMadkitConfig().networkProperties.connectionTimeOut) {
+
+					ping = true;
+				} else {
+					RealTimeTransferStat download = sb.getBytesDownloadedInRealTime(
+							NetworkProperties.DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS);
+
+					if (download.getNumberOfIdentifiedBytesDuringTheLastCycle() == 0 && upload.getNumberOfIdentifiedBytesDuringTheLastCycle() == 0
+							&& download.isOneCycleDone() && upload.isOneCycleDone()) {
+						ping = true;
+					} else if (sb
+							.getBytesDownloadedInRealTime(
+									NetworkProperties.DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS)
+							.getNumberOfIdentifiedBytesDuringTheLastCycle() == 0
+							&& System.currentTimeMillis() - ps
+							.getLastDataWroteUTC() > getMadkitConfig().networkProperties.connectionTimeOut) {
+						ping = true;
+					}
+
+				}
+				if (ping) {
+					if (logger != null && logger.isLoggable(Level.FINEST))
+						logger.finest("Sending ping message : " + ps.socketChannel.getRemoteAddress());
+
+					ps.sendPingMessage();
+				}
+			}
+		}
+		if (pending_connections.size() > 0) {
+			ArrayList<PendingConnection> pendingConnectionsFinished = new ArrayList<>();
+			ArrayList<PendingConnection> pendingConnectionsCanceled = new ArrayList<>();
+
+			for (PendingConnection pc : pending_connections) {
+				try {
+					if (pc.getSocketChannel().isConnectionPending() && pc.getSocketChannel().finishConnect())
+						pendingConnectionsFinished.add(pc);
+					else if (pc.getTimeUTC() + getMadkitConfig().networkProperties.connectionTimeOut < System
+							.currentTimeMillis()) {
+						pendingConnectionsCanceled.add(pc);
+					}
+				} catch (ConnectException e) {
+					if (logger != null && logger.isLoggable(Level.INFO))
+						logger.info(e + ", local_interface=" + pc.local_interface + ", ip="
+								+ pc.getInetSocketAddress());
+					pendingConnectionsCanceled.add(pc);
+				}
+			}
+			for (PendingConnection pc : pendingConnectionsFinished)
+				finishConnection(pc.getIP(), pc.getSocketChannel());
+			for (PendingConnection pc : pendingConnectionsCanceled)
+				pendingConnectionFailed(pc.getSocketChannel(), null);
+		}
+		for (PersonalSocket ps : connections_to_close) {
+			if (logger != null && logger.isLoggable(Level.FINER))
+				logger.finer("Closing pending connection");
+			ps.closeConnection(ConnectionClosedReason.CONNECTION_LOST);
+		}
+	}
+	void handleReceivedMessages() throws IOException, TransferException {
+		// checking messages
+
+		Message m = nextMessage();
+		while (m != null) {
+			if (m instanceof DataToSendMessage) {
+				DataToSendMessage dtsm = (DataToSendMessage) m;
+				PersonalSocket ps = personal_sockets.get(dtsm.socket);
+				if (ps != null)
+					ps.addDataToSend(dtsm.data);
+				else
+				{
+					sendReply(m, new ConnectionClosed(dtsm.socket, ConnectionClosedReason.CONNECTION_LOST, null,
+							null, null));
+
+					if (logger != null)
+						logger.warning("Receiving data to send, but personal socket not found ! ");
+				}
+
+			} else if (m instanceof ConnectionClosed) {
+				if (logger != null && logger.isLoggable(Level.FINER))
+					logger.finer("Receiving : " + m);
+				ConnectionClosed cc = (ConnectionClosed) m;
+				PersonalSocket ps = personal_sockets.get(cc.socket);
+				if (ps != null)
+					ps.closeConnection(cc.reason);
+			} else if (m.getClass() == AbstractAgentSocket.AgentSocketKilled.class) {
+				if (personal_sockets_list.size() == 0 && NIOAgent.this.stopping)
+					NIOAgent.this.killAgent(NIOAgent.this);
+
+			} else if (m instanceof PongMessageReceived) {
+				PongMessageReceived pmr = (PongMessageReceived) m;
+				PersonalSocket ps = personal_sockets.get(pmr.socket);
+				ps.pongMessageReceived();
+			}
+
+			else if (m instanceof BindInetSocketAddressMessage) {
+				if (logger != null && logger.isLoggable(Level.FINER))
+					logger.finer("Receiving : " + m);
+				BindInetSocketAddressMessage message = (BindInetSocketAddressMessage) m;
+				InetSocketAddress addr = message.getInetSocketAddress();
+				if (message.getType().equals(BindInetSocketAddressMessage.Type.BIND)) {
+					if (this.getMadkitConfig().networkProperties.needsServerSocket(addr, addr.getPort())) {
+						boolean alreadyBind = false;
+						for (Server s : serverChannels) {
+
+							if (s.address.equals(addr)) {
+								alreadyBind = true;
+								break;
+							}
+						}
+						if (!alreadyBind) {
+							try {
+								ServerSocketChannel serverChannel = ServerSocketChannel.open();
+
+								serverChannel.configureBlocking(false);
+								serverChannel.socket().bind(addr);
+								// Register the server socket channel, indicating an interest in
+								// accepting new connections
+								serverChannel.register(selector, SelectionKey.OP_ACCEPT);
+								Server s = new Server(serverChannel, addr);
+								serverChannels.add(s);
+								if (logger != null && logger.isLoggable(Level.FINER))
+									logger.finer("Server channel opened : " + s);
+
+							} catch (Exception e) {
+								if (logger != null)
+									logger.log(Level.SEVERE,
+											"Impossible to bind the connection to the next address : " + addr, e);
+							}
+						}
+					}
+					bindDatagramData(addr);
+				} else if (message.getType().equals(BindInetSocketAddressMessage.Type.DISCONNECT)) {
+					boolean multicastToRemove = personal_datagram_channels_per_ni_address.size() > 0;
+					for (Iterator<Server> it = serverChannels.iterator(); it.hasNext();) {
+						Server s = it.next();
+						if (s.address.equals(addr)) {
+							s.serverChannels.close();
+
+							List<PendingConnection> pcs=new ArrayList<>();
+							for (PendingConnection pc : this.pending_connections)
+							{
+								if (pc.isConcernedBy(s))
+								{
+									pcs.add(pc);
+								}
+							}
+							for (PendingConnection pc : pcs)
+							{
+								pendingConnectionFailed(pc.socketChannel, ConnectionClosedReason.CONNECTION_LOST);
+							}
+
+							for (PersonalSocket ps : this.personal_sockets_list)
+							{
+								if (ps.isConcernedBy(s))
+									sendMessage(ps.agentAddress,
+											new AskForConnectionMessage(ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED,
+													ps.agentSocket.distantIP,
+													(InetSocketAddress) ps.socketChannel.getRemoteAddress(), null, false, false));
+							}
+
+							it.remove();
+
+							if (personal_datagram_channels_per_ni_address.size() == 0)
+								break;
+							if (logger != null && logger.isLoggable(Level.FINER))
+								logger.finer("Server channel closed : " + s);
+
+						} else if (s.address.getAddress().equals(addr.getAddress()))
+							multicastToRemove = true;
+					}
+					if (multicastToRemove)
+						personal_datagram_channels_per_ni_address.get(addr.getAddress()).closeConnection(false);
+				}
+			} else if (m instanceof UpnpIGDAgent.NetworkInterfaceInformationMessage) {
+				UpnpIGDAgent.NetworkInterfaceInformationMessage nm=(UpnpIGDAgent.NetworkInterfaceInformationMessage)m;
+				for (NetworkInterface ni : nm.getNewDisconnectedInterfaces())
+				{
+					for (PersonalSocket ps : this.personal_sockets_list)
+					{
+						sendMessage(ps.agentAddress,
+								new AskForConnectionMessage(ConnectionClosedReason.CONNECTION_LOST,
+										ps.agentSocket.distantIP,
+										(InetSocketAddress) ps.socketChannel.getRemoteAddress(), null, false, false));
+					}
+					List<PendingConnection> pcs=new ArrayList<>();
+					for (PendingConnection pc : this.pending_connections)
+					{
+						if (pc.isConcernedBy(ni))
+						{
+							pcs.add(pc);
+						}
+					}
+					for (PendingConnection pc : pcs)
+					{
+						pendingConnectionFailed(pc.socketChannel, ConnectionClosedReason.CONNECTION_LOST);
+					}
+					for (Iterator<Server> it = serverChannels.iterator(); it.hasNext();) {
+						Server s = it.next();
+						if (s.isConcernedBy(ni)) {
+							PersonalDatagramChannel mc=personal_datagram_channels_per_ni_address.get(s.address.getAddress());
+
+							s.serverChannels.close();
+							it.remove();
+
+							if (mc!=null)
+								mc.closeConnection(false);
+							if (logger != null && logger.isLoggable(Level.FINER))
+								logger.finer("Server channel closed : " + s);
+
+						}
+
+					}
+
+				}
+
+			} else if (m instanceof AskForConnectionMessage) {
+				try {
+					if (logger != null && logger.isLoggable(Level.FINER))
+						logger.finer("Receiving : " + m);
+
+					AskForConnectionMessage con = (AskForConnectionMessage) m;
+					if (con.now && con.type.equals(ConnectionStatusMessage.Type.DISCONNECT)) {
+						PersonalSocket found = getPersonalSocket(con.getChosenIP(), con.interface_address);
+						if (found != null) {
+							if (con.concernsIndirectConnection())
+								found.closeIndirectConnection(con.connection_closed_reason, con.getIDTransfer(),
+										con.getIndirectAgentAddress());
+							else
+								found.closeConnection(con.connection_closed_reason);
+						} else {
+							if (logger != null && logger.isLoggable(Level.FINEST))
+								logger.finest("Connection to close not found (address=" + con.getChosenIP()
+										+ ", interface_address=" + con.interface_address + ", closeReason="
+										+ con.connection_closed_reason + ")");
+						}
+					} else {
+						if (con.type.equals(ConnectionStatusMessage.Type.CONNECT)) {
+							if (!stopping)
+								initiateConnection(con.getIP(), con.getChosenIP(),
+										con.interface_address.getAddress(), con);
+						} else if (con.type.equals(ConnectionStatusMessage.Type.DISCONNECT)) {
+							parsePersonalSockets(con.getIP(), con.interface_address, found->{
+								if (con.connection_closed_reason == null || con.connection_closed_reason
+										.equals(ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED)) {
+									sendMessage(found.agentAddress,
+											new AskForConnectionMessage(
+													ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED, con.getIP(),
+													con.getChosenIP(), con.interface_address, false, false));
+								} else {
+									sendMessage(found.agentAddress, con);
+								}
+							});
+						}
+					}
+				} catch (Exception e) {
+					if (logger != null)
+						logger.log(Level.SEVERE, "Unexpected exception", e);
+				}
+			} else if (m instanceof MulticastListenerConnectionMessage) {
+				try {
+					addMulticastListener((MulticastListenerConnectionMessage) m);
+				} catch (Exception e) {
+					if (logger != null)
+						logger.log(Level.SEVERE, "Unexpected exception", e);
+				}
+			} else if (m instanceof DatagramLocalNetworkPresenceMessage) {
+				if (logger != null && logger.isLoggable(Level.FINEST))
+					logger.finest("Receiving datagram data to send : " + m);
+
+				try {
+					PersonalDatagramChannel pdc = personal_datagram_channels_per_agent_address.get(m.getSender());
+					if (pdc == null) {
+						if (logger != null)
+							logger.warning("No corresponding datagram channel : " + m);
+					} else
+						pdc.addDataToSend(new DatagramData((DatagramLocalNetworkPresenceMessage) m));
+				} catch (Exception e) {
+					if (logger != null)
+						logger.log(Level.SEVERE, "Unexpected exception", e);
+				}
+			} else if (m instanceof MulticastListenerDeconnectionMessage) {
+				if (logger != null && logger.isLoggable(Level.FINER))
+					logger.finer("Receiving : " + m);
+				personal_datagram_channels_per_agent_address.get(m.getSender()).closeConnection(true);
+			} else if (m instanceof NetworkAgent.StopNetworkMessage) {
+				if (logger != null && logger.isLoggable(Level.FINER))
+					logger.finer("Receiving stop network order");
+
+				boolean kill = true;
+				stopping = true;
+
+				NetworkAgent.StopNetworkMessage message = (NetworkAgent.StopNetworkMessage) m;
+				for (Server s : this.serverChannels)
+					s.serverChannels.close();
+				List<PendingConnection> pcs=new ArrayList<>(this.pending_connections);
+				for (PendingConnection pc : pcs)
+					pendingConnectionFailed(pc.socketChannel, ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED);
+				for (PersonalSocket ps : personal_sockets_list) {
+					kill = false;
+					sendMessage(ps.agentAddress,
+							new AskForConnectionMessage(message.getNetworkCloseReason().getConnectionClosedReason(),
+									ps.agentSocket.distantIP,
+									(InetSocketAddress) ps.socketChannel.getRemoteAddress(), null, false, false));
+				}
+
+				while (personal_datagram_channels.size() > 0)
+					personal_datagram_channels.values().iterator().next().closeConnection(false);
+				/*LockerCondition lc=actualLocker;
+				if (lc!=null)
+					lc.notifyLocker();*/
+				if (kill)
+					this.killAgent(this);
+			}
+			else if (m instanceof ObjectMessage)
+			{
+				Object c=((ObjectMessage<?>) m).getContent();
+				if (c instanceof PersonalSocket)
+					((PersonalSocket) c).finishCloseConnection();
+				else if (logger!=null)
+					logger.warning("Unexpected message "+m);
+
+			}
+			else if (logger!=null)
+				logger.warning("Unexpected message "+m);
+			m = nextMessage();
+		}
+	}
 	@SuppressWarnings({"SuspiciousMethodCalls"})
     @Override
 	protected void liveCycle() {
@@ -328,351 +675,14 @@ final class NIOAgent extends Agent {
                     }
                 }
             }
-            if (delay>0) {
+            if (delay>0 && isMessageBoxEmpty()) {
 				this.selector.select(delay);
 			}
 
 
-			ArrayList<PersonalSocket> connections_to_close = new ArrayList<>();
-			for (PersonalSocket ps : personal_sockets_list) {
-				if (ps.isWaitingForPongMessage()) {
-					if (System.currentTimeMillis()
-							- ps.getTimeSendingPingMessage() > getMadkitConfig().networkProperties.connectionTimeOut) {
-						if (logger != null && logger.isLoggable(Level.FINER))
-							logger.finer("Pong not received, closing connection : " + ps);
+			checkPingPongMessagesAndPendingConnections();
 
-						connections_to_close.add(ps);
-					}
-				} else {
-					StatsBandwidth sb = ps.agentSocket.getStatistics();
-					RealTimeTransferStat upload = sb.getBytesUploadedInRealTime(
-							NetworkProperties.DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS);
-					boolean ping = false;
-					if (ps.hasDataToSend() && upload.getNumberOfIdentifiedBytesDuringTheLastCycle() == 0 && System.currentTimeMillis()
-							- ps.getLastDataWroteUTC() > getMadkitConfig().networkProperties.connectionTimeOut) {
-
-						ping = true;
-					} else {
-						RealTimeTransferStat download = sb.getBytesDownloadedInRealTime(
-								NetworkProperties.DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS);
-
-						if (download.getNumberOfIdentifiedBytesDuringTheLastCycle() == 0 && upload.getNumberOfIdentifiedBytesDuringTheLastCycle() == 0
-								&& download.isOneCycleDone() && upload.isOneCycleDone()) {
-							ping = true;
-						} else if (sb
-								.getBytesDownloadedInRealTime(
-										NetworkProperties.DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS)
-								.getNumberOfIdentifiedBytesDuringTheLastCycle() == 0
-								&& System.currentTimeMillis() - ps
-										.getLastDataWroteUTC() > getMadkitConfig().networkProperties.connectionTimeOut) {
-							ping = true;
-						}
-
-					}
-					if (ping) {
-						if (logger != null && logger.isLoggable(Level.FINEST))
-							logger.finest("Sending ping message : " + ps.socketChannel.getRemoteAddress());
-
-						ps.sendPingMessage();
-					}
-				}
-			}
-			if (pending_connections.size() > 0) {
-				ArrayList<PendingConnection> pendingConnectionsFinished = new ArrayList<>();
-				ArrayList<PendingConnection> pendingConnectionsCanceled = new ArrayList<>();
-
-				for (PendingConnection pc : pending_connections) {
-					try {
-						if (pc.getSocketChannel().isConnectionPending() && pc.getSocketChannel().finishConnect())
-							pendingConnectionsFinished.add(pc);
-						else if (pc.getTimeUTC() + getMadkitConfig().networkProperties.connectionTimeOut < System
-								.currentTimeMillis()) {
-							pendingConnectionsCanceled.add(pc);
-						}
-					} catch (ConnectException e) {
-						if (logger != null && logger.isLoggable(Level.INFO))
-							logger.info(e + ", local_interface=" + pc.local_interface + ", ip="
-									+ pc.getInetSocketAddress());
-						pendingConnectionsCanceled.add(pc);
-					}
-				}
-				for (PendingConnection pc : pendingConnectionsFinished)
-					finishConnection(pc.getIP(), pc.getSocketChannel());
-				for (PendingConnection pc : pendingConnectionsCanceled)
-					pendingConnectionFailed(pc.getSocketChannel(), null);
-			}
-			for (PersonalSocket ps : connections_to_close) {
-				if (logger != null && logger.isLoggable(Level.FINER))
-					logger.finer("Closing pending connection");
-				ps.closeConnection(ConnectionClosedReason.CONNECTION_LOST);
-			}
-
-			// checking messages
-
-			Message m = null;
-			if (!this.isMessageBoxEmpty())
-				m = nextMessage();
-			while (m != null) {
-				if (m instanceof DataToSendMessage) {
-					DataToSendMessage dtsm = (DataToSendMessage) m;
-					PersonalSocket ps = personal_sockets.get(dtsm.socket);
-					if (ps != null)
-						ps.addDataToSend(dtsm.data);
-					else
-					{
-						sendReply(m, new ConnectionClosed(dtsm.socket, ConnectionClosedReason.CONNECTION_LOST, null,
-								null, null));
-
-						if (logger != null)
-							logger.warning("Receiving data to send, but personal socket not found ! ");
-					}
-
-				} else if (m instanceof ConnectionClosed) {
-					if (logger != null && logger.isLoggable(Level.FINER))
-						logger.finer("Receiving : " + m);
-					ConnectionClosed cc = (ConnectionClosed) m;
-					PersonalSocket ps = personal_sockets.get(cc.socket);
-					if (ps != null)
-						ps.closeConnection(cc.reason);
-				} else if (m.getClass() == AbstractAgentSocket.AgentSocketKilled.class) {
-					if (personal_sockets_list.size() == 0 && NIOAgent.this.stopping)
-						NIOAgent.this.killAgent(NIOAgent.this);
-
-				} else if (m instanceof PongMessageReceived) {
-					PongMessageReceived pmr = (PongMessageReceived) m;
-					PersonalSocket ps = personal_sockets.get(pmr.socket);
-					ps.pongMessageReceived();
-				}
-
-				else if (m instanceof BindInetSocketAddressMessage) {
-					if (logger != null && logger.isLoggable(Level.FINER))
-						logger.finer("Receiving : " + m);
-					BindInetSocketAddressMessage message = (BindInetSocketAddressMessage) m;
-					InetSocketAddress addr = message.getInetSocketAddress();
-					if (message.getType().equals(BindInetSocketAddressMessage.Type.BIND)) {
-						if (this.getMadkitConfig().networkProperties.needsServerSocket(addr, addr.getPort())) {
-							boolean alreadyBind = false;
-							for (Server s : serverChannels) {
-
-								if (s.address.equals(addr)) {
-									alreadyBind = true;
-									break;
-								}
-							}
-							if (!alreadyBind) {
-								try {
-									ServerSocketChannel serverChannel = ServerSocketChannel.open();
-
-									serverChannel.configureBlocking(false);
-									serverChannel.socket().bind(addr);
-									// Register the server socket channel, indicating an interest in
-									// accepting new connections
-									serverChannel.register(selector, SelectionKey.OP_ACCEPT);
-									Server s = new Server(serverChannel, addr);
-									serverChannels.add(s);
-									if (logger != null && logger.isLoggable(Level.FINER))
-										logger.finer("Server channel opened : " + s);
-
-								} catch (Exception e) {
-									if (logger != null)
-										logger.log(Level.SEVERE,
-												"Impossible to bind the connection to the next address : " + addr, e);
-								}
-							}
-						}
-						bindDatagramData(addr);
-					} else if (message.getType().equals(BindInetSocketAddressMessage.Type.DISCONNECT)) {
-						boolean multicastToRemove = personal_datagram_channels_per_ni_address.size() > 0;
-						for (Iterator<Server> it = serverChannels.iterator(); it.hasNext();) {
-							Server s = it.next();
-							if (s.address.equals(addr)) {
-								s.serverChannels.close();
-
-								List<PendingConnection> pcs=new ArrayList<>();
-								for (PendingConnection pc : this.pending_connections)
-								{
-									if (pc.isConcernedBy(s))
-									{
-										pcs.add(pc);
-									}
-								}
-								for (PendingConnection pc : pcs)
-								{
-									pendingConnectionFailed(pc.socketChannel, ConnectionClosedReason.CONNECTION_LOST);
-								}
-
-								for (PersonalSocket ps : this.personal_sockets_list)
-								{
-									if (ps.isConcernedBy(s))
-										sendMessage(ps.agentAddress,
-											new AskForConnectionMessage(ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED,
-													ps.agentSocket.distantIP,
-													(InetSocketAddress) ps.socketChannel.getRemoteAddress(), null, false, false));
-								}
-
-								it.remove();
-
-								if (personal_datagram_channels_per_ni_address.size() == 0)
-									break;
-								if (logger != null && logger.isLoggable(Level.FINER))
-									logger.finer("Server channel closed : " + s);
-
-							} else if (s.address.getAddress().equals(addr.getAddress()))
-								multicastToRemove = true;
-						}
-						if (multicastToRemove)
-							personal_datagram_channels_per_ni_address.get(addr.getAddress()).closeConnection(false);
-					}
-				} else if (m instanceof UpnpIGDAgent.NetworkInterfaceInformationMessage) {
-					UpnpIGDAgent.NetworkInterfaceInformationMessage nm=(UpnpIGDAgent.NetworkInterfaceInformationMessage)m;
-					for (NetworkInterface ni : nm.getNewDisconnectedInterfaces())
-					{
-						for (PersonalSocket ps : this.personal_sockets_list)
-						{
-							sendMessage(ps.agentAddress,
-									new AskForConnectionMessage(ConnectionClosedReason.CONNECTION_LOST,
-											ps.agentSocket.distantIP,
-											(InetSocketAddress) ps.socketChannel.getRemoteAddress(), null, false, false));
-						}
-						List<PendingConnection> pcs=new ArrayList<>();
-						for (PendingConnection pc : this.pending_connections)
-						{
-							if (pc.isConcernedBy(ni))
-							{
-								pcs.add(pc);
-							}
-						}
-						for (PendingConnection pc : pcs)
-						{
-							pendingConnectionFailed(pc.socketChannel, ConnectionClosedReason.CONNECTION_LOST);
-						}
-						for (Iterator<Server> it = serverChannels.iterator(); it.hasNext();) {
-							Server s = it.next();
-							if (s.isConcernedBy(ni)) {
-								PersonalDatagramChannel mc=personal_datagram_channels_per_ni_address.get(s.address.getAddress());
-
-								s.serverChannels.close();
-								it.remove();
-
-								if (mc!=null)
-									mc.closeConnection(false);
-								if (logger != null && logger.isLoggable(Level.FINER))
-									logger.finer("Server channel closed : " + s);
-
-							}
-
-						}
-
-					}
-
-				} else if (m instanceof AskForConnectionMessage) {
-					try {
-						if (logger != null && logger.isLoggable(Level.FINER))
-							logger.finer("Receiving : " + m);
-
-						AskForConnectionMessage con = (AskForConnectionMessage) m;
-						if (con.now && con.type.equals(ConnectionStatusMessage.Type.DISCONNECT)) {
-							PersonalSocket found = getPersonalSocket(con.getChosenIP(), con.interface_address);
-							if (found != null) {
-								if (con.concernsIndirectConnection())
-									found.closeIndirectConnection(con.connection_closed_reason, con.getIDTransfer(),
-											con.getIndirectAgentAddress());
-								else
-									found.closeConnection(con.connection_closed_reason);
-							} else {
-								if (logger != null && logger.isLoggable(Level.FINEST))
-									logger.finest("Connection to close not found (address=" + con.getChosenIP()
-											+ ", interface_address=" + con.interface_address + ", closeReason="
-											+ con.connection_closed_reason + ")");
-							}
-						} else {
-							if (con.type.equals(ConnectionStatusMessage.Type.CONNECT)) {
-								if (!stopping)
-									initiateConnection(con.getIP(), con.getChosenIP(),
-											con.interface_address.getAddress(), con);
-							} else if (con.type.equals(ConnectionStatusMessage.Type.DISCONNECT)) {
-								parsePersonalSockets(con.getIP(), con.interface_address, found->{
-									if (con.connection_closed_reason == null || con.connection_closed_reason
-											.equals(ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED)) {
-										sendMessage(found.agentAddress,
-												new AskForConnectionMessage(
-														ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED, con.getIP(),
-														con.getChosenIP(), con.interface_address, false, false));
-									} else {
-										sendMessage(found.agentAddress, con);
-									}
-								});
-							}
-						}
-					} catch (Exception e) {
-						if (logger != null)
-							logger.log(Level.SEVERE, "Unexpected exception", e);
-					}
-				} else if (m instanceof MulticastListenerConnectionMessage) {
-					try {
-						addMulticastListener((MulticastListenerConnectionMessage) m);
-					} catch (Exception e) {
-						if (logger != null)
-							logger.log(Level.SEVERE, "Unexpected exception", e);
-					}
-				} else if (m instanceof DatagramLocalNetworkPresenceMessage) {
-					if (logger != null && logger.isLoggable(Level.FINEST))
-						logger.finest("Receiving datagram data to send : " + m);
-
-					try {
-						PersonalDatagramChannel pdc = personal_datagram_channels_per_agent_address.get(m.getSender());
-						if (pdc == null) {
-							if (logger != null)
-								logger.warning("No corresponding datagram channel : " + m);
-						} else
-							pdc.addDataToSend(new DatagramData((DatagramLocalNetworkPresenceMessage) m));
-					} catch (Exception e) {
-						if (logger != null)
-							logger.log(Level.SEVERE, "Unexpected exception", e);
-					}
-				} else if (m instanceof MulticastListenerDeconnectionMessage) {
-					if (logger != null && logger.isLoggable(Level.FINER))
-						logger.finer("Receiving : " + m);
-					personal_datagram_channels_per_agent_address.get(m.getSender()).closeConnection(true);
-				} else if (m instanceof NetworkAgent.StopNetworkMessage) {
-					if (logger != null && logger.isLoggable(Level.FINER))
-						logger.finer("Receiving stop network order");
-
-					boolean kill = true;
-					stopping = true;
-					NetworkAgent.StopNetworkMessage message = (NetworkAgent.StopNetworkMessage) m;
-					for (Server s : this.serverChannels)
-						s.serverChannels.close();
-					List<PendingConnection> pcs=new ArrayList<>(this.pending_connections);
-					for (PendingConnection pc : pcs)
-						pendingConnectionFailed(pc.socketChannel, ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED);
-					for (PersonalSocket ps : personal_sockets_list) {
-						kill = false;
-						sendMessage(ps.agentAddress,
-								new AskForConnectionMessage(message.getNetworkCloseReason().getConnectionClosedReason(),
-										ps.agentSocket.distantIP,
-										(InetSocketAddress) ps.socketChannel.getRemoteAddress(), null, false, false));
-					}
-
-					while (personal_datagram_channels.size() > 0)
-						personal_datagram_channels.values().iterator().next().closeConnection(false);
-
-					if (kill)
-						this.killAgent(this);
-				}
-				else if (m instanceof ObjectMessage)
-				{
-					Object c=((ObjectMessage<?>) m).getContent();
-					if (c instanceof PersonalSocket)
-						((PersonalSocket) c).finishCloseConnection();
-					else if (logger!=null)
-						logger.warning("Unexpected message "+m);
-						
-				}
-				else if (logger!=null)
-					logger.warning("Unexpected message "+m);
-				m = nextMessage();
-			}
+			handleReceivedMessages();
 
             // Iterate over the set of keys for which events are available
 			Set<SelectionKey> selectedKeys=this.selector.selectedKeys();
@@ -680,7 +690,7 @@ final class NIOAgent extends Agent {
 			boolean hasSpeedLimitation=hasNetworkSpeedLimitationDuringDownloadOrDuringUpload();
             long limitDownload=Long.MIN_VALUE;
             long limitUpload=Long.MIN_VALUE;
-			while (selectedKeysIterator.hasNext()) {
+			while (selectedKeysIterator.hasNext() && isMessageBoxEmpty()) {
 				SelectionKey key = selectedKeysIterator.next();
 
 
@@ -1465,7 +1475,6 @@ final class NIOAgent extends Agent {
 		}
 
 
-
 		private boolean waitDataReady() throws TransferException {
 			try {
 				//synchronized (this.agentSocket) {
@@ -1494,6 +1503,7 @@ final class NIOAgent extends Agent {
 							exception.set(e);
 							return false;
 						}
+
 						return exception.get()==null && first!=null && !validData.get()  && agentSocket.getState().compareTo(AbstractAgent.State.ENDING)<0;
 					}
 
@@ -1507,6 +1517,76 @@ final class NIOAgent extends Agent {
 				return false;
 			}
 		}
+		/*private boolean waitDataReady() throws TransferException {
+			if (actualLocker!=null)
+				return false;
+			try {
+				//synchronized (this.agentSocket) {
+				final Reference<Boolean> hasData = new Reference<>(this.noBackDataToSend.size()>0);
+				NoBackData first=this.noBackDataToSend.size()>0?this.noBackDataToSend.getFirst():null;
+				final Reference<Boolean> validData = new Reference<>(first!=null && first.isReady());
+
+
+				if (!hasData.get() || validData.get())
+					return hasData.get();
+				if (first==null)
+					throw new NullPointerException();
+				final Reference<TransferException> exception=new Reference<>();
+
+				NIOAgent.this.wait(actualLocker=new LockerCondition(first.getLocker()) {
+					private Boolean locked=null;
+					private void updateLocker()
+					{
+						NoBackData f=noBackDataToSend.peekFirst();
+						try
+						{
+							validData.set(f==first && f.isReady());
+						}
+						catch(TransferException e)
+						{
+							exception.set(e);
+							locked=false;
+						}
+						locked=exception.get()==null && f==first && !validData.get() && agentSocket.getState().compareTo(AbstractAgent.State.ENDING)<0;
+					}
+					@Override
+					public void beforeCycleLocking() {
+						updateLocker();
+						if (locked)
+						{
+							try {
+								//checkPingPongMessages();
+								//checkPendingConnections();
+								handleReceivedMessages();
+							} catch (IOException e) {
+								if (logger != null)
+									logger.severeLog("Unexpected exception", e);
+								e.printStackTrace();
+							} catch (TransferException e) {
+								exception.set(e);
+								cancelLock();
+							}
+						}
+					}
+
+					@Override
+					public boolean isLocked() {
+						if (locked==null)
+							updateLocker();
+						return locked;
+					}
+				});
+				if (exception.get()!=null)
+					throw exception.get();
+				return validData.get();
+				//}
+			} catch (InterruptedException e) {
+				return false;
+			}
+			finally {
+				actualLocker=null;
+			}
+		}*/
 
 		private boolean isTransferTypeChangePossible() throws TransferException {
 			AbstractData data = null;
@@ -2126,7 +2206,16 @@ final class NIOAgent extends Agent {
 			initDataToSendLists();
 
 			if (stopping && isAlive() && personal_sockets.isEmpty())
-			    killAgent(NIOAgent.this);
+				killAgent(NIOAgent.this);
+			/*try {
+				if (stopping && isAlive() && personal_sockets.isEmpty())
+					killAgent(NIOAgent.this);
+			}
+			finally {
+				LockerCondition lc=actualLocker;
+				if (lc!=null)
+					lc.notifyLocker();
+			}*/
 		}
 		public void closeIndirectConnection(ConnectionClosedReason cs, IDTransfer transferID,
 				AgentAddress indirectAgentAddress) {

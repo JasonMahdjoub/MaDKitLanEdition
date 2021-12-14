@@ -806,6 +806,9 @@ class DistantKernelAgent extends AgentFakeThread {
 
 								int id = MadkitKernelAccess.getIDPacket(bdpm);
 								current_big_data_readings.put(id, new BigDataReading(bdpm));
+								AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier = bdpm.getAsynchronousBigDataInternalIdentifier();
+								if (asynchronousBigDataInternalIdentifier!=null)
+									MadkitKernelAccess.setAsynchronousTransferAsStarted(this, asynchronousBigDataInternalIdentifier);
 								sendData(asd.getAgentAddress(), new ValidateBigDataProposition(id), true, null, false);
 							}
 						}
@@ -884,6 +887,12 @@ class DistantKernelAgent extends AgentFakeThread {
 
 
 		if (bpd!=null) {
+			try {
+				bpd.cancel();
+			} catch (IOException | MadkitException e) {
+				if (logger != null)
+					logger.severeLog("Cannot close stream of BigPacketData", e);
+			}
 			if (sendCancelMessageToDistantPeer)
 			{
 				AgentSocketData asd = getBestAgentSocket(false);
@@ -891,18 +900,14 @@ class DistantKernelAgent extends AgentFakeThread {
 					sendData(asd.getAgentAddress(), new CancelBigDataSystemMessage(bpd.getIDPacket(), true, resultType), true, null, false);
 				}
 			}
+
 			if (resultType!=null ) {
 				MadkitKernelAccess.transferLostForBigDataTransfer(this, bpd.getConversationID(),
 						bpd.getIDPacket(), bpd.getReceiver(), bpd.getCaller(),
 						bpd.getReadDataLength(), bpd.getDurationInMs(),
 						bpd.getDifferedBigDataInternalIdentifier(), bpd.getDifferedBigDataIdentifier(), resultType, updateDatabase);
 			}
-			try {
-				bpd.cancel();
-			} catch (IOException | MadkitException e) {
-				if (logger != null)
-					logger.severeLog("Cannot close stream of BigPacketData", e);
-			}
+
 		}
 		return bpd;
 	}
@@ -2697,7 +2702,7 @@ class DistantKernelAgent extends AgentFakeThread {
 				}
 				catch (PacketException | IOException e) {
 					boolean candidateToBan=(e instanceof MessageExternalizationException) && ((MessageExternalizationException) e).getIntegrity().equals(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-					MadkitKernelAccess.dataCorrupted(sr.getOriginalMessage(), sr.getReadPacket().getWrittenDataLength(), null);
+					MadkitKernelAccess.dataCorrupted(sr.getOriginalMessage(), sr.getReadPacket()==null?0:sr.getReadPacket().getWrittenDataLength(), null);
 					current_big_data_readings.remove(reading.getIDPacket());
 					processInvalidPacketPart(agent_socket_sender, e, p, candidateToBan);
 					try {

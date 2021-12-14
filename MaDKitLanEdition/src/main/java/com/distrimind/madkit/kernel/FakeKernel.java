@@ -41,10 +41,7 @@ import com.distrimind.madkit.database.AsynchronousBigDataTable;
 import com.distrimind.madkit.database.AsynchronousMessageTable;
 import com.distrimind.madkit.i18n.ErrorMessages;
 import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
-import com.distrimind.madkit.kernel.network.AskForConnectionMessage;
-import com.distrimind.madkit.kernel.network.AskForTransferMessage;
-import com.distrimind.madkit.kernel.network.Connection;
-import com.distrimind.madkit.kernel.network.ConnectionIdentifier;
+import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.util.AbstractDecentralizedIDGenerator;
@@ -542,6 +539,16 @@ class FakeKernel extends MadkitKernel {
 		throw buildKernelException(null);
 	}
 	@Override
+	Map<AbstractDecentralizedIDGenerator, BigDataTransferID> getTransferIdsPerInternalAsynchronousId()
+	{
+		throw buildKernelException(null);
+	}
+	@Override
+	RealTimeTransferStat getBytePerSecondsStat(AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier)
+	{
+		throw buildKernelException(null);
+	}
+	@Override
 	AsynchronousBigDataTransferID sendBigDataAndDifferItIfNecessary(AbstractAgent requester, Group group, final String role, String senderRole,
 																	ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier,
 																	SecureExternalizable attachedData,
@@ -664,6 +671,15 @@ class FakeKernel extends MadkitKernel {
 	}
 	@Override
 	long cancelAsynchronousBigDataMessagesByReceiverRole(AbstractAgent requester, Group group, String receiverRole)  {
+		throw buildKernelException(null);
+	}
+
+	@Override
+	void informHooks(AgentActionEvent action, Object parameter) {
+		throw buildKernelException(null);
+	}
+	@Override
+	void informHooks(AgentActionEvent action, Object... parameters) {
 		throw buildKernelException(null);
 	}
 }

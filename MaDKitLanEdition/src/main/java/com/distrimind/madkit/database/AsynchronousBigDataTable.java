@@ -36,7 +36,6 @@ knowledge of the CeCILL-C license and that you accept its terms.
  */
 
 import com.distrimind.madkit.kernel.*;
-import com.distrimind.madkit.kernel.network.RealTimeTransferStat;
 import com.distrimind.ood.database.*;
 import com.distrimind.ood.database.annotations.Field;
 import com.distrimind.ood.database.annotations.NotNull;
@@ -53,7 +52,9 @@ import com.distrimind.util.io.SecureExternalizable;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 import static com.distrimind.util.ReflectionTools.*;
@@ -64,7 +65,7 @@ import static com.distrimind.util.ReflectionTools.*;
  * @since MaDKitLanEdition 2.3.0
  */
 public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTable.Record> {
-	private final Map<AbstractDecentralizedIDGenerator, BigDataTransferID> transferIdsPerInternalAsynchronousId = Collections.synchronizedMap(new HashMap<>());
+
 	@SuppressWarnings("ProtectedMemberInFinalClass")
 	protected AsynchronousBigDataTable() throws DatabaseException {
 	}
@@ -267,19 +268,18 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		return startAsynchronousBigDataTransfer(group, roleSender, roleReceiver, externalAsynchronousBigDataIdentifier, attachedData, messageDigestType, excludedFromEncryption, timeOutInMs,
 				asynchronousBigDataToSendWrapper, null, new RenforcedDecentralizedIDGenerator(false, true));
 	}
-	public Record startAsynchronousBigDataTransfer(Group group, String roleSender, String roleReceiver,
+	public Record startAsynchronousBigDataTransfer(AbstractAgent madkitKernel, Group group, String roleSender, String roleReceiver,
 												   ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier,
 												   MessageDigestType messageDigestType, boolean excludedFromEncryption, long timeOutInMs,
 												   AsynchronousBigDataToReceiveWrapper asynchronousBigDataToReceiveWrapper,
 												   AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier,
-												   BigDataTransferID bigDataTransferID
-	)
+												   BigDataTransferID bigDataTransferID)
 	{
 		Record r= startAsynchronousBigDataTransfer(group, roleSender, roleReceiver, externalAsynchronousBigDataIdentifier, null, messageDigestType, excludedFromEncryption, timeOutInMs,
 				null, asynchronousBigDataToReceiveWrapper, asynchronousBigDataInternalIdentifier);
 		if (r!=null)
 		{
-			transferIdsPerInternalAsynchronousId.put(asynchronousBigDataInternalIdentifier, bigDataTransferID);
+			getTransferIdsPerInternalAsynchronousId(madkitKernel).put(asynchronousBigDataInternalIdentifier, bigDataTransferID);
 		}
 		return r;
 	}
@@ -364,12 +364,14 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 	public void setAsynchronousTransferAsStarted(AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier)
 	{
 		try {
+
 			getDatabaseWrapper().runSynchronizedTransaction(new SynchronizedTransaction<Void>() {
 				@Override
 				public Void run() throws Exception {
 					Record r = getRecord("asynchronousBigDataInternalIdentifier", asynchronousBigDataInternalIdentifier);
-					if (r != null && !r.isTransferStarted())
+					if (r != null && !r.isTransferStarted()) {
 						updateRecord(r, "transferStarted", true);
+					}
 					return null;
 				}
 
@@ -394,8 +396,46 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			e.printStackTrace();
 		}
 	}
-	public boolean receivedPotentialAsynchronousBigDataResultMessage(AbstractAgent requester, BigDataResultMessage resultMessage, ScheduledPoolExecutor serviceExecutor) throws DatabaseException {
+	public void groupLeaved(AbstractAgent kernel, Collection<String> baseGroupPath, Group group) throws DatabaseException {
 
+		if (!AsynchronousMessageTable.isConcerned(baseGroupPath, group))
+			return ;
+
+		String path=group.toString();
+		groupRoleLeaved(kernel, group, true, "groupPath=%g and asynchronousBigDataToSendWrapper IS NOT NULL", "g", path);
+	}
+	public void groupRoleLeaved(AbstractAgent kernel, Collection<String> baseGroupPath, Group group, String role) throws DatabaseException {
+
+		if (!AsynchronousMessageTable.isConcerned(baseGroupPath, group))
+			return ;
+		if (kernel.getAgentWithRole(group, role)!=null)
+			return;
+		String path=group.toString();
+		groupRoleLeaved(kernel, group, false, "groupPath=%g and asynchronousBigDataToSendWrapper IS NOT NULL and (roleReceiver=%r or roleSender=%r)", "g", path, "r", role);
+	}
+	private void groupRoleLeaved(AbstractAgent kernel, Group group, boolean checkGroupRole, String whereCondition, Object... parameters) throws DatabaseException {
+
+		getRecords(new Filter<Record>() {
+			@Override
+			public boolean nextRecord(Record _record) {
+				if (checkGroupRole && kernel.getAgentWithRole(group, _record.getRoleSender())!=null && kernel.getAgentWithRole(group, _record.getRoleReceiver())!=null)
+					return false;
+				Map<AbstractDecentralizedIDGenerator, BigDataTransferID> transferIdsPerInternalAsynchronousId=getTransferIdsPerInternalAsynchronousId(kernel);
+				BigDataTransferID id=transferIdsPerInternalAsynchronousId.get(_record.getAsynchronousBigDataInternalIdentifier());
+				if (id!=null)
+				{
+					if (cancelBigDataTransfer(kernel, id, BigDataResultMessage.Type.CONNECTION_LOST, true)!= AbstractAgent.ReturnCode.SUCCESS)
+					{
+						transferIdsPerInternalAsynchronousId.remove(_record.getAsynchronousBigDataInternalIdentifier());
+					}
+				}
+
+				return false;
+			}
+		}, whereCondition, parameters);
+
+	}
+	public boolean receivedPotentialAsynchronousBigDataResultMessage(AbstractAgent requester, BigDataResultMessage resultMessage, ScheduledPoolExecutor serviceExecutor) throws DatabaseException {
 
 		Reference<Record> record=new Reference<>(null);
 		AbstractDecentralizedIDGenerator internalID=getAsynchronousBigDataInternalIdentifier(resultMessage);
@@ -448,7 +488,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 
 			}
 		});
-		BigDataTransferID btid=transferIdsPerInternalAsynchronousId.remove(internalID);
+		BigDataTransferID btid=getTransferIdsPerInternalAsynchronousId(getMadkitKernel(requester)).remove(internalID);
 
 		if (btid!=null && record.get()!=null)
 		{
@@ -502,12 +542,16 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 	}
 	private Record sendAsynchronousBigData2(AbstractAgent requester, AgentAddress senderAA, AgentAddress receiverAA, Record r, Reference<Boolean> maxNumberOfSimultaneousTransfersReached)
 	{
+		if (!senderAA.isFrom(requester.getKernelAddress()))
+			return null;
 		if (incrementNumberOfSimultaneousAsynchronousMessages(getMadkitKernel(requester), receiverAA, getMaxNumberOfSimultaneousAsynchronousBigDataMessagesSentToTheSameGroup(requester))) {
 			BigDataTransferID tid = sendAsynchronousBigData(requester, senderAA, receiverAA, r);
-			if (tid == null)
+			if (tid == null) {
+				decrementNumberOfSimultaneousAsynchronousMessages(getMadkitKernel(requester), receiverAA);
 				return null;
+			}
 			else {
-				transferIdsPerInternalAsynchronousId.put(r.getAsynchronousBigDataInternalIdentifier(), tid);
+				getTransferIdsPerInternalAsynchronousId(getMadkitKernel(requester)).put(r.getAsynchronousBigDataInternalIdentifier(), tid);
 			}
 		}
 		else if (maxNumberOfSimultaneousTransfersReached!=null)
@@ -602,7 +646,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 		}
 		final Group g=group;
 		deleteReceivedData(record, reason);
-		BigDataTransferID bigDataTransferID= transferIdsPerInternalAsynchronousId.remove(record.getAsynchronousBigDataInternalIdentifier());
+		BigDataTransferID bigDataTransferID= getTransferIdsPerInternalAsynchronousId(getMadkitKernel(requester)).remove(record.getAsynchronousBigDataInternalIdentifier());
 
 		toRunAfterDeletion.set(() -> {
 			if (bigDataTransferID!=null) {
@@ -638,7 +682,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 				@Override
 				public boolean nextRecord(Record _record) throws DatabaseException {
 					call(callableReference);
-					if (_record.isObsolete() && !transferIdsPerInternalAsynchronousId.containsKey(_record.getAsynchronousBigDataInternalIdentifier()))
+					if (_record.isObsolete() && !getTransferIdsPerInternalAsynchronousId(madkitKernel).containsKey(_record.getAsynchronousBigDataInternalIdentifier()))
 					{
 						try {
 							cancelTransferImpl(madkitKernel, _record, BigDataResultMessage.Type.TIME_OUT, callableReference);
@@ -695,30 +739,16 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 					}
 				}, "groupPath=%gp and currentPositionNeedConfirmationFromReceiver=%cp and roleReceiver=%rr", new Object[]{"gp", record.getGroupPath(), "cp", false, "rr", record.getRoleReceiver()}, true, "lastTimeUpdateUTCInMs");
 			}
-
-
-
-
-
-
-
-
 		}
 	}
 
-	public RealTimeTransferStat getBytePerSecondsStat(AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier)
-	{
-		BigDataTransferID b= transferIdsPerInternalAsynchronousId.get(asynchronousBigDataInternalIdentifier);
-		if (b==null)
-			return null;
-		else
-			return b.getBytePerSecondsStat();
-	}
+
 
 	public void groupRoleAvailable(AbstractAgent kernel, Collection<String> baseGroupPath, Group distantGroup, String distantRole) throws DatabaseException {
 		if (!AsynchronousMessageTable.isConcerned(baseGroupPath, distantGroup))
 			return ;
 		String path=distantGroup.toString();
+
 		getOrderedRecords(new Filter<Record>() {
 			final Reference<Boolean> maxNumberOfSimultaneousTransfersReached=new Reference<>(false);
 			@Override
@@ -737,7 +767,10 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 								aa=kernel;
 							AgentAddress receiverAA = aa.getAgentWithRole(distantGroup, _record.roleSender);
 							if (receiverAA!=null) {
-								sender.sendMessageWithRole(receiverAA, new BigDataToRestartMessage(_record.getAsynchronousBigDataInternalIdentifier(), _record.getCurrentStreamPosition()), _record.roleReceiver);
+								AbstractAgent.ReturnCode rc=sender.sendMessageWithRole(receiverAA, new BigDataToRestartMessage(_record.getAsynchronousBigDataInternalIdentifier(), _record.getCurrentStreamPosition()), _record.roleReceiver);
+								if (rc!= AbstractAgent.ReturnCode.SUCCESS) {
+									System.err.println("Impossible to send message to "+receiverAA+", returnCode="+rc);
+								}
 							}
 						}
 					}
@@ -749,9 +782,10 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 						sendAsynchronousBigData(kernel, senderAA, distantGroup, _record.roleReceiver, _record, maxNumberOfSimultaneousTransfersReached);
 					}
 				}
+
 				return false;
 			}
-		}, "groupPath=%gp and (roleSender=%rs or (transferStarted==%ts and roleReceiver=%rr))", new Object[]{"gp", path, "rs", distantRole, "ts", false, "rr", distantRole}, true, "lastTimeUpdateUTCInMs");
+		}, "groupPath=%gp and (roleSender=%rs or roleReceiver=%rr)", new Object[]{"gp", path, "rs", distantRole, "ts", false, "rr", distantRole}, true, "lastTimeUpdateUTCInMs");
 
 	}
 
@@ -766,14 +800,14 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			if (incrementNumberOfSimultaneousAsynchronousMessages(getMadkitKernel(requester), receiverAA, getMaxNumberOfSimultaneousAsynchronousBigDataMessagesSentToTheSameGroup(requester))) {
 				BigDataTransferID bigDataTransferID=sendAsynchronousBigData(requester, senderAA, receiverAA, r);
 				if (bigDataTransferID!=null) {
-					transferIdsPerInternalAsynchronousId.put(r.getAsynchronousBigDataInternalIdentifier(), bigDataTransferID);
+					getTransferIdsPerInternalAsynchronousId(getMadkitKernel(requester)).put(r.getAsynchronousBigDataInternalIdentifier(), bigDataTransferID);
 				}
 			}
 		}
 	}
 
 	private static final Method m_send_asynchronous_big_data;
-	private static final Method m_get_madkit_kernel;
+	private static final Method m_get_madkit_kernel, m_getTransferIdsPerInternalAsynchronousId;
 	//private static final Method m_send_message_and_differ_it_if_necessary;
 	private static final Method m_cancel_big_data_transfer;
 	private static final Method m_get_agent;
@@ -795,6 +829,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			m_incrementNumberOfSimultaneousAsynchronousMessages=null;
 			mResult_setTransferredDataLength=null;
 			mResult_getAsynchronousBigDataInternalIdentifier=null;
+			m_getTransferIdsPerInternalAsynchronousId=null;
 			System.exit(-1);
 		}
 		else {
@@ -809,7 +844,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			m_incrementNumberOfSimultaneousAsynchronousMessages = getMethod(internalRoleClass, "incrementNumberOfSimultaneousAsynchronousMessages", long.class);
 			mResult_setTransferredDataLength = getMethod(BigDataResultMessage.class, "setTransferredDataLength", long.class);
 			mResult_getAsynchronousBigDataInternalIdentifier = getMethod(BigDataResultMessage.class, "getAsynchronousBigDataInternalIdentifier");
-
+			m_getTransferIdsPerInternalAsynchronousId=getMethod(madkitKernelClass, "getTransferIdsPerInternalAsynchronousId");
 		}
 	}
 	static AbstractDecentralizedIDGenerator getAsynchronousBigDataInternalIdentifier(BigDataResultMessage bigDataResultMessage)
@@ -908,14 +943,27 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 	}
 
 
-	static void cancelBigDataTransfer(AbstractAgent requester, BigDataTransferID bigDataTransferID, BigDataResultMessage.Type reason, boolean updateDatabase)
+	static AbstractAgent.ReturnCode cancelBigDataTransfer(AbstractAgent requester, BigDataTransferID bigDataTransferID, BigDataResultMessage.Type reason, boolean updateDatabase)
 	{
 		try {
-			invoke(m_cancel_big_data_transfer, getMadkitKernel(requester), requester, bigDataTransferID, reason, updateDatabase);
+			return (AbstractAgent.ReturnCode) invoke(m_cancel_big_data_transfer, getMadkitKernel(requester), requester, bigDataTransferID, reason, updateDatabase);
 		} catch (InvocationTargetException e) {
 			System.err.println("Unexpected error :");
 			e.printStackTrace();
 			System.exit(-1);
+			return null;
+		}
+	}
+	static Map<AbstractDecentralizedIDGenerator, BigDataTransferID> getTransferIdsPerInternalAsynchronousId(AbstractAgent kernel)
+	{
+		try {
+			//noinspection unchecked
+			return (Map<AbstractDecentralizedIDGenerator, BigDataTransferID>) invoke(m_getTransferIdsPerInternalAsynchronousId, kernel);
+		} catch (InvocationTargetException e) {
+			System.err.println("Unexpected error :");
+			e.printStackTrace();
+			System.exit(-1);
+			return null;
 		}
 	}
 
@@ -990,6 +1038,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 			}
 		},"groupPath=%groupPath", "groupPath", group.toString());
 	}
+
 
 
 }

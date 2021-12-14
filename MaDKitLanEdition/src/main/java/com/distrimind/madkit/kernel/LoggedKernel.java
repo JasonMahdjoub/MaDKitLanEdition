@@ -41,11 +41,9 @@ import com.distrimind.madkit.database.AsynchronousBigDataTable;
 import com.distrimind.madkit.database.AsynchronousMessageTable;
 import com.distrimind.madkit.i18n.Words;
 import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
-import com.distrimind.madkit.kernel.network.AskForConnectionMessage;
-import com.distrimind.madkit.kernel.network.AskForTransferMessage;
-import com.distrimind.madkit.kernel.network.Connection;
-import com.distrimind.madkit.kernel.network.ConnectionIdentifier;
+import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.access.PairOfIdentifiers;
+import com.distrimind.madkit.message.hook.HookMessage;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.AbstractDecentralizedIDGenerator;
@@ -948,6 +946,16 @@ final class LoggedKernel extends MadkitKernel {
 	ArrayList<AbstractAgent> getConnectedNetworkAgents() {
 		return kernel.getConnectedNetworkAgents();
 	}
+	@Override
+	RealTimeTransferStat getBytePerSecondsStat(AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier)
+	{
+		return kernel.getBytePerSecondsStat(asynchronousBigDataInternalIdentifier);
+	}
+	@Override
+	Map<AbstractDecentralizedIDGenerator, BigDataTransferID> getTransferIdsPerInternalAsynchronousId()
+	{
+		return kernel.getTransferIdsPerInternalAsynchronousId();
+	}
 
 	@Override
 	protected void exit() throws InterruptedException {
@@ -1175,4 +1183,29 @@ final class LoggedKernel extends MadkitKernel {
 		return r;
 	}
 
+
+	@Override
+	void informHooks(HookMessage hook_message) {
+		kernel.informHooks(hook_message);
+		if (kernel.isFinestLogOn())
+		{
+			kernel.logger.log(Level.FINEST, "informHooks (hook_message="+hook_message+")");
+		}
+	}
+	@Override
+	void informHooks(AgentActionEvent action, Object parameter) {
+		kernel.informHooks(action, parameter);
+		if (kernel.isFinestLogOn())
+		{
+			kernel.logger.log(Level.FINEST, "informHooks (action="+action+", parameter="+parameter+")");
+		}
+	}
+	@Override
+	void informHooks(AgentActionEvent action, Object... parameters) {
+		kernel.informHooks(action, parameters);
+		if (kernel.isFinestLogOn())
+		{
+			kernel.logger.log(Level.FINEST, "informHooks (action="+action+")");
+		}
+	}
 }

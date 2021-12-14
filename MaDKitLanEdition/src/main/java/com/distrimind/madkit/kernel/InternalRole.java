@@ -629,7 +629,7 @@ class InternalRole implements SecureExternalizable {
 		return a;
 	}
 
-	void removeAgentsFromDistantKernel(final KernelAddress kernelAddress2, MadkitKernel madkitKernel) {
+	void removeAgentsFromDistantKernel(final KernelAddress kernelAddress2, MadkitKernel madkitKernel, List<Runnable> differedActions) {
 		if (distantAgentAddresses != null) {
 			if (logger != null)
 				logger.finest("Removing all agents from distant kernel " + kernelAddress2 + " in" + this);
@@ -642,7 +642,7 @@ class InternalRole implements SecureExternalizable {
 						aa.setRoleObject(null);
 						++number;
 						agentAddresses=null;
-						madkitKernel.informHooks(AgentActionEvent.LEAVE_ROLE, aa);
+						differedActions.add(() -> madkitKernel.informHooks(AgentActionEvent.LEAVE_ROLE, aa));
 					}
 				}
 
@@ -790,7 +790,7 @@ class InternalRole implements SecureExternalizable {
 	}
 
 
-	void importDistantOrg(Collection<AgentAddress> list, MadkitKernel madkitKernel) {
+	void importDistantOrg(Collection<AgentAddress> list, MadkitKernel madkitKernel, List<Runnable> differedActions) {
 		//ArrayList<AgentAddress> added=new ArrayList<>(list.size());
 		synchronized (players) {
 			//buildAndGetAddresses();
@@ -809,7 +809,8 @@ class InternalRole implements SecureExternalizable {
 						incrementReferences(content.getKernelAddress());
 					else if (old!=null)
 						decrementReferences(content.getKernelAddress());
-					madkitKernel.informHooks(AgentActionEvent.REQUEST_ROLE, content);
+					differedActions.add(() -> madkitKernel.informHooks(AgentActionEvent.REQUEST_ROLE, content));
+
 
 
 				}

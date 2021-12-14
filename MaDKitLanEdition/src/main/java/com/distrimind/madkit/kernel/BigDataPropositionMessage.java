@@ -344,7 +344,7 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 		if (outputStream==null)
 			throw new NullPointerException();
 
-		AsynchronousBigDataTable.Record r=localMadkitKernel.getAsynchronousBigDataTable().startAsynchronousBigDataTransfer(getReceiver().getGroup(),
+		AsynchronousBigDataTable.Record r=localMadkitKernel.getAsynchronousBigDataTable().startAsynchronousBigDataTransfer(localMadkitKernel, getReceiver().getGroup(),
 				getSender().getRole(),getReceiver().getRole(), externalAsynchronousBigDataIdentifier,
 				messageDigestType, excludedFromEncryption, timeOutInMs, asynchronousBigDataToReceiveWrapper, asynchronousBigDataInternalIdentifier,
 				getConversationID());

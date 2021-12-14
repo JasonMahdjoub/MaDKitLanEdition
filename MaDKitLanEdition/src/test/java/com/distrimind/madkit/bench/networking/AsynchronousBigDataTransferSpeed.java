@@ -52,7 +52,7 @@ public class AsynchronousBigDataTransferSpeed extends com.distrimind.madkit.test
 
 
 	public AsynchronousBigDataTransferSpeed() throws UnknownHostException {
-		super(Long.MAX_VALUE, Long.MAX_VALUE, false, false, true, false, false);
+		super(Long.MAX_VALUE, Long.MAX_VALUE, false, false, true, false, false, false);
 	}
 	@Test
 	@Override

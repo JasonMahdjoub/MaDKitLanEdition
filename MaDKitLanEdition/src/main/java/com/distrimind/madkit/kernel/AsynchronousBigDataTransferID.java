@@ -96,7 +96,7 @@ public final class AsynchronousBigDataTransferID implements Cloneable, IBigDataT
 			return null;
 		else
 		{
-			return madkitKernel.getAsynchronousBigDataTable().getBytePerSecondsStat(asynchronousBigDataInternalIdentifier);
+			return madkitKernel.getBytePerSecondsStat(asynchronousBigDataInternalIdentifier);
 		}
 	}
 

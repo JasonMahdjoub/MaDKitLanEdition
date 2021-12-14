@@ -159,7 +159,7 @@ class MadkitKernel extends Agent {
     private volatile long maximumGlobalUploadSpeedInBytesPerSecond;
     private volatile long maximumGlobalDownloadSpeedInBytesPerSecond;
     private volatile boolean hasSpeedLimitation;
-
+	private final Map<AbstractDecentralizedIDGenerator, BigDataTransferID> transferIdsPerInternalAsynchronousId = Collections.synchronizedMap(new HashMap<>());
 
 	void setThreadPriorityForServiceExecutor(int _priority) {
 		threadPriorityForServiceExecutor = _priority;
@@ -169,6 +169,8 @@ class MadkitKernel extends Agent {
 	ScheduledPoolExecutor getMaDKitServiceExecutor() {
 		return serviceExecutor;
 	}
+
+
 
 	private static ScheduledPoolExecutor createSchedulerServiceExecutor(int corePoolSize,
 			ThreadFactory threadFactory, long timeOutSeconds) {
@@ -393,6 +395,18 @@ class MadkitKernel extends Agent {
 		} catch (CGRNotAvailable e) {
 			return null;
 		}
+	}
+	RealTimeTransferStat getBytePerSecondsStat(AbstractDecentralizedIDGenerator asynchronousBigDataInternalIdentifier)
+	{
+		BigDataTransferID b= transferIdsPerInternalAsynchronousId.get(asynchronousBigDataInternalIdentifier);
+		if (b==null)
+			return null;
+		else
+			return b.getBytePerSecondsStat();
+	}
+	Map<AbstractDecentralizedIDGenerator, BigDataTransferID> getTransferIdsPerInternalAsynchronousId()
+	{
+		return transferIdsPerInternalAsynchronousId;
 	}
 
 	private void setHasSpeedLimitation()
@@ -1101,6 +1115,7 @@ class MadkitKernel extends Agent {
 		}
     }
 
+
 	void informHooks(HookMessage hook_message) {
 		if (hook_message != null) {
 
@@ -1116,14 +1131,36 @@ class MadkitKernel extends Agent {
 						} catch (DatabaseException e) {
 							logLifeException(e);
 						}
+					});
+					serviceExecutor.execute(() -> {
 						try {
 							asynchronousBigDataTable.groupRoleAvailable(MadkitKernel.this, platform.getConfigOption().rootOfPathGroupUsedToFilterAsynchronousMessages, oe.getSourceAgent().getGroup(), oe.getSourceAgent().getRole());
 						} catch (DatabaseException e) {
 							logLifeException(e);
 						}
 					});
+				}
+				else if (oe.getContent()==AgentActionEvent.LEAVE_ROLE)
+				{
+					serviceExecutor.execute(() -> {
+						try {
 
+							asynchronousBigDataTable.groupRoleLeaved(MadkitKernel.this.getKernel(), platform.getConfigOption().rootOfPathGroupUsedToFilterAsynchronousMessages, oe.getSourceAgent().getGroup(), oe.getSourceAgent().getRole());
+						} catch (DatabaseException e) {
+							logLifeException(e);
+						}
+					});
+				}
+				else if (oe.getContent()==AgentActionEvent.LEAVE_GROUP)
+				{
+					serviceExecutor.execute(() -> {
+						try {
 
+							asynchronousBigDataTable.groupLeaved(MadkitKernel.this.getKernel(), platform.getConfigOption().rootOfPathGroupUsedToFilterAsynchronousMessages, oe.getSourceAgent().getGroup());
+						} catch (DatabaseException e) {
+							logLifeException(e);
+						}
+					});
 				}
 
 			} else if (hook_message.getClass() == NetworkEventMessage.class) {
@@ -3065,7 +3102,7 @@ class MadkitKernel extends Agent {
 
 	final void importDistantOrg(CGRSynchros synchros) {
 		final Map<String, Map<Group, Map<String, Collection<AgentAddress>>>> distantOrg = synchros.getOrganizationSnapShot();
-
+		List<Runnable> differedActions=new ArrayList<>();
 		synchronized (organizations) {
 			for (final String communityName : distantOrg.keySet()) {
 				Map<Group, Map<String, Collection<AgentAddress>>> value=distantOrg.get(communityName);
@@ -3087,7 +3124,7 @@ class MadkitKernel extends Agent {
 				Organization org=organizations.get(communityName);
 				if (org==null)
 					organizations.put(communityName, org=new Organization(communityName, this));
-				org.importDistantOrg(value, this);
+				org.importDistantOrg(value, this, differedActions);
 			}
 		}
 		final ArrayList<Group> removedGroups = synchros.getRemovedGroups();
@@ -3096,8 +3133,10 @@ class MadkitKernel extends Agent {
 			logger.finer("Importing removed distant groups..." + removedGroups);
 		for (Group g : removedGroups) {
 			Organization org = organizations.get(g.getCommunity());
-			org.removeDistantGroup(distantKernelAddress, g, this);
+			org.removeDistantGroup(distantKernelAddress, g, this, differedActions);
 		}
+		for (Runnable r : differedActions)
+			r.run();
 
 	}
 
@@ -3242,7 +3281,7 @@ class MadkitKernel extends Agent {
 	}
 
 	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
-	final boolean injectGroupFromDistantPeer(Group group, final AgentAddress agentAddress)
+	final boolean injectGroupFromDistantPeer(Group group, final AgentAddress agentAddress, Reference<Runnable> differedAction)
 	{
 		if (group.isDistributed()) {
 			Organization organization;
@@ -3254,7 +3293,7 @@ class MadkitKernel extends Agent {
 			}
 			if (organization.putIfAbsent(group,
 					new InternalGroup(group, agentAddress, organization, false)) == null) {
-				informHooks(AgentActionEvent.CREATE_GROUP, agentAddress);
+				differedAction.set(()-> informHooks(AgentActionEvent.CREATE_GROUP, agentAddress));
 			}
 			return true;
 		}
@@ -3262,7 +3301,7 @@ class MadkitKernel extends Agent {
 			return false;
 
 	}
-	final boolean injectRoleFromDistantPeer(Group group, final AgentAddress agentAddress)
+	final boolean injectRoleFromDistantPeer(Group group, final AgentAddress agentAddress, Reference<Runnable> differedAction)
 	{
 		if (!group.isDistributed())
 			return false;
@@ -3270,7 +3309,7 @@ class MadkitKernel extends Agent {
 		try {
 			g=getGroup(group);
 		} catch (CGRNotAvailable e) {
-			if (!injectGroupFromDistantPeer(group, agentAddress)) {
+			if (!injectGroupFromDistantPeer(group, agentAddress, differedAction)) {
 				return false;
 			}
 
@@ -3281,7 +3320,7 @@ class MadkitKernel extends Agent {
 			if (g.isDistributed())
 			{
 				if (g.addDistantMember(agentAddress)) {
-					informHooks(AgentActionEvent.REQUEST_ROLE, agentAddress);
+					differedAction.set(()-> informHooks(AgentActionEvent.REQUEST_ROLE, agentAddress));
 				}
 				return true;
 			}
@@ -3297,20 +3336,21 @@ class MadkitKernel extends Agent {
 		final AgentAddress agentAddress = m.getContent();
 		final Group group = agentAddress.getGroup();
 		final String roleName = agentAddress.getRole();
+		Reference<Runnable> differedAction=new Reference<>();
 		synchronized (organizations) {
 			switch (m.getCode()) {
 			case CREATE_GROUP:
-				if (!injectGroupFromDistantPeer(group, agentAddress))
+				if (!injectGroupFromDistantPeer(group, agentAddress, differedAction))
 					logInjectOperationFailure(m, agentAddress, null);
 				break;
 			case REQUEST_ROLE:
-				if (!injectRoleFromDistantPeer(group, agentAddress))
+				if (!injectRoleFromDistantPeer(group, agentAddress, differedAction))
 					logInjectOperationFailure(m, agentAddress, null);
 				break;
 			case LEAVE_ROLE:
 				try {
 					if (getRole(agentAddress.getGroup(), roleName).removeDistantMember(agentAddress, m.isManualOperation()))
-						informHooks(AgentActionEvent.LEAVE_ROLE, agentAddress);
+						differedAction.set(()-> informHooks(AgentActionEvent.LEAVE_ROLE, agentAddress));
 				} catch (CGRNotAvailable e) {
 					logInjectOperationFailure(m, agentAddress, e);
 				}
@@ -3319,8 +3359,9 @@ class MadkitKernel extends Agent {
 				try {
 					InternalGroup g=getGroup(group);
 					if (g.isDistributed()) {
-						if (g.removeDistantMember(agentAddress, m.isManualOperation()))
-							informHooks(AgentActionEvent.LEAVE_GROUP, agentAddress);
+						if (g.removeDistantMember(agentAddress, m.isManualOperation())) {
+							differedAction.set(()->informHooks(AgentActionEvent.LEAVE_GROUP, agentAddress));
+						}
 					}
 					else
 						logInjectOperationFailure(m, agentAddress, null);
@@ -3335,6 +3376,8 @@ class MadkitKernel extends Agent {
 				break;
 			}
 		}
+		if (differedAction.get()!=null)
+			differedAction.get().run();
 	}
 
 
@@ -3715,12 +3758,17 @@ class MadkitKernel extends Agent {
 
 	}
 	void regularWait(AbstractAgent requester, LockerCondition locker) throws InterruptedException {
-		synchronized (locker.getLocker()) {
-			while (locker.isLocked() && !locker.isCanceled()) {
-				locker.beforeCycleLocking();
-				locker.getLocker().wait();
-				locker.afterCycleLocking();
+		boolean w= locker.isLocked() && !locker.isCanceled();;
+		while(w) {
+			locker.beforeCycleLocking();
+			if (locker.isCanceled()) {
+				break;
 			}
+			synchronized (locker.getLocker()) {
+				locker.getLocker().wait();
+			}
+			locker.afterCycleLocking();
+			w = locker.isLocked() && !locker.isCanceled();
 		}
 
 	}
@@ -4040,12 +4088,14 @@ class MadkitKernel extends Agent {
 		BigDataResultMessage m = new BigDataResultMessage(cancelingType, readDataLength,
 				idPacket, durationInMs, asynchronousBigDataInternalIdentifier, externalAsynchronousBigDataIdentifier);
 		m.setUpdateDatabase(updateDatabase);
-		if (receiver.getAgent()!=null) {
-			m.setSender(sender);
-			m.setReceiver(receiver);
-			m.setIDFrom(conversationID);
+		m.setSender(sender);
+		m.setReceiver(receiver);
+		m.setIDFrom(conversationID);
+		if (receiver.getAgent()!=null && receiver.getAgent().isAlive()) {
 			receiver.getAgent().receiveMessage(m);
 		}
+		else
+			tryToInferReceivedMessage(m);
 	}
 
 	class AutoRequestedGroups implements GroupChangesNotifier {

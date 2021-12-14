@@ -479,6 +479,8 @@ public class TestNGMadkit {
 		checkEmptyConversationIDTraces(null, m, 10000);
 
 		checkReleasedGroups(null, m);
+
+		checkDisabledAsynchronousTransfers(null, m, 10000);
 	}
 
 	public void cleanHelperMDKs(AbstractAgent agent) {
@@ -514,6 +516,9 @@ public class TestNGMadkit {
 					}
 					for (Madkit m : helperInstances) {
 						checkReleasedGroups(agent, m);
+					}
+					for (Madkit m : helperInstances) {
+						checkDisabledAsynchronousTransfers(agent, m, 10000);
 					}
 
 					for (Process p : externalProcesses) {
@@ -745,6 +750,18 @@ public class TestNGMadkit {
 			}
 		} while (t.getMilli() < timeout && m.getKernel().getState()!= TERMINATED);
 		AssertJUnit.assertSame(TERMINATED, m.getKernel().getState());
+	}
+	public void checkDisabledAsynchronousTransfers(AbstractAgent agent, Madkit m, long timeout) {
+
+		Timer t = new Timer(true);
+
+		do {
+			if (t.getMilli() < timeout && m.getKernel().getTransferIdsPerInternalAsynchronousId().size()!=0) {
+				System.out.println(m+" : NumberOfTransferIdsPerInternalAsynchronousId="+m.getKernel().getTransferIdsPerInternalAsynchronousId().size());
+				pause(agent, 1000);
+			}
+		} while (t.getMilli() < timeout && m.getKernel().getTransferIdsPerInternalAsynchronousId().size()!=0);
+		AssertJUnit.assertSame(0, m.getKernel().getTransferIdsPerInternalAsynchronousId().size());
 	}
 
 	public void checkEmptyConversationIDTraces(AbstractAgent agent, Madkit m, long timeout) {

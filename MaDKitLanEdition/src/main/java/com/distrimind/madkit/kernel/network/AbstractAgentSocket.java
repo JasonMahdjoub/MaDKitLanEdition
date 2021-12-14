@@ -502,8 +502,9 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			try {
 
 				if (getTransferType().equals(TransferAgent.NullIDTransfer)) {
-					if (reason.equals(ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED))
+					if (reason.equals(ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED)) {
 						sendData(new ConnectionFinished(this.distant_inet_address, reason), true, true);
+					}
 					else {
 						closeConnectionProtocols(reason);
 						sendMessageWithRole(
