@@ -280,7 +280,7 @@ final class ReadPacket {
 	}
 
 	public long getWrittenDataLength() {
-		return current_pos;
+		return current_pos-Math.max(0, digestResultPos);
 	}
 
 	static abstract class AbstractByteTabInputStream {
