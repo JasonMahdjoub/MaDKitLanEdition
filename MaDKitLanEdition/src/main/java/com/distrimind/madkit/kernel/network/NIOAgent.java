@@ -1479,8 +1479,8 @@ final class NIOAgent extends Agent {
 			try {
 				//synchronized (this.agentSocket) {
 				final Reference<Boolean> hasData = new Reference<>(this.noBackDataToSend.size()>0);
-				NoBackData first=null;
-				final Reference<Boolean> validData = new Reference<>(this.noBackDataToSend.size()>0 && (first=this.noBackDataToSend.getFirst()).isReady());
+				final NoBackData first=this.noBackDataToSend.peekFirst();
+				final Reference<Boolean> validData = new Reference<>(first!=null && first.isReady());
 
 
 				if (!hasData.get() || validData.get())
@@ -1492,19 +1492,26 @@ final class NIOAgent extends Agent {
 
 					@Override
 					public boolean isLocked() {
-						NoBackData first=noBackDataToSend.peekFirst();
-						try
-						{
-							hasData.set(first!=null);
-							validData.set(first!=null && first.isReady());
+						NoBackData f=noBackDataToSend.peekFirst();
+						if (f!=null) {
+							if (f!=first)
+								setLocker(f);
+							try {
+								hasData.set(true);
+								validData.set(f.isReady());
+
+							} catch (TransferException e) {
+								exception.set(e);
+								return false;
+							}
+							return exception.get()==null && !validData.get()  && agentSocket.getState().compareTo(AbstractAgent.State.ENDING)<0;
 						}
-						catch(TransferException e)
-						{
-							exception.set(e);
+						else {
+							hasData.set(false);
+							validData.set(false);
 							return false;
 						}
 
-						return exception.get()==null && first!=null && !validData.get()  && agentSocket.getState().compareTo(AbstractAgent.State.ENDING)<0;
 					}
 
 
