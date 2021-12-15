@@ -383,7 +383,6 @@ final class NIOAgent extends Agent {
 	}
 	void handleReceivedMessages() throws IOException, TransferException {
 		// checking messages
-
 		Message m = nextMessage();
 		while (m != null) {
 			if (m instanceof DataToSendMessage) {
@@ -1474,7 +1473,48 @@ final class NIOAgent extends Agent {
 			return shortDataToSend.size() > 0 && shortDataToSend.get(0).isPriority();
 		}
 
+		/*private boolean waitDataReady() throws TransferException {
+			try {
+				//synchronized (this.agentSocket) {
+				final Reference<Boolean> hasData = new Reference<>(this.noBackDataToSend.size()>0);
+				NoBackData first=null;
+				final Reference<Boolean> validData = new Reference<>(this.noBackDataToSend.size()>0 && (first=this.noBackDataToSend.getFirst()).isReady());
 
+
+				if (!hasData.get() || validData.get())
+					return hasData.get();
+				if (first==null)
+					throw new NullPointerException();
+				final Reference<TransferException> exception=new Reference<>();
+				NIOAgent.this.wait(new LockerCondition(first.getLocker()) {
+
+					@Override
+					public boolean isLocked() {
+						NoBackData first=noBackDataToSend.peekFirst();
+						try
+						{
+							hasData.set(first!=null);
+							validData.set(first!=null && first.isReady());
+						}
+						catch(TransferException e)
+						{
+							exception.set(e);
+							return false;
+						}
+
+						return exception.get()==null && first!=null && !validData.get()  && agentSocket.getState().compareTo(AbstractAgent.State.ENDING)<0;
+					}
+
+
+				});
+				if (exception.get()!=null)
+					throw exception.get();
+				return validData.get();
+				//}
+			} catch (InterruptedException e) {
+				return false;
+			}
+		}*/
 		private boolean waitDataReady() throws TransferException {
 			try {
 				//synchronized (this.agentSocket) {
@@ -1489,29 +1529,47 @@ final class NIOAgent extends Agent {
 					throw new NullPointerException();
 				final Reference<TransferException> exception=new Reference<>();
 				NIOAgent.this.wait(new LockerCondition(first.getLocker()) {
+					private boolean secondLoop=false;
+
+
+					@Override
+					public void beforeCycleLocking() {
+						if (secondLoop) {
+							try {
+								//checkPingPongMessagesAndPendingConnections();
+								handleReceivedMessages();
+								//updateLocked();
+							} catch (IOException e) {
+								e.printStackTrace();
+								cancelLock();
+							} catch (TransferException e) {
+								exception.set(e);
+								cancelLock();
+							}
+						}
+					}
+
+					@Override
+					public void afterCycleLocking() {
+						secondLoop=true;
+
+					}
 
 					@Override
 					public boolean isLocked() {
-						NoBackData f=noBackDataToSend.peekFirst();
-						if (f!=null) {
-							if (f!=first)
-								setLocker(f);
-							try {
-								hasData.set(true);
-								validData.set(f.isReady());
-
-							} catch (TransferException e) {
-								exception.set(e);
-								return false;
-							}
-							return exception.get()==null && !validData.get()  && agentSocket.getState().compareTo(AbstractAgent.State.ENDING)<0;
+						//NoBackData first=noBackDataToSend.peekFirst();
+						try
+						{
+							//hasData.set(first!=null);
+							validData.set(/*first!=null && */first.isReady());
 						}
-						else {
-							hasData.set(false);
-							validData.set(false);
+						catch(TransferException e)
+						{
+							exception.set(e);
 							return false;
 						}
 
+						return exception.get()==null && /*first!=null &&*/ !validData.get()  && agentSocket.getState().compareTo(AbstractAgent.State.ENDING)<0;
 					}
 
 
@@ -1524,76 +1582,6 @@ final class NIOAgent extends Agent {
 				return false;
 			}
 		}
-		/*private boolean waitDataReady() throws TransferException {
-			if (actualLocker!=null)
-				return false;
-			try {
-				//synchronized (this.agentSocket) {
-				final Reference<Boolean> hasData = new Reference<>(this.noBackDataToSend.size()>0);
-				NoBackData first=this.noBackDataToSend.size()>0?this.noBackDataToSend.getFirst():null;
-				final Reference<Boolean> validData = new Reference<>(first!=null && first.isReady());
-
-
-				if (!hasData.get() || validData.get())
-					return hasData.get();
-				if (first==null)
-					throw new NullPointerException();
-				final Reference<TransferException> exception=new Reference<>();
-
-				NIOAgent.this.wait(actualLocker=new LockerCondition(first.getLocker()) {
-					private Boolean locked=null;
-					private void updateLocker()
-					{
-						NoBackData f=noBackDataToSend.peekFirst();
-						try
-						{
-							validData.set(f==first && f.isReady());
-						}
-						catch(TransferException e)
-						{
-							exception.set(e);
-							locked=false;
-						}
-						locked=exception.get()==null && f==first && !validData.get() && agentSocket.getState().compareTo(AbstractAgent.State.ENDING)<0;
-					}
-					@Override
-					public void beforeCycleLocking() {
-						updateLocker();
-						if (locked)
-						{
-							try {
-								//checkPingPongMessages();
-								//checkPendingConnections();
-								handleReceivedMessages();
-							} catch (IOException e) {
-								if (logger != null)
-									logger.severeLog("Unexpected exception", e);
-								e.printStackTrace();
-							} catch (TransferException e) {
-								exception.set(e);
-								cancelLock();
-							}
-						}
-					}
-
-					@Override
-					public boolean isLocked() {
-						if (locked==null)
-							updateLocker();
-						return locked;
-					}
-				});
-				if (exception.get()!=null)
-					throw exception.get();
-				return validData.get();
-				//}
-			} catch (InterruptedException e) {
-				return false;
-			}
-			finally {
-				actualLocker=null;
-			}
-		}*/
 
 		private boolean isTransferTypeChangePossible() throws TransferException {
 			AbstractData data = null;

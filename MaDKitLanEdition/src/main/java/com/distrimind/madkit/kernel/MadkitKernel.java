@@ -3703,22 +3703,26 @@ class MadkitKernel extends Agent {
 		}
 	}
 	void regularWait(@SuppressWarnings("unused") AbstractAgent requester, LockerCondition locker, Lock personalLocker, Condition personalCondition, long delay, TimeUnit unit) throws InterruptedException, TimeoutException {
-
 		long start=System.nanoTime();
 		delay=unit.toNanos(delay);
+
 
 		personalLocker.lock();
 		try {
 			while (locker.isLocked() && !locker.isCanceled()) {
 				locker.beforeCycleLocking();
+				if (locker.isCanceled())
+					break;
+
 				if (!personalCondition.await(delay, TimeUnit.NANOSECONDS))
-					delay=-1;
+					delay = -1;
+
 				locker.afterCycleLocking();
-				long end=System.nanoTime();
-				delay-=end-start;
-				if (delay<0)
+				long end = System.nanoTime();
+				delay -= end - start;
+				if (delay < 0)
 					throw new TimeoutException();
-				start=end;
+				start = end;
 			}
 		}
 		finally {
@@ -3731,7 +3735,13 @@ class MadkitKernel extends Agent {
 		try {
 			while (locker.isLocked() && !locker.isCanceled()) {
 				locker.beforeCycleLocking();
+				if (locker.isCanceled())
+					break;
+
+
 				personalCondition.await();
+
+
 				locker.afterCycleLocking();
 			}
 		}
@@ -3741,34 +3751,38 @@ class MadkitKernel extends Agent {
 
 	}
 	void regularWait(@SuppressWarnings("unused") AbstractAgent requester, LockerCondition locker, long delayMillis) throws InterruptedException, TimeoutException {
-		long start=System.currentTimeMillis();
 
+		long start=System.currentTimeMillis();
 		synchronized (locker.getLocker()) {
 			while (locker.isLocked() && !locker.isCanceled()) {
 				locker.beforeCycleLocking();
+				if (locker.isCanceled()) {
+					break;
+				}
+
 				locker.getLocker().wait(delayMillis);
+
 				locker.afterCycleLocking();
-				long end=System.currentTimeMillis();
-				delayMillis-=end-start;
-				if (delayMillis<0)
+				long end = System.currentTimeMillis();
+				delayMillis -= end - start;
+				if (delayMillis < 0)
 					throw new TimeoutException();
-				start=end;
+				start = end;
 			}
 		}
 
 	}
 	void regularWait(AbstractAgent requester, LockerCondition locker) throws InterruptedException {
-		boolean w= locker.isLocked() && !locker.isCanceled();;
-		while(w) {
-			locker.beforeCycleLocking();
-			if (locker.isCanceled()) {
-				break;
-			}
-			synchronized (locker.getLocker()) {
+		synchronized (locker.getLocker()) {
+			while (locker.isLocked() && !locker.isCanceled()) {
+				locker.beforeCycleLocking();
+				if (locker.isCanceled()) {
+					break;
+				}
+
 				locker.getLocker().wait();
 			}
 			locker.afterCycleLocking();
-			w = locker.isLocked() && !locker.isCanceled();
 		}
 
 	}
