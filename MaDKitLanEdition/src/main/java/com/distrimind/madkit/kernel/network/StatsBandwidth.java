@@ -323,7 +323,7 @@ public class StatsBandwidth {
 
 	}
 
-	void newDataSent(IDTransfer id, int size, long duration) {
+	void newDataSent(IDTransfer id, int size, final long duration) {
 		StatsBandwidth sb = null;
 		synchronized (this) {
 			for (TransferSpeedStat s : bytes_uploaded_in_real_bytes.values())

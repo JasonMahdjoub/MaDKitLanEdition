@@ -89,7 +89,7 @@ public final class IPBanStat extends Table<IPBanStat.Record> {
 
 						@Override
 						public boolean nextRecord(IPBanned.Record _record) {
-							return _record.expiration_time < System.currentTimeMillis();
+							return _record.expirationTimeUTC < System.currentTimeMillis();
 						}
 					});
 					ipes.updateRecords(new AlterRecordFilter<IPExpulsedStat.Record>() {
@@ -213,7 +213,7 @@ public final class IPBanStat extends Table<IPBanStat.Record> {
 
 					byte[] key = add.getAddress();
 					IPBanned.Record ripbstat = ipb.getRecord("inet_address", key);
-					if (ripbstat != null && ripbstat.expiration_time == Long.MAX_VALUE)
+					if (ripbstat != null && ripbstat.expirationTimeUTC == Long.MAX_VALUE)
 						return ripbstat;
 					IPExpulsedStat.Record ripesstat = candidate_to_ban ? null
 							: ipes.getRecord("inet_address", key);
@@ -281,11 +281,11 @@ public final class IPBanStat extends Table<IPBanStat.Record> {
 								expirationTime = System.currentTimeMillis() + ban_duration;
 							if (ripbstat == null) {
 								ripbstat = new IPBanned.Record();
-								ripbstat.expiration_time = expirationTime;
+								ripbstat.expirationTimeUTC = expirationTime;
 								ripbstat.inet_address = key;
 								ripbstat = ipb.addRecord(ripbstat);
-							} else if (ripbstat.expiration_time < expirationTime) {
-								ripbstat.expiration_time = expirationTime;
+							} else if (ripbstat.expirationTimeUTC < expirationTime) {
+								ripbstat.expirationTimeUTC = expirationTime;
 								ipb.updateRecord(ripbstat);
 							}
 						}
@@ -314,11 +314,11 @@ public final class IPBanStat extends Table<IPBanStat.Record> {
 						if (oldExpulNumber < ripesstat.expulsed_number) {
 							if (ripbstat == null) {
 								ripbstat = new IPBanned.Record();
-								ripbstat.expiration_time = System.currentTimeMillis() + expulsion_duration;
+								ripbstat.expirationTimeUTC = System.currentTimeMillis() + expulsion_duration;
 								ripbstat.inet_address = key;
 								ripbstat = ipb.addRecord(ripbstat);
-							} else if (ripbstat.expiration_time < System.currentTimeMillis() + expulsion_duration) {
-								ripbstat.expiration_time = System.currentTimeMillis() + expulsion_duration;
+							} else if (ripbstat.expirationTimeUTC < System.currentTimeMillis() + expulsion_duration) {
+								ripbstat.expirationTimeUTC = System.currentTimeMillis() + expulsion_duration;
 								ipb.updateRecord(ripbstat);
 							}
 						}
@@ -365,7 +365,7 @@ public final class IPBanStat extends Table<IPBanStat.Record> {
 					if (r == null) {
 						return Boolean.FALSE;
 					}
-					return r.expiration_time > System.currentTimeMillis();
+					return r.expirationTimeUTC > System.currentTimeMillis();
 				}
 
 				@Override

@@ -124,9 +124,9 @@ class IndirectAgentSocket extends AbstractAgentSocket {
 		pingTaskID = scheduleTask(new Task<>((Callable<Void>) () -> {
 			if (!isAlive())
 				return null;
-			long threshold = System.currentTimeMillis() - getMadkitConfig().networkProperties.connectionTimeOut;
-			if (lastReceivedDataUTC < threshold) {
-				lastReceivedDataUTC = System.currentTimeMillis();
+			long threshold = System.nanoTime() - getMadkitConfig().networkProperties.connectionTimeOutInMs*1000000L;
+			if (lastReceivedDataNano < threshold) {
+				lastReceivedDataNano = System.nanoTime();
 
 				if (waitingPongMessage) {
 					startDisconnectionProcess(ConnectionClosedReason.CONNECTION_LOST);
@@ -135,8 +135,8 @@ class IndirectAgentSocket extends AbstractAgentSocket {
 				}
 			}
 			return null;
-		}, System.currentTimeMillis() + getMadkitConfig().networkProperties.connectionTimeOut,
-				getMadkitConfig().networkProperties.connectionTimeOut));
+		}, System.currentTimeMillis() + getMadkitConfig().networkProperties.connectionTimeOutInMs,
+				getMadkitConfig().networkProperties.connectionTimeOutInMs));
 	}
 
 	public KernelAddress getDistantKernelAddressRequester() {

@@ -97,12 +97,12 @@ public class UPNPIDGTest extends TestNGMadkit {
 										this.sendMessageWithRole(LocalCommunity.Groups.NETWORK,
 												LocalCommunity.Roles.LOCAL_NETWORK_EXPLORER_ROLE,
 												new AskForConnectionStatusMessage(m.getConcernedRouter(),
-														getMadkitConfig().networkProperties.delayBetweenEachRouterConnectionCheck),
+														getMadkitConfig().networkProperties.delayInMsBetweenEachRouterConnectionCheck),
 												LocalCommunity.Roles.LOCAL_NETWORK_ROLE);
 										this.sendMessageWithRole(LocalCommunity.Groups.NETWORK,
 												LocalCommunity.Roles.LOCAL_NETWORK_EXPLORER_ROLE,
 												new AskForExternalIPMessage(m.getConcernedRouter(),
-														getMadkitConfig().networkProperties.delayBetweenEachExternalIPRouterCheck),
+														getMadkitConfig().networkProperties.delayInMsBetweenEachExternalIPRouterCheck),
 												LocalCommunity.Roles.LOCAL_NETWORK_ROLE);
 									}
 								} else if (_message instanceof ConnexionStatusMessage) {

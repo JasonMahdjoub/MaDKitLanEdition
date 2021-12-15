@@ -278,8 +278,8 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 	public RealTimeTransferStat getStatistics() {
 		if (stat == null) {
 			final AbstractAgent receiver = getReceiver().getAgent();
-			stat = new RealTimeTransferStat(receiver.getMadkitConfig().networkProperties.bigDataStatDurationMean,
-					receiver.getMadkitConfig().networkProperties.bigDataStatDurationMean / 10);
+			stat = new RealTimeTransferStat(receiver.getMadkitConfig().networkProperties.bigDataStatDurationMeanInMs,
+					receiver.getMadkitConfig().networkProperties.bigDataStatDurationMeanInMs / 10);
 		}
 		return stat;
 

@@ -83,7 +83,7 @@ class LocalNetworkAffectationAgent extends AgentFakeThread {
 		if (getMadkitConfig().networkProperties.networkInterfaceScan)
 			this.sendMessageWithRole(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.LOCAL_NETWORK_EXPLORER_ROLE,
 					new AskForNetworkInterfacesMessage(
-							getMadkitConfig().networkProperties.delayBetweenEachNetworkInterfaceScan),
+							getMadkitConfig().networkProperties.delayInMsBetweenEachNetworkInterfaceScan),
 					LocalCommunity.Roles.LOCAL_NETWORK_AFFECTATION_ROLE);
 
 		if (getMadkitConfig().networkProperties.localInetAddressesToBind != null) {

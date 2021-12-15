@@ -106,9 +106,9 @@ public final class Task<V> implements Cloneable {
 
 	private final Callable<V> callable;
 	private V result = null;
-	private long time;
+	private long nanoTime;
 
-	final long duration_between_each_repetition;
+	final long durationBetweenEachRepetitionInNanoSeconds;
 	private boolean executeEvenIfLauncherAgentIsKilled =false;
 
 	/**
@@ -130,15 +130,15 @@ public final class Task<V> implements Cloneable {
 	 * 
 	 * @param _callable
 	 *            the runnable to execute
-	 * @param _time
+	 * @param _timeUTC
 	 *            the moment in UTC when the TaskAgent must execute this task
 	 * @throws NullPointerException
 	 *             if _runnable is null
 	 * @see AbstractAgent#scheduleTask(Task, boolean)
 	 * @see AbstractAgent#cancelTask(TaskID, boolean)
 	 */
-	public Task(Callable<V> _callable, long _time) {
-		this(_callable, _time, -1);
+	public Task(Callable<V> _callable, long _timeUTC) {
+		this(_callable, _timeUTC, -1);
 	}
 
 	/**
@@ -161,7 +161,7 @@ public final class Task<V> implements Cloneable {
 	 *
 	 * @param _callable
 	 *            the runnable to execute
-	 * @param _time
+	 * @param _timeUTC
 	 *            the moment in UTC when the TaskAgent must execute this task
 	 * @param executeEvenIfLauncherAgentIsKilled execute the task even if the agent is killed (only available for non-repetitive tasks)
 	 * @throws NullPointerException
@@ -169,8 +169,8 @@ public final class Task<V> implements Cloneable {
 	 * @see AbstractAgent#scheduleTask(Task, boolean)
 	 * @see AbstractAgent#cancelTask(TaskID, boolean)
 	 */
-	public Task(Callable<V> _callable, long _time, boolean executeEvenIfLauncherAgentIsKilled) {
-		this(_callable, _time);
+	public Task(Callable<V> _callable, long _timeUTC, boolean executeEvenIfLauncherAgentIsKilled) {
+		this(_callable, _timeUTC);
 		this.executeEvenIfLauncherAgentIsKilled = executeEvenIfLauncherAgentIsKilled;
 	}
 
@@ -179,27 +179,27 @@ public final class Task<V> implements Cloneable {
 	 * 
 	 * @param _callable
 	 *            the runnable to execute
-	 * @param _time
+	 * @param _timeUTC
 	 *            the moment in UTC when the TaskAgent must execute this task
-	 * @param _duration_between_each_repetition
-	 *            the duration between each execution
+	 * @param _duration_between_each_repetition_in_milliseconds
+	 *            the duration between each execution in milliseconds
 	 * @throws NullPointerException
 	 *             if _runnable is null
 	 * @see AbstractAgent#scheduleTask(Task, boolean)
 	 * @see AbstractAgent#cancelTask(TaskID, boolean)
 	 */
-	public Task(Callable<V> _callable, long _time, long _duration_between_each_repetition) {
+	public Task(Callable<V> _callable, long _timeUTC, long _duration_between_each_repetition_in_milliseconds) {
 		if (_callable == null)
 			throw new NullPointerException("_runnable");
 		callable = _callable;
-		time = _time;
-		duration_between_each_repetition = _duration_between_each_repetition;
+		nanoTime = System.nanoTime()+((_timeUTC-System.currentTimeMillis())*1000000L);
+		durationBetweenEachRepetitionInNanoSeconds = _duration_between_each_repetition_in_milliseconds*1000000L;
 	}
 
 	@SuppressWarnings("MethodDoesntCallSuperMethod")
 	@Override
 	public Task<V> clone() {
-		return new Task<>(callable, time, duration_between_each_repetition);
+		return new Task<>(callable, nanoTime, durationBetweenEachRepetitionInNanoSeconds);
 	}
 
 	public void run() throws Exception {
@@ -210,21 +210,27 @@ public final class Task<V> implements Cloneable {
 		return result;
 	}
 
-	public long getTimeOfExecution() {
-		return time;
+	public long getTimeUTCOfExecution() {
+		return System.currentTimeMillis()+((nanoTime -System.nanoTime())/1000000L);
+	}
+	public long getNanoTimeOfExecution() {
+		return nanoTime;
 	}
 
 	public boolean isRepetitive() {
-		return duration_between_each_repetition >= 0;
+		return durationBetweenEachRepetitionInNanoSeconds >= 0;
 	}
 
-	public long getDurationBetweenEachRepetition() {
-		return duration_between_each_repetition;
+	public long getDurationBetweenEachRepetitionInNanoSeconds() {
+		return durationBetweenEachRepetitionInNanoSeconds;
+	}
+	public long getDurationBetweenEachRepetitionInMilliSeconds() {
+		return durationBetweenEachRepetitionInNanoSeconds/1000000L;
 	}
 
 	void renewTask() {
 		if (isRepetitive())
-			time = System.currentTimeMillis() + duration_between_each_repetition;
+			nanoTime = System.nanoTime() + durationBetweenEachRepetitionInNanoSeconds;
 	}
 
 	public boolean isExecuteEvenIfLauncherAgentIsKilled() {

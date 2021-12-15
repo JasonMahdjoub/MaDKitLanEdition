@@ -341,7 +341,7 @@ class TransferAgent extends AgentFakeThread {
 
 	private void launchTimeElapsedTask() {
 		long d = System.currentTimeMillis()
-				+ getMadkitConfig().networkProperties.durationBeforeCancelingTransferConnection;
+				+ getMadkitConfig().networkProperties.durationInMsBeforeCancelingTransferConnection;
 		timeElapsed.set(d);
 		timeElapsedTask.set(scheduleTask(new Task<>((Callable<Void>) () -> {
 			if (timeElapsedTask.getAndSet(null) != null) {
@@ -574,7 +574,7 @@ class TransferAgent extends AgentFakeThread {
 		private final KernelAddress transferToKernelAddress;
 		private TransferedBlockChecker transferBlockChecker;
 		private PointToPointTransferedBlockChecker lastPointToPointTransferredBlockChecker;
-		private long lastAccessUTC;
+		private long lastAccessNano;
 
 		InterfacedIDTransfer(IDTransfer local_id, AgentAddress transferToAgentAddress,
 				KernelAddress transferToKernelAddress) {
@@ -583,7 +583,7 @@ class TransferAgent extends AgentFakeThread {
 			this.transferToAgentAddress = transferToAgentAddress;
 			this.transferToKernelAddress = transferToKernelAddress;
 			this.transferBlockChecker = null;
-			lastAccessUTC = System.currentTimeMillis();
+			lastAccessNano = System.nanoTime();
 		}
 
 		private InterfacedIDTransfer(InterfacedIDTransfer id) {
@@ -592,7 +592,7 @@ class TransferAgent extends AgentFakeThread {
 			this.transferToAgentAddress = id.transferToAgentAddress;
 			this.transferToKernelAddress = id.transferToKernelAddress;
 			this.transferBlockChecker = id.transferBlockChecker;
-			this.lastAccessUTC = id.lastAccessUTC;
+			this.lastAccessNano = id.lastAccessNano;
 			this.lastPointToPointTransferredBlockChecker =null;
 		}
 
@@ -609,46 +609,46 @@ class TransferAgent extends AgentFakeThread {
 		}
 
 		KernelAddress getTransferToKernelAddress() {
-			lastAccessUTC = System.currentTimeMillis();
+			lastAccessNano = System.nanoTime();
 			return transferToKernelAddress;
 		}
 
 		IDTransfer getDistantID() {
-			lastAccessUTC = System.currentTimeMillis();
+			lastAccessNano = System.nanoTime();
 			return distant_id;
 		}
 
 		void setDistantID(IDTransfer _distant_id) {
-			lastAccessUTC = System.currentTimeMillis();
+			lastAccessNano = System.nanoTime();
 			distant_id = _distant_id;
 		}
 
 		IDTransfer getLocalID() {
-			lastAccessUTC = System.currentTimeMillis();
+			lastAccessNano = System.nanoTime();
 			return local_id;
 		}
 
 		AgentAddress getTransferToAgentAddress() {
-			lastAccessUTC = System.currentTimeMillis();
+			lastAccessNano = System.nanoTime();
 			return transferToAgentAddress;
 		}
 
 		void setTransferToAgentAddress(AgentAddress aa) {
-			lastAccessUTC = System.currentTimeMillis();
+			lastAccessNano = System.nanoTime();
 			this.transferToAgentAddress = aa;
 		}
 
 		TransferedBlockChecker getTransferBlockChecker() {
-			lastAccessUTC = System.currentTimeMillis();
+			lastAccessNano = System.nanoTime();
 			return transferBlockChecker;
 		}
 
 		void setTransferBlockChecker(TransferedBlockChecker _transferBlockChecker) {
-			lastAccessUTC = System.currentTimeMillis();
+			lastAccessNano = System.nanoTime();
 			transferBlockChecker = _transferBlockChecker;
 		}
 		void setLastPointToPointTransferredBlockChecker(PointToPointTransferedBlockChecker lastPointToPointTransferredBlockChecker) {
-			lastAccessUTC = System.currentTimeMillis();
+			lastAccessNano = System.nanoTime();
 			this.lastPointToPointTransferredBlockChecker = lastPointToPointTransferredBlockChecker;
 		}
 		
@@ -659,8 +659,8 @@ class TransferAgent extends AgentFakeThread {
 		
 		
 
-		long getLastAccessUTC() {
-			return lastAccessUTC;
+		long getLastAccessNano() {
+			return lastAccessNano;
 		}
 
 	}

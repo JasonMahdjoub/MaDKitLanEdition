@@ -164,6 +164,7 @@ final public class Madkit {
 							.addItem(NEW_FEATURE, "Add function RealTimeTransferStat.getNumberOfIdentifiedBytesFromCreationOfTheseStatistics()")
 							.addItem(NEW_FEATURE, "Add function RealTimeTransferStat.getDurationInMsFromCreationTimeOfTheseStatistics()")
 							.addItem(BUG_FIX, "Fix issue with calculation of written data during network transfer")
+							.addItem(BUG_FIX, "Base delay calculation on System.nanoTime() function and not on System.currentTimeMillis() for better results if UTC time change during the process running.")
 					)
 					.addDescription(new Description((short)2, (short)2, (short)3, Version.Type.STABLE, (short)0, "2021-11-02")
 							.addItem(INTERNAL_CHANGE, "Update Utils to 5.21.0 STABLE")

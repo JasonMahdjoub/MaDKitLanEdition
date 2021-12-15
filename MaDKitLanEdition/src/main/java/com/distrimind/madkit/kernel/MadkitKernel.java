@@ -199,7 +199,7 @@ class MadkitKernel extends Agent {
 
 	private final ConcurrentHashMap<String, Organization> organizations;
 	final private Set<Overlooker<? extends AbstractAgent>> operatingOverlookers;
-	
+
 	protected Madkit platform;
 	final private KernelAddress kernelAddress;
 
@@ -243,7 +243,7 @@ class MadkitKernel extends Agent {
 
 	/**
 	 * Constructing the real one.
-	 * 
+	 *
 	 * @param m madkit
 	 */
 	@SuppressWarnings("ResultOfMethodCallIgnored")
@@ -525,7 +525,7 @@ class MadkitKernel extends Agent {
 	 * Tells if a group must be manually created through
 	 * {@link AbstractAgent#createGroup(Group)} or if groups can be automatically
 	 * created.
-	 * 
+	 *
 	 * @param value
 	 *            true if groups can be automatically created
 	 */
@@ -538,7 +538,7 @@ class MadkitKernel extends Agent {
 	 * Tells if a group must be manually created through
 	 * {@link AbstractAgent#createGroup(Group)} or if groups can be automatically
 	 * created.
-	 * 
+	 *
 	 * @return true if groups can be automatically created
 	 */
     @SuppressWarnings("unused")
@@ -632,7 +632,7 @@ class MadkitKernel extends Agent {
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	private void addWebRepository() {
 		final URL repoLocation = getMadkitConfig().madkitRepositoryURL;
@@ -692,9 +692,9 @@ class MadkitKernel extends Agent {
 			 * MadkitProperties currentConfig = mkCfg.clone(); currentConfig.putAll(mkCfg);
 			 */
 			try {
-				
+
 				mkCfg.loadYAML(yamlFile);
-				
+
 			} catch (IOException e) {
 				getLogger().severeLog("", e);
 			}
@@ -2649,8 +2649,6 @@ class MadkitKernel extends Agent {
 				((Agent) target).getAgentExecutor().cancelEnd(true);
 			if (timeOutSeconds < Integer.MAX_VALUE) {
 
-				final long expirationTime = System.currentTimeMillis() + (((long) timeOutSeconds) * 1000L);
-				long delay = expirationTime - System.currentTimeMillis();
 				try {
 					wait(this, new LockerCondition(target.state) {
 
@@ -2659,7 +2657,7 @@ class MadkitKernel extends Agent {
 
 							return target.isKillingInProgress();
 						}
-					}, delay);
+					}, ((long) timeOutSeconds) * 1000L);
 				} catch (InterruptedException | TimeoutException ignored) {
 
 				}
@@ -3737,11 +3735,7 @@ class MadkitKernel extends Agent {
 				locker.beforeCycleLocking();
 				if (locker.isCanceled())
 					break;
-
-
 				personalCondition.await();
-
-
 				locker.afterCycleLocking();
 			}
 		}
@@ -3752,7 +3746,8 @@ class MadkitKernel extends Agent {
 	}
 	void regularWait(@SuppressWarnings("unused") AbstractAgent requester, LockerCondition locker, long delayMillis) throws InterruptedException, TimeoutException {
 
-		long start=System.currentTimeMillis();
+		long start=System.nanoTime();
+		boolean w=true;
 		synchronized (locker.getLocker()) {
 			while (locker.isLocked() && !locker.isCanceled()) {
 				locker.beforeCycleLocking();
@@ -3763,8 +3758,8 @@ class MadkitKernel extends Agent {
 				locker.getLocker().wait(delayMillis);
 
 				locker.afterCycleLocking();
-				long end = System.currentTimeMillis();
-				delayMillis -= end - start;
+				long end = System.nanoTime();
+				delayMillis -= (end - start)/1000000L;
 				if (delayMillis < 0)
 					throw new TimeoutException();
 				start = end;
@@ -3781,8 +3776,10 @@ class MadkitKernel extends Agent {
 				}
 
 				locker.getLocker().wait();
+				locker.afterCycleLocking();
+
 			}
-			locker.afterCycleLocking();
+
 		}
 
 	}
@@ -3853,12 +3850,12 @@ class MadkitKernel extends Agent {
 			ScheduledFuture<?> future;
 			if (_task.isRepetitive()) {
 				future = executorService.scheduleWithFixedDelay(runnable,
-								Math.max(0, _task.getTimeOfExecution() - System.currentTimeMillis()),
-								_task.getDurationBetweenEachRepetition(), TimeUnit.MILLISECONDS);
+								Math.max(0, _task.getNanoTimeOfExecution() - System.nanoTime()),
+								_task.getDurationBetweenEachRepetitionInNanoSeconds(), TimeUnit.NANOSECONDS);
 			} else {
 				future = executorService.schedule(runnable,
-								Math.max(0, _task.getTimeOfExecution() - System.currentTimeMillis()),
-								TimeUnit.MILLISECONDS);
+								Math.max(0, _task.getNanoTimeOfExecution() - System.nanoTime()),
+								TimeUnit.NANOSECONDS);
 			}
 			taskID.setFuture(future);
 			return taskID;
@@ -4029,8 +4026,8 @@ class MadkitKernel extends Agent {
 			return null;
 		}
 		RealTimeTransferStat stat = new RealTimeTransferStat(
-				getMadkitConfig().networkProperties.bigDataStatDurationMean,
-				getMadkitConfig().networkProperties.bigDataStatDurationMean / 10);
+				getMadkitConfig().networkProperties.bigDataStatDurationMeanInMs,
+				getMadkitConfig().networkProperties.bigDataStatDurationMeanInMs / 10);
 
 		BigDataPropositionMessage message = new BigDataPropositionMessage(inputStream, record.getCurrentStreamPosition(),
 				inputStream.length()-record.getCurrentStreamPosition(), record.isTransferStarted()?null:record.getAttachedData(),
@@ -4057,8 +4054,8 @@ class MadkitKernel extends Agent {
 			return null;
 		else {
 			RealTimeTransferStat stat = new RealTimeTransferStat(
-					getMadkitConfig().networkProperties.bigDataStatDurationMean,
-					getMadkitConfig().networkProperties.bigDataStatDurationMean / 10);
+					getMadkitConfig().networkProperties.bigDataStatDurationMeanInMs,
+					getMadkitConfig().networkProperties.bigDataStatDurationMeanInMs / 10);
 			BigDataPropositionMessage message = new BigDataPropositionMessage(stream, pos, length, attachedData,
 					target.isFrom(getKernelAddress()), requester.getMadkitConfig().networkProperties.maxBufferSize,
 					stat, messageDigestType, excludeFromEncryption);

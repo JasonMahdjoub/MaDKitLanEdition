@@ -845,14 +845,14 @@ class UpnpIGDAgent extends AgentFakeThread {
 					synchronized (asks_for_status) {
 						asks_for_status.add(m);
 						if (status_task_id != null && (status_task_updater == null
-								|| status_task_updater.getDurationBetweenEachRepetition() > m.getDelay())) {
+								|| status_task_updater.getDurationBetweenEachRepetitionInMilliSeconds() > m.getDelayInMs())) {
 							UpnpIGDAgent.this.cancelTask(status_task_id, false);
 							status_task_id = null;
 							status_task_updater = null;
 						}
 						if (status_task_updater == null) {
 							update_repetitive_task = true;
-							referenced_delay = m.getDelay();
+							referenced_delay = m.getDelayInMs();
 						}
 					}
 				} else {
@@ -862,7 +862,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 						while (it.hasNext()) {
 							AskForConnectionStatusMessage tmpm = it.next();
 							if (tmpm.getSender().equals(m.getSender())) {
-								delay = tmpm.getDelay();
+								delay = tmpm.getDelayInMs();
 								it.remove();
 								cancel = true;
 								break;
@@ -870,7 +870,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 						}
 
 						if (cancel) {
-							if (delay == status_task_updater.getDurationBetweenEachRepetition()
+							if (delay == status_task_updater.getDurationBetweenEachRepetitionInMilliSeconds()
 									|| asks_for_status.size() == 0) {
 								UpnpIGDAgent.this.cancelTask(status_task_id, false);
 								status_task_id = null;
@@ -878,8 +878,8 @@ class UpnpIGDAgent extends AgentFakeThread {
 							}
 							if (asks_for_status.size() > 0) {
 								for (AskForConnectionStatusMessage tmpm : asks_for_status) {
-									if (tmpm.getDelay() > referenced_delay)
-										referenced_delay = tmpm.getDelay();
+									if (tmpm.getDelayInMs() > referenced_delay)
+										referenced_delay = tmpm.getDelayInMs();
 								}
 								update_repetitive_task = true;
 							}
@@ -948,14 +948,14 @@ class UpnpIGDAgent extends AgentFakeThread {
 					synchronized (asks_for_external_ip) {
 						asks_for_external_ip.add(m);
 						if (external_address_task_updater != null
-								&& external_address_task_updater.getDurationBetweenEachRepetition() > m.getDelay()) {
+								&& external_address_task_updater.getDurationBetweenEachRepetitionInMilliSeconds() > m.getDelayInMs()) {
 							UpnpIGDAgent.this.cancelTask(external_address_task_id, false);
 							external_address_task_id = null;
 							external_address_task_updater = null;
 						}
 						if (external_address_task_updater == null) {
 							update_repetitive_task = true;
-							referenced_delay = m.getDelay();
+							referenced_delay = m.getDelayInMs();
 						}
 					}
 				} else {
@@ -965,7 +965,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 						while (it.hasNext()) {
 							AskForExternalIPMessage tmpm = it.next();
 							if (tmpm.getSender().equals(m.getSender())) {
-								delay = tmpm.getDelay();
+								delay = tmpm.getDelayInMs();
 								it.remove();
 								cancel = true;
 								break;
@@ -973,7 +973,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 						}
 
 						if (cancel) {
-							if (delay == external_address_task_updater.getDurationBetweenEachRepetition()
+							if (delay == external_address_task_updater.getDurationBetweenEachRepetitionInMilliSeconds()
 									|| asks_for_external_ip.size() == 0) {
 								UpnpIGDAgent.this.cancelTask(external_address_task_id, false);
 								external_address_task_id = null;
@@ -981,8 +981,8 @@ class UpnpIGDAgent extends AgentFakeThread {
 							}
 							if (asks_for_external_ip.size() > 0) {
 								for (AskForExternalIPMessage tmpm : asks_for_external_ip) {
-									if (tmpm.getDelay() > referenced_delay)
-										referenced_delay = tmpm.getDelay();
+									if (tmpm.getDelayInMs() > referenced_delay)
+										referenced_delay = tmpm.getDelayInMs();
 								}
 								update_repetitive_task = true;
 							}
@@ -1332,7 +1332,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 	protected class NetworkInterfaceInfo {
 
 		ArrayList<NetworkInterface> network_interfaces = new ArrayList<>();
-		long min_delay = -1;
+		long minNanoDelay = -1;
 		HashMap<AgentAddress, AskForNetworkInterfacesMessage> callers = new HashMap<>();
 		TaskID task_id = null;
 		Task<Object> task = null;
@@ -1366,36 +1366,36 @@ class UpnpIGDAgent extends AgentFakeThread {
 				if (shutdown)
 					return;
 				boolean removed = false;
-				final long old_delay = min_delay;
+				final long oldNanoDelay = minNanoDelay;
 				if (callers.remove(_message.getSender()) != null) {
-					min_delay = -1;
+					minNanoDelay = -1;
 					removed = true;
 				}
 				if (_message.isRepetitive()) {
 					callers.put(_message.getSender(), _message);
-					min_delay = -1;
+					minNanoDelay = -1;
 				}
-				if (min_delay == -1 && callers.size() > 0) {
-					min_delay = Long.MAX_VALUE;
+				if (minNanoDelay == -1 && callers.size() > 0) {
+					minNanoDelay = Long.MAX_VALUE;
 
 					for (AskForNetworkInterfacesMessage afni : callers.values()) {
-						if (min_delay > afni.getDelay())
-							min_delay = afni.getDelay();
+						if (minNanoDelay > afni.getDelayIsMs()*1000000L)
+							minNanoDelay = afni.getDelayIsMs()*1000000L;
 					}
-					if (min_delay < 0)
-						min_delay = -1;
+					if (minNanoDelay < 0)
+						minNanoDelay = -1;
 				}
-				if (old_delay == -1 || old_delay > min_delay) {
-					if (old_delay != -1) {
+				if (oldNanoDelay == -1 || oldNanoDelay > minNanoDelay) {
+					if (oldNanoDelay != -1) {
 						cancelTask(task_id, false);
 						task_id = null;
 					}
 
-					if (min_delay != -1) {
+					if (minNanoDelay != -1) {
 
 						task = new Task<>(new Callable<Object>() {
-                            long oldTime=System.currentTimeMillis()+(old_delay!=-1?old_delay:0);
-                            final long maxDelayBeforeDetectingOSWakeUp=min_delay*2;//Math.min(min_delay*2, getMadkitConfig().networkProperties.connectionTimeOut);
+                            long oldNanoTime=System.nanoTime()+(oldNanoDelay!=-1?oldNanoDelay:0);
+                            final long maxDelayInMsBeforeDetectingOSWakeUp =minNanoDelay*2;//Math.min(min_delay*2, getMadkitConfig().networkProperties.connectionTimeOut);
 							@Override
 							public Object call() {
 
@@ -1405,8 +1405,8 @@ class UpnpIGDAgent extends AgentFakeThread {
 									ArrayList<NetworkInterface> cur_nis = init();
 									ArrayList<NetworkInterface> new_nis = new ArrayList<>();
 									ArrayList<NetworkInterface> del_nis = new ArrayList<>();
-									long newTime=System.currentTimeMillis();
-									if (newTime>oldTime+maxDelayBeforeDetectingOSWakeUp) {//detect OS wake up
+									long newNanoTime=System.nanoTime();
+									if (newNanoTime>oldNanoTime+ maxDelayInMsBeforeDetectingOSWakeUp*1000000L) {//detect OS wake up
                                         del_nis.addAll(network_interfaces);
 
                                         if (del_nis.size() > 0) {
@@ -1431,7 +1431,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 											e.printStackTrace();
 										}
 									}
-                                    oldTime = newTime;
+                                    oldNanoTime = newNanoTime;
 
 									for (NetworkInterface ni : network_interfaces) {
 										boolean found = false;
@@ -1481,7 +1481,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 									return null;
 								}
 							}
-						}, (old_delay != -1 ? old_delay : 0)+System.currentTimeMillis(), min_delay);
+						}, (oldNanoDelay != -1 ? oldNanoDelay : 0)/1000000L+System.currentTimeMillis(), minNanoDelay/1000000L);
 						task_id = scheduleTask(task);
 					}
 				}
@@ -1502,7 +1502,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 				if (task_id != null)
 					cancelTask(this.task_id, false);
 				this.callers.clear();
-				this.min_delay = -1;
+				this.minNanoDelay = -1;
 				this.task = null;
 				this.task_id = null;
 				shutdown = true;
@@ -1855,24 +1855,24 @@ class UpnpIGDAgent extends AgentFakeThread {
 
 	public static abstract class RepetitiveRouterRequest extends AbstractRouterMessage {
 
-		private final long delay;
+		private final long delayInMs;
 
 		protected RepetitiveRouterRequest(InetAddress _concerned_router, long _delay_between_each_check) {
 			super(_concerned_router);
-			delay = _delay_between_each_check;
+			delayInMs = _delay_between_each_check;
 		}
 
-		public long getDelay() {
-			return delay;
+		public long getDelayInMs() {
+			return delayInMs;
 		}
 
 		public boolean isRepetitive() {
-			return delay > 0;
+			return delayInMs > 0;
 		}
 
 		@Override
 		public String toString() {
-			return getClass().getSimpleName() + "[concernedRouter=" + getConcernedRouter() + ", delay=" + delay + "]";
+			return getClass().getSimpleName() + "[concernedRouter=" + getConcernedRouter() + ", delay=" + delayInMs + "]";
 		}
 	}
 
@@ -1938,23 +1938,23 @@ class UpnpIGDAgent extends AgentFakeThread {
 
 	public static class AskForNetworkInterfacesMessage extends Message {
 
-		private final long delay;
+		private final long delayIsMs;
 
 		public AskForNetworkInterfacesMessage(long _delay_between_each_check) {
-			delay = _delay_between_each_check;
+			delayIsMs = _delay_between_each_check;
 		}
 
-		public long getDelay() {
-			return delay;
+		public long getDelayIsMs() {
+			return delayIsMs;
 		}
 
 		public boolean isRepetitive() {
-			return delay > 0;
+			return delayIsMs > 0;
 		}
 
 		@Override
 		public String toString() {
-			return "AskForNetworkInterfacesMessage[delay=" + delay + "]";
+			return "AskForNetworkInterfacesMessage[delay=" + delayIsMs + "]";
 		}
 
 	}

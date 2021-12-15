@@ -180,7 +180,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * A file transfer is computed in bytes per second according the average of data
 	 * transferred during the last specified milliseconds (this variable).
 	 */
-	public long bigDataStatDurationMean = 1000L;
+	public long bigDataStatDurationMeanInMs = 1000L;
 
 	/**
 	 * Asynchronous big messages sent to the same group/role agent will be differed
@@ -201,10 +201,10 @@ public class NetworkProperties extends MultiFormatProperties {
 	/**
 	 * When received data are incorrect or when an anomaly has been detected through
 	 * the lan, and if the problem does not correspond to a security problem, the
-	 * system can temporary expel the distant host temporary. This variable
-	 * correspond to the duration in milliseconds of this expulsion.
+	 * system can temporarily expel the distant host temporary. This variable
+	 * corresponds to the duration in milliseconds of this expulsion.
 	 */
-	public long expulsionDuration = 600000L;
+	public long expulsionDurationInMs = 600000L;
 
 	/**
 	 * When received data are incorrect or when an anomaly has been detected through
@@ -274,7 +274,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * security is maintained.
 	 * 
 	 * @see #gatewayDepth
-	 * @see #timeBetweenEachUpdateOfTransferSpeedForGatewayConnection
+	 * @see #timeInMsBetweenEachUpdateOfTransferSpeedForGatewayConnection
 	 */
 	public boolean gatewayConnection = false;
 
@@ -288,7 +288,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	public int gatewayDepth = 1;
 
 	/**
-	 * Define the duration between each update of the transfer speed between the two
+	 * Define the duration in milliseconds between each update of the transfer speed between the two
 	 * connected computers connected through the current computer. The transfer
 	 * speed is automatically computed.
 	 * 
@@ -297,7 +297,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * 
 	 * @see #gatewayConnection
 	 */
-	public long timeBetweenEachUpdateOfTransferSpeedForGatewayConnection = 30000L;
+	public long timeInMsBetweenEachUpdateOfTransferSpeedForGatewayConnection = 30000L;
 
 	/**
 	 * Define the number of cached blocks in bytes to transfer to another machine.
@@ -343,10 +343,10 @@ public class NetworkProperties extends MultiFormatProperties {
 	public int numberOfMaximumConnectionsFromOneIPV6 = 8;
 
 	/**
-	 * Gives the duration after what the system will consider as obsolete a transfer
+	 * Gives the duration in milliseconds after what the system will consider as obsolete a transfer
 	 * connection between two peers with the current peer as intermediate peer.
 	 */
-	public long durationBeforeCancelingTransferConnection = 120000L;
+	public long durationInMsBeforeCancelingTransferConnection = 120000L;
 
 	/**
 	 * Distant Ip addresses are divided into IP range. Each IP range is associated
@@ -357,26 +357,26 @@ public class NetworkProperties extends MultiFormatProperties {
 	public short maximumNumberOfCryptoKeysForIpsSpectrum = (short) 1000;
 
 	/**
-	 * Delay after a channel selector returns 0 network event and gives hand to the
+	 * Delay in milliseconds after a channel selector returns 0 network event and gives hand to the
 	 * system for eventual data refresh
 	 */
-	public long selectorTimeOut = 30000L;
+	public long selectorTimeOutInMs = 30000L;
 	
 	/**
-	 * Delay to wait in milliseconds before closing a connection, and in order to be sure to send the last packet.
+	 * Delay in milliseconds to wait in milliseconds before closing a connection, and in order to be sure to send the last packet.
 	 */
 	public long delayInMsBeforeClosingConnectionNormally=300;
 
 	/**
-	 * Delay after a channel selector returns 0 network event and gives hand to the
+	 * Delay in milliseconds after a channel selector returns 0 network event and gives hand to the
 	 * system for eventual data refresh
 	 */
-	public long selectorTimeOutWhenWaitingPendingConnections = 300L;
+	public long selectorTimeOutInMsWhenWaitingPendingConnections = 300L;
 
 	/**
-	 * Delay after a connection is considered obsolete if no data was transferred.
+	 * Delay in milliseconds after a connection is considered obsolete if no data was transferred.
 	 */
-	public long connectionTimeOut = 30000L;
+	public long connectionTimeOutInMs = 30000L;
 
 	/**
 	 * Tells if the UPNP IGD protocol is activated.
@@ -384,7 +384,7 @@ public class NetworkProperties extends MultiFormatProperties {
 	 * This protocol enables to open port into the local router, in order to have
 	 * access to internet.
 	 * 
-	 * @see #timeBetweenEachUpdateOfTransferSpeedForGatewayConnection
+	 * @see #timeInMsBetweenEachUpdateOfTransferSpeedForGatewayConnection
 	 */
 	public boolean upnpIGDEnabled = false;
 	
@@ -404,51 +404,51 @@ public class NetworkProperties extends MultiFormatProperties {
 	public Level upnpIGDLogLevel = Level.INFO;
 
 	/**
-	 * This value represents the time between each local router scan, this in order
+	 * This value represents the time in milliseconds between each local router scan, this in order
 	 * to update data about local router.
 	 * 
 	 * @see #upnpIGDEnabled
 	 */
-	public long delayBetweenEachRouterConnectionCheck = 10000L;
+	public long delayInMsBetweenEachRouterConnectionCheck = 10000L;
 
 	/**
-	 * This value represents the time between each scan of external ip of each local
+	 * This value represents the time in milliseconds between each scan of external ip of each local
 	 * router, this in order to update data about available internet connection.
 	 * 
 	 * @see #upnpIGDEnabled
 	 */
-	public long delayBetweenEachExternalIPRouterCheck = 3600000L;
+	public long delayInMsBetweenEachExternalIPRouterCheck = 3600000L;
 
 	/**
 	 * Tells if the network interfaces availability can be scanned (does not work if
 	 * {@link NetworkProperties#upnpIGDEnabled} is set to <code>false</code>.
 	 * 
-	 * @see #timeBetweenEachUpdateOfTransferSpeedForGatewayConnection
+	 * @see #timeInMsBetweenEachUpdateOfTransferSpeedForGatewayConnection
 	 */
 	public boolean networkInterfaceScan = true;
 
 	/**
-	 * This value represents the time between each local network interface scan,
+	 * This value represents the time in milliseconds between each local network interface scan,
 	 * this in order to update data about available and connected network interface.
 	 */
-	public long delayBetweenEachNetworkInterfaceScan = 30000L;
+	public long delayInMsBetweenEachNetworkInterfaceScan = 30000L;
 
 	/**
-	 * Delay before routing kernel optimize the choice of agents sockets for packets
+	 * Delay in milliseconds before routing kernel optimize the choice of agents sockets for packets
 	 * sending.
 	 */
-	public long delayBetweenEachAgentSocketOptimization = 10000L;
+	public long delayInMsBetweenEachAgentSocketOptimization = 10000L;
 
 	/**
-	 * Delay before distant kernel address checking becomes obsolete.
+	 * Delay in milliseconds before distant kernel address checking becomes obsolete.
 	 */
-	public long maxDurationOfDistantKernelAddressCheck = 60000L;
+	public long maxDurationInMsOfDistantKernelAddressCheck = 60000L;
 
 	/**
-	 * Delay before closing connections using a network interface slowest than
+	 * Delay in milliseconds before closing connections using a network interface slowest than
 	 * others.
 	 */
-	public long maxDurationBeforeClosingObsoleteNetworkInterfaces = 60000L;
+	public long maxDurationInMsBeforeClosingObsoleteNetworkInterfaces = 60000L;
 
 	/**
 	 * for internal use

@@ -157,7 +157,7 @@ public class MKDatabaseTests {
 		}
 		for (IPBanned.Record ipb : ipbanned.getRecords()) {
 			AssertJUnit.assertArrayEquals(ia1.getAddress(), ipb.inet_address);
-			AssertJUnit.assertTrue(ipb.expiration_time < System.currentTimeMillis() + 200);
+			AssertJUnit.assertTrue(ipb.expirationTimeUTC < System.currentTimeMillis() + 200);
 		}
 
 		Thread.sleep(200);
@@ -186,7 +186,7 @@ public class MKDatabaseTests {
 		}
 		for (IPBanned.Record ipb : ipbanned.getRecords()) {
 			AssertJUnit.assertArrayEquals(ia1.getAddress(), ipb.inet_address);
-			AssertJUnit.assertTrue(ipb.expiration_time < System.currentTimeMillis() + 200);
+			AssertJUnit.assertTrue(ipb.expirationTimeUTC < System.currentTimeMillis() + 200);
 		}
 		Thread.sleep(500);
 		ipbanstat.updateDatabase(500, 500, (short) 2, (short) 1);
@@ -225,7 +225,7 @@ public class MKDatabaseTests {
 		}
 		for (IPBanned.Record ipb : ipbanned.getRecords()) {
 			AssertJUnit.assertArrayEquals(ia1.getAddress(), ipb.inet_address);
-			AssertJUnit.assertTrue(ipb.expiration_time < System.currentTimeMillis() + 200);
+			AssertJUnit.assertTrue(ipb.expirationTimeUTC < System.currentTimeMillis() + 200);
 		}
 		ipbanstat.processExpulsion(ia1, true, 200, (short) 2, (short) 2, 200, (short) 1, (short) 2, 500, 500,
 				allowInetAddressesList);
@@ -243,7 +243,7 @@ public class MKDatabaseTests {
 		}
 		for (IPBanned.Record ipb : ipbanned.getRecords()) {
 			AssertJUnit.assertArrayEquals(ia1.getAddress(), ipb.inet_address);
-			AssertJUnit.assertEquals(ipb.expiration_time, Long.MAX_VALUE);
+			AssertJUnit.assertEquals(ipb.expirationTimeUTC, Long.MAX_VALUE);
 		}
 
 		Thread.sleep(500);

@@ -204,8 +204,8 @@ public class NetworkEventListener implements MadkitEventListener {
 		if (localDataAmountAcc != null)
 			_properties.networkProperties.maxSizeForUnreadShortDataFromOneDistantKernel = localDataAmountAcc;
 		_properties.setUseMadkitSchedulerWithFortunaSecureRandom(false);
-		_properties.networkProperties.durationBeforeCancelingTransferConnection = durationBeforeCancelingTransferConnection;
-		_properties.networkProperties.connectionTimeOut = durationBeforeCancelingTransferConnection;
+		_properties.networkProperties.durationInMsBeforeCancelingTransferConnection = durationBeforeCancelingTransferConnection;
+		_properties.networkProperties.connectionTimeOutInMs = durationBeforeCancelingTransferConnection;
 		_properties.networkProperties.network = network;
 		_properties.networkProperties.upnpIGDEnabled = upnpIGDEnabled;
 		_properties.networkProperties.autoConnectWithLocalSitePeers = autoConnectWithLocalSitePeers;

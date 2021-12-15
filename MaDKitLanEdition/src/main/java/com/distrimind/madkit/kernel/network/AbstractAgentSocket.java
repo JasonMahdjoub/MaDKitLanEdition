@@ -222,8 +222,8 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 	private TaskID taskTransferNodeChecker = null;
 	private final AtomicReference<StatsBandwidth> stats = new AtomicReference<>(null);
 	private boolean isBanned = false;
-	protected volatile long lastDistKernADataToUpgradeMessageSentUTC = Long.MIN_VALUE;
-	protected volatile long lastReceivedDataUTC = Long.MIN_VALUE;
+	protected volatile long lastDistKernADataToUpgradeMessageSentNano = Long.MIN_VALUE;
+	protected volatile long lastReceivedDataNano = Long.MIN_VALUE;
 
 	public AbstractAgentSocket(AbstractIP distantIP, AgentAddress agent_for_distant_kernel_aa, SocketChannel _socket,
 			AgentAddress _nio_agent_address, InetSocketAddress _distant_inet_address,
@@ -285,8 +285,8 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			taskTransferNodeChecker = this.scheduleTask(new Task<>((Callable<Void>) () -> {
 				receiveMessage(new CheckDeadTransferNodes());
 				return null;
-			}, System.currentTimeMillis() + getMadkitConfig().networkProperties.connectionTimeOut,
-					getMadkitConfig().networkProperties.connectionTimeOut));
+			}, System.currentTimeMillis() + getMadkitConfig().networkProperties.connectionTimeOutInMs,
+					getMadkitConfig().networkProperties.connectionTimeOutInMs));
 		}
 	}
 
@@ -303,8 +303,8 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		}
 	}
 
-	protected long getDelayBeforeTransferNodeBecomesObsolete() {
-		return getMadkitConfig().networkProperties.connectionTimeOut * 3;
+	protected long getDelayInMsBeforeTransferNodeBecomesObsolete() {
+		return getMadkitConfig().networkProperties.connectionTimeOutInMs * 3;
 	}
 
 	@Override
@@ -702,7 +702,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				if (sendMessage) {
 					if (sendMessageWithRole(nio_agent_address, new DataToSendMessage(d, getSocketID()),
 							LocalCommunity.Roles.SOCKET_AGENT_ROLE).equals(ReturnCode.SUCCESS)) {
-						lastDistKernADataToUpgradeMessageSentUTC = System.currentTimeMillis();
+						lastDistKernADataToUpgradeMessageSentNano = System.nanoTime();
 					}
 				}
 			}
@@ -808,7 +808,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					}
 					return null;
 				}, System.currentTimeMillis()
-						+ getMadkitConfig().networkProperties.maxDurationOfDistantKernelAddressCheck));
+						+ getMadkitConfig().networkProperties.maxDurationInMsOfDistantKernelAddressCheck));
 				
 			} else {
 				// The received distant kernel address is unique into this peer.
@@ -1625,7 +1625,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					}));
 				}
 				return null;
-			}, getMadkitConfig().networkProperties.connectionTimeOut));
+			}, getMadkitConfig().networkProperties.connectionTimeOutInMs));
 
 		}
 
@@ -1925,7 +1925,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 
 
 	private void receiveData(byte[] _bytes) {
-		lastReceivedDataUTC = System.currentTimeMillis();
+		lastReceivedDataNano = System.nanoTime();
 		dataSynchronizer.receiveData(_bytes, dataSynchronized);
 	}
 
@@ -2831,7 +2831,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					IPBanned.Record r = getMadkitConfig().getDatabaseWrapper()
 							.getTableInstance(IPBanStat.class).processExpulsion(nbAnomalies,
 									distant_inet_address.getAddress(), false,
-									getMadkitConfig().networkProperties.expulsionDuration,
+									getMadkitConfig().networkProperties.expulsionDurationInMs,
 									getMadkitConfig().networkProperties.nbMaxAnomaliesBeforeTriggeringExpulsion,
 									getMadkitConfig().networkProperties.nbMaxExpulsions,
 									getMadkitConfig().networkProperties.banishmentDuration,
@@ -2840,9 +2840,9 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 									getMadkitConfig().networkProperties.expulsionStatisticDuration,
 									getMadkitConfig().networkProperties.banishmentStatisticDuration,
 									getMadkitConfig().networkProperties.getAllowInetAddressesList());
-					if ((r != null && r.expiration_time > System.currentTimeMillis())) {
+					if ((r != null && r.expirationTimeUTC > System.currentTimeMillis())) {
 						MadkitKernelAccess.informHooks(this,
-								new IPBannedEvent(distant_inet_address.getAddress(), r.expiration_time));
+								new IPBannedEvent(distant_inet_address.getAddress(), r.expirationTimeUTC));
 						startDisconnectionProcess(ConnectionClosedReason.CONNECTION_ANOMALY);
 						return true;
 					}
@@ -2870,7 +2870,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			if (getMadkitConfig().getDatabaseWrapper() != null) {
 				IPBanned.Record r = getMadkitConfig().getDatabaseWrapper()
 						.getTableInstance(IPBanStat.class).processExpulsion(distant_inet_address.getAddress(),
-								candidate_to_ban, getMadkitConfig().networkProperties.expulsionDuration,
+								candidate_to_ban, getMadkitConfig().networkProperties.expulsionDurationInMs,
 								getMadkitConfig().networkProperties.nbMaxAnomaliesBeforeTriggeringExpulsion,
 								getMadkitConfig().networkProperties.nbMaxExpulsions,
 								getMadkitConfig().networkProperties.banishmentDuration,
@@ -2879,10 +2879,10 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 								getMadkitConfig().networkProperties.expulsionStatisticDuration,
 								getMadkitConfig().networkProperties.banishmentStatisticDuration,
 								getMadkitConfig().networkProperties.getAllowInetAddressesList());
-				if ((r != null && r.expiration_time > System.currentTimeMillis()) || candidate_to_ban) {
-					if (r != null && r.expiration_time > System.currentTimeMillis()) {
+				if ((r != null && r.expirationTimeUTC > System.currentTimeMillis()) || candidate_to_ban) {
+					if (r != null && r.expirationTimeUTC > System.currentTimeMillis()) {
 						MadkitKernelAccess.informHooks(this,
-								new IPBannedEvent(distant_inet_address.getAddress(), r.expiration_time));
+								new IPBannedEvent(distant_inet_address.getAddress(), r.expirationTimeUTC));
 					}
 					
 					return true;
@@ -3056,16 +3056,16 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		}
 
 		protected void removeObsoleteData() {
-			removeObsoleteData(local_transfer_ids, getDelayBeforeTransferNodeBecomesObsolete());
-			removeObsoleteData(distant_transfer_ids, getDelayBeforeTransferNodeBecomesObsolete());
-			removeObsoleteMiddleData(middle_transfer_ids, getDelayBeforeTransferNodeBecomesObsolete());
+			removeObsoleteData(local_transfer_ids, getDelayInMsBeforeTransferNodeBecomesObsolete());
+			removeObsoleteData(distant_transfer_ids, getDelayInMsBeforeTransferNodeBecomesObsolete());
+			removeObsoleteMiddleData(middle_transfer_ids, getDelayInMsBeforeTransferNodeBecomesObsolete());
 		}
 
-		private void removeObsoleteData(HashMap<Integer, InterfacedIDTransfer> data, long timeOut) {
-			timeOut = System.currentTimeMillis() - timeOut;
+		private void removeObsoleteData(HashMap<Integer, InterfacedIDTransfer> data, long timeOutInMs) {
+			long timeOutNano = System.nanoTime() - timeOutInMs*1000000L;
 			for (Iterator<Map.Entry<Integer, InterfacedIDTransfer>> it = data.entrySet().iterator(); it.hasNext();) {
 				Map.Entry<Integer, InterfacedIDTransfer> e = it.next();
-				if (e.getValue().getLastAccessUTC() < timeOut) {
+				if (e.getValue().getLastAccessNano() < timeOutNano) {
 					AgentAddress aa = transfer_agents.remove(e.getValue().getLocalID().getID());
 
 					if (!getTransferType().equals(e.getValue().getLocalID()) && aa != null && checkAgentAddress(aa)) {
@@ -3084,14 +3084,14 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		}
 
 		private void removeObsoleteMiddleData(HashMap<Integer, HashMap<AgentAddress, InterfacedIDTransfer>> data,
-				long timeOut) {
-			timeOut = System.currentTimeMillis() - timeOut;
+				long timeOutInMs) {
+			long timeOutNano = System.nanoTime() - timeOutInMs;
 			for (Iterator<Map.Entry<Integer, HashMap<AgentAddress, InterfacedIDTransfer>>> it = data.entrySet()
 					.iterator(); it.hasNext();) {
 				HashMap<AgentAddress, InterfacedIDTransfer> hm = it.next().getValue();
 				boolean remove = false;
 				for (InterfacedIDTransfer idt : hm.values()) {
-					if (idt.getLastAccessUTC() < timeOut) {
+					if (idt.getLastAccessNano() < timeOutNano) {
 						remove = true;
 						AgentAddress aa = transfer_agents.remove(idt.getLocalID().getID());
 

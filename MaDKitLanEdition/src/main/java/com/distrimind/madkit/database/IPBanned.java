@@ -60,7 +60,7 @@ public final class IPBanned extends Table<IPBanned.Record> {
 		@Field(limit=20) @NotNull @PrimaryKey()
 		public byte[] inet_address;
 		@Field
-		public long expiration_time;
+		public long expirationTimeUTC;
 	}
 
 }

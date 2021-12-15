@@ -1,14 +1,14 @@
 /*
  * MadKitLanEdition (created by Jason MAHDJOUB (jason.mahdjoub@distri-mind.fr)) Copyright (c)
- * 2015 is a fork of MadKit and MadKitGroupExtension. 
- * 
+ * 2015 is a fork of MadKit and MadKitGroupExtension.
+ *
  * Copyright or © or Copr. Jason Mahdjoub, Fabien Michel, Olivier Gutknecht, Jacques Ferber (1997)
- * 
+ *
  * jason.mahdjoub@distri-mind.fr
  * fmichel@lirmm.fr
  * olg@no-distance.net
  * ferber@lirmm.fr
- * 
+ *
  * This software is a computer program whose purpose is to
  * provide a lightweight Java library for designing and simulating Multi-Agent Systems (MAS).
  * This software is governed by the CeCILL-C license under French law and
@@ -21,7 +21,7 @@
  * with a limited warranty  and the software's author,  the holder of the
  * economic rights,  and the successive licensors  have only  limited
  * liability.
- * 
+ *
  * In this respect, the user's attention is drawn to the risks associated
  * with loading,  using,  modifying and/or developing or reproducing the
  * software by the user in light of its specific status of free software,
@@ -59,13 +59,14 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
 /**
  * Represent an server socket selector for {@link SocketChannel}, and
  * {@link DatagramChannel}
- * 
+ *
  * @author Jason Mahdjoub
  * @version 1.0
  * @since MadkitLanEdition 1.0
@@ -104,7 +105,7 @@ final class NIOAgent extends Agent {
 	private final Selector selector;
 
 	// The buffer into which we'll read data when it's available
-	
+
 
 	private final HashMap<AgentNetworkID, PersonalSocket> personal_sockets = new HashMap<>();
 	private final ArrayList<PersonalSocket> personal_sockets_list = new ArrayList<>(100);
@@ -117,10 +118,10 @@ final class NIOAgent extends Agent {
 
 	private boolean stopping = false;
 	private AgentAddress myAgentAddress = null;
-	private long delayToWaitToRespectGlobalBandwidthLimit=0;
+	private long delayInNanoToWaitToRespectGlobalBandwidthLimit =0;
     private RealTimeTransferStat realTimeGlobalDownloadStat =null, realTimeGlobalUploadStat=null;
     private double realTimeDownloadStatDuration=0.0, realTimeUploadStatDuration=0.0;
-	//private volatile LockerCondition actualLocker=null;
+	private volatile LockerCondition actualLocker=null;
 
 	NIOAgent() throws ConnectionException {
 
@@ -301,17 +302,17 @@ final class NIOAgent extends Agent {
 	public Message receiveMessage(Message _m) {
 		_m = super.receiveMessage(_m);
 		this.selector.wakeup();
-		/*LockerCondition lc=actualLocker;
+		LockerCondition lc=actualLocker;
 		if (lc!=null)
-			lc.notifyLocker();*/
+			lc.notifyLocker();
 		return _m;
 	}
 	private void checkPingPongMessagesAndPendingConnections() throws IOException {
 		ArrayList<PersonalSocket> connections_to_close = new ArrayList<>();
 		for (PersonalSocket ps : personal_sockets_list) {
 			if (ps.isWaitingForPongMessage()) {
-				if (System.currentTimeMillis()
-						- ps.getTimeSendingPingMessage() > getMadkitConfig().networkProperties.connectionTimeOut) {
+				if (System.nanoTime()
+						- ps.getTimeSendingPingMessageNano() > getMadkitConfig().networkProperties.connectionTimeOutInMs *1000000L) {
 					if (logger != null && logger.isLoggable(Level.FINER))
 						logger.finer("Pong not received, closing connection : " + ps);
 
@@ -322,8 +323,8 @@ final class NIOAgent extends Agent {
 				RealTimeTransferStat upload = sb.getBytesUploadedInRealTime(
 						NetworkProperties.DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_30_SECONDS_SEGMENTS);
 				boolean ping = false;
-				if (ps.hasDataToSend() && upload.getNumberOfIdentifiedBytesDuringTheLastCycle() == 0 && System.currentTimeMillis()
-						- ps.getLastDataWroteUTC() > getMadkitConfig().networkProperties.connectionTimeOut) {
+				if (ps.hasDataToSend() && upload.getNumberOfIdentifiedBytesDuringTheLastCycle() == 0 && System.nanoTime()
+						- ps.getLastDataWroteNano() > getMadkitConfig().networkProperties.connectionTimeOutInMs *1000000L) {
 
 					ping = true;
 				} else {
@@ -337,8 +338,8 @@ final class NIOAgent extends Agent {
 							.getBytesDownloadedInRealTime(
 									NetworkProperties.DEFAULT_TRANSFER_STAT_IN_REAL_TIME_PER_5_MINUTES_SEGMENTS)
 							.getNumberOfIdentifiedBytesDuringTheLastCycle() == 0
-							&& System.currentTimeMillis() - ps
-							.getLastDataWroteUTC() > getMadkitConfig().networkProperties.connectionTimeOut) {
+							&& System.nanoTime() - ps
+							.getLastDataWroteNano() > getMadkitConfig().networkProperties.connectionTimeOutInMs *1000000L) {
 						ping = true;
 					}
 
@@ -359,8 +360,8 @@ final class NIOAgent extends Agent {
 				try {
 					if (pc.getSocketChannel().isConnectionPending() && pc.getSocketChannel().finishConnect())
 						pendingConnectionsFinished.add(pc);
-					else if (pc.getTimeUTC() + getMadkitConfig().networkProperties.connectionTimeOut < System
-							.currentTimeMillis()) {
+					else if (pc.getNanoTime() + getMadkitConfig().networkProperties.connectionTimeOutInMs*1000000L < System
+							.nanoTime()) {
 						pendingConnectionsCanceled.add(pc);
 					}
 				} catch (ConnectException e) {
@@ -629,9 +630,9 @@ final class NIOAgent extends Agent {
 
 				while (personal_datagram_channels.size() > 0)
 					personal_datagram_channels.values().iterator().next().closeConnection(false);
-				/*LockerCondition lc=actualLocker;
+				LockerCondition lc=actualLocker;
 				if (lc!=null)
-					lc.notifyLocker();*/
+					lc.notifyLocker();
 				if (kill)
 					this.killAgent(this);
 			}
@@ -649,6 +650,7 @@ final class NIOAgent extends Agent {
 			m = nextMessage();
 		}
 	}
+
 	@SuppressWarnings({"SuspiciousMethodCalls"})
     @Override
 	protected void liveCycle() {
@@ -656,24 +658,29 @@ final class NIOAgent extends Agent {
 			// Wait for an event one of the registered channels
 			long delay;
 			if (pending_connections.size() > 0)
-				delay = getMadkitConfig().networkProperties.selectorTimeOutWhenWaitingPendingConnections;
+				delay = getMadkitConfig().networkProperties.selectorTimeOutInMsWhenWaitingPendingConnections;
 			else {
-                delay = getMadkitConfig().networkProperties.selectorTimeOut;
+				delay = getMadkitConfig().networkProperties.selectorTimeOutInMs;
+				if (delayInNanoToWaitToRespectGlobalBandwidthLimit > 0) {
 
-                if (delayToWaitToRespectGlobalBandwidthLimit > 0) {
+					delayInNanoToWaitToRespectGlobalBandwidthLimit -= System.nanoTime();
 
-                    delayToWaitToRespectGlobalBandwidthLimit -= System.currentTimeMillis();
+					if (delayInNanoToWaitToRespectGlobalBandwidthLimit > 0) {
+						delayInNanoToWaitToRespectGlobalBandwidthLimit /=1000000L;
+						try {
+							this.sleep(delayInNanoToWaitToRespectGlobalBandwidthLimit);
+						}
+						catch (InterruptedException ignored)
+						{
 
-                    if (delayToWaitToRespectGlobalBandwidthLimit > 0) {
-                        this.sleep(delayToWaitToRespectGlobalBandwidthLimit);
-
-                        delay -= delayToWaitToRespectGlobalBandwidthLimit;
-                        if (delay < 0)
-                            delay = 0;
-                        delayToWaitToRespectGlobalBandwidthLimit = 0;
-                    }
-                }
-            }
+						}
+						delay -= delayInNanoToWaitToRespectGlobalBandwidthLimit;
+						if (delay < 0)
+							delay = 0;
+						delayInNanoToWaitToRespectGlobalBandwidthLimit = 0;
+					}
+				}
+			}
             if (delay>0 && isMessageBoxEmpty()) {
 				this.selector.select(delay);
 			}
@@ -704,12 +711,12 @@ final class NIOAgent extends Agent {
 				} else {
 					if (key.isReadable()) {
 						if (hasSpeedLimitation) {
-							long ld = getDownloadToWaitInMsToBecomeUnderBandwidthLimit();
+							long ld = getDownloadToWaitInMsToBecomeUnderBandwidthLimit()*1000000L;
 							if (ld > 0) {
-								long curTime = System.currentTimeMillis();
+								long curTime = System.nanoTime();
 								limitDownload = ld + curTime;
 								if (limitUpload > curTime) {
-									this.delayToWaitToRespectGlobalBandwidthLimit = Math.min(limitDownload, limitUpload);
+									this.delayInNanoToWaitToRespectGlobalBandwidthLimit = Math.min(limitDownload, limitUpload);
 									return;
 								}
 								continue;
@@ -724,13 +731,13 @@ final class NIOAgent extends Agent {
 						}
 					} else if (key.isValid() && key.isWritable()) {
 						if (hasSpeedLimitation) {
-							long lu = getUploadToWaitInMsToBecomeUnderBandwidthLimit();
+							long lu = getUploadToWaitInMsToBecomeUnderBandwidthLimit()*1000000L;
 
 							if (lu > 0) {
-								long curTime = System.currentTimeMillis();
+								long curTime = System.nanoTime();
 								limitUpload = lu + curTime;
 								if (limitDownload > curTime) {
-									this.delayToWaitToRespectGlobalBandwidthLimit = Math.min(limitDownload, limitUpload);
+									this.delayInNanoToWaitToRespectGlobalBandwidthLimit = Math.min(limitDownload, limitUpload);
 									return;
 								}
 								continue;
@@ -756,13 +763,13 @@ final class NIOAgent extends Agent {
 			}
 			if (!hasSpeedLimitation)
 				selectedKeys.clear();
-            long curTime=System.currentTimeMillis();
+            long curTime=System.nanoTime()/1000000L;
 			if (limitDownload>curTime)
-			    this.delayToWaitToRespectGlobalBandwidthLimit=limitDownload;
+			    this.delayInNanoToWaitToRespectGlobalBandwidthLimit =limitDownload;
 			else if (limitUpload>curTime)
-                this.delayToWaitToRespectGlobalBandwidthLimit=limitUpload;
+                this.delayInNanoToWaitToRespectGlobalBandwidthLimit =limitUpload;
 			else
-                this.delayToWaitToRespectGlobalBandwidthLimit=0;
+                this.delayInNanoToWaitToRespectGlobalBandwidthLimit =0;
 
 		} catch (SelfKillException e) {
 			throw e;
@@ -1041,7 +1048,7 @@ final class NIOAgent extends Agent {
 			data = new DatagramData(message).getByteBuffer();
 			id = IDTransfer.generateIDTransfer(MadkitKernelAccess.getIDTransferGenerator(agent));
 		}
-		
+
 		@Override
 		boolean isDataBuildInProgress()
 		{
@@ -1117,15 +1124,15 @@ final class NIOAgent extends Agent {
 
 	}
 
-	private class NoBackData 
+	private class NoBackData
 	{
 		private final PersonalSocket personalSocket;
 		private final AbstractData data;
 		private volatile ByteBuffer buffer;
 		private TransferException pendingException =null;
 		private IDTransfer idTransfer=null;
-		
-		
+
+
 		private NoBackData(PersonalSocket personalSocket, AbstractData data) {
 			if (data==null)
 				throw new NullPointerException();
@@ -1133,20 +1140,20 @@ final class NIOAgent extends Agent {
 			this.data=data;
 			this.personalSocket.canPrepareNextData=false;
 		}
-		
+
 		boolean isLastMessage() throws PacketException
 		{
 			return data.isLastMessage() && data.isFinished();
 		}
-		
+
 		boolean isReady() throws TransferException
 		{
 			throwPendingException();
 
-			
+
 			try
 			{
-			
+
 				return buffer!=null || !data.isCurrentByteBufferFinished();
 			}
 			catch(PacketException e)
@@ -1154,25 +1161,25 @@ final class NIOAgent extends Agent {
 				throw new TransferException(e);
 			}
 		}
-		
+
 		boolean isCanceled()
 		{
 			return data.isUnlocked();
 		}
 
 
-		
+
 		boolean isDataLoadingCanceled() throws TransferException, PacketException
 		{
 			takeNextData();
 			return buffer==null && data.isFinished();
 		}
-		
+
 		Object getLocker()
 		{
 			return data.getLocker();
 		}
-		
+
 		void takeNextData() throws TransferException
 		{
 			try
@@ -1198,7 +1205,7 @@ final class NIOAgent extends Agent {
 
 				personalSocket.closeConnection(ConnectionClosedReason.CONNECTION_LOST);
 			}
-			
+
 		}
 		private void throwPendingException() throws TransferException
 		{
@@ -1223,12 +1230,12 @@ final class NIOAgent extends Agent {
 			}
 			return buffer;
 		}
-		
-		boolean isFinished() 
+
+		boolean isFinished()
 		{
 			return buffer!=null && buffer.remaining()==0;
 		}
-		
+
 		IDTransfer getIDTransfer()
 		{
 			return idTransfer;
@@ -1236,7 +1243,7 @@ final class NIOAgent extends Agent {
 
 
 	}
-	
+
 	private class PersonalSocket {
 		public final SocketChannel socketChannel;
 		public final AgentAddress agentAddress;
@@ -1250,15 +1257,15 @@ final class NIOAgent extends Agent {
 		private DataTransferType dataTransferType = DataTransferType.SHORT_DATA;
 		protected int bigDataToSendIndex = 0;
 		private boolean waitingForPongMessage = false;
-		private long time_sending_ping_message;
-		private long last_data_wrote_utc;
+		private long time_sending_ping_messageNano;
+		private long last_data_wrote_nano;
 		// private int read_locked=0;
 		private boolean is_closed = false;
 		private ConnectionClosedReason cs=null;
 		private DatagramData firstReceivedData = new DatagramData();
 		private boolean firstPacketSent = false;
 		private final ByteBuffer readSizeBlock = ByteBuffer.allocate(Block.getBlockSizeLength());
-		private ByteBuffer readBuffer = null; 
+		private ByteBuffer readBuffer = null;
 		private final int maxBlockSize;
 		private volatile boolean canPrepareNextData=true;
 		private final SelectionKey clientKey;
@@ -1287,7 +1294,7 @@ final class NIOAgent extends Agent {
 			agentSocket = _agent;
 			agentAddress = agentSocket.getAgentAddressIn(LocalCommunity.Groups.NETWORK,
 					LocalCommunity.Roles.SOCKET_AGENT_ROLE);
-			last_data_wrote_utc = time_sending_ping_message = System.currentTimeMillis();
+			last_data_wrote_nano = time_sending_ping_messageNano = System.nanoTime();
 			maxBlockSize=_agent.getMaxBlockSize();
 
 			addDataToSend(new FirstData(NIOAgent.this,
@@ -1295,11 +1302,11 @@ final class NIOAgent extends Agent {
 							getMadkitConfig().projectVersion, getMadkitConfig().madkitVersion, getMadkitConfig().minimumProjectVersion, getMadkitConfig().minimumMadkitVersion, null,
 							getKernelAddress())));
 		}
-		
+
 		void prepareNextDataToNextIfNecessary() throws TransferException
 		{
 
-			
+
 			if (canPrepareNextData && noBackDataToSend.size()<numberOfNoBackData)
 			{
 				AbstractData ad=getNextData();
@@ -1318,7 +1325,7 @@ final class NIOAgent extends Agent {
 		    if (is_closed)
 		        return null;
 			NoBackData res;
-			
+
 			do
 			{
 				if (noBackDataToSend.size()==0)
@@ -1338,8 +1345,8 @@ final class NIOAgent extends Agent {
 					throw new TransferException(e);
 				}
 			} while(res==null);
-			
-				
+
+
 			if (!res.isReady())
 				if (!waitDataReady())
 					return null;
@@ -1364,8 +1371,8 @@ final class NIOAgent extends Agent {
 			else
 				return false;
 		}
-		long getLastDataWroteUTC() {
-			return last_data_wrote_utc;
+		long getLastDataWroteNano() {
+			return last_data_wrote_nano;
 		}
 
 		@Override
@@ -1398,7 +1405,7 @@ final class NIOAgent extends Agent {
 
 		public void sendPingMessage() {
 			NIOAgent.this.sendMessage(agentAddress, new SendPingMessage());
-			time_sending_ping_message = System.currentTimeMillis();
+			time_sending_ping_messageNano = System.nanoTime();
 			waitingForPongMessage = true;
 		}
 
@@ -1413,8 +1420,8 @@ final class NIOAgent extends Agent {
 			waitingForPongMessage = false;
 		}
 
-		public long getTimeSendingPingMessage() {
-			return time_sending_ping_message;
+		public long getTimeSendingPingMessageNano() {
+			return time_sending_ping_messageNano;
 		}
 
 		public boolean hasDataToSend() {
@@ -1458,7 +1465,6 @@ final class NIOAgent extends Agent {
 				dataToTransfer.addLast((AbstractAgentSocket.BlockDataToTransfer) _data);
 				break;
 			}
-
 			checkValidTransferType();
 			prepareNextDataToNextIfNecessary();
 
@@ -1473,12 +1479,13 @@ final class NIOAgent extends Agent {
 			return shortDataToSend.size() > 0 && shortDataToSend.get(0).isPriority();
 		}
 
-		/*private boolean waitDataReady() throws TransferException {
+		private boolean waitDataReady() throws TransferException {
 			try {
-				//synchronized (this.agentSocket) {
+				if (actualLocker!=null)
+					return false;
 				final Reference<Boolean> hasData = new Reference<>(this.noBackDataToSend.size()>0);
-				NoBackData first=null;
-				final Reference<Boolean> validData = new Reference<>(this.noBackDataToSend.size()>0 && (first=this.noBackDataToSend.getFirst()).isReady());
+				final NoBackData first=this.noBackDataToSend.peekFirst();
+				final Reference<Boolean> validData = new Reference<>(first!=null && first.isReady());
 
 
 				if (!hasData.get() || validData.get())
@@ -1486,7 +1493,35 @@ final class NIOAgent extends Agent {
 				if (first==null)
 					throw new NullPointerException();
 				final Reference<TransferException> exception=new Reference<>();
-				NIOAgent.this.wait(new LockerCondition(first.getLocker()) {
+
+				NIOAgent.this.wait(actualLocker=new LockerCondition(first.getLocker()) {
+					/*private boolean secondLoop=false;
+
+
+					@Override
+					public void beforeCycleLocking() {
+						if (secondLoop) {
+							try {
+								//checkPingPongMessagesAndPendingConnections();
+								boolean oneMessage=!isMessageBoxEmpty();
+								handleReceivedMessages();
+								if (oneMessage && !isLocked())
+									cancelLock();
+							} catch (IOException e) {
+								e.printStackTrace();
+								cancelLock();
+							} catch (TransferException e) {
+								exception.set(e);
+								cancelLock();
+							}
+						}
+					}
+
+					@Override
+					public void afterCycleLocking() {
+						//secondLoop=true;
+
+					}*/
 
 					@Override
 					public boolean isLocked() {
@@ -1502,84 +1537,20 @@ final class NIOAgent extends Agent {
 							return false;
 						}
 
-						return exception.get()==null && first!=null && !validData.get()  && agentSocket.getState().compareTo(AbstractAgent.State.ENDING)<0;
+						return exception.get()==null && first!=null && !validData.get() && NIOAgent.this.getState().compareTo(AbstractAgent.State.ENDING)<0 && agentSocket.getState().compareTo(AbstractAgent.State.ENDING)<0;
 					}
 
 
-				});
+				}, getMadkitConfig().networkProperties.connectionTimeOutInMs);
+
 				if (exception.get()!=null)
 					throw exception.get();
 				return validData.get();
 				//}
-			} catch (InterruptedException e) {
+			} catch (InterruptedException | TimeoutException e) {
 				return false;
-			}
-		}*/
-		private boolean waitDataReady() throws TransferException {
-			try {
-				//synchronized (this.agentSocket) {
-				final Reference<Boolean> hasData = new Reference<>(this.noBackDataToSend.size()>0);
-				final NoBackData first=this.noBackDataToSend.peekFirst();
-				final Reference<Boolean> validData = new Reference<>(first!=null && first.isReady());
-
-
-				if (!hasData.get() || validData.get())
-					return hasData.get();
-				if (first==null)
-					throw new NullPointerException();
-				final Reference<TransferException> exception=new Reference<>();
-				NIOAgent.this.wait(new LockerCondition(first.getLocker()) {
-					private boolean secondLoop=false;
-
-
-					@Override
-					public void beforeCycleLocking() {
-						if (secondLoop) {
-							try {
-								//checkPingPongMessagesAndPendingConnections();
-								handleReceivedMessages();
-								//updateLocked();
-							} catch (IOException e) {
-								e.printStackTrace();
-								cancelLock();
-							} catch (TransferException e) {
-								exception.set(e);
-								cancelLock();
-							}
-						}
-					}
-
-					@Override
-					public void afterCycleLocking() {
-						secondLoop=true;
-
-					}
-
-					@Override
-					public boolean isLocked() {
-						//NoBackData first=noBackDataToSend.peekFirst();
-						try
-						{
-							//hasData.set(first!=null);
-							validData.set(/*first!=null && */first.isReady());
-						}
-						catch(TransferException e)
-						{
-							exception.set(e);
-							return false;
-						}
-
-						return exception.get()==null && /*first!=null &&*/ !validData.get()  && agentSocket.getState().compareTo(AbstractAgent.State.ENDING)<0;
-					}
-
-
-				});
-				if (exception.get()!=null)
-					throw exception.get();
-				return validData.get();
-				//}
-			} catch (InterruptedException e) {
-				return false;
+			} finally {
+				actualLocker=null;
 			}
 		}
 
@@ -1793,7 +1764,7 @@ final class NIOAgent extends Agent {
         private boolean free(AbstractData d) throws TransferException {
 			try
 			{
-				
+
 				boolean finished = d.isFinished();
 				switch (dataTransferType) {
 				case SHORT_DATA:
@@ -1815,7 +1786,7 @@ final class NIOAgent extends Agent {
 						return true;
 					}
 					return false;
-	
+
 				case BIG_DATA:
 					if (d.isCurrentByteBufferFinished() || finished) {
 						if (finished) {
@@ -1835,12 +1806,12 @@ final class NIOAgent extends Agent {
 							bigDataToSendIndex = bigDataToSend.size() == 0 ? 0
 									: (bigDataToSendIndex + 1) % bigDataToSend.size();
 						}
-	
+
 						setNextTransferType();
 						return true;
 					}
 					return false;
-	
+
 				case DATA_TO_TRANSFER:
 					if (d.isCurrentByteBufferFinished() || finished) {
 						if (finished) {
@@ -1880,7 +1851,7 @@ final class NIOAgent extends Agent {
 			if (isReadLocked())
 				return;
 			// Clear out our read buffer so it's ready for new data
-			
+
 			int data_read;
 			try {
 				if (this.readBuffer==null)
@@ -1933,7 +1904,7 @@ final class NIOAgent extends Agent {
 				key.cancel();
 				return;
 			}
-			
+
 			// boolean hasRemaining=readBuffer.hasRemaining();
 			if (readBuffer!=null && !readBuffer.hasRemaining()) {
 				receivedData(key, readBuffer);
@@ -2067,7 +2038,7 @@ final class NIOAgent extends Agent {
 							if (logger != null && logger.isLoggable(Level.FINEST))
 								logger.finest("New data sent (" + data_sent + " bytes, bufferRemaining="
 										+ remaining + ", totalBufferLength=" + (buf==null?"Canceled":buf.capacity()) + ")");
-							last_data_wrote_utc = System.currentTimeMillis();
+							last_data_wrote_nano = System.nanoTime();
 						}
 					}
 					if (remaining > 0)
@@ -2125,12 +2096,12 @@ final class NIOAgent extends Agent {
 
 		public void finishCloseConnection()
 		{
-			
-			
+
+
 			personal_sockets.remove(this.agentAddress.getAgentNetworkID());
 			personal_sockets_list.remove(this);
 
-			
+
 
 			InetSocketAddress isa=null;
 			InetSocketAddress isaLocal=null;
@@ -2156,11 +2127,11 @@ final class NIOAgent extends Agent {
 
 				if (isa!=null && isaLocal!=null) {
 					boolean found = false;
-					boolean serverFound=false;
+
 					servers:for (Server s : serverChannels) {
 						if (!s.address.equals(isaLocal))
 							continue;
-						serverFound=true;
+
 						for (PersonalSocket sc : personal_sockets_list) {
 							try {
 								if (sc.socketChannel.getLocalAddress().equals(s.address)) {
@@ -2178,7 +2149,7 @@ final class NIOAgent extends Agent {
 						}
 
 					}
-					if (!found) {
+					if (!found ) {
 						for (AgentAddress aa : getAgentsWithRole(LocalCommunity.Groups.LOCAL_NETWORKS,
 								LocalCommunity.Roles.LOCAL_NETWORK_ROLE)) {
 
@@ -2200,9 +2171,7 @@ final class NIOAgent extends Agent {
 					cs, shortDataToSend, bigDataToSend, dataToTransfer), LocalCommunity.Roles.NIO_ROLE);
 			initDataToSendLists();
 
-			if (stopping && isAlive() && personal_sockets.isEmpty())
-				killAgent(NIOAgent.this);
-			/*try {
+			try {
 				if (stopping && isAlive() && personal_sockets.isEmpty())
 					killAgent(NIOAgent.this);
 			}
@@ -2210,7 +2179,7 @@ final class NIOAgent extends Agent {
 				LockerCondition lc=actualLocker;
 				if (lc!=null)
 					lc.notifyLocker();
-			}*/
+			}
 		}
 		public void closeIndirectConnection(ConnectionClosedReason cs, IDTransfer transferID,
 				AgentAddress indirectAgentAddress) {
@@ -2409,7 +2378,7 @@ final class NIOAgent extends Agent {
 		protected final InetAddress local_interface;
 		private final AskForConnectionMessage callerMessage;
 		private final SocketChannel socketChannel;
-		private final long timeUTC;
+		private final long nanoTime;
 		private final AbstractIP ip;
 
 		PendingConnection(AbstractIP ip, SocketChannel socketChannel, InetSocketAddress inetSocketAddress,
@@ -2428,7 +2397,7 @@ final class NIOAgent extends Agent {
 			this.local_interface = local_interface;
 			this.callerMessage = callerMessage;
 			this.ip = ip;
-			timeUTC = System.currentTimeMillis();
+			nanoTime = System.nanoTime();
 		}
 
 		InetSocketAddress getInetSocketAddress() {
@@ -2477,8 +2446,8 @@ final class NIOAgent extends Agent {
 			return callerMessage;
 		}
 
-		long getTimeUTC() {
-			return timeUTC;
+		long getNanoTime() {
+			return nanoTime;
 		}
 
 		SocketChannel getSocketChannel() {

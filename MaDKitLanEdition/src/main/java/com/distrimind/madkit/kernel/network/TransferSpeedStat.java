@@ -125,7 +125,7 @@ public class TransferSpeedStat {
 	 */
 	public void newBytesIdentified(int number, long duration) {
 		if (duration < 0)
-			throw new IllegalArgumentException("duration must be greater than 0");
+			throw new IllegalArgumentException("duration must be greater or equal than 0 : "+duration);
 		if (duration == 0)
 			duration = 1;
 		float val = (float) (((double) number) / (((double) duration) / 1000.f));

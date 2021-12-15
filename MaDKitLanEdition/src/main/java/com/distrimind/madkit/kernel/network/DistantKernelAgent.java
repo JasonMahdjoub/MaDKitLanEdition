@@ -94,7 +94,7 @@ class DistantKernelAgent extends AgentFakeThread {
 	private ListGroupsRoles distant_accepted_groups = new ListGroupsRoles();
 	private AbstractSecureRandom random;
 	private boolean kernelAddressActivated = false;
-	private long lastAgentsUpdate = -1;
+	private long lastAgentsUpdateNano = -1;
 
 	private List<PairOfIdentifiers> accepted_identifiers = new ArrayList<>();
 	private List<PairOfIdentifiers> last_accepted_identifiers = new ArrayList<>();
@@ -360,11 +360,6 @@ class DistantKernelAgent extends AgentFakeThread {
 									}
 								}
 								else {
-									/*if (m.getClass()==BigDataResultMessage.class)
-									{
-										BigDataResultMessage brm=(BigDataResultMessage) m;
-										cancelBigPacketDataInQueue(MadkitKernelAccess.getIDPacket(brm), false);
-									}*/
 									try {
 										sendData(asd.getAgentAddress(), new DirectLanMessage(m), false,
 												message.getMessageLocker(), false);
@@ -904,27 +899,13 @@ class DistantKernelAgent extends AgentFakeThread {
 			if (resultType!=null ) {
 				MadkitKernelAccess.transferLostForBigDataTransfer(this, bpd.getConversationID(),
 						bpd.getIDPacket(), bpd.getReceiver(), bpd.getCaller(),
-						bpd.getReadDataLength(), bpd.getDurationInMs(),
+						bpd.getReadDataLength(), bpd.getDurationInNano()/1000000L,
 						bpd.getDifferedBigDataInternalIdentifier(), bpd.getDifferedBigDataIdentifier(), resultType, updateDatabase);
 			}
 
 		}
 		return bpd;
 	}
-	/*private void cancelBigPacketDataInQueue(int idPacket, boolean toSend)
-	{
-		try {
-			if (toSend)
-				cancelBigPacketDataToSendInQueue(idPacket, false, null);
-			else
-				cancelBigPacketDataToReceiveInQueue(idPacket);
-		}
-		catch (NIOException e)
-		{
-			if (logger!=null)
-				logger.severeLog("Unexpected exception", e);
-		}
-	}*/
 	private BigDataReading cancelBigPacketDataToReceiveInQueue(int idPacket)
 	{
 		if (logger != null && logger.isLoggable(Level.FINEST))
@@ -1423,12 +1404,12 @@ class DistantKernelAgent extends AgentFakeThread {
 	}
 
 	private void updateBestAgent() {
-		if (lastAgentsUpdate == -1 || lastAgentsUpdate
-				+ getMadkitConfig().networkProperties.delayBetweenEachAgentSocketOptimization < System
-						.currentTimeMillis()) {
+		if (lastAgentsUpdateNano == -1 || lastAgentsUpdateNano
+				+ getMadkitConfig().networkProperties.delayInMsBetweenEachAgentSocketOptimization*1000000L < System
+						.nanoTime()) {
 			Collections.sort(agents_socket);
 			Collections.sort(indirect_agents_socket);
-			lastAgentsUpdate = System.currentTimeMillis();
+			lastAgentsUpdateNano = System.nanoTime();
 		}
 	}
 
@@ -2412,7 +2393,7 @@ class DistantKernelAgent extends AgentFakeThread {
 	class BigPacketData extends AbstractPacketData {
 		private final AgentAddress caller;
 		private final ConversationID conversationID;
-		private final long timeUTC;
+		private final long nanoTime;
 		private final AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier;
 		private final ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier;
 		private boolean pendingDataRemoved=false;
@@ -2435,7 +2416,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			this.caller = caller;
 			this.conversationID = conversationID;
 			setStat(stat);
-			timeUTC = System.currentTimeMillis();
+			nanoTime = System.nanoTime();
 		}
 
 		@Override
@@ -2462,8 +2443,8 @@ class DistantKernelAgent extends AgentFakeThread {
 			return conversationID;
 		}
 
-		long getDurationInMs() {
-			return System.currentTimeMillis() - timeUTC;
+		long getDurationInNano() {
+			return System.nanoTime() - nanoTime;
 		}
 
 		public AbstractDecentralizedIDGenerator getDifferedBigDataInternalIdentifier() {
@@ -2825,7 +2806,7 @@ class DistantKernelAgent extends AgentFakeThread {
 							}
 							catch (IOException | ClassNotFoundException | NIOException e) {
 								sr.freeDataSize();
-								processInvalidSerializedData(agent_socket_sender, e, sr.read_packet, null);
+								processInvalidSerializedData(agent_socket_sender, e, sr.read_packet);
 							}
 							finally {
 								sr.closeStream();
@@ -3068,7 +3049,7 @@ class DistantKernelAgent extends AgentFakeThread {
 	}
 
 	@SuppressWarnings("unused")
-    private void processInvalidSerializedData(AgentAddress source, Exception e, ReadPacket _read_packet, byte[] data) {
+    private void processInvalidSerializedData(AgentAddress source, Exception e, ReadPacket _read_packet) {
 		processInvalidProcess(source, "Invalid serialized data from Kernel Address " + distant_kernel_address, e,
 				false);
 	}

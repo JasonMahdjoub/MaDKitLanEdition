@@ -4788,7 +4788,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * database. If too much anomalies occurs
 	 * ({@link NetworkProperties#nbMaxAnomaliesBeforeTriggeringExpulsion}), than the
 	 * connection is closed and the IP address is rejected for a while
-	 * ({@link NetworkProperties#expulsionDuration}). If too much expulsions occurs
+	 * ({@link NetworkProperties#expulsionDurationInMs}). If too much expulsions occurs
 	 * ({@link NetworkProperties#nbMaxExpulsions}), the kernel will consider
 	 * anomalies the candidateToBan set to true. Case candidateToBan is set to true
 	 * : the anomaly will be also saved into a database. If too much anomalies
@@ -4820,7 +4820,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * database. If too much anomalies occurs
 	 * ({@link NetworkProperties#nbMaxAnomaliesBeforeTriggeringExpulsion}), than the
 	 * connections associated with the kernel address and their IP addresses are
-	 * rejected for a while ({@link NetworkProperties#expulsionDuration}). If too
+	 * rejected for a while ({@link NetworkProperties#expulsionDurationInMs}). If too
 	 * much expulsions occurs ({@link NetworkProperties#nbMaxExpulsions}), the kernel
 	 * will consider anomalies the candidateToBan set to true. Case candidateToBan
 	 * is set to true : the anomaly will be also saved into a database. If too much
