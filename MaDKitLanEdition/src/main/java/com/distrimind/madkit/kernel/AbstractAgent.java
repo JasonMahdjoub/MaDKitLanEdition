@@ -96,6 +96,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import static com.distrimind.madkit.kernel.AbstractAgent.State.*;
@@ -4969,6 +4970,15 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 */
 	public Set<Connection> getEffectiveConnections() {
 		return getMadkitKernel().getEffectiveConnections(this);
+	}
+
+	/**
+	 * Gets the list of effective LAN connections concerning a given kernel address
+	 * @param kernelAddress the kernel address to match
+	 * @return the effective connections
+	 */
+	public Set<Connection> getEffectiveConnections(KernelAddress kernelAddress) {
+		return getMadkitKernel().getEffectiveConnections(this).stream().filter(c -> c.getKernelAddress().equals(kernelAddress)).collect(Collectors.toSet());
 	}
 
 	/**

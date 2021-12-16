@@ -54,11 +54,11 @@ import java.util.List;
 /**
  * 
  * @author Jason Mahdjoub
- * @version 1.2
+ * @version 1.3
  * @since MadkitLanEdition 1.0
  *
  */
-class ConnectionInfoSystemMessage implements SystemMessageWithoutInnerSizeControl {
+public class ConnectionInfoSystemMessage implements SystemMessageWithoutInnerSizeControl {
 
 	private ArrayList<AbstractIP> addresses;
 	private AbstractIP localAddresses;
@@ -111,12 +111,9 @@ class ConnectionInfoSystemMessage implements SystemMessageWithoutInnerSizeContro
 		for (AbstractIP aip:addresses)
 			oos.writeObject(aip, false);
 		oos.writeObject(localAddresses, true);
-
 		oos.writeInt(manualPortToConnect);
 		oos.writeInt(localPortToConnect);
 		oos.writeBoolean(canBeDirectServer);
-			
-		
 	}
 	
 	
@@ -142,15 +139,19 @@ class ConnectionInfoSystemMessage implements SystemMessageWithoutInnerSizeContro
 		this.localAddresses = localAddresses;
 	}
 
-	boolean hasManualPortToConnect() {
+	public boolean hasManualPortToConnect() {
 		return manualPortToConnect >= 0;
 	}
 
-	int getLocalPortToConnect() {
+	public int getLocalPortToConnect() {
 		return localPortToConnect;
 	}
 
-	int getPortToConnect() {
+	public boolean isCanBeDirectServer() {
+		return canBeDirectServer;
+	}
+
+	public int getPortToConnect() {
 		if (hasManualPortToConnect())
 			return manualPortToConnect;
 		else
@@ -163,17 +164,17 @@ class ConnectionInfoSystemMessage implements SystemMessageWithoutInnerSizeContro
 				+ localPortToConnect + ", inetAddresses=" + addresses + "]";
 	}
 
-	InetSocketAddress getInetSocketAddress(InetAddress connectFrom, InetAddress perceivedDistantInetAddress) {
+	public InetSocketAddress getInetSocketAddress(InetAddress connectFrom, InetAddress perceivedDistantInetAddress) {
 		if (perceivedDistantInetAddress == null) {
 			return null;
 		}
 
 		if (perceivedDistantInetAddress instanceof Inet4Address)
 			return getInetSocketAddress(connectFrom instanceof Inet6Address, (Inet4Address) perceivedDistantInetAddress,
-					isLocalAddress(connectFrom) && isLocalAddress(perceivedDistantInetAddress));
+					AbstractIP.isLocalAddress(connectFrom) && AbstractIP.isLocalAddress(perceivedDistantInetAddress));
 		else if (perceivedDistantInetAddress instanceof Inet6Address)
 			return getInetSocketAddress(connectFrom instanceof Inet6Address, (Inet6Address) perceivedDistantInetAddress,
-					isLocalAddress(connectFrom) && isLocalAddress(perceivedDistantInetAddress));
+					AbstractIP.isLocalAddress(connectFrom) && AbstractIP.isLocalAddress(perceivedDistantInetAddress));
 		else {
 			return null;
 		}
@@ -187,7 +188,7 @@ class ConnectionInfoSystemMessage implements SystemMessageWithoutInnerSizeContro
 		InetSocketAddress isa = getInetSocketAddress(connectionFromIPV6, isLocalToLocal);
 		if (isa == null) {
 			if (connectionFromIPV6 && this.canBeDirectServer
-					&& (hasManualPortToConnect() && isInternetAddress(perceivedDistantInetAddress)))
+					&& (hasManualPortToConnect() && AbstractIP.isInternetAddress(perceivedDistantInetAddress)))
 				return new InetSocketAddress(perceivedDistantInetAddress, getPortToConnect());
 			else
 				return null;
@@ -202,7 +203,7 @@ class ConnectionInfoSystemMessage implements SystemMessageWithoutInnerSizeContro
 		InetSocketAddress isa = getInetSocketAddress(connectionFromIPV6, isLocalToLocal);
 		if (isa == null) {
 			if (!connectionFromIPV6 && this.canBeDirectServer
-					&& (hasManualPortToConnect() && isInternetAddress(perceivedDistantInetAddress)))
+					&& (hasManualPortToConnect() && AbstractIP.isInternetAddress(perceivedDistantInetAddress)))
 				return new InetSocketAddress(perceivedDistantInetAddress, getPortToConnect());
 			else
 				return null;
@@ -210,18 +211,9 @@ class ConnectionInfoSystemMessage implements SystemMessageWithoutInnerSizeContro
 			return isa;
 	}
 
-	static private boolean isInternetAddress(InetAddress perceivedDistantInetAddress) {
-		return !perceivedDistantInetAddress.isAnyLocalAddress() && !perceivedDistantInetAddress.isLinkLocalAddress()
-				&& !perceivedDistantInetAddress.isLoopbackAddress() && !perceivedDistantInetAddress.isMulticastAddress()
-				&& !perceivedDistantInetAddress.isSiteLocalAddress();
-	}
 
-	static private boolean isLocalAddress(InetAddress perceivedDistantInetAddress) {
-		return (perceivedDistantInetAddress.isAnyLocalAddress() && !perceivedDistantInetAddress.isLinkLocalAddress()
-				&& !perceivedDistantInetAddress.isMulticastAddress()
-				&& !perceivedDistantInetAddress.isSiteLocalAddress())
-				|| perceivedDistantInetAddress.isLoopbackAddress();
-	}
+
+
 
 	private InetSocketAddress getInetSocketAddress(boolean connectionFromIPV6, boolean isLocalToLocal) {
 		if (connectionFromIPV6) {

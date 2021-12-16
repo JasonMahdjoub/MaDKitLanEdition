@@ -682,4 +682,9 @@ class FakeKernel extends MadkitKernel {
 	void informHooks(AgentActionEvent action, Object... parameters) {
 		throw buildKernelException(null);
 	}
+	@Override
+	void setConnectionInfoSystemMessage(AbstractAgent requester, ConnectionIdentifier connectionIdentifier, ConnectionInfoSystemMessage connectionInfoSystemMessage)
+	{
+		throw buildKernelException(null);
+	}
 }

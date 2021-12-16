@@ -1208,4 +1208,13 @@ final class LoggedKernel extends MadkitKernel {
 			kernel.logger.log(Level.FINEST, "informHooks (action="+action+")");
 		}
 	}
+	@Override
+	void setConnectionInfoSystemMessage(AbstractAgent requester, ConnectionIdentifier connectionIdentifier, ConnectionInfoSystemMessage connectionInfoSystemMessage)
+	{
+		kernel.setConnectionInfoSystemMessage(requester, connectionIdentifier, connectionInfoSystemMessage);
+		if (kernel.isFinestLogOn())
+		{
+			kernel.logger.log(Level.FINEST, "setConnectionInfoSystemMessage (requester="+requester+", connectionIdentifier="+connectionIdentifier+", connectionInfoSystemMessage="+connectionInfoSystemMessage, ")");
+		}
+	}
 }

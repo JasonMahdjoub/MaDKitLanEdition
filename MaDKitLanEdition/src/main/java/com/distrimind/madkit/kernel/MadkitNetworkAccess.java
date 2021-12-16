@@ -42,9 +42,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
-import com.distrimind.madkit.kernel.network.AskForConnectionMessage;
-import com.distrimind.madkit.kernel.network.BroadcastLocalLanMessage;
-import com.distrimind.madkit.kernel.network.DirectLocalLanMessage;
+import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.util.NetworkMessage;
 
 import static com.distrimind.util.ReflectionTools.*;
@@ -107,6 +105,16 @@ class MadkitNetworkAccess {
 		}
 	}
 
+	static void setConnectionInfoSystemMessage(Connection c, ConnectionInfoSystemMessage connectionInfoSystemMessage) {
+		try {
+			invoke(m_setConnectionInfoSystemMessage, c, connectionInfoSystemMessage);
+		} catch (InvocationTargetException e) {
+			System.err.println("Unexpected error :");
+			e.printStackTrace();
+			System.exit(-1);
+		}
+	}
+
 	@SuppressWarnings("unused")
 	static AbstractAgent getUpnpIDGAgent(AbstractAgent _requester) {
 		try {
@@ -162,6 +170,7 @@ class MadkitNetworkAccess {
 	private static final Class<?> c_upnp_igd_agent;
 	private static final Method get_upnp_igd_agent_instance;
 	private static final Method check_network_board_memory_leak;
+	private static final Method m_setConnectionInfoSystemMessage;
 	private static final Constructor<DirectLocalLanMessage> direct_local_lan_message;
 	private static final Constructor<BroadcastLocalLanMessage> broadcast_local_lan_message;
 
@@ -179,6 +188,7 @@ class MadkitNetworkAccess {
 		direct_local_lan_message = getConstructor(DirectLocalLanMessage.class, Message.class);
 		broadcast_local_lan_message = getConstructor(BroadcastLocalLanMessage.class, Message.class, AbstractGroup.class,
 				String.class, ArrayList.class);
+		m_setConnectionInfoSystemMessage = getMethod(Connection.class, "setConnectionInfoSystemMessage", ConnectionInfoSystemMessage.class);
 	}
 
 	

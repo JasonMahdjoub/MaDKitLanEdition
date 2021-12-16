@@ -51,7 +51,7 @@ import java.util.Objects;
 /**
  * 
  * @author Jason Mahdjoub
- * @version 1.1
+ * @version 1.2
  * @since MadkitLanEdition 1.0
  */
 public abstract class AbstractIP extends MultiFormatProperties implements SystemMessageWithoutInnerSizeControl, SecureExternalizable {
@@ -219,5 +219,36 @@ public abstract class AbstractIP extends MultiFormatProperties implements System
 			}
 		}
 		return hashCode;
+	}
+
+	public boolean areInternetAddresses()
+	{
+		for (InetAddress ia : getInetAddresses())
+		{
+			if (!isInternetAddress(ia))
+				return false;
+		}
+		return true;
+	}
+
+	public static boolean isInternetAddress(InetAddress perceivedDistantInetAddress) {
+		return !perceivedDistantInetAddress.isAnyLocalAddress() && !perceivedDistantInetAddress.isLinkLocalAddress()
+				&& !perceivedDistantInetAddress.isLoopbackAddress() && !perceivedDistantInetAddress.isMulticastAddress()
+				&& !perceivedDistantInetAddress.isSiteLocalAddress();
+	}
+	public boolean areLocalAddresses()
+	{
+		for (InetAddress ia : getInetAddresses())
+		{
+			if (!isLocalAddress(ia))
+				return false;
+		}
+		return true;
+	}
+	public static boolean isLocalAddress(InetAddress perceivedDistantInetAddress) {
+		return (perceivedDistantInetAddress.isAnyLocalAddress() && !perceivedDistantInetAddress.isLinkLocalAddress()
+				&& !perceivedDistantInetAddress.isMulticastAddress()
+				&& !perceivedDistantInetAddress.isSiteLocalAddress())
+				|| perceivedDistantInetAddress.isLoopbackAddress();
 	}
 }

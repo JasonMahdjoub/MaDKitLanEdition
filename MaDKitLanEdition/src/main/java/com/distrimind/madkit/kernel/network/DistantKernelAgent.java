@@ -241,32 +241,10 @@ class DistantKernelAgent extends AgentFakeThread {
 	private boolean isLocallyAcceptedGroupRole(Group group, String role)
 	{
 		return generalLocalMultiGroup.includes(group, role);
-		/*for (AgentSocketData asd : agents_socket)
-		{
-			if (asd.getAcceptedLocalGroups().getGroups().includes(group, role))
-				return true;
-		}
-		for (AgentSocketData asd : indirect_agents_socket)
-		{
-			if (asd.getAcceptedLocalGroups().getGroups().includes(group, role))
-				return true;
-		}
-		return false;*/
 	}
 	private boolean isDistantlyAcceptedGroupRole(Group group, String role)
 	{
 		return distant_accepted_groups.includes(group, role);
-		/*for (AgentSocketData asd : agents_socket)
-		{
-			if (asd.distant_general_accessible_groups.includes(group, role))
-				return true;
-		}
-		for (AgentSocketData asd : indirect_agents_socket)
-		{
-			if (asd.distant_general_accessible_groups.includes(group, role))
-				return true;
-		}
-		return false;*/
 	}
 
 	private void unlockMessageIfNecessary(Message _message)
@@ -2984,8 +2962,6 @@ class DistantKernelAgent extends AgentFakeThread {
 	void decrementTotalDataQueue(long value) {
 		if (value==0)
 			return;
-		/*if (getState().compareTo(State.ENDING) >= 0)
-			return;*/
 		if (value < 0)
 			throw new IllegalAccessError();
 		long val = totalDataInQueue.addAndGet(-value);

@@ -46,7 +46,7 @@ import com.distrimind.madkit.kernel.KernelAddress;
  * connection, or an indirect connection.
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MadkitLanEdition 1.0
  * @see KernelAddress
  * @see ConnectionIdentifier
@@ -60,14 +60,21 @@ public class Connection implements Serializable {
 
 	private final ConnectionIdentifier connectionIdentifier;
 	private final KernelAddress kernelAddress;
+	private ConnectionInfoSystemMessage connectionInfoSystemMessage;
 
-	Connection(ConnectionIdentifier connectionIdentifier, KernelAddress kernelAddress) {
+	private Connection(ConnectionIdentifier connectionIdentifier, KernelAddress kernelAddress) {
 		if (connectionIdentifier == null)
 			throw new NullPointerException("connectionIdentifier");
 		if (kernelAddress == null)
 			throw new NullPointerException("kernelAddress");
 		this.connectionIdentifier = connectionIdentifier;
 		this.kernelAddress = kernelAddress;
+	}
+	Connection(ConnectionIdentifier connectionIdentifier, KernelAddress kernelAddress, ConnectionInfoSystemMessage connectionInfoSystemMessage) {
+		this(connectionIdentifier, kernelAddress);
+		if (connectionInfoSystemMessage==null)
+			throw new NullPointerException();
+		this.connectionInfoSystemMessage=connectionInfoSystemMessage;
 	}
 
 	@Override
@@ -101,4 +108,15 @@ public class Connection implements Serializable {
 		return connectionIdentifier.hashCode();
 	}
 
+	@SuppressWarnings("unused")
+	void setConnectionInfoSystemMessage(ConnectionInfoSystemMessage connectionInfoSystemMessage)
+	{
+		if (connectionInfoSystemMessage==null)
+			throw new NullPointerException();
+		this.connectionInfoSystemMessage=connectionInfoSystemMessage;
+	}
+
+	public ConnectionInfoSystemMessage getConnectionInfoSystemMessage() {
+		return connectionInfoSystemMessage;
+	}
 }

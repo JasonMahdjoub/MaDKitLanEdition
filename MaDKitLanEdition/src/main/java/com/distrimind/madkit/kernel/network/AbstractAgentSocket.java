@@ -656,7 +656,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 							new NetworkEventMessage(connection_closed_reason,
 									new Connection(new ConnectionIdentifier(getTransferType(),
 											distant_inet_address, local_interface_address),
-											distantInterfacedKernelAddress)));
+											distantInterfacedKernelAddress, distantConnectionInfo)));
 
 		this.killAgent(this);
 	}
@@ -2176,6 +2176,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 								+ distantInterfacedKernelAddress + ") : " + this.distantConnectionInfo);
 					AbstractAgentSocket.this.sendMessageWithRole(agent_for_distant_kernel_aa,
 							new ObjectMessage<>(this.distantConnectionInfo), LocalCommunity.Roles.SOCKET_AGENT_ROLE);
+					MadkitKernelAccess.setConnectionInfoSystemMessage(this, new ConnectionIdentifier(getTransferType(), distant_inet_address, local_interface_address), this.distantConnectionInfo);
 				} else if (obj instanceof AccessMessage) {
 					try {
 						ConnectionClosedReason con_close_reason = null;
@@ -2455,7 +2456,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		MadkitKernelAccess.informHooks(this,
 				new NetworkEventMessage(AgentActionEvent.CONNEXION_ESTABLISHED, new Connection(
 						new ConnectionIdentifier(getTransferType(), distant_inet_address, local_interface_address),
-						distantInterfacedKernelAddress)));
+						distantInterfacedKernelAddress, distantConnectionInfo)));
 	}
 
 	protected abstract void checkTransferBlockCheckerChanges() throws ConnectionException;

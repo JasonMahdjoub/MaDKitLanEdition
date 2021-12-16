@@ -669,7 +669,7 @@ public class TestNGMadkit {
 	}
 
 	public int getEffectiveConnections(Madkit m) {
-		Set<Connection> l = m.getKernel().getEffectiveConnections(null);
+		Set<Connection> l = m.getKernel().getEffectiveConnections((AbstractAgent) null);
 		if (l == null)
 			return 0;
 		else
@@ -681,7 +681,7 @@ public class TestNGMadkit {
 		Timer t = new Timer(true);
 
 		do {
-			l = m.getKernel().getEffectiveConnections(null);
+			l = m.getKernel().getEffectiveConnections((AbstractAgent) null);
 			if (l != null) {
 				System.out.println(m.getKernel() + " : connected instances =" + l.size() + " (expected=" + nb + ")");
 				for (Madkit m2 : getHelperInstances()) {

@@ -47,7 +47,7 @@ import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
  * or an indirect connection.
  * 
  * @author Jason Mahdjoub
- * @version 1.0
+ * @version 1.1
  * @since MadkitLanEdition 1.0
  * 
  *
@@ -64,7 +64,7 @@ public final class ConnectionIdentifier implements Serializable {
 	private final int hashCode;
 
 	ConnectionIdentifier(IDTransfer idTransfer, InetSocketAddress distantInetSocketAddress,
-			InetSocketAddress localInetSocketAddress) {
+						 InetSocketAddress localInetSocketAddress) {
 		if (idTransfer == null)
 			throw new NullPointerException("idTransfer");
 		if (distantInetSocketAddress == null)

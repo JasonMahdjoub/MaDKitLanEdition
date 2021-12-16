@@ -4380,6 +4380,18 @@ class MadkitKernel extends Agent {
 
 
 	}
+	void setConnectionInfoSystemMessage(AbstractAgent requester, ConnectionIdentifier connectionIdentifier, ConnectionInfoSystemMessage connectionInfoSystemMessage)
+	{
+		for (Connection c : availableConnections)
+		{
+			if (c.getConnectionIdentifier().equals(connectionIdentifier))
+			{
+				MadkitNetworkAccess.setConnectionInfoSystemMessage(c, connectionInfoSystemMessage);
+				break;
+			}
+		}
+
+	}
 }
 
 final class CGRNotAvailable extends Exception {
