@@ -2514,9 +2514,12 @@ class DistantKernelAgent extends AgentFakeThread {
 			if (!output_stream.isClosed())
 				output_stream.close();
 		}
+		public void freeDataSize() {
 
+		}
 		public void cancel() throws IOException {
 			closeStream();
+			freeDataSize();
 		}
 
 		public int getIDPacket() {
@@ -2578,7 +2581,8 @@ class DistantKernelAgent extends AgentFakeThread {
 			return dataSize;
 		}
 
-		void freeDataSize() {
+		@Override
+		public void freeDataSize() {
 			decrementTotalDataQueue(dataSize);
 			dataSize = 0;
 		}
@@ -2625,6 +2629,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			else
 				return read_packet.getWrittenDataLength();
 		}
+		@Override
 		public void freeDataSize() {
 			decrementTotalDataQueue(data);
 			data = 0;
@@ -2637,7 +2642,21 @@ class DistantKernelAgent extends AgentFakeThread {
 		RealTimeTransferStat getStatistics() {
 			return stat;
 		}
+
 	}
+
+	void removeBigDataReading(int IDPacket)
+	{
+		BigDataReading bdr=current_big_data_readings.remove(IDPacket);
+		if (bdr!=null)
+			bdr.freeDataSize();
+
+	}
+	void removeShortDataReading(int IDPacket)
+	{
+		current_short_readings.remove(IDPacket);
+	}
+
 
 	protected void receiveData(AgentAddress agent_socket_sender, PacketPart p) {
 
@@ -2664,7 +2683,7 @@ class DistantKernelAgent extends AgentFakeThread {
 					if (sr.isInvalid()) {
 						MadkitKernelAccess.dataCorrupted(sr.getOriginalMessage(),
 								sr.getReadPacket().getWrittenDataLength(), null);
-						current_big_data_readings.remove(reading.getIDPacket());
+						removeBigDataReading(reading.getIDPacket());
 						processInvalidPacketPart(agent_socket_sender,
 								new PacketException("The given packet is not valid."), p, false);
 						try {
@@ -2676,13 +2695,13 @@ class DistantKernelAgent extends AgentFakeThread {
 						sr.closeStream();
 						MadkitKernelAccess.transferCompleted(sr.getOriginalMessage(),
 								sr.getReadPacket().getWrittenDataLength());
-						current_big_data_readings.remove(reading.getIDPacket());
+						removeBigDataReading(reading.getIDPacket());
 					}
 				}
 				catch (PacketException | IOException e) {
 					boolean candidateToBan=(e instanceof MessageExternalizationException) && ((MessageExternalizationException) e).getIntegrity().equals(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
 					MadkitKernelAccess.dataCorrupted(sr.getOriginalMessage(), sr.getReadPacket()==null?0:sr.getReadPacket().getWrittenDataLength(), null);
-					current_big_data_readings.remove(reading.getIDPacket());
+					removeBigDataReading(reading.getIDPacket());
 					processInvalidPacketPart(agent_socket_sender, e, p, candidateToBan);
 					try {
 						sr.closeStream();
@@ -2694,7 +2713,8 @@ class DistantKernelAgent extends AgentFakeThread {
 				sr.freeDataSize();
 			} else if (sr.isInvalid()) {
 				MadkitKernelAccess.dataCorrupted(sr.getOriginalMessage(), sr.getReadPacket().getWrittenDataLength(), null);
-				current_big_data_readings.remove(reading.getIDPacket());
+				removeBigDataReading(reading.getIDPacket());
+
 				processInvalidPacketPart(agent_socket_sender, new PacketException("The given packet is not valid."), p,
 						false);
 				try {
@@ -2819,8 +2839,8 @@ class DistantKernelAgent extends AgentFakeThread {
 									LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
 						}
 					}
-					Integer id = reading.getIDPacket();
-					current_short_readings.remove(id);
+					int id = reading.getIDPacket();
+					removeShortDataReading(id);
 					setOneSocketPurged(id, sr);
 
 				}
@@ -2865,6 +2885,7 @@ class DistantKernelAgent extends AgentFakeThread {
 
 		private final long dataIncrement;
 		private final AtomicLong dataSize = new AtomicLong(0);
+		private volatile boolean markedAsRead=false;
 
 		public ReceivedSerializableObject(SystemMessageWithoutInnerSizeControl _content, long dataSize) {
 			super(_content);
@@ -2873,12 +2894,15 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 
 		void markDataAsRead() {
-			if (dataSize.addAndGet(-dataIncrement) >= 0) {
-				decrementTotalDataQueue(dataIncrement);
-			} else {
-				dataSize.set(0);
-				if (logger != null  && logger.isLoggable(Level.FINER))
-					logger.finer("Illegal computed data size queue !");
+			if (!markedAsRead) {
+				markedAsRead=true;
+				if (dataSize.addAndGet(-dataIncrement) >= 0) {
+					decrementTotalDataQueue(dataIncrement);
+				} else {
+					dataSize.set(0);
+					if (logger != null && logger.isLoggable(Level.FINER))
+						logger.finer("Illegal computed data size queue !");
+				}
 			}
 		}
 
@@ -2958,8 +2982,10 @@ class DistantKernelAgent extends AgentFakeThread {
 	}
 
 	void decrementTotalDataQueue(long value) {
-		if (getState().compareTo(State.ENDING) >= 0)
+		if (value==0)
 			return;
+		/*if (getState().compareTo(State.ENDING) >= 0)
+			return;*/
 		if (value < 0)
 			throw new IllegalAccessError();
 		long val = totalDataInQueue.addAndGet(-value);

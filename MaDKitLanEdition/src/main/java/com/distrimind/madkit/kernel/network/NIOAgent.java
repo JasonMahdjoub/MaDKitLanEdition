@@ -2094,7 +2094,7 @@ final class NIOAgent extends Agent {
 				for (AbstractData ad : shortDataToSend)
 					ad.unlockMessage();
 				for (AbstractData ad : bigDataToSend)
-					ad.cancel();
+					ad.unlockMessage();
 				for (AbstractData ad : dataToTransfer)
 					ad.unlockMessage();
 			}
