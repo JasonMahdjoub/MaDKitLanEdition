@@ -79,7 +79,7 @@ public class BigDataTransferSpeed extends TestNGMadkit {
 	final NetworkEventListener eventListener1;
 	final NetworkEventListener eventListener2;
     final long downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond;
-    final boolean cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage, restartWithLeaveRequestRole, globalDisconnection;
+    final boolean cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage, restartWithLeaveRequestRole, globalDisconnection, transferPaused, pauseAll;
     static final DoubleIP ipToConnect;
     static
     {
@@ -96,7 +96,8 @@ public class BigDataTransferSpeed extends TestNGMadkit {
 
 	public BigDataTransferSpeed(final long downloadLimitInBytesPerSecond, final long uploadLimitInBytesPerSecond,
                                 boolean cancelTransfer, boolean cancelTransferFromReceiver, boolean asynchronousMessage,
-                                boolean restartMessage, boolean restartWithLeaveRequestRole, boolean globalDisconnection) throws UnknownHostException {
+                                boolean restartMessage, boolean restartWithLeaveRequestRole, boolean globalDisconnection,
+                                boolean transferPaused, boolean pauseAll) throws UnknownHostException {
         if(databaseFile1.exists())
             FileTools.deleteDirectory(databaseFile1);
         if(databaseFile2.exists())
@@ -109,6 +110,8 @@ public class BigDataTransferSpeed extends TestNGMadkit {
         this.downloadLimitInBytesPerSecond=downloadLimitInBytesPerSecond;
         this.uploadLimitInBytesPerSecond=uploadLimitInBytesPerSecond;
         this.globalDisconnection=globalDisconnection;
+        this.transferPaused=transferPaused;
+        this.pauseAll=pauseAll;
         P2PSecuredConnectionProtocolPropertiesWithKeyAgreement p2pprotocol=new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
         p2pprotocol.isServer = true;
         p2pprotocol.symmetricEncryptionType=SymmetricEncryptionType.AES_CBC_PKCS5Padding;
@@ -138,31 +141,6 @@ public class BigDataTransferSpeed extends TestNGMadkit {
             }
         };
         this.eventListener1.maxBufferSize=Short.MAX_VALUE*2;
-		/*this.eventListener1 = new MadkitEventListener() {
-
-			@Override
-			public void onMadkitPropertiesLoaded(MadkitProperties _properties) {
-				AbstractAccessProtocolProperties app = new AccessProtocolWithP2PAgreementProperties();
-
-				try {
-					P2PSecuredConnectionProtocolWithKeyAgreementProperties p2pprotocol=new P2PSecuredConnectionProtocolWithKeyAgreementProperties();
-					p2pprotocol.isServer = true;
-					p2pprotocol.symmetricEncryptionType=SymmetricEncryptionType.AES_CTR;
-                    p2pprotocol.symmetricSignatureType= SymmetricAuthentifiedSignatureType.HMAC_SHA2_384;
-					new NetworkEventListener(true, false, false, null,
-							new ConnectionsProtocolsMKEventListener(p2pprotocol),
-							new AccessProtocolPropertiesMKEventListener(app),
-							new AccessDataMKEventListener(AccessDataMKEventListener.getDefaultAccessData(GROUP)), 5000,
-							null, InetAddress.getByName("0.0.0.0")).onMadkitPropertiesLoaded(_properties);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				_properties.networkProperties.networkLogLevel = Level.INFO;
-				_properties.networkProperties.maxBufferSize=Short.MAX_VALUE*4;
-                _properties.networkProperties.maximumGlobalDownloadSpeedInBytesPerSecond=downloadLimitInBytesPerSecond;
-				_properties.networkProperties.maximumGlobalUploadSpeedInBytesPerSecond=uploadLimitInBytesPerSecond;
-			}
-		};*/
 
 		P2PSecuredConnectionProtocolPropertiesWithKeyAgreement u = new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
 		u.isServer = false;
@@ -193,7 +171,7 @@ public class BigDataTransferSpeed extends TestNGMadkit {
         this.eventListener2.maxBufferSize=this.eventListener1.maxBufferSize;
 	}
     public BigDataTransferSpeed(final long downloadLimitInBytesPerSecond, final long uploadLimitInBytesPerSecond) throws UnknownHostException {
-        this(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond, false, false, false, false, false, false);
+        this(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond, false, false, false, false, false, false, false,false);
     }
     private static final long timeOut = 20000;
 
@@ -306,6 +284,28 @@ public class BigDataTransferSpeed extends TestNGMadkit {
                                     System.out.println("Reconnect from sender");
                                     this.requestRole(GROUP, ROLE2);
                                 }
+                                else if (transferPaused && !cancelTransferFromReceiver)
+                                {
+                                    sleep(100);
+
+                                    if (pauseAll) {
+                                        System.out.println("Pause transfers from sender (all distant peers concerned)");
+                                        setAllBigDataTransfersPaused(true);
+                                    }
+                                    else {
+                                        System.out.println("Pause transfers from sender (one distant peer concerned)");
+                                        setBigDataTransfersOfAGivenKernelPaused(getAvailableDistantKernels().stream().findAny().orElse(null), true);
+                                    }
+
+                                    sleep(2000);
+                                    Assert.assertEquals(transferID.getBytePerSecondsStat().getNumberOfIdentifiedBytesDuringTheLastCycle(), 0);
+                                    System.out.println("Restart transfers from sender");
+                                    if (pauseAll)
+                                        setAllBigDataTransfersPaused(false);
+                                    else
+                                        setBigDataTransfersOfAGivenKernelPaused(getAvailableDistantKernels().stream().findAny().orElse(null), false);
+
+                                }
                                 Message m = this.waitNextMessage(delay);
                                 sleep(300);
                                 AssertJUnit.assertTrue(m==null?"null":m.toString(),m instanceof BigDataResultMessage);
@@ -316,12 +316,12 @@ public class BigDataTransferSpeed extends TestNGMadkit {
                                     tr1 = true;
                                     AssertJUnit.assertFalse(cancelTransfer);
 
-                                    if (this.getMaximumGlobalUploadSpeedInBytesPerSecond() != Long.MAX_VALUE) {
+                                    if (!transferPaused && !restartMessage && this.getMaximumGlobalUploadSpeedInBytesPerSecond() != Long.MAX_VALUE) {
                                         double speed = ((double) bdrm.getTransferredDataLength()) / ((double) bdrm.getTransferDuration()) * 1000.0;
                                         AssertJUnit.assertTrue(speed < getMaximumGlobalUploadSpeedInBytesPerSecond() * 2);
                                         AssertJUnit.assertTrue(speed > getMaximumGlobalUploadSpeedInBytesPerSecond() / 2.0);
                                     }
-                                    if (!restartMessage)
+                                    if (!restartMessage && transferID.getBytePerSecondsStat()!=null)
                                         Assert.assertTrue(transferID.getBytePerSecondsStat().getNumberOfIdentifiedBytesFromCreationOfTheseStatistics()>=bigDataToSendArray.get().length, ""+transferID.getBytePerSecondsStat().getNumberOfIdentifiedBytesFromCreationOfTheseStatistics());
                                 } else if (bdrm.getType() == BigDataResultMessage.Type.TRANSFER_CANCELED) {
                                     tr1 = true;
@@ -374,7 +374,7 @@ public class BigDataTransferSpeed extends TestNGMadkit {
                     };
                     launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, bigDataSenderAgent, eventListener1);
                     sleep(400);
-                    BigDataTransferReceiverAgent bigDataTransferAgent = new BigDataTransferReceiverAgent(2, uploadLimitInBytesPerSecond, cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage, restartWithLeaveRequestRole, globalDisconnection);
+                    BigDataTransferReceiverAgent bigDataTransferAgent = new BigDataTransferReceiverAgent(2, uploadLimitInBytesPerSecond, cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage, restartWithLeaveRequestRole, globalDisconnection, transferPaused, pauseAll);
                     launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, bigDataTransferAgent, eventListener2);
 
                     while (transfered1.get() == null || transfered2.get() == null) {

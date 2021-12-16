@@ -45,12 +45,12 @@ import java.net.UnknownHostException;
  * @version 1.0
  * @since MaDKitLanEdition 2.3.0
  */
-public class TestBigDataTransferRestartAfterNetworkReconnection {
+public class TestBigDataTransferPausing {
 	static class BigDataTransferTest extends com.distrimind.madkit.testing.util.agent.BigDataTransferSpeed
 	{
 
-		public BigDataTransferTest(long downloadLimitInBytesPerSecond, long uploadLimitInBytesPerSecond, boolean cancelTransfer, boolean cancelTransferFromReceiver, boolean asynchronousMessage, boolean restartMessage, boolean restartWithLeaveRequestRole, boolean globalDisconnection) throws UnknownHostException {
-			super(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond, cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage, restartWithLeaveRequestRole, globalDisconnection, false, false);
+		public BigDataTransferTest(long downloadLimitInBytesPerSecond, long uploadLimitInBytesPerSecond, boolean asynchronousMessage, boolean pauseTransferFromReceiver, boolean pauseAll) throws UnknownHostException {
+			super(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond, false, pauseTransferFromReceiver, asynchronousMessage, false, false, false, true, pauseAll);
 		}
 	}
 
@@ -58,16 +58,20 @@ public class TestBigDataTransferRestartAfterNetworkReconnection {
 	Object[][] getParameters()
 	{
 		return new Object[][]{
-				{true, false, true},
-				{false, false, true},
 				{false, false, false},
+				{false, false, true},
 				{false, true, false},
+				{false, true, true},
+				{true, false, false},
+				{true, false, true},
+				{true, true, false},
+				{true, true, true},
 		};
 	}
 
 	@Test(dataProvider = "getParameters")
-	public void test(boolean cancelTransferFromReceiver, boolean globalDisconnection, boolean restartWithLeaveRequestRole) throws UnknownHostException {
-		BigDataTransferTest b=new BigDataTransferTest(40000000, 40000000, false,cancelTransferFromReceiver, true, true, restartWithLeaveRequestRole, globalDisconnection);
+	public void test(boolean asynchronousMessage, boolean pauseTransferFromReceiver, boolean pauseAll) throws UnknownHostException {
+		BigDataTransferTest b=new BigDataTransferTest(40000000, 40000000, asynchronousMessage, pauseTransferFromReceiver, pauseAll);
 		b.bigDataTransfer();
 	}
 

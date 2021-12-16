@@ -1214,7 +1214,24 @@ final class LoggedKernel extends MadkitKernel {
 		kernel.setConnectionInfoSystemMessage(requester, connectionIdentifier, connectionInfoSystemMessage);
 		if (kernel.isFinestLogOn())
 		{
-			kernel.logger.log(Level.FINEST, "setConnectionInfoSystemMessage (requester="+requester+", connectionIdentifier="+connectionIdentifier+", connectionInfoSystemMessage="+connectionInfoSystemMessage, ")");
+			kernel.logger.log(Level.FINEST, "setConnectionInfoSystemMessage (requester="+requester
+					+", connectionIdentifier="+connectionIdentifier
+					+", connectionInfoSystemMessage="+connectionInfoSystemMessage+")");
 		}
+	}
+
+	@Override
+	ReturnCode pauseBigDataTransfers(AbstractAgent requester, KernelAddress kernelAddress, boolean transferPaused)
+	{
+		ReturnCode r=kernel.pauseBigDataTransfers(requester, kernelAddress, transferPaused);
+		if (kernel.isFinestLogOn())
+		{
+			kernel.logger.log(Level.FINEST, "pauseBigDataTransfers (requester="+requester
+					+", kernelAddress="+kernelAddress
+					+", transferPaused="+transferPaused
+					+", res="+r
+					+ ")");
+		}
+		return r;
 	}
 }

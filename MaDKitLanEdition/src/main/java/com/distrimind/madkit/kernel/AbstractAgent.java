@@ -5505,6 +5505,27 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		return getMadkitKernel().cancelAsynchronousBigDataMessagesByReceiverRole(this, group, receiverRole);
 	}
 
+	/**
+	 * Set all big data transfers of a given distant kernel address in upload and in download as paused or as restarted
+	 * @param distantConcernedKernelAddress the concerned kernel address
+	 * @param transferPaused true if the transfers must be paused, false if they must be restarted
+	 * @return SUCCESS if the network is enabled, SEVERE else.
+	 */
+	public ReturnCode setBigDataTransfersOfAGivenKernelPaused(KernelAddress distantConcernedKernelAddress, boolean transferPaused)
+	{
+		if (distantConcernedKernelAddress==null)
+			throw new NullPointerException();
+		return getMadkitKernel().pauseBigDataTransfers(this, distantConcernedKernelAddress, transferPaused);
+	}
 
+	/**
+	 * Set all big data transfers of all connections in upload and in download as paused or as restarted
+	 * @param transferPaused true if the transfers must be paused, false if they must be restarted
+	 * @return SUCCESS if the network is enabled, SEVERE else.
+	 */
+	public ReturnCode setAllBigDataTransfersPaused(boolean transferPaused)
+	{
+		return getMadkitKernel().pauseBigDataTransfers(this, null, transferPaused);
+	}
 
 }

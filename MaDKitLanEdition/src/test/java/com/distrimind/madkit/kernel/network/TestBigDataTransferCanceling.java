@@ -49,8 +49,8 @@ public class TestBigDataTransferCanceling {
 	static class BigDataTransferTest extends com.distrimind.madkit.testing.util.agent.BigDataTransferSpeed
 	{
 
-		public BigDataTransferTest(int downloadLimitInBytesPerSecond, int uploadLimitInBytesPerSecond, boolean cancelTransfer, boolean cancelTransferFromReceiver, boolean asynchronousMessage, boolean restartMessage, boolean globalDisconnection) throws UnknownHostException {
-			super(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond, cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage, false, globalDisconnection);
+		public BigDataTransferTest(long downloadLimitInBytesPerSecond, long uploadLimitInBytesPerSecond, boolean cancelTransfer, boolean cancelTransferFromReceiver, boolean asynchronousMessage, boolean restartMessage, boolean globalDisconnection) throws UnknownHostException {
+			super(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond, cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage, false, globalDisconnection, false, false);
 		}
 	}
 

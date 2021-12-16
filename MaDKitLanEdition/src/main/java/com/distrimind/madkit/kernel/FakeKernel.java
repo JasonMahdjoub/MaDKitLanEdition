@@ -687,4 +687,9 @@ class FakeKernel extends MadkitKernel {
 	{
 		throw buildKernelException(null);
 	}
+	@Override
+	ReturnCode pauseBigDataTransfers(AbstractAgent requester, KernelAddress kernelAddress, boolean transferPaused)
+	{
+		throw buildKernelException(null);
+	}
 }

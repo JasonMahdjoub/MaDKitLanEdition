@@ -644,6 +644,17 @@ class DistantKernelAgent extends AgentFakeThread {
 							sendReplyEmpty(m);
 					}
 				}
+				else if (_message.getClass()==PauseBigDataTransferMessage.class)
+				{
+					PauseBigDataTransferMessage p=(PauseBigDataTransferMessage)_message;
+					if (p.getKernelAddress()==null || p.getKernelAddress().equals(distant_kernel_address))
+					{
+						AgentSocketData asd=getBestAgentSocket(false);
+						if (asd!=null) {
+							sendData(asd.getAgentAddress(), new PauseBigDataTransferSystemMessage(p), true, null, false);
+						}
+					}
+				}
 				else if (_message.getClass() == ObjectMessage.class) {
 					Object o = ((ObjectMessage<?>) _message).getContent();
 					if (o.getClass() == AgentSocketData.class) {
@@ -2850,6 +2861,10 @@ class DistantKernelAgent extends AgentFakeThread {
 					cancelBigPacketDataToSendInQueue(m.getIDPacket(), true, m.getReason(), true);
 				}
 			}
+			else if (obj.getClass()==PauseBigDataTransferSystemMessage.class)
+			{
+				sendMessage(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.NIO_ROLE, new PauseBigDataTransferMessage(distant_kernel_address, ((PauseBigDataTransferSystemMessage) obj).isTransferPaused()));
+			}
 			else
 				sendMessageWithRole(agent_socket_sender, new ReceivedSerializableObject(sm, dataSize),
 					LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
@@ -2899,6 +2914,7 @@ class DistantKernelAgent extends AgentFakeThread {
 	}
 
 	private void setTransferPaused(boolean value, Set<AgentAddress> agents, boolean force) {
+
 		if (!force) {
 			ExceededDataQueueSize e = this.globalExceededDataQueueSize.get();
 			if (e != null) {

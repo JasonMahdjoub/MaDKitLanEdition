@@ -35,41 +35,43 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
+import com.distrimind.util.io.SecuredObjectInputStream;
+import com.distrimind.util.io.SecuredObjectOutputStream;
 
-import java.net.UnknownHostException;
+import java.io.IOException;
 
 /**
  * @author Jason Mahdjoub
  * @version 1.0
  * @since MaDKitLanEdition 2.3.0
  */
-public class TestBigDataTransferRestartAfterNetworkReconnection {
-	static class BigDataTransferTest extends com.distrimind.madkit.testing.util.agent.BigDataTransferSpeed
-	{
+class PauseBigDataTransferSystemMessage implements SystemMessageWithoutInnerSizeControl{
+	private boolean transferPaused;
 
-		public BigDataTransferTest(long downloadLimitInBytesPerSecond, long uploadLimitInBytesPerSecond, boolean cancelTransfer, boolean cancelTransferFromReceiver, boolean asynchronousMessage, boolean restartMessage, boolean restartWithLeaveRequestRole, boolean globalDisconnection) throws UnknownHostException {
-			super(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond, cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage, restartWithLeaveRequestRole, globalDisconnection, false, false);
-		}
+	PauseBigDataTransferSystemMessage(PauseBigDataTransferMessage p) {
+		this.transferPaused = p.isTransferSuspended();
 	}
 
-	@DataProvider
-	Object[][] getParameters()
-	{
-		return new Object[][]{
-				{true, false, true},
-				{false, false, true},
-				{false, false, false},
-				{false, true, false},
-		};
+	@SuppressWarnings("unused")
+	private PauseBigDataTransferSystemMessage() {
 	}
 
-	@Test(dataProvider = "getParameters")
-	public void test(boolean cancelTransferFromReceiver, boolean globalDisconnection, boolean restartWithLeaveRequestRole) throws UnknownHostException {
-		BigDataTransferTest b=new BigDataTransferTest(40000000, 40000000, false,cancelTransferFromReceiver, true, true, restartWithLeaveRequestRole, globalDisconnection);
-		b.bigDataTransfer();
+	boolean isTransferPaused() {
+		return transferPaused;
 	}
 
+	@Override
+	public boolean excludedFromEncryption() {
+		return false;
+	}
 
+	@Override
+	public void writeExternal(SecuredObjectOutputStream out) throws IOException {
+		out.writeBoolean(transferPaused);
+	}
+
+	@Override
+	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+		transferPaused=in.readBoolean();
+	}
 }

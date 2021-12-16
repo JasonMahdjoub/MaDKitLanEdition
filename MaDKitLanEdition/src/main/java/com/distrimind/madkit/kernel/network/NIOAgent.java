@@ -662,6 +662,14 @@ final class NIOAgent extends Agent {
 					logger.warning("Unexpected message "+m);
 
 			}
+			else if (m.getClass()==PauseBigDataTransferMessage.class)
+			{
+				PauseBigDataTransferMessage p=(PauseBigDataTransferMessage)m;
+				personal_sockets.forEach((k,v) -> {
+					if (p.getKernelAddress()==null || v.agentSocket.distantInterfacedKernelAddress.equals(p.getKernelAddress()))
+						v.setBigDataTransferPaused(p.isTransferSuspended());
+				});
+			}
 			else if (logger!=null)
 				logger.warning("Unexpected message "+m);
 			m = nextMessage();
@@ -759,6 +767,7 @@ final class NIOAgent extends Agent {
 								}
 								continue;
 							}
+
 							selectedKeysIterator.remove();
 						}
 						SelectableChannel sc = key.channel();
@@ -1285,6 +1294,7 @@ final class NIOAgent extends Agent {
 		private ByteBuffer readBuffer = null;
 		private final int maxBlockSize;
 		private volatile boolean canPrepareNextData=true;
+		private boolean bigDataTransferPaused=false;
 		private final SelectionKey clientKey;
 		private final int numberOfNoBackData;
 		public boolean isClosed() {
@@ -1296,6 +1306,21 @@ final class NIOAgent extends Agent {
 			shortDataToSend=new CircularArrayList<>(5);
 			bigDataToSend=new CircularArrayList<>(5);
 			dataToTransfer=new CircularArrayList<>(5);
+		}
+
+		void setBigDataTransferPaused(boolean bigDataTransferPaused) {
+			this.bigDataTransferPaused = bigDataTransferPaused;
+
+			if (!is_closed && hasDataToSend()) {
+				if ((clientKey.interestOps() & SelectionKey.OP_WRITE) != SelectionKey.OP_WRITE)
+					clientKey.interestOps(SelectionKey.OP_WRITE | SelectionKey.OP_READ);
+				if (!bigDataTransferPaused) {
+					if (actualLocker != null) {
+						actualLocker.notifyLocker();
+					}
+				}
+			}
+
 		}
 
 		public PersonalSocket(SocketChannel _socketChannel, AgentSocket _agent, SelectionKey clientKey)
@@ -1345,8 +1370,17 @@ final class NIOAgent extends Agent {
 
 			do
 			{
-				if (noBackDataToSend.size()==0)
-					return null;
+				if (noBackDataToSend.size()==0) {
+					try {
+						setNextTransferType();
+						prepareNextDataToNextIfNecessary();
+					} catch (TransferException e) {
+						if (logger != null)
+							logger.severeLog("unexpected exception", e);
+					}
+					if (noBackDataToSend.size()==0)
+						return null;
+				}
 				res=noBackDataToSend.getFirst();
 				try
 				{
@@ -1442,7 +1476,7 @@ final class NIOAgent extends Agent {
 		}
 
 		public boolean hasDataToSend() {
-			return shortDataToSend.size()>0 || bigDataToSend.size()>0 || dataToTransfer.size()>0;
+			return shortDataToSend.size()>0 || (!bigDataTransferPaused && bigDataToSend.size()>0) || dataToTransfer.size()>0;
 		}
 
 		public boolean addDataToSend(AbstractData _data) throws TransferException {
@@ -1451,44 +1485,44 @@ final class NIOAgent extends Agent {
 
 			if (logger != null && logger.isLoggable(Level.FINEST))
 				logger.finest(this + " - data to send : " + _data);
-
+			boolean opWrite=true;
 			switch (_data.getDataTransferType()) {
-			case SHORT_DATA:
+				case SHORT_DATA:
 
-				if (_data.isPriority() && shortDataToSend.size() > 0) {
+					if (_data.isPriority() && shortDataToSend.size() > 0) {
 
-					int i = 1;
+						int i = 1;
 
 
-					while (i<shortDataToSend.size()) {
-						if (!shortDataToSend.get(i).isPriority()) {
-							break;
+						while (i<shortDataToSend.size()) {
+							if (!shortDataToSend.get(i).isPriority()) {
+								break;
+							}
+							else
+								++i;
 						}
-						else
-							++i;
-					}
-					shortDataToSend.add(i, _data);
+						shortDataToSend.add(i, _data);
 
 
-				} else
-					shortDataToSend.add(_data);
-				break;
-			case BIG_DATA:
-				bigDataToSend.add((DistantKernelAgent.BigPacketData) _data);
-
-
-				break;
-			case DATA_TO_TRANSFER:
-				dataToTransfer.addLast((AbstractAgentSocket.BlockDataToTransfer) _data);
-				break;
+					} else
+						shortDataToSend.add(_data);
+					break;
+				case BIG_DATA:
+					bigDataToSend.add((DistantKernelAgent.BigPacketData) _data);
+					if (bigDataTransferPaused)
+						opWrite=false;
+					break;
+				case DATA_TO_TRANSFER:
+					dataToTransfer.addLast((AbstractAgentSocket.BlockDataToTransfer) _data);
+					break;
 			}
 			checkValidTransferType();
 			prepareNextDataToNextIfNecessary();
 
-			if (!is_closed && (clientKey.interestOps() & SelectionKey.OP_WRITE) != SelectionKey.OP_WRITE)
+			if (!is_closed && (opWrite || (opWrite=hasDataToSend())) && (clientKey.interestOps() & SelectionKey.OP_WRITE) != SelectionKey.OP_WRITE)
 				clientKey.interestOps(SelectionKey.OP_WRITE | SelectionKey.OP_READ);
 
-			return true;
+			return opWrite;
 
 		}
 
@@ -1670,7 +1704,7 @@ final class NIOAgent extends Agent {
 
 							break;
 						case BIG_DATA:
-							if (bigDataToSend.size() == 0) {
+							if (bigDataTransferPaused || bigDataToSend.size() == 0) {
 								if (dataToTransfer.size()>0)
 									dataTransferType = DataTransferType.DATA_TO_TRANSFER;
 								else
@@ -1710,7 +1744,7 @@ final class NIOAgent extends Agent {
 				}
 				switch (dataTransferType) {
 					case SHORT_DATA:
-						if (bigDataToSend.size() > 0)
+						if (!bigDataTransferPaused && bigDataToSend.size() > 0)
 							dataTransferType = DataTransferType.BIG_DATA;
 						else if (dataToTransfer.size() > 0)
 							dataTransferType = DataTransferType.DATA_TO_TRANSFER;
@@ -1719,22 +1753,26 @@ final class NIOAgent extends Agent {
 					case BIG_DATA:
 						if (dataToTransfer.size() > 0)
 							dataTransferType = DataTransferType.DATA_TO_TRANSFER;
-						else if (shortDataToSend.size() > 0)
+						else if (shortDataToSend.size() > 0 || bigDataTransferPaused)
 							dataTransferType = DataTransferType.SHORT_DATA;
+
 
 						break;
 					case DATA_TO_TRANSFER:
 						if (shortDataToSend.size() > 0)
 							dataTransferType = DataTransferType.SHORT_DATA;
-						else if (bigDataToSend.size() > 0)
+						else if (!bigDataTransferPaused && bigDataToSend.size() > 0)
 							dataTransferType = DataTransferType.BIG_DATA;
+						else if (bigDataTransferPaused)
+							dataTransferType = DataTransferType.SHORT_DATA;
 
 						break;
 				}
 				return true;
 			}
-			else
+			else {
 				return false;
+			}
 
 		}
 

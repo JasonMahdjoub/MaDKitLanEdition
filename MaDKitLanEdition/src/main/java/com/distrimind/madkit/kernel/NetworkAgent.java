@@ -298,133 +298,138 @@ public final class NetworkAgent extends AgentFakeThread {
 					stopCentralDatabaseBackupReceiverAgent();
 					checkCentralDatabaseBackupReceiverAgent();
 				}
-			case Roles.UPDATER:// It is a CGR update
-			{
-				broadcastMessage(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
-						LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE, m, false/*ml != null*/);
-
-			}
-				break;
-			case Roles.SECURITY:// It is a security problem
-				if (m.getClass() == AnomalyDetectedMessage.class) {
-					AnomalyDetectedMessage a = ((AnomalyDetectedMessage) m);
-					if (a.getKernelAddress() != null)
-						broadcastMessage(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
-								LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE, a, false);
-					else if (a.getInetSocketAddress() != null)
-						broadcastMessage(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
-								LocalCommunity.Roles.SOCKET_AGENT_ROLE, a, false);
-				}
-				break;
-			case Roles.EMITTER:// It is a message to send elsewhere
-			{
-				MessageLocker ml = null;
-				if (m instanceof LocalLanMessage) {
-					ml = ((LocalLanMessage) m).getMessageLocker();
-					ml.lock();
-
-				}
-
-				ReturnCode rc = broadcastMessage(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
-						LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE, m, ml != null);
-				if (ml != null)
+				case Roles.UPDATER:// It is a CGR update
 				{
-					if (rc.equals(ReturnCode.SUCCESS)) {
-						messageLockers.put(m.getConversationID(), ml);
-					} else  {
-						ml.cancelLock();
+					broadcastMessage(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
+							LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE, m, false/*ml != null*/);
+
+				}
+					break;
+				case Roles.SECURITY:// It is a security problem
+					if (m.getClass() == AnomalyDetectedMessage.class) {
+						AnomalyDetectedMessage a = ((AnomalyDetectedMessage) m);
+						if (a.getKernelAddress() != null)
+							broadcastMessage(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
+									LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE, a, false);
+						else if (a.getInetSocketAddress() != null)
+							broadcastMessage(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
+									LocalCommunity.Roles.SOCKET_AGENT_ROLE, a, false);
 					}
-				}
-				break;
-			}
-			case Roles.KERNEL:// message from the kernel
-				if (m instanceof EnumMessage)
-					proceedEnumMessage((EnumMessage<?>) m);
-				/*else if (m instanceof ObjectMessage)
+					break;
+				case Roles.EMITTER:// It is a message to send elsewhere
 				{
-					if (((ObjectMessage<?>) m).getContent() instanceof MadkitKernel.InternalDatabaseSynchronizerEvent)
+					MessageLocker ml = null;
+					if (m instanceof LocalLanMessage) {
+						ml = ((LocalLanMessage) m).getMessageLocker();
+						ml.lock();
+
+					}
+
+					ReturnCode rc = broadcastMessage(LocalCommunity.Groups.DISTANT_KERNEL_AGENTS_GROUPS,
+							LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE, m, ml != null);
+					if (ml != null)
 					{
-						MadkitKernel.InternalDatabaseSynchronizerEvent e= (MadkitKernel.InternalDatabaseSynchronizerEvent)((ObjectMessage<?>) m).getContent();
-						boolean updateGroupAccess=false;
-
-						try {
-							DatabaseWrapper dw = getMadkitConfig().getDatabaseWrapper();
-							switch (e.type)
-							{
-
-								case SET_LOCAL_IDENTIFIER:
-
-									if (dw != null){
-										if (dw.getSynchronizer().getLocalHostID()!=null) {
-											updateGroupAccess=true;
-										}
-										else
-											stopDatabaseSynchronizerAgent();
-									}
-									getMadkitConfig().setLocalDatabaseHostID((DecentralizedValue) e.parameters[0], (Package[])e.parameters[1]);
-									launchDatabaseSynchronizerAgent();
-									break;
-								case RESET_SYNCHRONIZER:
-
-									if (dw!=null && dw.getSynchronizer().getLocalHostID()!=null) {
-										updateGroupAccess = true;
-									}
-									stopDatabaseSynchronizerAgent();
-									getMadkitConfig().resetDatabaseSynchronizerAndRemoveAllDatabaseHosts();
-									break;
-								case ASSOCIATE_DISTANT_DATABASE_HOST:
-									if (databaseSynchronizerAgent!=null && databaseSynchronizerAgent.isAlive())
-									{
-
-										databaseSynchronizerAgent.receiveMessage(m);
-									}
-									else {
-										getMadkitConfig().differDistantDatabaseHostConfiguration((DecentralizedValue) e.parameters[0], (boolean) e.parameters[1], (Package[]) e.parameters[2]);
-									}
-									break;
-								case DISSOCIATE_DISTANT_DATABASE_HOST:
-									if (databaseSynchronizerAgent!=null && databaseSynchronizerAgent.isAlive())
-									{
-
-
-										databaseSynchronizerAgent.receiveMessage(m);
-									}
-									else
-										getMadkitConfig().removeDistantDatabaseHost((DecentralizedValue) e.parameters[0], (Package[])e.parameters[1]);
-									break;
-							}
-							if (updateGroupAccess)
-							{
-								DatabaseSynchronizerAgent.updateGroupAccess(this);
-							}
-						} catch (DatabaseException | IOException ex) {
-							getLogger().severeLog("Unable to apply database event "+e.type, ex);
+						if (rc.equals(ReturnCode.SUCCESS)) {
+							messageLockers.put(m.getConversationID(), ml);
+						} else  {
+							ml.cancelLock();
 						}
 					}
+					break;
+				}
+				case Roles.KERNEL:// message from the kernel
+					if (m instanceof EnumMessage)
+						proceedEnumMessage((EnumMessage<?>) m);
+					else if (m.getClass()==MadkitNetworkAccess.PauseBigDataTransferMessageClass)
+					{
+						broadcastMessage(LocalCommunity.Groups.NETWORK, LocalCommunity.Roles.NIO_ROLE, m);
+						broadcastMessage(LocalCommunity.Groups.NETWORK, Roles.DISTANT_KERNEL_AGENT_ROLE, m);
+					}
+					/*else if (m instanceof ObjectMessage)
+					{
+						if (((ObjectMessage<?>) m).getContent() instanceof MadkitKernel.InternalDatabaseSynchronizerEvent)
+						{
+							MadkitKernel.InternalDatabaseSynchronizerEvent e= (MadkitKernel.InternalDatabaseSynchronizerEvent)((ObjectMessage<?>) m).getContent();
+							boolean updateGroupAccess=false;
+
+							try {
+								DatabaseWrapper dw = getMadkitConfig().getDatabaseWrapper();
+								switch (e.type)
+								{
+
+									case SET_LOCAL_IDENTIFIER:
+
+										if (dw != null){
+											if (dw.getSynchronizer().getLocalHostID()!=null) {
+												updateGroupAccess=true;
+											}
+											else
+												stopDatabaseSynchronizerAgent();
+										}
+										getMadkitConfig().setLocalDatabaseHostID((DecentralizedValue) e.parameters[0], (Package[])e.parameters[1]);
+										launchDatabaseSynchronizerAgent();
+										break;
+									case RESET_SYNCHRONIZER:
+
+										if (dw!=null && dw.getSynchronizer().getLocalHostID()!=null) {
+											updateGroupAccess = true;
+										}
+										stopDatabaseSynchronizerAgent();
+										getMadkitConfig().resetDatabaseSynchronizerAndRemoveAllDatabaseHosts();
+										break;
+									case ASSOCIATE_DISTANT_DATABASE_HOST:
+										if (databaseSynchronizerAgent!=null && databaseSynchronizerAgent.isAlive())
+										{
+
+											databaseSynchronizerAgent.receiveMessage(m);
+										}
+										else {
+											getMadkitConfig().differDistantDatabaseHostConfiguration((DecentralizedValue) e.parameters[0], (boolean) e.parameters[1], (Package[]) e.parameters[2]);
+										}
+										break;
+									case DISSOCIATE_DISTANT_DATABASE_HOST:
+										if (databaseSynchronizerAgent!=null && databaseSynchronizerAgent.isAlive())
+										{
+
+
+											databaseSynchronizerAgent.receiveMessage(m);
+										}
+										else
+											getMadkitConfig().removeDistantDatabaseHost((DecentralizedValue) e.parameters[0], (Package[])e.parameters[1]);
+										break;
+								}
+								if (updateGroupAccess)
+								{
+									DatabaseSynchronizerAgent.updateGroupAccess(this);
+								}
+							} catch (DatabaseException | IOException ex) {
+								getLogger().severeLog("Unable to apply database event "+e.type, ex);
+							}
+						}
+						else
+							handleNotUnderstoodMessage(m);
+					}*/
 					else
 						handleNotUnderstoodMessage(m);
-				}*/
-				else
+					break;
+				case LocalCommunity.Roles.SOCKET_AGENT_ROLE:
+					if (m instanceof CGRSynchro) {
+						kernel.getMadkitKernel().injectOperation((CGRSynchro) m);
+					} else if (m instanceof CGRSynchros) {
+						kernel.getMadkitKernel().importDistantOrg((CGRSynchros) m);
+					}
+					break;
+				case LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE:
+					if (m instanceof DirectLocalLanMessage) {
+						getMadkitKernel().injectMessage((DirectLocalLanMessage) m);
+					} else if (m instanceof BroadcastLocalLanMessage) {
+						getMadkitKernel().injectMessage((BroadcastLocalLanMessage) m);
+					} else
+						handleNotUnderstoodMessage(m);
+					break;
+				default:
 					handleNotUnderstoodMessage(m);
-				break;
-			case LocalCommunity.Roles.SOCKET_AGENT_ROLE:
-				if (m instanceof CGRSynchro) {
-					kernel.getMadkitKernel().injectOperation((CGRSynchro) m);
-				} else if (m instanceof CGRSynchros) {
-					kernel.getMadkitKernel().importDistantOrg((CGRSynchros) m);
-				}
-				break;
-			case LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE:
-				if (m instanceof DirectLocalLanMessage) {
-					getMadkitKernel().injectMessage((DirectLocalLanMessage) m);
-				} else if (m instanceof BroadcastLocalLanMessage) {
-					getMadkitKernel().injectMessage((BroadcastLocalLanMessage) m);
-				} else
-					handleNotUnderstoodMessage(m);
-				break;
-			default:
-				handleNotUnderstoodMessage(m);
-				break;
+					break;
 			}
 		}
 	}

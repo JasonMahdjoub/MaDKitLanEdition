@@ -67,9 +67,11 @@ public class BigDataTransferReceiverAgent extends Agent {
 	private final long uploadLimitInBytesPerSecond;
 	private long downloadLimitInBytesPerSecond;
 	final boolean cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage, restartWithLeaveRequestRole, globalDisconnection;
-
+	private final boolean transferPaused, pauseAll;
 	public BigDataTransferReceiverAgent(int dataToReceiveNumber, long uploadLimitInBytesPerSecond,
-										boolean cancelTransfer, boolean cancelTransferFromReceiver, boolean asynchronousMessage, boolean restartMessage, boolean restartWithLeaveRequestRole, boolean globalDisconnection) {
+										boolean cancelTransfer, boolean cancelTransferFromReceiver, boolean asynchronousMessage,
+										boolean restartMessage, boolean restartWithLeaveRequestRole, boolean globalDisconnection,
+										boolean transferPaused, boolean pauseAll) {
 		this.cancelTransfer = cancelTransfer;
 		this.cancelTransferFromReceiver=cancelTransferFromReceiver;
 		this.asynchronousMessage=asynchronousMessage;
@@ -78,6 +80,8 @@ public class BigDataTransferReceiverAgent extends Agent {
 		this.dataToReceiveNumber=dataToReceiveNumber;
 		this.uploadLimitInBytesPerSecond=uploadLimitInBytesPerSecond;
 		this.globalDisconnection=globalDisconnection;
+		this.transferPaused=transferPaused;
+		this.pauseAll=pauseAll;
 	}
 	@Override
 	protected void activate() {
@@ -193,6 +197,28 @@ public class BigDataTransferReceiverAgent extends Agent {
 				}
 
 			}
+			else if (transferPaused && cancelTransferFromReceiver)
+			{
+				sleep(100);
+				if (pauseAll) {
+					System.out.println("Pause transfers from receiver (all distant peers concerned)");
+					setAllBigDataTransfersPaused(true);
+				}
+				else {
+					System.out.println("Pause one transfer from receiver (one distant peer concerned)");
+					setBigDataTransfersOfAGivenKernelPaused(getAvailableDistantKernels().stream().findAny().orElse(null), true);
+				}
+
+
+				sleep(2000);
+				Assert.assertEquals(bdpm.getStatistics().getNumberOfIdentifiedBytesDuringTheLastCycle(), 0);
+				System.out.println("Restart transfers from receiver");
+				if (pauseAll)
+					setAllBigDataTransfersPaused(false);
+				else
+					setBigDataTransfersOfAGivenKernelPaused(getAvailableDistantKernels().stream().findAny().orElse(null), false);
+
+			}
 			long delay;
 			int size=(int)bdpm.getTransferLength();
 			if (downloadLimitInBytesPerSecond!=Integer.MAX_VALUE || uploadLimitInBytesPerSecond!=Integer.MAX_VALUE)
@@ -210,7 +236,8 @@ public class BigDataTransferReceiverAgent extends Agent {
 					AssertJUnit.assertFalse(cancelTransfer);
 					System.out.println(rm.getTransferredDataLength() +" bytes transfered in "+rm.getTransferDuration()+" ms"+(bdpm.bigDataExcludedFromEncryption()?" without encryption":" with encryption"));
 					System.out.println("Transfer speed (MiO per seconds) : "+(((double)rm.getTransferredDataLength())/(((double)rm.getTransferDuration())/1000.0)/1024.0/1024.0));
-					if (getMaximumGlobalDownloadSpeedInBytesPerSecond()!=Long.MAX_VALUE) {
+
+					if (!transferPaused && !restartMessage && getMaximumGlobalDownloadSpeedInBytesPerSecond()!=Long.MAX_VALUE) {
 
                         double speed=((double) rm.getTransferredDataLength()) / ((double) rm.getTransferDuration()) * 1000.0;
 						AssertJUnit.assertTrue(speed< getMaximumGlobalDownloadSpeedInBytesPerSecond() * 2);

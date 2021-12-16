@@ -35,41 +35,28 @@ The fact that you are presently reading this means that you have had
 knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
-import java.net.UnknownHostException;
+import com.distrimind.madkit.kernel.KernelAddress;
+import com.distrimind.madkit.kernel.Message;
 
 /**
  * @author Jason Mahdjoub
  * @version 1.0
  * @since MaDKitLanEdition 2.3.0
  */
-public class TestBigDataTransferRestartAfterNetworkReconnection {
-	static class BigDataTransferTest extends com.distrimind.madkit.testing.util.agent.BigDataTransferSpeed
-	{
+class PauseBigDataTransferMessage extends Message {
+	private final KernelAddress kernelAddress;
+	private final boolean transferSuspended;
 
-		public BigDataTransferTest(long downloadLimitInBytesPerSecond, long uploadLimitInBytesPerSecond, boolean cancelTransfer, boolean cancelTransferFromReceiver, boolean asynchronousMessage, boolean restartMessage, boolean restartWithLeaveRequestRole, boolean globalDisconnection) throws UnknownHostException {
-			super(downloadLimitInBytesPerSecond, uploadLimitInBytesPerSecond, cancelTransfer, cancelTransferFromReceiver, asynchronousMessage, restartMessage, restartWithLeaveRequestRole, globalDisconnection, false, false);
-		}
+	PauseBigDataTransferMessage(KernelAddress kernelAddress, boolean transferSuspended) {
+		this.kernelAddress = kernelAddress;
+		this.transferSuspended = transferSuspended;
 	}
 
-	@DataProvider
-	Object[][] getParameters()
-	{
-		return new Object[][]{
-				{true, false, true},
-				{false, false, true},
-				{false, false, false},
-				{false, true, false},
-		};
+	KernelAddress getKernelAddress() {
+		return kernelAddress;
 	}
 
-	@Test(dataProvider = "getParameters")
-	public void test(boolean cancelTransferFromReceiver, boolean globalDisconnection, boolean restartWithLeaveRequestRole) throws UnknownHostException {
-		BigDataTransferTest b=new BigDataTransferTest(40000000, 40000000, false,cancelTransferFromReceiver, true, true, restartWithLeaveRequestRole, globalDisconnection);
-		b.bigDataTransfer();
+	boolean isTransferSuspended() {
+		return transferSuspended;
 	}
-
-
 }

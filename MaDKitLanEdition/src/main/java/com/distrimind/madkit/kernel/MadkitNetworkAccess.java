@@ -44,6 +44,7 @@ import java.util.ArrayList;
 
 import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.util.NetworkMessage;
+import com.distrimind.util.io.SecureExternalizableWithoutInnerSizeControl;
 
 import static com.distrimind.util.ReflectionTools.*;
 
@@ -104,6 +105,18 @@ class MadkitNetworkAccess {
 			return null;
 		}
 	}
+	static Message getPauseBigDataTransferMessageInstance(KernelAddress kernelAddress, boolean transferSuspended) {
+		try {
+			return (Message) PauseBigDataTransferMessageConstructor.newInstance(kernelAddress, transferSuspended);
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+				| InvocationTargetException e) {
+			System.err.println("Unexpected error :");
+			e.printStackTrace();
+			System.exit(-1);
+			return null;
+		}
+	}
+
 
 	static void setConnectionInfoSystemMessage(Connection c, ConnectionInfoSystemMessage connectionInfoSystemMessage) {
 		try {
@@ -163,10 +176,13 @@ class MadkitNetworkAccess {
 	private static final String package_name;
 	private static final Class<?> c_nio_agent;
 	private static final Class<?> c_network_board;
+	public static final Class<?> PauseBigDataTransferMessageClass;
+	public static final Class<? extends SecureExternalizableWithoutInnerSizeControl> PauseBigDataTransferSystemMessageClass;
 	private static final Constructor<?> nio_constructor;
 	private static final Constructor<?> network_board_constructor;
 	private static final Class<?> c_local_network_affectation_agent;
 	private static final Constructor<?> local_network_affectation_agent_constructor;
+	private static final Constructor<?> PauseBigDataTransferMessageConstructor;
 	private static final Class<?> c_upnp_igd_agent;
 	private static final Method get_upnp_igd_agent_instance;
 	private static final Method check_network_board_memory_leak;
@@ -178,11 +194,15 @@ class MadkitNetworkAccess {
 		package_name = AskForConnectionMessage.class.getPackage().getName();
 		c_nio_agent = loadClass(package_name + ".NIOAgent");
 		c_network_board = loadClass(package_name + ".NetworkBoard");
+		PauseBigDataTransferMessageClass =loadClass(package_name + ".PauseBigDataTransferMessage");
+		//noinspection unchecked
+		PauseBigDataTransferSystemMessageClass =(Class<? extends SecureExternalizableWithoutInnerSizeControl>)loadClass(package_name + ".PauseBigDataTransferSystemMessage");
 		nio_constructor = getConstructor(c_nio_agent);
 		network_board_constructor = getConstructor(c_network_board);
 		c_upnp_igd_agent = loadClass(package_name + ".UpnpIGDAgent");
 		c_local_network_affectation_agent = loadClass(package_name + ".LocalNetworkAffectationAgent");
 		local_network_affectation_agent_constructor = getConstructor(c_local_network_affectation_agent);
+		PauseBigDataTransferMessageConstructor = getConstructor(PauseBigDataTransferMessageClass, KernelAddress.class, boolean.class);
 		get_upnp_igd_agent_instance = getMethod(c_upnp_igd_agent, "getInstance");
 		check_network_board_memory_leak = getMethod(c_network_board, "checkBoardEmpty");
 		direct_local_lan_message = getConstructor(DirectLocalLanMessage.class, Message.class);

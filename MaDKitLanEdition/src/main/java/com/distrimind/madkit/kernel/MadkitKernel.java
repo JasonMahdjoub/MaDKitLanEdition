@@ -4392,6 +4392,21 @@ class MadkitKernel extends Agent {
 		}
 
 	}
+
+	ReturnCode pauseBigDataTransfers(AbstractAgent requester, KernelAddress kernelAddress, boolean transferPaused)
+	{
+		updateNetworkAgent();
+		if (netAgent!=null)
+		{
+			Message m=MadkitNetworkAccess.getPauseBigDataTransferMessageInstance(kernelAddress, transferPaused);
+			m.setSender(kernelRole);
+			m.setReceiver(netAgent);
+			netAgent.getAgent().receiveMessage(m);
+			return SUCCESS;
+		}
+		return SEVERE;
+	}
+
 }
 
 final class CGRNotAvailable extends Exception {

@@ -61,6 +61,7 @@ public final class AsynchronousBigDataTransferID implements Cloneable, IBigDataT
 		this.asynchronousBigDataInternalIdentifier = asynchronousBigDataInternalIdentifier;
 		this.externalAsynchronousBigDataIdentifier = externalAsynchronousBigDataIdentifier;
 		this.madkitKernel=madkitKernel;
+		getBytePerSecondsStat();
 	}
 
 	@SuppressWarnings("unused")
