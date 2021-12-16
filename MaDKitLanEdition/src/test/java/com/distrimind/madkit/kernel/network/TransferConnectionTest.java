@@ -500,7 +500,7 @@ public class TransferConnectionTest extends TestNGMadkit {
 					logger.info("stoping networks");
 				// pause(1000);
 				for (Madkit m : getHelperInstances(this, 5))
-					stopNetwork(m);
+					stopNetworkWithMadkit(m);
 				for (Madkit m : getHelperInstances(this, 5))
 					checkConnectedKernelsNb(this, m, 0, timeOut);
 

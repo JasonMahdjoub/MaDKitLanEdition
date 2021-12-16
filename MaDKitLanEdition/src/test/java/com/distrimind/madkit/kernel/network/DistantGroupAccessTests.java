@@ -152,7 +152,7 @@ public class DistantGroupAccessTests extends TestNGMadkit {
 				sleep(DistantGroupAccessTests.timeToWaitBeforeFinalTest);
 
 				for (Madkit mk : getHelperInstances(this, 2))
-					stopNetwork(mk);
+					stopNetworkWithMadkit(mk);
 
 				for (Madkit mk : getHelperInstances(this, 2)) {
 					checkConnectedKernelsNb(this, mk, 0, timeOut);

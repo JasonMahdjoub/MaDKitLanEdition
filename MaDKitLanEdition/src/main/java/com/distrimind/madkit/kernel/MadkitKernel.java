@@ -783,7 +783,7 @@ class MadkitKernel extends Agent {
 	}
 
 	@SuppressWarnings("unused")
-	private void stopNetwork() {
+	public void stopNetwork() {
 		// ReturnCode r = sendNetworkMessageWithRole(new Message(), kernelRole);
 		if (sendNetworkKernelMessageWithRole(new KernelMessage(KernelAction.STOP_NETWORK)) != SUCCESS) {
 			if (logger != null)

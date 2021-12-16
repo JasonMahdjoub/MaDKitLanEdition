@@ -341,7 +341,7 @@ public class MultipleConnectionsTest extends TestNGMadkit {
 						logger.info("stoping networks");
 					// pause(1000);
 					for (Madkit m : getHelperInstances(this, 5))
-						stopNetwork(m);
+						stopNetworkWithMadkit(m);
 					for (Madkit m : getHelperInstances(this, 5)) {
 						checkConnectedKernelsNb(this, m, 0, timeOut);
 						checkConnectedIntancesNb(this, m, 0, timeOut);
@@ -357,7 +357,7 @@ public class MultipleConnectionsTest extends TestNGMadkit {
 					// second round
 					index = 0;
 					for (Madkit m : getHelperInstances(this, 5)) {
-						startNetwork(m);
+						launchNetwork(m);
 						if (index++ == 0)
 							sleep(2000);
 					}
@@ -379,7 +379,7 @@ public class MultipleConnectionsTest extends TestNGMadkit {
 						AssertJUnit.assertTrue(isAgentsPresentInGroup(m, TestNGMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, NetworkPingAgent.class, true, NetworkPingAgent.pingRole));
 					}
 					for (Madkit m : getHelperInstances(this, 5))
-						stopNetwork(m);
+						stopNetworkWithMadkit(m);
 					for (Madkit m : getHelperInstances(this, 5)) {
 						checkConnectedKernelsNb(this, m, 0, timeOut);
 						checkConnectedIntancesNb(this, m, 0, timeOut);

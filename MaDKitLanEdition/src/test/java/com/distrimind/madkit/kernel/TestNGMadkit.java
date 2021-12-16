@@ -145,7 +145,7 @@ public class TestNGMadkit {
 
 	public void closePeers(AbstractAgent launcher) throws InterruptedException {
 		for (Madkit mk : getHelperInstances(launcher, 2))
-			stopNetwork(mk);
+			stopNetworkWithMadkit(mk);
 		for (Madkit mk : getHelperInstances(launcher, 2)) {
 			checkConnectedKernelsNb(launcher, mk, 0, 30000);
 			checkConnectedIntancesNb(launcher, mk, 0, 30000);
@@ -660,11 +660,11 @@ public class TestNGMadkit {
 		}
 	}
 
-	public void stopNetwork(Madkit m) {
+	public void stopNetworkWithMadkit(Madkit m) {
 		m.getKernel().receiveMessage(new KernelMessage(KernelAction.STOP_NETWORK));
 	}
 
-	public void startNetwork(Madkit m) {
+	public void launchNetwork(Madkit m) {
 		m.getKernel().receiveMessage(new KernelMessage(KernelAction.LAUNCH_NETWORK));
 	}
 

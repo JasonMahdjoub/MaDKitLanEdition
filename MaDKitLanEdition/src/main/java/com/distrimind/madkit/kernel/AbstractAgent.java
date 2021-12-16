@@ -40,6 +40,7 @@ package com.distrimind.madkit.kernel;
 
 import com.distrimind.madkit.action.ActionInfo;
 import com.distrimind.madkit.action.GUIManagerAction;
+import com.distrimind.madkit.action.KernelAction;
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.agr.LocalCommunity.Groups;
 import com.distrimind.madkit.agr.LocalCommunity.Roles;
@@ -5526,6 +5527,25 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	public ReturnCode setAllBigDataTransfersPaused(boolean transferPaused)
 	{
 		return getMadkitKernel().pauseBigDataTransfers(this, null, transferPaused);
+	}
+
+
+	/**
+	 * Start network, and automatically connect peers that are declared into {@link NetworkProperties} class.
+	 * If network is already enabled into network properties, you do not have to call this function unless the function {@link #stopNetwork()} was called.
+	 */
+	public void startNetwork()
+	{
+		getMadkitKernel().receiveMessage(new KernelMessage(KernelAction.LAUNCH_NETWORK));
+	}
+
+
+	/**
+	 * Stop the network and disconnect all peers
+	 */
+	public void stopNetwork()
+	{
+		getMadkitKernel().receiveMessage(new KernelMessage(KernelAction.STOP_NETWORK));
 	}
 
 }

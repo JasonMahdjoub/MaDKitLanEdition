@@ -1517,7 +1517,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 	}
 
 	@SuppressWarnings("unused")
-	void stopNetwork() {
+	public void stopNetwork() {
 		if (this.getState().compareTo(State.ENDING) < 0)
 			this.killAgent(this);
 	}

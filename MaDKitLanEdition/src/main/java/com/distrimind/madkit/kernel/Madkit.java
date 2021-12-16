@@ -169,6 +169,7 @@ final public class Madkit {
 							.addItem(BUG_FIX, "Base delay calculation on System.nanoTime() function and not on System.currentTimeMillis() for better results if UTC time change during the process running.")
 							.addItem(NEW_FEATURE, "Add possibility to get distant system information in order to plan direct connection from other peer. Add function Connection.getConnectionInfoSystemMessage().")
 							.addItem(NEW_FEATURE, "Add possibility to suspend big data transfers that concern one kernel address or all kernel address. Other transfer like messages, or decentralized message transfers through intermediate peer are allowed. See functions AbstractAgent.setBigDataTransfersOfAGivenKernelPaused(KernelAddress, boolean) or AbstractAgent.setAllBigDataTransfersPaused(boolean).")
+							.addItem(NEW_FEATURE, "Add functions AbstractAgent.startNetwork() and AbstractAgent.stopNetwork()")
 					)
 					.addDescription(new Description((short)2, (short)2, (short)3, Version.Type.STABLE, (short)0, "2021-11-02")
 							.addItem(INTERNAL_CHANGE, "Update Utils to 5.21.0 STABLE")

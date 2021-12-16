@@ -219,7 +219,7 @@ public final class NetworkAgent extends AgentFakeThread {
 			logger.fine("NetworkAgent in " + getKernelAddress() + " KILLED !");
 	}
 
-	private void stopNetwork() {
+	public void stopNetwork() {
 		if (LocalNetworkAffectationAgentAddress != null && NIOAgentAddress != null) {
 			stopDatabaseSynchronizerAgent();
 			stopCentralDatabaseBackupReceiverAgent();

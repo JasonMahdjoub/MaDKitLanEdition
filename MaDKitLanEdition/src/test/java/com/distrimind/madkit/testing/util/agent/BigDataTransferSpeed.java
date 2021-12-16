@@ -389,7 +389,7 @@ public class BigDataTransferSpeed extends TestNGMadkit {
                     //noinspection UnusedAssignment
                     bigDataSenderAgent = null;
                     for (Madkit mk : getHelperInstances(this, 2))
-                        stopNetwork(mk);
+                        stopNetworkWithMadkit(mk);
 
                     for (Madkit mk : getHelperInstances(this, 2)) {
                         checkConnectedKernelsNb(this, mk, 0, timeOut);
