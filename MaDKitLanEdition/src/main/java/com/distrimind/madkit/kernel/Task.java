@@ -193,7 +193,7 @@ public final class Task<V> implements Cloneable {
 			throw new NullPointerException("_runnable");
 		callable = _callable;
 		nanoTime = System.nanoTime()+((_timeUTC-System.currentTimeMillis())*1000000L);
-		durationBetweenEachRepetitionInNanoSeconds = _duration_between_each_repetition_in_milliseconds*1000000L;
+		durationBetweenEachRepetitionInNanoSeconds = _duration_between_each_repetition_in_milliseconds==-1?-1:_duration_between_each_repetition_in_milliseconds*1000000L;
 	}
 
 	@SuppressWarnings("MethodDoesntCallSuperMethod")

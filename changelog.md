@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-2.2.3 STABLE (Build: 3991) (from 22/05/2015 to 02/11/2021)
+2.3.0 STABLE (Build: 5302) (from 22/05/2015 to 16/12/2021)
 
 # Creator(s):
 Jason MAHDJOUB
@@ -10,6 +10,35 @@ Fabien MICHEL (Entered in the team at 01/02/1997)
 Jason MAHDJOUB (Entered in the team at 22/05/2015)
 
 # Changes:
+
+
+### 2.3.0 STABLE (16/12/2021)
+##### New feature(s)
+* Update OOD to 3.1.10 STABLE
+* Update Utils to 5.21.3 STABLE
+* Add possibility to send differed big data messages
+* Add possibility to cancel big message sending, during its emission
+* Permit to cancel asynchronous messages sending if a time out has been reached
+* Add possibility to schedule obsolete data cleaning into MaDKit database
+* Add function AgentFakeThread.synchronizeActionWithLiveByCycleFunction
+* Add function RealTimeTransferStat.getNumberOfIdentifiedBytesFromCreationOfTheseStatistics()
+* Add function RealTimeTransferStat.getDurationInMsFromCreationTimeOfTheseStatistics()
+* Add possibility to get distant system information in order to plan direct connection from other peer. Add function Connection.getConnectionInfoSystemMessage().
+* Add possibility to suspend big data transfers that concern one kernel address or all kernel address. Other transfer like messages, or decentralized message transfers through intermediate peer are allowed. See functions AbstractAgent.setBigDataTransfersOfAGivenKernelPaused(KernelAddress, boolean) or AbstractAgent.setAllBigDataTransfersPaused(boolean).
+* Add functions AbstractAgent.startNetwork() and AbstractAgent.stopNetwork()
+##### Internal change(s)
+* Update Gradle to 7.3.1
+* Better cancel big message when connexion was lost
+* Optimize locking during the sending and the reception of messages
+* Minimize use of garbage collector during transfers
+##### Bug fixe(s)
+* Fix bad synchronization of distant available agents
+* Fix bad asynchronous messages sending when using network
+* Fix deadlocks during asynchronous message sending
+* Fix potential deadlocks during network message sending, when an error occurs, or during peer disconnection
+* Fix potential deadlocks when canceling message receiving. Maximum data loaded into memory was not decremented when a transfer was canceled
+* Fix issue with calculation of written data during network transfer
+* Base delay calculation on System.nanoTime() function and not on System.currentTimeMillis() for better results if UTC time change during the process running.
 
 
 ### 2.2.3 STABLE (02/11/2021)

@@ -68,8 +68,14 @@ import org.fourthline.cling.model.meta.*;
 import org.fourthline.cling.model.profile.RemoteClientInfo;
 import org.fourthline.cling.model.types.*;
 import org.fourthline.cling.protocol.ProtocolFactory;
+import org.fourthline.cling.protocol.ProtocolFactoryImpl;
+import org.fourthline.cling.protocol.RetrieveRemoteDescriptors;
+import org.fourthline.cling.protocol.async.ReceivingNotification;
+import org.fourthline.cling.protocol.async.ReceivingSearchResponse;
 import org.fourthline.cling.registry.DefaultRegistryListener;
+import org.fourthline.cling.registry.RegistrationException;
 import org.fourthline.cling.registry.Registry;
+import org.fourthline.cling.registry.RegistryImpl;
 import org.fourthline.cling.support.igd.callback.GetExternalIP;
 import org.fourthline.cling.support.igd.callback.GetStatusInfo;
 import org.fourthline.cling.support.igd.callback.PortMappingAdd;
@@ -78,6 +84,7 @@ import org.fourthline.cling.support.model.Connection.Status;
 import org.fourthline.cling.support.model.Connection.StatusInfo;
 import org.fourthline.cling.support.model.PortMapping;
 import org.fourthline.cling.support.model.PortMapping.Protocol;
+import org.fourthline.cling.transport.RouterException;
 import org.fourthline.cling.transport.impl.*;
 import org.fourthline.cling.transport.spi.*;
 import org.w3c.dom.Document;
@@ -1260,7 +1267,197 @@ class UpnpIGDAgent extends AgentFakeThread {
 		if (getMadkitConfig().networkProperties.upnpIGDEnabled) {
 			synchronized (UpnpIGDAgent.class) {
 				if (upnpService == null) {
-					upnpService = new UpnpServiceImpl(new DefaultUpnpServiceConfiguration(getMadkitConfig().networkProperties.upnpStreamIDGPort, getMadkitConfig().networkProperties.upnpMulticastIDGPort));
+					upnpService = new UpnpServiceImpl(new DefaultUpnpServiceConfiguration(getMadkitConfig().networkProperties.upnpStreamIDGPort, getMadkitConfig().networkProperties.upnpMulticastIDGPort))
+					{
+						private RetrieveRemoteDescriptors newRetrieveRemoteDescriptorsInstance(RemoteDevice rd)
+						{
+							return new RetrieveRemoteDescriptors(this, rd)
+							{
+								@Override
+								protected void describe(String descriptorXML) throws RouterException {
+
+									boolean notifiedStart = false;
+									RemoteDevice describedDevice = null;
+									try {
+
+										DeviceDescriptorBinder deviceDescriptorBinder =
+												getUpnpService().getConfiguration().getDeviceDescriptorBinderUDA10();
+
+										describedDevice = deviceDescriptorBinder.describe(
+												rd,
+												descriptorXML
+										);
+										if (describedDevice==null)
+											return;
+
+										notifiedStart = getUpnpService().getRegistry().notifyDiscoveryStart(describedDevice);
+
+										RemoteDevice hydratedDevice = describeServices(describedDevice);
+										if (hydratedDevice == null) {
+											if(!errorsAlreadyLogged.contains(rd.getIdentity().getUdn())) {
+												errorsAlreadyLogged.add(rd.getIdentity().getUdn());
+											}
+											if (notifiedStart)
+												getUpnpService().getRegistry().notifyDiscoveryFailure(
+														describedDevice,
+														new DescriptorBindingException("Device service description failed: " + rd)
+												);
+										} else {
+											// The registry will do the right thing: A new root device is going to be added, if it's
+											// already present or we just received the descriptor again (because we got an embedded
+											// devices' notification), it will simply update the expiration timestamp of the root
+											// device.
+											getUpnpService().getRegistry().addDevice(hydratedDevice);
+										}
+
+									} catch (ValidationException ex) {
+										// Avoid error log spam each time device is discovered, errors are logged once per device.
+										if(!errorsAlreadyLogged.contains(rd.getIdentity().getUdn())) {
+											errorsAlreadyLogged.add(rd.getIdentity().getUdn());
+											if (describedDevice != null && notifiedStart)
+												getUpnpService().getRegistry().notifyDiscoveryFailure(describedDevice, ex);
+										}
+
+									} catch (DescriptorBindingException | RegistrationException ex) {
+										if (describedDevice != null && notifiedStart)
+											getUpnpService().getRegistry().notifyDiscoveryFailure(describedDevice, ex);
+
+									}
+								}
+							};
+						}
+
+						@Override
+						protected Registry createRegistry(ProtocolFactory protocolFactory) {
+
+
+							return new RegistryImpl(this)
+							{
+								@Override
+								synchronized public boolean notifyDiscoveryStart(final RemoteDevice device) {
+									// Exit if we have it already, this is atomic inside this method, finally
+									if (device==null)
+										return false;
+									if (device.getIdentity()!=null && getUpnpService()!=null && getUpnpService().getRegistry()!=null && getUpnpService().getRegistry().getRemoteDevice(device.getIdentity().getUdn(), true) != null) {
+										return false;
+									}
+									RegistryImpl This=this;
+									for (final org.fourthline.cling.registry.RegistryListener listener : getListeners()) {
+										getConfiguration().getRegistryListenerExecutor().execute(
+												() -> listener.remoteDeviceDiscoveryStarted(This, device)
+										);
+									}
+									return true;
+								}
+							};
+						}
+
+						@Override
+						protected ProtocolFactory createProtocolFactory() {
+							return new ProtocolFactoryImpl(this)
+							{
+								@Override
+								protected ReceivingSearchResponse createReceivingSearchResponse(IncomingDatagramMessage<UpnpResponse> incomingResponse) {
+									return new ReceivingSearchResponse(getUpnpService(), incomingResponse)
+									{
+										@Override
+										protected void execute() {
+											if (!getInputMessage().isSearchResponseMessage()) {
+												return;
+											}
+
+											UDN udn = getInputMessage().getRootDeviceUDN();
+											if (udn == null) {
+												return;
+											}
+
+											RemoteDeviceIdentity rdIdentity = new RemoteDeviceIdentity(getInputMessage());
+
+											if (getUpnpService().getRegistry().update(rdIdentity)) {
+												return;
+											}
+
+											RemoteDevice rd;
+											try {
+												rd = new RemoteDevice(rdIdentity);
+											} catch (ValidationException ex) {
+												ex.printStackTrace();
+												return;
+											}
+
+											if (rdIdentity.getDescriptorURL() == null) {
+												return;
+											}
+
+											if (rdIdentity.getMaxAgeSeconds() == null) {
+												return;
+											}
+
+											// Unfortunately, we always have to retrieve the descriptor because at this point we
+											// have no idea if it's a root or embedded device
+											getUpnpService().getConfiguration().getAsyncProtocolExecutor().execute(
+													newRetrieveRemoteDescriptorsInstance(rd)
+											);
+										}
+									};
+								}
+
+								@Override
+								protected ReceivingNotification createReceivingNotification(IncomingDatagramMessage<UpnpRequest> incomingRequest) {
+
+									return new ReceivingNotification(getUpnpService(), incomingRequest)
+									{
+										@Override
+										protected void execute() {
+
+											UDN udn = getInputMessage().getUDN();
+											if (udn == null) {
+												return;
+											}
+
+											RemoteDeviceIdentity rdIdentity = new RemoteDeviceIdentity(getInputMessage());
+
+											RemoteDevice rd;
+											try {
+												rd = new RemoteDevice(rdIdentity);
+											} catch (ValidationException ex) {
+												ex.printStackTrace();
+												return;
+											}
+
+											if (getInputMessage().isAliveMessage()) {
+
+
+												if (rdIdentity.getDescriptorURL() == null) {
+													return;
+												}
+
+												if (rdIdentity.getMaxAgeSeconds() == null) {
+													return;
+												}
+
+												if (getUpnpService().getRegistry().update(rdIdentity)) {
+													return;
+												}
+
+												// Unfortunately, we always have to retrieve the descriptor because at this point we
+												// have no idea if it's a root or embedded device
+												getUpnpService().getConfiguration().getAsyncProtocolExecutor().execute(
+														newRetrieveRemoteDescriptorsInstance(rd)
+												);
+
+											} else if (getInputMessage().isByeByeMessage()) {
+
+												getUpnpService().getRegistry().removeDevice(rd);
+
+											}
+
+										}
+									};
+								}
+							};
+						}
+					};
 
 				}
 

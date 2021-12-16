@@ -83,10 +83,7 @@ import javax.swing.*;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -3646,6 +3643,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 			logForSender("I have sent an incorrect command message ", message);
 		} catch (IllegalAccessException e) {
 			e.printStackTrace();
+			System.err.println("method name : "+(m==null?"null":m.getName()));
 		} catch (InvocationTargetException e) {// TODO dirty : think about that
 			Throwable t = e.getCause();
 			if (t instanceof SelfKillException) {
@@ -3669,8 +3667,13 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		m = findMethodIn(name2, getClass().getMethods(), types);
 		if (m == null) {
 			m = findMethodIn(name2, getClass().getDeclaredMethods(), types);
-			if (m != null)
+			if (m != null) {
 				m.setAccessible(true);
+			}
+		}
+		else
+		{
+			m.setAccessible(true);
 		}
 		if (m == null)
 			throw new NoSuchMethodException();
