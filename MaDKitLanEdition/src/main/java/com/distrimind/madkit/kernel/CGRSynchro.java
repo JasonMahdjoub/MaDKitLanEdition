@@ -134,10 +134,15 @@ public class CGRSynchro extends ObjectMessage<AgentAddress> implements SecureExt
 		return manual;
 	}
 	@SuppressWarnings("unused")
-	void initMessageLocker()
+	public void initMessageLocker(boolean lock)
 	{
-		if (messageLocker==null)
-			messageLocker=new MessageLocker(this);
+		if (messageLocker==null) {
+			messageLocker = new MessageLocker(this);
+			if (lock)
+				messageLocker.lock();
+		}
+		else if (lock && !messageLocker.isLocked())
+			messageLocker.lock();
 
 	}
 

@@ -190,7 +190,7 @@ class DistantKernelAgent extends AgentFakeThread {
 	}
 
 	private boolean broadcastLocalLanMessage(ArrayList<AgentSocketData> agents_socket, BroadcastLocalLanMessage message,
-			AbstractGroup groups_lacking) throws MadkitException {
+			AbstractGroup groups_lacking) throws NIOException {
 
 		for (AgentSocketData asd : agents_socket) {
 			if (asd.isUsable()) {
@@ -307,76 +307,68 @@ class DistantKernelAgent extends AgentFakeThread {
 				else if (_message instanceof LocalLanMessage) {
 					if (distant_kernel_address == null || !kernelAddressActivated || !hasUsableDistantSocketAgent()) {
 						sendReplyEmpty(_message);
-						return;
+
 					}
-					try {
-						if (_message.getClass() == BroadcastLocalLanMessage.class) {
-							BroadcastLocalLanMessage message = (BroadcastLocalLanMessage) _message;
-							if (logger != null && logger.isLoggable(Level.FINEST))
-								logger.finest("BroadcastLocalLanMessage to route (distantInterfacedKernelAddress="
-										+ distant_kernel_address + ") : " + _message);
+					else {
+						try {
+							if (_message.getClass() == BroadcastLocalLanMessage.class) {
+								BroadcastLocalLanMessage message = (BroadcastLocalLanMessage) _message;
+								if (logger != null && logger.isLoggable(Level.FINEST))
+									logger.finest("BroadcastLocalLanMessage to route (distantInterfacedKernelAddress="
+											+ distant_kernel_address + ") : " + _message);
 
-							message.getMessageLocker().lock();
+								message.getMessageLocker().lock();
+								try {
+									if (!message.abstract_group.isEmpty()) {
+										AbstractGroup groups_lacking = message.abstract_group.clone();
+										updateBestAgent();
 
-							if (!message.abstract_group.isEmpty()) {
-								AbstractGroup groups_lacking = message.abstract_group.clone();
-								updateBestAgent();
+										if (broadcastLocalLanMessage(agents_socket, message, groups_lacking))
+											broadcastLocalLanMessage(indirect_agents_socket, message, groups_lacking);
 
-								if (broadcastLocalLanMessage(agents_socket, message, groups_lacking))
-									broadcastLocalLanMessage(indirect_agents_socket, message, groups_lacking);
-
-							}
-							message.getMessageLocker().unlock();
-
-						} else if (_message.getClass() == DirectLocalLanMessage.class) {
-							DirectLocalLanMessage message = (DirectLocalLanMessage) _message;
-							if (logger != null && logger.isLoggable(Level.FINEST))
-								logger.finest("DirectLocalLanMessage to route (distantInterfacedKernelAddress="
-										+ distant_kernel_address + ") : " + _message);
-
-							message.getMessageLocker().lock();
-							// message.setIDPacket(packet_id_generator.getNewID());
-
-							AgentSocketData asd = getBestAgentSocket(message.getOriginalMessage().getSender(), message.getOriginalMessage().getReceiver(), true);
-							if (asd != null) {
-								Message m = message.getOriginalMessage();
-								if (m.getClass()==BigDataPropositionMessage.class) {
-									BigDataPropositionMessage bgpm = (BigDataPropositionMessage) m;
-									try {
-										addBigDataInQueue(asd, bgpm);
-
-										sendData(asd.getAgentAddress(), new DirectLanMessage(bgpm), false,
-												message.getMessageLocker(), false);
-									} catch (PacketException e) {
-										if (logger != null)
-											logger.severeLog("Anomaly detected", e);
-										processInvalidMessage(_message, false);
-										message.getMessageLocker().unlock();
 									}
-									catch(MadkitException e)
-									{
-										message.getMessageLocker().unlock();
-										throw e;
-									}
+								} finally {
+									message.getMessageLocker().unlock();
 								}
-								else {
-									try {
+
+
+							} else if (_message.getClass() == DirectLocalLanMessage.class) {
+								DirectLocalLanMessage message = (DirectLocalLanMessage) _message;
+								if (logger != null && logger.isLoggable(Level.FINEST))
+									logger.finest("DirectLocalLanMessage to route (distantInterfacedKernelAddress="
+											+ distant_kernel_address + ") : " + _message);
+
+								message.getMessageLocker().lock();
+								// message.setIDPacket(packet_id_generator.getNewID());
+
+								AgentSocketData asd = getBestAgentSocket(message.getOriginalMessage().getSender(), message.getOriginalMessage().getReceiver(), true);
+								if (asd != null) {
+									Message m = message.getOriginalMessage();
+									if (m.getClass() == BigDataPropositionMessage.class) {
+										BigDataPropositionMessage bgpm = (BigDataPropositionMessage) m;
+										try {
+											addBigDataInQueue(asd, bgpm);
+
+											sendData(asd.getAgentAddress(), new DirectLanMessage(bgpm), false,
+													message.getMessageLocker(), false);
+										} catch (PacketException e) {
+											if (logger != null)
+												logger.severeLog("Anomaly detected", e);
+											processInvalidMessage(_message, false);
+											message.getMessageLocker().unlock();
+										}
+									} else {
 										sendData(asd.getAgentAddress(), new DirectLanMessage(m), false,
 												message.getMessageLocker(), false);
 									}
-									catch(MadkitException e)
-									{
-										message.getMessageLocker().unlock();
-										throw e;
-									}
-								}
 
-							} else {
-								message.getMessageLocker().unlock();
+								} else {
+									message.getMessageLocker().unlock();
+								}
 							}
+						} finally {
+							sendReplyEmpty(_message);
 						}
-					} finally {
-						sendReplyEmpty(_message);
 					}
 				}  else if (_message.getClass() == SendDataFromAgentSocket.class) {
 					if (logger != null && logger.isLoggable(Level.FINEST))
@@ -414,18 +406,17 @@ class DistantKernelAgent extends AgentFakeThread {
 											+ ") : " + _message);
 
 								boolean lock = this.lockSocketUntilCGRSynchroIsSent && m.getCode() != Code.LEAVE_GROUP && m.getCode() != Code.LEAVE_ROLE;
-								MessageLocker ml = null;
+
 								if (lock) {
-									ml = new MessageLocker();
-									ml.lock();
+									m.initMessageLocker(true);
+
 								}
 
 								CGRSynchroSystemMessage message = new CGRSynchroSystemMessage(m);
 
-
-								sendData(asd.getAgentAddress(), message, m.getCode() != Code.LEAVE_GROUP && m.getCode() != Code.LEAVE_ROLE, ml, false);
-								if (ml != null)
-									ml.waitUnlock(this, true);
+								sendData(asd.getAgentAddress(), message, m.getCode() != Code.LEAVE_GROUP && m.getCode() != Code.LEAVE_ROLE, m.getMessageLocker(), false);
+								if (m.getMessageLocker() != null)
+									m.getMessageLocker().waitUnlock(this, true);
 								potentialChangesInGroups();
 								newCGRSynchroDetected(m);
 
@@ -1947,6 +1938,13 @@ class DistantKernelAgent extends AgentFakeThread {
 
 			}
 		} catch (IOException | MadkitException e) {
+			if (_messageLocker!=null) {
+				try {
+					_messageLocker.unlock();
+				} catch (MadkitException ex) {
+					getLogger().severeLog("", ex);
+				}
+			}
 			throw new NIOException(e);
 		}
 	}

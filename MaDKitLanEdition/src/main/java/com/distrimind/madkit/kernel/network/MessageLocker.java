@@ -132,7 +132,7 @@ public final class MessageLocker extends LockerCondition {
 	@Override
 	public boolean isLocked() {
 		synchronized (getLocker()) {
-			return lock_number != 0 || !firstLockDone;
+			return lock_number > 0 || !firstLockDone;
 		}
 	}
 

@@ -467,6 +467,19 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 
 	@Override
 	protected void end() {
+		Message m;
+		while ((m=nextMessage())!=null)
+		{
+			if (m instanceof DistKernADataToUpgradeMessage)
+			{
+				try {
+					((DistKernADataToUpgradeMessage) m).dataToUpgrade.cancel();
+				} catch (IOException | MadkitException ex) {
+					if (logger!=null)
+						logger.severeLog("Cannot close packet data", ex);
+				}
+			}
+		}
 		NetworkBoard nbb=((NetworkBoard) getBoard(LocalCommunity.Groups.NETWORK,
 				LocalCommunity.Boards.NETWORK_BOARD));
 		if (nbb!=null)
@@ -601,12 +614,19 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			_data_not_sent = getFilteredData(_data_not_sent, false);
 			bigDataNotSent = getFilteredData(bigDataNotSent, false);
 			dataToTransferNotSent = getFilteredData(dataToTransferNotSent, true);
-			for (AbstractData ad : _data_not_sent)
-				ad.unlockMessage();
-			for (AbstractData ad : bigDataNotSent)
-				ad.unlockMessage();
-			for (AbstractData ad : dataToTransferNotSent)
-				ad.unlockMessage();
+			try {
+				for (AbstractData ad : _data_not_sent)
+					ad.unlockMessage();
+				for (AbstractData ad : bigDataNotSent)
+					ad.cancel();
+				for (AbstractData ad : dataToTransferNotSent)
+					ad.unlockMessage();
+			}
+			catch (IOException e)
+			{
+				if (logger != null)
+					logger.log(Level.SEVERE, "Unexpected exception", e);
+			}
 
 
 		} catch (MadkitException e) {
@@ -686,7 +706,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 							d.cancel();
 						} catch (IOException | MadkitException ex) {
 							if (logger!=null)
-								logger.severeLog("Cannot close packet data", e);
+								logger.severeLog("Cannot close packet data", ex);
 						}
 
 					}
@@ -703,6 +723,15 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					if (sendMessageWithRole(nio_agent_address, new DataToSendMessage(d, getSocketID()),
 							LocalCommunity.Roles.SOCKET_AGENT_ROLE).equals(ReturnCode.SUCCESS)) {
 						lastDistKernADataToUpgradeMessageSentNano = System.nanoTime();
+					}
+					else
+					{
+						try {
+							d.cancel();
+						} catch (IOException | MadkitException ex) {
+							if (logger!=null)
+								logger.severeLog("Cannot close packet data", ex);
+						}
 					}
 				}
 			}

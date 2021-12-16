@@ -196,9 +196,20 @@ final class NIOAgent extends Agent {
 
 		pending_connections.clear();
 
-		for (PersonalSocket ps : ((ArrayList<PersonalSocket>) this.personal_sockets_list.clone()))
-			if (!ps.isClosed())
+		for (PersonalSocket ps : ((ArrayList<PersonalSocket>) this.personal_sockets_list.clone())) {
+			if (!ps.isClosed()) {
 				ps.closeConnection(ConnectionClosedReason.CONNECTION_LOST);
+				try {
+					for (NoBackData ad : ps.noBackDataToSend)
+						ad.data.unlockMessage();
+				}
+				catch (Exception e)
+				{
+					if (logger != null)
+						logger.log(Level.SEVERE, "Unexpected exception", e);
+				}
+			}
+		}
 
 		this.personal_sockets.clear();
 		this.personal_sockets_list.clear();
@@ -393,6 +404,12 @@ final class NIOAgent extends Agent {
 					ps.addDataToSend(dtsm.data);
 				else
 				{
+					try {
+						((DataToSendMessage) m).data.cancel();
+					} catch (MadkitException e) {
+						if (logger!=null)
+							logger.severeLog("Cannot close packet data", e);
+					}
 					sendReply(m, new ConnectionClosed(dtsm.socket, ConnectionClosedReason.CONNECTION_LOST, null,
 							null, null));
 
@@ -2071,6 +2088,21 @@ final class NIOAgent extends Agent {
 				logger.finer("Closing connection : " + this);
 			this.cs=cs;
 			is_closed = true;
+			try {
+				for (NoBackData ad : noBackDataToSend)
+					ad.data.unlockMessage();
+				for (AbstractData ad : shortDataToSend)
+					ad.unlockMessage();
+				for (AbstractData ad : bigDataToSend)
+					ad.cancel();
+				for (AbstractData ad : dataToTransfer)
+					ad.unlockMessage();
+			}
+			catch (Exception e)
+			{
+				if (logger != null)
+					logger.log(Level.SEVERE, "Unexpected exception", e);
+			}
 			try
 			{
 				if (this.socketChannel.isOpen())
@@ -2167,9 +2199,45 @@ final class NIOAgent extends Agent {
 				if (logger != null)
 					logger.log(Level.SEVERE, "Unexpected exception", e);
 			}
-			NIOAgent.this.sendMessageWithRole(agentAddress, new ConnectionClosed(this.agentAddress.getAgentNetworkID(),
-					cs, shortDataToSend, bigDataToSend, dataToTransfer), LocalCommunity.Roles.NIO_ROLE);
-			initDataToSendLists();
+
+			if (NIOAgent.this.sendMessageWithRole(agentAddress, new ConnectionClosed(this.agentAddress.getAgentNetworkID(),
+					cs, new CircularArrayList<>(shortDataToSend), bigDataToSend, new CircularArrayList<>(dataToTransfer)), LocalCommunity.Roles.NIO_ROLE)==ReturnCode.SUCCESS)
+			{
+				try {
+					for (NoBackData ad : noBackDataToSend)
+						ad.data.unlockMessage();
+					for (AbstractData ad : shortDataToSend)
+						ad.unlockMessage();
+					for (AbstractData ad : bigDataToSend)
+						ad.unlockMessage();
+					for (AbstractData ad : dataToTransfer)
+						ad.unlockMessage();
+				}
+				catch (Exception e)
+				{
+					if (logger != null)
+						logger.log(Level.SEVERE, "Unexpected exception", e);
+				}
+			}
+			else
+			{
+				try {
+					for (NoBackData ad : noBackDataToSend)
+						ad.data.unlockMessage();
+					for (AbstractData ad : shortDataToSend)
+						ad.unlockMessage();
+					for (AbstractData ad : bigDataToSend)
+						ad.cancel();
+					for (AbstractData ad : dataToTransfer)
+						ad.unlockMessage();
+				}
+				catch (Exception e)
+				{
+					if (logger != null)
+						logger.log(Level.SEVERE, "Unexpected exception", e);
+				}
+			}
+			bigDataToSend=new CircularArrayList<>(5);
 
 			try {
 				if (stopping && isAlive() && personal_sockets.isEmpty())
