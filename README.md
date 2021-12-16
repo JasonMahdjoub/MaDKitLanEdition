@@ -61,7 +61,10 @@ You can also find inspiration into Junit tests.
     * Auto-connect with peers located into local network
     * Auto-open a router's port to enable direct connection with distant peers.
     * If no opened port is available or if no UPNP IGD rooter is available for two concerned distant peers, the system can choose to make an indirect connection between the two peers, through a dedicated server. This server is not able to decode messages between the two peers if the connection is secured.
-* Enable to send simple messages between agents, or big data transfers (like files) between agents. Each connexion work in parallel. For one connexion, simple agent messages are sent according a FIFO policy (First In, First Out). However, there are some messages that are part of the MKLE protocol that are considered as a priority (i.e. Ping/Pong messages). For one connexion, big data transfers are sent in parallel with other big data transfers and with simple agent messages.
+* Permit to send simple messages between agents, or big data transfers (like files) between agents. Each connexion work in parallel. For one connexion, simple agent messages are sent according a FIFO policy (First In, First Out). However, there are some messages that are part of the MKLE protocol that are considered as a priority (i.e. Ping/Pong messages). For one connexion, big data transfers are sent in parallel with other big data transfers and with simple agent messages.
+* Permit to send asynchronous messages and asynchronous big data messages. When sending asynchronous big data messages, transfer can be stopped by a peer disconnection. It will restart from the last position automatically when the two concerned peers become available. 
+* Permit to cancel big message sending and asynchronous big message sending, during its emission
+* Permit to suspend all current big data transfers, or big data transfers specific to a distant kernel address
 * individual agent messages can be encrypted or not. By default, all agent messages are encrypted.
 * Possibility to send asynchronous messages. If no receiver is available, the message to send is stored into the MaDKit database. When an agent with the targeted group/role becomes available, the message is sent to it before being removed from the database.
 * multiple connections are possible between two same peers (through multiple interfaces). The system will use each connection in parallel by choosing for each packet to send the connection which offer more bandwidth or which is less busy
@@ -90,6 +93,7 @@ You can also find inspiration into Junit tests.
   * Permit to restore database of peers thanks to other peers or thanks to servers
   * Automatically synchronize peers though intermediate peers when direct connections are not possible
   * Use encryption profile provider and to manage different version of secret keys in the case where a secret key was compromised
+  * Possibility to schedule obsolete data cleaning into MaDKit database
 
 All described features are tested and considered as stable.
 

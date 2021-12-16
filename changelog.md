@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-2.3.0 STABLE (Build: 5302) (from 22/05/2015 to 16/12/2021)
+2.3.0 STABLE (Build: 5304) (from 22/05/2015 to 16/12/2021)
 
 # Creator(s):
 Jason MAHDJOUB
@@ -14,8 +14,8 @@ Jason MAHDJOUB (Entered in the team at 22/05/2015)
 
 ### 2.3.0 STABLE (16/12/2021)
 ##### New feature(s)
-* Update OOD to 3.1.10 STABLE
-* Update Utils to 5.21.3 STABLE
+* Update OOD to 3.1.11 STABLE
+* Update Utils to 5.21.4 STABLE
 * Add possibility to send differed big data messages
 * Add possibility to cancel big message sending, during its emission
 * Permit to cancel asynchronous messages sending if a time out has been reached
