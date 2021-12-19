@@ -69,7 +69,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -552,10 +551,10 @@ class DistantKernelAgent extends AgentFakeThread {
 												final long durationBeforeTestingDDOS = 30000;
 												if (taskForPurgeCheck != null)
 													cancelTask(taskForPurgeCheck, true);
-												taskForPurgeCheck = scheduleTask(new Task<>(new Callable<Void>() {
-
+												taskForPurgeCheck = scheduleTask(new Task<Void>(durationBeforeTestingDDOS + System.currentTimeMillis()) {
 													@Override
 													public Void call() {
+
 														ExceededDataQueueSize e = globalExceededDataQueueSize.get();
 														if (isAlive() && e != null && e.isPaused() && e.mustPurge()) {
 															if (getMadkitConfig().networkProperties
@@ -566,13 +565,19 @@ class DistantKernelAgent extends AgentFakeThread {
 																exceededDataSize.purgeCanceled(DistantKernelAgent.this);
 																processPotentialDDOS();
 															} else {
-																scheduleTask(new Task<>(this, System.currentTimeMillis()
-																		+ durationBeforeTestingDDOS));
+																Task<Void> t=this;
+																scheduleTask(new Task<Void>(System.currentTimeMillis()
+																		+ durationBeforeTestingDDOS) {
+																	@Override
+																	public Void call() throws Exception {
+																		return t.call();
+																	}
+																});
 															}
 														}
 														return null;
 													}
-												}, durationBeforeTestingDDOS + System.currentTimeMillis()));
+												});
 											} else {
 
 												setTransferPaused(true, null, true);

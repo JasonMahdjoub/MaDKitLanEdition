@@ -58,7 +58,6 @@ import java.nio.channels.spi.SelectorProvider;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -2152,13 +2151,16 @@ final class NIOAgent extends Agent {
 			}
 			delaying&=getMadkitConfig().networkProperties.delayInMsBeforeClosingConnectionNormally>0;
 			if (delaying)
-                NIOAgent.this.scheduleTask(new Task<>((Callable<Void>) () -> {
-					if (isAlive())
-						receiveMessage(new ObjectMessage<>(PersonalSocket.this));
-					else
-						finishCloseConnection();
-					return null;
-				}, getMadkitConfig().networkProperties.delayInMsBeforeClosingConnectionNormally + System.currentTimeMillis(), true));
+                NIOAgent.this.scheduleTask(new Task<Void>(getMadkitConfig().networkProperties.delayInMsBeforeClosingConnectionNormally + System.currentTimeMillis(), true) {
+					@Override
+					public Void call() {
+						if (isAlive())
+							receiveMessage(new ObjectMessage<>(PersonalSocket.this));
+						else
+							finishCloseConnection();
+						return null;
+					}
+				});
 			else
 				finishCloseConnection();
 

@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-2.3.1 STABLE (Build: 5311) (from 22/05/2015 to 16/12/2021)
+2.3.2 STABLE (Build: 5343) (from 22/05/2015 to 19/12/2021)
 
 # Creator(s):
 * Jason MAHDJOUB
@@ -12,6 +12,11 @@ MaDKitLanEdition
 * Jason MAHDJOUB (Entered in the team at 22/05/2015)
 
 # Changes:
+
+
+### 2.3.2 STABLE (19/12/2021)
+#### Internal change(s)
+* Reimplement Task<?> class with simplifications/optimizations
 
 
 ### 2.3.1 STABLE (16/12/2021)

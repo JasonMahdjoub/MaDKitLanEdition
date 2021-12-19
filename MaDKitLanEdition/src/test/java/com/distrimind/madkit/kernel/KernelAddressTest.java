@@ -133,7 +133,7 @@ public class KernelAddressTest {
 			KernelAddress ka = iterator.next();
 			l.remove(ka);
 			for (KernelAddress other : l) {
-				if (other.hashCode() == ka.hashCode()) {
+				if (other.equals(ka)) {
 					Assert.fail("two addresses with identical hashCode");
 				}
 			}

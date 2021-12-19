@@ -62,7 +62,6 @@ import com.distrimind.madkit.message.KernelMessage;
 import com.distrimind.madkit.message.ObjectMessage;
 import com.distrimind.madkit.message.hook.*;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
-import com.distrimind.madkit.message.task.TasksExecutionConfirmationMessage;
 import com.distrimind.madkit.util.XMLUtilities;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.ood.database.exceptions.DatabaseLoadingException;
@@ -1666,10 +1665,13 @@ class MadkitKernel extends Agent {
 		if (delayInMsBeforeCleaningObsoleteMadkitData>0)
 		{
 			getMadkitConfig().delayInMsBeforeCleaningObsoleteMadkitData=delayInMsBeforeCleaningObsoleteMadkitData=Math.max(20L*60L*1000L, delayInMsBeforeCleaningObsoleteMadkitData);
-			databaseCleanerTaskID=scheduleTask(requester, new Task<>((Callable<Void>) () -> {
-				madkitKernel.cleanObsoleteMaDKitData(madkitKernel);
-				return null;
-			}, System.currentTimeMillis()+delayInMsBeforeCleaningObsoleteMadkitData, delayInMsBeforeCleaningObsoleteMadkitData),false);
+			databaseCleanerTaskID=scheduleTask(requester, new Task<Void>(System.currentTimeMillis() + delayInMsBeforeCleaningObsoleteMadkitData, delayInMsBeforeCleaningObsoleteMadkitData) {
+				@Override
+				public Void call() {
+					madkitKernel.cleanObsoleteMaDKitData(madkitKernel);
+					return null;
+				}
+			},false);
 		}
 		else {
 
@@ -3747,7 +3749,6 @@ class MadkitKernel extends Agent {
 	void regularWait(@SuppressWarnings("unused") AbstractAgent requester, LockerCondition locker, long delayMillis) throws InterruptedException, TimeoutException {
 
 		long start=System.nanoTime();
-		boolean w=true;
 		synchronized (locker.getLocker()) {
 			while (locker.isLocked() && !locker.isCanceled()) {
 				locker.beforeCycleLocking();
@@ -3808,57 +3809,20 @@ class MadkitKernel extends Agent {
 		if (executorService == null)
 			return null;
 		else {
-			final TaskID taskID = new TaskID();
-			Runnable runnable = new Runnable() {
-
-				@Override
-				public void run() {
-					boolean killed=agent.state.get().compareTo(State.WAIT_FOR_KILL) >= 0 || !agent.isAlive();
-					try {
-
-						if (!_task.isExecuteEvenIfLauncherAgentIsKilled() && killed) {
-							cancelTask(agent, taskID, false);
-							return;
-						}
-
-						long date_begin = System.currentTimeMillis();
-						_task.run();
-						if (_task.isRepetitive())
-							_task.renewTask();
-						if (ask_for_execution_confirmation && !killed) {
-							Message m = new TasksExecutionConfirmationMessage(taskID, _task, date_begin,
-									System.currentTimeMillis());
-							m.setIDFrom(taskID);
-
-							agent.receiveMessage(m);
-						}
-					} catch (Exception e) {
-						if (agent.logger != null && !killed)
-							agent.logger.severeLog("Exception in task execution : ", e);
-						else
-							e.printStackTrace();
-
-					}
-				}
-
-				@Override
-				public String toString() {
-					return _task.toString();
-				}
-			};
+			_task.initRunnable(agent, ask_for_execution_confirmation);
 
 			ScheduledFuture<?> future;
 			if (_task.isRepetitive()) {
-				future = executorService.scheduleWithFixedDelay(runnable,
+				future = executorService.scheduleWithFixedDelay(_task,
 								Math.max(0, _task.getNanoTimeOfExecution() - System.nanoTime()),
 								_task.getDurationBetweenEachRepetitionInNanoSeconds(), TimeUnit.NANOSECONDS);
 			} else {
-				future = executorService.schedule(runnable,
+				future = executorService.schedule((Runnable) _task,
 								Math.max(0, _task.getNanoTimeOfExecution() - System.nanoTime()),
 								TimeUnit.NANOSECONDS);
 			}
-			taskID.setFuture(future);
-			return taskID;
+			_task.getTaskID().setFuture(future);
+			return _task.getTaskID();
 		}
 	}
 

@@ -45,7 +45,6 @@ import com.distrimind.util.concurrent.LockerCondition;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -160,20 +159,23 @@ class NetworkBoard {
 			else {
 				datagramMessages.add(m);
 				if (taskIDToRemoveDatagramMessages == null) {
-					taskIDToRemoveDatagramMessages = agent.scheduleTask(new Task<>((Callable<Void>) () -> {
-						synchronized (datagramMessages) {
-							datagramMessages.removeIf(m1 -> m1.getOnlineTime()
-									+ MulticastListenerAgent.durationBeforeRemovingMulticastMessages < System
-									.currentTimeMillis());
-							if (datagramMessages.isEmpty()) {
-								taskIDToRemoveDatagramMessages.cancelTask(false);
-								taskIDToRemoveDatagramMessages = null;
-							}
+					taskIDToRemoveDatagramMessages = agent.scheduleTask(new Task<Void>(MulticastListenerAgent.durationBeforeRemovingMulticastMessages + System.currentTimeMillis(),
+							MulticastListenerAgent.durationBeforeRemovingMulticastMessages) {
+						@Override
+						public Void call() {
+							synchronized (datagramMessages) {
+								datagramMessages.removeIf(m1 -> m1.getOnlineTime()
+										+ MulticastListenerAgent.durationBeforeRemovingMulticastMessages < System
+										.currentTimeMillis());
+								if (datagramMessages.isEmpty()) {
+									taskIDToRemoveDatagramMessages.cancelTask(false);
+									taskIDToRemoveDatagramMessages = null;
+								}
 
+							}
+							return null;
 						}
-						return null;
-					}, MulticastListenerAgent.durationBeforeRemovingMulticastMessages+System.currentTimeMillis(),
-							MulticastListenerAgent.durationBeforeRemovingMulticastMessages));
+					});
 				}
 				return true;
 			}

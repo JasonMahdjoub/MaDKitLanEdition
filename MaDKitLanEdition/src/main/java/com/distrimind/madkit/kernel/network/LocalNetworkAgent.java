@@ -45,7 +45,6 @@ import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.logging.Level;
 
 import com.distrimind.madkit.kernel.*;
@@ -513,15 +512,18 @@ class LocalNetworkAgent extends AgentFakeThread {
 								}
 
 								connections_to_differ.add(i, con);
-								taskIDThatDifferConnections=scheduleTask(new Task<>((Callable<Void>) () -> {
-									synchronized (connections_to_differ) {
-										if (connections_to_differ.size()>0)
-										{
-											receiveMessage(connections_to_differ.remove(connections_to_differ.size()-1));
+								taskIDThatDifferConnections=scheduleTask(new Task<Void>(Math.min(0, 1000L + connections_to_differ.get(connections_to_differ.size() - 1).getTimeUTCOfConnection() - System.currentTimeMillis())) {
+									@Override
+									public Void call() {
+										synchronized (connections_to_differ) {
+											if (connections_to_differ.size()>0)
+											{
+												receiveMessage(connections_to_differ.remove(connections_to_differ.size()-1));
+											}
 										}
+										return null;
 									}
-									return null;
-								}, Math.min(0, 1000L+ connections_to_differ.get(connections_to_differ.size()-1).getTimeUTCOfConnection()-System.currentTimeMillis())));
+								});
 							}
 
 						}
@@ -768,20 +770,23 @@ class LocalNetworkAgent extends AgentFakeThread {
 			checkConnectionsToAdd(added_binds, removed_binds);
 			checkStandbyConnections();
 		}
-		scheduleTask(new Task<>((Callable<Void>) () -> {
-			synchronized (LocalNetworkAgent.class) {
-				if (isAlive()) {
-					for (BindInetSocketAddressMessage o : removed_binds) {
-						if (!effective_socket_binds.contains(o))
-							broadcastMessage(LocalCommunity.Groups.LOCAL_NETWORKS, LocalCommunity.Roles.NIO_ROLE,
-									new BindInetSocketAddressMessage(Type.DISCONNECT, o.getInetSocketAddress()),
-									false);
+		scheduleTask(new Task<Void>(getMadkitConfig().networkProperties.maxDurationInMsBeforeClosingObsoleteNetworkInterfaces
+				+ System.currentTimeMillis()) {
+			@Override
+			public Void call() {
+				synchronized (LocalNetworkAgent.class) {
+					if (isAlive()) {
+						for (BindInetSocketAddressMessage o : removed_binds) {
+							if (!effective_socket_binds.contains(o))
+								broadcastMessage(LocalCommunity.Groups.LOCAL_NETWORKS, LocalCommunity.Roles.NIO_ROLE,
+										new BindInetSocketAddressMessage(Type.DISCONNECT, o.getInetSocketAddress()),
+										false);
+						}
 					}
+					return null;
 				}
-				return null;
 			}
-		}, getMadkitConfig().networkProperties.maxDurationInMsBeforeClosingObsoleteNetworkInterfaces
-				+ System.currentTimeMillis()));
+		});
 		if (logger != null && logger.isLoggable(Level.FINER))
 			logger.finer("Madkit route updated");
 

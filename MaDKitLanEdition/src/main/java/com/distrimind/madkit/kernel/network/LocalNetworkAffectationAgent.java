@@ -48,7 +48,6 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.logging.Level;
 
 /**
@@ -111,11 +110,14 @@ class LocalNetworkAffectationAgent extends AgentFakeThread {
 					else
 					{
 						timeUTC+=getMadkitConfig().networkProperties.delayInMsBetweenEachConnectionAsk;
-						scheduleTask(new Task<>((Callable<Void>) () -> {
-							if (isAlive())
-								receiveMessage(new AskForConnectionMessage(ConnectionStatusMessage.Type.CONNECT, isa, true));
-							return null;
-						}, timeUTC));
+						scheduleTask(new Task<Void>(timeUTC) {
+							@Override
+							public Void call() {
+								if (isAlive())
+									receiveMessage(new AskForConnectionMessage(ConnectionStatusMessage.Type.CONNECT, isa, true));
+								return null;
+							}
+						});
 					}
 				}
 			}

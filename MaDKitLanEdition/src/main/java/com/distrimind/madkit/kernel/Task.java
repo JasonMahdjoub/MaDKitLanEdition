@@ -40,6 +40,7 @@ package com.distrimind.madkit.kernel;
 import java.util.concurrent.Callable;
 
 import com.distrimind.madkit.agr.LocalCommunity;
+import com.distrimind.madkit.message.task.TasksExecutionConfirmationMessage;
 
 /**
  * This class represent a task to execute according a given time. This task can
@@ -64,7 +65,7 @@ import com.distrimind.madkit.agr.LocalCommunity;
  *
  *
  */
-public final class Task<V> implements Cloneable {
+public abstract class Task<V> implements Callable<V>, Runnable{
 
 	/**
 	 * This role is given to internal MadKit agents that manage task execution
@@ -104,32 +105,30 @@ public final class Task<V> implements Cloneable {
 
 	}
 
-	private final Callable<V> callable;
+	//private final Callable<V> callable;
 	private V result = null;
 	private long nanoTime;
 
 	final long durationBetweenEachRepetitionInNanoSeconds;
 	private boolean executeEvenIfLauncherAgentIsKilled =false;
-
+	private final TaskID taskID=new TaskID();
+	private transient AbstractAgent agent;
+	private transient boolean ask_for_execution_confirmation;
 	/**
 	 * Construct a task to execute at the current time
 	 * 
-	 * @param _callable
-	 *            the runnable to execute
 	 * @throws NullPointerException
 	 *             if _runnable is null
 	 * @see AbstractAgent#scheduleTask(Task, boolean)
 	 * @see AbstractAgent#cancelTask(TaskID, boolean)
 	 */
-	public Task(Callable<V> _callable) {
-		this(_callable, System.currentTimeMillis());
+	public Task() {
+		this(System.currentTimeMillis());
 	}
 
 	/**
 	 * Construct a task to execute at the given time
 	 * 
-	 * @param _callable
-	 *            the runnable to execute
 	 * @param _timeUTC
 	 *            the moment in UTC when the TaskAgent must execute this task
 	 * @throws NullPointerException
@@ -137,30 +136,26 @@ public final class Task<V> implements Cloneable {
 	 * @see AbstractAgent#scheduleTask(Task, boolean)
 	 * @see AbstractAgent#cancelTask(TaskID, boolean)
 	 */
-	public Task(Callable<V> _callable, long _timeUTC) {
-		this(_callable, _timeUTC, -1);
+	public Task(long _timeUTC) {
+		this(_timeUTC, -1);
 	}
 
 	/**
 	 * Construct a task to execute at the current time
 	 *
-	 * @param _callable
-	 *            the runnable to execute
 	 * @param executeEvenIfLauncherAgentIsKilled execute the task even if the agent is killed (only available for non-repetitive tasks)
 	 * @throws NullPointerException
 	 *             if _runnable is null
 	 * @see AbstractAgent#scheduleTask(Task, boolean)
 	 * @see AbstractAgent#cancelTask(TaskID, boolean)
 	 */
-	public Task(Callable<V> _callable, boolean executeEvenIfLauncherAgentIsKilled) {
-		this(_callable);
+	public Task(boolean executeEvenIfLauncherAgentIsKilled) {
+		this();
 		this.executeEvenIfLauncherAgentIsKilled = executeEvenIfLauncherAgentIsKilled;
 	}
 	/**
 	 * Construct a task to execute at the given time
 	 *
-	 * @param _callable
-	 *            the runnable to execute
 	 * @param _timeUTC
 	 *            the moment in UTC when the TaskAgent must execute this task
 	 * @param executeEvenIfLauncherAgentIsKilled execute the task even if the agent is killed (only available for non-repetitive tasks)
@@ -169,16 +164,14 @@ public final class Task<V> implements Cloneable {
 	 * @see AbstractAgent#scheduleTask(Task, boolean)
 	 * @see AbstractAgent#cancelTask(TaskID, boolean)
 	 */
-	public Task(Callable<V> _callable, long _timeUTC, boolean executeEvenIfLauncherAgentIsKilled) {
-		this(_callable, _timeUTC);
+	public Task(long _timeUTC, boolean executeEvenIfLauncherAgentIsKilled) {
+		this(_timeUTC);
 		this.executeEvenIfLauncherAgentIsKilled = executeEvenIfLauncherAgentIsKilled;
 	}
 
 	/**
 	 * Construct a repetitive task to start at a given time
 	 * 
-	 * @param _callable
-	 *            the runnable to execute
 	 * @param _timeUTC
 	 *            the moment in UTC when the TaskAgent must execute this task
 	 * @param _duration_between_each_repetition_in_milliseconds
@@ -188,52 +181,77 @@ public final class Task<V> implements Cloneable {
 	 * @see AbstractAgent#scheduleTask(Task, boolean)
 	 * @see AbstractAgent#cancelTask(TaskID, boolean)
 	 */
-	public Task(Callable<V> _callable, long _timeUTC, long _duration_between_each_repetition_in_milliseconds) {
-		if (_callable == null)
-			throw new NullPointerException("_runnable");
-		callable = _callable;
+	public Task(long _timeUTC, long _duration_between_each_repetition_in_milliseconds) {
 		nanoTime = System.nanoTime()+((_timeUTC-System.currentTimeMillis())*1000000L);
 		durationBetweenEachRepetitionInNanoSeconds = _duration_between_each_repetition_in_milliseconds==-1?-1:_duration_between_each_repetition_in_milliseconds*1000000L;
 	}
-
-	@SuppressWarnings("MethodDoesntCallSuperMethod")
+	final void initRunnable(AbstractAgent agent, boolean ask_for_execution_confirmation)
+	{
+		this.agent=agent;
+		this.ask_for_execution_confirmation=ask_for_execution_confirmation;
+	}
 	@Override
-	public Task<V> clone() {
-		return new Task<>(callable, nanoTime, durationBetweenEachRepetitionInNanoSeconds);
+	public final void run() {
+		boolean killed=agent.state.get().compareTo(AbstractAgent.State.WAIT_FOR_KILL) >= 0 || !agent.isAlive();
+		try {
+
+			if (!isExecuteEvenIfLauncherAgentIsKilled() && killed) {
+				taskID.cancelTask(false);
+				return;
+			}
+
+			long date_begin = System.currentTimeMillis();
+			result = call();
+			if (isRepetitive())
+				renewTask();
+			if (ask_for_execution_confirmation && !killed) {
+				Message m = new TasksExecutionConfirmationMessage(taskID, this, date_begin,
+						System.currentTimeMillis());
+				m.setIDFrom(taskID);
+
+				agent.receiveMessage(m);
+			}
+		} catch (Exception e) {
+			if (agent.logger != null && !killed)
+				agent.logger.severeLog("Exception in task execution : ", e);
+			else
+				e.printStackTrace();
+
+		}
 	}
 
-	public void run() throws Exception {
-		result = callable.call();
-	}
-
-	public V getResult() {
+	public final V getResult() {
 		return result;
 	}
 
-	public long getTimeUTCOfExecution() {
+	public final long getTimeUTCOfExecution() {
 		return System.currentTimeMillis()+((nanoTime -System.nanoTime())/1000000L);
 	}
-	public long getNanoTimeOfExecution() {
+	public final long getNanoTimeOfExecution() {
 		return nanoTime;
 	}
 
-	public boolean isRepetitive() {
+	public final boolean isRepetitive() {
 		return durationBetweenEachRepetitionInNanoSeconds >= 0;
 	}
 
-	public long getDurationBetweenEachRepetitionInNanoSeconds() {
+	public final long getDurationBetweenEachRepetitionInNanoSeconds() {
 		return durationBetweenEachRepetitionInNanoSeconds;
 	}
-	public long getDurationBetweenEachRepetitionInMilliSeconds() {
+	public final long getDurationBetweenEachRepetitionInMilliSeconds() {
 		return durationBetweenEachRepetitionInNanoSeconds/1000000L;
 	}
 
-	void renewTask() {
+	final void renewTask() {
 		if (isRepetitive())
 			nanoTime = System.nanoTime() + durationBetweenEachRepetitionInNanoSeconds;
 	}
 
-	public boolean isExecuteEvenIfLauncherAgentIsKilled() {
+	public final boolean isExecuteEvenIfLauncherAgentIsKilled() {
 		return executeEvenIfLauncherAgentIsKilled;
+	}
+
+	public final TaskID getTaskID() {
+		return taskID;
 	}
 }

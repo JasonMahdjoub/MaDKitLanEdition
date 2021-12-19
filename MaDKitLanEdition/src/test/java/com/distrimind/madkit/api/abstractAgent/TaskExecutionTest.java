@@ -38,13 +38,11 @@
 package com.distrimind.madkit.api.abstractAgent;
 
 import com.distrimind.madkit.kernel.*;
-import org.testng.annotations.Test;
-import org.testng.AssertJUnit;
-import java.util.concurrent.Callable;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.message.task.TasksExecutionConfirmationMessage;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 
@@ -68,18 +66,26 @@ class TaskAgentTester extends AbstractAgent {
 
 	@Override
 	public void activate() {
-		Callable<Void> callable = () -> {
-			taskExecutionNumber.incrementAndGet();
-			return null;
-		};
 
 		taskExecutionNumber.set(0);
 
-		SC(new Task<>(callable), false);
+		SC(new Task<Void>() {
+			@Override
+			public Void call() {
+				taskExecutionNumber.incrementAndGet();
+				return null;
+			}
+		}, false);
 
 		TestNGMadkit.pause(this, 20);
 		AssertJUnit.assertEquals(1, taskExecutionNumber.get());
-		TaskID id = SC(new Task<>(callable), true);
+		TaskID id = SC(new Task<Void>() {
+			@Override
+			public Void call() {
+				taskExecutionNumber.incrementAndGet();
+				return null;
+			}
+		}, true);
 		TestNGMadkit.pause(this, 20);
 		AssertJUnit.assertEquals(2, taskExecutionNumber.get());
 		Message m = nextMessage();
@@ -87,18 +93,36 @@ class TaskAgentTester extends AbstractAgent {
 		AssertJUnit.assertEquals(TasksExecutionConfirmationMessage.class, m.getClass());
 		AssertJUnit.assertEquals(id, m.getConversationID());
 
-		SC(new Task<>(callable, System.currentTimeMillis() + 1000), false);
+		SC(new Task<Void>(System.currentTimeMillis() + 1000) {
+			@Override
+			public Void call() {
+				taskExecutionNumber.incrementAndGet();
+				return null;
+			}
+		}, false);
 		TestNGMadkit.pause(this, 100);
 		AssertJUnit.assertEquals(2, taskExecutionNumber.get());
 		TestNGMadkit.pause(this, 1000);
 		AssertJUnit.assertEquals(3, taskExecutionNumber.get());
-		id = SC(new Task<>(callable, System.currentTimeMillis() + 1000), false);
+		id = SC(new Task<Void>(System.currentTimeMillis() + 1000) {
+			@Override
+			public Void call()  {
+				taskExecutionNumber.incrementAndGet();
+				return null;
+			}
+		}, false);
 		TestNGMadkit.pause(this, 100);
 		AssertJUnit.assertEquals(3, taskExecutionNumber.get());
 		CT(id);
 		TestNGMadkit.pause(this, 1000);
 		AssertJUnit.assertEquals(3, taskExecutionNumber.get());
-		id = SC(new Task<>(callable, System.currentTimeMillis() + 500, 500), false);
+		id = SC(new Task<Void>(System.currentTimeMillis() + 500, 500) {
+			@Override
+			public Void call() {
+				taskExecutionNumber.incrementAndGet();
+				return null;
+			}
+		}, false);
 		TestNGMadkit.pause(this, 100);
 		AssertJUnit.assertEquals(3, taskExecutionNumber.get());
 		TestNGMadkit.pause(this, 500);
@@ -111,11 +135,23 @@ class TaskAgentTester extends AbstractAgent {
 		AssertJUnit.assertTrue(id.isCanceled());
 		AssertJUnit.assertEquals(5, taskExecutionNumber.get());
 		for (int i = 0; i < 100; i++)
-			SC(new Task<>(callable), false);
+			SC(new Task<Void>() {
+				@Override
+				public Void call() {
+					taskExecutionNumber.incrementAndGet();
+					return null;
+				}
+			}, false);
 		TestNGMadkit.pause(this, 200);
 		AssertJUnit.assertEquals(105, taskExecutionNumber.get());
 		for (int i = 0; i < 100; i++)
-			SC(new Task<>(callable, System.currentTimeMillis() + ((long) (Math.random() * 200.0))), false);
+			SC(new Task<Void>(System.currentTimeMillis() + ((long) (Math.random() * 200.0))) {
+				@Override
+				public Void call() {
+					taskExecutionNumber.incrementAndGet();
+					return null;
+				}
+			}, false);
 		TestNGMadkit.pause(this, 1000);
 		AssertJUnit.assertEquals(205, taskExecutionNumber.get());
 

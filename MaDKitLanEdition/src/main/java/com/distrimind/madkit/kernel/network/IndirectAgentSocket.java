@@ -51,7 +51,6 @@ import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.logging.Level;
 
 /**
@@ -121,22 +120,25 @@ class IndirectAgentSocket extends AbstractAgentSocket {
 			logger.severe(
 					"Cannot request group " + LocalCommunity.Groups.getAgentSocketGroup(agentSocketRequester.hashCode())
 							+ " and role " + LocalCommunity.Roles.SOCKET_AGENT_ROLE);
-		pingTaskID = scheduleTask(new Task<>((Callable<Void>) () -> {
-			if (!isAlive())
-				return null;
-			long threshold = System.nanoTime() - getMadkitConfig().networkProperties.connectionTimeOutInMs*1000000L;
-			if (lastReceivedDataNano < threshold) {
-				lastReceivedDataNano = System.nanoTime();
+		pingTaskID = scheduleTask(new Task<Void>(System.currentTimeMillis() + getMadkitConfig().networkProperties.connectionTimeOutInMs,
+				getMadkitConfig().networkProperties.connectionTimeOutInMs) {
+			@Override
+			public Void call() {
+				if (!isAlive())
+					return null;
+				long threshold = System.nanoTime() - getMadkitConfig().networkProperties.connectionTimeOutInMs*1000000L;
+				if (lastReceivedDataNano < threshold) {
+					lastReceivedDataNano = System.nanoTime();
 
-				if (waitingPongMessage) {
-					startDisconnectionProcess(ConnectionClosedReason.CONNECTION_LOST);
-				} else {
-					receiveMessage(new SendPingMessage());
+					if (waitingPongMessage) {
+						startDisconnectionProcess(ConnectionClosedReason.CONNECTION_LOST);
+					} else {
+						receiveMessage(new SendPingMessage());
+					}
 				}
+				return null;
 			}
-			return null;
-		}, System.currentTimeMillis() + getMadkitConfig().networkProperties.connectionTimeOutInMs,
-				getMadkitConfig().networkProperties.connectionTimeOutInMs));
+		});
 	}
 
 	public KernelAddress getDistantKernelAddressRequester() {

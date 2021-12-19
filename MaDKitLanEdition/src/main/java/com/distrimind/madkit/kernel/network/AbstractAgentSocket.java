@@ -66,7 +66,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.rmi.UnexpectedException;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -129,13 +128,16 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						if (firstTime)
 						{
 							final Block f=block;
-							scheduleTask(new Task<>((Callable<Void>) () -> {
-								if (isAlive())
-								{
-									receivedBlock(f, false);
+							scheduleTask(new Task<Void>(System.currentTimeMillis() + 400) {
+								@Override
+								public Void call() {
+									if (isAlive())
+									{
+										receivedBlock(f, false);
+									}
+									return null;
 								}
-								return null;
-							}, System.currentTimeMillis()+400));
+							});
 						}
 						else
 						{
@@ -282,11 +284,14 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				logger.finest("Adding transfer checker task (distant_inet_address=" + distant_inet_address
 						+ ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress + ")");
 
-			taskTransferNodeChecker = this.scheduleTask(new Task<>((Callable<Void>) () -> {
-				receiveMessage(new CheckDeadTransferNodes());
-				return null;
-			}, System.currentTimeMillis() + getMadkitConfig().networkProperties.connectionTimeOutInMs,
-					getMadkitConfig().networkProperties.connectionTimeOutInMs));
+			taskTransferNodeChecker = this.scheduleTask(new Task<Void>(System.currentTimeMillis() + getMadkitConfig().networkProperties.connectionTimeOutInMs,
+					getMadkitConfig().networkProperties.connectionTimeOutInMs) {
+				@Override
+				public Void call() {
+					receiveMessage(new CheckDeadTransferNodes());
+					return null;
+				}
+			});
 		}
 	}
 
@@ -830,14 +835,17 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 
 				// add a task that will consider after an elapsed time that the received
 				// distant kernel address is not part of a same already connected peer.
-				scheduleTask(new Task<>((Callable<Void>) () -> {
-					if (isAlive()) {
-						if (AbstractAgentSocket.this.getState().compareTo(AbstractAgent.State.ENDING) < 0)
-							validateKernelAddress(AbstractAgentSocket.this.agent_for_distant_kernel_aa);
+				scheduleTask(new Task<Void>(System.currentTimeMillis()
+						+ getMadkitConfig().networkProperties.maxDurationInMsOfDistantKernelAddressCheck) {
+					@Override
+					public Void call() {
+						if (isAlive()) {
+							if (AbstractAgentSocket.this.getState().compareTo(AbstractAgent.State.ENDING) < 0)
+								validateKernelAddress(AbstractAgentSocket.this.agent_for_distant_kernel_aa);
+						}
+						return null;
 					}
-					return null;
-				}, System.currentTimeMillis()
-						+ getMadkitConfig().networkProperties.maxDurationInMsOfDistantKernelAddressCheck));
+				});
 				
 			} else {
 				// The received distant kernel address is unique into this peer.
@@ -1645,16 +1653,19 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		}
 		if (t.isLastPass()) {
 			final IDTransfer idFinal = t.getIdTransfer();
-			scheduleTask(new Task<>((Callable<Void>) () -> {
-				if (isAlive()) {
-					receiveMessage(new ObjectMessage<>((Runnable) () -> {
-						InterfacedIDTransfer idt = removeValidatedInterfacedIDTransfer(sender, idFinal);
-						if (idt == null)
-							removeInterfacedIDTransferToFinalize(sender, idFinal);
-					}));
+			scheduleTask(new Task<Void>(getMadkitConfig().networkProperties.connectionTimeOutInMs) {
+				@Override
+				public Void call() {
+					if (isAlive()) {
+						receiveMessage(new ObjectMessage<>((Runnable) () -> {
+							InterfacedIDTransfer idt = removeValidatedInterfacedIDTransfer(sender, idFinal);
+							if (idt == null)
+								removeInterfacedIDTransferToFinalize(sender, idFinal);
+						}));
+					}
+					return null;
 				}
-				return null;
-			}, getMadkitConfig().networkProperties.connectionTimeOutInMs));
+			});
 
 		}
 
@@ -1830,15 +1841,18 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 					idtDist.setTransferToAgentAddress(agentAddress);
 					putValidatedInterfacedIDTransfer(agentAddress, idtLocal);
 
-					this.scheduleTask(new Task<>((Callable<Void>) () -> {
-						try {
-							indirectAgentSocket.initiateConnectionIfNecessary();
-						} catch (Exception e) {
-							receiveMessage(new FailedCreateIndirectAgentSocket(e, idtLocal, idtDist,
-									indirectAgentSocket, distantKernelAgent, ti, p));
+					this.scheduleTask(new Task<Void>() {
+						@Override
+						public Void call() {
+							try {
+								indirectAgentSocket.initiateConnectionIfNecessary();
+							} catch (Exception e) {
+								receiveMessage(new FailedCreateIndirectAgentSocket(e, idtLocal, idtDist,
+										indirectAgentSocket, distantKernelAgent, ti, p));
+							}
+							return null;
 						}
-						return null;
-					}));
+					});
 				} else {
 					killAgent(indirectAgentSocket);
 					killAgent(distantKernelAgent);
@@ -2590,6 +2604,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		private AgentAddress distant_agent_address = null;
 		private boolean kernelAddressSent = false;
 
+		@SuppressWarnings("unused")
 		protected Groups() {
 			this(null);
 		}

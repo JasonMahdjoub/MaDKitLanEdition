@@ -348,27 +348,23 @@ class GroupAccessTesterAgent extends NormalAgent
 		requestRole(DistantGroupAccessTests.groupWithAllRolesInOnePeer, localAcceptedRoleNotRestricted);
 		requestRole(DistantGroupAccessTests.groupWithAllRolesNotDistributed, localAcceptedRoleNotRestricted);
 		requestRole(DistantGroupAccessTests.groupNotAccepted, localAcceptedRoleNotRestricted);
-		scheduleTask(new Task<>(() -> {
-			ReturnCode rc=broadcastMessageWithRole(DistantGroupAccessTests.groupWithAllRoles, distantAcceptedRoleNotRestricted, new StringMessage(distantAgentRequestGroupWithAllRolesBroadcastMessage), localAcceptedRoleNotRestricted);
-			broadcastMessageSentToGroupWithAllRoles=rc==ReturnCode.SUCCESS || rc==ReturnCode.TRANSFER_IN_PROGRESS;
-			rc=broadcastMessageWithRole(DistantGroupAccessTests.groupWithOneRole, distantAcceptedRole, new StringMessage(distantAgentRequestGroupWithOneRoleBroadcastMessage), localAcceptedRole);
-			broadcastMessageSentToGroupWithOneRole =rc==ReturnCode.SUCCESS || rc==ReturnCode.TRANSFER_IN_PROGRESS;
-			rc=broadcastMessageWithRole(DistantGroupAccessTests.groupNotAccepted, distantAcceptedRoleNotRestricted, new StringMessage(distantAgentRequestGroupNotAcceptedBroadcastMessage), localAcceptedRoleNotRestricted);
-			broadcastMessageSentToGroupNotAccepted=rc==ReturnCode.SUCCESS || rc==ReturnCode.TRANSFER_IN_PROGRESS;
-			rc=broadcastMessageWithRole(DistantGroupAccessTests.groupWithAllRolesInOnePeer, distantAcceptedRoleNotRestricted, new StringMessage(distantAgentRequestGroupWithAllRolesInOnePeerBroadcastMessage), localAcceptedRoleNotRestricted);
-			broadcastMessageSentToGroupWithOneRolesInOnePeer= rc==ReturnCode.SUCCESS || rc==ReturnCode.TRANSFER_IN_PROGRESS;
-			rc=broadcastMessageWithRole(DistantGroupAccessTests.groupWithAllRolesNotDistributed, distantAcceptedRoleNotRestricted, new StringMessage(distantAgentRequestGroupWithAllRolesNotDistributedBroadcastMessage), localAcceptedRoleNotRestricted);
-			broadcastMessageSentToGroupNotDistributed=rc==ReturnCode.SUCCESS || rc==ReturnCode.TRANSFER_IN_PROGRESS;
-			return null;
-		}, System.currentTimeMillis()+DistantGroupAccessTests.timeToWaitBeforeBroadcast));
+		scheduleTask(new Task<Void>(System.currentTimeMillis() + DistantGroupAccessTests.timeToWaitBeforeBroadcast) {
+			@Override
+			public Void call() {
+				ReturnCode rc=broadcastMessageWithRole(DistantGroupAccessTests.groupWithAllRoles, distantAcceptedRoleNotRestricted, new StringMessage(distantAgentRequestGroupWithAllRolesBroadcastMessage), localAcceptedRoleNotRestricted);
+				broadcastMessageSentToGroupWithAllRoles=rc==ReturnCode.SUCCESS || rc==ReturnCode.TRANSFER_IN_PROGRESS;
+				rc=broadcastMessageWithRole(DistantGroupAccessTests.groupWithOneRole, distantAcceptedRole, new StringMessage(distantAgentRequestGroupWithOneRoleBroadcastMessage), localAcceptedRole);
+				broadcastMessageSentToGroupWithOneRole =rc==ReturnCode.SUCCESS || rc==ReturnCode.TRANSFER_IN_PROGRESS;
+				rc=broadcastMessageWithRole(DistantGroupAccessTests.groupNotAccepted, distantAcceptedRoleNotRestricted, new StringMessage(distantAgentRequestGroupNotAcceptedBroadcastMessage), localAcceptedRoleNotRestricted);
+				broadcastMessageSentToGroupNotAccepted=rc==ReturnCode.SUCCESS || rc==ReturnCode.TRANSFER_IN_PROGRESS;
+				rc=broadcastMessageWithRole(DistantGroupAccessTests.groupWithAllRolesInOnePeer, distantAcceptedRoleNotRestricted, new StringMessage(distantAgentRequestGroupWithAllRolesInOnePeerBroadcastMessage), localAcceptedRoleNotRestricted);
+				broadcastMessageSentToGroupWithOneRolesInOnePeer= rc==ReturnCode.SUCCESS || rc==ReturnCode.TRANSFER_IN_PROGRESS;
+				rc=broadcastMessageWithRole(DistantGroupAccessTests.groupWithAllRolesNotDistributed, distantAcceptedRoleNotRestricted, new StringMessage(distantAgentRequestGroupWithAllRolesNotDistributedBroadcastMessage), localAcceptedRoleNotRestricted);
+				broadcastMessageSentToGroupNotDistributed=rc==ReturnCode.SUCCESS || rc==ReturnCode.TRANSFER_IN_PROGRESS;
+				return null;
+			}
+		});
 	}
-
-	/*void fail()
-	{
-		testOK=false;
-		new IllegalAccessError().printStackTrace();
-		this.killAgent(this);
-	}*/
 
 	@Override
 	protected void liveCycle() throws InterruptedException {

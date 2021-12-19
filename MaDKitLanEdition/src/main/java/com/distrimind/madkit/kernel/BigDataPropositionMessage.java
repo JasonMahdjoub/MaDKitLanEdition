@@ -48,7 +48,6 @@ import com.distrimind.util.crypto.MessageDigestType;
 import com.distrimind.util.io.*;
 
 import java.io.IOException;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -367,40 +366,43 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 			if (isLocal()) {
 				try {
 
-					receiver.scheduleTask(new Task<>((Callable<Void>) () -> {
-						try {
-							outputStream.setLength(length+pos);
-							outputStream.seek(pos);
-							inputStream.seek(pos);
-							outputStream.write(inputStream, length);
-							long transferred=outputStream.currentPosition()-pos;
-							if (transferred==length)
-								sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_TRANSFERRED, length);
-							else
+					receiver.scheduleTask(new Task<Void>() {
+						@Override
+						public Void call() throws Exception {
+							try {
+								outputStream.setLength(length+pos);
+								outputStream.seek(pos);
+								inputStream.seek(pos);
+								outputStream.write(inputStream, length);
+								long transferred=outputStream.currentPosition()-pos;
+								if (transferred==length)
+									sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_TRANSFERRED, length);
+								else
+									sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_PARTIALLY_TRANSFERRED,
+											transferred);
+							} catch (MessageExternalizationException e) {
+								long p;
+								try {
+									p=outputStream.currentPosition();
+								} catch (IOException ex) {
+									p=0;
+								}
+								dataCorrupted(p, e);
+							} catch (Exception e) {
+								long p;
+								try {
+									p=outputStream.currentPosition();
+								} catch (IOException ex) {
+									p=0;
+								}
 								sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_PARTIALLY_TRANSFERRED,
-										transferred);
-						} catch (MessageExternalizationException e) {
-							long p;
-							try {
-								p=outputStream.currentPosition();
-							} catch (IOException ex) {
-								p=0;
+										p);
+								throw e;
 							}
-							dataCorrupted(p, e);
-						} catch (Exception e) {
-							long p;
-							try {
-								p=outputStream.currentPosition();
-							} catch (IOException ex) {
-								p=0;
-							}
-							sendBidirectionalReply(BigDataResultMessage.Type.BIG_DATA_PARTIALLY_TRANSFERRED,
-									p);
-							throw e;
-						}
 
-						return null;
-					})).waitTaskFinished();
+							return null;
+						}
+					}).waitTaskFinished();
 				} catch (ExecutionException e) {
 					e.printStackTrace();
 				}
@@ -448,15 +450,18 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 	public void denyTransfer() throws InterruptedException {
 		final AbstractAgent receiver = getReceiver().getAgent();
 		try {
-			receiver.scheduleTask(new Task<>((Callable<Void>) () -> {
-				if (receiver.isAlive()) {
-					Message m = new BigDataResultMessage(BigDataResultMessage.Type.BIG_DATA_TRANSFER_DENIED, 0,
-							idPacket, System.currentTimeMillis() - timeUTC, asynchronousBigDataInternalIdentifier, externalAsynchronousBigDataIdentifier);
-					m.setIDFrom(BigDataPropositionMessage.this);
-					receiver.sendMessage(getSender(), m);
+			receiver.scheduleTask(new Task<Void>() {
+				@Override
+				public Void call() {
+					if (receiver.isAlive()) {
+						Message m = new BigDataResultMessage(BigDataResultMessage.Type.BIG_DATA_TRANSFER_DENIED, 0,
+								idPacket, System.currentTimeMillis() - timeUTC, asynchronousBigDataInternalIdentifier, externalAsynchronousBigDataIdentifier);
+						m.setIDFrom(BigDataPropositionMessage.this);
+						receiver.sendMessage(getSender(), m);
+					}
+					return null;
 				}
-				return null;
-			})).waitTaskFinished();
+			}).waitTaskFinished();
 		} catch (ExecutionException e) {
 			e.printStackTrace();
 		}
@@ -479,12 +484,15 @@ public final class BigDataPropositionMessage extends Message implements NetworkM
 	private void sendBidirectionalReply(final BigDataResultMessage.Type type, final long length) {
 		final AbstractAgent receiver = getReceiver().getAgent();
 
-		receiver.scheduleTask(new Task<>((Callable<Void>) () -> {
-			Message m = new BigDataResultMessage(type, length, idPacket, System.currentTimeMillis() - timeUTC, asynchronousBigDataInternalIdentifier, externalAsynchronousBigDataIdentifier);
-			m.setIDFrom(BigDataPropositionMessage.this);
-			receiver.sendMessage(getSender(), m);
-			return null;
-		}));
+		receiver.scheduleTask(new Task<Void>() {
+			@Override
+			public Void call() throws Exception {
+				Message m = new BigDataResultMessage(type, length, idPacket, System.currentTimeMillis() - timeUTC, asynchronousBigDataInternalIdentifier, externalAsynchronousBigDataIdentifier);
+				m.setIDFrom(BigDataPropositionMessage.this);
+				receiver.sendMessage(getSender(), m);
+				return null;
+			}
+		});
 
 		Message m = new BigDataResultMessage(type, length, idPacket, System.currentTimeMillis() - timeUTC, asynchronousBigDataInternalIdentifier, externalAsynchronousBigDataIdentifier);
 		m.setReceiver(getReceiver());

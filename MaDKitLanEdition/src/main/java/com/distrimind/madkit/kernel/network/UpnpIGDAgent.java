@@ -769,9 +769,9 @@ class UpnpIGDAgent extends AgentFakeThread {
 		protected final AtomicReference<StatusInfo> status = new AtomicReference<>(null);
 		private final AtomicBoolean removed = new AtomicBoolean(false);
 
-		private Task<Object> status_task_updater = null;
+		private Task<Void> status_task_updater = null;
 		private TaskID status_task_id = null;
-		private Task<Object> external_address_task_updater = null;
+		private Task<Void> external_address_task_updater = null;
 		private TaskID external_address_task_id = null;
 
 		protected final ArrayList<AskForConnectionStatusMessage> asks_for_status = new ArrayList<>();
@@ -894,33 +894,36 @@ class UpnpIGDAgent extends AgentFakeThread {
 					}
 				}
 				if (update_repetitive_task) {
-					status_task_updater = new Task<>(() -> {
-						upnpService.getControlPoint().execute(new GetStatusInfo(service) {
+					status_task_updater = new Task<Void>(System.currentTimeMillis() + referenced_delay, referenced_delay) {
+						@Override
+						public Void call() {
+							upnpService.getControlPoint().execute(new GetStatusInfo(service) {
 
-							@Override
-							public void failure(ActionInvocation _invocation,
-									UpnpResponse _operation, String _defaultMsg) {
-								if (getLogger1() != null)
-									getLogger1().warning(_defaultMsg);
-							}
-
-							@Override
-							protected void success(StatusInfo _statusInfo) {
-								StatusInfo old = status.get();
-								if (old == null || !old.equals(_statusInfo)) {
-									ConnexionStatusMessage answer = new ConnexionStatusMessage(internal_address,
-											_statusInfo, old);
-									status.set(_statusInfo);
-									synchronized (asks_for_status) {
-										asks_for_status.removeIf(m1 -> !UpnpIGDAgent.this.sendReply(m1, answer.clone())
-												.equals(ReturnCode.SUCCESS));
-									}
+								@Override
+								public void failure(ActionInvocation _invocation,
+													UpnpResponse _operation, String _defaultMsg) {
+									if (getLogger1() != null)
+										getLogger1().warning(_defaultMsg);
 								}
 
-							}
-						});
-						return null;
-					}, System.currentTimeMillis() + referenced_delay, referenced_delay);
+								@Override
+								protected void success(StatusInfo _statusInfo) {
+									StatusInfo old = status.get();
+									if (old == null || !old.equals(_statusInfo)) {
+										ConnexionStatusMessage answer = new ConnexionStatusMessage(internal_address,
+												_statusInfo, old);
+										status.set(_statusInfo);
+										synchronized (asks_for_status) {
+											asks_for_status.removeIf(m1 -> !UpnpIGDAgent.this.sendReply(m1, answer.clone())
+													.equals(ReturnCode.SUCCESS));
+										}
+									}
+
+								}
+							});
+							return null;
+						}
+					};
 					status_task_id = UpnpIGDAgent.this.scheduleTask(status_task_updater);
 				}
 
@@ -997,40 +1000,43 @@ class UpnpIGDAgent extends AgentFakeThread {
 					}
 				}
 				if (update_repetitive_task) {
-					external_address_task_updater = new Task<>(() -> {
-						upnpService.getControlPoint().execute(new GetExternalIP(service) {
+					external_address_task_updater = new Task<Void>(System.currentTimeMillis() + referenced_delay, referenced_delay) {
+						@Override
+						public Void call()  {
+							upnpService.getControlPoint().execute(new GetExternalIP(service) {
 
-							@Override
-							public void failure(ActionInvocation _invocation,
-									UpnpResponse _operation, String _defaultMsg) {
-								if (getLogger1() != null)
-									getLogger1().warning(_defaultMsg);
-							}
+								@Override
+								public void failure(ActionInvocation _invocation,
+													UpnpResponse _operation, String _defaultMsg) {
+									if (getLogger1() != null)
+										getLogger1().warning(_defaultMsg);
+								}
 
-							@Override
-							protected void success(String _externalIPAddress) {
-								try {
-									InetAddress old = external_address.get();
-									InetAddress newAddress = InetAddress.getByName(_externalIPAddress);
-									if (old == null || !old.equals(newAddress)) {
-										ExternalIPMessage answer = new ExternalIPMessage(internal_address,
-												newAddress, old);
-										external_address.set(newAddress);
-										synchronized (asks_for_external_ip) {
-											asks_for_external_ip.removeIf(m1 -> !UpnpIGDAgent.this.sendReply(m1, answer.clone())
-													.equals(ReturnCode.SUCCESS));
+								@Override
+								protected void success(String _externalIPAddress) {
+									try {
+										InetAddress old = external_address.get();
+										InetAddress newAddress = InetAddress.getByName(_externalIPAddress);
+										if (old == null || !old.equals(newAddress)) {
+											ExternalIPMessage answer = new ExternalIPMessage(internal_address,
+													newAddress, old);
+											external_address.set(newAddress);
+											synchronized (asks_for_external_ip) {
+												asks_for_external_ip.removeIf(m1 -> !UpnpIGDAgent.this.sendReply(m1, answer.clone())
+														.equals(ReturnCode.SUCCESS));
+											}
+										}
+									} catch (Exception e) {
+										if (getLogger1() != null) {
+											getLogger1().severeLog("Unexpected exception :", e);
 										}
 									}
-								} catch (Exception e) {
-									if (getLogger1() != null) {
-										getLogger1().severeLog("Unexpected exception :", e);
-									}
 								}
-							}
 
-						});
-						return null;
-					}, System.currentTimeMillis() + referenced_delay, referenced_delay);
+							});
+							return null;
+						}
+					};
 					external_address_task_id = UpnpIGDAgent.this.scheduleTask(external_address_task_updater);
 				}
 
@@ -1532,7 +1538,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 		long minNanoDelay = -1;
 		HashMap<AgentAddress, AskForNetworkInterfacesMessage> callers = new HashMap<>();
 		TaskID task_id = null;
-		Task<Object> task = null;
+		Task<Void> task = null;
 		private boolean shutdown = false;
 
 		ArrayList<NetworkInterface> init() {
@@ -1590,11 +1596,12 @@ class UpnpIGDAgent extends AgentFakeThread {
 
 					if (minNanoDelay != -1) {
 
-						task = new Task<>(new Callable<Object>() {
-                            long oldNanoTime=System.nanoTime()+(oldNanoDelay!=-1?oldNanoDelay:0);
-                            final long maxDelayInMsBeforeDetectingOSWakeUp =minNanoDelay*2;//Math.min(min_delay*2, getMadkitConfig().networkProperties.connectionTimeOut);
+						task = new Task<Void>((oldNanoDelay != -1 ? oldNanoDelay : 0)/1000000L+System.currentTimeMillis(), minNanoDelay/1000000L)
+						{
+							long oldNanoTime=System.nanoTime()+(oldNanoDelay!=-1?oldNanoDelay:0);
+							final long maxDelayInMsBeforeDetectingOSWakeUp =minNanoDelay*2;//Math.min(min_delay*2, getMadkitConfig().networkProperties.connectionTimeOut);
 							@Override
-							public Object call() {
+							public Void call() {
 
 
 								boolean scanRouters=false;
@@ -1604,14 +1611,14 @@ class UpnpIGDAgent extends AgentFakeThread {
 									ArrayList<NetworkInterface> del_nis = new ArrayList<>();
 									long newNanoTime=System.nanoTime();
 									if (newNanoTime>oldNanoTime+ maxDelayInMsBeforeDetectingOSWakeUp*1000000L) {//detect OS wake up
-                                        del_nis.addAll(network_interfaces);
+										del_nis.addAll(network_interfaces);
 
-                                        if (del_nis.size() > 0) {
-                                        	for (NetworkInterface ni : del_nis)
+										if (del_nis.size() > 0) {
+											for (NetworkInterface ni : del_nis)
 											{
 												networkInterfaceRemoved(ni);
 											}
-                                            network_interfaces = new ArrayList<>();
+											network_interfaces = new ArrayList<>();
 											for (Iterator<AskForNetworkInterfacesMessage> it = callers.values()
 													.iterator(); it.hasNext(); ) {
 												AskForNetworkInterfacesMessage m = it.next();
@@ -1620,7 +1627,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 													it.remove();
 											}
 											del_nis = new ArrayList<>();
-                                        }
+										}
 										scanRouters=true;
 										try {
 											sleep(1000);
@@ -1628,7 +1635,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 											e.printStackTrace();
 										}
 									}
-                                    oldNanoTime = newNanoTime;
+									oldNanoTime = newNanoTime;
 
 									for (NetworkInterface ni : network_interfaces) {
 										boolean found = false;
@@ -1678,7 +1685,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 									return null;
 								}
 							}
-						}, (oldNanoDelay != -1 ? oldNanoDelay : 0)/1000000L+System.currentTimeMillis(), minNanoDelay/1000000L);
+						};
 						task_id = scheduleTask(task);
 					}
 				}

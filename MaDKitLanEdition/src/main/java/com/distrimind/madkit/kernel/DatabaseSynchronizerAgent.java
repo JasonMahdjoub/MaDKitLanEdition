@@ -49,8 +49,10 @@ import com.distrimind.util.DecentralizedValue;
 import com.distrimind.util.io.*;
 
 import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.Callable;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 
 /**
@@ -694,10 +696,13 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 				}
 				Long utc=wrapper.getNextPossibleEventTimeUTC();
 				if (utc!=null) {
-					scheduleTask(new Task<>((Callable<Void>) () -> {
-						receiveMessage(checkEvents);
-						return null;
-					}, utc));
+					scheduleTask(new Task<Void>(utc) {
+						@Override
+						public Void call() {
+							receiveMessage(checkEvents);
+							return null;
+						}
+					});
 				}
 			}
 			catch (DatabaseException e2)

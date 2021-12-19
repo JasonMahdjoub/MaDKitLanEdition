@@ -52,7 +52,6 @@ import com.distrimind.util.io.*;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -343,18 +342,21 @@ class TransferAgent extends AgentFakeThread {
 		long d = System.currentTimeMillis()
 				+ getMadkitConfig().networkProperties.durationInMsBeforeCancelingTransferConnection;
 		timeElapsed.set(d);
-		timeElapsedTask.set(scheduleTask(new Task<>((Callable<Void>) () -> {
-			if (timeElapsedTask.getAndSet(null) != null) {
-				long duration = timeElapsed.getAndSet(-1);
-				if (duration != -1 && duration >= System.currentTimeMillis()) {
-					MadkitKernelAccess.informHooks(TransferAgent.this, new TransferEventMessage(idTransfer.getID(),
-							originalAskMessage, TransferEventType.CONNECTION_IMPOSSIBLE_BECAUSE_TIME_ELAPSED));
-					resetTransfer();
-					TransferAgent.this.killAgent(TransferAgent.this);
+		timeElapsedTask.set(scheduleTask(new Task<Void>(d) {
+			@Override
+			public Void call() {
+				if (timeElapsedTask.getAndSet(null) != null) {
+					long duration = timeElapsed.getAndSet(-1);
+					if (duration != -1 && duration >= System.currentTimeMillis()) {
+						MadkitKernelAccess.informHooks(TransferAgent.this, new TransferEventMessage(idTransfer.getID(),
+								originalAskMessage, TransferEventType.CONNECTION_IMPOSSIBLE_BECAUSE_TIME_ELAPSED));
+						resetTransfer();
+						TransferAgent.this.killAgent(TransferAgent.this);
+					}
 				}
+				return null;
 			}
-			return null;
-		}, d)));
+		}));
 	}
 
 	private void processInvalidProcess(AgentAddress source, String message, boolean candidate_to_ban) {
