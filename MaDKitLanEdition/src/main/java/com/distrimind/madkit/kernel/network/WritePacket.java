@@ -220,14 +220,14 @@ public final class WritePacket {
 		return Math.min(current_pos.get() - start_position, data_length);
 	}
 
-	public PacketPart getNextPart(ConnectionProtocol<?> conProto) throws PacketException, NIOException {
+	public PacketPart getNextPart(ConnectionProtocol<?> conProto, boolean excludeFromEncryption) throws PacketException, NIOException {
 		try {
 			if (finished)
 				return null;
 			boolean first_packet = (current_pos.get() == start_position);
 			int headSize = PacketPartHead.getHeadSize(first_packet);
 			long dataSizeRemaining=data_length - (current_pos.get() - start_position);
-			AbstractByteTabOutputStream res = getByteTabOutputStream(conProto,
+			AbstractByteTabOutputStream res = getByteTabOutputStream(conProto,excludeFromEncryption,
 					data_length + start_position <= current_pos.get() ? null : messageDigest, max_buffer_size, headSize,
 					data_length_with_message_digest - (current_pos.get() - start_position), (conProto.isCrypted() && dataSizeRemaining<max_buffer_size)?random_values_size:0, random);
 			boolean last_packet = (current_pos.get()
@@ -345,16 +345,16 @@ public final class WritePacket {
 
 	}
 
-	static AbstractByteTabOutputStream getByteTabOutputStream(ConnectionProtocol<?> conProto, AbstractMessageDigest messageDigest,
+	static AbstractByteTabOutputStream getByteTabOutputStream(ConnectionProtocol<?> conProto, boolean excludeFromEncryption, AbstractMessageDigest messageDigest,
 			int max_buffer_size, int packet_head_size, long _data_remaining, short random_values_size, AbstractSecureRandom rand) throws NIOException {
 		if (random_values_size<0)
 			throw new NullPointerException();
 		if (_data_remaining<=0)
 			throw new IllegalArgumentException();
 		if (random_values_size == 0)
-			return new ByteTabOutputStream(conProto, messageDigest, max_buffer_size, packet_head_size, _data_remaining);
+			return new ByteTabOutputStream(conProto, excludeFromEncryption, messageDigest, max_buffer_size, packet_head_size, _data_remaining);
 		else
-			return new ByteTabOutputStreamWithRandomValues(conProto, messageDigest, max_buffer_size, packet_head_size,
+			return new ByteTabOutputStreamWithRandomValues(conProto, excludeFromEncryption, messageDigest, max_buffer_size, packet_head_size,
 					_data_remaining, _data_remaining>max_buffer_size?0:random_values_size, rand);
 	}
 	
@@ -366,7 +366,7 @@ public final class WritePacket {
 		private int cursor;
 		private final int realDataSize_WithoutHead;
 
-		ByteTabOutputStream(ConnectionProtocol<?> connectionProtocol, AbstractMessageDigest messageDigest, int max_buffer_size, int packet_head_size,
+		ByteTabOutputStream(ConnectionProtocol<?> connectionProtocol, boolean excludeFromEncryption, AbstractMessageDigest messageDigest, int max_buffer_size, int packet_head_size,
 				long _data_remaining) throws NIOException {
 			super(messageDigest);
 			/*
@@ -376,7 +376,7 @@ public final class WritePacket {
 			 */
 			realDataSize_WithoutHead = (int)Math.min(_data_remaining, max_buffer_size);
 			int packetSize=packet_head_size + realDataSize_WithoutHead+1;
-			subBlock=connectionProtocol.initSubBlock(packetSize);
+			subBlock=connectionProtocol.initSubBlock(packetSize, excludeFromEncryption);
 			//tab = new byte[size];
 			tab=subBlock.getBytes();
 			cursor = subBlock.getOffset();
@@ -442,7 +442,7 @@ public final class WritePacket {
 		private int randomValuesWritten = 0;
 		private final int shiftedTabLength;
 
-		ByteTabOutputStreamWithRandomValues(ConnectionProtocol<?> conProto, AbstractMessageDigest messageDigest, int max_buffer_size,
+		ByteTabOutputStreamWithRandomValues(ConnectionProtocol<?> conProto, boolean excludeFromEncryption, AbstractMessageDigest messageDigest, int max_buffer_size,
 				int packet_head_size, long _data_remaining, short max_random_values_size, AbstractSecureRandom rand) throws NIOException {
 			super(messageDigest);
 
@@ -464,7 +464,7 @@ public final class WritePacket {
 			 */
 			int size = (int) (Math.min(_data_remaining, max_buffer_size));
 			int packetSize=size + packet_head_size + random_values_size+1;
-			subBlock=conProto.initSubBlock(packetSize);
+			subBlock=conProto.initSubBlock(packetSize, excludeFromEncryption);
 			//tab = new byte[size + packet_head_size + this.random_values_size];
 			tab=subBlock.getBytes();
 			realDataSize_WithoutHead = size;

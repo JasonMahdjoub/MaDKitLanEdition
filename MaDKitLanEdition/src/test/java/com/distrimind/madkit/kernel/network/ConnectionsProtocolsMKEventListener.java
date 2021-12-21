@@ -170,7 +170,7 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 			secretKeyForEncryption = SymmetricEncryptionType.AES_CTR.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), (short) 128).generateKey();
 			secretKeyForSignature = SymmetricAuthenticatedSignatureType.HMAC_SHA2_256.getKeyGenerator(SecureRandomType.DEFAULT.getSingleton(null), (short) 128).generateKey();
 		}
-		p2psym.addProfile(1,secretKeyForEncryption, secretKeyForSignature );
+		p2psym.addProfile(1,secretKeyForEncryption, secretKeyForSignature, MessageDigestType.SHA2_384 );
 		p2psym.enableEncryption=true;
 		p2psym.isServer=true;
 		res.add(new ConnectionsProtocolsMKEventListener(p2psym));
@@ -241,7 +241,7 @@ public class ConnectionsProtocolsMKEventListener implements MadkitEventListener 
 			res.add(new ConnectionsProtocolsMKEventListener(cpp));
 
 		P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties p2psym=new P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties();
-		p2psym.addProfile(1,secretKeyForEncryption, secretKeyForSignature );
+		p2psym.addProfile(1,secretKeyForEncryption, secretKeyForSignature, MessageDigestType.SHA2_384 );
 		p2psym.enableEncryption=true;
 		p2psym.isServer=false;
 		res.add(new ConnectionsProtocolsMKEventListener(p2psym));

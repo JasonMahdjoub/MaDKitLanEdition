@@ -502,6 +502,11 @@ public class ServerSecuredProtocolPropertiesWithKnownPublicKey
 	 * The used message digest types
 	 */
 	private Map<Integer, MessageDigestType> messageDigestTypes = new HashMap<>();
+
+	/**
+	 * Do not hash message when encryption is an authenticated algorithm, in order to maximise performances
+	 */
+	public boolean doNotUseMessageDigestWhenEncryptionIsAuthenticated=true;
 	
 	private int lastIdentifier = 0;
 

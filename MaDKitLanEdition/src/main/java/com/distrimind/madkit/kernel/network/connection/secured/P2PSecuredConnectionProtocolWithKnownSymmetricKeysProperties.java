@@ -89,11 +89,12 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties extend
 	 *
 	 * @param symmetricSecretKeyForEncryption the symmetric key for encryption
 	 * @param symmetricSecretKeyForSignature the symmetric key for signature
+	 * @param messageDigestType message digest type
 	 * @return the generated profile identifier
 	 */
-	public int addProfile(SymmetricSecretKey symmetricSecretKeyForEncryption, SymmetricSecretKey symmetricSecretKeyForSignature)
+	public int addProfile(SymmetricSecretKey symmetricSecretKeyForEncryption, SymmetricSecretKey symmetricSecretKeyForSignature, MessageDigestType messageDigestType)
 	{
-		return addProfile(generateNewKeyPairIdentifier(),symmetricSecretKeyForEncryption,symmetricSecretKeyForSignature);
+		return addProfile(generateNewKeyPairIdentifier(),symmetricSecretKeyForEncryption,symmetricSecretKeyForSignature, messageDigestType);
 	}
 
 	public Set<Integer> getProfileIdentifiers()
@@ -106,9 +107,10 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties extend
 	 * @param profileIdentifier the profile identifier
 	 * @param symmetricSecretKeyForEncryption the symmetric key for encryption
 	 * @param symmetricSecretKeyForSignature the symmetric key for signature
+	 * @param messageDigestType message digest type
 	 * @return the profile identifier
 	 */
-	public int addProfile(int profileIdentifier, SymmetricSecretKey symmetricSecretKeyForEncryption, SymmetricSecretKey symmetricSecretKeyForSignature)
+	public int addProfile(int profileIdentifier, SymmetricSecretKey symmetricSecretKeyForEncryption, SymmetricSecretKey symmetricSecretKeyForSignature, MessageDigestType messageDigestType)
 	{
 		if (symmetricSecretKeyForEncryption==null && enableEncryption)
 			throw new NullPointerException();
@@ -119,6 +121,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties extend
 
 		secretKeysForEncryption.put(profileIdentifier, symmetricSecretKeyForEncryption);
 		secretKeysForSignature.put(profileIdentifier, symmetricSecretKeyForSignature);
+		messageDigestTypes.put(profileIdentifier, messageDigestType);
 		validProfiles.put(profileIdentifier, true);
 		maximumBodyOutputSizeComputer=null;
 		return lastIdentifier=profileIdentifier;
@@ -127,6 +130,11 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties extend
 	public SymmetricSecretKey getSymmetricSecretKeyForEncryption(int profileIdentifier)
 	{
 		return secretKeysForEncryption.get(profileIdentifier);
+	}
+
+	public MessageDigestType getMessageDigestType(int profileIdentifier)
+	{
+		return messageDigestTypes.get(profileIdentifier);
 	}
 
 	public SymmetricSecretKey getSymmetricSecretKeyForSignature(int profileIdentifier)
@@ -163,7 +171,12 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties extend
 	/**
 	 * Message digest type used to check message validity
 	 */
-	public MessageDigestType messageDigestType=MessageDigestType.SHA2_384;
+	private Map<Integer, MessageDigestType> messageDigestTypes=new HashMap<>();
+
+	/**
+	 * Do not hash message when encryption is an authenticated algorithm, in order to maximise performances
+	 */
+	public boolean doNotUseMessageDigestWhenEncryptionIsAuthenticated=true;
 
 	@Override
 	public boolean isConcernedBy(EncryptionRestriction encryptionRestriction) {
@@ -240,7 +253,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeysProperties extend
 				if (!e.getValue())
 					continue;
 				int profile=e.getKey();
-				MaximumBodyOutputSizeComputer m = new MaximumBodyOutputSizeComputer(isEncrypted(), getSymmetricSecretKeyForEncryption(profile),getSymmetricSecretKeyForSignature(profile) , messageDigestType);
+				MaximumBodyOutputSizeComputer m = new MaximumBodyOutputSizeComputer(isEncrypted(), getSymmetricSecretKeyForEncryption(profile),getSymmetricSecretKeyForSignature(profile) , getMessageDigestType(profile));
 				int v=m.getMaximumBodyOutputSizeForEncryption(size);
 				if (v>max)
 				{

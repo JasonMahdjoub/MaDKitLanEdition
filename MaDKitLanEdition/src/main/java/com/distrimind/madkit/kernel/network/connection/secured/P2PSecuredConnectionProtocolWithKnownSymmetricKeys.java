@@ -44,10 +44,7 @@ import com.distrimind.madkit.kernel.network.SubBlockInfo;
 import com.distrimind.madkit.kernel.network.SubBlockParser;
 import com.distrimind.madkit.kernel.network.connection.*;
 import com.distrimind.ood.database.DatabaseWrapper;
-import com.distrimind.util.crypto.AbstractSecureRandom;
-import com.distrimind.util.crypto.EncryptionSignatureHashDecoder;
-import com.distrimind.util.crypto.EncryptionSignatureHashEncoder;
-import com.distrimind.util.crypto.SymmetricSecretKey;
+import com.distrimind.util.crypto.*;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -89,12 +86,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 			encoderWithoutEncryption=new EncryptionSignatureHashEncoder();
 			decoderWithEncryption=new EncryptionSignatureHashDecoder();
 			decoderWithoutEncryption=new EncryptionSignatureHashDecoder();
-			if (properties.messageDigestType!=null) {
-				encoderWithEncryption.withMessageDigestType(properties.messageDigestType);
-				encoderWithoutEncryption.withMessageDigestType(properties.messageDigestType);
-				decoderWithEncryption.withMessageDigestType(properties.messageDigestType);
-				decoderWithoutEncryption.withMessageDigestType(properties.messageDigestType);
-			}
+
 			encoderWithEncryption.connectWithDecoder(decoderWithEncryption);
 			encoderWithoutEncryption.connectWithDecoder(decoderWithoutEncryption);
 		} catch (NoSuchAlgorithmException | NoSuchProviderException | IOException e) {
@@ -114,7 +106,17 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 			throw new ConnectionException();
 		this.secretKeyForEncryption=properties.getSymmetricSecretKeyForEncryption(id);
 		this.secretKeyForSignature=properties.getSymmetricSecretKeyForSignature(id);
+		MessageDigestType messageDigestType=properties.getMessageDigestType(id);
+
 		try {
+			if (messageDigestType!=null) {
+				if (!(properties.doNotUseMessageDigestWhenEncryptionIsAuthenticated && properties.enableEncryption && secretKeyForEncryption.getEncryptionAlgorithmType().isAuthenticatedAlgorithm())) {
+					encoderWithEncryption.withMessageDigestType(messageDigestType);
+					decoderWithEncryption.withMessageDigestType(messageDigestType);
+				}
+				encoderWithoutEncryption.withMessageDigestType(messageDigestType);
+				decoderWithoutEncryption.withMessageDigestType(messageDigestType);
+			}
 			this.packetCounter=new PacketCounterForEncryptionAndSignature(approvedRandom, properties.enableEncryption && secretKeyForEncryption.getEncryptionAlgorithmType().getMaxCounterSizeInBytesUsedWithBlockMode()>0, true);
 			initSignature(packetCounter, secretKeyForSignature, secretKeyForEncryption,
 					encoderWithEncryption, decoderWithEncryption,
@@ -394,7 +396,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 					case WAITING_FOR_CONNECTION_CONFIRMATION:
 					case CONNECTED:
 
-						return getBodyOutputSizeWithDecryption(size);
+						return getBodyOutputSizeWithDecryption(size, properties.enableEncryption);
 
 				}
 			} catch (Exception e) {
@@ -464,11 +466,11 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 						if (isCurrentServerAskingConnection())
 							return size;
 						else
-							return getBodyOutputSizeWithEncryption(size);
+							return getBodyOutputSizeWithSignature(size);
 
 					case CONNECTED:
 
-						return getBodyOutputSizeWithEncryption(size);
+						return getBodyOutputSizeWithSignature(size);
 				}
 			} catch (Exception e) {
 				throw new BlockParserException(e);
@@ -485,7 +487,7 @@ public class P2PSecuredConnectionProtocolWithKnownSymmetricKeys extends Connecti
 					case WAITING_FOR_CONNECTION_CONFIRMATION:
 					case CONNECTED:
 
-						return getBodyOutputSizeWithDecryption(size);
+						return getBodyOutputSizeWithDecryption(size, properties.enableEncryption);
 
 				}
 			} catch (Exception e) {

@@ -114,8 +114,9 @@ public class BigDataTransferSpeed extends TestNGMadkit {
         this.pauseAll=pauseAll;
         P2PSecuredConnectionProtocolPropertiesWithKeyAgreement p2pprotocol=new P2PSecuredConnectionProtocolPropertiesWithKeyAgreement();
         p2pprotocol.isServer = true;
-        p2pprotocol.symmetricEncryptionType=SymmetricEncryptionType.AES_CBC_PKCS5Padding;
+        p2pprotocol.symmetricEncryptionType=SymmetricEncryptionType.AES_GCM;
         p2pprotocol.symmetricSignatureType= SymmetricAuthenticatedSignatureType.HMAC_SHA2_384;
+
         ListGroupsRoles defaultGroupAccess=new ListGroupsRoles();
         defaultGroupAccess.addGroupsRoles(TestNGMadkit.GROUP);
 
@@ -146,6 +147,7 @@ public class BigDataTransferSpeed extends TestNGMadkit {
 		u.isServer = false;
         u.symmetricEncryptionType=p2pprotocol.symmetricEncryptionType;
 		u.symmetricSignatureType= p2pprotocol.symmetricSignatureType;
+        u.messageDigestType=p2pprotocol.messageDigestType;
 
 		app = new AccessProtocolWithP2PAgreementProperties();
 		

@@ -166,9 +166,12 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 			secretKeySizeBits= hProperties.getSymmetricEncryptionKeySizeBits(identifier);
 			messageDigestType= hProperties.getMessageDigestType(identifier);
 			if (messageDigestType!=null) {
-				encoderWithEncryption.withMessageDigestType(messageDigestType);
+				if (!(hProperties.doNotUseMessageDigestWhenEncryptionIsAuthenticated && hProperties.enableEncryption && symmetricEncryptionType.isAuthenticatedAlgorithm())) {
+					encoderWithEncryption.withMessageDigestType(messageDigestType);
+					decoderWithEncryption.withMessageDigestType(messageDigestType);
+				}
 				encoderWithoutEncryption.withMessageDigestType(messageDigestType);
-				decoderWithEncryption.withMessageDigestType(messageDigestType);
+
 				decoderWithoutEncryption.withMessageDigestType(messageDigestType);
 			}
 			else
@@ -380,7 +383,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 				case WAITING_FOR_CONNECTION_CONFIRMATION:
 				case CONNECTED:
 
-					return getBodyOutputSizeWithDecryption(size);
+					return getBodyOutputSizeWithDecryption(size, hProperties.enableEncryption);
 				}
 			} catch (Exception e) {
 				throw new BlockParserException(e);
@@ -417,7 +420,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 		public SubBlock getParentBlock(final SubBlock _block, boolean excludeFromEncryption) throws BlockParserException {
 			switch (current_step) {
 				case NOT_CONNECTED: {
-					final int outputSize = getBodyOutputSizeForEncryption(_block.getSize());
+					final int outputSize = excludeFromEncryption?getBodyOutputSizeForSignature(_block.getSize()):getBodyOutputSizeForEncryption(_block.getSize());
 					SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() - getHeadSize(),
 							outputSize + getHeadSize());
 
@@ -487,6 +490,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 			super();
 		}
 
+
 		@Override
 		protected SubBlockInfo getEncryptedSubBlock(SubBlockInfo subBlockInfo, boolean enabledEncryption) throws BlockParserException {
 			return super.getEncryptedSubBlock(subBlockInfo, false);
@@ -505,7 +509,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 					return size;
 				else
 				{
-					return getBodyOutputSizeWithEncryption(size);
+					return getBodyOutputSizeWithSignature(size);
 				}
 
 			} catch (Exception e) {
@@ -523,7 +527,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 					case WAITING_FOR_CONNECTION_CONFIRMATION:
 					case CONNECTED:
 
-						return getBodyOutputSizeWithDecryption(size);
+						return getBodyOutputSizeWithDecryption(size, hProperties.enableEncryption);
 				}
 			} catch (Exception e) {
 				throw new BlockParserException(e);

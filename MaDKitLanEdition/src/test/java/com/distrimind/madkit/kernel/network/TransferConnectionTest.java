@@ -211,7 +211,7 @@ public class TransferConnectionTest extends TestNGMadkit {
 			s.isServer = sold.isServer;
 			for (Integer i : sold.getProfileIdentifiers())
 			{
-				s.addProfile(i, sold.getSymmetricSecretKeyForEncryption(i), sold.getSymmetricSecretKeyForSignature(i));
+				s.addProfile(i, sold.getSymmetricSecretKeyForEncryption(i), sold.getSymmetricSecretKeyForSignature(i), sold.getMessageDigestType(i));
 				if (!sold.isValidProfile(i, EncryptionRestriction.NO_RESTRICTION))
 					s.invalidateProfile(i);
 			}

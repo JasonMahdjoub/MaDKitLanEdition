@@ -60,17 +60,17 @@ public class SubBlocksStructure {
 	//boolean need_random = false;
 	int block_content_size;
 	int block_size;
-	public SubBlocksStructure(PacketPart _packet, ConnectionProtocol<?> connection_protocol) throws NIOException {
-		this(_packet.getSubBlock().getSize(), connection_protocol);
+	public SubBlocksStructure(PacketPart _packet, ConnectionProtocol<?> connection_protocol, boolean excludeFromEncryption) throws NIOException {
+		this(_packet.getSubBlock().getSize(), connection_protocol, excludeFromEncryption);
 	}
-	public SubBlocksStructure(int packetSize, ConnectionProtocol<?> connection_protocol) throws NIOException {
-		init(packetSize, connection_protocol);
+	public SubBlocksStructure(int packetSize, ConnectionProtocol<?> connection_protocol, boolean excludeFromEncryption) throws NIOException {
+		init(packetSize, connection_protocol, excludeFromEncryption);
 	}
-	public void init(PacketPart _packet, ConnectionProtocol<?> connection_protocol) throws NIOException
+	public void init(PacketPart _packet, ConnectionProtocol<?> connection_protocol, boolean excludeFromEncryption) throws NIOException
 	{
-		init(_packet.getSubBlock().getSize(), connection_protocol);
+		init(_packet.getSubBlock().getSize(), connection_protocol, excludeFromEncryption);
 	}
-		public void init(int packetSize, ConnectionProtocol<?> connection_protocol) throws NIOException
+		public void init(int packetSize, ConnectionProtocol<?> connection_protocol, boolean excludeFromEncryption) throws NIOException
 		{
 			int size = packetSize;
 			this.initial_packet_size = size;
@@ -96,7 +96,7 @@ public class SubBlocksStructure {
 						throw new BlockParserException(
 								"The parser " + sbp + " returns a head size lower than 0: " + sbp.getHeadSize());
 
-					int outputSize = sbp.getBodyOutputSizeForEncryption(size);
+					int outputSize = excludeFromEncryption?sbp.getBodyOutputSizeForSignature(size):sbp.getBodyOutputSizeForEncryption(size);
 					if (outputSize < 0)
 						throw new BlockParserException(
 								"The parser " + sbp + " returns an output size lower than 0: " + outputSize);

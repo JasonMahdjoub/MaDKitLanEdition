@@ -230,6 +230,11 @@ public class ClientSecuredProtocolPropertiesWithKnownPublicKey
 	public MessageDigestType messageDigestType=MessageDigestType.SHA2_384;
 
 	/**
+	 * Do not hash message when encryption is an authenticated algorithm, in order to maximise performances
+	 */
+	public boolean doNotUseMessageDigestWhenEncryptionIsAuthenticated=true;
+
+	/**
 	 * key identifier
 	 */
 	private int keyIdentifier = 0;

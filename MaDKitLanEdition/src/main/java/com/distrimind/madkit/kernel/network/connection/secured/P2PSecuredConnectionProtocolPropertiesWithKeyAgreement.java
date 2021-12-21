@@ -108,6 +108,11 @@ public class P2PSecuredConnectionProtocolPropertiesWithKeyAgreement extends Conn
 	 */
 	public MessageDigestType messageDigestType=MessageDigestType.SHA2_384;
 
+	/**
+	 * Do not hash message when encryption is an authenticated algorithm, in order to maximise performances
+	 */
+	public boolean doNotUseMessageDigestWhenEncryptionIsAuthenticated=true;
+
 	private HashMap<Integer, AbstractKeyPair<?, ?>> serverSideKeyPairs =new HashMap<>();
 
 	private IASymmetricPublicKey clientSidePublicKey =null;

@@ -108,9 +108,12 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 			decoderWithEncryption=new EncryptionSignatureHashDecoder();
 			decoderWithoutEncryption=new EncryptionSignatureHashDecoder();
 			if (hProperties.messageDigestType!=null) {
-				encoderWithEncryption.withMessageDigestType(hProperties.messageDigestType);
+				if (!(hProperties.doNotUseMessageDigestWhenEncryptionIsAuthenticated && hProperties.enableEncryption && hProperties.symmetricEncryptionType.isAuthenticatedAlgorithm())) {
+					encoderWithEncryption.withMessageDigestType(hProperties.messageDigestType);
+					decoderWithEncryption.withMessageDigestType(hProperties.messageDigestType);
+				}
 				encoderWithoutEncryption.withMessageDigestType(hProperties.messageDigestType);
-				decoderWithEncryption.withMessageDigestType(hProperties.messageDigestType);
+
 				decoderWithoutEncryption.withMessageDigestType(hProperties.messageDigestType);
 			}
 			encoderWithEncryption.connectWithDecoder(decoderWithEncryption);
@@ -507,14 +510,14 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 				case WAITING_FIRST_MESSAGE: {
 					if (isCurrentServerAskingConnection())
 					{
-						return getBodyOutputSizeWithDecryption(size);
+						return getBodyOutputSizeWithDecryption(size, hProperties.enableEncryption);
 					}
 					else
 						return size;
 				}
 				case WAITING_FOR_CONNECTION_CONFIRMATION:
 				case CONNECTED:
-					return getBodyOutputSizeWithDecryption(size);
+					return getBodyOutputSizeWithDecryption(size, hProperties.enableEncryption);
 
 				}
 			} catch (Exception e) {
@@ -654,6 +657,8 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 		ParserWithNoEncryption() throws ConnectionException {
 		}
 
+
+
 		@Override
 		public int getBodyOutputSizeForEncryption(int size) throws BlockParserException {
 			try {
@@ -666,7 +671,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 					}
 					case WAITING_FOR_CONNECTION_CONFIRMATION:
 					case CONNECTED:
-						return getBodyOutputSizeWithEncryption(size);
+						return getBodyOutputSizeWithSignature(size);
 				}
 			} catch (Exception e) {
 				throw new BlockParserException(e);
@@ -689,14 +694,14 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 					case WAITING_FIRST_MESSAGE: {
 						if (isCurrentServerAskingConnection())
 						{
-							return getBodyOutputSizeWithDecryption(size);
+							return getBodyOutputSizeWithDecryption(size, hProperties.enableEncryption);
 						}
 						else
 							return size;
 					}
 					case WAITING_FOR_CONNECTION_CONFIRMATION:
 					case CONNECTED:
-						return getBodyOutputSizeWithDecryption(size);
+						return getBodyOutputSizeWithDecryption(size, hProperties.enableEncryption);
 
 				}
 			} catch (Exception e) {
@@ -729,7 +734,11 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 			throws ConnectionException {
 		try {
 			blockCheckerChanged = false;
-			if (myKeyPairForEncryption == null || myKeyPairForSignature == null || (isCrypted() ? current_step.compareTo(Step.WAITING_FIRST_MESSAGE) <= 0
+			currentBlockCheckerIsNull = false;
+			return new ConnectionProtocol.NullBlockChecker(subBlockChecker, this.isCrypted(),
+					(short) parser.getHeadSize());
+
+			/*if (myKeyPairForEncryption == null || myKeyPairForSignature == null || (isCrypted() ? current_step.compareTo(Step.WAITING_FIRST_MESSAGE) <= 0
 					: current_step.compareTo(Step.WAITING_FIRST_MESSAGE) < 0)) {
 				currentBlockCheckerIsNull = true;
 				return new ConnectionProtocol.NullBlockChecker(subBlockChecker, this.isCrypted(),
@@ -738,7 +747,7 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchanger extends Conn
 				currentBlockCheckerIsNull = false;
 				return new BlockChecker(subBlockChecker, this.hProperties.signatureType,
 						this.myKeyPairForSignature.getASymmetricPublicKey(), this.isCrypted(), this.hProperties.messageDigestType);
-			}
+			}*/
 		} catch (Exception e) {
 			blockCheckerChanged = true;
 			throw new ConnectionException(e);

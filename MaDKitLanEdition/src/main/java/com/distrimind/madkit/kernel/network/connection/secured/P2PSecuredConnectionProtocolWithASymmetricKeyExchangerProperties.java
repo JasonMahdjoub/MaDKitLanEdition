@@ -124,6 +124,11 @@ public class P2PSecuredConnectionProtocolWithASymmetricKeyExchangerProperties ex
 	 */
 	public MessageDigestType messageDigestType=MessageDigestType.SHA2_384;
 
+	/**
+	 * Do not hash message when encryption is an authenticated algorithm, in order to maximise performances
+	 */
+	public boolean doNotUseMessageDigestWhenEncryptionIsAuthenticated=true;
+
 	@Override
 	public void checkProperties() throws ConnectionException {
 		if (aSymmetricKeySize < minASymmetricKeySize)

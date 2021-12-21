@@ -409,7 +409,7 @@ public class ReadWritePacketTests extends TestNGMadkit {
 		
 		
 		do {
-			PacketPart pp = output.getNextPart(conProto);
+			PacketPart pp = output.getNextPart(conProto, false);
 			assert pp != null;
 			AssertJUnit.assertTrue(pp.getHead().isPacketPart());
 			AssertJUnit.assertFalse(pp.isReadyToBeRead());
@@ -465,7 +465,7 @@ public class ReadWritePacketTests extends TestNGMadkit {
 	@Test(enabled = false)
 	private SubBlock testDataSynchronizer(PacketPart pp) throws NIOException, PacketException {
 
-		SubBlocksStructure sbs = new SubBlocksStructure(pp, connectionProtocol);
+		SubBlocksStructure sbs = new SubBlocksStructure(pp, connectionProtocol, false);
 		byte[] ppb = pp.getSubBlock().getEncapsulatedBytes();
 		byte[] b = new byte[ppb.length + Block.getHeadSize()];
 		System.arraycopy(ppb, 0, b, Block.getHeadSize(), ppb.length);

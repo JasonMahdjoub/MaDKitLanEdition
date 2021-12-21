@@ -115,9 +115,11 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 			decoderWithEncryption=new EncryptionSignatureHashDecoder();
 			decoderWithoutEncryption=new EncryptionSignatureHashDecoder();
 			if (hProperties.messageDigestType!=null) {
-				encoderWithEncryption.withMessageDigestType(hProperties.messageDigestType);
+				if (!(hProperties.doNotUseMessageDigestWhenEncryptionIsAuthenticated && hProperties.enableEncryption && hProperties.getSymmetricEncryptionType().isAuthenticatedAlgorithm())) {
+					encoderWithEncryption.withMessageDigestType(hProperties.messageDigestType);
+					decoderWithEncryption.withMessageDigestType(hProperties.messageDigestType);
+				}
 				encoderWithoutEncryption.withMessageDigestType(hProperties.messageDigestType);
-				decoderWithEncryption.withMessageDigestType(hProperties.messageDigestType);
 				decoderWithoutEncryption.withMessageDigestType(hProperties.messageDigestType);
 			}
 			encoderWithEncryption.connectWithDecoder(decoderWithEncryption);
@@ -320,7 +322,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 					}
 					case WAITING_FOR_CONNECTION_CONFIRMATION:
 					case CONNECTED: {
-						return getBodyOutputSizeWithDecryption(size);
+						return getBodyOutputSizeWithDecryption(size, hProperties.enableEncryption);
 					}
 				}
 
@@ -352,7 +354,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 			switch (current_step) {
 				case WAITING_FOR_CONNECTION_CONFIRMATION:case NOT_CONNECTED:
 				{
-					int outputSize=getBodyOutputSizeForEncryption(_block.getSize());
+					int outputSize=excludeFromEncryption?getBodyOutputSizeForSignature(_block.getSize()):getBodyOutputSizeForEncryption(_block.getSize());
 					SubBlock res = new SubBlock(_block.getBytes(), _block.getOffset() - getHeadSize(),
 							outputSize + getHeadSize());
 					if (!firstMessageSent)
@@ -424,6 +426,11 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 	private class ParserWithNoEncryption extends ParserWithEncryption {
 		ParserWithNoEncryption() throws ConnectionException {
 			super();
+		}
+
+		@Override
+		public int getBodyOutputSizeForEncryption(int size) throws BlockParserException {
+			return super.getBodyOutputSizeForSignature(size);
 		}
 
 		@Override

@@ -412,7 +412,7 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 	public final Block getBlock(WritePacket _packet, int _transfert_type, AbstractSecureRandom random, boolean excludedFromEncryption)
 			throws NIOException {
 		try {
-			PacketPart packet_part = _packet.getNextPart(this);
+			PacketPart packet_part = _packet.getNextPart(this, excludedFromEncryption);
 			if (packet_part == null)
 				return null;
 			
@@ -440,13 +440,13 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 	private SubBlocksStructure lastSBS;
 	private SubBlockInfo lastSubBlockInfo;
 
-	public SubBlock initSubBlock(int packetSize) throws NIOException
+	public SubBlock initSubBlock(int packetSize, boolean excludeFromEncryption) throws NIOException
 	{
 		try {
 			if (lastSBS==null)
-				lastSBS = new SubBlocksStructure(packetSize, this);
+				lastSBS = new SubBlocksStructure(packetSize, this, excludeFromEncryption);
 			else
-				lastSBS.init(packetSize, this);
+				lastSBS.init(packetSize, this, excludeFromEncryption);
 			Block block = new Block(lastSBS);
 			return new SubBlock(block.getBytes(), lastSBS.initial_packet_offset, lastSBS.initial_packet_size);
 		} catch (PacketException e) {
@@ -782,6 +782,7 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 										EncryptionSignatureHashEncoder encoderWithoutEncryption,
 										EncryptionSignatureHashDecoder decoderWithoutEncryption) throws IOException {
 		encoderWithoutEncryption.withSymmetricSecretKeyForSignature(secretKeyForSignature);
+
 		if (secretKeyForEncryption ==null || !secretKeyForEncryption.getEncryptionAlgorithmType().isAuthenticatedAlgorithm())
 			encoderWithEncryption.withSymmetricSecretKeyForSignature(secretKeyForSignature);
 
