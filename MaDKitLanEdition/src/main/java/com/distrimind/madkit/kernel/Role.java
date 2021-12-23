@@ -38,6 +38,8 @@
 
 package com.distrimind.madkit.kernel;
 
+import com.distrimind.util.data_buffers.WrappedSecretString;
+
 /**
  * This class enables to encapsulate a role and a group (and its community).
  * 
@@ -115,7 +117,7 @@ public class Role {
 	}
 
 	public boolean equals(Role _r) {
-		return m_group_role.equals(_r.m_group_role);
+		return (!m_group.isDistributed() && m_group_role.equals(_r.m_group_role)) || (m_group.isDistributed() && WrappedSecretString.constantTimeAreEqual(m_group_role, _r.m_group_role));
 	}
 
 	@Override

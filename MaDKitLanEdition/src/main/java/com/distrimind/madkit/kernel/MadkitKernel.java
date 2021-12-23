@@ -91,7 +91,6 @@ import java.net.URL;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -1396,6 +1395,7 @@ class MadkitKernel extends Agent {
 				rc = r.removeMember(requester, manualRequested);
 				if (rc != SUCCESS)// TODO remove that
 					throw new AssertionError("cannot remove " + requester + " from " + r.buildAndGetAddresses());
+
 				sendNetworkCGRSynchroMessageWithRole(requester, new CGRSynchro(LEAVE_ROLE,
 						new AgentAddress(requester, r, kernelAddress, manualRequested), manualRequested));
 			} else {
@@ -2044,15 +2044,15 @@ class MadkitKernel extends Agent {
 	}
 
 	ReturnCode broadcastMessageWithRole(final AbstractAgent requester, AbstractGroup group, final String role,
-			final Message messageToSend, String senderRole, AtomicInteger numberOfReceivers,
+			final Message messageToSend, String senderRole, Reference<Integer> numberOfReceivers,
 			boolean sendIndividualNetwork, boolean receiveAllRepliesInOneBlock) {
 		ArrayList<AgentAddress> agentAddressesSender = new ArrayList<>();
 		AgentAddress oneReceiver = null;
 		ReturnCode notAvailable = null;
 
 		if (numberOfReceivers == null)
-			numberOfReceivers = new AtomicInteger(0);
-		AtomicInteger nonSentNetworkNumberOfReceivers=new AtomicInteger(0);
+			numberOfReceivers = new Reference<>(0);
+		Reference<Integer> nonSentNetworkNumberOfReceivers=new Reference<>(0);
 		Replies replies = null;
 		if (receiveAllRepliesInOneBlock) {
 			sendIndividualNetwork = true;
@@ -2095,7 +2095,7 @@ class MadkitKernel extends Agent {
 			rc = broadcastNetworkMessageWithRole(messageToSend, agentAddressesSender.iterator().next(), group, role,
 					agentAddressesSender);
 			if (rc == SUCCESS || rc == TRANSFER_IN_PROGRESS) {
-				numberOfReceivers.addAndGet(nonSentNetworkNumberOfReceivers.get());
+				numberOfReceivers.set(numberOfReceivers.get()+nonSentNetworkNumberOfReceivers.get());
 				if (nonSentNetworkNumberOfReceivers.get() > 0)
 					notAvailable = null;
 			}
@@ -2106,7 +2106,8 @@ class MadkitKernel extends Agent {
 
 			}
 			notAvailable.setNumberOfConcernedAgents(0);
-
+			if (replies!=null)
+				requester.removeConversation(replies);
 			return notAvailable;
 		}
 		if (rc==null)
@@ -2135,7 +2136,7 @@ class MadkitKernel extends Agent {
 	List<Message> broadcastMessageWithRoleAndWaitForReplies(final AbstractAgent requester, AbstractGroup group,
 			final String role, Message messageToSend, final String senderRole, final Integer timeOutMilliSeconds)
 			throws InterruptedException {
-		AtomicInteger numberOfReceivers = new AtomicInteger(0);
+		Reference<Integer> numberOfReceivers = new Reference<>(0);
 		messageToSend.setNeedReply(true);
 		ReturnCode rc = this.broadcastMessageWithRole(requester, group, role, messageToSend, senderRole,
 				numberOfReceivers, true, false);
@@ -2159,7 +2160,7 @@ class MadkitKernel extends Agent {
 		}
 	}
 
-	private void broadcasting(final Collection<AgentAddress> receivers, Message m, AtomicInteger numberOfReceivers,AtomicInteger nonSentNetworkNumberOfReceivers,
+	private void broadcasting(final Collection<AgentAddress> receivers, Message m, Reference<Integer> numberOfReceivers,Reference<Integer> nonSentNetworkNumberOfReceivers,
 			boolean includeNetworkAgents) {// TODO
 		// optimize
 		// without
@@ -2175,12 +2176,11 @@ class MadkitKernel extends Agent {
 					m.setReceiver(agentAddress);
 
 					ReturnCode rc = sendMessage(m, agentAddress.getAgent());
-					if ((rc == ReturnCode.SUCCESS || rc == ReturnCode.TRANSFER_IN_PROGRESS)
-							&& numberOfReceivers != null)
-						numberOfReceivers.incrementAndGet();
+					if (numberOfReceivers != null && (rc == ReturnCode.SUCCESS || rc == ReturnCode.TRANSFER_IN_PROGRESS))
+						numberOfReceivers.set(numberOfReceivers.get()+1);
 				}
 				else if (nonSentNetworkNumberOfReceivers != null)
-					nonSentNetworkNumberOfReceivers.incrementAndGet();
+					nonSentNetworkNumberOfReceivers.set(nonSentNetworkNumberOfReceivers.get()+1);
 			}
 		}
 

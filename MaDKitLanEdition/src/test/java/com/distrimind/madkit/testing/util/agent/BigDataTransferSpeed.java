@@ -349,7 +349,7 @@ public class BigDataTransferSpeed extends TestNGMadkit {
                         @Override
                         protected void liveCycle() throws InterruptedException {
                             requestRole(GROUP, ROLE2);
-                            sleep(2000);
+                            sleep(3000);
 
                             long delay;
                             if (downloadLimitInBytesPerSecond != Integer.MAX_VALUE || uploadLimitInBytesPerSecond != Integer.MAX_VALUE)

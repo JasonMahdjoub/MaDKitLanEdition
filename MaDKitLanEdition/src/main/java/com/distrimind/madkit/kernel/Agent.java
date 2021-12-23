@@ -384,7 +384,7 @@ public class Agent extends AbstractAgent {
 			logger.finest("sendMessageAndWaitForReply : sending " + messageToSend + " to " + receiver
 					+ ", and waiting reply...");
 		ReturnCode rc = getKernel().sendMessage(this, receiver, messageToSend, senderRole);
-		if (rc != SUCCESS && rc != ReturnCode.TRANSFER_IN_PROGRESS) {
+		if (!ReturnCode.isSuccessOrIsTransferInProgress(rc)) {
 			return null;
 		}
 		return waitAnswer(messageToSend, timeOutMilliSeconds);

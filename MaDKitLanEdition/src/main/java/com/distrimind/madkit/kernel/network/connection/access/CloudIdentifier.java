@@ -56,9 +56,19 @@ import java.util.Base64;
 public abstract class CloudIdentifier implements SecureExternalizable, Identifier.Authenticated {
 
 	public static int MAX_CLOUD_IDENTIFIER_LENGTH=5120;
-	
+
 	@Override
-	public abstract boolean equals(Object _cloud_identifier);
+	public final boolean equals(Object o)
+	{
+		if (o==this)
+			return true;
+		if (o instanceof CloudIdentifier)
+			return equalsTimeConstant((CloudIdentifier) o);
+		else
+			return false;
+	}
+
+	public abstract boolean equalsTimeConstant(CloudIdentifier _cloud_identifier);
 
 	@Override
 	public abstract int hashCode();

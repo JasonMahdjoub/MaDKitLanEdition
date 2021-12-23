@@ -40,6 +40,7 @@ package com.distrimind.madkit.kernel;
 import com.distrimind.madkit.agr.Organization;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
+import com.distrimind.util.data_buffers.WrappedSecretString;
 import com.distrimind.util.io.SecureExternalizable;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
@@ -797,7 +798,7 @@ class InternalRole implements SecureExternalizable {
 			for (final AgentAddress content : list) {
 				if (content.getKernelAddress()==null)
 					continue;
-				if (!content.getRole().equals(roleName))
+				if (!WrappedSecretString.constantTimeAreEqual(roleName, content.getRole()))
 					continue;
 				content.setRoleObject(this);
 				AgentAddress old = distantAgentAddresses.get(content);

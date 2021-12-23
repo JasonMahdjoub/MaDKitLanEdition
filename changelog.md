@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-2.3.2 STABLE (Build: 5343) (from 22/05/2015 to 19/12/2021)
+2.3.3 STABLE (Build: 5589) (from 22/05/2015 to 21/12/2021)
 
 # Creator(s):
 * Jason MAHDJOUB
@@ -12,6 +12,18 @@ MaDKitLanEdition
 * Jason MAHDJOUB (Entered in the team at 22/05/2015)
 
 # Changes:
+
+
+### 2.3.3 STABLE (21/12/2021)
+#### Internal change(s)
+* Add possibility to disable hash checking when encryption algorithm is authenticated
+#### Security fixe(s)
+* Replay was not activated when transmitting non encrypted data. Fix it. Encrypted messages was not concerned by this issue.
+* Fix bad arrays comparison when comparing secret messages. Comparison where not done in constant time.
+* Update OOD to 3.1.14 STABLE. 
+* Update Utils to 5.21.7 STABLE. Fix bad arrays comparison, for example when comparing signatures. Comparison where not done in constant time. This should not produce necessary security issue, but if it does, this is a serious problem since secret message can be deduced. In MKLE, no severe leak was detected.
+#### Bug fixe(s)
+* Fix bad filtering of roles events over network
 
 
 ### 2.3.2 STABLE (19/12/2021)

@@ -642,7 +642,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			ReturnCode rc = this.sendMessageWithRole(agent_for_distant_kernel_aa,
 					new AgentSocketKilled(_data_not_sent, bigDataNotSent, dataToTransferNotSent),
 					LocalCommunity.Roles.SOCKET_AGENT_ROLE);
-			if (logger!=null && rc!=ReturnCode.SUCCESS)
+			if (logger!=null && !ReturnCode.isSuccessOrIsTransferInProgress(rc))
 				logger.warning("Impossible to send kill message to distant kernel agent : "+rc);
 		}
 		else if (logger!=null)
@@ -725,8 +725,8 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				}
 				boolean sendMessage = d.getReadDataLengthIncludingHash() == 0;
 				if (sendMessage) {
-					if (sendMessageWithRole(nio_agent_address, new DataToSendMessage(d, getSocketID()),
-							LocalCommunity.Roles.SOCKET_AGENT_ROLE).equals(ReturnCode.SUCCESS)) {
+					if (ReturnCode.isSuccessOrIsTransferInProgress(sendMessageWithRole(nio_agent_address, new DataToSendMessage(d, getSocketID()),
+							LocalCommunity.Roles.SOCKET_AGENT_ROLE))) {
 						lastDistKernADataToUpgradeMessageSentNano = System.nanoTime();
 					}
 					else
@@ -1995,7 +1995,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			PacketPart p = getPacketPart(_block);
 			ReturnCode rc = sendMessageWithRole(this.agent_for_distant_kernel_aa, new ReceivedBlockData(p),
 					LocalCommunity.Roles.SOCKET_AGENT_ROLE);
-			if (logger != null && !rc.equals(ReturnCode.SUCCESS))
+			if (logger != null && !ReturnCode.isSuccessOrIsTransferInProgress(rc))
 				logger.severeLog("Block impossible to transfer to " + this.agent_for_distant_kernel_aa);
 			return rc;
 		} catch (NIOException e) {
@@ -2009,7 +2009,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		ReturnCode rc = sendMessageWithRole(idt.getTransferToAgentAddress(),
 				new ResendData(new BlockDataToTransfer(block, idt.getLocalID())),
 				LocalCommunity.Roles.SOCKET_AGENT_ROLE);
-		if (!rc.equals(ReturnCode.SUCCESS) && logger != null)
+		if (!ReturnCode.isSuccessOrIsTransferInProgress(rc) && logger != null)
 			logger.severeLog("Indirect data impossible to resend to " + idt.getTransferToAgentAddress());
 		return rc;
 	}
@@ -2017,7 +2017,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 	protected ReturnCode receiveIndirectData(Block block, InterfacedIDTransfer idt) {
 		ReturnCode rc = sendMessageWithRole(idt.getTransferToAgentAddress(), new ReceivedIndirectData(block),
 				LocalCommunity.Roles.SOCKET_AGENT_ROLE);
-		if (!rc.equals(ReturnCode.SUCCESS) && logger != null)
+		if (!ReturnCode.isSuccessOrIsTransferInProgress(rc) && logger != null)
 			logger.severeLog("Indirect data impossible to transfer to " + idt.getTransferToAgentAddress());
 		return rc;
 	}
@@ -2517,7 +2517,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				ReturnCode rc=sendMessageWithRole(this.agent_for_distant_kernel_aa,
 						new ObjectMessage<>(new AgentSocketData(this)),
 						LocalCommunity.Roles.SOCKET_AGENT_ROLE);
-				if (!rc.equals(ReturnCode.SUCCESS)) {
+				if (!ReturnCode.isSuccessOrIsTransferInProgress(rc)) {
 					Logger logger=getLogger();
 					if (logger!=null)
 						logger.severe("Unable to send message to distant kernel agent");
@@ -2527,7 +2527,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 								distant_general_accepted_groups, distant_accepted_and_requested_groups,
 								distant_kernel_address, false),
 						LocalCommunity.Roles.SOCKET_AGENT_ROLE);
-				if (!rc.equals(ReturnCode.SUCCESS)) {
+				if (!ReturnCode.isSuccessOrIsTransferInProgress(rc)) {
 					Logger logger=getLogger();
 					if (logger!=null)
 						logger.severe("Unable to send message to distant kernel agent");
@@ -2536,14 +2536,14 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 						this.agent_for_distant_kernel_aa, new NetworkLoginAccessEvent(distant_kernel_address,
 								my_accepted_logins.identifiers, my_accepted_logins.identifiers, null, null, null, null),
 						LocalCommunity.Roles.SOCKET_AGENT_ROLE);
-				if (!rc.equals(ReturnCode.SUCCESS)) {
+				if (!ReturnCode.isSuccessOrIsTransferInProgress(rc)) {
 					Logger logger=getLogger();
 					if (logger!=null)
 						logger.severe("Unable to send message to distant kernel agent");
 				}
 				rc=sendMessageWithRole(agent_for_distant_kernel_aa, new KernelAddressValidation(true),
 						LocalCommunity.Roles.SOCKET_AGENT_ROLE);
-				if (!rc.equals(ReturnCode.SUCCESS)) {
+				if (!ReturnCode.isSuccessOrIsTransferInProgress(rc)) {
 					Logger logger=getLogger();
 					if (logger!=null)
 						logger.severe("Unable to send message to distant kernel agent");
@@ -2551,7 +2551,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				// validate kernel address
 				rc=this.sendMessageWithRole(aa, new KernelAddressValidation(false),
 						LocalCommunity.Roles.SOCKET_AGENT_ROLE);
-				if (!rc.equals(ReturnCode.SUCCESS)) {
+				if (!ReturnCode.isSuccessOrIsTransferInProgress(rc)) {
 					Logger logger=getLogger();
 					if (logger!=null)
 						logger.severe("Unable to send message to distant kernel agent");

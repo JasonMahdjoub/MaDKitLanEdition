@@ -88,7 +88,7 @@ public abstract class CentralDatabaseBackupReceiverPerPeer extends com.distrimin
 					disconnect();
 				}
 			} else {
-				if (!agent.sendMessageWithRole(aa, new NetworkObjectMessage<>(message), CloudCommunity.Roles.CENTRAL_SYNCHRONIZER).equals(AbstractAgent.ReturnCode.SUCCESS)) {
+				if (!AbstractAgent.ReturnCode.isSuccessOrIsTransferInProgress(agent.sendMessageWithRole(aa, new NetworkObjectMessage<>(message), CloudCommunity.Roles.CENTRAL_SYNCHRONIZER))) {
 					agent.getLogger().warning("Impossible to send message to host " + dest);
 					disconnect();
 				}
@@ -164,7 +164,7 @@ public abstract class CentralDatabaseBackupReceiverPerPeer extends com.distrimin
 								agent.logger.warning("Message not sent to other central database backup : " + message);
 
 						} else {
-							if (!agent.sendMessageWithRole(aaDest, new NetworkObjectMessage<>(message), senderRoleForServerToServerMessages).equals(AbstractAgent.ReturnCode.SUCCESS) && agent.logger != null)
+							if (!AbstractAgent.ReturnCode.isSuccessOrIsTransferInProgress(agent.sendMessageWithRole(aaDest, new NetworkObjectMessage<>(message), senderRoleForServerToServerMessages)) && agent.logger != null)
 								agent.logger.warning("Message not sent to other central database backup : " + message);
 						}
 					} catch (IOException ex) {

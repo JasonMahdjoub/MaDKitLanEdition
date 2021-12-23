@@ -37,6 +37,7 @@ knowledge of the CeCILL-C license and that you accept its terms.
 
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
+import com.distrimind.util.data_buffers.WrappedSecretString;
 import com.distrimind.util.io.*;
 
 import java.io.IOException;
@@ -312,10 +313,14 @@ public class GroupsRoles implements Cloneable, SecureExternalizable {
 		if (this.group.includes(group)) {
 			if (distantAcceptedRoles == null)
 				return true;
+			boolean ok=false;
+
 			for (String r : distantAcceptedRoles) {
-				if (r.equals(role))
-					return true;
+				//noinspection IfStatementMissingBreakInLoop
+				if (WrappedSecretString.constantTimeAreEqual(r, role))
+					ok=true;
 			}
+			return ok;
 		}
 		return false;
 
@@ -382,7 +387,7 @@ public class GroupsRoles implements Cloneable, SecureExternalizable {
 				RoleID o=(RoleID)obj;
 				if (o.hashCode!=this.hashCode)
 					return false;
-				return Arrays.equals(o.id, this.id);
+				return com.distrimind.bouncycastle.util.Arrays.constantTimeAreEqual(o.id, this.id);
 			}
 			return false;
 		}

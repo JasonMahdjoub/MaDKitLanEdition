@@ -90,16 +90,14 @@ final class EncryptedCloudIdentifier extends CloudIdentifier {
 	
 
 	@Override
-	public boolean equals(Object _cloud_identifier) {
+	public boolean equalsTimeConstant(CloudIdentifier _cloud_identifier) {
 		if (_cloud_identifier == null)
 			return false;
 		if (_cloud_identifier == this)
 			return true;
 		if (_cloud_identifier instanceof EncryptedCloudIdentifier) {
 			EncryptedCloudIdentifier c = (EncryptedCloudIdentifier) _cloud_identifier;
-			if (c.bytes == null)
-				return false;
-			return Arrays.equals(bytes, c.bytes);
+			return com.distrimind.bouncycastle.util.Arrays.constantTimeAreEqual(bytes, c.bytes);
 		}
 		return false;
 	}

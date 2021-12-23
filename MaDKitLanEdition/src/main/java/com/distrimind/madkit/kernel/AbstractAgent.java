@@ -3924,6 +3924,11 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		void setNumberOfConcernedAgents(int nb) {
 			numberOfConcernedAgents = nb;
 		}
+
+		public static boolean isSuccessOrIsTransferInProgress(ReturnCode rc)
+		{
+			return rc == TRANSFER_IN_PROGRESS || rc==SUCCESS;
+		}
 	}
 
 	enum Influence {

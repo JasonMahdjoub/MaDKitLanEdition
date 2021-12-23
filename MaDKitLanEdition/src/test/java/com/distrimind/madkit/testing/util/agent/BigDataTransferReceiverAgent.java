@@ -278,14 +278,14 @@ public class BigDataTransferReceiverAgent extends Agent {
 			}
 			else
 			{
-				System.err.println("Unexpected message :"+m);
+				System.err.println("Unexpected message, expected big data result message :"+m);
 				this.sleep(1000);
 				this.killAgent(this);
 			}
 		}
 		else
 		{
-			System.err.println("Unexpected message :"+m);
+			System.err.println("Unexpected message, expected big data proposition message :"+m);
 			this.sleep(1000);
 			this.killAgent(this);
 		}

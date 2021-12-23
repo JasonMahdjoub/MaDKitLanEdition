@@ -61,7 +61,9 @@ public class IdentifierPassword {
 			return true;
 		if (o instanceof IdentifierPassword) {
 			IdentifierPassword ip = (IdentifierPassword) o;
-			return identifier.equals(ip.identifier) && password.equals(ip.password);
+			boolean r=identifier.equals(ip.identifier);
+			r=password.equals(ip.password) && r;
+			return r;
 		}
 		return false;
 	}

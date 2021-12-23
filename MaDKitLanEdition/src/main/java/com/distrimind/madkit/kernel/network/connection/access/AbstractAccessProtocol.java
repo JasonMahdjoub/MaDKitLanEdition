@@ -209,7 +209,7 @@ public abstract class AbstractAccessProtocol {
 			for (Iterator<PairOfIdentifiers> it=all_accepted_identifiers.iterator();it.hasNext();)
 			{
 				PairOfIdentifiers poiAccepted=it.next();
-				if (poiAccepted.getCloudIdentifier().equals(poi.getCloudIdentifier())) {
+				if (poiAccepted.getCloudIdentifier().equalsTimeConstant(poi.getCloudIdentifier())) {
 					if (poiAccepted.equals(poi))
 					{
 						doNotAdd=true;

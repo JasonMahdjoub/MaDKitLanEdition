@@ -76,7 +76,7 @@ public class Identifier implements SecureExternalizable {
 		if (_host_identifier == null)
 			throw new NullPointerException("_host_identifier");
 		cloud_identifier = _cloud_identifier;
-		if (getNullHostIdentifierSingleton().equals(_host_identifier))
+		if (getNullHostIdentifierSingleton().equalsTimeConstant(_host_identifier))
 			host_identifier=getNullHostIdentifierSingleton();
 		else
 			host_identifier = _host_identifier;
@@ -86,7 +86,9 @@ public class Identifier implements SecureExternalizable {
 	public boolean equals(Object o) {
 		if (o instanceof Identifier) {
 			Identifier id = (Identifier) o;
-			return cloud_identifier.equals(id.cloud_identifier) && host_identifier.equals(id.host_identifier);
+			boolean b=cloud_identifier.equalsTimeConstant(id.cloud_identifier);
+			b=host_identifier.equalsTimeConstant(id.host_identifier) && b;
+			return b;
 		}
 		return false;
 	}
@@ -115,7 +117,7 @@ public class Identifier implements SecureExternalizable {
 	public boolean equalsCloudIdentifier(Identifier _identifier) {
 		if (_identifier==null)
 			return false;
-		return cloud_identifier.equals(_identifier.cloud_identifier);
+		return cloud_identifier.equalsTimeConstant(_identifier.cloud_identifier);
 	}
 
 	/**
@@ -131,7 +133,7 @@ public class Identifier implements SecureExternalizable {
 	public boolean equalsHostIdentifier(Identifier _identifier) {
 		if (_identifier==null)
 			return false;
-		return host_identifier.equals(_identifier.host_identifier);
+		return host_identifier.equalsTimeConstant(_identifier.host_identifier);
 	}
 
 	/**

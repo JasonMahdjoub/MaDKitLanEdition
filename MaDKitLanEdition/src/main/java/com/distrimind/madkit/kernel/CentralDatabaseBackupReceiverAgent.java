@@ -97,9 +97,9 @@ public class CentralDatabaseBackupReceiverAgent extends AgentFakeThread{
 
 	static void updateGroupAccess(AbstractAgent agent) {
 		ReturnCode rc;
-		if (!(rc=agent.broadcastMessageWithRole(LocalCommunity.Groups.NETWORK,
+		if (!ReturnCode.isSuccessOrIsTransferInProgress(rc=agent.broadcastMessageWithRole(LocalCommunity.Groups.NETWORK,
 				LocalCommunity.Roles.SOCKET_AGENT_ROLE, new ObjectMessage<>(NetworkAgent.REFRESH_GROUPS_ACCESS),
-				CloudCommunity.Roles.CENTRAL_SYNCHRONIZER)).equals(ReturnCode.SUCCESS))
+				CloudCommunity.Roles.CENTRAL_SYNCHRONIZER)))
 			if (agent.logger!=null && agent.logger.isLoggable(Level.WARNING))
 				agent.logger.warning("Impossible to broadcast group rights update order : "+rc);
 	}

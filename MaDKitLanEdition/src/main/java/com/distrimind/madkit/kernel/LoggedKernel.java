@@ -241,10 +241,10 @@ final class LoggedKernel extends MadkitKernel {
 	@Override
 	ReturnCode sendMessage(AbstractAgent requester, AgentAddress receiver, Message messageToSend, String senderRole) {
 		final ReturnCode r = kernel.sendMessage(requester, receiver, messageToSend, senderRole);
-		if (r == SUCCESS || r == ReturnCode.TRANSFER_IN_PROGRESS) {
+		if (ReturnCode.isSuccessOrIsTransferInProgress(r)) {
 			if (requester.isFinestLogOn())
 				requester.logger.log(Level.FINEST, Influence.SEND_MESSAGE.successString() + " " + messageToSend);
-			return SUCCESS;
+			return r;
 		}
 		if (requester.isWarningOn()) {
 			if (r == NOT_IN_GROUP || r == ROLE_NOT_HANDLED) {

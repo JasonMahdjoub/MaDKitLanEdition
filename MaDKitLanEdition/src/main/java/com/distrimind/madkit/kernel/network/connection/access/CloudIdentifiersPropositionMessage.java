@@ -42,6 +42,7 @@ import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.util.DecentralizedIDGenerator;
 import com.distrimind.util.crypto.*;
 import com.distrimind.util.data_buffers.WrappedData;
+import com.distrimind.util.data_buffers.WrappedSecretData;
 import com.distrimind.util.io.*;
 
 import java.io.IOException;
@@ -185,7 +186,7 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 
 			if (acceptedIdentifiers!=null) {
 				for (PairOfIdentifiers poi : acceptedIdentifiers)
-					if (poi.getCloudIdentifier().equals(localCloudIdentifier))
+					if (poi.getCloudIdentifier().equalsTimeConstant(localCloudIdentifier))
 						return nbAno;
 			}
 
@@ -194,11 +195,11 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 				if (pw != null) {
 					if (accessProtocolProperties.isAcceptablePassword(encryptionRestriction, pw)) {
 						WrappedData wd=new DecentralizedIDGenerator(true, true).encode();
-						byte[] pwBytes= pw.getPasswordBytes();
+						WrappedSecretData pwBytes= pw.getPasswordBytes();
 						byte[] pwSalt=pw.getSaltBytes();
 
 						P2PLoginAgreement p2PLoginAgreement = agreementType.getAgreementAlgorithm(random, myPublicKey,
-								wd.getBytes(),  pwBytes,0, pwBytes.length,pw.isKey(),
+								wd.getBytes(),  pwBytes,0, pwBytes.getBytes().length,pw.isKey(),
 								pwSalt, 0, pwSalt==null?0:pwSalt.length,
 								pw.getSecretKeyForSignature(), messageDigestType, passwordHashType, null, null);
 						agreements.put(distantCloudID, p2PLoginAgreement);
@@ -227,13 +228,13 @@ class CloudIdentifiersPropositionMessage extends AccessMessage {
 		}
 		if (!ok) {
 			PasswordKey pw=PasswordKey.getRandomPasswordKey(random);
-			byte[] pwBytes= pw.getPasswordBytes();
+			WrappedSecretData pwBytes= pw.getPasswordBytes();
 			byte[] pwSalt=pw.getSaltBytes();
 			WrappedData wd=new DecentralizedIDGenerator(true, true).encode();
 
 			agreements.put(distantCloudID,
 					agreementType.getAgreementAlgorithm(random, myPublicKey, wd.getBytes(),
-							pwBytes,0,pwBytes.length,
+							pwBytes,0,pwBytes.getBytes().length,
 							pw.isKey(), pwSalt, 0, pwSalt==null?0:pwSalt.length, pw.getSecretKeyForSignature(),
 							messageDigestType, passwordHashType,
 							null,

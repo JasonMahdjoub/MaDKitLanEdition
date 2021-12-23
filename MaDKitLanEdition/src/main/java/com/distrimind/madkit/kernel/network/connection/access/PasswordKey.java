@@ -37,9 +37,11 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
+import com.distrimind.util.InvalidEncodedValue;
 import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.crypto.SymmetricAuthenticatedSignatureType;
 import com.distrimind.util.crypto.SymmetricSecretKey;
+import com.distrimind.util.data_buffers.WrappedSecretData;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -60,7 +62,7 @@ public abstract class PasswordKey {
 	 * 
 	 * @return the password with a byte tab format
 	 */
-	public abstract byte[] getPasswordBytes();
+	public abstract WrappedSecretData getPasswordBytes() ;
 
 	/**
 	 * Gets the salt with a byte tab format.
@@ -91,18 +93,20 @@ public abstract class PasswordKey {
 	static PasswordKey getRandomPasswordKey(final AbstractSecureRandom random)
 	{
 		return new PasswordKey() {
-			private byte[] passwordBytes=null;
+			private WrappedSecretData passwordBytes=null;
 			private byte[] salt=null;
 			private SymmetricSecretKey secretKey=null;
 			@Override
-			public byte[] getPasswordBytes() {
+			public WrappedSecretData getPasswordBytes() {
 				if (passwordBytes==null)
 				{
+					byte[] t;
 					if (defaultFakePasswordIsKey)
-						passwordBytes=new byte[32];
+						t=new byte[32];
 					else
-						passwordBytes=new byte[5+ random.nextInt(25)];
-					random.nextBytes(passwordBytes);
+						t=new byte[5+ random.nextInt(25)];
+					random.nextBytes(t);
+					passwordBytes=new WrappedSecretData(t);
 				}
 				return passwordBytes;
 			}

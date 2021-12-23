@@ -39,6 +39,7 @@ package com.distrimind.madkit.kernel.network.connection.access;
 
 import com.distrimind.util.crypto.P2PASymmetricSecretMessageExchanger;
 import com.distrimind.util.crypto.SymmetricSecretKey;
+import com.distrimind.util.data_buffers.WrappedSecretData;
 import com.distrimind.util.io.SecureExternalizable;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
@@ -66,7 +67,7 @@ public class EncryptedPassword extends PasswordKey implements SecureExternalizab
 
 	public static final int MAX_ENCRYPTED_PASSWORD_LENGTH=MAX_PASSWORD_LENGTH+512;
 	
-	private byte[] bytes;
+	private WrappedSecretData bytes;
 
 	@SuppressWarnings("unused")
 	EncryptedPassword()
@@ -75,13 +76,13 @@ public class EncryptedPassword extends PasswordKey implements SecureExternalizab
 	}
 	@Override
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
-		bytes=in.readBytesArray(false , MAX_ENCRYPTED_PASSWORD_LENGTH);
+		bytes=new WrappedSecretData(in.readBytesArray(false , MAX_ENCRYPTED_PASSWORD_LENGTH));
 
 	}
 
 	@Override
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
-		oos.writeBytesArray(bytes,false, MAX_ENCRYPTED_PASSWORD_LENGTH);
+		oos.writeBytesArray(bytes.getBytes(),false, MAX_ENCRYPTED_PASSWORD_LENGTH);
 	}
 	
 	public EncryptedPassword(PasswordKey password, P2PASymmetricSecretMessageExchanger cipher)
@@ -92,13 +93,13 @@ public class EncryptedPassword extends PasswordKey implements SecureExternalizab
 			throw new NullPointerException("password");
 		if (cipher == null)
 			throw new NullPointerException("cipher");
-		bytes = cipher.encode(password.getPasswordBytes(), password.getSaltBytes(), password.isKey());
+		bytes = new WrappedSecretData(cipher.encode(password.getPasswordBytes().getBytes(), password.getSaltBytes(), password.isKey()));
 
 	}
 	
 
 	@Override
-	public byte[] getPasswordBytes() {
+	public WrappedSecretData getPasswordBytes() {
 		return bytes;
 	}
 

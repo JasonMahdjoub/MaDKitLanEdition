@@ -63,7 +63,7 @@ public class PairOfIdentifiers {
 		if (_distant_identifier == null) {
 			throw new NullPointerException();
 		}
-		if (_localIdentifier.getHostIdentifier().equals(HostIdentifier.getNullHostIdentifierSingleton()))
+		if (_localIdentifier.getHostIdentifier().equalsTimeConstant(HostIdentifier.getNullHostIdentifierSingleton()))
 		{
 			if (_localIdentifier.equalsHostIdentifier(_distant_identifier) && !locallyAuthenticatedCloud && !distantlyAuthenticatedCloud)
 				throw new IllegalArgumentException();
@@ -97,9 +97,10 @@ public class PairOfIdentifiers {
 		if (this == o) return true;
 		if (this.hashCode==o.hashCode()) {
 			PairOfIdentifiers that = (PairOfIdentifiers) o;
-			return Objects.equals(cloudIdentifier, that.cloudIdentifier) &&
-					Objects.equals(localHostIdentifier, that.localHostIdentifier)
-					&& Objects.equals(distantHostIdentifier, that.distantHostIdentifier);
+			boolean res=Objects.equals(cloudIdentifier, that.cloudIdentifier);
+			res=Objects.equals(localHostIdentifier, that.localHostIdentifier) && res;
+			res=Objects.equals(distantHostIdentifier, that.distantHostIdentifier) && res;
+			return res;
 		}
 		else
 			return false;
@@ -117,12 +118,12 @@ public class PairOfIdentifiers {
 
 	public boolean equalsLocalIdentifier(Identifier identifier)
 	{
-		return cloudIdentifier.equals(identifier.getCloudIdentifier()) && localHostIdentifier.equals(identifier.getHostIdentifier());
+		return cloudIdentifier.equalsTimeConstant(identifier.getCloudIdentifier()) && localHostIdentifier.equalsTimeConstant(identifier.getHostIdentifier());
 	}
 
 	public boolean equalsDistantIdentifier(Identifier identifier)
 	{
-		return cloudIdentifier.equals(identifier.getCloudIdentifier()) && distantHostIdentifier.equals(identifier.getHostIdentifier());
+		return cloudIdentifier.equalsTimeConstant(identifier.getCloudIdentifier()) && distantHostIdentifier.equalsTimeConstant(identifier.getHostIdentifier());
 	}
 
 	/**

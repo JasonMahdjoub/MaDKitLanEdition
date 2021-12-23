@@ -40,6 +40,7 @@ package com.distrimind.madkit.kernel;
 
 import com.distrimind.madkit.agr.CloudCommunity;
 import com.distrimind.madkit.agr.LocalCommunity;
+import com.distrimind.util.data_buffers.WrappedSecretString;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
 
@@ -1535,6 +1536,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
             return getGroup(_isDistributed, _theIdentifier, 0, _isReserved, forceReserved, _group);
 		}
 
+
 		private GroupTree getGroup(boolean _isDistributed, Gatekeeper _theIdentifier, int i, boolean _isReserved,
 				boolean forceReserved, String... _group) {
 			synchronized (root) {
@@ -1543,28 +1545,39 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 					throw new NullPointerException("one element of groups is null");
 				if (g.length() == 0)
 					throw new IllegalArgumentException("one element of groups is empty");
+				GroupTree r=null;
+				IllegalArgumentException e=null;
 				for (GroupTree gt : subGroups) {
-					if (gt.group.equals(g)) {
-						if (i == _group.length - 1) {
-							if (!forceReserved && ((_isReserved && gt.getNbReferences() > 0) || gt.isReserved)) {
-								StringBuilder err = new StringBuilder();
-								for (String s : _group)
-									err.append(s).append("/");
-								if (gt.isReserved)
-									throw new IllegalArgumentException("The group " + err + " is reserved !");
-								else
-									throw new IllegalArgumentException("The group " + err
-											+ " cannot be reserved, because it have already been reserved !");
+					boolean d=(gt.isDistributed || _isDistributed);
+					if ((d && WrappedSecretString.constantTimeAreEqual(gt.group, g)) || (!d && gt.group.equals(g))) {
+						if (e == null) {
+							if (i == _group.length - 1) {
+								if (!forceReserved && ((_isReserved && gt.getNbReferences() > 0) || gt.isReserved)) {
+									StringBuilder err = new StringBuilder();
+									for (String s : _group)
+										err.append(s).append("/");
+
+									if (gt.isReserved)
+										e = new IllegalArgumentException("The group " + err + " is reserved !");
+									else
+										e = new IllegalArgumentException("The group " + err
+												+ " cannot be reserved, because it have already been reserved !");
+									continue;
+								}
+								if (_isReserved)
+									gt.isReserved = true;
+								gt.incrementReferences();
+								r = gt;
+							} else {
+								r = gt.getGroup(_isDistributed, _theIdentifier, i + 1, _isReserved, forceReserved, _group);
 							}
-							if (_isReserved)
-								gt.isReserved = true;
-							gt.incrementReferences();
-							return gt;
-						} else
-							return gt.getGroup(_isDistributed, _theIdentifier, i + 1, _isReserved, forceReserved,
-									_group);
+						}
 					}
 				}
+				if (e!=null)
+					throw e;
+				if (r!=null)
+					return r;
 				GroupTree gt = new GroupTree(g, root, this, _isDistributed, _theIdentifier,
                         (i == _group.length - 1) && _isReserved);
 				GroupTree res;

@@ -441,10 +441,7 @@ public class ServerSecuredConnectionProtocolWithKnownPublicKey
 
 		@Override
 		public int getHeadSize() {
-			if (isProfileInitialized())
-				return EncryptionSignatureHashEncoder.headSize;
-			else
-				return ObjectSizer.sizeOf(hProperties.getLastEncryptionProfileIdentifier());
+			return EncryptionSignatureHashEncoder.headSize;
 		}
 
 		@Override

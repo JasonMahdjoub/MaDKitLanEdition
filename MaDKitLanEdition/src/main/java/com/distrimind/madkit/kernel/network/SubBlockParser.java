@@ -184,11 +184,13 @@ public abstract class SubBlockParser {
 	protected int getBodyOutputSizeWithDecryption(int size, boolean encryptionEnabled) throws IOException {
 
 		if (packetCounter.isLocalActivated()) {
-			byte[] mec=packetCounter.getMyEncryptionCounter();
-			if (mec!=null) {
-				decoderWithEncryption.withExternalCounter(mec);
+			if (encryptionEnabled) {
+				byte[] mec = packetCounter.getMyEncryptionCounter();
+				if (mec != null) {
+					decoderWithEncryption.withExternalCounter(mec);
+				}
 			}
-			mec=packetCounter.getMySignatureCounter();
+			byte[] mec=packetCounter.getMySignatureCounter();
 			if (mec!=null) {
 				if (encryptionEnabled)
 					decoderWithEncryption.withAssociatedData(mec);
@@ -199,8 +201,27 @@ public abstract class SubBlockParser {
 		}
 
 		size+=EncryptionSignatureHashEncoder.headSize;
-		if (encryptionEnabled)
-			return (int) Math.max(decoderWithEncryption.getMaximumOutputLength(size), decoderWithoutEncryption.getMaximumOutputLength(size));
+
+		if (encryptionEnabled) {
+			long r=0;
+			try {
+				r = decoderWithEncryption.getMaximumOutputLength(size);
+			}
+			catch (IllegalArgumentException ignored)
+			{
+
+			}
+			try {
+				r = Math.max(r, decoderWithoutEncryption.getMaximumOutputLength(size));
+			}
+			catch (IllegalArgumentException ignored)
+			{
+
+			}
+			if (r==0)
+				throw new IllegalArgumentException();
+			return (int)r;
+		}
 		else
 			return (int) decoderWithoutEncryption.getMaximumOutputLength(size);
 		/*if ((decoderWithEncryption.getSymmetricSecretKeyForSignature()==null && decoderWithoutEncryption.getSymmetricSecretKeyForSignature()!=null)

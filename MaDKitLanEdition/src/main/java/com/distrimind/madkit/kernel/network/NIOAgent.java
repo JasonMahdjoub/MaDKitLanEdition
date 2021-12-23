@@ -1311,6 +1311,19 @@ final class NIOAgent extends Agent {
 			this.bigDataTransferPaused = bigDataTransferPaused;
 
 			if (!is_closed && hasDataToSend()) {
+				try {
+					setNextTransferType();
+					prepareNextDataToNextIfNecessary();
+				} catch (TransferException e) {
+					if (logger != null)
+						logger.severeLog("unexpected exception", e);
+					closeConnection(ConnectionClosedReason.CONNECTION_ANOMALY);
+					if (actualLocker != null) {
+						actualLocker.notifyLocker();
+					}
+
+					return;
+				}
 				if ((clientKey.interestOps() & SelectionKey.OP_WRITE) != SelectionKey.OP_WRITE)
 					clientKey.interestOps(SelectionKey.OP_WRITE | SelectionKey.OP_READ);
 				if (!bigDataTransferPaused) {
@@ -1376,6 +1389,8 @@ final class NIOAgent extends Agent {
 					} catch (TransferException e) {
 						if (logger != null)
 							logger.severeLog("unexpected exception", e);
+						closeConnection(ConnectionClosedReason.CONNECTION_ANOMALY);
+						return null;
 					}
 					if (noBackDataToSend.size()==0)
 						return null;
@@ -1629,7 +1644,7 @@ final class NIOAgent extends Agent {
 			try {
 				return data.isCurrentByteBufferFinishedOrNotStarted() ;
 			} catch (PacketException e) {
-				throw new TransferException(e);
+				throw new TransferException("dataTransferType="+dataTransferType,e);
 			}
 
 		}
@@ -2240,8 +2255,8 @@ final class NIOAgent extends Agent {
 					logger.log(Level.SEVERE, "Unexpected exception", e);
 			}
 
-			if (NIOAgent.this.sendMessageWithRole(agentAddress, new ConnectionClosed(this.agentAddress.getAgentNetworkID(),
-					cs, new CircularArrayList<>(shortDataToSend), bigDataToSend, new CircularArrayList<>(dataToTransfer)), LocalCommunity.Roles.NIO_ROLE)==ReturnCode.SUCCESS)
+			if (ReturnCode.isSuccessOrIsTransferInProgress(NIOAgent.this.sendMessageWithRole(agentAddress, new ConnectionClosed(this.agentAddress.getAgentNetworkID(),
+					cs, new CircularArrayList<>(shortDataToSend), bigDataToSend, new CircularArrayList<>(dataToTransfer)), LocalCommunity.Roles.NIO_ROLE)))
 			{
 				try {
 					for (NoBackData ad : noBackDataToSend)

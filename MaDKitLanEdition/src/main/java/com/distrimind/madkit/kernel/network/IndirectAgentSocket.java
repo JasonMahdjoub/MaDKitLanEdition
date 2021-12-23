@@ -183,7 +183,7 @@ class IndirectAgentSocket extends AbstractAgentSocket {
 		ReturnCode rc = sendMessageWithRole(agentSocketRequester, new ObjectMessage<>(d),
 				LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 
-		if (rc != ReturnCode.SUCCESS || _data.getMessageLocker() == null) {
+		if (!ReturnCode.isSuccessOrIsTransferInProgress(rc) || _data.getMessageLocker() == null) {
 			if (logger != null && rc != ReturnCode.SUCCESS)
 				logger.warning("Impossible to broadcast indirect data : " + _data);
 			return rc;

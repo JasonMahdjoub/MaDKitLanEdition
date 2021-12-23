@@ -146,11 +146,11 @@ class IdentifiersPropositionMessage extends AccessMessage {
 			throws NoSuchAlgorithmException, IOException, NoSuchProviderException {
 		CloudIdentifier foundCloudIdentifier=null;
 
-		if (HostIdentifier.getNullHostIdentifierSingleton().equals(identifier.getHostIdentifier()))
+		if (HostIdentifier.getNullHostIdentifierSingleton().equalsTimeConstant(identifier.getHostIdentifier()))
 		{
 			for (CloudIdentifier ci : initializedCloudIdentifiers)
 			{
-				if (ci.equals(identifier.getCloudIdentifier()) && ci.getAuthenticationMethod()== Identifier.AuthenticationMethod.PUBLIC_KEY)
+				if (ci.equalsTimeConstant(identifier.getCloudIdentifier()) && ci.getAuthenticationMethod()== Identifier.AuthenticationMethod.PUBLIC_KEY)
 				{
 					return new Identifier(ci,HostIdentifier.getNullHostIdentifierSingleton() );
 				}
@@ -160,7 +160,7 @@ class IdentifiersPropositionMessage extends AccessMessage {
 		if (!usedCloudIdentifiers.contains(identifier.getCloudIdentifier()))
 		{
 			for (CloudIdentifier cid : acceptedCloudIdentifiers) {
-				if (cid.equals(identifier.getCloudIdentifier())) {
+				if (cid.equalsTimeConstant(identifier.getCloudIdentifier())) {
 					foundCloudIdentifier = cid;
 					usedCloudIdentifiers.add(cid);
 					break;

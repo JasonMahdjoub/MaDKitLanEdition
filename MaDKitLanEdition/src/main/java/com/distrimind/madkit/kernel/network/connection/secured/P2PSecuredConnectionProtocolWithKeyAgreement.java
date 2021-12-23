@@ -710,7 +710,6 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 
 		@Override
 		public SubBlockInfo getSubBlock(SubBlockInfo subBlockInfo) throws BlockParserException {
-
 			switch (current_step) {
 			case NOT_CONNECTED:
 			case WAITING_FOR_SIGNATURE_DATA:
@@ -835,8 +834,14 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 
 		@Override
 		public int getBodyOutputSizeForEncryption(int size) throws BlockParserException {
-			return super.getBodyOutputSizeForSignature(size);
+			return getBodyOutputSizeForSignature(size);
 		}
+
+		@Override
+		protected int getBodyOutputSizeWithEncryption(int size) throws IOException {
+			return getBodyOutputSizeWithSignature(size);
+		}
+
 
 		@Override
 		protected SubBlockInfo getEncryptedSubBlock(SubBlockInfo subBlockInfo, boolean enabledEncryption) throws BlockParserException {
@@ -846,6 +851,66 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 		@Override
 		protected SubBlock getEncryptedParentBlock(SubBlock _block, boolean excludeFromEncryption) throws BlockParserException {
 			return super.getEncryptedParentBlock(_block, true);
+		}
+
+		@Override
+		public SubBlock getParentBlock(SubBlock _block, boolean excludeFromEncryption) throws BlockParserException {
+			switch (current_step) {
+				case NOT_CONNECTED:
+				case WAITING_FOR_SIGNATURE_DATA:
+				case WAITING_FOR_ENCRYPTION_DATA:
+					return getParentBlockWithNoTreatments(_block);
+				case WAITING_FOR_SERVER_PROFILE_MESSAGE:
+				{
+					if (doNotTakeIntoAccountNextState)
+					{
+						return getParentBlockWithNoTreatments(_block);
+					}
+					else
+					{
+						return getEncryptedParentBlock(_block, true);
+					}
+				}
+				case WAITING_FOR_SERVER_SIGNATURE:
+				case WAITING_FOR_CONNECTION_CONFIRMATION:
+				case CONNECTED: {
+					return getEncryptedParentBlock(_block, true);
+				}
+			}
+
+			throw new BlockParserException("Unexpected exception");
+
+		}
+
+		@Override
+		public int getBodyOutputSizeForSignature(int size) throws BlockParserException
+		{
+			try {
+				switch (current_step) {
+					case NOT_CONNECTED:
+					case WAITING_FOR_ENCRYPTION_DATA:
+					case WAITING_FOR_SIGNATURE_DATA: {
+
+						return size;
+					}
+					case WAITING_FOR_SERVER_PROFILE_MESSAGE:
+						if (doNotTakeIntoAccountNextState) {
+							return size;
+						}
+						else {
+							return getBodyOutputSizeWithSignature(size);
+						}
+					case WAITING_FOR_SERVER_SIGNATURE:
+					case WAITING_FOR_CONNECTION_CONFIRMATION:
+					case CONNECTED:
+					{
+						return getBodyOutputSizeWithSignature(size);
+					}
+				}
+			} catch (IOException e) {
+				throw new BlockParserException(e);
+			}
+			return size;
 		}
 
 

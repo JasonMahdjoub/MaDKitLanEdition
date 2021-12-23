@@ -768,7 +768,7 @@ public final class AsynchronousBigDataTable extends Table<AsynchronousBigDataTab
 							AgentAddress receiverAA = aa.getAgentWithRole(distantGroup, _record.roleSender);
 							if (receiverAA!=null) {
 								AbstractAgent.ReturnCode rc=sender.sendMessageWithRole(receiverAA, new BigDataToRestartMessage(_record.getAsynchronousBigDataInternalIdentifier(), _record.getCurrentStreamPosition()), _record.roleReceiver);
-								if (rc!= AbstractAgent.ReturnCode.SUCCESS) {
+								if (!AbstractAgent.ReturnCode.isSuccessOrIsTransferInProgress(rc)) {
 									System.err.println("Impossible to send message to "+receiverAA+", returnCode="+rc);
 								}
 							}

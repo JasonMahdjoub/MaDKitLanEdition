@@ -206,7 +206,7 @@ public final class NetworkAgent extends AgentFakeThread {
 			if (ml != null) {
 				try {
 
-					ml.unlock();
+					ml.forgive();
 				} catch (Exception e) {
 					if (logger != null)
 						logger.severeLog("Unexpected exception", e);
@@ -329,7 +329,7 @@ public final class NetworkAgent extends AgentFakeThread {
 							LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE, m, ml != null);
 					if (ml != null)
 					{
-						if (rc.equals(ReturnCode.SUCCESS)) {
+						if (ReturnCode.isSuccessOrIsTransferInProgress(rc)) {
 							messageLockers.put(m.getConversationID(), ml);
 						} else  {
 							ml.cancelLock();

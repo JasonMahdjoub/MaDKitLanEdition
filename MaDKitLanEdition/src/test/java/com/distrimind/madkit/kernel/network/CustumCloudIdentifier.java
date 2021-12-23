@@ -88,13 +88,41 @@ public class CustumCloudIdentifier extends CloudIdentifier {
 		this.anonymous=anonymous;
 	}
 
+	public static boolean constantTimeAreEqual(String expected, String supplied)
+	{
+		if (expected==null || supplied==null)
+			return false;
+		//noinspection StringEquality
+		if (expected == supplied)
+		{
+			return true;
+		}
+
+		//noinspection ManualMinMaxCalculation
+		int len = (expected.length() < supplied.length()) ? expected.length() : supplied.length();
+
+		int nonEqual = expected.length() ^ supplied.length();
+
+		for (int i = 0; i != len; i++)
+		{
+			nonEqual |= (expected.charAt(i) ^ supplied.charAt(i));
+		}
+		for (int i = len; i < supplied.length(); i++)
+		{
+			//noinspection PointlessBitwiseExpression
+			nonEqual |= (supplied.charAt(i) ^ ~supplied.charAt(i));
+		}
+
+		return nonEqual == 0;
+	}
+
 	@Override
-	public boolean equals(Object _cloud_identifier) {
+	public boolean equalsTimeConstant(CloudIdentifier _cloud_identifier) {
 		if (_cloud_identifier == null)
 			return false;
 		if (_cloud_identifier.getClass()==CustumCloudIdentifier.class) {
 			CustumCloudIdentifier cci = (CustumCloudIdentifier) _cloud_identifier;
-			return name.equals(cci.name);
+			return constantTimeAreEqual(name, cci.name);
 		}
 		return false;
 	}

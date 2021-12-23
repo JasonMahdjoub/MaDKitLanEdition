@@ -87,7 +87,7 @@ public class CustomAutoSignedHostIdentifier extends HostIdentifier {
 	}
 
 	@Override
-	public boolean equals(Object _cloud_identifier) {
+	public boolean equalsTimeConstant(HostIdentifier _cloud_identifier) {
 		if (_cloud_identifier == null)
 			return false;
 		if (_cloud_identifier instanceof CustomAutoSignedHostIdentifier) {

@@ -262,10 +262,10 @@ public abstract class LoginData extends AccessData {
 	 */
 	public final boolean isDistantHostIdentifierValid(Identifier distantIdentifier)
 	{
-		if (!HostIdentifier.getNullHostIdentifierSingleton().equals(distantIdentifier.getHostIdentifier()))
+		if (!HostIdentifier.getNullHostIdentifierSingleton().equalsTimeConstant(distantIdentifier.getHostIdentifier()))
 		{
 			Identifier id=localiseIdentifierImpl(distantIdentifier.getCloudIdentifier());
-			if (id!=null && id.getHostIdentifier().equals(distantIdentifier.getHostIdentifier()))
+			if (id!=null && id.getHostIdentifier().equalsTimeConstant(distantIdentifier.getHostIdentifier()))
 				return false;
 		}
 		return isDistantHostIdentifierValidImpl(distantIdentifier);
@@ -367,7 +367,7 @@ public abstract class LoginData extends AccessData {
 		if (distantCloudIdentifier instanceof EncryptedCloudIdentifier)
 			return true;
 		else
-			return localCloudIdentifier.equals(distantCloudIdentifier);
+			return localCloudIdentifier.equalsTimeConstant(distantCloudIdentifier);
 	}
 	boolean areCloudIdentifiersCompatible(Identifier localIdentifier, CloudIdentifier distantCloudIdentifier, EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties)
 	{
@@ -378,7 +378,7 @@ public abstract class LoginData extends AccessData {
 		if (distantCloudIdentifier instanceof EncryptedCloudIdentifier)
 			return true;
 		else
-			return localIdentifier.getCloudIdentifier().equals(distantCloudIdentifier);
+			return localIdentifier.getCloudIdentifier().equalsTimeConstant(distantCloudIdentifier);
 	}
 
 	private boolean isValidAuthenticatedIdentifier(Identifier.Authenticated authenticatedIdentifier, EncryptionRestriction encryptionRestriction, AbstractAccessProtocolProperties accessProtocolProperties, boolean local)

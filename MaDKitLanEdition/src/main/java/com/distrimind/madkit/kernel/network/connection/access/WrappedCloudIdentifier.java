@@ -122,11 +122,11 @@ final class WrappedCloudIdentifier extends CloudIdentifier {
 	}
 
 	@Override
-	public boolean equals(Object o) {
+	public boolean equalsTimeConstant(CloudIdentifier o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		WrappedCloudIdentifier that = (WrappedCloudIdentifier) o;
-		return cloudIdentifier.equals(that.cloudIdentifier);
+		return cloudIdentifier.equalsTimeConstant(that.cloudIdentifier);
 	}
 
 	@Override

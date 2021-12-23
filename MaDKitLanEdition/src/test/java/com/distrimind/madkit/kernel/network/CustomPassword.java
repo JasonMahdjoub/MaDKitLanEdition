@@ -38,7 +38,11 @@
 package com.distrimind.madkit.kernel.network;
 
 import com.distrimind.madkit.kernel.network.connection.access.PasswordKey;
+import com.distrimind.util.InvalidEncodedValue;
 import com.distrimind.util.crypto.SymmetricSecretKey;
+import com.distrimind.util.crypto.WrappedPassword;
+import com.distrimind.util.data_buffers.WrappedData;
+import com.distrimind.util.data_buffers.WrappedSecretData;
 
 import java.util.Arrays;
 
@@ -49,13 +53,13 @@ import java.util.Arrays;
  * @since MadkitLanEdition 1.0
  */
 public class CustomPassword extends PasswordKey {
-	private final String password;
+	private final WrappedPassword password;
 	private final byte[] salt;
 	private final boolean isKey;
 	private final SymmetricSecretKey secretKey;
 
 	CustomPassword(String password, byte[] salt, SymmetricSecretKey secretKey) {
-		this.password = password;
+		this.password = new WrappedPassword(password);
 		this.salt = salt;
 		isKey = Math.random()>0.5;
 		this.secretKey=secretKey;
@@ -78,8 +82,9 @@ public class CustomPassword extends PasswordKey {
 	}
 
 	@Override
-	public byte[] getPasswordBytes() {
-		return password.getBytes();
+	public WrappedSecretData getPasswordBytes() {
+		return new WrappedSecretData(password.toString().getBytes());
+
 	}
 
 	@Override

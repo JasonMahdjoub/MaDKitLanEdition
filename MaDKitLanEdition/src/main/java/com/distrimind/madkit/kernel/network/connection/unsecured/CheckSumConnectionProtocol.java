@@ -211,9 +211,15 @@ public class CheckSumConnectionProtocol extends ConnectionProtocol<CheckSumConne
 		}
 
 		@Override
+		protected int getBodyOutputSizeWithSignature(int size) {
+			return size;
+		}
+
+		@Override
 		public int getBodyOutputSizeForDecryption(int _size) {
 			return _size;
 		}
+
 
 
 		@Override

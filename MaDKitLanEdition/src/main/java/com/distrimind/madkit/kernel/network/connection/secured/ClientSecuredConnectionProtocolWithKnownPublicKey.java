@@ -287,7 +287,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 		public int getBodyOutputSizeForSignature(int size) throws BlockParserException
 		{
 			try {
-				if (current_step==Step.NOT_CONNECTED)
+				if (current_step==Step.NOT_CONNECTED || current_step==Step.WAITING_FOR_CONNECTION_CONFIRMATION)
 					return size;
 				else
 				{
@@ -334,7 +334,6 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 
 		@Override
 		public SubBlockInfo getSubBlock(SubBlockInfo subBlockInfo) throws BlockParserException {
-
 			if (current_step==Step.NOT_CONNECTED)
 			{
 				SubBlock subBlock=subBlockInfo.getSubBlock();
@@ -361,6 +360,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 					{
 						byte[] tab=res.getBytes();
 						Bits.putInt(tab, res.getOffset(), hProperties.getEncryptionProfileIdentifier());
+						Arrays.fill(tab, res.getOffset()+4, res.getOffset()+getHeadSize(), (byte)0);
 						setFirstMessageSent();
 					}
 					int off=_block.getSize()+_block.getOffset();
@@ -381,11 +381,7 @@ public class ClientSecuredConnectionProtocolWithKnownPublicKey
 
 		@Override
 		public int getHeadSize() {
-			if (firstMessageSent)
-				return EncryptionSignatureHashEncoder.headSize;
-			else {
-				return ObjectSizer.sizeOf(hProperties.getEncryptionProfileIdentifier());
-			}
+			return EncryptionSignatureHashEncoder.headSize;
 		}
 
 

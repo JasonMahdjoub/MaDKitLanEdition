@@ -636,7 +636,7 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 											bigDataOutputStream.close();
 									}
 								} else {
-									if (!sendMessageWithRole(aa, new NetworkObjectMessage<>(es), CloudCommunity.Roles.SYNCHRONIZER).equals(ReturnCode.SUCCESS)) {
+									if (!ReturnCode.isSuccessOrIsTransferInProgress(sendMessageWithRole(aa, new NetworkObjectMessage<>(es), CloudCommunity.Roles.SYNCHRONIZER))) {
 										getLogger().warning("Impossible to send message to host " + dest);
 										synchronizer.peerDisconnected(dest);
 									}
@@ -959,8 +959,8 @@ public class DatabaseSynchronizerAgent extends AgentFakeThread {
 
 	static void updateGroupAccess(AbstractAgent agent) {
 		ReturnCode rc;
-		if (!(rc=agent.broadcastMessageWithRole(LocalCommunity.Groups.NETWORK,
-				LocalCommunity.Roles.SOCKET_AGENT_ROLE, new ObjectMessage<>(NetworkAgent.REFRESH_GROUPS_ACCESS), CloudCommunity.Roles.SYNCHRONIZER)).equals(ReturnCode.SUCCESS))
+		if (!ReturnCode.isSuccessOrIsTransferInProgress(rc=agent.broadcastMessageWithRole(LocalCommunity.Groups.NETWORK,
+				LocalCommunity.Roles.SOCKET_AGENT_ROLE, new ObjectMessage<>(NetworkAgent.REFRESH_GROUPS_ACCESS), CloudCommunity.Roles.SYNCHRONIZER)))
 
 			if (agent.logger!=null && agent.logger.isLoggable(Level.WARNING))
 				agent.logger.warning("Impossible to broadcast group rights update order : "+rc+", kernel="+ agent.getKernelAddress());

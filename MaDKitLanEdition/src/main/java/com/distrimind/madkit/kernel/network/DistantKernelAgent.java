@@ -235,11 +235,11 @@ class DistantKernelAgent extends AgentFakeThread {
 	}
 	private boolean isSharedGroupRole(Group group, String role)
 	{
-		return isDistantlyAcceptedGroupRole(group, role) && isLocallyAcceptedGroupRole(group, role);
+		return isDistantlyAcceptedGroupRole(group, role) && isLocallyAcceptedGroupRole(group);
 	}
-	private boolean isLocallyAcceptedGroupRole(Group group, String role)
+	private boolean isLocallyAcceptedGroupRole(Group group)
 	{
-		return generalLocalMultiGroup.includes(group, role);
+		return generalLocalMultiGroup.includes(group);
 	}
 	private boolean isDistantlyAcceptedGroupRole(Group group, String role)
 	{
@@ -249,13 +249,7 @@ class DistantKernelAgent extends AgentFakeThread {
 	private void unlockMessageIfNecessary(Message _message)
 	{
 		if (_message instanceof LockableMessage) {
-			try {
-				((LockableMessage) _message).getMessageLocker().unlock();
-			} catch (MadkitException e) {
-				Logger logger=getLogger();
-				if (logger!=null)
-					logger.severe(e.getMessage());
-			}
+			((LockableMessage) _message).getMessageLocker().forgive();
 			if (_message instanceof LocalLanMessage)
 				sendReplyEmpty(_message);
 		}
@@ -332,7 +326,7 @@ class DistantKernelAgent extends AgentFakeThread {
 											if (logger != null)
 												logger.severeLog("Anomaly detected", e);
 											processInvalidMessage(_message, false);
-											message.getMessageLocker().unlock();
+											message.getMessageLocker().forgive();
 										}
 									} else {
 										sendData(asd.getAgentAddress(), new DirectLanMessage(m), false,
@@ -343,6 +337,8 @@ class DistantKernelAgent extends AgentFakeThread {
 									message.getMessageLocker().unlock();
 								}
 							}
+							else
+								throw new IllegalAccessError();
 						} finally {
 							sendReplyEmpty(_message);
 						}
@@ -404,8 +400,8 @@ class DistantKernelAgent extends AgentFakeThread {
 											+ ") : " + _message);
 							}
 						}
-
 					}
+
 
 				} else if (_message.getClass() == NetworkGroupsAccessEvent.class) {
 					if (distant_kernel_address == null)
@@ -1305,7 +1301,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			PairOfIdentifiers poi=it.next();
 			for (CloudIdentifier cloudIdentifier : lastDeniedCloudIdentifiersToOther)
 			{
-				if (poi.getCloudIdentifier().equals(cloudIdentifier))
+				if (poi.getCloudIdentifier().equalsTimeConstant(cloudIdentifier))
 				{
 					it.remove();
 					continue accepted_loop;
@@ -1922,9 +1918,8 @@ class DistantKernelAgent extends AgentFakeThread {
 				logger.finest("Sending data (distantInterfacedKernelAddress=" + distant_kernel_address + ", packetID="
 						+ packet.getID() + ") : " + _data);
 			PacketData pd=new PacketData(receiver, _data, packet, _messageLocker, last_message, isItAPriority, _data.excludedFromEncryption());
-			if (!sendMessage(receiver,
-					new DistKernADataToUpgradeMessage(pd))
-									.equals(ReturnCode.SUCCESS)) {
+			if (!ReturnCode.isSuccessOrIsTransferInProgress(sendMessage(receiver,
+					new DistKernADataToUpgradeMessage(pd)))) {
 				pd.unlockMessage();
 				if (logger!=null)
 					logger.warning("Fail sending data (distantInterfacedKernelAddress=" + distant_kernel_address
@@ -1933,11 +1928,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			}
 		} catch (IOException | MadkitException e) {
 			if (_messageLocker!=null) {
-				try {
-					_messageLocker.unlock();
-				} catch (MadkitException ex) {
-					getLogger().severeLog("", ex);
-				}
+				_messageLocker.forgive();
 			}
 			throw new NIOException(e);
 		}
@@ -3024,7 +3015,7 @@ class DistantKernelAgent extends AgentFakeThread {
 							LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE,
 							new ExceededDataQueueSize(networkBoard, true, false),
 							LocalCommunity.Roles.DISTANT_KERNEL_AGENT_ROLE);
-					Message m = new ExceededDataQueueSize(networkBoard, rc == ReturnCode.SUCCESS, true, true);
+					Message m = new ExceededDataQueueSize(networkBoard, ReturnCode.isSuccessOrIsTransferInProgress(rc), true, true);
 					this.receiveMessage(m);
 				} else {
 					// unset paused

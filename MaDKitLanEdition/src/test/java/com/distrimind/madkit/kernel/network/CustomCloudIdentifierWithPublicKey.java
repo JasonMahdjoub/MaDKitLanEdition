@@ -73,7 +73,7 @@ public class CustomCloudIdentifierWithPublicKey extends CloudIdentifier {
     }
 
     @Override
-    public boolean equals(Object _object) {
+    public boolean equalsTimeConstant(CloudIdentifier _object) {
         if (_object==null)
             return false;
         if (_object.getClass()==CustomCloudIdentifierWithPublicKey.class)

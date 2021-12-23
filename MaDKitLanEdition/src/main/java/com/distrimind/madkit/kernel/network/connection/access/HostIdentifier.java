@@ -75,7 +75,18 @@ public abstract class HostIdentifier implements SecureExternalizable {
 	}
 
 	@Override
-	public abstract boolean equals(Object _object);
+	public final boolean equals(Object o)
+	{
+		if (o==this)
+			return true;
+		if (o instanceof HostIdentifier)
+			return equalsTimeConstant((HostIdentifier) o);
+		else
+			return false;
+	}
+
+
+	public abstract boolean equalsTimeConstant(HostIdentifier _object);
 
 	@Override
 	public abstract int hashCode();
@@ -132,7 +143,7 @@ public abstract class HostIdentifier implements SecureExternalizable {
 
 		}
 		@Override
-		public boolean equals(Object _object) {
+		public boolean equalsTimeConstant(HostIdentifier _object) {
 			return _object instanceof NullHostIdentifier;
 		}
 
@@ -207,7 +218,7 @@ public abstract class HostIdentifier implements SecureExternalizable {
 
 
 		@Override
-		public boolean equals(Object _host_identifier) {
+		public boolean equalsTimeConstant(HostIdentifier _host_identifier) {
 			if (_host_identifier == null)
 				return false;
 			if (_host_identifier == this)

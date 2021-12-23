@@ -38,6 +38,7 @@
 package com.distrimind.madkit.kernel;
 
 import com.distrimind.madkit.agr.Organization;
+import com.distrimind.util.data_buffers.WrappedSecretString;
 import com.distrimind.util.io.SecureExternalizable;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
@@ -226,8 +227,20 @@ public class AgentAddress implements SecureExternalizable, Cloneable {
 			return true;
 		if (agentAddress instanceof AgentAddress) {
 			final AgentAddress aa = (AgentAddress) agentAddress;
-			return aa.getAgentID() == getAgentID() && kernelAddress.equals(aa.kernelAddress) && getRole().equals(aa.getRole())
-					&& getGroup().equals(aa.getGroup()) && getCommunity().equals(aa.getCommunity());
+			if (getGroup().isDistributed())
+			{
+				return aa.getAgentID() == getAgentID() && kernelAddress.equals(aa.kernelAddress)
+						&& getGroup().equals(aa.getGroup()) && getCommunity().equals(aa.getCommunity())
+						&& getRole().equals(aa.getRole());
+			}
+			else {
+				boolean r = aa.getAgentID() == getAgentID();
+				r=kernelAddress.equals(aa.kernelAddress) && r;
+				r=getGroup().equals(aa.getGroup()) && r;
+				r=getCommunity().equals(aa.getCommunity()) && r;
+				r=WrappedSecretString.constantTimeAreEqual(getRole(), aa.getRole()) && r;
+				return r;
+			}
 		}
 		return false;
 	}

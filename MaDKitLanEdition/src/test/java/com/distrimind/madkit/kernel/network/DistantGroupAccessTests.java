@@ -131,7 +131,7 @@ public class DistantGroupAccessTests extends TestNGMadkit {
 	}
 	private static final long timeOut = 20000;
 	@Test
-	public void testDistantGroupAccess() {
+	public void testDistantGroupAccess() throws InterruptedException {
 
 		final GroupAccessTesterAgent agent1=new GroupAccessTesterAgent(true);
 		final GroupAccessTesterAgent agent2=new GroupAccessTesterAgent(false);
@@ -160,15 +160,14 @@ public class DistantGroupAccessTests extends TestNGMadkit {
 				}
 				sleep(400);
 
-				cleanHelperMDKs(this);
-				AssertJUnit.assertEquals(getHelperInstances(this, 0).size(), 0);
+
 
 
 			}
 		});
 		agent1.validate();
 		agent2.validate();
-
+		Thread.sleep(400);
 		cleanHelperMDKs();
 	}
 
@@ -271,10 +270,10 @@ class GroupAccessTesterAgent extends NormalAgent
 
 			AssertJUnit.assertTrue(distantAgentLeaveGroupWithAllRoles);
 			AssertJUnit.assertFalse(distantAgentLeaveGroupWithAllRolesInOnePeer);
-			AssertJUnit.assertTrue(distantAgentLeaveGroupWithOneRole);
+
 			AssertJUnit.assertFalse(distantAgentLeaveGroupNotAccepted);
 			AssertJUnit.assertFalse(distantAgentLeaveGroupWithAllRolesNotDistributed);
-
+			AssertJUnit.assertTrue(distantAgentLeaveGroupWithOneRole);
 
 			testOK=true;
 		}
@@ -437,6 +436,8 @@ class GroupAccessTesterAgent extends NormalAgent
 						Assert.fail();
 					}
 				}
+				else
+					Assert.fail(hm.toString());
 			}
 		}
 		else if (m instanceof StringMessage) {
@@ -495,12 +496,13 @@ class GroupAccessTesterAgent extends NormalAgent
 		{
 			released=true;
 			sleep(1000);
-			leaveRole(DistantGroupAccessTests.groupWithAllRoles, localAcceptedRoleNotRestricted);
-			leaveRole(DistantGroupAccessTests.groupWithOneRole, localAcceptedRole);
-			leaveRole(DistantGroupAccessTests.groupWithOneRole, DistantGroupAccessTests.notSharedRole);
-			leaveRole(DistantGroupAccessTests.groupWithAllRolesInOnePeer, localAcceptedRoleNotRestricted);
-			leaveRole(DistantGroupAccessTests.groupWithAllRolesNotDistributed, localAcceptedRoleNotRestricted);
-			leaveRole(DistantGroupAccessTests.groupNotAccepted, localAcceptedRoleNotRestricted);
+			Assert.assertEquals(leaveRole(DistantGroupAccessTests.groupWithAllRoles, localAcceptedRoleNotRestricted), ReturnCode.SUCCESS);
+
+			Assert.assertEquals(leaveRole(DistantGroupAccessTests.groupWithOneRole, localAcceptedRole), ReturnCode.SUCCESS);
+			Assert.assertEquals(leaveRole(DistantGroupAccessTests.groupWithOneRole, DistantGroupAccessTests.notSharedRole), ReturnCode.SUCCESS);
+			Assert.assertEquals(leaveRole(DistantGroupAccessTests.groupWithAllRolesInOnePeer, localAcceptedRoleNotRestricted), ReturnCode.SUCCESS);
+			Assert.assertEquals(leaveRole(DistantGroupAccessTests.groupWithAllRolesNotDistributed, localAcceptedRoleNotRestricted), ReturnCode.SUCCESS);
+			Assert.assertEquals(leaveRole(DistantGroupAccessTests.groupNotAccepted, localAcceptedRoleNotRestricted), ReturnCode.SUCCESS);
 
 		}
 	}

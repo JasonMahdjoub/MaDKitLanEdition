@@ -55,6 +55,7 @@ public final class MessageLocker extends LockerCondition {
 	private int lock_number = 0;
 	private final TransfersReturnsCodes returns_code;
 	private boolean firstLockDone = false;
+	private boolean forgive=false;
 
 	public MessageLocker(Message localLanMessage) {
 		this();
@@ -91,13 +92,21 @@ public final class MessageLocker extends LockerCondition {
 		}
 	}
 
+	public void forgive()
+	{
+		synchronized (getLocker()) {
+			forgive=true;
+			notifyLocker();
+		}
+	}
+
 	public void unlock() throws MadkitException {
 		synchronized (getLocker()) {
 			--lock_number;
 
-			if (lock_number < 0)
-				throw new MadkitException("unexpected exception !");
-			if (lock_number == 0)
+			if (lock_number < 0 && !forgive)
+				throw new MadkitException("unexpected exception !, firstLockDone="+firstLockDone);
+			if (lock_number <= 0)
 				notifyLocker();
 		}
 	}
@@ -111,9 +120,9 @@ public final class MessageLocker extends LockerCondition {
 			else
 				returns_code.putResult(ka, ReturnCode.TRANSFER_FAILED, report);
 
-			if (lock_number < 0)
-				throw new MadkitException("unexpected exception !");
-			if (lock_number == 0) {
+			if (lock_number < 0 && !forgive)
+				throw new MadkitException("unexpected exception !, firstLockDone="+firstLockDone);
+			if (lock_number <= 0) {
 				notifyLocker();
 			}
 		}
@@ -132,7 +141,7 @@ public final class MessageLocker extends LockerCondition {
 	@Override
 	public boolean isLocked() {
 		synchronized (getLocker()) {
-			return lock_number > 0 || !firstLockDone;
+			return (lock_number > 0 || !firstLockDone) && !forgive;
 		}
 	}
 
