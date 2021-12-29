@@ -507,21 +507,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 
 	}
 
-	private static boolean readBoolean(String p) throws IOException {
-		try {
-			int i = Integer.parseInt(p);
-			if (i==0)
-				return false;
-			else if (i==1)
-				return true;
-			else
-				throw new IOException();
-		}
-		catch (NumberFormatException e)
-		{
-			throw new IOException(e);
-		}
-	}
+
 
 	@Override
 	public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
@@ -1471,8 +1457,8 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 		public boolean isReserved() {
 			return isReserved;
 		}
-
-		private final ArrayList<GroupTree> subGroups = new ArrayList<>();
+		private final Map<Integer, List<GroupTree>> subGroups=new HashMap<>();
+		//private final ArrayList<GroupTree> subGroups = new ArrayList<>();
 		private final String community;
 		private final String group;
 		private final String path;
@@ -1535,7 +1521,23 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 
             return getGroup(_isDistributed, _theIdentifier, 0, _isReserved, forceReserved, _group);
 		}
+		@SuppressWarnings("UnusedReturnValue")
+		public static boolean falseConstantTimeAreEqual(String expected)
+		{
+			//noinspection UnnecessaryLocalVariable
+			String supplied=expected;
+			//noinspection ManualMinMaxCalculation,ConstantConditions
+			int len = (expected.length() < supplied.length()) ? expected.length() : supplied.length();
 
+			int nonEqual = expected.length() ^ supplied.length();
+
+			for (int i = 0; i != len; i++)
+			{
+				nonEqual |= (expected.charAt(i) ^ supplied.charAt(i));
+			}
+			 return nonEqual!=0;
+
+		}
 
 		private GroupTree getGroup(boolean _isDistributed, Gatekeeper _theIdentifier, int i, boolean _isReserved,
 				boolean forceReserved, String... _group) {
@@ -1545,39 +1547,51 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 					throw new NullPointerException("one element of groups is null");
 				if (g.length() == 0)
 					throw new IllegalArgumentException("one element of groups is empty");
-				GroupTree r=null;
-				IllegalArgumentException e=null;
-				for (GroupTree gt : subGroups) {
-					boolean d=(gt.isDistributed || _isDistributed);
-					if ((d && WrappedSecretString.constantTimeAreEqual(gt.group, g)) || (!d && gt.group.equals(g))) {
-						if (e == null) {
-							if (i == _group.length - 1) {
-								if (!forceReserved && ((_isReserved && gt.getNbReferences() > 0) || gt.isReserved)) {
-									StringBuilder err = new StringBuilder();
-									for (String s : _group)
-										err.append(s).append("/");
 
-									if (gt.isReserved)
-										e = new IllegalArgumentException("The group " + err + " is reserved !");
-									else
-										e = new IllegalArgumentException("The group " + err
-												+ " cannot be reserved, because it have already been reserved !");
-									continue;
+				if (subGroups.size()>0) {
+
+					List<GroupTree> subGroups = this.subGroups.get(g.hashCode());
+
+					if (subGroups!=null) {
+						GroupTree r=null;
+						IllegalArgumentException e=null;
+						for (GroupTree gt : subGroups) {
+							boolean d = (gt.isDistributed || _isDistributed);
+							if ((d && WrappedSecretString.constantTimeAreEqual(gt.group, g)) || (!d && gt.group.equals(g))) {
+								if (e == null) {
+									if (i == _group.length - 1) {
+										if (!forceReserved && ((_isReserved && gt.getNbReferences() > 0) || gt.isReserved)) {
+											StringBuilder err = new StringBuilder();
+											for (String s : _group)
+												err.append(s).append("/");
+
+											if (gt.isReserved)
+												e = new IllegalArgumentException("The group " + err + " is reserved !");
+											else
+												e = new IllegalArgumentException("The group " + err
+														+ " cannot be reserved, because it have already been reserved !");
+											continue;
+										}
+										if (_isReserved)
+											gt.isReserved = true;
+										gt.incrementReferences();
+										r = gt;
+									} else {
+										r = gt.getGroup(_isDistributed, _theIdentifier, i + 1, _isReserved, forceReserved, _group);
+									}
 								}
-								if (_isReserved)
-									gt.isReserved = true;
-								gt.incrementReferences();
-								r = gt;
-							} else {
-								r = gt.getGroup(_isDistributed, _theIdentifier, i + 1, _isReserved, forceReserved, _group);
 							}
 						}
+						if (e != null)
+							throw e;
+						if (r != null)
+							return r;
 					}
+					else if (_isDistributed)
+						falseConstantTimeAreEqual(g);
 				}
-				if (e!=null)
-					throw e;
-				if (r!=null)
-					return r;
+				else if (_isDistributed)
+					falseConstantTimeAreEqual(g);
 				GroupTree gt = new GroupTree(g, root, this, _isDistributed, _theIdentifier,
                         (i == _group.length - 1) && _isReserved);
 				GroupTree res;
@@ -1630,12 +1644,12 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 				if (res == null) {
 					ArrayList<GroupTree> r = new ArrayList<>();
 					if (isAnyRoleRequested()) {
-						for (GroupTree gt : subGroups) {
+						subGroups.values().forEach(l -> l.forEach(gt -> {
 							if (gt.isAnyRoleRequested()) {
 								r.add(gt);
-                                Collections.addAll(r, gt.getSubGroups());
+								Collections.addAll(r, gt.getSubGroups());
 							}
-						}
+						}));
 					}
 					res = new GroupTree[r.size()];
 					r.toArray(res);
@@ -1668,8 +1682,6 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 				}
 				if (kr.m_madkit_references < 0)
 					throw new IllegalAccessError("kr.m_madkit_references=" + kr.m_madkit_references);
-				/*if (kr.m_madkit_references == 0)
-					throw new IllegalAccessError("kr.m_madkit_references=" + kr.m_madkit_references);*/
 				++kr.m_madkit_references;
 
 				if (kr.m_madkit_references == 2) {
@@ -1848,10 +1860,8 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 					return false;
 				if (kr.m_madkit_references > 0)
 					return true;
-				for (GroupTree gt : subGroups)
-					if (gt.isAnyMadkitCreatedRecursive(ka))
-						return true;
-				return false;
+				return subGroups.values().stream().anyMatch(l -> l.stream().anyMatch(gt -> gt.isAnyMadkitCreatedRecursive(ka)));
+
 			}
 		}
 
@@ -1906,6 +1916,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 
 		private void addSubGroup(GroupTree _g) {
 			synchronized (root) {
+				List<GroupTree> subGroups = this.subGroups.computeIfAbsent(_g.group.hashCode(), k -> new ArrayList<>());
 				subGroups.add(_g);
 				_g.m_parent_groups.clear();
 				if (parent != null) {
@@ -1950,9 +1961,12 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 		 */
 
 		private void removeSubGroup(GroupTree _g) {
-
-			if (!subGroups.remove(_g))
+			int hashCode=_g.hashCode();
+			List<GroupTree> subGroups=this.subGroups.get(hashCode);
+			if (subGroups==null || !subGroups.remove(_g))
 				throw new IllegalAccessError("The previous test (after this line code) should return true");
+			if (subGroups.size()==0)
+				this.subGroups.remove(hashCode);
 			/*
 			 * m_all_sub_groups.remove(_g); updateDuplicatedSubGroupList(); GroupTree
 			 * p=m_parent; while (p!=null && p.m_parent!=null) {
