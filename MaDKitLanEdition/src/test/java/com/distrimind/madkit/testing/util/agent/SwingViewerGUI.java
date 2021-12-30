@@ -38,13 +38,14 @@
 package com.distrimind.madkit.testing.util.agent;
 
 import java.awt.Graphics;
+import java.io.IOException;
 
 import com.distrimind.madkit.simulation.viewer.SwingViewer;
 
 public class SwingViewerGUI extends SwingViewer {
 
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		executeThisAgent();
 	}
 

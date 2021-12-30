@@ -39,6 +39,8 @@ package com.distrimind.madkit.testing.util.agent;
 
 import com.distrimind.madkit.kernel.Scheduler;
 
+import java.io.IOException;
+
 public class SchedulerInstance extends Scheduler {
 
 	@Override
@@ -46,7 +48,7 @@ public class SchedulerInstance extends Scheduler {
 		setDelay(500);
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		executeThisAgent();
 	}
 }

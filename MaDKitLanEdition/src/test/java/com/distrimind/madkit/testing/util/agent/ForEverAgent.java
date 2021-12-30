@@ -41,6 +41,7 @@ import static com.distrimind.madkit.kernel.AbstractAgent.ReturnCode.SUCCESS;
 import static com.distrimind.madkit.kernel.TestNGMadkit.GROUP;
 import static com.distrimind.madkit.kernel.TestNGMadkit.ROLE;
 
+import java.io.IOException;
 import java.util.logging.Level;
 
 import com.distrimind.madkit.kernel.Agent;
@@ -77,7 +78,7 @@ public class ForEverAgent extends Agent {
 			this.killAgent(this);
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		String[] argss = { "--agentLogLevel", "ALL", "--kernelLogLevel", "ALL", "--launchAgents",
 				"{" + ForEverAgent.class.getCanonicalName() + "}", ",true" };
 		Madkit.main(argss);

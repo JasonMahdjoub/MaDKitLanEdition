@@ -42,6 +42,8 @@ import static com.distrimind.madkit.kernel.TestNGMadkit.stopTimer;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
 
+import java.io.IOException;
+
 public class BucketBench extends AbstractAgent {
 
 	@Override
@@ -57,7 +59,7 @@ public class BucketBench extends AbstractAgent {
 	}
 
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		executeThisAgent(1, false);
 	}
 

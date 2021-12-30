@@ -39,6 +39,8 @@ package com.distrimind.madkit.testing.util.agent;
 
 import com.distrimind.madkit.kernel.Scheduler;
 
+import java.io.IOException;
+
 public class SchedulerGUI extends Scheduler {
 
 	public SchedulerGUI() {
@@ -46,7 +48,7 @@ public class SchedulerGUI extends Scheduler {
 	}
 
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		executeThisAgent();
 	}
 

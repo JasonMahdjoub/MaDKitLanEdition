@@ -46,6 +46,8 @@ import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.kernel.Message;
 
+import java.io.IOException;
+
 public class MessagingTest extends AbstractAgent {
 
 	@Override
@@ -66,7 +68,7 @@ public class MessagingTest extends AbstractAgent {
 	// 86 ms on beltegeuse
 
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		executeThisAgent(1, false);
 	}
 

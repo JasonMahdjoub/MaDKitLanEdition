@@ -41,6 +41,8 @@ import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNull;
 import org.testng.annotations.Test;
 import com.distrimind.madkit.action.KernelAction;
+
+import java.io.IOException;
 import java.util.Arrays;
 
 /**
@@ -63,7 +65,7 @@ public class MadkitTest {
 	 * 
 	 */
 	@Test(enabled = false)
-	private void testMKlogLevelBoot(String MKLogLevel) {
+	private void testMKlogLevelBoot(String MKLogLevel) throws IOException {
 		System.err.println("\n\n\n\n\n--------------------MK log level = " + MKLogLevel + "-------------------");
 		String[] args = { "--madkitLogLevel", MKLogLevel };
 		Madkit m = new Madkit(args);
@@ -72,20 +74,20 @@ public class MadkitTest {
 	}
 
 	@Test
-	public void nullArgs() {
+	public void nullArgs() throws IOException {
 		Madkit m = new Madkit();
 		closeMadkit(m);
 	}
 
 	@Test
-	public void noArg() {
+	public void noArg() throws IOException {
 		Madkit m = new Madkit();
 		System.err.println(Arrays.toString(m.args));
 		closeMadkit(m);
 	}
 
 	@Test
-	public void buildConfigFromArgsTest() {
+	public void buildConfigFromArgsTest() throws IOException {
 		Madkit m = new Madkit();
 		String[] args = new String[1];
 		args[0] = "";
@@ -99,17 +101,17 @@ public class MadkitTest {
 	}
 
 	@Test
-	public void mkLogLevelALL() {
+	public void mkLogLevelALL() throws IOException {
 		testMKlogLevelBoot("ALL");
 	}
 
 	@Test
-	public void mkLogLevelFINEST() {
+	public void mkLogLevelFINEST() throws IOException {
 		testMKlogLevelBoot("FINEST");
 	}
 
 	@Test
-	public void mkLogLevelOFF() {
+	public void mkLogLevelOFF() throws IOException {
 		testMKlogLevelBoot("OFF");
 	}
 
@@ -119,7 +121,7 @@ public class MadkitTest {
 	}
 
 	@Test
-	public void defaultAgentLogging() throws InterruptedException {
+	public void defaultAgentLogging() throws InterruptedException, IOException {
 		Madkit m = new Madkit();
 		Thread.sleep(100);
 		assertNull(m.getKernel().logger);
@@ -137,7 +139,7 @@ public class MadkitTest {
 	}
 
 	@Test
-	public void doActionLaunchAgentWithDesktop() throws InterruptedException {
+	public void doActionLaunchAgentWithDesktop() throws InterruptedException, IOException {
 		Madkit m = new Madkit();
 		Agent a = new Agent();
 		m.doAction(KernelAction.LAUNCH_AGENT, a, Boolean.TRUE);
@@ -148,7 +150,7 @@ public class MadkitTest {
 	}
 
 	@Test
-	public void doActionLaunchAgentNoDesktop() throws InterruptedException {
+	public void doActionLaunchAgentNoDesktop() throws InterruptedException, IOException {
 		Madkit m = new Madkit("--desktop", "false", "--forceDesktop", "true");
 		Agent a = new Agent();
 		m.doAction(KernelAction.LAUNCH_AGENT, a, Boolean.TRUE);
@@ -178,7 +180,7 @@ public class MadkitTest {
 	}
 
 	@Test
-	public void buildSessionTest() {
+	public void buildSessionTest() throws IOException {
 		Madkit m=new Madkit("--desktop", "false", "--forceDesktop", "true", "--kernelLogLevel", "ALL");
 		closeMadkit(m);
 	}

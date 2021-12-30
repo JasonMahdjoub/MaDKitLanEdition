@@ -658,7 +658,7 @@ class MadkitKernel extends Agent {
 	 * config File launchConfigAgents(); mkCfg.putAll(currentConfig); }
 	 */
 
-	private void launchXml(File xmlFile, boolean inNewMadkit) {
+	private void launchXml(File xmlFile, boolean inNewMadkit) throws IOException {
 		if (logger != null && logger.isLoggable(Level.FINER))
 			logger.finer("** LAUNCHING XML CONFIG " + xmlFile);
 		if (inNewMadkit) {
@@ -672,14 +672,15 @@ class MadkitKernel extends Agent {
 				Document document = XMLUtilities.getDOM(xmlFile);
 				mkCfg.loadXML(document);
 				launchXmlAgents(document);
-			} catch (IOException | SAXException | ParserConfigurationException e) {
-				getLogger().severeLog("", e);
+			} catch (SAXException | ParserConfigurationException | PropertiesParseException e) {
+				getLogger().severeLog("");
+				throw new IOException(e);
 			}
 			// mkCfg.putAll(currentConfig);
 		}
 	}
 	@SuppressWarnings("unused")
-	private void launchYAML(File yamlFile, boolean inNewMadkit) {
+	private void launchYAML(File yamlFile, boolean inNewMadkit) throws IOException {
 		if (logger != null && logger.isLoggable(Level.FINER))
 			logger.finer("** LAUNCHING YAML CONFIG " + yamlFile);
 		if (inNewMadkit) {
@@ -694,7 +695,8 @@ class MadkitKernel extends Agent {
 				mkCfg.loadYAML(yamlFile);
 
 			} catch (IOException e) {
-				getLogger().severeLog("", e);
+				getLogger().severeLog("");
+				throw e;
 			}
 			// mkCfg.putAll(currentConfig);
 		}
@@ -774,7 +776,13 @@ class MadkitKernel extends Agent {
 				bugReport(e);
 			}
 		} else {
-			final Thread t = new Thread(() -> new Madkit(platform.args));
+			final Thread t = new Thread(() -> {
+				try {
+					new Madkit(platform.args);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			});
 			t.setDaemon(false);
 			t.start();
 		}

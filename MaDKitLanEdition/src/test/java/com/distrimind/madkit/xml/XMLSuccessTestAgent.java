@@ -54,6 +54,7 @@ public class XMLSuccessTestAgent extends AbstractAgent {
 	private Integer i = 10;
 	private String s = "t";
 
+
 	/**
 	 * @return the speed
 	 */

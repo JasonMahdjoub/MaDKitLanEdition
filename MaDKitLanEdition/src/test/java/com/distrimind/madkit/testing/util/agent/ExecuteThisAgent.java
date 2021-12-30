@@ -44,6 +44,8 @@ import static com.distrimind.madkit.kernel.TestNGMadkit.ROLE;
 import com.distrimind.madkit.kernel.Agent;
 import org.testng.AssertJUnit;
 
+import java.io.IOException;
+
 /**
  * @author Fabien Michel
  * @since MaDKit 5.0.0.12
@@ -63,7 +65,7 @@ public class ExecuteThisAgent extends Agent {
 		this.killAgent(this);
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		executeThisAgent();
 		executeThisAgent(1, true);
 		executeThisAgent(1, false);

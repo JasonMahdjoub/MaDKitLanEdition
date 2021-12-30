@@ -40,6 +40,8 @@ package com.distrimind.madkit.logging;
 import com.distrimind.madkit.kernel.Agent;
 import com.distrimind.madkit.kernel.Madkit;
 
+import java.io.IOException;
+
 /**
  * @author Fabien Michel
  * @author Jason Mahdjoub
@@ -58,7 +60,7 @@ public class LogFileTester extends Agent {
 	}
 
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		new Madkit("createLogFiles", "true", "launchAgents", LogFileTester.class.getName());
 	}
 

@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <MDK name="aName" description="test">
+	<com.distrimind.madkit.kernel.MadkitProperties>
 		<Agent class="com.distrimind.madkit.xml.XMLBenchTestAgent" nbOfInstances="100">
 			 <Attributes 
 				 speed="3" 
@@ -15,4 +16,5 @@
 			 />
 			 <bucketModeRole community="Tcommunity" group="Tgroup" role="Trole"/>
 		 </Agent>
+	</com.distrimind.madkit.kernel.MadkitProperties>
 </MDK>

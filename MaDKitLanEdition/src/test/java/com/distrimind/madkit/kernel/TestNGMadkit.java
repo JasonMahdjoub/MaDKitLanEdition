@@ -438,7 +438,14 @@ public class TestNGMadkit {
 			final AbstractAgent agentToLaunch, final NetworkEventListener networkEventListener,
 			final KernelAddress kernelAddress) {
 		AtomicReference<Madkit> mkReference=new AtomicReference<>();
-		Thread t=new Thread(() -> launchCustomNetworkInstance(l, agentClass, agentToLaunch, networkEventListener, kernelAddress, mkReference));
+		Thread t=new Thread(() -> {
+			try {
+				launchCustomNetworkInstance(l, agentClass, agentToLaunch, networkEventListener, kernelAddress, mkReference);
+			} catch (IOException e) {
+				e.printStackTrace();
+				Assert.fail();
+			}
+		});
 		t.setName("Madkit thread launcher");
 		t.start();
 		synchronized (helperInstances) {
@@ -609,17 +616,17 @@ public class TestNGMadkit {
 		launchThreadedMKNetworkInstance(Level.OFF, networkEventListener);
 	}
 
-	public Madkit launchMKNetworkInstance(final NetworkEventListener networkEventListener) {
+	public Madkit launchMKNetworkInstance(final NetworkEventListener networkEventListener) throws IOException {
 		return launchMKNetworkInstance(Level.INFO, networkEventListener);
 	}
 
-	public Madkit launchMKNetworkInstance(Level l, final NetworkEventListener networkEventListener) {
+	public Madkit launchMKNetworkInstance(Level l, final NetworkEventListener networkEventListener) throws IOException {
 		return launchCustomNetworkInstance(l, ForEverAgent.class, null, networkEventListener, null, null);
 	}
 
 	public Madkit launchCustomNetworkInstance(final Level l, final Class<? extends AbstractAgent> agentTolaunch,
 			final AbstractAgent agentToLaunch, final NetworkEventListener networkEventListener,
-			KernelAddress kernelAddress, AtomicReference<Madkit> mkReference) {
+			KernelAddress kernelAddress, AtomicReference<Madkit> mkReference) throws IOException {
 		Madkit m = new Madkit(Madkit.generateDefaultMadkitConfig(), kernelAddress, _properties -> {
 			_properties.networkProperties.network = true;
 			_properties.networkProperties.networkLogLevel = l;

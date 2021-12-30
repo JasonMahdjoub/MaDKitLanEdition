@@ -18,6 +18,7 @@
  */
 package com.distrimind.madkitdemos.bees;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -169,7 +170,7 @@ public class BeeLauncher extends Agent {
 		});
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		executeThisAgent(1, false, args);
 	}
 

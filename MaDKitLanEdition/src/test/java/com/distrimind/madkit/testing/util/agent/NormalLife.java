@@ -39,6 +39,8 @@ package com.distrimind.madkit.testing.util.agent;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
 
+import java.io.IOException;
+
 /**
  * @author Fabien Michel
  * @since MaDKit 5.0.0.7
@@ -78,7 +80,7 @@ public class NormalLife extends DoItDuringLifeCycleAgent {
 
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		AbstractAgent.executeThisAgent(args);
 	}
 

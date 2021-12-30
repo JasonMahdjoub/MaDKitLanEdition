@@ -148,6 +148,7 @@ final public class Madkit {
 					.addDeveloper(new PersonDeveloper("Ferber", "Jacques", "1997-02-01"))
 					.addDescription(new Description((short)2, (short)3, (short)4, Version.Type.STABLE, (short)0, "2021-12-29")
 							.addItem(INTERNAL_CHANGE, "Optimize group deserialization")
+							.addItem(INTERNAL_CHANGE, "Better manage exception when loading XML properties files")
 					)
 					.addDescription(new Description((short)2, (short)3, (short)3, Version.Type.STABLE, (short)0, "2021-12-21")
 							.addItem(INTERNAL_CHANGE, "Add possibility to disable hash checking when encryption algorithm is authenticated")
@@ -761,7 +762,7 @@ final public class Madkit {
 	 * @param options
 	 *            the options which should be used to launch Madkit: see {@link MadkitProperties}
 	 */
-	public static void main(String[] options) {
+	public static void main(String[] options) throws IOException {
 		new Madkit(options);
 	}
 
@@ -812,7 +813,7 @@ final public class Madkit {
 	 * @see NetworkProperties
 	 * 
 	 */
-	public Madkit(String... options) {
+	public Madkit(String... options) throws IOException {
 		this(_properties -> {
 
 		}, options);
@@ -838,7 +839,7 @@ final public class Madkit {
 	 * @see MadkitProperties
 	 * @see NetworkProperties
 	 */
-	public Madkit(MadkitEventListener eventListener, String... options) {
+	public Madkit(MadkitEventListener eventListener, String... options) throws IOException {
 		this(generateDefaultMadkitConfig(), null, eventListener, options);
 	}
     /**
@@ -861,7 +862,7 @@ final public class Madkit {
      * @see MadkitProperties
      * @see NetworkProperties
      */
-    public Madkit(MadkitProperties madkitConfig, MadkitEventListener eventListener, String... options) {
+    public Madkit(MadkitProperties madkitConfig, MadkitEventListener eventListener, String... options) throws IOException {
         this(madkitConfig, null, eventListener, options);
     }
     /**
@@ -883,12 +884,12 @@ final public class Madkit {
      * @see MadkitProperties
      * @see NetworkProperties
      */
-    public Madkit(MadkitProperties madkitConfig, String... options) {
+    public Madkit(MadkitProperties madkitConfig, String... options) throws IOException {
         this(madkitConfig, null, _properties -> {
 
 		}, options);
     }
-	Madkit(MadkitProperties madkitProperties, KernelAddress kernelAddress, MadkitEventListener eventListener, String... options) {
+	Madkit(MadkitProperties madkitProperties, KernelAddress kernelAddress, MadkitEventListener eventListener, String... options) throws IOException {
 		if (eventListener == null)
 			throw new NullPointerException("eventListener");
 		this.dateFormat=new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss");
@@ -907,6 +908,7 @@ final public class Madkit {
 		final Properties fromArgs = buildConfigFromArgs(args);
 		try {
 			madkitConfig.loadFromProperties(fromArgs);
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -993,17 +995,13 @@ final public class Madkit {
 		logger.fine("** LOGGING INITIALIZED **");
 	}
 
-	private boolean loadConfigFiles() {
+	private boolean loadConfigFiles() throws IOException {
 		boolean ok = false;
 		ArrayList<File> configFiles = madkitConfig.configFiles;
 		if (configFiles != null) {
 			for (File f : configFiles) {
-				try {
-					madkitConfig.load(f);
-					ok = true;
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				madkitConfig.load(f);
+				ok = true;
 			}
 		}
 		return ok;

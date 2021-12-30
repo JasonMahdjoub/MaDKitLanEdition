@@ -41,6 +41,8 @@ import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Agent;
 import com.distrimind.madkit.kernel.Madkit;
 
+import java.io.IOException;
+
 /**
  * @author Fabien Michel
  * @author Jason Mahdjoub
@@ -52,7 +54,7 @@ import com.distrimind.madkit.kernel.Madkit;
 
 public class LaunchAgentArg extends AbstractAgent {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		String[] argss = { "launchAgents", Agent.class.getName() };
 		Madkit.main(argss);
 		String[] argsss = { "launchAgents", Agent.class.getName() + ",true,2" };// TODO check this code

@@ -49,6 +49,8 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
 import org.testng.Assert;
+
+import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -70,7 +72,7 @@ public class AbstractAgentTest {
 	AbstractAgent a, b;
 	Madkit m;
 	@BeforeMethod
-	public void setup() {
+	public void setup() throws IOException {
 		a = new AbstractAgent();
 		b = new AbstractAgent();
 		m=new Madkit("--launchAgents", "{" + AbstractAgent.class.getName() + "}");

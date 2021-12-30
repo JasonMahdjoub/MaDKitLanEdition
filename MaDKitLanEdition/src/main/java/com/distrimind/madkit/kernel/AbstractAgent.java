@@ -4021,7 +4021,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * 
 	 * @since MaDKit 5.0.0.14
 	 */
-	protected static Madkit executeThisAgent(int nbOfInstances, boolean createFrame, String... args) {
+	protected static Madkit executeThisAgent(int nbOfInstances, boolean createFrame, String... args) throws IOException {
 		StackTraceElement element = null;
 		for (StackTraceElement stackTraceElement : new Throwable().getStackTrace()) {
 			if (stackTraceElement.getMethodName().equals("main")) {
@@ -4056,7 +4056,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @see AbstractAgent#executeThisAgent(int, boolean, String...)
 	 * @since MaDKit 5.0.0.14
 	 */
-	protected static Madkit executeThisAgent(String... args) {
+	protected static Madkit executeThisAgent(String... args) throws IOException {
 		return executeThisAgent(1, true, args);
 	}
 
@@ -4073,7 +4073,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * @see AbstractAgent#executeThisAgent(int, boolean, String...)
 	 * @since MaDKit 5.0.0.15
 	 */
-	protected static Madkit executeThisAgent() {
+	protected static Madkit executeThisAgent() throws IOException {
 		return executeThisAgent(1, true);
 	}
 

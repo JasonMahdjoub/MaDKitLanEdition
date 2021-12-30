@@ -37,6 +37,7 @@
  */
 package com.distrimind.madkit.classreloading;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
 
@@ -105,7 +106,7 @@ public class TestAgent extends Agent {
 		this.killAgent(this);
 	}
 
-	public static void main(String[] argss) {
+	public static void main(String[] argss) throws IOException {
 		String[] args = { "--agentLogLevel", "INFO", "--MadkitLogLevel", "OFF", "--orgLogLevel", "OFF",
 				"--launchAgents", "{" + TestAgent.class.getName() + "}" + ",true" };
 		Madkit.main(args);

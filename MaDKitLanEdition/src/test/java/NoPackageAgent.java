@@ -38,9 +38,11 @@
  */
 import com.distrimind.madkit.kernel.AbstractAgent;
 
+import java.io.IOException;
+
 public class NoPackageAgent extends AbstractAgent {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		executeThisAgent();
 	}
 }

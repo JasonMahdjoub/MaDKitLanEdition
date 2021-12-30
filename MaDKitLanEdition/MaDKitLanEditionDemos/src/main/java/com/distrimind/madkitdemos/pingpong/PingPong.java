@@ -19,6 +19,7 @@
 package com.distrimind.madkitdemos.pingpong;
 
 import java.awt.Color;
+import java.io.IOException;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -134,7 +135,7 @@ public class PingPong extends Agent {
 		return new Color((int) (Math.random() * 256), (int) (Math.random() * 256), (int) (Math.random() * 256));
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		String[] argss = { "--network", "--launchAgents", PingPong.class.getName(), ",true" };
 		Madkit.main(argss);
 	}

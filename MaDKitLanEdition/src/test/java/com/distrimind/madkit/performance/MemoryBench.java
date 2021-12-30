@@ -42,6 +42,8 @@ import com.distrimind.madkit.kernel.Group;
 import com.distrimind.madkit.kernel.Madkit;
 import com.distrimind.madkit.kernel.Role;
 
+import java.io.IOException;
+
 /**
  * @author Fabien Michel
  * @author Jason Mahdjoub
@@ -63,7 +65,7 @@ public class MemoryBench extends AbstractAgent {
 	}
 
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		String[] argss = { "--agentLogLevel", "OFF", "--" + "--madkitLogLevel", "OFF", "--orgLogLevel", "OFF",
 				"--launchAgents", "{" + MemoryBench.class.getCanonicalName() + "}", ",false" };
 		Madkit.main(argss);

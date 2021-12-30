@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-2.3.3 STABLE (Build: 5589) (from 22/05/2015 to 21/12/2021)
+2.3.4 STABLE (Build: 5702) (from 22/05/2015 to 29/12/2021)
 
 # Creator(s):
 * Jason MAHDJOUB
@@ -12,6 +12,12 @@ MaDKitLanEdition
 * Jason MAHDJOUB (Entered in the team at 22/05/2015)
 
 # Changes:
+
+
+### 2.3.4 STABLE (29/12/2021)
+#### Internal change(s)
+* Optimize group deserialization
+* Better manage exception when loading XML properties files
 
 
 ### 2.3.3 STABLE (21/12/2021)

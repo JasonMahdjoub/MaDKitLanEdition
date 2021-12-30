@@ -40,6 +40,7 @@ package com.distrimind.madkit.testing.util.agent;
 import static com.distrimind.madkit.kernel.TestNGMadkit.GROUP;
 import static com.distrimind.madkit.kernel.TestNGMadkit.ROLE;
 
+import java.io.IOException;
 import java.util.logging.Level;
 
 /**
@@ -78,7 +79,7 @@ public class FaultyAA extends DoItDuringLifeCycleAbstractAgent {
 		o.toString();
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		String[] myArgs = { "agentLogLevel", Level.ALL.toString() };
 		executeThisAgent(myArgs);
 	}

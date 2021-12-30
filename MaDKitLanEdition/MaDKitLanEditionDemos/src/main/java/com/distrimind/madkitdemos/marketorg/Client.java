@@ -22,6 +22,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.Toolkit;
+import java.io.IOException;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -126,7 +127,7 @@ public class Client extends Agent {
 	}
 
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		nbOfClientsOnScreen = 0;
 		Broker.nbOfBrokersOnScreen = 0;
 		new Madkit("--launchAgents", "{" + Broker.class.getName() + ",true,3;" + Client.class.getName() + ",true,2;"

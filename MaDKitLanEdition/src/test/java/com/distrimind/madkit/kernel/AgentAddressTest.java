@@ -43,6 +43,8 @@ import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
 import org.testng.AssertJUnit;
 
+import java.io.IOException;
+
 /**
  * @author Fabien Michel
  * @author Jason Mahdjoub
@@ -60,7 +62,7 @@ public class AgentAddressTest {
 	AgentAddress aa;
 
 	@BeforeMethod
-	public void before() {
+	public void before() throws IOException {
 		mk = (m=new Madkit("--desktop", "false", "--forceDesktop", "true")).getKernel();
 		a = new AbstractAgent();
 		a.setKernel(mk);

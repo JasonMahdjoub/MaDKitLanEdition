@@ -44,6 +44,8 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
 
+import java.io.IOException;
+
 /**
  * @author Fabien Michel
  * @since MaDKit 5.0.0.12
@@ -57,7 +59,7 @@ public class NormalAA extends AbstractAgent {
 		assertEquals(SUCCESS, requestRole(GROUP, ROLE));
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		executeThisAgent();
 	}
 

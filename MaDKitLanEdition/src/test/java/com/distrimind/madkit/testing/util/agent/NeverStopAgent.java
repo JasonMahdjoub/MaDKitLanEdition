@@ -42,6 +42,8 @@ import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.kernel.Group;
 import com.distrimind.madkit.kernel.Madkit;
 
+import java.io.IOException;
+
 /**
  * @author Fabien Michel
  * @since MaDKit 5.0.0.9
@@ -73,7 +75,7 @@ public class NeverStopAgent extends Agent {
 			logger.info("bye");
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		String[] argss = { "--agentLogLevel", "INFO", "--launchAgents",
 				"{" + NeverStopAgent.class.getCanonicalName() + "}", ",true" };
 		Madkit.main(argss);

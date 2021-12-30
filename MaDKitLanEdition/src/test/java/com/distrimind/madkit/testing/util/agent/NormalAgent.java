@@ -42,6 +42,7 @@ import static com.distrimind.madkit.kernel.TestNGMadkit.GROUP;
 import static com.distrimind.madkit.kernel.TestNGMadkit.ROLE;
 import static org.testng.AssertJUnit.assertEquals;
 
+import java.io.IOException;
 import java.util.logging.Level;
 
 import com.distrimind.madkit.kernel.Agent;
@@ -73,7 +74,7 @@ public class NormalAgent extends Agent {
 		this.killAgent(this);
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		executeThisAgent("--agentLogLevel", "ALL", "--createLogFiles", "--debug");
 	}
 

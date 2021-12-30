@@ -263,9 +263,13 @@ public class GlobalAction {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new Madkit("configFiles", e.getActionCommand()
-				// ,LevelOption.madkitLogLevel.toString(),"ALL"
-				);
+				try {
+					new Madkit("configFiles", e.getActionCommand()
+					// ,LevelOption.madkitLogLevel.toString(),"ALL"
+					);
+				} catch (IOException ex) {
+					ex.printStackTrace();
+				}
 			}
 		};
 		LAUNCH_MAIN.putValue(Action.SMALL_ICON, SwingUtil.MADKIT_LOGO_SMALL);

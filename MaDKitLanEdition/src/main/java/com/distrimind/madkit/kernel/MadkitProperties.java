@@ -510,7 +510,8 @@ public class MadkitProperties extends MultiFormatProperties {
 			logger.fine(String.format(SuccessMessages.CONFIG_LOAD_SUCCESS.toString(), xml_file.toString()));
 		} catch (PropertiesParseException e) {
 			logger.log(Level.WARNING,
-					String.format(ErrorMessages.CANT_LOAD_CONFIG_FILE.toString(), xml_file.toString()), e);
+					String.format(ErrorMessages.CANT_LOAD_CONFIG_FILE.toString(), xml_file.toString()));
+			throw new IOException(e);
 		}
 	}
 
@@ -518,14 +519,15 @@ public class MadkitProperties extends MultiFormatProperties {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void loadXML(Document document) {
+	public void loadXML(Document document) throws PropertiesParseException {
 		try {
 			super.loadXML(document);
 			databaseConfigurationsParametrized=false;
 			logger.fine(String.format(SuccessMessages.CONFIG_LOAD_SUCCESS.toString(), document.toString()));
 		} catch (PropertiesParseException e) {
 			logger.log(Level.WARNING,
-					String.format(ErrorMessages.CANT_LOAD_CONFIG_FILE.toString(), document.toString()), e);
+					String.format(ErrorMessages.CANT_LOAD_CONFIG_FILE.toString(), document.toString()));
+			throw e;
 		}
 	}
 	

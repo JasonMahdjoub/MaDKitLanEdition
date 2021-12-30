@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -32,13 +33,25 @@ public class MKLEDemos {
 				frame.setVisible(false);
 				switch (list.getSelectedIndex()) {
 				case 0:
-					PingPongDemoLauncherAgent.main(new String[0]);
+					try {
+						PingPongDemoLauncherAgent.main(new String[0]);
+					} catch (IOException ex) {
+						ex.printStackTrace();
+					}
 					break;
 				case 1:
-					BeeLauncher.main(new String[0]);
+					try {
+						BeeLauncher.main(new String[0]);
+					} catch (IOException ex) {
+						ex.printStackTrace();
+					}
 					break;
 				case 2:
-					Client.main(new String[0]);
+					try {
+						Client.main(new String[0]);
+					} catch (IOException ex) {
+						ex.printStackTrace();
+					}
 					break;
 				}
 				frame.dispose();

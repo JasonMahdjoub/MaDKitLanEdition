@@ -37,6 +37,7 @@
  */
 package com.distrimind.madkit.classreloading;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 import com.distrimind.madkit.classreloading.anotherPackage.Fake;
@@ -70,7 +71,7 @@ public class ReloadClass extends Agent {
     }
 
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		executeThisAgent();
 	}
 

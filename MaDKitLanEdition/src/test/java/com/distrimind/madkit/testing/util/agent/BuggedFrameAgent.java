@@ -42,6 +42,8 @@ import javax.swing.JFrame;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Madkit;
 
+import java.io.IOException;
+
 /**
  * @author Fabien Michel
  * @since MaDKit 5.0.0.13
@@ -58,7 +60,7 @@ public class BuggedFrameAgent extends AbstractAgent {
 		o.toString();
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		String[] argss = { "--agentLogLevel", "ALL", "--kernelLogLevel", "INFO", "--launchAgents",
 				"{" + BuggedFrameAgent.class.getCanonicalName() + "}", ",true" };
 		Madkit.main(argss);

@@ -38,6 +38,7 @@
 package com.distrimind.madkit.simulation.viewer;
 
 import java.awt.*;
+import java.io.IOException;
 
 public class TestSwingViewer extends SwingViewer {
 
@@ -54,7 +55,7 @@ public class TestSwingViewer extends SwingViewer {
 		super.activate();
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		executeThisAgent();
 	}
 

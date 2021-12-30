@@ -37,6 +37,7 @@
  */
 package com.distrimind.madkit.testing.util.agent;
 
+import java.io.IOException;
 import java.util.logging.Level;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
@@ -73,7 +74,7 @@ public class FaultyAgent extends DoItDuringLifeCycleAgent {
 		o.toString();
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		String[] myArgs = { "agentLogLevel", Level.ALL.toString() };
 		AbstractAgent.executeThisAgent(myArgs);
 	}

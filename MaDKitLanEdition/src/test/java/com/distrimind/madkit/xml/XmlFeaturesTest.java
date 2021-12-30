@@ -171,7 +171,7 @@ public class XmlFeaturesTest extends TestNGMadkit {
 
 	@Test
 	public void noMadkitOptions() {
-		addMadkitArgs("--configFiles", "{com/distrimind/madkit/xml/failure.xml}");
+		addMadkitArgs("--configFiles", "{src/test/resources/com/distrimind/madkit/xml/failure.xml}");
 		addMadkitArgs("--kernelLogLevel", "ALL");
 		launchTest(new AbstractAgent() {
 			@Override

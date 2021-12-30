@@ -39,6 +39,8 @@
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Madkit;
 
+import java.io.IOException;
+
 public class NoPackage extends AbstractAgent {
 
 	@Override
@@ -48,7 +50,7 @@ public class NoPackage extends AbstractAgent {
 	}
 
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		new Madkit("--launchAgents", "{" + AbstractAgent.class.getName() + ",true}", "--desktop");
 	}
 

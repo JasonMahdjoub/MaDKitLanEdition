@@ -37,6 +37,7 @@
  */
 package com.distrimind.madkit.testing.util.agent;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 
@@ -111,7 +112,7 @@ public class TestCodeAA extends AbstractAgent {
 
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		executeThisAgent(args);
 	}
 

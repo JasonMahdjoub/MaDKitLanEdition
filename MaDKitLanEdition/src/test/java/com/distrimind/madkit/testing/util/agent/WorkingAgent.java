@@ -39,6 +39,8 @@ package com.distrimind.madkit.testing.util.agent;
 
 import com.distrimind.madkit.kernel.AbstractAgent;
 
+import java.io.IOException;
+
 public class WorkingAgent extends DoItDuringLifeCycleAgent {
 
 	public WorkingAgent(boolean inActivate, boolean inLive, boolean inEnd) {
@@ -58,7 +60,7 @@ public class WorkingAgent extends DoItDuringLifeCycleAgent {
 		super.doIt();
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		String[] myArgs = { "--desktop", "true" };
 		AbstractAgent.executeThisAgent(myArgs);
 	}

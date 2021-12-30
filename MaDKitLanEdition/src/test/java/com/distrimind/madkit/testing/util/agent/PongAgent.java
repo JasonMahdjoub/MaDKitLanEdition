@@ -40,6 +40,7 @@ package com.distrimind.madkit.testing.util.agent;
 import static com.distrimind.madkit.kernel.TestNGMadkit.GROUP;
 import static com.distrimind.madkit.kernel.TestNGMadkit.ROLE;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import com.distrimind.madkit.kernel.Agent;
@@ -78,7 +79,7 @@ public class PongAgent extends Agent {
 	}
 
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		if (args == null) {
 			args = Arrays.asList("--network", "--agentLogLevel", "ALL", "--launchAgents",
 					"{" + PongAgent.class.getCanonicalName() + "}", ",true").toArray(new String[0]);

@@ -1558,27 +1558,33 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 						for (GroupTree gt : subGroups) {
 							boolean d = (gt.isDistributed || _isDistributed);
 							if ((d && WrappedSecretString.constantTimeAreEqual(gt.group, g)) || (!d && gt.group.equals(g))) {
-								if (e == null) {
-									if (i == _group.length - 1) {
-										if (!forceReserved && ((_isReserved && gt.getNbReferences() > 0) || gt.isReserved)) {
-											StringBuilder err = new StringBuilder();
-											for (String s : _group)
-												err.append(s).append("/");
+								if (i == _group.length - 1) {
+									if (!forceReserved && ((_isReserved && gt.getNbReferences() > 0) || gt.isReserved)) {
+										StringBuilder err = new StringBuilder();
+										for (String s : _group)
+											err.append(s).append("/");
 
-											if (gt.isReserved)
-												e = new IllegalArgumentException("The group " + err + " is reserved !");
-											else
-												e = new IllegalArgumentException("The group " + err
-														+ " cannot be reserved, because it have already been reserved !");
-											continue;
-										}
-										if (_isReserved)
-											gt.isReserved = true;
-										gt.incrementReferences();
-										r = gt;
-									} else {
-										r = gt.getGroup(_isDistributed, _theIdentifier, i + 1, _isReserved, forceReserved, _group);
+										if (gt.isReserved)
+											e = new IllegalArgumentException("The group " + err + " is reserved !");
+										else
+											e = new IllegalArgumentException("The group " + err
+													+ " cannot be reserved, because it have already been reserved !");
+										if (!d)
+											throw e;
+										continue;
 									}
+									if (_isReserved)
+										gt.isReserved = true;
+									gt.incrementReferences();
+									if (!d)
+									{
+										if (e != null)
+											throw e;
+										return gt;
+									}
+									r = gt;
+								} else {
+									r = gt.getGroup(_isDistributed, _theIdentifier, i + 1, _isReserved, forceReserved, _group);
 								}
 							}
 						}

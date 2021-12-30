@@ -19,6 +19,7 @@
 package com.distrimind.madkitdemos.pingpong;
 
 import java.awt.Toolkit;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,7 +70,7 @@ public class PingPongDemoLauncherAgent extends Agent {
 	}
 
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		executeThisAgent(1, false);
 	}
 

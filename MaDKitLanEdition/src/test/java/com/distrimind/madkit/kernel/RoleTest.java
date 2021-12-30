@@ -42,6 +42,8 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
+
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -60,7 +62,7 @@ public class RoleTest {
 	Madkit m;
 
 	@BeforeMethod
-	public void before() {
+	public void before() throws IOException {
 		String[] args = { "--desktop", "false", "--forceDesktop", "true", "--platformLogLevel", "ALL" };
 		mk = (m=new Madkit(args)).getKernel();
 		a = new AbstractAgent();

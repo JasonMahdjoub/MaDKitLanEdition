@@ -82,7 +82,7 @@ public class CreateLogFilesTest extends TestNGMadkit {
 
 
 	@Test
-	public void logDirectoryUniqueness() {
+	public void logDirectoryUniqueness() throws IOException {
 		new TestNGMadkit();
 		String dir = System.getProperty("java.io.tmpdir") + File.separatorChar + testName;
 		try {

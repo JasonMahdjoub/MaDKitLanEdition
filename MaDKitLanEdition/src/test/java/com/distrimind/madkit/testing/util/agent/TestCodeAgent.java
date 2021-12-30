@@ -39,6 +39,8 @@ package com.distrimind.madkit.testing.util.agent;
 
 import com.distrimind.madkit.kernel.Agent;
 
+import java.io.IOException;
+
 /**
  * @author Fabien Michel
  * @since MaDKit 5.0.0.14
@@ -54,7 +56,7 @@ public class TestCodeAgent extends Agent {
 		setLogLevel(null);
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		executeThisAgent("--desktop", "true", "--createLogFiles", "true");
 	}
 

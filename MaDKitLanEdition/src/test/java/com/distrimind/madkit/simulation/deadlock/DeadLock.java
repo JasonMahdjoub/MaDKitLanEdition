@@ -45,6 +45,8 @@ import com.distrimind.madkit.kernel.Scheduler;
 import com.distrimind.madkit.simulation.activator.GenericBehaviorActivator;
 import com.distrimind.madkit.testing.util.agent.SimulatedAgent;
 
+import java.io.IOException;
+
 /**
  * @author Fabien Michel
  * @since MaDKit 5.0.0.15
@@ -79,7 +81,7 @@ public class DeadLock extends Scheduler {
 		}
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		String[] myArgs = { "kernelLogLevel", "ALL" };
 		AbstractAgent.executeThisAgent(myArgs);
 	}
