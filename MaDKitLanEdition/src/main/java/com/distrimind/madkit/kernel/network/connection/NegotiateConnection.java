@@ -67,25 +67,25 @@ public class NegotiateConnection extends AskConnection {
             throw new NullPointerException();
         this.priorities=priorities;
     }
-
-    @Override
-    public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
-        super.readExternal(in);
+    static Map<Integer, Integer> readPriorities(SecuredObjectInputStream in) throws IOException {
         short s=in.readShort();
         if (s<0 || s>ConnectionProtocolNegotiatorProperties.MAXIMUM_NUMBER_OF_CONNECTION_PROTOCOLS)
             throw new MessageExternalizationException(Integrity.FAIL_AND_CANDIDATE_TO_BAN);
-        priorities=new HashMap<>();
+        Map<Integer, Integer> priorities=new HashMap<>();
         for (int i=0;i<s;i++)
         {
             int k=in.readInt();
             int p=in.readInt();
             priorities.put(k, p);
         }
+        return priorities;
     }
-
     @Override
-    public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
-        super.writeExternal(oos);
+    public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
+        super.readExternal(in);
+        priorities=readPriorities(in);
+    }
+    static void writePriorities(SecuredObjectOutputStream oos, Map<Integer, Integer> priorities) throws IOException {
         if (priorities.size()>ConnectionProtocolNegotiatorProperties.MAXIMUM_NUMBER_OF_CONNECTION_PROTOCOLS)
             throw new IOException();
         oos.writeShort(priorities.size());
@@ -94,6 +94,11 @@ public class NegotiateConnection extends AskConnection {
             oos.writeInt(e.getKey());
             oos.writeInt(e.getValue());
         }
+    }
+    @Override
+    public void writeExternal(SecuredObjectOutputStream oos) throws IOException {
+        super.writeExternal(oos);
+        writePriorities(oos, priorities);
     }
 
     public Map<Integer, Integer> getPriorities() {

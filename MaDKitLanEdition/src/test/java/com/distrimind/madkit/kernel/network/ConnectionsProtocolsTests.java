@@ -386,7 +386,7 @@ public class ConnectionsProtocolsTests extends TestNGMadkit {
 		sp = new ServerSecuredProtocolPropertiesWithKnownPublicKey();
 		cp = new ClientSecuredProtocolPropertiesWithKnownPublicKey();
 		HybridASymmetricKeyPair kpepqc=new HybridASymmetricEncryptionType(ASymmetricEncryptionType.RSA_OAEPWithSHA384AndMGF1Padding, ASymmetricEncryptionType.BCPQC_MCELIECE_FUJISAKI_CCA2_SHA256).generateKeyPair(SecureRandomType.DEFAULT.getSingleton(null), 2048);
-		sp.addEncryptionProfile(kpepqc, SymmetricEncryptionType.AES_GCM, ASymmetricKeyWrapperType.DEFAULT, MessageDigestType.DEFAULT);
+		sp.addEncryptionProfile(kpepqc, SymmetricEncryptionType.AES_GCM, ASymmetricKeyWrapperType.HYBRID_BCPQC_MCELIECE_FUJISAKI_CCA2_SHA256_AND_RSA_OAEP_WITH_SHA2_384, MessageDigestType.DEFAULT);
 		cp.setEncryptionProfile(sp);
 		sp.enableEncryption = true;
 		cp.enableEncryption = true;
@@ -408,7 +408,7 @@ public class ConnectionsProtocolsTests extends TestNGMadkit {
 		o = new ConnectionProtocolProperties<?>[2];
 		sp = new ServerSecuredProtocolPropertiesWithKnownPublicKey();
 		cp = new ClientSecuredProtocolPropertiesWithKnownPublicKey();
-		sp.addEncryptionProfile(kpepqc, SymmetricEncryptionType.DEFAULT, ASymmetricKeyWrapperType.DEFAULT, MessageDigestType.DEFAULT);
+		sp.addEncryptionProfile(kpepqc, SymmetricEncryptionType.DEFAULT, ASymmetricKeyWrapperType.HYBRID_BCPQC_MCELIECE_FUJISAKI_CCA2_SHA256_AND_RSA_OAEP_WITH_SHA2_384, MessageDigestType.DEFAULT);
 		cp.setEncryptionProfile(sp);
 		sp.enableEncryption = false;
 		cp.enableEncryption = false;
@@ -647,6 +647,7 @@ public class ConnectionsProtocolsTests extends TestNGMadkit {
 				this.cpasker.getCounterSelector().setActivated();
 				this.cpreceiver.getCounterSelector().setActivated();
 			}*/
+
 			testRandomPingPongMessage();
 			testRandomPingPongMessage();
 			testRandomPingPongMessage();

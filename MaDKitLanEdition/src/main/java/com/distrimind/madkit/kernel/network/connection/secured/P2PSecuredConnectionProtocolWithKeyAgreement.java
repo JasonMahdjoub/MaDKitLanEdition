@@ -530,7 +530,8 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 					if (!myCounterSent)
 					{
 						myCounterSent=true;
-						return new ConnectionFinished(getDistantInetSocketAddress(), packetCounter.getMyEncodedCounters());
+						if (!isConnectionEstablished())
+							return new ConnectionFinished(getDistantInetSocketAddress(), packetCounter.getMyEncodedCounters());
 					}
 					else
 						return null;

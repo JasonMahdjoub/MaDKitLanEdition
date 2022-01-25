@@ -77,7 +77,7 @@ import java.util.logging.Logger;
  * 
  * @author Jasopn Mahdjoub
  * @since MadKitLanEdition 1.0
- * @version 1.3
+ * @version 1.4
  * 
  */
 @SuppressWarnings("UnusedReturnValue")
@@ -322,13 +322,13 @@ public class MadkitProperties extends MultiFormatProperties {
 					if (databaseConfigurations == null) {
 						databaseConfigurations = new DatabaseConfigurations(new HashSet<>(Collections.singletonList(mkDatabase)));
 
-					}
-					else {
+					} else {
 						databaseConfigurations = new DatabaseConfigurations(databaseConfigurations, new HashSet<>(Collections.singletonList(mkDatabase)));
 						assert databaseConfigurations.getDatabaseConfiguration(AsynchronousMessageTable.class.getPackage()) != null;
 					}
 					databaseFactory.setDatabaseConfigurations(databaseConfigurations);
-
+				}
+				if (databaseFactory.getDatabaseLifeCycles()==null) {
 					databaseFactory.setDatabaseLifeCycles(new DatabaseLifeCycles() {
 						@Override
 						public void transferDatabaseFromOldVersion(DatabaseWrapper wrapper, DatabaseConfiguration newDatabaseConfiguration) {
@@ -480,7 +480,7 @@ public class MadkitProperties extends MultiFormatProperties {
 
 	public MadkitProperties() {
 		super(new MultiFormatPropertiesObjectParser());
-		this.minimumMadkitVersion=new Version(madkitVersion.getProgramName(), madkitVersion.getShortProgramName(), (short)2, (short)3, (short)3, Version.Type.STABLE, (short)0, madkitVersion.getProjectStartDate(), madkitVersion.getProjectEndDate());
+		this.minimumMadkitVersion=new Version(madkitVersion.getProgramName(), madkitVersion.getShortProgramName(), (short)2, (short)3, (short)5, Version.Type.STABLE, (short)0, madkitVersion.getProjectStartDate(), madkitVersion.getProjectEndDate());
 		this.minimumMadkitVersion.setBuildNumber(100);
 		try {
 			madkitWeb = new URL("https://github.com/JazZ51/MaDKitLanEdition");

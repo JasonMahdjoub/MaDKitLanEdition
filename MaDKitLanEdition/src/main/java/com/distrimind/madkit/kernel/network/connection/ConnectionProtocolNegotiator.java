@@ -45,6 +45,9 @@ import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.ood.database.DatabaseWrapper;
 
 import java.net.InetSocketAddress;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.util.Map;
 
 /**
  * Negotiator of connection protocols
@@ -62,6 +65,10 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
     private boolean needToRefreshTransferBlockChecker=true;
     private final MadkitProperties mkProperties;
     private boolean stateJustChanged=false;
+    private Map<Integer, Integer> receivedPriorities=null;
+    private boolean negotiationConfirmationSent=false;
+    private ConnectionFinished connectionFinished=null;
+
 
     protected ConnectionProtocolNegotiator(InetSocketAddress _distant_inet_address, InetSocketAddress _local_interface_address, ConnectionProtocol<?> _subProtocol, DatabaseWrapper sql_connection, MadkitProperties _properties, ConnectionProtocolProperties<?> cpp, int subProtocolLevel, boolean isServer, boolean mustSupportBidirectionnalConnectionInitiative) throws ConnectionException {
         super(_distant_inet_address, _local_interface_address, _subProtocol, sql_connection, _properties, cpp,subProtocolLevel, isServer, mustSupportBidirectionnalConnectionInitiative);
@@ -72,7 +79,110 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
         this.mkProperties=_properties;
 
     }
+    ConnectionMessage sendConfirmationMessage(ConnectionMessage additionalMessage) throws ConnectionException {
+        if (connectionFinished==null)
+            throw new ConnectionException(new IllegalAccessException());
+        ConnectionFinished cfr=connectionFinished;
+        connectionFinished = null;
+        if (additionalMessage!=null)
+            return new DoubleConnectionMessage(cfr, additionalMessage);
+        else
+            return cfr;
+    }
+    ConnectionMessage checkInitialNegotiation(NegotiationConfirmation m) throws ConnectionException {
+        if (selectedConnectionProtocol==null) {
+            status = Status.INVALID_CONNECTION;
+            return new UnexpectedMessage(this.getDistantInetSocketAddress());
+        }
+        ConnectionMessage cm=m.getConnectionFinishedMessage()==null?null:selectedConnectionProtocol.setAndGetNextMessage(m.getConnectionFinishedMessage());
+        if (!selectedConnectionProtocol.isConnectionEstablished()) {
+            status = Status.INVALID_CONNECTION;
+            return new ConnectionFinished(this.getDistantInetSocketAddress(),
+                    ConnectionClosedReason.CONNECTION_ANOMALY);
+        }
+        else
+        {
+            if (receivedPriorities!=null && receivedPriorities.equals(m.getPriorities()))
+            {
 
+                if (cm instanceof ConnectionFinished)
+                {
+                    ConnectionFinished cf=(ConnectionFinished) cm;
+                    if (cf.getState()!=ConnectionState.CONNECTION_ESTABLISHED) {
+                        status=Status.INVALID_CONNECTION;
+
+                        return cf;
+                    }
+                    else
+                    {
+                        status=Status.PROTOCOL_VALIDATED;
+                        if (negotiationConfirmationSent) {
+                            return cm;
+                        }
+                        try {
+                            negotiationConfirmationSent=true;
+                            if (connectionFinished==null)
+                                connectionFinished=cf;
+
+                            return new NegotiationConfirmation(nproperties.getValidPriorities(network_properties.encryptionRestrictionForConnectionProtocols),
+                                    cf, mkProperties.getApprovedSecureRandom());
+                        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+                            throw new ConnectionException(e);
+                        }
+                    }
+                }
+                else {
+                    status=Status.PROTOCOL_VALIDATED;
+                    if (negotiationConfirmationSent)
+                    {
+                        return sendConfirmationMessage(cm);
+                    }
+                    else
+                    {
+                        try {
+                            negotiationConfirmationSent=true;
+                            NegotiationConfirmation nc=new NegotiationConfirmation(nproperties.getValidPriorities(network_properties.encryptionRestrictionForConnectionProtocols),
+                                    mkProperties.getApprovedSecureRandom());
+                            if (cm==null)
+                                return nc;
+                            else
+                                return new DoubleConnectionMessage(nc,cm);
+                        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+                            throw new ConnectionException(e);
+                        }
+                    }
+                }
+            }
+            else {
+                status = Status.INVALID_CONNECTION;
+                return new ConnectionFinished(this.getDistantInetSocketAddress(),
+                        ConnectionClosedReason.CONNECTION_ANOMALY);
+            }
+        }
+    }
+
+    ConnectionMessage checkIfMustSendNegotiationConfirmation(ConnectionMessage m) throws ConnectionException {
+        ConnectionMessage cm=selectedConnectionProtocol.setAndGetNextMessage(m);
+        if (cm instanceof ConnectionFinished)
+        {
+
+            ConnectionFinished cf=(ConnectionFinished)cm;
+            if (cf.getState()!=ConnectionState.CONNECTION_ESTABLISHED)
+                return cf;
+            connectionFinished=cf;
+            status=Status.VALIDATING_PROTOCOL;
+            try {
+                negotiationConfirmationSent=true;
+                return new NegotiationConfirmation(nproperties.getValidPriorities(network_properties.encryptionRestrictionForConnectionProtocols),
+                        cf, mkProperties.getApprovedSecureRandom());
+            } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+                throw new ConnectionException(e);
+            }
+        }
+        else {
+            return cm;
+        }
+    }
 
     @Override
     protected ConnectionMessage getNextStep(ConnectionMessage _m) throws ConnectionException {
@@ -87,8 +197,8 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
                     }
                     else
                     {
-
-                        ConnectionProtocolProperties<?> cpp=nproperties.getConnectionProtocolProperties(((NegotiateConnection) _m).getPriorities());
+                        receivedPriorities=((NegotiateConnection) _m).getPriorities();
+                        ConnectionProtocolProperties<?> cpp=nproperties.getConnectionProtocolProperties(receivedPriorities);
                         if (cpp==null)
                         {
                             status=Status.CLOSED_CONNECTION;
@@ -105,8 +215,9 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
 
                             status=Status.PROTOCOL_CHOSEN;
                             needToRefreshTransferBlockChecker=true;
-                            if (isCurrentServerAskingConnection())
-                                return selectedConnectionProtocol.setAndGetNextMessage(new AskConnection(true));
+                            if (isCurrentServerAskingConnection()) {
+                                return checkIfMustSendNegotiationConfirmation(new AskConnection(true));
+                            }
                             else {
                                 stateJustChanged=true;
                                 return new NegotiateConnection(false, nproperties.getValidPriorities(network_properties.encryptionRestrictionForConnectionProtocols));
@@ -141,6 +252,32 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
                 }
 
             case PROTOCOL_CHOSEN:
+                if (_m instanceof NegotiationConfirmation)
+                {
+                    return checkInitialNegotiation((NegotiationConfirmation) _m);
+                }
+                return checkIfMustSendNegotiationConfirmation(_m);
+            case VALIDATING_PROTOCOL:
+                if (_m instanceof NegotiationConfirmation)
+                {
+                    return checkInitialNegotiation((NegotiationConfirmation) _m);
+                }
+                else if (_m instanceof DoubleConnectionMessage)
+                {
+                    DoubleConnectionMessage dcm=(DoubleConnectionMessage) _m;
+                    if (dcm.getMessage1() instanceof NegotiationConfirmation)
+                    {
+                        checkInitialNegotiation((NegotiationConfirmation) dcm.getMessage1());
+                        return getNextStep(dcm.getMessage2());
+                    }
+                }
+                status=Status.INVALID_CONNECTION;
+                return new UnexpectedMessage(this.getDistantInetSocketAddress());
+            case PROTOCOL_VALIDATED:
+                if (_m instanceof ConnectionFinished) {
+                    if (((ConnectionFinished) _m).getState()==ConnectionState.CONNECTION_ESTABLISHED)
+                        return null;
+                }
                 return selectedConnectionProtocol.setAndGetNextMessage(_m);
             case CLOSED_CONNECTION:
                 if (selectedConnectionProtocol==null)
@@ -213,6 +350,8 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
     {
         DISCONNECTED,
         PROTOCOL_CHOSEN,
+        VALIDATING_PROTOCOL,
+        PROTOCOL_VALIDATED,
         CLOSED_CONNECTION,
         INVALID_CONNECTION
     }
@@ -246,8 +385,10 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
                     stateJustChanged=false;
                 }
             }
-            else
+            else {
+
                 return selectedConnectionProtocol.getParser().getParentBlock(_block, excludedFromEncryption);
+            }
         }
 
         @Override
