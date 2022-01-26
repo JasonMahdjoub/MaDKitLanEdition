@@ -491,8 +491,12 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 				ServerSignatureMessage m=(ServerSignatureMessage)_m;
 				if (m.checkSignature(this.localSalt, hProperties.getClientSidePublicKey()))
 				{
-					current_step=Step.WAITING_FOR_CONNECTION_CONFIRMATION;
-					return new ConnectionFinished(getDistantInetSocketAddress(), packetCounter.getMyEncodedCounters());
+					if (!myCounterSent)
+					{
+						myCounterSent = true;
+						current_step = Step.WAITING_FOR_CONNECTION_CONFIRMATION;
+						return new ConnectionFinished(getDistantInetSocketAddress(), packetCounter.getMyEncodedCounters());
+					}
 				}
 				else
 				{
