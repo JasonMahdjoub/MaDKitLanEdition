@@ -163,7 +163,7 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
 
     ConnectionMessage checkIfMustSendNegotiationConfirmation(ConnectionMessage m) throws ConnectionException {
         ConnectionMessage cm=selectedConnectionProtocol.setAndGetNextMessage(m);
-        if (!negotiationConfirmationSent && cm instanceof ConnectionFinished)
+        if (cm instanceof ConnectionFinished)
         {
 
             ConnectionFinished cf=(ConnectionFinished)cm;
@@ -274,10 +274,10 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
                 status=Status.INVALID_CONNECTION;
                 return new UnexpectedMessage(this.getDistantInetSocketAddress());
             case PROTOCOL_VALIDATED:
-                /*if (_m instanceof ConnectionFinished) {
+                if (_m instanceof ConnectionFinished) {
                     if (((ConnectionFinished) _m).getState()==ConnectionState.CONNECTION_ESTABLISHED)
                         return null;
-                }*/
+                }
                 return selectedConnectionProtocol.setAndGetNextMessage(_m);
             case CLOSED_CONNECTION:
                 if (selectedConnectionProtocol==null)
