@@ -104,4 +104,5 @@ public class NegotiateConnection extends AskConnection {
     public Map<Integer, Integer> getPriorities() {
         return priorities;
     }
+
 }

@@ -58,7 +58,7 @@ repositories {
 
 
 dependencies {
-     implementation(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.3.4-STABLE')
+     implementation(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.3.5-STABLE')
     
      
 }
@@ -78,7 +78,7 @@ allprojects {
 }
 
 
-version='1.0.35'
+version='1.0.36'
 
 
 task sourcesJar(type: Jar, dependsOn: classes) {

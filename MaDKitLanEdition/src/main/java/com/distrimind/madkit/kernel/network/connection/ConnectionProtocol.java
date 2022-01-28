@@ -199,6 +199,8 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 	 * @see #getNextStep(ConnectionMessage)
 	 */
 	public final ConnectionMessage setAndGetNextMessage(ConnectionMessage _m) throws ConnectionException {
+		if (connection_state==ConnectionState.CONNECTION_ABORDED || connection_state==ConnectionState.CONNECTION_CLOSED)
+			return new UnexpectedMessage(this.getDistantInetSocketAddress());
 		if (_m instanceof DoubleConnectionMessage)
 		{
 			DoubleConnectionMessage m=(DoubleConnectionMessage)_m;
@@ -218,8 +220,10 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 		}
 		if (_m instanceof ConnectionFinished) {
 			if (((ConnectionFinished) _m).getState().equals(ConnectionState.CONNECTION_ESTABLISHED)) {
-				if (connectionFinishedMessageReceived)
+				if (connectionFinishedMessageReceived) {
+					connection_state=ConnectionState.CONNECTION_ABORDED;
 					return new UnexpectedMessage(this.getDistantInetSocketAddress());
+				}
 				connectionFinishedMessageReceived = true;
 			}
 			else {
@@ -240,8 +244,10 @@ public abstract class ConnectionProtocol<CP extends ConnectionProtocol<CP>> impl
 		ConnectionMessage res = getNextStep(_m);
 		if (res instanceof ConnectionFinished) {
 			ConnectionFinished cf = (ConnectionFinished) res;
-			if (cf.getState()==ConnectionState.CONNECTION_ESTABLISHED && connection_state==ConnectionState.CONNECTION_ESTABLISHED)
+			if (cf.getState()==ConnectionState.CONNECTION_ESTABLISHED && connection_state==ConnectionState.CONNECTION_ESTABLISHED) {
+				connection_state=ConnectionState.CONNECTION_ABORDED;
 				throw new ConnectionException("Connection already established. Do not need send confirmation two times");
+			}
 			connection_state = cf.getState();
 			if (cf.getConnectionClosedReason() != null)
 				setConnectionClosed(cf.getConnectionClosedReason());

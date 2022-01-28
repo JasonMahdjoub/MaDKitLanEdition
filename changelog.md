@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-2.3.4 STABLE (Build: 5702) (from 22/05/2015 to 29/12/2021)
+2.3.5 STABLE (Build: 5784) (from 22/05/2015 to 25/01/2022)
 
 # Creator(s):
 * Jason MAHDJOUB
@@ -12,6 +12,13 @@ MaDKitLanEdition
 * Jason MAHDJOUB (Entered in the team at 22/05/2015)
 
 # Changes:
+
+
+### 2.3.5 STABLE (25/01/2022)
+#### Internal change(s)
+* Update Utils to 5.22.1 STABLE
+* Update OOD to 3.1.16 STABLE
+* Confirm chosen connection protocol with ConnectionProtocolNegotiator after chosen connection protocol has established the connection
 
 
 ### 2.3.4 STABLE (29/12/2021)

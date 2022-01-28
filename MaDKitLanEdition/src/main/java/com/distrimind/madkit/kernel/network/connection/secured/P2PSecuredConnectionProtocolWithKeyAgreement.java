@@ -369,7 +369,6 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 						}
 						else
 						{
-							myCounterSent=true;
 							current_step=Step.WAITING_FOR_SERVER_PROFILE_MESSAGE;
 
 							return getServerProfileMessage();
@@ -426,7 +425,7 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 					else
 					{
 						doNotTakeIntoAccountNextState=false;
-						myCounterSent=true;
+						//myCounterSent=true;
 						return getServerProfileMessage();
 						//return new ConnectionFinished(getDistantInetSocketAddress(), packetCounter.getMyEncodedCounters());
 					}
@@ -534,8 +533,8 @@ public class P2PSecuredConnectionProtocolWithKeyAgreement extends ConnectionProt
 					if (!myCounterSent)
 					{
 						myCounterSent=true;
-						if (!isConnectionEstablished())
-							return new ConnectionFinished(getDistantInetSocketAddress(), packetCounter.getMyEncodedCounters());
+						//if (!isConnectionEstablished())
+						return new ConnectionFinished(getDistantInetSocketAddress(), packetCounter.getMyEncodedCounters());
 					}
 					else
 						return null;

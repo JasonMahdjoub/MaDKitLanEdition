@@ -40,6 +40,8 @@ package com.distrimind.madkit.kernel.network;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.Madkit;
+import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolNegotiator;
+import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolNegotiatorProperties;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocolProperties;
 import com.distrimind.madkit.testing.util.agent.AgentBigTransfer;
 import com.distrimind.madkit.testing.util.agent.NetworkPingAgent;
@@ -53,6 +55,7 @@ import org.testng.annotations.Test;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 
@@ -131,7 +134,7 @@ public class MultipleConnectionsTest extends TestNGMadkit {
 	private static final long timeOut = 60000;
 
 	@Test
-	public void multipleAsynchroneConnectionTest() {
+	public void multipleAsynchronousConnectionTest() {
 		eventListener1.setLocalDataAmountAcc(localDataAmountAcc);
 		eventListener1.setGlobalDataAmountAcc(globalDataAmountAcc);
 		eventListener2.setLocalDataAmountAcc(localDataAmountAcc);
@@ -144,13 +147,28 @@ public class MultipleConnectionsTest extends TestNGMadkit {
 		eventListener5.setGlobalDataAmountAcc(globalDataAmountAcc);
 		for (ConnectionProtocolProperties<?> cpp : eventListener1.madkitEventListenerForConnectionProtocols.getConnectionProtocolProperties()) {
 			System.out.println(cpp);
+			if (cpp instanceof ConnectionProtocolNegotiatorProperties) {
+				ConnectionProtocolNegotiatorProperties c=(ConnectionProtocolNegotiatorProperties)cpp;
+				for (Map.Entry<Integer, ConnectionProtocolProperties<?>> e :  c.getConnectionProtocolProperties().entrySet())
+				{
+					System.out.println("\tto negotiate ("+e.getKey()+") : " + e.getValue());
+				}
+			}
 			while((cpp=cpp.subProtocolProperties)!=null)
-				System.out.println("\t"+cpp);
+				System.out.println("\tsub protocol : "+cpp);
+
 		}
 		for (ConnectionProtocolProperties<?> cpp : eventListener2.madkitEventListenerForConnectionProtocols.getConnectionProtocolProperties()) {
 			System.out.println(cpp);
+			if (cpp instanceof ConnectionProtocolNegotiatorProperties) {
+				ConnectionProtocolNegotiatorProperties c=(ConnectionProtocolNegotiatorProperties)cpp;
+				for (Map.Entry<Integer, ConnectionProtocolProperties<?>> e :  c.getConnectionProtocolProperties().entrySet())
+				{
+					System.out.println("\tto negotiate ("+e.getKey()+") : " + e.getValue());
+				}
+			}
 			while((cpp=cpp.subProtocolProperties)!=null)
-				System.out.println("\t"+cpp);
+				System.out.println("\tsub protocol : "+cpp);
 		}
 		cleanHelperMDKs();
 		// addMadkitArgs(LevelOption.networkLogLevel.toString(),"FINER");

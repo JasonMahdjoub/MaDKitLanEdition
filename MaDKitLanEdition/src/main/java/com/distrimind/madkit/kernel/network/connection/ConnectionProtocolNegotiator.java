@@ -117,7 +117,7 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
                     {
                         status=Status.PROTOCOL_VALIDATED;
                         if (negotiationConfirmationSent) {
-                            return cm;
+                            return cf;
                         }
                         try {
                             negotiationConfirmationSent=true;
@@ -212,7 +212,6 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
                             } catch (NIOException e) {
                                 throw new ConnectionException(e);
                             }
-
                             status=Status.PROTOCOL_CHOSEN;
                             needToRefreshTransferBlockChecker=true;
                             if (isCurrentServerAskingConnection()) {
@@ -275,8 +274,15 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
                 return new UnexpectedMessage(this.getDistantInetSocketAddress());
             case PROTOCOL_VALIDATED:
                 if (_m instanceof ConnectionFinished) {
-                    if (((ConnectionFinished) _m).getState()==ConnectionState.CONNECTION_ESTABLISHED)
-                        return null;
+                    if (((ConnectionFinished) _m).getState()==ConnectionState.CONNECTION_ESTABLISHED) {
+                        if (connectionFinished!=null) {
+                            ConnectionFinished cf=connectionFinished;
+                            connectionFinished=null;
+                            return cf;
+                        }
+                        else
+                            return null;
+                    }
                 }
                 return selectedConnectionProtocol.setAndGetNextMessage(_m);
             case CLOSED_CONNECTION:
@@ -430,7 +436,7 @@ public class ConnectionProtocolNegotiator extends ConnectionProtocol<ConnectionP
 
         @Override
         public boolean canAvoidSignatureCounter() {
-            return status!=Status.PROTOCOL_CHOSEN || selectedConnectionProtocol.getParser().canAvoidSignatureCounter();
+            return status!=Status.PROTOCOL_VALIDATED || selectedConnectionProtocol.getParser().canAvoidSignatureCounter();
         }
     }
 }

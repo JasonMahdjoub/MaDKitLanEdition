@@ -308,8 +308,19 @@ public class TransferConnectionTest extends TestNGMadkit {
 				AgentToLaunch a2 = new AgentToLaunch(connectionPerKernelAddress, true);
 
 				System.out.println("**************Launch kernels****************");
-				System.out.println(TransferConnectionTest.this.eventListener1.madkitEventListenerForConnectionProtocols.getConnectionProtocolProperties().toString());
-				
+				for (ConnectionProtocolProperties<?> cpp : eventListener1.madkitEventListenerForConnectionProtocols.getConnectionProtocolProperties()) {
+					System.out.println(cpp);
+					if (cpp instanceof ConnectionProtocolNegotiatorProperties) {
+						ConnectionProtocolNegotiatorProperties c=(ConnectionProtocolNegotiatorProperties)cpp;
+						for (Map.Entry<Integer, ConnectionProtocolProperties<?>> e :  c.getConnectionProtocolProperties().entrySet())
+						{
+							System.out.println("\tto negotiate ("+e.getKey()+") : " + e.getValue());
+						}
+					}
+					while((cpp=cpp.subProtocolProperties)!=null)
+						System.out.println("\tsub protocol : "+cpp);
+
+				}
 				launchThreadedMKNetworkInstance(Level.INFO, AbstractAgent.class, a1, eventListener1);
 
 				ka1 = TransferConnectionTest.this.getKernelAddress(getHelperInstances(this, 1).get(0));
