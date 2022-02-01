@@ -77,7 +77,7 @@ import java.util.logging.Logger;
  * 
  * @author Jasopn Mahdjoub
  * @since MadKitLanEdition 1.0
- * @version 1.4
+ * @version 1.5
  * 
  */
 @SuppressWarnings("UnusedReturnValue")
@@ -591,7 +591,7 @@ public class MadkitProperties extends MultiFormatProperties {
 			saveYAML(file, referenceProperties);
 		else if (file.getName().endsWith(".properties")) {
 			try(FileWriter fw=new FileWriter(file);BufferedWriter bw=new BufferedWriter(fw)) {
-				convertToStringProperties(reference).store(bw, "Madkit properties");
+				convertToStringProperties(getReference()).store(bw, "Madkit properties");
 			}
 		}
 	}
@@ -999,7 +999,7 @@ public class MadkitProperties extends MultiFormatProperties {
 	
 	private transient MadkitProperties reference=null;
 
-	void setReference(MadkitProperties reference) {
+	public void setReference(MadkitProperties reference) {
 		this.reference = reference;
 	}
 
@@ -1019,7 +1019,7 @@ public class MadkitProperties extends MultiFormatProperties {
 			throw new NullPointerException();
 
         prepareCurrentRandomSeedsForBackup();
-		save(file, reference);
+		save(file, getReference());
 	}
 
     /**
@@ -1033,6 +1033,7 @@ public class MadkitProperties extends MultiFormatProperties {
 	    if (configFiles==null)
 	        return;
         prepareCurrentRandomSeedsForBackup();
+		MadkitProperties reference=getReference();
 	    for (File f : configFiles)
             save(f, reference);
     }

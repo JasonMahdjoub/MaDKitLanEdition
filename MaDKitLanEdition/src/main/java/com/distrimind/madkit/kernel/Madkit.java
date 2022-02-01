@@ -109,7 +109,7 @@ import static com.distrimind.util.version.DescriptionType.*;
  * @author Fabien Michel
  * @author Jacques Ferber
  * @since MaDKit 4.0
- * @version 5.5
+ * @version 5.6
  */
 
 @SuppressWarnings("SameParameterValue")
@@ -146,6 +146,9 @@ final public class Madkit {
 					.addDeveloper(new PersonDeveloper("Michel", "Fabien", "1997-02-01"))
 					.addDeveloper(new PersonDeveloper("Gutknecht", "Olivier", "1997-02-01"))
 					.addDeveloper(new PersonDeveloper("Ferber", "Jacques", "1997-02-01"))
+					.addDescription(new Description((short)2, (short)3, (short)6, Version.Type.STABLE, (short)0, "2022-02-31")
+							.addItem(INTERNAL_CHANGE, "Do not replace MaDKit properties reference when loading Madkit kernel")
+					)
 					.addDescription(new Description((short)2, (short)3, (short)5, Version.Type.STABLE, (short)0, "2022-01-25")
 							.addItem(INTERNAL_CHANGE, "Update Utils to 5.22.1 STABLE")
 							.addItem(INTERNAL_CHANGE, "Update OOD to 3.1.16 STABLE")
@@ -909,7 +912,8 @@ final public class Madkit {
 		}
 
 		this.madkitConfig=madkitProperties.clone();
-		this.madkitConfig.setReference(madkitProperties);
+		if (this.madkitConfig.getReference()==null)
+			this.madkitConfig.setReference(madkitProperties);
 		final Properties fromArgs = buildConfigFromArgs(args);
 		try {
 			madkitConfig.loadFromProperties(fromArgs);

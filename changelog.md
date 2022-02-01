@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-2.3.5 STABLE (Build: 5784) (from 22/05/2015 to 25/01/2022)
+2.3.6 STABLE (Build: 5789) (from 22/05/2015 to 28/02/2022)
 
 # Creator(s):
 * Jason MAHDJOUB
@@ -12,6 +12,11 @@ MaDKitLanEdition
 * Jason MAHDJOUB (Entered in the team at 22/05/2015)
 
 # Changes:
+
+
+### 2.3.6 STABLE (28/02/2022)
+#### Internal change(s)
+* Do not replace MaDKit properties reference when loading Madkit kernel
 
 
 ### 2.3.5 STABLE (25/01/2022)

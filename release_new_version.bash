@@ -1,0 +1,1 @@
+git add . && git commit -s -m "MaDKitLanEdition $1" && git tag -s $1 -m "MaDKitLanEdition $1" && git push && git push GitHub && git push --tags && git push GitHub --tags && git checkout main && git pull && git merge development && git push && git push GitHub && git push --tags && git push GitHub --tags && git checkout development
