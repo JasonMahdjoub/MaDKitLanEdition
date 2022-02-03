@@ -134,7 +134,7 @@ publishing {
             pom {
                 name = 'Démos for MaDKitLanEdition'
                 description = 'MaDKit is an open source multiagent-based development platform written in Java. MaDKitLanEdition Advanced network futures which enables to connect several peers between them, and emulate a secured multi-agent system that virtually evolves into the same environment, i.e. the same virtual machine.'
-                url = 'https://github.com/JazZ51/MaDKitLanEdition'
+                url = 'https://github.com/JasonMahdjoub/MaDKitLanEdition'
                 developers {
                     developer {
                         id = 'mahdjoub'
@@ -159,14 +159,14 @@ publishing {
 
                 organization {
                     name = 'DistriMind'
-                    url = 'https://github.com/JazZ51'
+                    url = 'https://github.com/JasonMahdjoub'
                 }
                 issueManagement {
                     system = 'GitHub'
-                    url = 'https://github.com/JazZ51/MaDKitLanEdition/issues'
+                    url = 'https://github.com/JasonMahdjoub/MaDKitLanEdition/issues'
                 }
                 scm {
-                    connection = 'https://github.com/JazZ51/MaDKitLanEdition'
+                    connection = 'https://github.com/JasonMahdjoub/MaDKitLanEdition'
                 }
                 licenses {
                     license {

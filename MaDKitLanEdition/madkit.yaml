@@ -25,7 +25,7 @@ loadLocalDemos: false
 logDirectory: !!file 'logs'
 madkitLogLevel: !!logLevel 'INFO'
 madkitMainClass: !!class 'com.distrimind.madkit.kernel.Madkit'
-madkitRepositoryURL: !!url 'https://github.com/JazZ51/MaDKitLanEdition'
+madkitRepositoryURL: !!url 'https://github.com/JasonMahdjoub/MaDKitLanEdition'
 madkitVersion:
     freeStringProperties: null
     m_alpha_beta_version: 1

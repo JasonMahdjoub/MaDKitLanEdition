@@ -483,8 +483,8 @@ public class MadkitProperties extends MultiFormatProperties {
 		this.minimumMadkitVersion=new Version(madkitVersion.getProgramName(), madkitVersion.getShortProgramName(), (short)2, (short)3, (short)5, Version.Type.STABLE, (short)0, madkitVersion.getProjectStartDate(), madkitVersion.getProjectEndDate());
 		this.minimumMadkitVersion.setBuildNumber(100);
 		try {
-			madkitWeb = new URL("https://github.com/JazZ51/MaDKitLanEdition");
-			madkitRepositoryURL = new URL("https://github.com/JazZ51/MaDKitLanEdition.git");// new
+			madkitWeb = new URL("https://github.com/JasonMahdjoub/MaDKitLanEdition");
+			madkitRepositoryURL = new URL("https://github.com/JasonMahdjoub/MaDKitLanEdition.git");// new
 																						// URL(madkitWeb.toString()+"/repository/"+madkitVersion.getFileHeadName()+"/");
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
