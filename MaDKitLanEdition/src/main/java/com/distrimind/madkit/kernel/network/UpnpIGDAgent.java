@@ -46,47 +46,47 @@ import com.distrimind.util.properties.DocumentBuilderFactoryWithNonDTD;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import org.fourthline.cling.UpnpService;
-import org.fourthline.cling.UpnpServiceImpl;
-import org.fourthline.cling.binding.xml.*;
-import org.fourthline.cling.controlpoint.ControlPoint;
-import org.fourthline.cling.controlpoint.ControlPointImpl;
-import org.fourthline.cling.model.Namespace;
-import org.fourthline.cling.model.UnsupportedDataException;
-import org.fourthline.cling.model.ValidationException;
-import org.fourthline.cling.model.action.ActionInvocation;
-import org.fourthline.cling.model.message.Connection;
-import org.fourthline.cling.model.message.*;
-import org.fourthline.cling.model.message.control.ActionRequestMessage;
-import org.fourthline.cling.model.message.control.ActionResponseMessage;
-import org.fourthline.cling.model.message.gena.OutgoingEventRequestMessage;
-import org.fourthline.cling.model.message.header.CallbackHeader;
-import org.fourthline.cling.model.message.header.HostHeader;
-import org.fourthline.cling.model.message.header.LocationHeader;
-import org.fourthline.cling.model.message.header.UpnpHeader;
-import org.fourthline.cling.model.meta.*;
-import org.fourthline.cling.model.profile.RemoteClientInfo;
-import org.fourthline.cling.model.types.*;
-import org.fourthline.cling.protocol.ProtocolFactory;
-import org.fourthline.cling.protocol.ProtocolFactoryImpl;
-import org.fourthline.cling.protocol.RetrieveRemoteDescriptors;
-import org.fourthline.cling.protocol.async.ReceivingNotification;
-import org.fourthline.cling.protocol.async.ReceivingSearchResponse;
-import org.fourthline.cling.registry.DefaultRegistryListener;
-import org.fourthline.cling.registry.RegistrationException;
-import org.fourthline.cling.registry.Registry;
-import org.fourthline.cling.registry.RegistryImpl;
-import org.fourthline.cling.support.igd.callback.GetExternalIP;
-import org.fourthline.cling.support.igd.callback.GetStatusInfo;
-import org.fourthline.cling.support.igd.callback.PortMappingAdd;
-import org.fourthline.cling.support.igd.callback.PortMappingDelete;
-import org.fourthline.cling.support.model.Connection.Status;
-import org.fourthline.cling.support.model.Connection.StatusInfo;
-import org.fourthline.cling.support.model.PortMapping;
-import org.fourthline.cling.support.model.PortMapping.Protocol;
-import org.fourthline.cling.transport.RouterException;
-import org.fourthline.cling.transport.impl.*;
-import org.fourthline.cling.transport.spi.*;
+import com.distrimind.upnp_igd.UpnpService;
+import com.distrimind.upnp_igd.UpnpServiceImpl;
+import com.distrimind.upnp_igd.binding.xml.*;
+import com.distrimind.upnp_igd.controlpoint.ControlPoint;
+import com.distrimind.upnp_igd.controlpoint.ControlPointImpl;
+import com.distrimind.upnp_igd.model.Namespace;
+import com.distrimind.upnp_igd.model.UnsupportedDataException;
+import com.distrimind.upnp_igd.model.ValidationException;
+import com.distrimind.upnp_igd.model.action.ActionInvocation;
+import com.distrimind.upnp_igd.model.message.Connection;
+import com.distrimind.upnp_igd.model.message.*;
+import com.distrimind.upnp_igd.model.message.control.ActionRequestMessage;
+import com.distrimind.upnp_igd.model.message.control.ActionResponseMessage;
+import com.distrimind.upnp_igd.model.message.gena.OutgoingEventRequestMessage;
+import com.distrimind.upnp_igd.model.message.header.CallbackHeader;
+import com.distrimind.upnp_igd.model.message.header.HostHeader;
+import com.distrimind.upnp_igd.model.message.header.LocationHeader;
+import com.distrimind.upnp_igd.model.message.header.UpnpHeader;
+import com.distrimind.upnp_igd.model.meta.*;
+import com.distrimind.upnp_igd.model.profile.RemoteClientInfo;
+import com.distrimind.upnp_igd.model.types.*;
+import com.distrimind.upnp_igd.protocol.ProtocolFactory;
+import com.distrimind.upnp_igd.protocol.ProtocolFactoryImpl;
+import com.distrimind.upnp_igd.protocol.RetrieveRemoteDescriptors;
+import com.distrimind.upnp_igd.protocol.async.ReceivingNotification;
+import com.distrimind.upnp_igd.protocol.async.ReceivingSearchResponse;
+import com.distrimind.upnp_igd.registry.DefaultRegistryListener;
+import com.distrimind.upnp_igd.registry.RegistrationException;
+import com.distrimind.upnp_igd.registry.Registry;
+import com.distrimind.upnp_igd.registry.RegistryImpl;
+import com.distrimind.upnp_igd.support.igd.callback.GetExternalIP;
+import com.distrimind.upnp_igd.support.igd.callback.GetStatusInfo;
+import com.distrimind.upnp_igd.support.igd.callback.PortMappingAdd;
+import com.distrimind.upnp_igd.support.igd.callback.PortMappingDelete;
+import com.distrimind.upnp_igd.support.model.Connection.Status;
+import com.distrimind.upnp_igd.support.model.Connection.StatusInfo;
+import com.distrimind.upnp_igd.support.model.PortMapping;
+import com.distrimind.upnp_igd.support.model.PortMapping.Protocol;
+import com.distrimind.upnp_igd.transport.RouterException;
+import com.distrimind.upnp_igd.transport.impl.*;
+import com.distrimind.upnp_igd.transport.spi.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -147,10 +147,10 @@ import java.util.logging.Logger;
 class UpnpIGDAgent extends AgentFakeThread {
 
 	private static final String[] sub_loggers_names = { Registry.class.getName(), UpnpServiceImpl.class.getName(),
-			org.fourthline.cling.DefaultUpnpServiceConfiguration.class.getName(), DatagramProcessor.class.getName(),
+			com.distrimind.upnp_igd.DefaultUpnpServiceConfiguration.class.getName(), DatagramProcessor.class.getName(),
 			SOAPActionProcessor.class.getName(), GENAEventProcessor.class.getName(),
 			DeviceDescriptorBinder.class.getName(), ServiceDescriptorBinder.class.getName(), Namespace.class.getName(),
-			Registry.class.getName(), org.fourthline.cling.transport.Router.class.getName(),
+			Registry.class.getName(), com.distrimind.upnp_igd.transport.Router.class.getName(),
 			ControlPointImpl.class.getName(), ProtocolFactory.class.getName(), MulticastReceiver.class.getName(),
 			StreamServer.class.getName(), DatagramIO.class.getName() };
 
@@ -315,10 +315,10 @@ class UpnpIGDAgent extends AgentFakeThread {
 
 	static class RequestHttpHandler implements HttpHandler {
 
-		private final org.fourthline.cling.transport.Router router;
+		private final com.distrimind.upnp_igd.transport.Router router;
 		private final NetworkAddressFactory networkAddressFactory;
 
-		RequestHttpHandler(org.fourthline.cling.transport.Router router, NetworkAddressFactory networkAddressFactory) {
+		RequestHttpHandler(com.distrimind.upnp_igd.transport.Router router, NetworkAddressFactory networkAddressFactory) {
 			this.router = router;
 			this.networkAddressFactory=networkAddressFactory;
 		}
@@ -1348,7 +1348,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 										return false;
 									}
 									RegistryImpl This=this;
-									for (final org.fourthline.cling.registry.RegistryListener listener : getListeners()) {
+									for (final com.distrimind.upnp_igd.registry.RegistryListener listener : getListeners()) {
 										getConfiguration().getRegistryListenerExecutor().execute(
 												() -> listener.remoteDeviceDiscoveryStarted(This, device)
 										);
@@ -2240,7 +2240,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 
 }
 
-class NONAndroidUpnpServiceConfiguration extends org.fourthline.cling.DefaultUpnpServiceConfiguration {
+class NONAndroidUpnpServiceConfiguration extends com.distrimind.upnp_igd.DefaultUpnpServiceConfiguration {
 	/**
 	 * Defaults to port '0', ephemeral.
 	 */
@@ -2308,7 +2308,7 @@ class NONAndroidUpnpServiceConfiguration extends org.fourthline.cling.DefaultUpn
 				)
 		) {
 			@Override
-			synchronized public void init(InetAddress bindAddress, org.fourthline.cling.transport.Router router) throws InitializationException {
+			synchronized public void init(InetAddress bindAddress, com.distrimind.upnp_igd.transport.Router router) throws InitializationException {
 				try {
 					InetSocketAddress socketAddress = new InetSocketAddress(bindAddress, configuration.getListenPort());
 
@@ -2323,7 +2323,7 @@ class NONAndroidUpnpServiceConfiguration extends org.fourthline.cling.DefaultUpn
 	}
 }
 
-class AndroidUpnpServiceConfiguration extends org.fourthline.cling.android.AndroidUpnpServiceConfiguration {
+class AndroidUpnpServiceConfiguration extends com.distrimind.upnp_igd.android.AndroidUpnpServiceConfiguration {
 	private final int multicastPort;
 	private NetworkAddressFactory networkAddressFactory=null;
 
@@ -2382,8 +2382,8 @@ class AndroidUpnpServiceConfiguration extends org.fourthline.cling.android.Andro
 
 }
 
-class DefaultUpnpServiceConfiguration implements org.fourthline.cling.UpnpServiceConfiguration {
-	private final org.fourthline.cling.UpnpServiceConfiguration usc;
+class DefaultUpnpServiceConfiguration implements com.distrimind.upnp_igd.UpnpServiceConfiguration {
+	private final com.distrimind.upnp_igd.UpnpServiceConfiguration usc;
 
 	/**
 	 * Defaults to port '0', ephemeral.

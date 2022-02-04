@@ -47,7 +47,7 @@ import java.util.Enumeration;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
-import org.fourthline.cling.support.model.PortMapping.Protocol;
+import com.distrimind.upnp_igd.support.model.PortMapping.Protocol;
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.exceptions.SelfKillException;
 import com.distrimind.madkit.kernel.AbstractAgent;

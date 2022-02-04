@@ -49,9 +49,9 @@ import java.util.logging.Level;
 
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.util.Reference;
-import org.fourthline.cling.support.model.Connection.Status;
-import org.fourthline.cling.support.model.Connection.StatusInfo;
-import org.fourthline.cling.support.model.PortMapping.Protocol;
+import com.distrimind.upnp_igd.support.model.Connection.Status;
+import com.distrimind.upnp_igd.support.model.Connection.StatusInfo;
+import com.distrimind.upnp_igd.support.model.PortMapping.Protocol;
 
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.kernel.network.UpnpIGDAgent.AskForRouterDetectionInformation;

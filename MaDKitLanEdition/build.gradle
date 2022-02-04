@@ -64,7 +64,7 @@ dependencies {
 	testImplementation 'org.testng:testng:7.5'
     //testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.hamcrest:hamcrest-core:2.2'
-    api(group:'com.distrimind.ood', name: 'OOD', version: '3.1.16-STABLE')
+    api(group:'com.distrimind.ood', name: 'OOD', version: '3.1.17-STABLE')
 
     //api project(':OOD')
     api project(':UPnPIGD')

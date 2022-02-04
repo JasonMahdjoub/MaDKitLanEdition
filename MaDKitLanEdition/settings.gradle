@@ -20,3 +20,5 @@ rootProject.name = 'MaDKitLanEdition'
 project(":OOD").projectDir = file("../../OOD/OOD")*/
 /*include ':Utils'
 project(":Utils").projectDir = file("../../Utils/Utils")*/
+include ':UPnPIGD'
+project(":UPnPIGD").projectDir = file("../../UpnpIGD")
