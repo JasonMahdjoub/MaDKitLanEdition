@@ -210,108 +210,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 		return false;
 	}
 
-	private static final Set<UpnpHeader.Type> allowedUpnpHeaders=new HashSet<>(Arrays.asList(UpnpHeader.Type.EXT, UpnpHeader.Type.ST, UpnpHeader.Type.SERVER, UpnpHeader.Type.USN, UpnpHeader.Type.LOCATION, UpnpHeader.Type.MAX_AGE));
-	/*
-	 * Fix DDOS and SSRF issue : https://github.com/4thline/cling/issues/253
-	 */
-	static IncomingDatagramMessage<?> getValidIncomingDatagramMessage(IncomingDatagramMessage<?> idm, NetworkAddressFactory networkAddressFactory)
-	{
-		for (UpnpHeader.Type t : UpnpHeader.Type.values()) {
-			if (allowedUpnpHeaders.contains(t))
-				continue;
-			if (idm.getHeaders().containsKey(t))
-				return null;
-		}
-		@SuppressWarnings("rawtypes") List<UpnpHeader> luh=idm.getHeaders().get(UpnpHeader.Type.CALLBACK);
 
-		if (luh!=null) {
-			for (UpnpHeader<?> uh : luh) {
-				if (CallbackHeader.class.isAssignableFrom(uh.getClass())) {
-					CallbackHeader ch = (CallbackHeader) uh;
-					for (URL u : ch.getValue()) {
-						if (isNotValidRemoteAddress(u, networkAddressFactory))
-							return null;
-					}
-				}
-			}
-		}
-		luh=idm.getHeaders().get(UpnpHeader.Type.HOST);
-		if (luh!=null) {
-			for (UpnpHeader<?> uh : luh) {
-				if (HostHeader.class.isAssignableFrom(uh.getClass())) {
-					HostHeader hh = (HostHeader) uh;
-					if (isNotValidRemoteAddress(hh.getValue().getHost(), networkAddressFactory))
-						return null;
-				}
-			}
-		}
-		luh=idm.getHeaders().get(UpnpHeader.Type.LOCATION);
-		if (luh!=null) {
-			for (UpnpHeader<?> uh : luh) {
-				if (LocationHeader.class.isAssignableFrom(uh.getClass())) {
-					LocationHeader hh = (LocationHeader) uh;
-					if (isNotValidRemoteAddress(hh.getValue().getHost(), networkAddressFactory))
-						return null;
-				}
-			}
-		}
-		return idm;
-	}
-
-	static MulticastReceiver<?> createMulticastReceiver(NetworkAddressFactory networkAddressFactory) {
-		return new MulticastReceiverImpl(
-				new MulticastReceiverConfigurationImpl(
-						networkAddressFactory.getMulticastGroup(),
-						networkAddressFactory.getMulticastPort()
-				)
-		){
-
-			public void run() {
-
-				while (true) {
-
-					try {
-						byte[] buf = new byte[getConfiguration().getMaxDatagramBytes()];
-						DatagramPacket datagram = new DatagramPacket(buf, buf.length);
-
-						socket.receive(datagram);
-						InetAddress receivedOnLocalAddress =
-								networkAddressFactory.getLocalAddress(
-										multicastInterface,
-										multicastAddress.getAddress() instanceof Inet6Address,
-										datagram.getAddress()
-								);
-						if (receivedOnLocalAddress==null)
-							continue;
-						/*
-						 * Fix DDOS and SSRF issue : https://github.com/4thline/cling/issues/253
-						 */
-						IncomingDatagramMessage<?> idm=getValidIncomingDatagramMessage(datagramProcessor.read(receivedOnLocalAddress, datagram),networkAddressFactory);
-						if (idm==null)
-							continue;
-						router.received(idm);
-
-					} catch (SocketException ex) {
-						break;
-					}
-					catch (UnsupportedDataException ignored)
-					{
-
-					}
-					catch (Exception ex) {
-						throw new RuntimeException(ex);
-					}
-				}
-				try {
-					if (!socket.isClosed()) {
-						socket.close();
-					}
-				} catch (Exception ex) {
-					throw new RuntimeException(ex);
-				}
-			}
-		};
-	}
 
 	static class RequestHttpHandler implements HttpHandler {
 
@@ -374,55 +273,6 @@ class UpnpIGDAgent extends AgentFakeThread {
 		}
 	}
 
-	/*
-	 * Fix DDOS and SSRF issue : https://github.com/4thline/cling/issues/253
-	 */
-	static DatagramIO<?> createDatagramIO(NetworkAddressFactory networkAddressFactory) {
-		return new DatagramIOImpl(new DatagramIOConfigurationImpl()){
-			@Override
-			public void run() {
-
-				while (true) {
-
-					try {
-						byte[] buf = new byte[getConfiguration().getMaxDatagramBytes()];
-						DatagramPacket datagram = new DatagramPacket(buf, buf.length);
-
-						socket.receive(datagram);
-						InetAddress receivedOnLocalAddress =
-								networkAddressFactory.getLocalAddress(
-										null,
-										datagram.getAddress() instanceof Inet6Address,
-										datagram.getAddress()
-								);
-						if (receivedOnLocalAddress==null)
-							continue;
-						/*
-						 * Fix DDOS and SSRF issue : https://github.com/4thline/cling/issues/253
-						 */
-						IncomingDatagramMessage<?> idm=getValidIncomingDatagramMessage(datagramProcessor.read(localAddress.getAddress(), datagram), networkAddressFactory);
-						if (idm==null)
-							continue;
-						router.received(idm);
-
-					} catch (SocketException ex) {
-						break;
-					} catch (UnsupportedDataException ignored) {
-
-					} catch (Exception ex) {
-						throw new RuntimeException(ex);
-					}
-				}
-				try {
-					if (!socket.isClosed()) {
-						socket.close();
-					}
-				} catch (Exception ex) {
-					throw new RuntimeException(ex);
-				}
-			}
-		};
-	}
 
 	/*
 	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
@@ -2292,14 +2142,7 @@ class NONAndroidUpnpServiceConfiguration extends com.distrimind.upnp_igd.Default
 		return UpnpIGDAgent.createServiceDescriptorBinderUDA10(networkAddressFactory);
 	}
 
-	@Override
-	public MulticastReceiver<?> createMulticastReceiver(NetworkAddressFactory networkAddressFactory) {
-		return UpnpIGDAgent.createMulticastReceiver(networkAddressFactory);
-	}
-	@Override
-	public DatagramIO<?> createDatagramIO(NetworkAddressFactory networkAddressFactory) {
-		return UpnpIGDAgent.createDatagramIO(networkAddressFactory);
-	}
+
 	@Override
 	public StreamServer<?> createStreamServer(NetworkAddressFactory networkAddressFactory) {
 		return new StreamServerImpl(
@@ -2371,14 +2214,7 @@ class AndroidUpnpServiceConfiguration extends com.distrimind.upnp_igd.android.An
 	public ServiceDescriptorBinder createServiceDescriptorBinderUDA10() {
 		return UpnpIGDAgent.createServiceDescriptorBinderUDA10(networkAddressFactory);
 	}
-	@Override
-	public MulticastReceiver<?> createMulticastReceiver(NetworkAddressFactory networkAddressFactory) {
-		return UpnpIGDAgent.createMulticastReceiver(networkAddressFactory);
-	}
-	@Override
-	public DatagramIO<?> createDatagramIO(NetworkAddressFactory networkAddressFactory) {
-		return UpnpIGDAgent.createDatagramIO(networkAddressFactory);
-	}
+
 
 }
 
