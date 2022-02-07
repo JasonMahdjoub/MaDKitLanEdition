@@ -212,39 +212,6 @@ class UpnpIGDAgent extends AgentFakeThread {
 
 
 
-	static class RequestHttpHandler implements HttpHandler {
-
-		private final com.distrimind.upnp_igd.transport.Router router;
-		private final NetworkAddressFactory networkAddressFactory;
-
-		RequestHttpHandler(com.distrimind.upnp_igd.transport.Router router, NetworkAddressFactory networkAddressFactory) {
-			this.router = router;
-			this.networkAddressFactory=networkAddressFactory;
-		}
-
-		// This is executed in the request receiving thread!
-		public void handle(final HttpExchange httpExchange) throws IOException {
-			InetSocketAddress isa=httpExchange.getRemoteAddress();
-			if (isa==null)
-				return;
-			InetAddress receivedOnLocalAddress =
-					networkAddressFactory.getLocalAddress(
-							null,
-							isa.getAddress() instanceof Inet6Address,
-							isa.getAddress()
-					);
-			if (receivedOnLocalAddress==null)
-				return;
-			router.received(
-					new HttpExchangeUpnpStream(router.getProtocolFactory(), httpExchange) {
-						@Override
-						protected Connection createConnection() {
-							return new HttpServerConnection(httpExchange);
-						}
-					}
-			);
-		}
-	}
 	private static class HttpServerConnection implements Connection {
 
 		protected HttpExchange exchange;
@@ -2143,27 +2110,6 @@ class NONAndroidUpnpServiceConfiguration extends com.distrimind.upnp_igd.Default
 	}
 
 
-	@Override
-	public StreamServer<?> createStreamServer(NetworkAddressFactory networkAddressFactory) {
-		return new StreamServerImpl(
-				new StreamServerConfigurationImpl(
-						networkAddressFactory.getStreamListenPort()
-				)
-		) {
-			@Override
-			synchronized public void init(InetAddress bindAddress, com.distrimind.upnp_igd.transport.Router router) throws InitializationException {
-				try {
-					InetSocketAddress socketAddress = new InetSocketAddress(bindAddress, configuration.getListenPort());
-
-					server = HttpServer.create(socketAddress, configuration.getTcpConnectionBacklog());
-					server.createContext("/", new UpnpIGDAgent.RequestHttpHandler(router, networkAddressFactory));
-
-				} catch (Exception ex) {
-					throw new InitializationException("Could not initialize " + getClass().getSimpleName() + ": " + ex, ex);
-				}
-			}
-		};
-	}
 }
 
 class AndroidUpnpServiceConfiguration extends com.distrimind.upnp_igd.android.AndroidUpnpServiceConfiguration {
