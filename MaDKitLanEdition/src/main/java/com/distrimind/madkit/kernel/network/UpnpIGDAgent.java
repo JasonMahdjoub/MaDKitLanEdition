@@ -40,32 +40,23 @@ package com.distrimind.madkit.kernel.network;
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.message.KernelMessage;
-import com.distrimind.util.OS;
-import com.distrimind.util.OSVersion;
-import com.distrimind.util.properties.DocumentBuilderFactoryWithNonDTD;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpServer;
 import com.distrimind.upnp_igd.UpnpService;
 import com.distrimind.upnp_igd.UpnpServiceImpl;
-import com.distrimind.upnp_igd.binding.xml.*;
+import com.distrimind.upnp_igd.binding.xml.DescriptorBindingException;
+import com.distrimind.upnp_igd.binding.xml.DeviceDescriptorBinder;
+import com.distrimind.upnp_igd.binding.xml.ServiceDescriptorBinder;
 import com.distrimind.upnp_igd.controlpoint.ControlPoint;
 import com.distrimind.upnp_igd.controlpoint.ControlPointImpl;
 import com.distrimind.upnp_igd.model.Namespace;
-import com.distrimind.upnp_igd.model.UnsupportedDataException;
 import com.distrimind.upnp_igd.model.ValidationException;
 import com.distrimind.upnp_igd.model.action.ActionInvocation;
-import com.distrimind.upnp_igd.model.message.Connection;
-import com.distrimind.upnp_igd.model.message.*;
-import com.distrimind.upnp_igd.model.message.control.ActionRequestMessage;
-import com.distrimind.upnp_igd.model.message.control.ActionResponseMessage;
-import com.distrimind.upnp_igd.model.message.gena.OutgoingEventRequestMessage;
-import com.distrimind.upnp_igd.model.message.header.CallbackHeader;
-import com.distrimind.upnp_igd.model.message.header.HostHeader;
-import com.distrimind.upnp_igd.model.message.header.LocationHeader;
-import com.distrimind.upnp_igd.model.message.header.UpnpHeader;
-import com.distrimind.upnp_igd.model.meta.*;
-import com.distrimind.upnp_igd.model.profile.RemoteClientInfo;
+import com.distrimind.upnp_igd.model.message.IncomingDatagramMessage;
+import com.distrimind.upnp_igd.model.message.UpnpHeaders;
+import com.distrimind.upnp_igd.model.message.UpnpRequest;
+import com.distrimind.upnp_igd.model.message.UpnpResponse;
+import com.distrimind.upnp_igd.model.meta.RemoteDevice;
+import com.distrimind.upnp_igd.model.meta.RemoteDeviceIdentity;
+import com.distrimind.upnp_igd.model.meta.RemoteService;
 import com.distrimind.upnp_igd.model.types.*;
 import com.distrimind.upnp_igd.protocol.ProtocolFactory;
 import com.distrimind.upnp_igd.protocol.ProtocolFactoryImpl;
@@ -85,21 +76,12 @@ import com.distrimind.upnp_igd.support.model.Connection.StatusInfo;
 import com.distrimind.upnp_igd.support.model.PortMapping;
 import com.distrimind.upnp_igd.support.model.PortMapping.Protocol;
 import com.distrimind.upnp_igd.transport.RouterException;
-import com.distrimind.upnp_igd.transport.impl.*;
+import com.distrimind.upnp_igd.transport.impl.NetworkAddressFactoryImpl;
 import com.distrimind.upnp_igd.transport.spi.*;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.InputSource;
+import com.distrimind.util.OS;
+import com.distrimind.util.OSVersion;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.FactoryConfigurationError;
-import java.io.IOException;
-import java.io.StringReader;
-import java.lang.reflect.Method;
 import java.net.*;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -166,10 +148,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 
 
 
-	static DocumentBuilderFactory newDocumentBuilderFactoryWithNonDTDInstance()
-	{
-		return DocumentBuilderFactoryWithNonDTD.newDocumentBuilderFactoryWithNonDTDInstance();
-	}
+
 	/*
 	 * Fix DDOS and SSRF issue : https://github.com/4thline/cling/issues/253
 	 */
@@ -212,228 +191,6 @@ class UpnpIGDAgent extends AgentFakeThread {
 
 
 
-	private static class HttpServerConnection implements Connection {
-
-		protected HttpExchange exchange;
-
-		public HttpServerConnection(HttpExchange exchange) {
-			this.exchange = exchange;
-		}
-
-		@Override
-		public boolean isOpen() {
-			return true;
-		}
-
-		@Override
-		public InetAddress getRemoteAddress() {
-			return exchange.getRemoteAddress() != null
-					? exchange.getRemoteAddress().getAddress()
-					: null;
-		}
-
-		@Override
-		public InetAddress getLocalAddress() {
-			return exchange.getLocalAddress() != null
-					? exchange.getLocalAddress().getAddress()
-					: null;
-		}
-	}
-
-
-	/*
-	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
-	 */
-	static GENAEventProcessor createGENAEventProcessor() {
-		return new GENAEventProcessorImpl(){
-			@Override
-			protected DocumentBuilderFactory createDocumentBuilderFactory() throws FactoryConfigurationError {
-				return UpnpIGDAgent.newDocumentBuilderFactoryWithNonDTDInstance();
-			}
-			@Override
-			public void writeBody(OutgoingEventRequestMessage requestMessage) throws UnsupportedDataException {
-
-				try {
-
-					DocumentBuilderFactory factory = createDocumentBuilderFactory();
-					factory.setNamespaceAware(true);
-					Document d = factory.newDocumentBuilder().newDocument();
-					Element propertysetElement = writePropertysetElement(d);
-
-					writeProperties(d, propertysetElement, requestMessage);
-
-					requestMessage.setBody(UpnpMessage.BodyType.STRING, toString(d));
-
-				} catch (Exception ex) {
-					throw new UnsupportedDataException("Can't transform message payload: " + ex.getMessage(), ex);
-				}
-			}
-
-		};
-	}
-	/*
-	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
-	 */
-	static SOAPActionProcessor createSOAPActionProcessor() {
-		return new SOAPActionProcessorImpl()
-		{
-			@Override
-			protected DocumentBuilderFactory createDocumentBuilderFactory() throws FactoryConfigurationError {
-				return UpnpIGDAgent.newDocumentBuilderFactoryWithNonDTDInstance();
-			}
-			@Override
-			public void writeBody(ActionRequestMessage requestMessage, ActionInvocation actionInvocation) throws UnsupportedDataException {
-
-				try {
-
-					DocumentBuilderFactory factory = createDocumentBuilderFactory();
-					factory.setNamespaceAware(true);
-					Document d = factory.newDocumentBuilder().newDocument();
-					Element body = writeBodyElement(d);
-
-					writeBodyRequest(d, body, requestMessage, actionInvocation);
-
-
-				} catch (Exception ex) {
-					throw new UnsupportedDataException("Can't transform message payload: " + ex, ex);
-				}
-			}
-			@Override
-			public void writeBody(ActionResponseMessage responseMessage, ActionInvocation actionInvocation) throws UnsupportedDataException {
-
-				try {
-
-					DocumentBuilderFactory factory = createDocumentBuilderFactory();
-					factory.setNamespaceAware(true);
-					Document d = factory.newDocumentBuilder().newDocument();
-					Element body = writeBodyElement(d);
-
-					if (actionInvocation.getFailure() != null) {
-						writeBodyFailure(d, body, responseMessage, actionInvocation);
-					} else {
-						writeBodyResponse(d, body, responseMessage, actionInvocation);
-					}
-
-				} catch (Exception ex) {
-					throw new UnsupportedDataException("Can't transform message payload: " + ex, ex);
-				}
-			}
-		};
-	}
-	/*
-	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
-	 */
-	static DeviceDescriptorBinder createDeviceDescriptorBinderUDA10(NetworkAddressFactory networkAddressFactory) {
-		//noinspection rawtypes
-		return new UDA10DeviceDescriptorBinderImpl()
-		{
-			@Override
-			public <D extends Device> D describe(D undescribedDevice, String descriptorXml) throws DescriptorBindingException, ValidationException {
-
-				if (descriptorXml == null || descriptorXml.length() == 0) {
-					throw new DescriptorBindingException("Null or empty descriptor");
-				}
-
-				try {
-					DocumentBuilderFactory factory = newDocumentBuilderFactoryWithNonDTDInstance();
-					factory.setNamespaceAware(true);
-					DocumentBuilder documentBuilder = factory.newDocumentBuilder();
-					documentBuilder.setErrorHandler(this);
-
-					Document d = documentBuilder.parse(
-							new InputSource(
-									new StringReader(descriptorXml.trim())
-							)
-					);
-
-					D res=describe(undescribedDevice, d);
-					if (res.getDetails()!=null && isNotValidRemoteAddress(res.getDetails().getBaseURL(), networkAddressFactory))
-						return null;
-
-					return res;
-				} catch (ValidationException ex) {
-					throw ex;
-				} catch (Exception ex) {
-					throw new DescriptorBindingException("Could not parse device descriptor: " + ex, ex);
-				}
-			}
-			@Override
-			public Document buildDOM(Device deviceModel, RemoteClientInfo info, Namespace namespace) throws DescriptorBindingException {
-
-				try {
-					DocumentBuilderFactory factory = newDocumentBuilderFactoryWithNonDTDInstance();
-					factory.setNamespaceAware(true);
-
-					Document d = factory.newDocumentBuilder().newDocument();
-					generateRoot(namespace, deviceModel, d, info);
-
-					return d;
-
-				} catch (Exception ex) {
-					throw new DescriptorBindingException("Could not generate device descriptor: " + ex.getMessage(), ex);
-				}
-			}
-		};
-	}
-
-	/*
-	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
-	 */
-	static ServiceDescriptorBinder createServiceDescriptorBinderUDA10(NetworkAddressFactory networkAddressFactory) {
-		//noinspection rawtypes
-		return new UDA10ServiceDescriptorBinderImpl(){
-			@Override
-			public <S extends Service> S describe(S undescribedService, String descriptorXml) throws DescriptorBindingException, ValidationException {
-				if (descriptorXml == null || descriptorXml.length() == 0) {
-					throw new DescriptorBindingException("Null or empty descriptor");
-				}
-
-				try {
-					DocumentBuilderFactory factory = newDocumentBuilderFactoryWithNonDTDInstance();
-					factory.setNamespaceAware(true);
-					DocumentBuilder documentBuilder = factory.newDocumentBuilder();
-					documentBuilder.setErrorHandler(this);
-
-					Document d = documentBuilder.parse(
-							new InputSource(
-									new StringReader(descriptorXml.trim())
-							)
-					);
-
-					S res= describe(undescribedService, d);
-					if (res.getDevice()!=null && res.getDevice().getDetails()!=null && isNotValidRemoteAddress(res.getDevice().getDetails().getBaseURL(), networkAddressFactory))
-						return null;
-					return res;
-
-				} catch (ValidationException ex) {
-					throw ex;
-				} catch (Exception ex) {
-					throw new DescriptorBindingException("Could not parse service descriptor: " + ex, ex);
-				}
-			}
-			@Override
-			public Document buildDOM(Service service) throws DescriptorBindingException {
-
-				try {
-					DocumentBuilderFactory factory = newDocumentBuilderFactoryWithNonDTDInstance();
-					factory.setNamespaceAware(true);
-
-					Document d = factory.newDocumentBuilder().newDocument();
-					Method m=UDA10ServiceDescriptorBinderImpl.class.getDeclaredMethod("generateScpd", Service.class, Document.class);
-					AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
-						m.setAccessible(true);
-						return null;
-					});
-
-					return d;
-
-				} catch (Exception ex) {
-					throw new DescriptorBindingException("Could not generate service descriptor: " + ex.getMessage(), ex);
-				}
-			}
-		};
-
-	}
 
 	protected void addRouter(InetAddress ia, Router router) {
 		if (ia == null)
@@ -2078,36 +1835,6 @@ class NONAndroidUpnpServiceConfiguration extends com.distrimind.upnp_igd.Default
 		return networkAddressFactory=UpnpIGDAgent.createNetworkAddressFactory(streamListenPort, NONAndroidUpnpServiceConfiguration.this.multicastPort);
     }
 
-	/*
-	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
-	 */
-    @Override
-	protected GENAEventProcessor createGENAEventProcessor() {
-		return UpnpIGDAgent.createGENAEventProcessor();
-	}
-	/*
-	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
-	 */
-	@Override
-	protected SOAPActionProcessor createSOAPActionProcessor() {
-		return UpnpIGDAgent.createSOAPActionProcessor();
-	}
-
-	/*
-	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
-	 */
-	@Override
-	public DeviceDescriptorBinder createDeviceDescriptorBinderUDA10() {
-		return UpnpIGDAgent.createDeviceDescriptorBinderUDA10(networkAddressFactory);
-	}
-
-	/*
-	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
-	 */
-	@Override
-	public ServiceDescriptorBinder createServiceDescriptorBinderUDA10() {
-		return UpnpIGDAgent.createServiceDescriptorBinderUDA10(networkAddressFactory);
-	}
 
 
 }
@@ -2129,38 +1856,6 @@ class AndroidUpnpServiceConfiguration extends com.distrimind.upnp_igd.android.An
     protected NetworkAddressFactory createNetworkAddressFactory(int streamListenPort) {
 		return networkAddressFactory=UpnpIGDAgent.createNetworkAddressFactory(streamListenPort, AndroidUpnpServiceConfiguration.this.multicastPort);
     }
-	/*
-	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
-	 */
-	@Override
-	protected GENAEventProcessor createGENAEventProcessor() {
-		return UpnpIGDAgent.createGENAEventProcessor();
-	}
-	/*
-	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
-	 */
-	@Override
-	protected SOAPActionProcessor createSOAPActionProcessor() {
-		return UpnpIGDAgent.createSOAPActionProcessor();
-	}
-
-	/*
-	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
-	 */
-	@Override
-	public DeviceDescriptorBinder createDeviceDescriptorBinderUDA10() {
-
-		return UpnpIGDAgent.createDeviceDescriptorBinderUDA10(networkAddressFactory);
-	}
-
-	/*
-	 * FIX XXE issue : https://github.com/4thline/cling/issues/243
-	 */
-	@Override
-	public ServiceDescriptorBinder createServiceDescriptorBinderUDA10() {
-		return UpnpIGDAgent.createServiceDescriptorBinderUDA10(networkAddressFactory);
-	}
-
 
 }
 
