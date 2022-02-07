@@ -76,7 +76,6 @@ import com.distrimind.upnp_igd.support.model.Connection.StatusInfo;
 import com.distrimind.upnp_igd.support.model.PortMapping;
 import com.distrimind.upnp_igd.support.model.PortMapping.Protocol;
 import com.distrimind.upnp_igd.transport.RouterException;
-import com.distrimind.upnp_igd.transport.impl.NetworkAddressFactoryImpl;
 import com.distrimind.upnp_igd.transport.spi.*;
 import com.distrimind.util.OS;
 import com.distrimind.util.OSVersion;
@@ -149,23 +148,6 @@ class UpnpIGDAgent extends AgentFakeThread {
 
 
 
-	/*
-	 * Fix DDOS and SSRF issue : https://github.com/4thline/cling/issues/253
-	 */
-	static NetworkAddressFactory createNetworkAddressFactory(int streamListenPort, int multicastPort) {
-
-		return new NetworkAddressFactoryImpl(streamListenPort) {
-			@Override
-			public int getMulticastPort() {
-				return multicastPort;
-			}
-			public InetAddress getLocalAddress(NetworkInterface networkInterface, boolean isIPv6, InetAddress remoteAddress) {
-
-				// First try to find a local IP that is in the same subnet as the remote IP
-				return getBindAddressInSubnetOf(remoteAddress);
-			}
-		};
-	}
 	static boolean isNotValidRemoteAddress(URL u, NetworkAddressFactory networkAddressFactory)
 	{
 		if (u==null)
@@ -1815,48 +1797,30 @@ class UpnpIGDAgent extends AgentFakeThread {
 }
 
 class NONAndroidUpnpServiceConfiguration extends com.distrimind.upnp_igd.DefaultUpnpServiceConfiguration {
-	/**
-	 * Defaults to port '0', ephemeral.
-	 */
-	private final int multicastPort;
-	private NetworkAddressFactory networkAddressFactory=null;
 
 	public NONAndroidUpnpServiceConfiguration(int streamListenPort, int multicastPort) {
-		super(streamListenPort);
-		this.multicastPort=multicastPort;
+		super(streamListenPort, multicastPort);
 	}
 
 	protected ExecutorService createDefaultExecutorService() {
 		return UpnpIGDAgent.serviceExecutor;
 	}
-	
-	@Override
-    protected NetworkAddressFactory createNetworkAddressFactory(int streamListenPort) {
-		return networkAddressFactory=UpnpIGDAgent.createNetworkAddressFactory(streamListenPort, NONAndroidUpnpServiceConfiguration.this.multicastPort);
-    }
 
 
 
 }
 
 class AndroidUpnpServiceConfiguration extends com.distrimind.upnp_igd.android.AndroidUpnpServiceConfiguration {
-	private final int multicastPort;
 	private NetworkAddressFactory networkAddressFactory=null;
 
 	public AndroidUpnpServiceConfiguration(int streamListenPort, int multicastPort) {
-		super(streamListenPort);
-		this.multicastPort=multicastPort;
+		super(streamListenPort, multicastPort);
 	}
 
 	protected ExecutorService createDefaultExecutorService() {
 		return UpnpIGDAgent.serviceExecutor;
 	}
 	
-	@Override
-    protected NetworkAddressFactory createNetworkAddressFactory(int streamListenPort) {
-		return networkAddressFactory=UpnpIGDAgent.createNetworkAddressFactory(streamListenPort, AndroidUpnpServiceConfiguration.this.multicastPort);
-    }
-
 }
 
 class DefaultUpnpServiceConfiguration implements com.distrimind.upnp_igd.UpnpServiceConfiguration {
