@@ -62,6 +62,10 @@ repositories {
 
 dependencies {
 	testImplementation 'org.testng:testng:7.5'
+    var slf4jVersion='1.7.35'
+    testImplementation 'org.slf4j:slf4j-api:'+slf4jVersion
+    testImplementation 'org.slf4j:slf4j-simple:'+slf4jVersion
+
     //testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.hamcrest:hamcrest-core:2.2'
     api(group:'com.distrimind.ood', name: 'OOD', version: '3.1.17-STABLE')
