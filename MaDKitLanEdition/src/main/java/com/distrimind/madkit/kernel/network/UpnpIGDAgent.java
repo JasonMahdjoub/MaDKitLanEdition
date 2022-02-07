@@ -147,33 +147,6 @@ class UpnpIGDAgent extends AgentFakeThread {
 
 
 
-
-	static boolean isNotValidRemoteAddress(URL u, NetworkAddressFactory networkAddressFactory)
-	{
-		if (u==null)
-			return false;
-		return isNotValidRemoteAddress(u.getHost(), networkAddressFactory);
-	}
-	static boolean isNotValidRemoteAddress(String host, NetworkAddressFactory networkAddressFactory)
-	{
-		try {
-			InetAddress ia = InetAddress.getByName(host);
-			ia = networkAddressFactory.getLocalAddress(
-					null,
-					ia instanceof Inet6Address,
-					ia
-			);
-			if (ia == null)
-				return true;
-		} catch (Exception ignored) {
-			return true;
-		}
-		return false;
-	}
-
-
-
-
 	protected void addRouter(InetAddress ia, Router router) {
 		if (ia == null)
 			throw new NullPointerException("ia");
