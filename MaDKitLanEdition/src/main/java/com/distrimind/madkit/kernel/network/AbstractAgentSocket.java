@@ -64,7 +64,6 @@ import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.rmi.UnexpectedException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -348,7 +347,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 								max, max_buffer_size));
 			max_block_size = SubBlocksStructure.getAbsoluteMaximumBlockSize(connection_protocol, max_buffer_size, getMadkitConfig().networkProperties.maxRandomPacketValues);
 			if (max_block_size > Block.BLOCK_SIZE_LIMIT)
-				throw new NIOException(new UnexpectedException(AgentSocketMessage.UNEXPECTED_EXCEPTION.toString()));
+				throw new NIOException(AgentSocketMessage.UNEXPECTED_EXCEPTION.toString());
 			// defining the block size and the packet offset
 			boolean nr = false;
 

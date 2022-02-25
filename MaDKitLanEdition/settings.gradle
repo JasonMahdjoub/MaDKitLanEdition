@@ -19,6 +19,8 @@ rootProject.name = 'MaDKitLanEdition'
 /*include ':OOD'
 project(":OOD").projectDir = file("../../OOD/OOD")*/
 /*include ':Utils'
-project(":Utils").projectDir = file("../../Utils/Utils")*/
+project(":Utils").projectDir = file("../../Utils/Utils")
 include ':UPnPIGD'
-project(":UPnPIGD").projectDir = file("../../UpnpIGD")
+project(":UPnPIGD").projectDir = file("../../UpnpIGD")*/
+include 'SwingDriver'
+

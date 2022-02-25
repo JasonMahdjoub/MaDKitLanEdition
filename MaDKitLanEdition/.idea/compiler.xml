@@ -5,6 +5,9 @@
       <module name="MaDKitLanEdition.OOD" target="1.8" />
       <module name="MaDKitLanEdition.OOD.main" target="1.8" />
       <module name="MaDKitLanEdition.OOD.test" target="1.8" />
+      <module name="MaDKitLanEdition.UPnPIGD" target="1.8" />
+      <module name="MaDKitLanEdition.UPnPIGD.main" target="1.8" />
+      <module name="MaDKitLanEdition.UPnPIGD.test" target="1.8" />
       <module name="MaDKitLanEdition.Utils" target="1.8" />
       <module name="MaDKitLanEdition.Utils.main" target="1.8" />
       <module name="MaDKitLanEdition.Utils.test" target="1.8" />
