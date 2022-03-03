@@ -33,20 +33,12 @@
  */
 package com.distrimind.madkit.action;
 
-import static java.awt.event.KeyEvent.VK_DOLLAR;
-import static java.awt.event.KeyEvent.VK_LEFT;
-import static java.awt.event.KeyEvent.VK_P;
-import static java.awt.event.KeyEvent.VK_RIGHT;
-import static java.awt.event.KeyEvent.VK_SPACE;
-
-import java.awt.event.ActionEvent;
-import java.util.ResourceBundle;
-
-import javax.swing.Action;
-
 import com.distrimind.madkit.i18n.I18nUtilities;
 import com.distrimind.madkit.kernel.Scheduler;
 import com.distrimind.madkit.message.SchedulingMessage;
+
+import java.util.ResourceBundle;
+
 
 /**
  * Enum representing operations which could be done by a {@link Scheduler}
@@ -60,48 +52,23 @@ import com.distrimind.madkit.message.SchedulingMessage;
  */
 public enum SchedulingAction {
 
-	RUN(VK_P), STEP(VK_SPACE), SPEED_UP(VK_RIGHT), SPEED_DOWN(VK_LEFT), PAUSE(VK_DOLLAR), SHUTDOWN(VK_DOLLAR);
+	RUN, STEP, SPEED_UP, SPEED_DOWN, PAUSE, SHUTDOWN;
+
+
+	public Action getActionFor(final Scheduler theScheduler, final Object... parameters) {
+		return new Action(this, ()-> {
+
+			theScheduler.receiveMessage(new SchedulingMessage(SchedulingAction.this, parameters));// TODO work with
+			// AA but this
+			// is probably
+			// worthless
+		});
+	}
 
 	final static private ResourceBundle messages = I18nUtilities
 			.getResourceBundle(SchedulingAction.class.getSimpleName());
-
-	private ActionInfo actionInfo;
-	final private int keyEvent;
-
-	SchedulingAction(int keyEvent) {
-		this.keyEvent = keyEvent;
-	}
-
-	/**
-	 * @return the actionInfo
-	 */
-	public ActionInfo getActionInfo() {
-		if (actionInfo == null)
-			actionInfo = new ActionInfo(this, keyEvent, messages);
-		return actionInfo;
-	}
-
-	/**
-	 * Builds an action that will make the corresponding scheduler do the related
-	 * operation if possible.
-	 * 
-	 * @param theScheduler
-	 *            the scheduler on which the action will be triggered if possible
-	 * @param parameters
-	 *            the info
-	 * @return the corresponding action
-	 */
-	public Action getActionFor(final Scheduler theScheduler, final Object... parameters) {
-		return new MDKAbstractAction(getActionInfo()) {
-			private static final long serialVersionUID = 5434867603425806658L;
-
-			@Override
-			public void actionPerformed(ActionEvent e) {// TODO I could do the check validity here for logging purpose
-				theScheduler.receiveMessage(new SchedulingMessage(SchedulingAction.this, parameters));// TODO work with
-																										// AA but this
-																										// is probably
-																										// worthless
-			}
-		};
+	public static ResourceBundle getMessages()
+	{
+		return messages;
 	}
 }

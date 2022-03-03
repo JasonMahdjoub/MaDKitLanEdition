@@ -40,9 +40,7 @@ package com.distrimind.madkit.kernel;
 import com.distrimind.madkit.database.AsynchronousMessageTable;
 import com.distrimind.madkit.database.IPBanned;
 import com.distrimind.madkit.database.MKDatabase;
-import com.distrimind.madkit.gui.AgentFrame;
-import com.distrimind.madkit.gui.ConsoleAgent;
-import com.distrimind.madkit.gui.MDKDesktopFrame;
+import com.distrimind.madkit.gui.GUIProvider;
 import com.distrimind.madkit.i18n.ErrorMessages;
 import com.distrimind.madkit.i18n.SuccessMessages;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
@@ -126,9 +124,9 @@ public class MadkitProperties extends MultiFormatProperties {
 
 	/**
 	 * the desktop frame class which should be used, default is
-	 * {@link MDKDesktopFrame}
+	 *
 	 */
-	public Class<?> desktopFrameClass = MDKDesktopFrame.class;
+	public Class<?> desktopFrameClass = GUIProvider.getDefaultDesktopFrameClass();
 
 	/**
 	 * Tells if MadkitLanEdition can be launched with the desktop GUI
@@ -142,9 +140,9 @@ public class MadkitProperties extends MultiFormatProperties {
 
 	/**
 	 * the agent frame class which should be used by the GUI manager, default is
-	 * {@link AgentFrame}
+	 *
 	 */
-	public Class<?> agentFrameClass = AgentFrame.class;
+	public Class<?> agentFrameClass = GUIProvider.getDefaultAgentFrameClass();
 
 	/**
 	 * the directory containing the MDK i18n files
@@ -191,7 +189,7 @@ public class MadkitProperties extends MultiFormatProperties {
 	public boolean loadLocalDemos = false;
 
 	/**
-	 * Launches the {@link ConsoleAgent} before any other.
+	 * Launches the before any other.
 	 */
 	public boolean console = false;
 

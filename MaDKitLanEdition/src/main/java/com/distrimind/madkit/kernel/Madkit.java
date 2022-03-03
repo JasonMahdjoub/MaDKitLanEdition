@@ -52,7 +52,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.distrimind.madkit.action.AgentAction;
-import com.distrimind.madkit.action.GUIManagerAction;
 import com.distrimind.madkit.action.KernelAction;
 import com.distrimind.madkit.action.SchedulingAction;
 import com.distrimind.madkit.i18n.I18nUtilities;
@@ -146,8 +145,11 @@ final public class Madkit {
 					.addDeveloper(new PersonDeveloper("Michel", "Fabien", "1997-02-01"))
 					.addDeveloper(new PersonDeveloper("Gutknecht", "Olivier", "1997-02-01"))
 					.addDeveloper(new PersonDeveloper("Ferber", "Jacques", "1997-02-01"))
-					.addDescription(new Description((short)2, (short)3, (short)8, Version.Type.STABLE, (short)0, "2022-02-24")
-							.addItem(INTERNAL_CHANGE, "Use a forked ")
+					.addDescription(new Description((short)2, (short)4, (short)0, Version.Type.STABLE, (short)0, "2022-03-03")
+							.addItem(INTERNAL_CHANGE, "Use a forked version of Cling (UPNP IGD)")
+							.addItem(INTERNAL_CHANGE, "UPNP IGD : fix issue with JDK17")
+							.addItem(NEW_FEATURE, "Separate Madkit GUI to a different library in order to remove Swing dependencies, and in order to make MKLE compatible with Android")
+							.addItem(NEW_FEATURE, "Test MaDKitLanEdition with Android (API 26+)")
 					)
 					.addDescription(new Description((short)2, (short)3, (short)7, Version.Type.STABLE, (short)0, "2022-02-03")
 							.addItem(INTERNAL_CHANGE, "Update URLs")
@@ -1184,8 +1186,8 @@ final public class Madkit {
 					ACLMessage.class, ActMessage.class, BigDataPropositionMessage.class, BigDataResultMessage.class,
 					KernelMessage.class, StringMessage.class, (Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.message.hook.OrganizationEvent"),
 					SchedulingMessage.class, KQMLMessage.class, IntegerMessage.class, BooleanMessage.class,
-					GUIMessage.class, (Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.InternalRole"),
-					EncryptedPassword.class, GUIMessage.class,
+					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.InternalRole"),
+					EncryptedPassword.class,
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.DatagramLocalNetworkPresenceMessage"),
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.EncryptedCloudIdentifier"),
 					(Class<? extends SecureExternalizableWithoutInnerSizeControl>) Class.forName("com.distrimind.madkit.kernel.network.connection.access.WrappedCloudIdentifier"),
@@ -1207,7 +1209,6 @@ final public class Madkit {
 					ConnectionProtocol.ConnectionState.class,
 					Version.Type.class,
 					AgentAction.class,
-					GUIManagerAction.class,
 					SchedulingAction.class,
 					AbstractAgent.KillingType.class,
 					BigDataResultMessage.Type.class,

@@ -38,21 +38,13 @@
 
 package com.distrimind.madkit.kernel;
 
-import com.distrimind.madkit.action.ActionInfo;
-import com.distrimind.madkit.action.GUIManagerAction;
 import com.distrimind.madkit.action.KernelAction;
 import com.distrimind.madkit.agr.LocalCommunity;
-import com.distrimind.madkit.agr.LocalCommunity.Groups;
-import com.distrimind.madkit.agr.LocalCommunity.Roles;
 import com.distrimind.madkit.database.AsynchronousBigDataTable;
 import com.distrimind.madkit.database.AsynchronousMessageTable;
 import com.distrimind.madkit.exceptions.KilledException;
 import com.distrimind.madkit.exceptions.SelfKillException;
-import com.distrimind.madkit.gui.AgentStatusPanel;
-import com.distrimind.madkit.gui.OutputPanel;
-import com.distrimind.madkit.gui.menu.AgentLogLevelMenu;
-import com.distrimind.madkit.gui.menu.AgentMenu;
-import com.distrimind.madkit.gui.menu.MadkitMenu;
+import com.distrimind.madkit.gui.GUIProvider;
 import com.distrimind.madkit.i18n.ErrorMessages;
 import com.distrimind.madkit.i18n.I18nUtilities;
 import com.distrimind.madkit.i18n.Words;
@@ -79,7 +71,6 @@ import com.distrimind.util.io.SecureExternalizable;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
-import javax.swing.*;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
@@ -471,16 +462,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 			throw new AssertionError("already alive in launch");
 		}
 		if (hasGUI) {
-			if (logger != null && logger.isLoggable(Level.FINER)) {
-				logger.finer("** setting up  GUI **");
-			}
-			sendMessage(Groups.GUI, Roles.GUI,
-					new GUIMessage(GUIManagerAction.SETUP_AGENT_GUI, AbstractAgent.this));
-			try {// wait answer using a big hack
-				getMessageBox().take();// works because the agent cannot be joined in anyway
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			GUIProvider.launchAgentGUI(this, logger);
 		}
 		logMethod(true);
 	}
@@ -662,10 +644,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		kernel = getMadkitKernel();
 
 		if (hasGUI) {
-			ReturnCode rc=kernel.broadcastMessageWithRole(this, Groups.GUI, Roles.GUI,
-					new GUIMessage(GUIManagerAction.DISPOSE_AGENT_GUI, this), null, false);
-			if (rc!=ReturnCode.SUCCESS)
-				getLogger().warning("Agent GUI disposing. Impossible send message to GUI Manager Agent : "+rc);
+			GUIProvider.terminateAgentGUI(this, logger);
 		}
 
 		try {
@@ -685,8 +664,8 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 			logger = null;
 		}
 		if (hasGUI) {
-			AgentLogLevelMenu.remove(this);
-			AgentStatusPanel.remove(this);
+			GUIProvider.removeAgentLogLevelMenu(this);
+			GUIProvider.removeAgentStatusPanel(this);
 		}
 		if (changeState) {
 			synchronized (state) {
@@ -828,15 +807,14 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * Additionally, if <code>createFrame</code> is <code>true</code>, it tells to
 	 * MaDKit that an agent GUI should be managed by the Kernel. In such a case, the
 	 * kernel takes the responsibility to assign a JFrame to the agent and to manage
-	 * its life cycle (e.g. if the agent ends or is killed then the JFrame is
+	 * its life cycle (e.g. if the agent ends or is killed then the frame is
 	 * closed) Using this feature there are two possibilities:
 	 * <ul>
 	 * <li>1. the agent overrides the method
-	 * {@link AbstractAgent#setupFrame(JFrame)} and so setup the default JFrame as
+	 * {@link AbstractAgent#setupFrame(Object...)} and so setup the default frame as
 	 * will</li>
-	 * <li>2. the agent does not override it so that MaDKit will setup the JFrame
-	 * with the default Graphical component delivered by the MaDKit platform:
-	 * {@link OutputPanel}
+	 * <li>2. the agent does not override it so that MaDKit will setup the frame
+	 * with the default Graphical component delivered by the MaDKit platform
 	 * </ul>
 	 * 
 	 * @param agent
@@ -2812,17 +2790,16 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 * <li>width = 400</li>
 	 * <li>height = 300</li>
 	 * <li>location = center of the screen</li>
-	 * <li>a JMenuBar with: {@link MadkitMenu}, {@link AgentMenu} and
-	 * {@link AgentLogLevelMenu}</li>
+	 * <li>a JMenuBar
 	 * </ul>
 	 * 
-	 * @param frame
-	 *            the default frame which has been created by MaDKit for this agent.
+	 * @param parameters
+	 *            the default parameters which has been created by MaDKit for this agent.
 	 * @since MaDKit 5.0.0.8
-	 * @see com.distrimind.madkit.gui.OutputPanel
+	 *
 	 */
-	public void setupFrame(final JFrame frame) {
-		frame.add(new OutputPanel(this));
+	public void setupFrame(final Object ... parameters) {
+		GUIProvider.setupAgentFrame(this, parameters);
 	}
 
 	// /////////////////////////////////////////////// UTILITIES
@@ -3630,11 +3607,11 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 		Object[] parameters = message.getContent();
 		Method m = null;
 		try {
-			m = findMethodFromParameters(ActionInfo.enumToMethodName(message.getCode()), parameters);
+			m = findMethodFromParameters(GUIProvider.enumToMethodName(message.getCode()), parameters);
 			m.invoke(this, parameters);
 		} catch (NoSuchMethodException e) {
 			if (logger != null)
-				logger.warning("I do not know how to " + ActionInfo.enumToMethodName(message.getCode())
+				logger.warning("I do not know how to " + GUIProvider.enumToMethodName(message.getCode())
 						+ Arrays.deepToString(parameters));
 			logForSender("I have sent a message which has not been understood", message);// TODO i18n
 		} catch (IllegalArgumentException e) {
@@ -3643,7 +3620,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 			logForSender("I have sent an incorrect command message ", message);
 		} catch (IllegalAccessException e) {
 			e.printStackTrace();
-			System.err.println("method name : "+(m==null?"null":m.getName()));
+			System.err.println("method name : "+ m.getName());
 		} catch (InvocationTargetException e) {// TODO dirty : think about that
 			Throwable t = e.getCause();
 			if (t instanceof SelfKillException) {

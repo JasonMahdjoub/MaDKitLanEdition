@@ -37,19 +37,6 @@
  */
 package com.distrimind.madkit.action;
 
-import static java.awt.event.KeyEvent.VK_C;
-import static java.awt.event.KeyEvent.VK_DOLLAR;
-import static java.awt.event.KeyEvent.VK_O;
-import static java.awt.event.KeyEvent.VK_Q;
-import static java.awt.event.KeyEvent.VK_R;
-import static java.awt.event.KeyEvent.VK_T;
-import static java.awt.event.KeyEvent.VK_W;
-
-import java.awt.event.ActionEvent;
-import java.util.ResourceBundle;
-
-import javax.swing.Action;
-
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.agr.Organization;
 import com.distrimind.madkit.i18n.I18nUtilities;
@@ -58,12 +45,12 @@ import com.distrimind.madkit.kernel.network.AskForConnectionMessage;
 import com.distrimind.madkit.kernel.network.AskForTransferMessage;
 import com.distrimind.madkit.message.KernelMessage;
 
+import java.util.ResourceBundle;
+
+
 /**
  * Enum representing kernel actions. This especially could be used to
- * communicate with the kernel in order to trigger kernel's actions. It could be
- * used by any agent to interact with the kernel by creating {@link Action}
- * using {@link #getActionFor(AbstractAgent, Object...)}.
- * 
+ * communicate with the kernel in order to trigger kernel's actions.
  * 
  * @author Fabien Michel
  * @author Jason Mahdjoub
@@ -77,113 +64,105 @@ public enum KernelAction {
 	/**
 	 * Close the kernel
 	 */
-	EXIT(VK_Q),
+	EXIT,
 	/**
 	 * Clone the kernel with its initial options
 	 */
-	COPY(VK_C),
+	COPY,
 	/**
 	 * Restart the kernel with its initial options
 	 */
-	RESTART(VK_R),
+	RESTART,
 	/**
 	 * Start the network
 	 */
-	LAUNCH_NETWORK(VK_W),
+	LAUNCH_NETWORK,
 	/**
 	 * Stop the network
 	 */
-	STOP_NETWORK(VK_T),
+	STOP_NETWORK,
 
 	/**
 	 * Makes a redirection of the out and err to a MaDKit agent.
 	 */
-	CONSOLE(VK_O),
+	CONSOLE,
 
 	// //Actions that need parameters, i.e. not global
 	/**
 	 * Launch an agent
 	 */
-	LAUNCH_AGENT(VK_DOLLAR),
+	LAUNCH_AGENT,
 	/**
 	 * Launch a MAS configuration
 	 */
-	LAUNCH_MAS(VK_DOLLAR),
+	LAUNCH_MAS,
 	/**
 	 * Launch an XML configuration
 	 */
-	LAUNCH_XML(VK_DOLLAR),
+	LAUNCH_XML,
 	/**
 	 * Launch an XML configuration
 	 */
-	LAUNCH_YAML(VK_DOLLAR),
+	LAUNCH_YAML,
 	/**
 	 * Kill an agent
 	 */
-	KILL_AGENT(VK_DOLLAR),
+	KILL_AGENT,
 	/**
 	 * Connection to the MaDKit web repository
 	 */
-	CONNECT_WEB_REPO(VK_DOLLAR),
+	CONNECT_WEB_REPO,
 	/**
 	 * For connecting/disconnecting two kernels directly in a wide area network. It
 	 * requires a parameter of type {@link AskForConnectionMessage}.
 	 */
-	MANAGE_DIRECT_CONNECTION(VK_DOLLAR),
+	MANAGE_DIRECT_CONNECTION,
 
 	/**
 	 * For connecting/disconnecting two kernels indirectly by making data transferred
 	 * by the current kernel to constitute a meshed network. It requires a parameter
 	 * of type {@link AskForTransferMessage}.
 	 */
-	MANAGE_TRANSFER_CONNECTION(VK_DOLLAR),
+	MANAGE_TRANSFER_CONNECTION,
 
 	/**
 	 * Cancel a programmed execution of a task which would be executed by the
 	 * TaskAgent identified by the given name.
 	 */
-	CANCEL_TASK(java.awt.event.KeyEvent.VK_A),
+	CANCEL_TASK,
 
 	/**
 	 * Add a new task to be executed at a specific time by the task agent which
 	 * correspond to the given task agent name.
 	 */
-	SCHEDULE_TASK(java.awt.event.KeyEvent.VK_H),
+	SCHEDULE_TASK,
 
 	/**
 	 * Add a new collection of tasks to be executed at a specific time by the task
 	 * agent which correspond to the given task agent name.
 	 */
-	SCHEDULE_TASKS(java.awt.event.KeyEvent.VK_1),
+	SCHEDULE_TASKS,
 
 	/**
 	 * Kill a Task Manager Agent
 	 */
-	KILL_TASK_MANAGER_AGENT(java.awt.event.KeyEvent.VK_2),
+	KILL_TASK_MANAGER_AGENT,
 
 	/**
 	 * Launch a Task Manager Agent
 	 */
-	LAUNCH_TASK_MANAGER_AGENT(java.awt.event.KeyEvent.VK_3),
+	LAUNCH_TASK_MANAGER_AGENT,
 
 	/**
 	 * Set threads priority related to a specific Task Manager Agent
 	 */
-	SET_TASK_MANAGER_AGENT_PRIORITY(java.awt.event.KeyEvent.VK_4);
+	SET_TASK_MANAGER_AGENT_PRIORITY;
 
-	private ActionInfo actionInfo;
-	final private int keyEvent;
-
-	final static private ResourceBundle messages = I18nUtilities.getResourceBundle(KernelAction.class.getSimpleName());
-
-	KernelAction(int keyEvent) {
-		this.keyEvent = keyEvent;
-	}
 
 	/**
 	 * Builds an action that will make the kernel do the corresponding operation if
 	 * possible.
-	 * 
+	 *
 	 * @param agent
 	 *            the agent that will send the message to the kernel
 	 * @param parameters
@@ -191,31 +170,21 @@ public enum KernelAction {
 	 * @return the new corresponding action
 	 */
 	public Action getActionFor(final AbstractAgent agent, final Object... parameters) {
-		return new MDKAbstractAction(getActionInfo()) {
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = -8907472475007112860L;
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
+		return new Action(this, () -> {
 				if (agent.isAlive()) {
 					agent.sendMessage(LocalCommunity.Groups.SYSTEM, Organization.GROUP_MANAGER_ROLE,
 							new KernelMessage(KernelAction.this, parameters));// TODO work with AA but this is probably
-																				// worthless
+					// worthless
 				}
 
-			}
-		};
+			});
 	}
 
-	/**
-	 * @return the actionInfo
-	 */
-	public ActionInfo getActionInfo() {
-		if (actionInfo == null)
-			actionInfo = new ActionInfo(this, keyEvent, messages);
-		return actionInfo;
+	final static private ResourceBundle messages = I18nUtilities.getResourceBundle(KernelAction.class.getSimpleName());
+
+	public static ResourceBundle getMessages()
+	{
+		return messages;
 	}
 
 }

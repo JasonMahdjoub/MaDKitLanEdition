@@ -59,11 +59,13 @@ repositories {
     }
 }
 
-def javaVersion="8"
+def javaVersion="17"
 sourceCompatibility = javaVersion
 targetCompatibility= javaVersion
 def lastVersionFile = new File(project.getProjectDir().getParentFile().getParentFile(), 'lastVersion.md')
-version = lastVersionFile.getText('UTF-8').trim()
+var madkitVersion = lastVersionFile.getText('UTF-8').trim()
+version = madkitVersion
+
 //version='??.??.??ToDefine'
 
 dependencies {
@@ -76,7 +78,7 @@ dependencies {
     testImplementation 'org.hamcrest:hamcrest-core:2.2'
 
     testImplementation(group:'com.h2database', name:'h2', version:'2.1.210')
-    testImplementation 'com.distrimind.madkit:MaDKitLanEdition:'+version
+    compileOnly 'com.distrimind.madkit:MaDKitLanEdition:'+madkitVersion
 
 }
 
@@ -103,7 +105,7 @@ task generateMDFiles (dependsOn: classes) {
 }
 
 allprojects {
-    group='com.distrimind.madkit.swing'
+    group='com.distrimind.madkit.gui.swing'
 
     //compileJava.options.compilerArgs << "-Xlint"
 

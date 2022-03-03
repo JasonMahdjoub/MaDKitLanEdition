@@ -33,18 +33,12 @@
  */
 package com.distrimind.madkit.action;
 
-import static java.awt.event.KeyEvent.VK_DOLLAR;
-import static java.awt.event.KeyEvent.VK_E;
-
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.util.ResourceBundle;
-
-import javax.swing.Action;
 
 import com.distrimind.madkit.i18n.I18nUtilities;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.message.EnumMessage;
+
+import java.util.ResourceBundle;
 
 /**
  * Enum representing agent actions
@@ -56,43 +50,23 @@ import com.distrimind.madkit.message.EnumMessage;
  */
 public enum AgentAction {
 
-	LAUNCH_AGENT(KeyEvent.VK_U),
-	RELOAD(VK_E),
-	CREATE_GROUP(VK_DOLLAR),
-	REQUEST_ROLE(VK_DOLLAR),
-	LEAVE_ROLE(VK_DOLLAR),
-	LEAVE_GROUP(VK_DOLLAR),
-	SEND_MESSAGE(VK_DOLLAR),
-	SEND_MESSAGE_AND_DIFFER_IT_IF_NECESSARY(VK_DOLLAR),
-	CANCEL_DIFFERED_MESSAGES_BY_SENDER_ROLE(VK_DOLLAR),
-	CANCEL_DIFFERED_MESSAGES_BY_RECEIVER_ROLE(VK_DOLLAR),
-	CANCEL_DIFFERED_MESSAGES_BY_GROUP(VK_DOLLAR),
-	BROADCAST_MESSAGE(VK_DOLLAR),
-	KILL_AGENT(KeyEvent.VK_K),
-	;
-
-	final static private ResourceBundle messages = I18nUtilities.getResourceBundle(AgentAction.class.getSimpleName());
-
-	private ActionInfo actionInfo;
-
-	final private int keyEvent;
-
-	/**
-	 * @return the actionInfo corresponding to this constant
-	 */
-	public ActionInfo getActionInfo() {
-		if (actionInfo == null)
-			actionInfo = new ActionInfo(this, keyEvent, messages);
-		return actionInfo;
-	}
-
-	AgentAction(int keyEvent) {
-		this.keyEvent = keyEvent;
-	}
+	LAUNCH_AGENT,
+	RELOAD,
+	CREATE_GROUP,
+	REQUEST_ROLE,
+	LEAVE_ROLE,
+	LEAVE_GROUP,
+	SEND_MESSAGE,
+	SEND_MESSAGE_AND_DIFFER_IT_IF_NECESSARY,
+	CANCEL_DIFFERED_MESSAGES_BY_SENDER_ROLE,
+	CANCEL_DIFFERED_MESSAGES_BY_RECEIVER_ROLE,
+	CANCEL_DIFFERED_MESSAGES_BY_GROUP,
+	BROADCAST_MESSAGE,
+	KILL_AGENT;
 
 	/**
 	 * Builds an action that will make the agent do the corresponding behavior
-	 * 
+	 *
 	 * @param agent
 	 *            the agent on which this action will operate
 	 * @param parameters
@@ -100,19 +74,18 @@ public enum AgentAction {
 	 * @return the action corresponding to the enum
 	 */
 	public Action getActionFor(final AbstractAgent agent, final Object... parameters) {
-		return new MDKAbstractAction(getActionInfo()) {
-			/**
-			 * 
-			 */
-			private static final long serialVersionUID = -3078505474395164899L;
+		return new Action(this, () -> {
 
-			@Override
-			public void actionPerformed(ActionEvent e) {// TODO I could do the check validity here for logging purpose
-				if (agent.isAlive()) {
-					agent.proceedEnumMessage(new EnumMessage<>(AgentAction.this, parameters));
-				}
+			if (agent.isAlive()) {
+				agent.proceedEnumMessage(new EnumMessage<>(AgentAction.this, parameters));
 			}
-		};
+		});
 	}
 
+	final static private ResourceBundle messages = I18nUtilities.getResourceBundle(AgentAction.class.getSimpleName());
+
+	public static ResourceBundle getMessages()
+	{
+		return messages;
+	}
 }

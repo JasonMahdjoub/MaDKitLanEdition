@@ -18,11 +18,10 @@
  */
 package com.distrimind.madkit.kernel;
 
-import com.distrimind.madkit.gui.menu.AgentLogLevelMenu;
+import com.distrimind.madkit.gui.GUIProvider;
 import com.distrimind.madkit.i18n.Words;
 import com.distrimind.util.FileTools;
 
-import javax.swing.*;
 import java.io.*;
 import java.util.*;
 import java.util.logging.Formatter;
@@ -120,7 +119,7 @@ final public class AgentLogger extends Logger {
 		if (warningLogLevel == null)
 			throw new NullPointerException();
 		this.warningLogLevel = warningLogLevel;
-		AgentLogLevelMenu.update(myAgent);
+		GUIProvider.updateAgentLogLevelMenu(myAgent);
 	}
 
 	private AgentLogger() {
@@ -256,7 +255,7 @@ final public class AgentLogger extends Logger {
 			h.setLevel(newLevel);
 		}
 		if (myAgent.hasGUI()) {
-			AgentLogLevelMenu.update(myAgent);
+			GUIProvider.updateAgentLogLevelMenu(myAgent);
 			// updateAgentUi();//TODO level model
 		}
 	}
@@ -356,15 +355,12 @@ final public class AgentLogger extends Logger {
 
 				AbstractAgent a = new ArrayList<>(agentLoggers.keySet()).get(0);
 				a.getMadkitConfig().createLogFiles = true;
-				JOptionPane.showMessageDialog(null,
-						Words.DIRECTORY + " " + a.getMadkitConfig().logDirectory.getAbsolutePath() + " " + Words.CREATED,
-						"OK", JOptionPane.INFORMATION_MESSAGE);
+				GUIProvider.showMessageDialog(Words.DIRECTORY + " " + a.getMadkitConfig().logDirectory.getAbsolutePath() + " " + Words.CREATED, "OK", GUIProvider.MessageType.INFORMATION);//JOptionPane.INFORMATION_MESSAGE
 				for (AgentLogger logger : agentLoggers.values()) {
 					logger.createLogFile();
 				}
 			} catch (IndexOutOfBoundsException e) {
-				JOptionPane.showMessageDialog(null, "No active agents yet", Words.FAILED.toString(),
-						JOptionPane.WARNING_MESSAGE);
+				GUIProvider.showMessageDialog("No active agents yet", Words.FAILED.toString(), GUIProvider.MessageType.WARNING);
 			}
 		}
 	}

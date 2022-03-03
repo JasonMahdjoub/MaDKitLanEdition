@@ -37,35 +37,18 @@
  */
 package com.distrimind.madkit.kernel;
 
-import static com.distrimind.madkit.kernel.Scheduler.SimulationState.PAUSED;
+import com.distrimind.madkit.action.Action;
+import com.distrimind.madkit.action.SchedulingAction;
+import com.distrimind.madkit.gui.GUIProvider;
+import com.distrimind.madkit.message.SchedulingMessage;
 
-import java.awt.BorderLayout;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 import java.util.LinkedHashSet;
 import java.util.Observable;
-import java.util.Observer;
 import java.util.Set;
 import java.util.logging.Level;
 
-import javax.swing.Action;
-import javax.swing.BoxLayout;
-import javax.swing.DefaultBoundedRangeModel;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JPanel;
-import javax.swing.JSlider;
-import javax.swing.JToolBar;
-import javax.swing.SwingConstants;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.TitledBorder;
-import javax.swing.event.ChangeEvent;
+import static com.distrimind.madkit.kernel.Scheduler.SimulationState.PAUSED;
 
-import com.distrimind.madkit.action.SchedulingAction;
-import com.distrimind.madkit.gui.SwingUtil;
-import com.distrimind.madkit.message.SchedulingMessage;
 
 /**
  * This class defines a generic threaded scheduler agent. It holds a collection
@@ -128,6 +111,7 @@ public class Scheduler extends Agent {
 
 	final private Set<Activator<? extends AbstractAgent>> activators = new LinkedHashSet<>();
 
+	@SuppressWarnings({"FieldCanBeLocal", "unused"})
 	private Action run, step, speedUp, speedDown;
 
 	// private JLabel timer;
@@ -136,14 +120,7 @@ public class Scheduler extends Agent {
 	/**
 	 * specify the delay between 2 steps
 	 */
-	@SuppressWarnings("serial")
-	private final DefaultBoundedRangeModel speedModel = new DefaultBoundedRangeModel(400, 0, 0, 400) {
-
-		public void setValue(int n) {
-			super.setValue(n);
-			delay = 400 - getValue();
-		}
-	};
+	private final Object speedModel = GUIProvider.getSchedulerBoundedRangeModel(this);
 
 	/**
 	 * Returns the delay between two simulation steps
@@ -164,7 +141,15 @@ public class Scheduler extends Agent {
 	 *            and 400: O is max speed.
 	 */
 	public void setDelay(final int delay) {
-		speedModel.setValue(speedModel.getMaximum() - delay);
+		GUIProvider.setSchedulerDelay(this, delay);
+	}
+
+	public void setDelayWithoutInteractionWithGUI(final int delay) {
+		this.delay=delay;
+	}
+
+	public Object getSpeedModel() {
+		return speedModel;
 	}
 
 	private double GVT = 0; // simulation global virtual time
@@ -193,6 +178,7 @@ public class Scheduler extends Agent {
 
 	private double simulationDuration;
 
+	@SuppressWarnings("unused")
 	private GVTModel gvtModel;
 
 	/**
@@ -221,16 +207,12 @@ public class Scheduler extends Agent {
 	 * Setup the default Scheduler GUI when launched with the default MaDKit GUI
 	 * mechanism.
 	 * 
-	 * @see com.distrimind.madkit.kernel.AbstractAgent#setupFrame(javax.swing.JFrame)
+	 *
 	 * @since MaDKit 5.0.0.8
 	 */
 	@Override
-	public void setupFrame(JFrame frame) {
-		super.setupFrame(frame);
-		frame.add(getSchedulerToolBar(), BorderLayout.PAGE_START);
-		frame.add(getSchedulerStatusLabel(), BorderLayout.PAGE_END);
-		setGVT(GVT);
-		frame.getJMenuBar().add(getSchedulerMenu(), 2);
+	public void setupFrame(Object... parameters) {
+		GUIProvider.setupSchedulerFrame(this, parameters);
 	}
 
 	/**
@@ -347,6 +329,7 @@ public class Scheduler extends Agent {
 		}
 	}
 
+
 	/**
 	 * Scheduler's default behavior.
 	 * 
@@ -408,10 +391,11 @@ public class Scheduler extends Agent {
 					setSimulationState(SimulationState.SHUTDOWN);
 					break;
 				case SPEED_UP:
-					speedModel.setValue(speedModel.getValue() - 50);
+					setDelay(delay-50);
+
 					break;
 				case SPEED_DOWN:
-					speedModel.setValue(speedModel.getValue() + 50);
+					setDelay(delay+50);
 					break;
 				}
 				if (m.getSender() != null) {
@@ -477,125 +461,16 @@ public class Scheduler extends Agent {
 		speedDown = SchedulingAction.SPEED_DOWN.getActionFor(this);
 	}
 
-	/**
-	 * Returns a toolbar which could be used in any GUI.
-	 * 
-	 * @return a toolBar controlling the scheduler's actions
-	 */
-	public JToolBar getSchedulerToolBar() {
-		final JToolBar toolBar = new JToolBar("scheduler toolbar");
-		toolBar.add(run);
-		toolBar.add(step);
-		final JPanel p = new JPanel();
-		p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-		p.setBorder(new TitledBorder("speed"));
-		final JSlider sp = new JSlider(speedModel);
-		sp.addMouseWheelListener(new MouseWheelListener() {
-			@Override
-			public void mouseWheelMoved(MouseWheelEvent e) {
-				int move = -e.getWheelRotation();
-				if (sp.getValue() < 398) {
-					move *= 10;
-				}
-				move = Math.min((move + sp.getValue()), sp.getMaximum());
-				sp.setValue(move);
-				sp.getChangeListeners()[0].stateChanged(new ChangeEvent(this));
-			}
-		});
-		sp.addChangeListener(e -> updateToolTip(p, sp));
-		updateToolTip(p, sp);
-		// p.setPreferredSize(new Dimension(150, 25));
-		p.add(sp);
-		// toolBar.addSeparator();
-		// toolBar.add(Box.createRigidArea(new Dimension(40,5)));
-		// toolBar.add(Box.createHorizontalGlue());
-		toolBar.add(p);
-		// toolBar.add(getGVTLabel());
-		SwingUtil.scaleAllAbstractButtonIconsOf(toolBar, 24);
-		return toolBar;
-	}
 
 
-	void updateToolTip(final JPanel p, final JSlider sp) {
-		final String text = "pause = " + getDelay() + " ms";
-		sp.setToolTipText(text);
-		p.setToolTipText(text);
-	}
-
-	/**
-	 * Returns a menu which could be used in any GUI.
-	 * 
-	 * @return a menu controlling the scheduler's actions
-	 */
-	public JMenu getSchedulerMenu() {
-		JMenu myMenu = new JMenu("Scheduling");
-		myMenu.setMnemonic(KeyEvent.VK_S);
-		myMenu.add(run);
-		myMenu.add(step);
-		myMenu.add(speedUp);
-		myMenu.add(speedDown);
-		return myMenu;
-	}
-
-	/**
-	 * Returns a label giving some information on the simulation process
-	 * 
-	 * @return a label giving some information on the simulation process
-	 */
-	public JLabel getSchedulerStatusLabel() {
-		if (gvtModel == null) {
-			gvtModel = new GVTModel();
+	public static final class GVTModel extends Observable {
+		@Override
+		public void notifyObservers(Object arg) {
+			setChanged();
+			super.notifyObservers(arg);
 		}
-		@SuppressWarnings("serial")
-		GVTJLabel timer = new GVTJLabel() {
-			@Override
-			public void update(Observable o, Object arg) {
-				setText("Simulation " + simulationState + ", time is " + arg);
-			}
-		};
-		timer.setText("GVT");
-		gvtModel.addObserver(timer);
-		timer.setBorder(new EmptyBorder(4, 4, 4, 4));
-		timer.setHorizontalAlignment(SwingConstants.LEADING);
-		setGVT(getGVT());
-		return timer;
-	}
-
-	/**
-	 * Returns a label giving the simulation time
-	 * 
-	 * @return a label giving the simulation time
-	 */
-	public JLabel getGVTLabel() {
-		if (gvtModel == null) {
-			gvtModel = new GVTModel();
-		}
-		final GVTJLabel timer = new GVTJLabel();
-		timer.setText("0");
-		gvtModel.addObserver(timer);
-		timer.setBorder(new EmptyBorder(4, 4, 4, 4));
-		timer.setHorizontalAlignment(SwingConstants.LEADING);
-		setGVT(getGVT());
-		return timer;
 	}
 
 }
 
-final class GVTModel extends Observable {
-	@Override
-	public void notifyObservers(Object arg) {
-		setChanged();
-		super.notifyObservers(arg);
-	}
-}
 
-class GVTJLabel extends JLabel implements Observer {
-
-	private static final long serialVersionUID = 2320718202738802489L;
-
-	@Override
-	public void update(Observable o, Object arg) {
-		setText(arg.toString());
-	}
-
-}

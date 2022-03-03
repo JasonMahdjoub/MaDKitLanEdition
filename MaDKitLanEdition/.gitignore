@@ -1,7 +1,8 @@
 /.gradle/
 /bin/
-/gradle.properties
 /build/
+
+/gradle.properties
 /tmpfortest0.database.data
 /tmpfortest0.database.lobs
 /tmpfortest0.database.log
@@ -41,7 +42,7 @@
 /tmpfortest0.database.lck
 /test/
 /tmpfortest4.database.lck
-/logs/
+logs/
 ### JetBrains template
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and WebStorm
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
@@ -157,7 +158,6 @@ Temporary Items
 ### Eclipse template
 
 .metadata
-bin/
 tmp/
 *.tmp
 *.bak

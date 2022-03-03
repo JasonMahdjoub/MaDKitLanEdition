@@ -33,9 +33,7 @@
  */
 
 /**
- * Contains classes for Agent GUI authoring in MaDKit. Especially, the
- * {@link com.distrimind.madkit.gui.OutputPanel} class is the component which
- * are given to agents when they are launched with a default GUI.
+ * Contains classes for Agent GUI authoring in MaDKit.
  * 
  * @author Fabien Michel
  * @since MaDKit 5.0.0.2

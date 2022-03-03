@@ -38,7 +38,6 @@
 package com.distrimind.madkit.kernel;
 
 
-import com.distrimind.madkit.action.GlobalAction;
 import com.distrimind.madkit.action.KernelAction;
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.agr.LocalCommunity.Groups;
@@ -46,9 +45,7 @@ import com.distrimind.madkit.agr.LocalCommunity.Roles;
 import com.distrimind.madkit.database.AsynchronousBigDataTable;
 import com.distrimind.madkit.database.AsynchronousMessageTable;
 import com.distrimind.madkit.exceptions.MadkitException;
-import com.distrimind.madkit.gui.AgentStatusPanel;
-import com.distrimind.madkit.gui.ConsoleAgent;
-import com.distrimind.madkit.gui.menu.AgentLogLevelMenu;
+import com.distrimind.madkit.gui.GUIProvider;
 import com.distrimind.madkit.i18n.ErrorMessages;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
 import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
@@ -458,11 +455,11 @@ class MadkitKernel extends Agent {
 		myThread.setPriority(Thread.NORM_PRIORITY + 1);
 
 		if (getMadkitConfig().loadLocalDemos) {
-			GlobalAction.LOAD_LOCAL_DEMOS.actionPerformed(null);
+			GUIProvider.loadLocalDemos();
 		}
 		launchGuiManagerAgent();
 		if (getMadkitConfig().console) {
-			launchAgent(new ConsoleAgent());
+			GUIProvider.launchConsoleAgent(this);
 		}
 		launchNetworkAgent();
 
@@ -704,7 +701,7 @@ class MadkitKernel extends Agent {
 
 	@SuppressWarnings("unused")
 	private void console() {
-		launchAgent(ConsoleAgent.class.getName());
+		GUIProvider.launchConsoleAgent(this);
 	}
 
 	private void launchConfigAgents() {
@@ -3446,8 +3443,8 @@ class MadkitKernel extends Agent {
 		// AgentLogger.closeLoggersFrom(kernelAddress);
 		super.terminate(false);
 		AgentLogger.removeLoggers(this);
-		AgentStatusPanel.remove(kernelAddress);
-		AgentLogLevelMenu.remove(kernelAddress);
+		GUIProvider.removeAgentStatusPanel(kernelAddress);
+		GUIProvider.removeAgentLogLevelMenu(kernelAddress);
 		if (getMadkitConfig().savePropertiesAfterKernelKill)
 		{
 			try {

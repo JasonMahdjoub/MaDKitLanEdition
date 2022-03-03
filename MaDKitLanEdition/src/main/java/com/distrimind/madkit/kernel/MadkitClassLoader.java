@@ -38,8 +38,8 @@
 
 package com.distrimind.madkit.kernel;
 
+import com.distrimind.madkit.gui.GUIProvider;
 import com.distrimind.madkit.gui.MASModel;
-import com.distrimind.madkit.gui.menu.ClassPathSensitiveMenu;
 import com.distrimind.madkit.util.XMLUtilities;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
@@ -304,7 +304,7 @@ final public class MadkitClassLoader extends URLClassLoader { // NO_UCD
 		if (size != getLoader().getURLs().length) {// truly loaded
 			System.setProperty("java.class.path",
 					System.getProperty("java.class.path") + File.pathSeparator + url.getPath());
-			ClassPathSensitiveMenu.updateAllMenus();
+			GUIProvider.updateAllMenus();
 			return true;
 		}
 		return false;

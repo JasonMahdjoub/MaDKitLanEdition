@@ -76,7 +76,8 @@ dependencies {
     //api(group:'org.fourthline.cling', name: 'cling-core', version: '2.1.2')
     //api(group:'org.fourthline.cling', name: 'cling-support', version: '2.1.2')
     testImplementation(group:'com.h2database', name:'h2', version:'2.1.210')
-    testImplementation project(':SwingDriver')
+    def lastMkVersionFile = new File(project.getProjectDir().getParentFile().getParentFile(), 'lastVersion.md')
+    testImplementation(group:'com.distrimind.madkit.gui.swing', name:'SwingDriver', version:lastMkVersionFile)
 
      
 }

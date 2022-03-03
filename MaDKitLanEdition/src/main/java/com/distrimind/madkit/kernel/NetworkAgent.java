@@ -40,7 +40,7 @@ package com.distrimind.madkit.kernel;
 import com.distrimind.madkit.action.KernelAction;
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.agr.LocalCommunity.Roles;
-import com.distrimind.madkit.gui.AgentStatusPanel;
+import com.distrimind.madkit.gui.GUIProvider;
 import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
 import com.distrimind.madkit.message.EnumMessage;
@@ -238,7 +238,7 @@ public final class NetworkAgent extends AgentFakeThread {
 				logger.info("\n\t\t\t\t----- " + getKernelAddress() + " closing network ------\n");
 			}
 			// leaveGroup(CloudCommunity.Groups.NETWORK_AGENTS);
-			AgentStatusPanel.updateAll();
+			GUIProvider.updateAllAgentStatusPanel();
 		}
 		if (this.getState().compareTo(State.ENDING) < 0)
 			this.killAgent(this);
