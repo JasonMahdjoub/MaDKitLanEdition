@@ -136,7 +136,7 @@ Adapt into your build.gradle file, the next code :
 	repositories {
 		...
 		maven {
-	       		url "https://artifactory.distri-mind.fr/artifactory/gradle-release"
+	       		url "https://artifactory.distri-mind.fr:443/artifactory/gradle-release/"
 	   	}
 		...
 	}
@@ -176,7 +176,7 @@ Adapt into your pom.xml file, the next code :
 			...
 			<repository>
 				<id>DistriMind-Public</id>
-				<url>https://artifactory.distri-mind.fr/artifactory/gradle-release</url>
+				<url>https://artifactory.distri-mind.fr:443/artifactory/gradle-release/</url>
 			</repository>
 			...
 		</repositories>

@@ -35,23 +35,67 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-package com.distrimind.madkit.testing.util.agent;
+package com.distrimind.madkit.gui.swing.classreloading;
 
-import java.awt.Graphics;
-import java.io.IOException;
+import com.distrimind.madkit.gui.swing.action.AgentAction;
+import com.distrimind.madkit.kernel.TestNGMadkit;
+import org.testng.annotations.Test;
+import org.testng.Assert;
+import java.util.logging.Level;
 
-import com.distrimind.madkit.gui.swing.simulation.viewer.SwingViewer;
+import com.distrimind.madkit.kernel.AbstractAgent;
+import com.distrimind.madkit.kernel.MadkitClassLoader;
+import com.distrimind.madkit.testing.util.agent.NormalAA;
 
-public class SwingViewerGUI extends SwingViewer {
+/**
+ * bin directory should be cleaned before use the .class file is part of the
+ * test
+ * 
+ * @author Fabien Michel
+ * @since MadKit 5.0.0.20
+ * @version 0.9
+ * 
+ */
+public class ReloadByGUITest extends TestNGMadkit {
 
-
-	public static void main(String[] args) throws IOException {
-		executeThisAgent();
+	@Test
+	public void noExceptionTest() {
+		MadkitClassLoader.init();
+		launchTest(new AbstractAgent() {
+			@Override
+			protected void activate() {
+				NormalAA a = new NormalAA() {
+					@Override
+					protected void activate() {
+						super.activate();
+					}
+				};
+				launchAgent(a);
+				try {
+					setLogLevel(Level.ALL);
+					AgentAction.RELOAD.getActionFor(a).actionPerformed(null);
+				} catch (Throwable e) {
+					Assert.fail(e.getMessage());
+				}
+			}
+		});
 	}
 
-	@Override
-	protected void render(Graphics g) {
-
+	@Test
+	public void noExceptionOnAATest() {
+		MadkitClassLoader.init();
+		launchTest(new AbstractAgent() {
+			@Override
+			protected void activate() {
+				try {
+					AbstractAgent a = new AbstractAgent();
+					launchAgent(a);
+					AgentAction.RELOAD.getActionFor(a).actionPerformed(null);
+				} catch (Throwable e) {
+					Assert.fail(e.getMessage());
+				}
+			}
+		});
 	}
 
 }

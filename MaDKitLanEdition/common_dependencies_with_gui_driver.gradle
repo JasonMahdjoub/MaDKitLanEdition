@@ -3,8 +3,6 @@ dependencies {
     var slf4jVersion='1.7.35'
     testImplementation 'org.slf4j:slf4j-api:'+slf4jVersion
     testImplementation 'org.slf4j:slf4j-simple:'+slf4jVersion
-    api(group:'com.distrimind.ood', name: 'OOD', version: '3.1.17-STABLE')
-    api(group:'com.distrimind.upnp_igd', name: 'UPnPIGD', version: '1.0.0-STABLE')
     //api project(':OOD')
     //api project(':UPnPIGD')
     //api(group:'org.fourthline.cling', name: 'cling-core', version: '2.1.2')

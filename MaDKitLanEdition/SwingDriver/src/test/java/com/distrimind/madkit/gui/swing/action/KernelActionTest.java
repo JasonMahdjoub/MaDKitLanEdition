@@ -1,4 +1,3 @@
-
 /*
  * MadKitLanEdition (created by Jason MAHDJOUB (jason.mahdjoub@distri-mind.fr)) Copyright (c)
  * 2015 is a fork of MadKit and MadKitGroupExtension. 
@@ -36,38 +35,57 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
+package com.distrimind.madkit.gui.swing.action;
 
-import java.awt.Component;
+import static org.testng.AssertJUnit.assertEquals;
 
-import javax.swing.AbstractButton;
-
-import com.distrimind.madkit.gui.swing.menu.LaunchAgentsMenu;
+import com.distrimind.madkit.gui.swing.action.GlobalAction;
 import com.distrimind.madkit.kernel.TestNGMadkit;
-import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.testng.Assert;
+import java.io.File;
+import java.util.logging.Level;
+
+import com.distrimind.madkit.kernel.AbstractAgent;
+import com.distrimind.madkit.kernel.MadkitClassLoader;
 
 /**
  * @author Fabien Michel
- * @since MadKit 5.0.0.17
- * @version 0.9
- * 
+ * @author Jason Mahdjoub
+ * @version 1.0
+ * @since MadkitLanEdition 1.0
  */
-
-public class NoPackageTest extends TestNGMadkit {
+public class KernelActionTest extends TestNGMadkit {
 
 	@Test
-	public void inMenuTest() {
-		addMadkitArgs("--desktop");
-		launchTest(new NoPackageAgent() {
+	public final void test() {// TODO no test here...
+		launchTest(new AbstractAgent() {
+			@Override
 			protected void activate() {
-				if (logger != null)
-					logger.info("w");
-				LaunchAgentsMenu m = new LaunchAgentsMenu(this);
-				for (Component iterable_element : m.getMenuComponents()) {
-					if (((AbstractButton) iterable_element).getText().equals(NoPackageAgent.class.getName()))
-						return;
+				try {
+					MadkitClassLoader.loadUrl(new File("test/MaDKit-ping-pong-2.0.agents.jar").toURI().toURL());
+				} catch (Exception e) {
+					e.printStackTrace();
+					Assert.fail();
 				}
-				Assert.fail("not in menu");
+				TestNGMadkit.pause(this, 100);
+			}
+		});
+	}
+
+	@Test
+	public void debugModeTest() {
+		mkArgs.clear();
+
+		//addMadkitArgs("--agentLogLevel", Level.ALL.toString());
+		launchTest(new AbstractAgent() {
+			@Override
+			protected void activate() {
+				assertEquals(Level.INFO, getMadkitConfig().agentLogLevel);
+				GlobalAction.DEBUG.actionPerformed(null);
+				assertEquals(Level.ALL, getMadkitConfig().agentLogLevel);
+				GlobalAction.DEBUG.actionPerformed(null);
+				assertEquals(Level.INFO, getMadkitConfig().agentLogLevel);
 			}
 		});
 	}

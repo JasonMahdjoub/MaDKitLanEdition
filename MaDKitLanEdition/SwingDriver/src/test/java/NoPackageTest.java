@@ -1,3 +1,4 @@
+
 /*
  * MadKitLanEdition (created by Jason MAHDJOUB (jason.mahdjoub@distri-mind.fr)) Copyright (c)
  * 2015 is a fork of MadKit and MadKitGroupExtension. 
@@ -35,52 +36,40 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-package com.distrimind.madkit.testing.util.agent;
 
-import com.distrimind.madkit.gui.swing.action.KernelAction;
+import java.awt.Component;
 
-import javax.swing.JMenu;
+import javax.swing.AbstractButton;
 
-import java.io.IOException;
+import com.distrimind.madkit.gui.swing.menu.LaunchAgentsMenu;
+import com.distrimind.madkit.kernel.TestNGMadkit;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 /**
  * @author Fabien Michel
- * @since MaDKit 5.0.0.9
+ * @since MadKit 5.0.0.17
  * @version 0.9
  * 
  */
-public class BenchAgent extends DoItDuringLifeCycleAgent {
 
-    public BenchAgent(boolean inActivate, boolean inLive, boolean inEnd) {
-		super(inActivate, inLive, inEnd);
-	}
+public class NoPackageTest extends TestNGMadkit {
 
-	public BenchAgent(boolean inActivate, boolean inLive) {
-		super(inActivate, inLive);
-	}
-
-	public BenchAgent(boolean inActivate) {
-		super(inActivate);
-	}
-
-	public BenchAgent() {
-		super(true, true, true);
-	}
-
-	@Override
-	public void doIt() {
-        JMenu name = new JMenu();
-		if (logger != null)
-			logger.severe("action creation");
-		for (int i = 0; i < 1000; i++) {
-			name.add(KernelAction.EXIT.getActionFor(this));
-		}
-		if (logger != null)
-			logger.info("action creation finish");
-	}
-
-	public static void main(String[] args) throws IOException {
-		executeThisAgent(args);
+	@Test
+	public void inMenuTest() {
+		addMadkitArgs("--desktop");
+		launchTest(new NoPackageAgent() {
+			protected void activate() {
+				if (logger != null)
+					getLogger().info("w");
+				LaunchAgentsMenu m = new LaunchAgentsMenu(this);
+				for (Component iterable_element : m.getMenuComponents()) {
+					if (((AbstractButton) iterable_element).getText().equals(NoPackageAgent.class.getName()))
+						return;
+				}
+				Assert.fail("not in menu");
+			}
+		});
 	}
 
 }

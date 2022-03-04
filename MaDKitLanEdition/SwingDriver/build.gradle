@@ -67,9 +67,14 @@ var madkitVersion = lastVersionFile.getText('UTF-8').trim()
 version = madkitVersion
 
 //version='??.??.??ToDefine'
-
+apply from: '../common_dependencies_with_gui_driver.gradle'
 dependencies {
     compileOnly 'com.distrimind.madkit:MaDKitLanEdition:'+madkitVersion
+    testImplementation 'com.distrimind.madkit:MaDKitLanEdition:'+madkitVersion
+    sourceSets {
+        test.java.srcDirs += '../src/test/java'
+        test.resources.srcDirs += '../src/test/resources'
+    }
 
 }
 
@@ -203,4 +208,21 @@ javadoc {
 
 
 
+test {
 
+    // enable TestNG support (default is JUnit)
+    useTestNG()
+
+
+    // set heap size for the test JVM(s)
+    minHeapSize = "256m"
+    maxHeapSize = "2g"
+
+
+    test {
+        afterTest { desc, result ->
+            logger.quiet "Executing test ${desc.name} [${desc.className}] with result: ${result.resultType}"
+        }
+    }
+
+}

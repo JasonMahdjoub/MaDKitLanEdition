@@ -8,7 +8,6 @@
   			<class name="com.distrimind.madkit.api.abstractAgent.BroadcastMessageAndWaitForRepliesTest"/>
   			<class name="com.distrimind.madkit.kernel.OverlookerTest"/>
   			<class name="com.distrimind.madkit.api.abstractAgent.GetExistingRolesTest"/>
-  			<class name="com.distrimind.madkit.gui.GUITest"/>
   			<class name="com.distrimind.madkit.kernel.ConversationIDTest"/>
   			<class name="com.distrimind.madkit.api.abstractAgent.SendMessageWithCGRTest"/>
   			<class name="com.distrimind.madkit.api.abstractAgent.KillAbstractAgentTest"/>
@@ -51,13 +50,12 @@
   			<class name="com.distrimind.madkit.api.abstractAgent.KillAgentTest"/>
   			<class name="com.distrimind.madkit.kernel.SchedulerTest"/>
   			<class name="com.distrimind.madkit.api.abstractAgent.LaunchAgentBucketTest"/>
-  			<class name="com.distrimind.madkit.classreloading.ReloadByGUITest"/>
+  			<class name="com.distrimind.madkit.gui.swing.classreloading.ReloadByGUITest"/>
   			<class name="com.distrimind.madkit.boot.process.NullArgTest"/>
   			<class name="com.distrimind.madkit.kernel.ManagerRoleTest"/>
   			<class name="com.distrimind.madkit.kernel.network.UPNPIDGTest"/>
 			<class name="com.distrimind.madkit.kernel.network.ClientServerProfileValidationTest"/>
   			<class name="com.distrimind.madkit.api.abstractAgent.ReloadClassTest"/>
-  			<class name="com.distrimind.madkit.gui.HeadLessTest"/>
   			<class name="com.distrimind.madkit.api.abstractAgent.KillUnstoppableAgentFakeThreadTest"/>
   			<class name="com.distrimind.madkit.api.agent.waitNextMessageWithFilterTest"/>
   			<class name="com.distrimind.madkit.boot.process.WrongArgTest"/>
@@ -90,7 +88,7 @@
   			<class name="com.distrimind.madkit.boot.process.CreateLogFilesTest"/>
   			<class name="com.distrimind.madkit.kernel.AgentLoggerTest"/>
   			<class name="com.distrimind.madkit.api.abstractAgent.LaunchAgentClassTest"/>
-  			<class name="com.distrimind.madkit.i18n.BindsTest"/>
+  			<class name="com.distrimind.madkit.gui.swing.i18n.BindsTest"/>
   			<class name="com.distrimind.madkit.api.abstractAgent.LaunchAgentFakeThreadTest"/>
   			<class name="com.distrimind.madkit.simulation.ActivatorTest"/>
   			<class name="com.distrimind.madkit.kernel.network.ReadWritePacketTests"/>

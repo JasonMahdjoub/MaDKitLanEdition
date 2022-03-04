@@ -35,67 +35,28 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-package com.distrimind.madkit.classreloading;
+package com.distrimind.madkit.gui.swing.simulation.viewer;
 
-import com.distrimind.madkit.gui.swing.action.AgentAction;
-import com.distrimind.madkit.kernel.TestNGMadkit;
-import org.testng.annotations.Test;
-import org.testng.Assert;
-import java.util.logging.Level;
+import java.awt.*;
+import java.io.IOException;
 
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.MadkitClassLoader;
-import com.distrimind.madkit.testing.util.agent.NormalAA;
+public class TestSwingViewer extends SwingViewer {
 
-/**
- * bin directory should be cleaned before use the .class file is part of the
- * test
- * 
- * @author Fabien Michel
- * @since MadKit 5.0.0.20
- * @version 0.9
- * 
- */
-public class ReloadByGUITest extends TestNGMadkit {
-
-	@Test
-	public void noExceptionTest() {
-		MadkitClassLoader.init();
-		launchTest(new AbstractAgent() {
-			@Override
-			protected void activate() {
-				NormalAA a = new NormalAA() {
-					@Override
-					protected void activate() {
-						super.activate();
-					}
-				};
-				launchAgent(a);
-				try {
-					setLogLevel(Level.ALL);
-					AgentAction.RELOAD.getActionFor(a).actionPerformed(null);
-				} catch (Throwable e) {
-					Assert.fail(e.getMessage());
-				}
-			}
-		});
+	public TestSwingViewer() {
+		setRenderingInterval(-1);
 	}
 
-	@Test
-	public void noExceptionOnAATest() {
-		MadkitClassLoader.init();
-		launchTest(new AbstractAgent() {
-			@Override
-			protected void activate() {
-				try {
-					AbstractAgent a = new AbstractAgent();
-					launchAgent(a);
-					AgentAction.RELOAD.getActionFor(a).actionPerformed(null);
-				} catch (Throwable e) {
-					Assert.fail(e.getMessage());
-				}
-			}
-		});
+	@Override
+	protected void render(Graphics g) {
+	}
+
+	@Override
+	protected void activate() {
+		super.activate();
+	}
+
+	public static void main(String[] args) throws IOException {
+		executeThisAgent();
 	}
 
 }

@@ -35,84 +35,75 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-package com.distrimind.madkit.i18n;
+package com.distrimind.madkit.gui.swing.boot.process;
 
-import com.distrimind.madkit.gui.swing.action.*;
+import com.distrimind.madkit.gui.swing.action.GUIManagerAction;
+import com.distrimind.madkit.kernel.AbstractAgent;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.Test;
-import org.testng.Assert;
-import java.awt.event.KeyEvent;
-import java.lang.reflect.Field;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
 
-import javax.swing.Action;
+import java.util.logging.Level;
 
+import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * @author Fabien Michel
- * @since MaDKit 5.0.0.14
- * @version 0.9
+ * @author Jason Mahdjoub
+ * @since MaDKit 5.0.0.10
+ * @since MadkitLanEdition 1.0
+ * @version 1.0
  * 
  */
-public class BindsTest {
 
-	static final Map<Integer, String> keys = new HashMap<>();
+public class WrongArgTest extends TestNGMadkit {
 
 	@Test
-	public void KernelActionConflicts() {
-		for (KernelAction ka : EnumSet.allOf(KernelAction.class)) {
-			testKey(ka.getActionInfo().getKeyEvent(), ka.name());
-		}
+	public void agentDoesNotExist() {
+		addMadkitArgs("--launchAgents", "{fake.fake}", "--kernelLogLevel", Level.ALL.toString());
+		launchTest(new AbstractAgent());
 	}
 
 	@Test
-	public void AgentActionConflicts() {
-		for (AgentAction ka : EnumSet.allOf(AgentAction.class)) {
-			testKey(ka.getActionInfo().getKeyEvent(), ka.name());
-		}
+	public void wrongLaunchParameters() {
+		addMadkitArgs("--launchAgents", "{" + AbstractAgent.class.getName() + "}" + ",fd,h", "kernelLogLevel",
+				Level.OFF.toString());
+		launchTest(new AbstractAgent());
 	}
 
 	@Test
-	public void GUIManagerActionConflicts() {
-		for (GUIManagerAction ka : EnumSet.allOf(GUIManagerAction.class)) {
-			testKey(ka.getActionInfo().getKeyEvent(), ka.name());
-		}
+	public void wrongParameters() {
+		mkArgs.clear();
+		addMadkitArgs("azdadad");
+		launchTest(new AbstractAgent());
 	}
 
 	@Test
-	public void GlobalActionConflicts() throws IllegalArgumentException {
-		for (Field f : GlobalAction.class.getDeclaredFields()) {
-			try {
-				final Object object = f.get(null);
-				final Class<?> cl = object.getClass();
-				if (Action.class.isAssignableFrom(cl)) {
-					final Object key = ((Action) object).getValue(Action.MNEMONIC_KEY);
-					if (key != null) {
-						testKey((Integer) key, f.getName());
-					}
-				}
-			} catch (IllegalAccessException ignored) {
+	public void notAnAgentClass() {
+		addMadkitArgs("--launchAgents", "{" + Object.class.getName() + "}", "--kernelLogLevel", Level.OFF.toString());
+		launchTest(new AbstractAgent());
+	}
+
+	@Test
+	public void agentCannotBeInitialized() {
+		addMadkitArgs("--launchAgents", "{" + GUIManagerAction.class.getName() + "}", "--kernelLogLevel",
+				Level.OFF.toString());
+		launchTest(new AbstractAgent());
+	}
+
+	@Test
+	public void defaultLogLevels() {
+		mkArgs = null;
+		launchTest(new AbstractAgent() {
+			@Override
+			protected void activate() {
+				assertEquals(Level.OFF, getMadkitConfig().kernelLogLevel);
+				assertEquals(Level.OFF, getMadkitConfig().guiLogLevel);
+				assertEquals(Level.INFO, getMadkitConfig().networkProperties.networkLogLevel);
+				assertEquals(Level.INFO, getMadkitConfig().madkitLogLevel);
+				assertEquals(Level.INFO, getMadkitConfig().agentLogLevel);
+				assertEquals(Level.FINE, getMadkitConfig().warningLogLevel);
+				assertEquals(Level.INFO, getMadkitConfig().madkitLogLevel);
 			}
-		}
+		});
 	}
-
-
-	@Test(enabled = false)
-	private void testKey(int i, String name) {
-		if (i != KeyEvent.VK_DOLLAR) {
-			String e = keys.put(i, name);
-			if (e != null) {
-				Assert.fail(name + " has same key (" + i + ") as " + e);
-			}
-		}
-	}
-
-	@Test
-	public void SchedulingActionConflicts() {
-		for (SchedulingAction ka : EnumSet.allOf(SchedulingAction.class)) {
-			testKey(ka.getActionInfo().getKeyEvent(), ka.name());
-		}
-	}
-
 }

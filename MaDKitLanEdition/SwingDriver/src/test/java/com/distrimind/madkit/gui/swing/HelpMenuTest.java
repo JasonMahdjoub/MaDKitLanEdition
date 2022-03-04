@@ -35,68 +35,24 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-package com.distrimind.madkit.i18n;
+package com.distrimind.madkit.gui.swing.menu;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
+public class HelpMenuTest {
 
-import org.testng.annotations.Test;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.EnumSet;
-import java.util.Properties;
+	// TODO rehabilit this test
+	/*
+	 * @Test public final void testUrls() throws IOException { //
+	 * HttpURLConnection.setFollowRedirects(false); HelpMenu name = new HelpMenu();
+	 * for (Component item : name.getMenuComponents()) { final String actionCommand
+	 * = ((JMenuItem) item).getActionCommand(); URL url = new URL(Madkit.WEB + "/" +
+	 * actionCommand); HttpURLConnection huc = (HttpURLConnection)
+	 * url.openConnection(); huc.setRequestMethod("HEAD"); if
+	 * (!actionCommand.endsWith(Words.ABOUT.toString())) { System.err.println(url);
+	 * assertEquals(HttpURLConnection.HTTP_OK, huc.getResponseCode()); }
+	 * 
+	 * // for (ActionListener l : item.getListeners(ActionListener.class)) { //
+	 * l.actionPerformed(new
+	 * ActionEvent(item,1,(((JMenuItem)item).getActionCommand()))); // } } }
+	 */
 
-import com.distrimind.madkit.action.AgentAction;
-import com.distrimind.madkit.action.KernelAction;
-import com.distrimind.madkit.action.SchedulingAction;
-import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;
-
-public class I18nFileTest {
-
-	@Test
-	public final void testReturnCode() throws IOException {
-		testFilePresenceAndContent(ReturnCode.class, "fr_FR");
-	}
-
-	@Test
-	public final void testAgentAction() throws IOException {
-		testFilePresenceAndContent(AgentAction.class, "fr_FR");
-	}
-
-	@Test
-	public final void testKernelAction() throws IOException {
-		testFilePresenceAndContent(KernelAction.class, "fr_FR");
-	}
-
-
-	@Test
-	public final void testSchedulingAction() throws IOException {
-		testFilePresenceAndContent(SchedulingAction.class, "fr_FR");
-	}
-
-	public <E extends Enum<E>> void testFilePresenceAndContent(Class<E> e, String... languages) throws IOException {
-		EnumSet<E> set = EnumSet.allOf(e);
-		testKeys(e, set, "");
-		for (String lang : languages) {
-			testKeys(e, set, "_" + lang);
-		}
-	}
-
-
-	private <E extends Enum<E>> void testKeys(Class<E> e, EnumSet<E> set, String lang) throws IOException {
-		System.err.println("\n----------------testing " + e + lang);
-		Properties defaultConfig = new Properties();
-
-		InputStream is = Words.class.getResourceAsStream(e.getSimpleName() + lang + ".properties");
-		if (is == null)
-			throw new NullPointerException("is");
-		System.out.println(e.getSimpleName());
-		defaultConfig.load(is);
-		assertNotNull(defaultConfig);
-		assertEquals(set.size(), defaultConfig.size());
-		for (E enum1 : set) {
-			System.err.println(enum1.name());
-			assertNotNull(enum1.name(), defaultConfig.getProperty(enum1.name()));
-		}
-	}
 }

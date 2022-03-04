@@ -35,30 +35,84 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-package com.distrimind.madkit.simulation.viewer;
+package com.distrimind.madkit.gui.swing.i18n;
 
-import com.distrimind.madkit.gui.swing.simulation.viewer.SwingViewer;
+import com.distrimind.madkit.gui.swing.action.*;
+import org.testng.annotations.Test;
+import org.testng.Assert;
+import java.awt.event.KeyEvent;
+import java.lang.reflect.Field;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 
-import java.awt.*;
-import java.io.IOException;
+import javax.swing.Action;
 
-public class TestSwingViewer extends SwingViewer {
 
-	public TestSwingViewer() {
-		setRenderingInterval(-1);
+/**
+ * @author Fabien Michel
+ * @since MaDKit 5.0.0.14
+ * @version 0.9
+ * 
+ */
+public class BindsTest {
+
+	static final Map<Integer, String> keys = new HashMap<>();
+
+	@Test
+	public void KernelActionConflicts() {
+		for (KernelAction ka : EnumSet.allOf(KernelAction.class)) {
+			testKey(ka.getActionInfo().getKeyEvent(), ka.name());
+		}
 	}
 
-	@Override
-	protected void render(Graphics g) {
+	@Test
+	public void AgentActionConflicts() {
+		for (AgentAction ka : EnumSet.allOf(AgentAction.class)) {
+			testKey(ka.getActionInfo().getKeyEvent(), ka.name());
+		}
 	}
 
-	@Override
-	protected void activate() {
-		super.activate();
+	@Test
+	public void GUIManagerActionConflicts() {
+		for (GUIManagerAction ka : EnumSet.allOf(GUIManagerAction.class)) {
+			testKey(ka.getActionInfo().getKeyEvent(), ka.name());
+		}
 	}
 
-	public static void main(String[] args) throws IOException {
-		executeThisAgent();
+	@Test
+	public void GlobalActionConflicts() throws IllegalArgumentException {
+		for (Field f : GlobalAction.class.getDeclaredFields()) {
+			try {
+				final Object object = f.get(null);
+				final Class<?> cl = object.getClass();
+				if (Action.class.isAssignableFrom(cl)) {
+					final Object key = ((Action) object).getValue(Action.MNEMONIC_KEY);
+					if (key != null) {
+						testKey((Integer) key, f.getName());
+					}
+				}
+			} catch (IllegalAccessException ignored) {
+			}
+		}
+	}
+
+
+	@Test(enabled = false)
+	private void testKey(int i, String name) {
+		if (i != KeyEvent.VK_DOLLAR) {
+			String e = keys.put(i, name);
+			if (e != null) {
+				Assert.fail(name + " has same key (" + i + ") as " + e);
+			}
+		}
+	}
+
+	@Test
+	public void SchedulingActionConflicts() {
+		for (SchedulingAction ka : EnumSet.allOf(SchedulingAction.class)) {
+			testKey(ka.getActionInfo().getKeyEvent(), ka.name());
+		}
 	}
 
 }

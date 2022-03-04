@@ -211,6 +211,17 @@ class MadkitNetworkAccess {
 		m_setConnectionInfoSystemMessage = getMethod(Connection.class, "setConnectionInfoSystemMessage", ConnectionInfoSystemMessage.class);
 	}
 
-	
 
+	public static Class<?> loadClass(String class_name) {
+
+		try {
+			return MadkitClassLoader.getLoader().loadClass(class_name);
+		} catch (SecurityException | ClassNotFoundException e) {
+			System.err.println("Impossible to access to the class " + class_name
+					+ ". This is an inner bug. Please contact the developers. Impossible to continue. See the next error :");
+			e.printStackTrace();
+			System.exit(-1);
+			return null;
+		}
+	}
 }

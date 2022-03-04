@@ -35,59 +35,50 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-package com.distrimind.madkit.action;
+package com.distrimind.madkit.gui.swing.i18n;
+
+import com.distrimind.madkit.gui.swing.action.GUIManagerAction;
+import com.distrimind.madkit.i18n.Words;
+import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.EnumSet;
+import java.util.Properties;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
-import com.distrimind.madkit.gui.swing.action.GlobalAction;
-import com.distrimind.madkit.kernel.TestNGMadkit;
-import org.testng.annotations.Test;
-import org.testng.Assert;
-import java.io.File;
-import java.util.logging.Level;
-
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.MadkitClassLoader;
-
-/**
- * @author Fabien Michel
- * @author Jason Mahdjoub
- * @version 1.0
- * @since MadkitLanEdition 1.0
- */
-public class KernelActionTest extends TestNGMadkit {
+public class I18nFileTest {
 
 	@Test
-	public final void test() {// TODO no test here...
-		launchTest(new AbstractAgent() {
-			@Override
-			protected void activate() {
-				try {
-					MadkitClassLoader.loadUrl(new File("test/MaDKit-ping-pong-2.0.agents.jar").toURI().toURL());
-				} catch (Exception e) {
-					e.printStackTrace();
-					Assert.fail();
-				}
-				TestNGMadkit.pause(this, 100);
-			}
-		});
+	public final void testGUIManagerAction() throws IOException {
+		testFilePresenceAndContent(GUIManagerAction.class, "fr_FR");
 	}
 
-	@Test
-	public void debugModeTest() {
-		mkArgs.clear();
-
-		//addMadkitArgs("--agentLogLevel", Level.ALL.toString());
-		launchTest(new AbstractAgent() {
-			@Override
-			protected void activate() {
-				assertEquals(Level.INFO, getMadkitConfig().agentLogLevel);
-				GlobalAction.DEBUG.actionPerformed(null);
-				assertEquals(Level.ALL, getMadkitConfig().agentLogLevel);
-				GlobalAction.DEBUG.actionPerformed(null);
-				assertEquals(Level.INFO, getMadkitConfig().agentLogLevel);
-			}
-		});
+	public <E extends Enum<E>> void testFilePresenceAndContent(Class<E> e, String... languages) throws IOException {
+		EnumSet<E> set = EnumSet.allOf(e);
+		testKeys(e, set, "");
+		for (String lang : languages) {
+			testKeys(e, set, "_" + lang);
+		}
 	}
 
+
+	private <E extends Enum<E>> void testKeys(Class<E> e, EnumSet<E> set, String lang) throws IOException {
+		System.err.println("\n----------------testing " + e + lang);
+		Properties defaultConfig = new Properties();
+
+		InputStream is = Words.class.getResourceAsStream(e.getSimpleName() + lang + ".properties");
+		if (is == null)
+			throw new NullPointerException("is");
+		System.out.println(e.getSimpleName());
+		defaultConfig.load(is);
+		assertNotNull(defaultConfig);
+		assertEquals(set.size(), defaultConfig.size());
+		for (E enum1 : set) {
+			System.err.println(enum1.name());
+			assertNotNull(enum1.name(), defaultConfig.getProperty(enum1.name()));
+		}
+	}
 }

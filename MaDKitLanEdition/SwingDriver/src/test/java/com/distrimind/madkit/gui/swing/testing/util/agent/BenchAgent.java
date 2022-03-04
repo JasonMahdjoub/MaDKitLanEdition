@@ -35,43 +35,53 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-package com.distrimind.madkit.gui;
+package com.distrimind.madkit.gui.swing.testing.util.agent;
 
+import com.distrimind.madkit.gui.swing.action.KernelAction;
+import com.distrimind.madkit.testing.util.agent.DoItDuringLifeCycleAgent;
 
-import com.distrimind.madkit.kernel.TestNGMadkit;
+import javax.swing.JMenu;
 
-public class HeadLessTest extends TestNGMadkit {
+import java.io.IOException;
 
-	/*@Test
-	public void testAA() {
-		System.setProperty("java.awt.headless", "true");
-		launchTest(new AbstractAgent() {
-			@Override
-			protected void activate() throws InterruptedException {
-				super.activate();
-			}
+/**
+ * @author Fabien Michel
+ * @since MaDKit 5.0.0.9
+ * @version 0.9
+ * 
+ */
+public class BenchAgent extends DoItDuringLifeCycleAgent {
 
-			@Override
-			public void setupFrame(JFrame frame) {
-				super.setupFrame(frame);
-			}
-		}, ReturnCode.SUCCESS, true);
-		
-		pause(null, 100);
-		// testAgent();
+    public BenchAgent(boolean inActivate, boolean inLive, boolean inEnd) {
+		super(inActivate, inLive, inEnd);
+	}
 
-	}*/
+	public BenchAgent(boolean inActivate, boolean inLive) {
+		super(inActivate, inLive);
+	}
 
-	/*
-	 * @Test //TODO does not pass public void testAgent() {
-	 * System.setProperty("java.awt.headless", "true"); launchTest(new
-	 * NormalAgent(){
-	 * 
-	 * @Override protected void activate() throws InterruptedException {
-	 * super.activate(); }
-	 * 
-	 * @Override public void setupFrame(JFrame frame) { System.out.println("ici4");
-	 * super.setupFrame(frame); System.out.println("ici5"); }
-	 * },ReturnCode.SUCCESS,true); pause(100); }
-	 */
+	public BenchAgent(boolean inActivate) {
+		super(inActivate);
+	}
+
+	public BenchAgent() {
+		super(true, true, true);
+	}
+
+	@Override
+	public void doIt() {
+        JMenu name = new JMenu();
+		if (logger != null)
+			logger.severe("action creation");
+		for (int i = 0; i < 1000; i++) {
+			name.add(KernelAction.EXIT.getActionFor(this));
+		}
+		if (logger != null)
+			logger.info("action creation finish");
+	}
+
+	public static void main(String[] args) throws IOException {
+		executeThisAgent(args);
+	}
+
 }

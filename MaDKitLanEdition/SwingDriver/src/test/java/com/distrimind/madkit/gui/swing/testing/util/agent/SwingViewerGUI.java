@@ -35,24 +35,23 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-package com.distrimind.madkit.gui.menu;
+package com.distrimind.madkit.gui.swing.testing.util.agent;
 
-public class HelpMenuTest {
+import java.awt.Graphics;
+import java.io.IOException;
 
-	// TODO rehabilit this test
-	/*
-	 * @Test public final void testUrls() throws IOException { //
-	 * HttpURLConnection.setFollowRedirects(false); HelpMenu name = new HelpMenu();
-	 * for (Component item : name.getMenuComponents()) { final String actionCommand
-	 * = ((JMenuItem) item).getActionCommand(); URL url = new URL(Madkit.WEB + "/" +
-	 * actionCommand); HttpURLConnection huc = (HttpURLConnection)
-	 * url.openConnection(); huc.setRequestMethod("HEAD"); if
-	 * (!actionCommand.endsWith(Words.ABOUT.toString())) { System.err.println(url);
-	 * assertEquals(HttpURLConnection.HTTP_OK, huc.getResponseCode()); }
-	 * 
-	 * // for (ActionListener l : item.getListeners(ActionListener.class)) { //
-	 * l.actionPerformed(new
-	 * ActionEvent(item,1,(((JMenuItem)item).getActionCommand()))); // } } }
-	 */
+import com.distrimind.madkit.gui.swing.simulation.viewer.SwingViewer;
+
+public class SwingViewerGUI extends SwingViewer {
+
+
+	public static void main(String[] args) throws IOException {
+		executeThisAgent();
+	}
+
+	@Override
+	protected void render(Graphics g) {
+
+	}
 
 }

@@ -35,7 +35,7 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-package com.distrimind.madkit.testing.util.agent;
+package com.distrimind.madkit.gui.swing.testing.util.agent;
 
 import java.io.IOException;
 import java.io.PrintStream;

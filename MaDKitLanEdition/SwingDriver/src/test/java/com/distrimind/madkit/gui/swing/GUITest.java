@@ -35,22 +35,19 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-package com.distrimind.madkit.gui;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+package com.distrimind.madkit.gui.swing;
 
 import com.distrimind.madkit.gui.swing.action.AgentAction;
-import org.testng.annotations.Test;
-import javax.swing.JFrame;
-
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Agent;
-import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.Message;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.testing.util.agent.AlwaysInCGRNormalAA;
+import org.testng.annotations.Test;
+
+import javax.swing.*;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author Fabien Michel
@@ -140,7 +137,7 @@ public class GUITest extends TestNGMadkit {
 			protected void activate() {
 				AbstractAgent a = launchAgent(AlwaysInCGRNormalAA.class.getName());
 				assertEquals(1, getAgentsWithRole(GROUP, ROLE).size());
-				com.distrimind.madkit.gui.swing.action.AgentAction.LAUNCH_AGENT.getActionFor(a, a.getClass().getName(), Boolean.TRUE)
+				AgentAction.LAUNCH_AGENT.getActionFor(a, a.getClass().getName(), Boolean.TRUE)
 						.actionPerformed(null);
 				assertEquals(2, getAgentsWithRole(GROUP, ROLE).size());
 			}

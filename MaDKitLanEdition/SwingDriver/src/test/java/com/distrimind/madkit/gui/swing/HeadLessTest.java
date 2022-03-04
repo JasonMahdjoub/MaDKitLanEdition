@@ -35,75 +35,43 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-package com.distrimind.madkit.boot.process;
+package com.distrimind.madkit.gui.swing;
 
-import static org.testng.AssertJUnit.assertEquals;
 
-import com.distrimind.madkit.gui.swing.action.GUIManagerAction;
-import org.testng.annotations.Test;
-import java.util.logging.Level;
-
-import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.TestNGMadkit;
 
-/**
- * @author Fabien Michel
- * @author Jason Mahdjoub
- * @since MaDKit 5.0.0.10
- * @since MadkitLanEdition 1.0
- * @version 1.0
- * 
- */
+public class HeadLessTest extends TestNGMadkit {
 
-public class WrongArgTest extends TestNGMadkit {
-
-	@Test
-	public void agentDoesNotExist() {
-		addMadkitArgs("--launchAgents", "{fake.fake}", "--kernelLogLevel", Level.ALL.toString());
-		launchTest(new AbstractAgent());
-	}
-
-	@Test
-	public void wrongLaunchParameters() {
-		addMadkitArgs("--launchAgents", "{" + AbstractAgent.class.getName() + "}" + ",fd,h", "kernelLogLevel",
-				Level.OFF.toString());
-		launchTest(new AbstractAgent());
-	}
-
-	@Test
-	public void wrongParameters() {
-		mkArgs.clear();
-		addMadkitArgs("azdadad");
-		launchTest(new AbstractAgent());
-	}
-
-	@Test
-	public void notAnAgentClass() {
-		addMadkitArgs("--launchAgents", "{" + Object.class.getName() + "}", "--kernelLogLevel", Level.OFF.toString());
-		launchTest(new AbstractAgent());
-	}
-
-	@Test
-	public void agentCannotBeInitialized() {
-		addMadkitArgs("--launchAgents", "{" + GUIManagerAction.class.getName() + "}", "--kernelLogLevel",
-				Level.OFF.toString());
-		launchTest(new AbstractAgent());
-	}
-
-	@Test
-	public void defaultLogLevels() {
-		mkArgs = null;
+	/*@Test
+	public void testAA() {
+		System.setProperty("java.awt.headless", "true");
 		launchTest(new AbstractAgent() {
 			@Override
-			protected void activate() {
-				assertEquals(Level.OFF, getMadkitConfig().kernelLogLevel);
-				assertEquals(Level.OFF, getMadkitConfig().guiLogLevel);
-				assertEquals(Level.INFO, getMadkitConfig().networkProperties.networkLogLevel);
-				assertEquals(Level.INFO, getMadkitConfig().madkitLogLevel);
-				assertEquals(Level.INFO, getMadkitConfig().agentLogLevel);
-				assertEquals(Level.FINE, getMadkitConfig().warningLogLevel);
-				assertEquals(Level.INFO, getMadkitConfig().madkitLogLevel);
+			protected void activate() throws InterruptedException {
+				super.activate();
 			}
-		});
-	}
+
+			@Override
+			public void setupFrame(JFrame frame) {
+				super.setupFrame(frame);
+			}
+		}, ReturnCode.SUCCESS, true);
+		
+		pause(null, 100);
+		// testAgent();
+
+	}*/
+
+	/*
+	 * @Test //TODO does not pass public void testAgent() {
+	 * System.setProperty("java.awt.headless", "true"); launchTest(new
+	 * NormalAgent(){
+	 * 
+	 * @Override protected void activate() throws InterruptedException {
+	 * super.activate(); }
+	 * 
+	 * @Override public void setupFrame(JFrame frame) { System.out.println("ici4");
+	 * super.setupFrame(frame); System.out.println("ici5"); }
+	 * },ReturnCode.SUCCESS,true); pause(100); }
+	 */
 }
