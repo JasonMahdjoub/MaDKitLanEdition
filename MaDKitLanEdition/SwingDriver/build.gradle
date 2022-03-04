@@ -59,7 +59,7 @@ repositories {
     }
 }
 
-def javaVersion="17"
+def javaVersion="8"
 sourceCompatibility = javaVersion
 targetCompatibility= javaVersion
 def lastVersionFile = new File(project.getProjectDir().getParentFile().getParentFile(), 'lastVersion.md')
@@ -69,40 +69,12 @@ version = madkitVersion
 //version='??.??.??ToDefine'
 
 dependencies {
-    testImplementation 'org.testng:testng:7.5'
-    var slf4jVersion='1.7.35'
-    testImplementation 'org.slf4j:slf4j-api:'+slf4jVersion
-    testImplementation 'org.slf4j:slf4j-simple:'+slf4jVersion
-
-    //testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.hamcrest:hamcrest-core:2.2'
-
-    testImplementation(group:'com.h2database', name:'h2', version:'2.1.210')
     compileOnly 'com.distrimind.madkit:MaDKitLanEdition:'+madkitVersion
 
 }
 
 
-task generateMDFiles (dependsOn: classes) {
 
-    if (project.hasProperty('assemble') || project.hasProperty('build') || project.hasProperty('jar')) {
-        doLast {
-
-
-            ext.artifactVersion = String.valueOf(project.version)
-            def pomFile = new File(project.getProjectDir(), 'build/publications/mavenJava/pom-default.xml')
-            if (pomFile.canRead()) {
-                String t = pomFile.getText('UTF-8').replaceAll("\\?\\?.\\?\\?.\\?\\?ToDefine", version.toString())
-
-                pomFile.newWriter().withWriter { w ->
-                    w << t
-                }
-            }
-
-        }
-
-    }
-}
 
 allprojects {
     group='com.distrimind.madkit.gui.swing'
@@ -139,7 +111,6 @@ artifacts {
 
 
 jar{
-    dependsOn generateMDFiles
     manifest {
         attributes('Implementation-Title': project.name,
                 'Implementation-Version': project.version)
@@ -151,26 +122,6 @@ jar{
 
 
 
-test {
-
-    // enable TestNG support (default is JUnit)
-    useTestNG
-            {
-                suites 'src/test/java/com/distrimind/madkit/swing/AllTestsNG.xml'
-            }
-
-    // set heap size for the test JVM(s)
-    minHeapSize = "256m"
-    maxHeapSize = "2g"
-
-
-    test {
-        afterTest { desc, result ->
-            logger.quiet "Executing test ${desc.name} [${desc.className}] with result: ${result.resultType}"
-        }
-    }
-
-}
 
 publishing {
     publications {

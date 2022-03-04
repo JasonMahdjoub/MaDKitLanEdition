@@ -19,7 +19,7 @@ plugins {
 
 Properties props = new Properties()
 def propFile = new File(project.getProjectDir().getParentFile().getParentFile(), 'credentials.properties')
-def artifactory_Url="https://artifactory.distri-mind.fr/artifactory"
+def artifactory_Url="https://artifactory.distri-mind.fr:443/artifactory"
 def user=""
 def pwd=""
 if (propFile.canRead())
@@ -44,7 +44,7 @@ repositories {
 
 
    	maven {
-       		url "${artifactory_Url}/gradle-release"
+       		url "${artifactory_Url}/gradle-release/"
        		if (user!="")
        		{
 	       		credentials {
@@ -53,13 +53,11 @@ repositories {
 	            }
 	         }
    	}
-    maven {
-        url 'https://repo.maven.apache.org/maven2'
-        name 'Maven Central'
-    }
+
 }
 
-
+def f = new File(project.getProjectDir().getParentFile(), 'lastVersion.md')
+var lastMkVersionFile = f.getText('UTF-8').trim()
 dependencies {
 	testImplementation 'org.testng:testng:7.5'
     var slf4jVersion='1.7.35'
@@ -76,8 +74,9 @@ dependencies {
     //api(group:'org.fourthline.cling', name: 'cling-core', version: '2.1.2')
     //api(group:'org.fourthline.cling', name: 'cling-support', version: '2.1.2')
     testImplementation(group:'com.h2database', name:'h2', version:'2.1.210')
-    def lastMkVersionFile = new File(project.getProjectDir().getParentFile().getParentFile(), 'lastVersion.md')
-    testImplementation(group:'com.distrimind.madkit.gui.swing', name:'SwingDriver', version:lastMkVersionFile)
+
+    //implementation(group: 'com.distrimind.madkit.gui.swing', name: 'MadkitSwingDriver', version: '2.4.0-STABLE')
+    testImplementation 'com.distrimind.madkit.gui.swing:MadkitSwingDriver:'+lastMkVersionFile
 
      
 }
