@@ -32,8 +32,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import com.distrimind.madkit.action.AgentAction;
-import com.distrimind.madkit.gui.OutputPanel;
+import com.distrimind.madkit.gui.swing.OutputPanel;
+import com.distrimind.madkit.gui.swing.action.AgentAction;
 import com.distrimind.madkit.kernel.Agent;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.kernel.Replies;
@@ -163,7 +163,8 @@ public class Broker extends Agent {
 	}
 
 	@Override
-	public void setupFrame(JFrame frame) {
+	public void setupFrame(Object...parameters) {
+		JFrame frame=(JFrame)parameters[0];
 		JPanel p = new JPanel(new BorderLayout());
 		// customizing but still using the OutputPanel from MaDKit GUI
 		p.add(new OutputPanel(this), BorderLayout.CENTER);

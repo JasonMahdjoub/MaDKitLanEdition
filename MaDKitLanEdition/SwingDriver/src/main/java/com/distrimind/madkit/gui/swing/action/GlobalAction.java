@@ -110,9 +110,9 @@ public class GlobalAction {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			if (e == null) { // programmatically triggered
-				putValue(Action.SELECTED_KEY, !(Boolean) getValue(Action.SELECTED_KEY));
+				putValue(SELECTED_KEY, !(Boolean) getValue(SELECTED_KEY));
 			}
-			if ((Boolean) getValue(Action.SELECTED_KEY)) {
+			if ((Boolean) getValue(SELECTED_KEY)) {
 				AgentLogger.setAllLogLevels(Level.ALL);
 			} else {
 				AgentLogger.setAllLogLevels(Level.INFO);
@@ -211,12 +211,12 @@ public class GlobalAction {
 			if (f.exists() && f.isDirectory()) {
 				if (!MadkitClassLoader.loadJarsFromDirectory(f.getAbsolutePath())) {
 					JOptionPane.showMessageDialog(null, f.getAbsolutePath() + " : no new resources found",
-							getValue(Action.NAME).toString(), JOptionPane.WARNING_MESSAGE);
+							getValue(NAME).toString(), JOptionPane.WARNING_MESSAGE);
 				}
 			} else {
 				JOptionPane.showMessageDialog(null,
 						f.getAbsolutePath() + " " + Words.DIRECTORY + " " + ErrorMessages.CANT_FIND,
-						getValue(Action.NAME).toString(), JOptionPane.WARNING_MESSAGE);
+						getValue(NAME).toString(), JOptionPane.WARNING_MESSAGE);
 			}
 		}
 	};

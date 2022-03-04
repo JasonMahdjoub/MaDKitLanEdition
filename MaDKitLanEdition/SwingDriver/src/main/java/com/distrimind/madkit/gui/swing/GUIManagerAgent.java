@@ -39,8 +39,8 @@ package com.distrimind.madkit.gui.swing;
 
 import com.distrimind.madkit.agr.LocalCommunity.Groups;
 import com.distrimind.madkit.agr.LocalCommunity.Roles;
-import com.distrimind.madkit.gui.swing.action.GUIManagerAction;
 import com.distrimind.madkit.gui.swing.action.KernelAction;
+import com.distrimind.madkit.gui.swing.action.GUIManagerAction;
 import com.distrimind.madkit.gui.swing.message.GUIMessage;
 import com.distrimind.madkit.i18n.Words;
 import com.distrimind.madkit.kernel.AbstractAgent;
@@ -115,6 +115,7 @@ class GUIManagerAgent extends Agent {
 		// requestRole(LocalCommunity.NAME, Groups.SYSTEM, Roles.GUI_MANAGER);//no need:
 		// I am a manager
 		if (!isDaemon()) {// use to detect desktop mode
+
 			try {
 				buildUI();
 				/*
@@ -128,6 +129,7 @@ class GUIManagerAgent extends Agent {
 				getLogger().severeLog(Words.FAILED + " : UI creation", e);
 			} 
 		}
+
 		requestRole(Groups.GUI,Roles.GUI);
 	}
 

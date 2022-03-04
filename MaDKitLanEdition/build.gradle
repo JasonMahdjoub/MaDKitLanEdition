@@ -75,7 +75,6 @@ dependencies {
     //api(group:'org.fourthline.cling', name: 'cling-support', version: '2.1.2')
     testImplementation(group:'com.h2database', name:'h2', version:'2.1.210')
 
-    //implementation(group: 'com.distrimind.madkit.gui.swing', name: 'MadkitSwingDriver', version: '2.4.0-STABLE')
     testImplementation 'com.distrimind.madkit.gui.swing:MadkitSwingDriver:'+lastMkVersionFile
 
      

@@ -38,10 +38,11 @@
 package com.distrimind.madkit.boot.process;
 
 import static org.testng.AssertJUnit.assertEquals;
+
+import com.distrimind.madkit.gui.swing.action.GUIManagerAction;
 import org.testng.annotations.Test;
 import java.util.logging.Level;
 
-import com.distrimind.madkit.action.GUIManagerAction;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.TestNGMadkit;
 

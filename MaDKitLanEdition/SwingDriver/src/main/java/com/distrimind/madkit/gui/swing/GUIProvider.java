@@ -36,14 +36,13 @@ knowledge of the CeCILL-C license and that you accept its terms.
 
 import com.distrimind.madkit.action.AgentAction;
 import com.distrimind.madkit.agr.LocalCommunity;
-import com.distrimind.madkit.gui.swing.action.ActionInfo;
-import com.distrimind.madkit.gui.swing.action.GUIManagerAction;
-import com.distrimind.madkit.gui.swing.action.GlobalAction;
-import com.distrimind.madkit.gui.swing.action.MDKAbstractAction;
+import com.distrimind.madkit.gui.swing.action.*;
 import com.distrimind.madkit.gui.swing.menu.AgentLogLevelMenu;
 import com.distrimind.madkit.gui.swing.menu.ClassPathSensitiveMenu;
+import com.distrimind.madkit.gui.swing.action.ActionInfo;
 import com.distrimind.madkit.gui.swing.message.GUIMessage;
 import com.distrimind.madkit.kernel.*;
+import com.distrimind.madkit.gui.swing.action.GUIManagerAction;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -70,6 +69,10 @@ import static com.distrimind.util.ReflectionTools.*;
  * @since MaDKitLanEdition 2.4.0
  */
 public class GUIProvider extends com.distrimind.madkit.gui.GUIProvider{
+	static
+	{
+		new GUIProvider();
+	}
 	protected GUIProvider() {
 	}
 
@@ -124,6 +127,11 @@ public class GUIProvider extends com.distrimind.madkit.gui.GUIProvider{
 		return MDKDesktopFrame.class;
 	}
 	@Override
+	protected Class<?> getDefaultGUIManagerAgentImpl()
+	{
+		return GUIManagerAgent.class;
+	}
+	@Override
 	protected Class<?> getDefaultAgentFrameClassImpl()
 	{
 		return AgentFrame.class;
@@ -133,8 +141,9 @@ public class GUIProvider extends com.distrimind.madkit.gui.GUIProvider{
 	{
 		if (parameters.length!=1)
 			throw new IllegalArgumentException();
-		if (parameters[0] instanceof JFrame frame)
+		if (parameters[0] instanceof JFrame)
 		{
+			JFrame frame=(JFrame) parameters[0];
 			frame.add(new OutputPanel(agent));
 		}
 		else
@@ -145,11 +154,14 @@ public class GUIProvider extends com.distrimind.madkit.gui.GUIProvider{
 	{
 		if (parameters.length!=1)
 			throw new IllegalArgumentException();
-		if (parameters[0] instanceof JFrame frame)
+		if (parameters[0] instanceof JFrame)
 		{
+			JFrame frame=(JFrame) parameters[0];
 			frame.add(new OutputPanel(scheduler));
 			frame.add(getSchedulerToolBar(scheduler), BorderLayout.PAGE_START);
-			frame.add(getSchedulerStatusLabel(scheduler), BorderLayout.PAGE_END);
+			JLabel l=getSchedulerStatusLabel(scheduler);
+			if (l!=null)
+				frame.add(l, BorderLayout.PAGE_END);
 			scheduler.setGVT(scheduler.getGVT());
 			frame.getJMenuBar().add(getSchedulerMenu(scheduler), 2);
 		}
@@ -161,7 +173,7 @@ public class GUIProvider extends com.distrimind.madkit.gui.GUIProvider{
 	 *
 	 * @return a menu controlling the scheduler's actions
 	 */
-	public JMenu getSchedulerMenu(Scheduler scheduler) {
+	public static JMenu getSchedulerMenu(Scheduler scheduler) {
 		JMenu myMenu = new JMenu("Scheduling");
 		myMenu.setMnemonic(KeyEvent.VK_S);
 		myMenu.add(getRun(scheduler));
@@ -175,7 +187,7 @@ public class GUIProvider extends com.distrimind.madkit.gui.GUIProvider{
 	 *
 	 * @return a label giving some information on the simulation process
 	 */
-	public JLabel getSchedulerStatusLabel(Scheduler scheduler) {
+	public static JLabel getSchedulerStatusLabel(Scheduler scheduler) {
 
 		try {
 			Scheduler.GVTModel gvtModel = (Scheduler.GVTModel)f_gvtModel.get(scheduler);
@@ -208,7 +220,7 @@ public class GUIProvider extends com.distrimind.madkit.gui.GUIProvider{
 	 *
 	 * @return a toolBar controlling the scheduler's actions
 	 */
-	protected JToolBar getSchedulerToolBar(Scheduler scheduler) {
+	public static JToolBar getSchedulerToolBar(Scheduler scheduler) {
 		final JToolBar toolBar = new JToolBar("scheduler toolbar");
 		toolBar.add(getRun(scheduler));
 		toolBar.add(getStep(scheduler));
@@ -257,7 +269,7 @@ public class GUIProvider extends com.distrimind.madkit.gui.GUIProvider{
 		setGVT(getGVT());
 		return timer;
 	}*/
-	void updateToolTip(Scheduler scheduler, final JPanel p, final JSlider sp) {
+	private static void updateToolTip(Scheduler scheduler, final JPanel p, final JSlider sp) {
 		final String text = "pause = " + scheduler.getDelay() + " ms";
 		sp.setToolTipText(text);
 		p.setToolTipText(text);
@@ -266,11 +278,12 @@ public class GUIProvider extends com.distrimind.madkit.gui.GUIProvider{
 	@Override
 	protected Object getSchedulerBoundedRangeModelImpl(Scheduler scheduler)
 	{
-		return new DefaultBoundedRangeModel(400, 0, 0, 400) {
+		int max=400;
+		return new DefaultBoundedRangeModel(max, 0, 0, max) {
 
 			public void setValue(int n) {
 				super.setValue(n);
-				scheduler.setDelayWithoutInteractionWithGUI(getValue());
+				scheduler.setDelayWithoutInteractionWithGUI(max-getValue());
 			}
 		};
 	}
@@ -278,7 +291,7 @@ public class GUIProvider extends com.distrimind.madkit.gui.GUIProvider{
 	protected void setSchedulerDelayImpl(Scheduler scheduler, int delay)
 	{
 		DefaultBoundedRangeModel m=(DefaultBoundedRangeModel)scheduler.getSpeedModel();
-		m.setValue(delay);
+		m.setValue(m.getMaximum()-delay);
 	}
 
 	@Override
@@ -293,12 +306,13 @@ public class GUIProvider extends com.distrimind.madkit.gui.GUIProvider{
 		};
 	}
 
-	private int getTypeMessage(MessageType messageType)
+	public static int getTypeMessage(MessageType messageType)
 	{
-		return switch (messageType) {
-			case INFORMATION -> JOptionPane.INFORMATION_MESSAGE;
-			case WARNING -> JOptionPane.WARNING_MESSAGE;
-		};
+		switch (messageType) {
+			case INFORMATION: return JOptionPane.INFORMATION_MESSAGE;
+			case WARNING: return JOptionPane.WARNING_MESSAGE;
+		}
+		throw new IllegalAccessError();
 	}
 
 	@Override
@@ -315,7 +329,7 @@ public class GUIProvider extends com.distrimind.madkit.gui.GUIProvider{
 	}
 
 
-	public ActionInfo getActionInfo(Enum<?> e)
+	public static ActionInfo getActionInfo(Enum<?> e)
 	{
 		if (e instanceof com.distrimind.madkit.action.AgentAction)
 		{
@@ -323,11 +337,11 @@ public class GUIProvider extends com.distrimind.madkit.gui.GUIProvider{
 		}
 		else if (e instanceof com.distrimind.madkit.action.KernelAction)
 		{
-			return com.distrimind.madkit.gui.swing.action.KernelAction.from((com.distrimind.madkit.action.KernelAction)e).getActionInfo();
+			return KernelAction.from((com.distrimind.madkit.action.KernelAction)e).getActionInfo();
 		}
 		else if (e instanceof com.distrimind.madkit.action.SchedulingAction)
 		{
-			return com.distrimind.madkit.gui.swing.action.SchedulingAction.from((com.distrimind.madkit.action.SchedulingAction)e).getActionInfo();
+			return SchedulingAction.from((com.distrimind.madkit.action.SchedulingAction)e).getActionInfo();
 		}
 		throw new IllegalAccessError();
 	}
@@ -385,7 +399,7 @@ public class GUIProvider extends com.distrimind.madkit.gui.GUIProvider{
 		}
 	}
 
-	public MDKAbstractAction getRun(Scheduler scheduler)
+	public static MDKAbstractAction getRun(Scheduler scheduler)
 	{
 		try {
 			return (MDKAbstractAction)((com.distrimind.madkit.action.Action)f_run.get(scheduler)).getGuiAction();
@@ -394,7 +408,7 @@ public class GUIProvider extends com.distrimind.madkit.gui.GUIProvider{
 			return null;
 		}
 	}
-	public MDKAbstractAction getStep(Scheduler scheduler)
+	public static MDKAbstractAction getStep(Scheduler scheduler)
 	{
 		try {
 			return (MDKAbstractAction)((com.distrimind.madkit.action.Action)f_step.get(scheduler)).getGuiAction();
@@ -403,7 +417,7 @@ public class GUIProvider extends com.distrimind.madkit.gui.GUIProvider{
 			return null;
 		}
 	}
-	public MDKAbstractAction getSpeedUp(Scheduler scheduler)
+	public static MDKAbstractAction getSpeedUp(Scheduler scheduler)
 	{
 		try {
 			return (MDKAbstractAction)((com.distrimind.madkit.action.Action)f_speedUp.get(scheduler)).getGuiAction();
@@ -412,7 +426,7 @@ public class GUIProvider extends com.distrimind.madkit.gui.GUIProvider{
 			return null;
 		}
 	}
-	public MDKAbstractAction getSpeedDown(Scheduler scheduler)
+	public static MDKAbstractAction getSpeedDown(Scheduler scheduler)
 	{
 		try {
 			return (MDKAbstractAction)((com.distrimind.madkit.action.Action)f_speedDown.get(scheduler)).getGuiAction();

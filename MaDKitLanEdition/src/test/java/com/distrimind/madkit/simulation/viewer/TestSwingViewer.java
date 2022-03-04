@@ -37,6 +37,8 @@
  */
 package com.distrimind.madkit.simulation.viewer;
 
+import com.distrimind.madkit.gui.swing.simulation.viewer.SwingViewer;
+
 import java.awt.*;
 import java.io.IOException;
 

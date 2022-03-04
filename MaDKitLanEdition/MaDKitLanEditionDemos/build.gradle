@@ -56,9 +56,11 @@ repositories {
    	} 
 }
 
-
+def f = new File(project.getProjectDir().getParentFile(), '../lastVersion.md')
+var lastMkVersionFile = f.getText('UTF-8').trim()
 dependencies {
-     implementation(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.3.6-STABLE')
+    implementation(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: lastMkVersionFile)
+    implementation 'com.distrimind.madkit.gui.swing:MadkitSwingDriver:'+lastMkVersionFile
     
      
 }
@@ -78,7 +80,7 @@ allprojects {
 }
 
 
-version='1.0.37'
+version='1.0.38'
 
 
 task sourcesJar(type: Jar, dependsOn: classes) {

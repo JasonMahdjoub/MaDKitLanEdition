@@ -218,6 +218,14 @@ public abstract class GUIProvider {
 		}
 		return null;
 	}
+	public static Class<?> getDefaultGUIManagerAgent()
+	{
+		if (provider!=null)
+		{
+			return provider.getDefaultGUIManagerAgentImpl();
+		}
+		return null;
+	}
 	public static void showMessageDialog(String message, String title, MessageType messageType)
 	{
 		if (provider!=null)
@@ -245,7 +253,7 @@ public abstract class GUIProvider {
 	protected abstract Class<?> getDefaultDesktopFrameClassImpl();
 	protected abstract Class<?> getDefaultAgentFrameClassImpl();
 	protected abstract void showMessageDialogImpl(String message, String title, MessageType messageType);
-
+	protected abstract Class<?> getDefaultGUIManagerAgentImpl();
 	public enum MessageType
 	{
 		INFORMATION,

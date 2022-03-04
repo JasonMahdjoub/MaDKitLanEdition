@@ -41,10 +41,11 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
+
+import com.distrimind.madkit.gui.swing.action.AgentAction;
 import org.testng.annotations.Test;
 import javax.swing.JFrame;
 
-import com.distrimind.madkit.action.AgentAction;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Agent;
 import com.distrimind.madkit.kernel.TestNGMadkit;
@@ -96,9 +97,9 @@ public class GUITest extends TestNGMadkit {
 					private JFrame f;
 
 					@Override
-					public void setupFrame(JFrame frame) {
+					public void setupFrame(Object ...parameters) {
 						ok = true;
-						f = frame;
+						f = (JFrame)parameters[0];
 					}
 
 					@Override
@@ -118,8 +119,8 @@ public class GUITest extends TestNGMadkit {
 			protected void activate() {
 				assertEquals(ReturnCode.SUCCESS, launchAgent(new AbstractAgent() {
 					@Override
-					public void setupFrame(JFrame frame) {
-						assertNotNull(frame);
+					public void setupFrame(Object...parameters) {
+						assertNotNull(parameters[0]);
 					}
 
 					@Override
@@ -139,7 +140,7 @@ public class GUITest extends TestNGMadkit {
 			protected void activate() {
 				AbstractAgent a = launchAgent(AlwaysInCGRNormalAA.class.getName());
 				assertEquals(1, getAgentsWithRole(GROUP, ROLE).size());
-				AgentAction.LAUNCH_AGENT.getActionFor(a, a.getClass().getName(), Boolean.TRUE)
+				com.distrimind.madkit.gui.swing.action.AgentAction.LAUNCH_AGENT.getActionFor(a, a.getClass().getName(), Boolean.TRUE)
 						.actionPerformed(null);
 				assertEquals(2, getAgentsWithRole(GROUP, ROLE).size());
 			}
@@ -165,8 +166,8 @@ public class GUITest extends TestNGMadkit {
 			protected void activate() {
 				assertEquals(ReturnCode.SUCCESS, launchAgent(new Agent() {
 					@Override
-					public void setupFrame(JFrame frame) {
-						assertNotNull(frame);
+					public void setupFrame(Object...parameters) {
+						assertNotNull(parameters[0]);
 						try {
 							Thread.sleep(10000);
 						} catch (InterruptedException e) {

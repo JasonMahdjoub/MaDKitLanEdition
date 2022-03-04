@@ -33,6 +33,7 @@
  */
 package com.distrimind.madkit.gui.swing.menu;
 
+import com.distrimind.madkit.gui.MASModel;
 import com.distrimind.madkit.gui.swing.SwingUtil;
 import com.distrimind.madkit.gui.swing.action.KernelAction;
 import com.distrimind.madkit.i18n.Words;
@@ -56,7 +57,7 @@ import java.util.Objects;
  */
 final public class HelpMenu extends JMenu {
 
-	private static final ImageIcon HELP_ICON = new ImageIcon(Objects.requireNonNull(SwingUtil.class.getResource("images/help.png")));
+	private static final ImageIcon HELP_ICON = new ImageIcon(Objects.requireNonNull(MASModel.class.getResource("images/help.png")));
 
 	final private static ActionListener about = e -> new AboutFrame();
 	final private static ActionListener tuto = e -> {

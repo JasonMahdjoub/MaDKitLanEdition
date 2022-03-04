@@ -37,8 +37,6 @@
  */
 package com.distrimind.madkit.testing.util.agent;
 
-import javax.swing.JFrame;
-
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Madkit;
 
@@ -55,7 +53,7 @@ public class BuggedFrameAgent extends AbstractAgent {
 
 	@SuppressWarnings("null")
 	@Override
-	public void setupFrame(JFrame frame) {
+	public void setupFrame(Object...parameters) {
 		Object o = null;
 		o.toString();
 	}

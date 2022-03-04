@@ -35,6 +35,9 @@ package com.distrimind.madkit.gui.swing.menu;
 
 import com.distrimind.madkit.gui.swing.SwingUtil;
 import com.distrimind.madkit.kernel.AbstractAgent;
+import com.distrimind.madkit.gui.swing.action.GUIManagerAction;
+import com.distrimind.madkit.gui.swing.action.GlobalAction;
+import com.distrimind.madkit.gui.swing.action.KernelAction;
 
 import javax.swing.*;
 import java.awt.event.KeyEvent;
@@ -54,20 +57,20 @@ public class MadkitMenu extends JMenu {
 	/**
 	 * Builds a menu featuring the following actions:
 	 * <ul>
-	 * <li>{@link com.distrimind.madkit.gui.swing.action.KernelAction#EXIT}
-	 * <li>{@link com.distrimind.madkit.gui.swing.action.KernelAction#COPY}
-	 * <li>{@link com.distrimind.madkit.gui.swing.action.KernelAction#RESTART}
-	 * <li>{@link com.distrimind.madkit.gui.swing.action.KernelAction#LAUNCH_NETWORK}
-	 * <li>{@link com.distrimind.madkit.gui.swing.action.KernelAction#STOP_NETWORK}
-	 * <li>{@link com.distrimind.madkit.gui.swing.action.GUIManagerAction#CONNECT_TO_IP}
-	 * <li>{@link com.distrimind.madkit.gui.swing.action.GlobalAction#JConsole}
-	 * <li>{@link com.distrimind.madkit.gui.swing.action.KernelAction#CONSOLE}
-	 * <li>{@link com.distrimind.madkit.gui.swing.action.GlobalAction#DEBUG}
-	 * <li>{@link com.distrimind.madkit.gui.swing.action.GlobalAction#LOAD_LOCAL_DEMOS}
-	 * <li>{@link com.distrimind.madkit.gui.swing.action.GlobalAction#LOAD_JAR_FILE}
-	 * <li>{@link com.distrimind.madkit.gui.swing.action.GUIManagerAction#ICONIFY_ALL}
-	 * <li>{@link com.distrimind.madkit.gui.swing.action.GUIManagerAction#DE_ICONIFY_ALL}
-	 * <li>{@link com.distrimind.madkit.gui.swing.action.GUIManagerAction#KILL_AGENTS}
+	 * <li>{@link KernelAction#EXIT}
+	 * <li>{@link KernelAction#COPY}
+	 * <li>{@link KernelAction#RESTART}
+	 * <li>{@link KernelAction#LAUNCH_NETWORK}
+	 * <li>{@link KernelAction#STOP_NETWORK}
+	 * <li>{@link GUIManagerAction#CONNECT_TO_IP}
+	 * <li>{@link GlobalAction#JConsole}
+	 * <li>{@link KernelAction#CONSOLE}
+	 * <li>{@link GlobalAction#DEBUG}
+	 * <li>{@link GlobalAction#LOAD_LOCAL_DEMOS}
+	 * <li>{@link GlobalAction#LOAD_JAR_FILE}
+	 * <li>{@link GUIManagerAction#ICONIFY_ALL}
+	 * <li>{@link GUIManagerAction#DE_ICONIFY_ALL}
+	 * <li>{@link GUIManagerAction#KILL_AGENTS}
 	 * </ul>
 	 * 
 	 * @param agent

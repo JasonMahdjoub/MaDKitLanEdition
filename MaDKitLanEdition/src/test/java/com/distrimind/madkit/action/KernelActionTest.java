@@ -39,6 +39,7 @@ package com.distrimind.madkit.action;
 
 import static org.testng.AssertJUnit.assertEquals;
 
+import com.distrimind.madkit.gui.swing.action.GlobalAction;
 import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.annotations.Test;
 import org.testng.Assert;

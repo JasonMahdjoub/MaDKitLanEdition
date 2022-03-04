@@ -499,17 +499,24 @@ class MadkitKernel extends Agent {
 		// } else {
 		try {
 			// no need to externalize : it is the only use of that string
-			final Constructor<?> c = MadkitClassLoader.getLoader()
-					.loadClass("com.distrimind.madkit.gui.GUIManagerAgent").getDeclaredConstructor(boolean.class);
-			c.setAccessible(true);
-			final Agent a = (Agent) c.newInstance(!getMadkitConfig().desktop);
-			// c.setAccessible(false); //useless
-			a.setLogLevel(getMadkitConfig().guiLogLevel);
-			launchAgent(a);
-			//threadedAgents.remove(a);//TODO uncomment ok ?
-			if (logger != null && logger.isLoggable(Level.FINE))
-				logger.fine("\n\t****** GUI Manager launched ******\n");
-		} catch (ClassNotFoundException | SecurityException | NoSuchMethodException | IllegalArgumentException
+			Class<?> clazz=GUIProvider.getDefaultGUIManagerAgent();
+			if (clazz==null)
+			{
+				if (logger != null)
+					logger.warning("Impossible to find a GUI manager agent");
+			}
+			else {
+				final Constructor<?> c = clazz.getDeclaredConstructor(boolean.class);
+				c.setAccessible(true);
+				final Agent a = (Agent) c.newInstance(!getMadkitConfig().desktop);
+				// c.setAccessible(false); //useless
+				a.setLogLevel(getMadkitConfig().guiLogLevel);
+				launchAgent(a);
+				//threadedAgents.remove(a);//TODO uncomment ok ?
+				if (logger != null && logger.isLoggable(Level.FINE))
+					logger.fine("\n\t****** GUI Manager launched ******\n");
+			}
+		} catch (SecurityException | NoSuchMethodException | IllegalArgumentException
 				| InstantiationException | IllegalAccessException | InvocationTargetException e) {
 			bugReport(e);
 		}

@@ -239,7 +239,9 @@ public abstract class SwingViewer extends Watcher {
 	 * 
 	 *
 	 */
-	public void setupFrame(JFrame frame) {
+	@Override
+	public void setupFrame(Object...parameters) {
+		JFrame frame=(JFrame)parameters[0];
 		displayPane.setSize(frame.getSize());
 		frame.add(displayPane);
 		frame.getJMenuBar().add(getDisplayMenu(), 2);
@@ -262,8 +264,8 @@ public abstract class SwingViewer extends Watcher {
 
 	/**
 	 * By default, get the default frame provided by MaDKit in
-	 * {@link #setupFrame(JFrame)} and set using {@link #setupFrame(JFrame)}. It can
-	 * be anything else if {@link #setupFrame(JFrame)} is overridden.
+	 * {@link #setupFrame(Object...)} and set using {@link #setupFrame(Object...)}. It can
+	 * be anything else if {@link #setupFrame(Object...)} is overridden.
 	 * 
 	 * @return the working frame
 	 */
@@ -306,7 +308,7 @@ public abstract class SwingViewer extends Watcher {
 				50, 100, 200, 500, 1000,
 				5000, 10000, 50000, 100000, 200000,
 				500000};
-		comboBox = new JComboBox<>(defaultValues) {
+		comboBox = new JComboBox<Integer>(defaultValues) {
 			public Dimension getMaximumSize() {
 				return new Dimension(125, 38);
 			}

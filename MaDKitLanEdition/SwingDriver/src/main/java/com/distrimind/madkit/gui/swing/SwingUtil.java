@@ -19,6 +19,7 @@
 package com.distrimind.madkit.gui.swing;
 
 
+import com.distrimind.madkit.gui.MASModel;
 import com.distrimind.madkit.gui.swing.action.GUIManagerAction;
 import com.distrimind.madkit.gui.swing.action.GlobalAction;
 import com.distrimind.madkit.gui.swing.action.KernelAction;
@@ -45,7 +46,7 @@ final public class SwingUtil {
 	/**
 	 * The MaDKit's logo
 	 */
-	final public static ImageIcon MADKIT_LOGO = new ImageIcon(Objects.requireNonNull(SwingUtil.class.getResource("images/madkit_logo.png")));
+	final public static ImageIcon MADKIT_LOGO = new ImageIcon(Objects.requireNonNull(MASModel.class.getResource("images/madkit_logo.png")));
 	/**
 	 * The MaDKit's logo with a size of 14x14 pixels
 	 */
@@ -116,15 +117,15 @@ final public class SwingUtil {
 	 * <li>{@link KernelAction#RESTART}
 	 * <li>{@link KernelAction#LAUNCH_NETWORK}
 	 * <li>{@link KernelAction#STOP_NETWORK}
-	 * <li>{@link com.distrimind.madkit.gui.swing.action.GUIManagerAction#CONNECT_TO_IP}
-	 * <li>{@link com.distrimind.madkit.gui.swing.action.GlobalAction#JConsole}
+	 * <li>{@link GUIManagerAction#CONNECT_TO_IP}
+	 * <li>{@link GlobalAction#JConsole}
 	 * <li>{@link KernelAction#CONSOLE}
-	 * <li>{@link com.distrimind.madkit.gui.swing.action.GlobalAction#DEBUG}
-	 * <li>{@link com.distrimind.madkit.gui.swing.action.GlobalAction#LOAD_LOCAL_DEMOS}
-	 * <li>{@link com.distrimind.madkit.gui.swing.action.GlobalAction#LOAD_JAR_FILE}
-	 * <li>{@link com.distrimind.madkit.gui.swing.action.GUIManagerAction#ICONIFY_ALL}
-	 * <li>{@link com.distrimind.madkit.gui.swing.action.GUIManagerAction#DE_ICONIFY_ALL}
-	 * <li>{@link com.distrimind.madkit.gui.swing.action.GUIManagerAction#KILL_AGENTS}
+	 * <li>{@link GlobalAction#DEBUG}
+	 * <li>{@link GlobalAction#LOAD_LOCAL_DEMOS}
+	 * <li>{@link GlobalAction#LOAD_JAR_FILE}
+	 * <li>{@link GUIManagerAction#ICONIFY_ALL}
+	 * <li>{@link GUIManagerAction#DE_ICONIFY_ALL}
+	 * <li>{@link GUIManagerAction#KILL_AGENTS}
 	 * </ul>
 	 * @param menuOrToolBar the menu tool bar
 	 * @param agent

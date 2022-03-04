@@ -44,7 +44,7 @@ import com.distrimind.madkit.message.EnumMessage;
  *
  * @author Fabien Michel
  * @since MaDKit 5.0.0.9
- * @see com.distrimind.madkit.gui.swing.action.GUIManagerAction
+ * @see GUIManagerAction
  * @version 0.11
  *
  */

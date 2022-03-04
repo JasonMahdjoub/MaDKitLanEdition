@@ -74,7 +74,15 @@ import static com.distrimind.madkit.kernel.AbstractAgent.State.TERMINATED;
  * 
  */
 public class TestNGMadkit {
-
+	static
+	{
+		try {
+			Class.forName("com.distrimind.madkit.gui.swing.GUIProvider");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			System.exit(-1);
+		}
+	}
 	public String testName = "";
 
 	@BeforeMethod

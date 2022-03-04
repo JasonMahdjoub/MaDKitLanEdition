@@ -41,7 +41,7 @@ import java.awt.Component;
 
 import javax.swing.AbstractButton;
 
-import com.distrimind.madkit.gui.menu.LaunchAgentsMenu;
+import com.distrimind.madkit.gui.swing.menu.LaunchAgentsMenu;
 import com.distrimind.madkit.kernel.TestNGMadkit;
 import org.testng.Assert;
 import org.testng.annotations.Test;

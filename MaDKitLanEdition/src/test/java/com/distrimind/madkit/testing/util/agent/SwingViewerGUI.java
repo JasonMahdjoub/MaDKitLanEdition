@@ -40,7 +40,7 @@ package com.distrimind.madkit.testing.util.agent;
 import java.awt.Graphics;
 import java.io.IOException;
 
-import com.distrimind.madkit.simulation.viewer.SwingViewer;
+import com.distrimind.madkit.gui.swing.simulation.viewer.SwingViewer;
 
 public class SwingViewerGUI extends SwingViewer {
 

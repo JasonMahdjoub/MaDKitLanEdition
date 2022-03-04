@@ -37,9 +37,9 @@
  */
 package com.distrimind.madkit.testing.util.agent;
 
-import javax.swing.JMenu;
+import com.distrimind.madkit.gui.swing.action.KernelAction;
 
-import com.distrimind.madkit.action.KernelAction;
+import javax.swing.JMenu;
 
 import java.io.IOException;
 

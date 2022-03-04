@@ -31,7 +31,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import com.distrimind.madkit.gui.OutputPanel;
+
+import com.distrimind.madkit.gui.swing.OutputPanel;
 import com.distrimind.madkit.kernel.Agent;
 import com.distrimind.madkit.kernel.Group;
 import com.distrimind.madkit.kernel.Message;
@@ -110,7 +111,8 @@ public class Provider extends Agent {
 	}
 
 	@Override
-	public void setupFrame(JFrame frame) {
+	public void setupFrame(Object...parameters) {
+		JFrame frame=(JFrame)parameters[0];
 		JPanel p = new JPanel(new BorderLayout());
 		// customizing but still using the madkit.gui.OutputPanel.OutputPanel
 		p.add(new OutputPanel(this), BorderLayout.CENTER);

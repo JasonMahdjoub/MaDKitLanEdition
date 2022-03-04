@@ -24,7 +24,7 @@ import java.io.IOException;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import com.distrimind.madkit.gui.OutputPanel;
+import com.distrimind.madkit.gui.swing.OutputPanel;
 import com.distrimind.madkit.kernel.Agent;
 import com.distrimind.madkit.kernel.AgentAddress;
 import com.distrimind.madkit.kernel.Group;
@@ -111,7 +111,8 @@ public class PingPong extends Agent {
 	}
 
 	@Override
-	public void setupFrame(JFrame frame) {
+	public void setupFrame(Object...parameters) {
+		JFrame frame=(JFrame)parameters[0];
 		myPanel = new OutputPanel(this);
 		frame.add(myPanel);
 		myFrame = frame;

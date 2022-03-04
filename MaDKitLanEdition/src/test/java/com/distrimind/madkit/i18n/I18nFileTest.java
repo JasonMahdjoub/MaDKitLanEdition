@@ -39,6 +39,8 @@ package com.distrimind.madkit.i18n;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+
+import com.distrimind.madkit.gui.swing.action.GUIManagerAction;
 import org.testng.annotations.Test;
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,7 +48,6 @@ import java.util.EnumSet;
 import java.util.Properties;
 
 import com.distrimind.madkit.action.AgentAction;
-import com.distrimind.madkit.action.GUIManagerAction;
 import com.distrimind.madkit.action.KernelAction;
 import com.distrimind.madkit.action.SchedulingAction;
 import com.distrimind.madkit.kernel.AbstractAgent.ReturnCode;

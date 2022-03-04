@@ -46,7 +46,7 @@ import javax.swing.JFrame;
 import com.distrimind.madkit.action.KernelAction;
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.agr.Organization;
-import com.distrimind.madkit.gui.OutputPanel;
+import com.distrimind.madkit.gui.swing.OutputPanel;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.message.EnumMessage;
@@ -67,9 +67,9 @@ public class TestCodeAA extends AbstractAgent {
 	}
 
 	@Override
-	public void setupFrame(JFrame frame) {
+	public void setupFrame(Object...parameters) {
 		OutputPanel outP;
-		frame.add(outP = new OutputPanel(this));
+		((JFrame)parameters[0]).add(outP = new OutputPanel(this));
 		System.setErr(new PrintStream(outP.getOutputStream()));
 		System.setOut(new PrintStream(outP.getOutputStream()));
 	}

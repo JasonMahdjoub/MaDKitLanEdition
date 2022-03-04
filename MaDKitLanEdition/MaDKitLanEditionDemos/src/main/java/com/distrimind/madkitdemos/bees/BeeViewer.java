@@ -54,18 +54,19 @@ import com.distrimind.madkit.action.KernelAction;
 import com.distrimind.madkit.action.SchedulingAction;
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.agr.Organization;
+import com.distrimind.madkit.gui.swing.GUIProvider;
+import com.distrimind.madkit.gui.swing.SwingUtil;
+import com.distrimind.madkit.gui.swing.menu.AgentLogLevelMenu;
+import com.distrimind.madkit.gui.swing.menu.AgentMenu;
+import com.distrimind.madkit.gui.swing.menu.LaunchAgentsMenu;
+import com.distrimind.madkit.gui.swing.menu.MadkitMenu;
+import com.distrimind.madkit.gui.swing.simulation.viewer.SwingViewer;
 import com.distrimind.madkitdemos.bees.BeeLauncher.BeeLauncherAction;
-import com.distrimind.madkit.gui.SwingUtil;
-import com.distrimind.madkit.gui.menu.AgentLogLevelMenu;
-import com.distrimind.madkit.gui.menu.AgentMenu;
-import com.distrimind.madkit.gui.menu.LaunchAgentsMenu;
-import com.distrimind.madkit.gui.menu.MadkitMenu;
 import com.distrimind.madkit.message.EnumMessage;
 import com.distrimind.madkit.message.KernelMessage;
 import com.distrimind.madkit.message.ObjectMessage;
 import com.distrimind.madkit.message.SchedulingMessage;
 import com.distrimind.madkit.simulation.probe.PropertyProbe;
-import com.distrimind.madkit.simulation.viewer.SwingViewer;
 
 /**
  * @version 2.0.0.2
@@ -142,8 +143,9 @@ public class BeeViewer extends SwingViewer {
 	}
 
 	@Override
-	public void setupFrame(javax.swing.JFrame frame) {
-		super.setupFrame(frame);
+	public void setupFrame(Object...parameters) {
+		super.setupFrame(parameters);
+		JFrame frame=(JFrame)parameters[0];
 		buildActions(frame);
 		frame.setBackground(Color.black);
 		JMenuBar jmenubar = new JMenuBar();
@@ -151,7 +153,7 @@ public class BeeViewer extends SwingViewer {
 		jmenubar.add(new AgentMenu(this));
 		jmenubar.add(new LaunchAgentsMenu(this));
 		jmenubar.add(new AgentLogLevelMenu(this));
-		jmenubar.add(sch.getSchedulerMenu());
+		jmenubar.add(GUIProvider.getSchedulerMenu(sch));
 		JMenu options = new JMenu("Options");
 		options.add(new JCheckBoxMenuItem(synchroPaint));
 		options.add(new JCheckBoxMenuItem(artMode));
@@ -233,7 +235,7 @@ public class BeeViewer extends SwingViewer {
 		JPanel tools = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		tools.add(tb);
 
-		tools.add(sch.getSchedulerToolBar());
+		tools.add(GUIProvider.getSchedulerToolBar(sch));
 
 		JToolBar modelProperties = new JToolBar();
 		modelProperties.add(SwingUtil.createSliderPanel(environment.getQueenAcceleration(), "queen acceleration"));
@@ -242,7 +244,7 @@ public class BeeViewer extends SwingViewer {
 		modelProperties.add(SwingUtil.createSliderPanel(environment.getBeeVelocity(), "bee velocity"));
 		tools.add(modelProperties);
 
-		frame.add(sch.getSchedulerStatusLabel(), BorderLayout.SOUTH);
+		frame.add(GUIProvider.getSchedulerStatusLabel(sch), BorderLayout.SOUTH);
 		display.getParent().add(tools, BorderLayout.PAGE_START);
 		frame.setLocationRelativeTo(null);
 		frame.setExtendedState(JFrame.MAXIMIZED_BOTH);

@@ -37,6 +37,7 @@
  */
 package com.distrimind.madkit.i18n;
 
+import com.distrimind.madkit.gui.swing.action.*;
 import org.testng.annotations.Test;
 import org.testng.Assert;
 import java.awt.event.KeyEvent;
@@ -47,11 +48,6 @@ import java.util.Map;
 
 import javax.swing.Action;
 
-import com.distrimind.madkit.action.AgentAction;
-import com.distrimind.madkit.action.GUIManagerAction;
-import com.distrimind.madkit.action.GlobalAction;
-import com.distrimind.madkit.action.KernelAction;
-import com.distrimind.madkit.action.SchedulingAction;
 
 /**
  * @author Fabien Michel
