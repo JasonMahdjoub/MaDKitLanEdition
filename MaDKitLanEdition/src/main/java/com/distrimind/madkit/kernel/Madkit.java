@@ -1232,5 +1232,11 @@ final public class Madkit {
 			System.exit(-1);
 		}
 	}
-
+	static
+	{
+		try {
+			Class.forName("com.distrimind.madkit.gui.swing.GUIProvider");
+		} catch (ClassNotFoundException ignored) {
+		}
+	}
 }

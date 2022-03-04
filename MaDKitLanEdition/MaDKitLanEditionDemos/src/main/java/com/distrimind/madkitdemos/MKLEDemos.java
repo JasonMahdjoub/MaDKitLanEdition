@@ -16,7 +16,6 @@ import com.distrimind.madkitdemos.pingpong.PingPongDemoLauncherAgent;
 
 public class MKLEDemos {
 	public static void main(String[] args) throws ClassNotFoundException {
-		Class.forName("com.distrimind.madkit.gui.swing.GUIProvider");
 		final JFrame frame = new JFrame();
 
 		frame.setLayout(new FlowLayout(FlowLayout.CENTER));

@@ -53,7 +53,7 @@ public abstract class GUIProvider {
 
 	protected GUIProvider() {
 		if (provider!=null)
-			throw new IllegalStateException("Only one provider can be instantiated");
+			throw new IllegalStateException("Only one MadKit GUI provider can be instantiated. The current loaded provider is "+provider.getClass().getName());
 		provider=this;
 	}
 

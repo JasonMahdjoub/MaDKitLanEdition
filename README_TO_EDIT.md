@@ -148,7 +148,15 @@ Adapt into your build.gradle file, the next code :
 	}
 	...
 
-To know what last version has been uploaded, please refer to versions availables into [this repository](https://artifactory.distri-mind.fr/artifactory/DistriMind-Public/com/distrimind/madkit/MaDKitLanEdition/)
+To use madkit GUI based on java swing, you can use the next driver. If you do not include any GUI driver, MaDKitLanEdition will continue to work without GUI.
+	...
+	dependencies {
+		...
+		compile(group:'com.distrimind.madkit.gui.swing', name: 'MadkitSwingDriver', version: '//PROJECT_VERSION//')
+		...
+	}
+	...
+To know what is the last updaloed version, please refer to versions availables here : [this repository](https://artifactory.distri-mind.fr/artifactory/DistriMind-Public/com/distrimind/madkit/MaDKitLanEdition/)
 ### With Maven :
 Adapt into your pom.xml file, the next code :
 
@@ -173,6 +181,15 @@ Adapt into your pom.xml file, the next code :
 			...
 		</repositories>
 	</project>
+	
+To use madkit GUI based on java swing, you can use the next driver. If you do not include any GUI driver, MaDKitLanEdition will continue to work without GUI.
+	...
+			<dependency>
+				<groupId>com.distrimind.madkit.gui.swing</groupId>
+				<artifactId>MadkitSwingDriver</artifactId>
+				<version>//PROJECT_VERSION//</version>
+			</dependency>
+	...	
 
 To know what last version has been uploaded, please refer to versions availables into [this repository](https://artifactory.distri-mind.fr/artifactory/DistriMind-Public/com/distrimind/madkit/MaDKitLanEdition/)
 
