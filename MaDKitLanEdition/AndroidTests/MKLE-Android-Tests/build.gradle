@@ -93,4 +93,12 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
     androidTestImplementation 'androidx.test:runner:1.4.0'
     androidTestUtil 'androidx.test:orchestrator:1.4.1'
+
+
+    var jettyVersion='11.0.8'
+
+    implementation 'org.eclipse.jetty:jetty-server:'+jettyVersion
+    implementation 'org.eclipse.jetty:jetty-servlet:'+jettyVersion
+    implementation 'org.eclipse.jetty:jetty-client:'+jettyVersion
+
 }

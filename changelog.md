@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-2.3.6 STABLE (Build: 5789) (from 22/05/2015 to 28/02/2022)
+2.4.0 STABLE (Build: 6052) (from 22/05/2015 to 03/03/2022)
 
 # Creator(s):
 * Jason MAHDJOUB
@@ -14,7 +14,21 @@ MaDKitLanEdition
 # Changes:
 
 
-### 2.3.6 STABLE (28/02/2022)
+### 2.4.0 STABLE (03/03/2022)
+#### New feature(s)
+* Separate Madkit GUI to a different library in order to remove Swing dependencies, and in order to make MKLE compatible with Android
+* Test MaDKitLanEdition with Android (API 26+)
+#### Internal change(s)
+* Use a forked version of Cling (UPNP IGD)
+* UPNP IGD : fix issue with JDK17
+
+
+### 2.3.7 STABLE (03/02/2022)
+#### Internal change(s)
+* Update URLs
+
+
+### 2.3.6 STABLE (31/01/2022)
 #### Internal change(s)
 * Do not replace MaDKit properties reference when loading Madkit kernel
 

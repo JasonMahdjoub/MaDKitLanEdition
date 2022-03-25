@@ -143,12 +143,20 @@ Adapt into your build.gradle file, the next code :
 	...
 	dependencies {
 		...
-		compile(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.3.6-STABLE')
+		compile(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.4.0-STABLE')
 		...
 	}
 	...
 
-To know what last version has been uploaded, please refer to versions availables into [this repository](https://artifactory.distri-mind.fr/artifactory/DistriMind-Public/com/distrimind/madkit/MaDKitLanEdition/)
+To use madkit GUI based on java swing, you can use the next driver. If you do not include any GUI driver, MaDKitLanEdition will continue to work without GUI.
+	...
+	dependencies {
+		...
+		compile(group:'com.distrimind.madkit.gui.swing', name: 'MadkitSwingDriver', version: '2.4.0-STABLE')
+		...
+	}
+	...
+To know what is the last updaloed version, please refer to versions availables here : [this repository](https://artifactory.distri-mind.fr/artifactory/DistriMind-Public/com/distrimind/madkit/MaDKitLanEdition/)
 ### With Maven :
 Adapt into your pom.xml file, the next code :
 
@@ -159,7 +167,7 @@ Adapt into your pom.xml file, the next code :
 			<dependency>
 				<groupId>com.distrimind.madkit</groupId>
 				<artifactId>MaDKitLanEdition</artifactId>
-				<version>2.3.6-STABLE</version>
+				<version>2.4.0-STABLE</version>
 			</dependency>
 			...
 		</dependencies>
@@ -173,6 +181,15 @@ Adapt into your pom.xml file, the next code :
 			...
 		</repositories>
 	</project>
+	
+To use madkit GUI based on java swing, you can use the next driver. If you do not include any GUI driver, MaDKitLanEdition will continue to work without GUI.
+	...
+			<dependency>
+				<groupId>com.distrimind.madkit.gui.swing</groupId>
+				<artifactId>MadkitSwingDriver</artifactId>
+				<version>2.4.0-STABLE</version>
+			</dependency>
+	...	
 
 To know what last version has been uploaded, please refer to versions availables into [this repository](https://artifactory.distri-mind.fr/artifactory/DistriMind-Public/com/distrimind/madkit/MaDKitLanEdition/)
 
