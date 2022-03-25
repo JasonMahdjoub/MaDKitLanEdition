@@ -65,7 +65,7 @@ public class DirectLocalLanMessage extends LocalLanMessage {
 	@Override
 	public DirectLocalLanMessage clone() {
 		DirectLocalLanMessage d = new DirectLocalLanMessage(this, this.getOriginalMessage().clone(),
-				originalMessage == null ? null : this.originalMessage.clone(), this.getMessageLocker());
+				originalMessage == null ? null : this.originalMessage.clone(), this.getMessageLocker().clone());
 		d.readyForInjection = readyForInjection;
 		return d;
 	}

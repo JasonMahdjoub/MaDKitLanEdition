@@ -53,7 +53,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
 
-import static com.distrimind.util.ReflectionTools.*;
+import static com.distrimind.util.ReflectionTools.invoke;
+import static com.distrimind.util.ReflectionTools.getMethod;
+import static com.distrimind.util.ReflectionTools.getConstructor;
 
 /**
  * Gives access to Madkit Kernel methods
@@ -389,6 +391,17 @@ class MadkitKernelAccess {
 		m_setConnectionInfoSystemMessage=getMethod(c_madkit_kernel, "setConnectionInfoSystemMessage", AbstractAgent.class, ConnectionIdentifier.class, ConnectionInfoSystemMessage.class);
 	}
 
+	static Class<?> loadClass(String class_name) {
 
+		try {
+			return MadkitClassLoader.getLoader().loadClass(class_name);
+		} catch (SecurityException | ClassNotFoundException e) {
+			System.err.println("Impossible to access to the class " + class_name
+					+ ". This is an inner bug. Please contact the developers. Impossible to continue. See the next error :");
+			e.printStackTrace();
+			System.exit(-1);
+			return null;
+		}
+	}
 
 }

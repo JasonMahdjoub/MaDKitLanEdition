@@ -178,8 +178,8 @@ public class MultipleConnectionsTest extends TestNGMadkit {
 			protected void activate() throws InterruptedException {
 				try {
 					sleep(1000);
-					System.err.println("------------------------ Thread cound at start : " + Thread.activeCount());
-					System.err.println("------------------------ localDataAmountAcc=" + localDataAmountAcc
+					System.out.println("------------------------ Thread cound at start : " + Thread.activeCount());
+					System.out.println("------------------------ localDataAmountAcc=" + localDataAmountAcc
 							+ " --- globalDataAmountAcc=" + globalDataAmountAcc);
 					removeDatabase();
 					AgentsToLaunch agentsToLaunch1 = new AgentsToLaunch(1, 4, true);
@@ -260,7 +260,7 @@ public class MultipleConnectionsTest extends TestNGMadkit {
 							|| lanToSynchro)) {
 						lanToSynchro=false;
 						sleep(1000);
-						System.err.println("------------------------ localDataAmountAcc=" + localDataAmountAcc
+						System.out.println("------------------------ localDataAmountAcc=" + localDataAmountAcc
 								+ " --- globalDataAmountAcc=" + globalDataAmountAcc);
 						if (agentsToLaunch1.agentBigTransfer.isFinished()
 							&& agentsToLaunch2.agentBigTransfer.isFinished()
@@ -434,9 +434,10 @@ public class MultipleConnectionsTest extends TestNGMadkit {
 					removeDatabase();
 				}
 				sleep(400);
-				System.err.println("------------------------ Thread cound at end : " + Thread.activeCount());
+				System.out.println("------------------------ Thread cound at end : " + Thread.activeCount());
 			}
 		});
+		assertMadkitsEmpty();
 	}
 
 	protected void removeDatabase() {

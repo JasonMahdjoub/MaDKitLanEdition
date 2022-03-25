@@ -61,7 +61,7 @@ public class ReloadClass extends Agent {
 			logger.info("\n\n " + new Fake());
 		pause(8000);
 		try {
-			MadkitClassLoader.reloadClass(Fake.class.getName());
+			MadkitClassLoader.getLoader().reloadClass(Fake.class.getName());
 			final Class<?> newestClassVersion = MadkitClassLoader.getLoader().loadClass(Fake.class.getName());
 			logger.info(newestClassVersion.getDeclaredConstructor().newInstance().toString());
 			this.killAgent(this);

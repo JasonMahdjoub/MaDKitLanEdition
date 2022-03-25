@@ -42,8 +42,23 @@ import com.distrimind.madkit.exceptions.MadkitException;
 import com.distrimind.madkit.exceptions.NIOException;
 import com.distrimind.madkit.exceptions.PacketException;
 import com.distrimind.madkit.exceptions.SelfKillException;
-import com.distrimind.madkit.kernel.*;
+import com.distrimind.madkit.kernel.AbstractAgent;
+import com.distrimind.madkit.kernel.AbstractGroup;
+import com.distrimind.madkit.kernel.AgentAddress;
+import com.distrimind.madkit.kernel.AgentFakeThread;
+import com.distrimind.madkit.kernel.BigDataPropositionMessage;
+import com.distrimind.madkit.kernel.BigDataResultMessage;
+import com.distrimind.madkit.kernel.CGRSynchro;
 import com.distrimind.madkit.kernel.CGRSynchro.Code;
+import com.distrimind.madkit.kernel.CancelBigDataTransferMessage;
+import com.distrimind.madkit.kernel.ConversationID;
+import com.distrimind.madkit.kernel.ExternalAsynchronousBigDataIdentifier;
+import com.distrimind.madkit.kernel.Group;
+import com.distrimind.madkit.kernel.KernelAddress;
+import com.distrimind.madkit.kernel.MadkitClassLoader;
+import com.distrimind.madkit.kernel.Message;
+import com.distrimind.madkit.kernel.Task;
+import com.distrimind.madkit.kernel.TaskID;
 import com.distrimind.madkit.kernel.network.AbstractAgentSocket.AgentSocketKilled;
 import com.distrimind.madkit.kernel.network.AbstractAgentSocket.Groups;
 import com.distrimind.madkit.kernel.network.AbstractAgentSocket.ReceivedBlockData;
@@ -63,12 +78,28 @@ import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.concurrent.LockerCondition;
 import com.distrimind.util.crypto.AbstractSecureRandom;
 import com.distrimind.util.crypto.MessageDigestType;
-import com.distrimind.util.io.*;
+import com.distrimind.util.io.Integrity;
+import com.distrimind.util.io.LimitedRandomInputStream;
+import com.distrimind.util.io.MessageExternalizationException;
+import com.distrimind.util.io.RandomByteArrayOutputStream;
+import com.distrimind.util.io.RandomInputStream;
+import com.distrimind.util.io.RandomOutputStream;
+import com.distrimind.util.io.SecureExternalizableWithoutInnerSizeControl;
+import com.distrimind.util.io.SerializationTools;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.ConcurrentModificationException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -191,6 +222,7 @@ class DistantKernelAgent extends AgentFakeThread {
 	private boolean broadcastLocalLanMessage(ArrayList<AgentSocketData> agents_socket, BroadcastLocalLanMessage message,
 			AbstractGroup groups_lacking) throws NIOException {
 
+
 		for (AgentSocketData asd : agents_socket) {
 			if (asd.isUsable()) {
 				AbstractGroup concerned_groups = asd.distant_accessible_and_requested_groups.getGroups().intersect(groups_lacking);
@@ -198,8 +230,7 @@ class DistantKernelAgent extends AgentFakeThread {
 					message.getMessageLocker().lock();
 					sendData(asd.getAgentAddress(), message.getBroadcastMessage(concerned_groups), false,
 							message.getMessageLocker(), false);
-
-					groups_lacking = groups_lacking.minus(concerned_groups);
+					groups_lacking=groups_lacking.minus(concerned_groups);
 					if (groups_lacking.isEmpty()) {
 						return false;
 					}
@@ -249,7 +280,7 @@ class DistantKernelAgent extends AgentFakeThread {
 	private void unlockMessageIfNecessary(Message _message)
 	{
 		if (_message instanceof LockableMessage) {
-			((LockableMessage) _message).getMessageLocker().forgive();
+			((LockableMessage) _message).getMessageLocker().forgive(false);
 			if (_message instanceof LocalLanMessage)
 				sendReplyEmpty(_message);
 		}
@@ -326,7 +357,7 @@ class DistantKernelAgent extends AgentFakeThread {
 											if (logger != null)
 												logger.severeLog("Anomaly detected", e);
 											processInvalidMessage(_message, false);
-											message.getMessageLocker().forgive();
+											message.getMessageLocker().forgive(false);
 										}
 									} else {
 										sendData(asd.getAgentAddress(), new DirectLanMessage(m), false,
@@ -1921,6 +1952,8 @@ class DistantKernelAgent extends AgentFakeThread {
 			if (!ReturnCode.isSuccessOrIsTransferInProgress(sendMessage(receiver,
 					new DistKernADataToUpgradeMessage(pd)))) {
 				pd.unlockMessage();
+				if (_messageLocker!=null)
+					_messageLocker.forgive(false);
 				if (logger!=null)
 					logger.warning("Fail sending data (distantInterfacedKernelAddress=" + distant_kernel_address
 						+ ", packetID=" + packet.getID() + ") : " + _data);
@@ -1928,7 +1961,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			}
 		} catch (IOException | MadkitException e) {
 			if (_messageLocker!=null) {
-				_messageLocker.forgive();
+				_messageLocker.forgive(false);
 			}
 			throw new NIOException(e);
 		}
@@ -1946,7 +1979,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			{
 				if (np.isAcceptedClassForSerializationUsingPatterns(clazz))
 				{
-					Class<?> c=Class.forName(clazz, true, MadkitClassLoader.getSystemClassLoader());
+					Class<?> c=MadkitClassLoader.getLoader().loadClass(clazz, true);
 
 					if (np.isAcceptedClassForSerializationUsingAllowClassList(c))
 					{
@@ -2015,7 +2048,10 @@ class DistantKernelAgent extends AgentFakeThread {
 
 	protected int getNewPacketID() {
 		synchronized (packet_id_generator) {
-			return packet_id_generator.getNewID();
+			int res=packet_id_generator.getNewID();
+			if (res==-1)
+				res=packet_id_generator.getNewID();
+			return res;
 		}
 	}
 
@@ -2035,7 +2071,7 @@ class DistantKernelAgent extends AgentFakeThread {
 
 		private RealTimeTransferStat stat;
 		private IDTransfer idTransfer = null;
-		private volatile boolean unlocked = false;
+		private boolean unlocked = false;
 		protected final AgentAddress firstAgentSocketSender;
 		private final AgentAddress agentReceiver;
 
@@ -2062,13 +2098,15 @@ class DistantKernelAgent extends AgentFakeThread {
 
 		@Override
 		public String toString() {
-			return getClass().getSimpleName() + "[idPacket=" + packet.getID() + ", unlocked=" + unlocked
-					+ ", canceled=" + isCanceled + ", totalDataToSendLength(Without connection protocol)="
-					+ this.packet.getDataLengthWithHashIncluded() + ", currentByteBuffer="
-					+ (currentByteBuffer == null ? null : currentByteBuffer.capacity())
-					+ ", currentByteBufferRemaining="
-					+ (currentByteBuffer == null ? null : currentByteBuffer.remaining()) + ", dataSent="
-					+ this.packet.getReadDataLengthIncludingHash() + "]";
+			synchronized (this) {
+				return getClass().getSimpleName() + "[idPacket=" + packet.getID() + ", unlocked=" + unlocked
+						+ ", canceled=" + isCanceled + ", totalDataToSendLength(Without connection protocol)="
+						+ this.packet.getDataLengthWithHashIncluded() + ", currentByteBuffer="
+						+ (currentByteBuffer == null ? null : currentByteBuffer.capacity())
+						+ ", currentByteBufferRemaining="
+						+ (currentByteBuffer == null ? null : currentByteBuffer.remaining()) + ", dataSent="
+						+ this.packet.getReadDataLengthIncludingHash() + "]";
+			}
 		}
 
 		@Override
@@ -2254,7 +2292,6 @@ class DistantKernelAgent extends AgentFakeThread {
 				{
 					if (logger!=null)
 						logger.warning("Impossible to send message to "+this.getAgentSocketSender());
-					unlockMessage();
 					cancel();
 					return;
 				}
@@ -2279,13 +2316,17 @@ class DistantKernelAgent extends AgentFakeThread {
 
 		@Override
 		public void unlockMessage() throws MadkitException {
-			unlocked=true;
+			synchronized (this) {
+				unlocked = true;
+			}
 			removePendingBigDataPacket();
 		}
 
 		@Override
 		public boolean isUnlocked() {
-			return unlocked;
+			synchronized (this) {
+				return unlocked;
+			}
 		}
 
 
@@ -2354,13 +2395,17 @@ class DistantKernelAgent extends AgentFakeThread {
 						long sendLength = packet.getReadDataLengthIncludingHash();
 						if (currentByteBuffer != null)
 							sendLength -= currentByteBuffer.remaining();
+
 						messageLocker.unlock(distant_kernel_address, new DataTransferResult(
-								packet.getInputStream().length(), packet.getReadDataLength(), sendLength));
+								packet.getInputStream().length(), packet.getReadDataLength(), sendLength, this.original_lan_message instanceof BroadcastLanMessage));
 						
 					}
-					super.unlockMessage();
+
 				} catch (IOException e) {
 					throw new MadkitException(e);
+				}
+				finally {
+					super.unlockMessage();
 				}
 			}
 		}

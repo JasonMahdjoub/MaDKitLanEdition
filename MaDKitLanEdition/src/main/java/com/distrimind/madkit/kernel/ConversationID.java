@@ -67,7 +67,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ConversationID implements SecureExternalizable, Cloneable {
 
 	final static private AtomicInteger ID_COUNTER = new AtomicInteger(
-			(int) (Math.random() * (double) Integer.MAX_VALUE));// TODO if many many ??
+			(int) (Math.random() * ((double) Integer.MAX_VALUE)));// TODO if many many ??
 
 	private int id;
 	private KernelAddress origin;

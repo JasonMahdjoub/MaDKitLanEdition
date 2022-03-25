@@ -48,6 +48,7 @@ import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.agr.Organization;
 import com.distrimind.madkit.gui.swing.OutputPanel;
 import com.distrimind.madkit.kernel.AbstractAgent;
+import com.distrimind.madkit.kernel.MadkitClassLoader;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.message.EnumMessage;
 import com.distrimind.madkit.message.ObjectMessage;
@@ -77,7 +78,7 @@ public class TestCodeAA extends AbstractAgent {
 	@Override
 	protected void activate() {
 		try {
-			Class<?> cl = Class.forName("java.lang.Thread");
+			Class<?> cl = MadkitClassLoader.getLoader().loadClass("java.lang.Thread");
 			Object o = cl.getDeclaredConstructor().newInstance();
 			o.toString();
 		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e1) {

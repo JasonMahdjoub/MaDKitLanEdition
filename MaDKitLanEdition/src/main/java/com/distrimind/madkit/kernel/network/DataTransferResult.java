@@ -67,10 +67,13 @@ public class DataTransferResult implements SecureExternalizable {
 	 */
 	private long data_sent_size;
 
-	DataTransferResult(long _data_input_size, long _data_to_send_size, long _data_sent_size) {
+	private boolean broadcastTransfer;
+
+	DataTransferResult(long _data_input_size, long _data_to_send_size, long _data_sent_size, boolean broadcastTransfer) {
 		data_input_size = _data_input_size;
 		data_to_send_size = _data_to_send_size;
 		data_sent_size = _data_sent_size;
+		this.broadcastTransfer=broadcastTransfer;
 	}
 	@Override
 	public int getInternalSerializedSize() {
@@ -82,7 +85,7 @@ public class DataTransferResult implements SecureExternalizable {
 		out.writeLong(data_input_size);
 		out.writeLong(data_to_send_size);
 		out.writeLong(data_sent_size);
-
+		out.writeBoolean(broadcastTransfer);
 	}
 
 	@Override
@@ -90,7 +93,7 @@ public class DataTransferResult implements SecureExternalizable {
 		data_input_size=in.readLong();
 		data_to_send_size=in.readLong();
 		data_sent_size=in.readLong();
-
+		broadcastTransfer=in.readBoolean();
 	}
 
 	/**
@@ -125,4 +128,17 @@ public class DataTransferResult implements SecureExternalizable {
 		return data_sent_size == data_to_send_size;
 	}
 
+	public boolean isBroadcastTransfer() {
+		return broadcastTransfer;
+	}
+
+	@Override
+	public String toString() {
+		return "DataTransferResult{" +
+				"data_input_size=" + data_input_size +
+				", data_to_send_size=" + data_to_send_size +
+				", data_sent_size=" + data_sent_size +
+				", broadcastTransfer=" + broadcastTransfer +
+				'}';
+	}
 }

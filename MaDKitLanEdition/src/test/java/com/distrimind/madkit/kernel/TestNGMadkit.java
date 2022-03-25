@@ -198,7 +198,7 @@ public class TestNGMadkit {
 
 	public Madkit launchTest(AbstractAgent a, ReturnCode expected, boolean gui, MadkitEventListener eventListener,
 			Runnable postTest) {
-		System.err
+		System.out
 				.println("\n\n------------------------ " + testName + " TEST START ---------------------");
 		Madkit madkit = null;
 		try {
@@ -223,17 +223,17 @@ public class TestNGMadkit {
 			}
 		} catch (Throwable e) {
 			Throwable throwable = e;
-			System.err.println("\n\n\n------------------------------------");
+			System.out.println("\n\n\n------------------------------------");
 			while (throwable.getCause() != null)
 				throwable = throwable.getCause();
 			throwable.printStackTrace();
-			System.err.println("------------------------------------\n\n\n");
+			System.out.println("------------------------------------\n\n\n");
 			oneFailed = true;
 
 			AssertJUnit.fail(TestNGMadkit.class.getSimpleName()+" ; "+ throwable.getMessage());
 
 		} finally {
-			System.err.println("\n\n------------------------ " + testName
+			System.out.println("\n\n------------------------ " + testName
 					+ " TEST FINISHED ---------------------\n\n");
 
 			cleanHelperMDKs(a);
@@ -248,8 +248,13 @@ public class TestNGMadkit {
 		return madkit;
 	}
 
+	public void assertMadkitsEmpty()
+	{
+		AssertJUnit.assertTrue(madkits.isEmpty());
+	}
+
 	public void lineBreak() {
-		System.err.println("---------------------------------");
+		System.out.println("---------------------------------");
 	}
 
 	public void assertKernelIsAlive(MadkitKernel m) {
@@ -367,18 +372,18 @@ public class TestNGMadkit {
 
 	public static long stopTimer(String message) {
 		final long t = System.nanoTime() - time;
-		System.err.println(message + (t / 1000000) + " ms");
+		System.out.println(message + (t / 1000000) + " ms");
 		return (t / 1000000);
 	}
 
 	public void assertAgentIsTerminated(AbstractAgent a) {
-		System.err.println(a);
+		System.out.println(a);
 		AssertJUnit.assertEquals(TERMINATED, a.getState());
 		AssertJUnit.assertFalse(a.isAlive());
 	}
 
 	public void assertAgentIsZombie(AbstractAgent a) {
-		System.err.println(a);
+		System.out.println(a);
 		AssertJUnit.assertEquals(State.ZOMBIE, a.getState());
 		// assertFalse(a.isAlive());
 	}
@@ -386,7 +391,7 @@ public class TestNGMadkit {
 	static public void printMemoryUsage() {
 		// System.gc();
 		long mem = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
-		System.err.println("\n----used memory: " + Long.toString(mem).substring(0, 3) + " Mo\n");
+		System.out.println("\n----used memory: " + Long.toString(mem).substring(0, 3) + " Mo\n");
 	}
 
 
@@ -404,9 +409,9 @@ public class TestNGMadkit {
 
 	public static void printAllStacks() {
 		for (Map.Entry<Thread, StackTraceElement[]> t : Thread.getAllStackTraces().entrySet()) {
-			System.err.println("------------- " + t.getKey());
+			System.out.println("------------- " + t.getKey());
 			for (StackTraceElement ste : t.getValue()) {
-				System.err.println(ste);
+				System.out.println(ste);
 			}
 		}
 	}
@@ -532,8 +537,10 @@ public class TestNGMadkit {
 						p.destroy();
 						try {
 							p.waitFor();
+							Assert.assertFalse(p.isAlive());
 						} catch (InterruptedException e) {
 							e.printStackTrace();
+							Assert.fail();
 						}
 					}
 
@@ -542,9 +549,10 @@ public class TestNGMadkit {
 				} finally {
 					helperInstances.clear();
 					externalProcesses.clear();
+					testException=null;
 					helperInstances.notifyAll();
 					// pause(agent, pauseTime);
-					System.err.println("------------Cleaning help instances done ---------------------\n\n");
+					System.out.println("------------Cleaning help instances done ---------------------\n\n");
 				}
 			}
 		}
@@ -635,7 +643,6 @@ public class TestNGMadkit {
 			_properties.kernelLogLevel = l;
 			_properties.networkProperties.upnpIGDEnabled = false;
 			networkEventListener.onMaDKitPropertiesLoaded(_properties);
-
 		});
 		if (mkReference!=null)
 			mkReference.set(m);

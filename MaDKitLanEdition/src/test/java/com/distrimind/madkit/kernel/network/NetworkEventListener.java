@@ -38,12 +38,16 @@
 package com.distrimind.madkit.kernel.network;
 
 import com.distrimind.madkit.exceptions.ConnectionException;
+import com.distrimind.madkit.kernel.Madkit;
 import com.distrimind.madkit.kernel.MadkitEventListener;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.connection.access.HostIdentifier;
 import com.distrimind.ood.database.DatabaseFactory;
+import com.distrimind.ood.database.InFileEmbeddedAndroidH2DatabaseFactory;
 import com.distrimind.ood.database.InFileEmbeddedH2DatabaseFactory;
 import com.distrimind.ood.database.exceptions.DatabaseException;
+import com.distrimind.util.OS;
+import com.distrimind.util.OSVersion;
 import com.distrimind.util.crypto.EncryptionProfileProviderFactory;
 import com.distrimind.util.crypto.SecureRandomType;
 
@@ -59,6 +63,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 
@@ -167,7 +172,12 @@ public class NetworkEventListener implements MadkitEventListener {
 	}
 	private static DatabaseFactory<?> getDatabaseFactory(File databaseFile) {
 		try {
-			return databaseFile!=null?new InFileEmbeddedH2DatabaseFactory(databaseFile):null;
+			if (databaseFile==null)
+				return null;
+			if (OSVersion.getCurrentOSVersion().getOS()== OS.ANDROID)
+				return new InFileEmbeddedAndroidH2DatabaseFactory("com.distrimind.madkit.mkle_android_tests.test", databaseFile.getName(),false);
+			else
+				return new InFileEmbeddedH2DatabaseFactory(databaseFile);
 		} catch (DatabaseException e) {
 			e.printStackTrace();
 			System.exit(-1);
@@ -213,6 +223,7 @@ public class NetworkEventListener implements MadkitEventListener {
 		try {
 			if (databaseFile != null) {
 				DatabaseFactory<?> databaseFactory=getDatabaseFactory(databaseFile);
+
 				if (protectedEncryptionProfileFactoryProviderForAuthenticatedP2PMessages!=null) {
 
 					databaseFactory.setEncryptionProfileProviders(signatureProfileProviderForAuthenticatedMessagesDestinedToCentralDatabaseBackup,

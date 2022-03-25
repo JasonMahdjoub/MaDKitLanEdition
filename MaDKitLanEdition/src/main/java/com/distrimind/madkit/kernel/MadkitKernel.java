@@ -244,16 +244,14 @@ class MadkitKernel extends Agent {
 	@SuppressWarnings("ResultOfMethodCallIgnored")
 	MadkitKernel(Madkit m) {
 		super(true);
-
 		platform = m;
 		kernel = this;
 		threadedAgents = new HashSet<>(20);
-		generatorIdTransfer = new IDGeneratorInt((int) (Math.random() * (double) Integer.MAX_VALUE));
+		generatorIdTransfer = new IDGeneratorInt((int) (Math.random() * ((double) Integer.MAX_VALUE)));
 		globalInterfacedIds = new HashMap<>();
 		// set the log dir name and checking uniqueness
 		final MadkitProperties madkitConfig = getMadkitConfig();
 		// final String logBaseDir= + File.separator;
-
 		KernelAddress ka;
 		if (m.kernelAddress != null)
 			ka = m.kernelAddress;
@@ -275,7 +273,6 @@ class MadkitKernel extends Agent {
 
 		getLogger(); // Bootstrapping the agentLoggers with default logger variable for global
 						// actions
-
 		setLogLevel(madkitConfig.kernelLogLevel);
 
 		if (logger != null && madkitConfig.createLogFiles) {
@@ -2917,7 +2914,7 @@ class MadkitKernel extends Agent {
 		m.setReceiver(receiver);
 		m.getConversationID().setOrigin(kernelAddress);
 		final ReturnCode r = sendMessage(m, receiver.getAgent());
-		if (r == SUCCESS || r == ReturnCode.TRANSFER_IN_PROGRESS) {
+		if (ReturnCode.isSuccessOrIsTransferInProgress(r)) {
 			informHooks(AgentActionEvent.SEND_MESSAGE, m);
 		}
 		return r;

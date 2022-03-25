@@ -40,6 +40,7 @@ package com.distrimind.madkit.kernel;
 import com.distrimind.madkit.action.KernelAction;
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.agr.LocalCommunity.Roles;
+import com.distrimind.madkit.exceptions.MadkitException;
 import com.distrimind.madkit.gui.GUIProvider;
 import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
@@ -206,7 +207,7 @@ public final class NetworkAgent extends AgentFakeThread {
 			if (ml != null) {
 				try {
 
-					ml.forgive();
+					ml.forgive(true);
 				} catch (Exception e) {
 					if (logger != null)
 						logger.severeLog("Unexpected exception", e);
@@ -332,7 +333,11 @@ public final class NetworkAgent extends AgentFakeThread {
 						if (ReturnCode.isSuccessOrIsTransferInProgress(rc)) {
 							messageLockers.put(m.getConversationID(), ml);
 						} else  {
-							ml.cancelLock();
+							try {
+								ml.unlock();
+							} catch (MadkitException e) {
+								getLogger().severeLog("Unexpected exception", e);
+							}
 						}
 					}
 					break;

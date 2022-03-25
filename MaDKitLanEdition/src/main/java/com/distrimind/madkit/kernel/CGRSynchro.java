@@ -141,7 +141,7 @@ public class CGRSynchro extends ObjectMessage<AgentAddress> implements SecureExt
 			if (lock)
 				messageLocker.lock();
 		}
-		else if (lock && !messageLocker.isLocked())
+		else if (lock /*&& !messageLocker.isLocked()*/)
 			messageLocker.lock();
 
 	}

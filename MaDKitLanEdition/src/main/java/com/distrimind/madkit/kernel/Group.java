@@ -409,7 +409,10 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	@SuppressWarnings("deprecation")
 	@Override
 	protected void finalize() {
-		m_group.decrementReferences();
+		if (m_group!=null) {
+			m_group.decrementReferences();
+			m_group = null;
+		}
 	}
 
 	@Override
@@ -1522,7 +1525,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
             return getGroup(_isDistributed, _theIdentifier, 0, _isReserved, forceReserved, _group);
 		}
 		@SuppressWarnings("UnusedReturnValue")
-		public static boolean falseConstantTimeAreEqual(String expected)
+		static boolean falseConstantTimeAreEqual(String expected)
 		{
 			//noinspection UnnecessaryLocalVariable
 			String supplied=expected;
@@ -1600,12 +1603,15 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 					falseConstantTimeAreEqual(g);
 				GroupTree gt = new GroupTree(g, root, this, _isDistributed, _theIdentifier,
                         (i == _group.length - 1) && _isReserved);
+				addSubGroup(gt);
 				GroupTree res;
-				if (i == _group.length - 1)
+				if (i == _group.length - 1) {
+					gt.incrementReferences();
 					res = gt;
+				}
 				else
 					res = gt.getGroup(_isDistributed, _theIdentifier, i + 1, _isReserved, forceReserved, _group);
-				addSubGroup(gt);
+
 				return res;
 			}
 		}
@@ -1614,27 +1620,27 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 			return parent;
 		}
 
-		public String getCommunity() {
+		String getCommunity() {
 			return community;
 		}
 
-		public String getGroupName() {
+		String getGroupName() {
 			return group;
 		}
 
-		public String getGroupPath() {
+		String getGroupPath() {
 			return path;
 		}
 
-		public boolean isDistributed() {
+		boolean isDistributed() {
 			return isDistributed;
 		}
 
-		public Gatekeeper getGateKeeper() {
+		Gatekeeper getGateKeeper() {
 			return identifier;
 		}
 
-		public GroupTree[] getSubGroups(KernelAddress ka) {
+		GroupTree[] getSubGroups(KernelAddress ka) {
 			synchronized (root) {
 				KernelReferences kr = kernelReferences.get(ka);
 				if (kr == null)
@@ -1644,7 +1650,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 			}
 		}
 
-		public GroupTree[] getSubGroups() {
+		GroupTree[] getSubGroups() {
 			synchronized (root) {
 				GroupTree[] res = m_global_sub_groups_duplicated;
 				if (res == null) {
@@ -1664,11 +1670,11 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 			}
 		}
 
-		public GroupTree[] getParentGroups() {
+		GroupTree[] getParentGroups() {
 			return m_parent_groups_duplicated.get();
 		}
 
-		public void incrementMadKitReferences(KernelAddress ka) {
+		void incrementMadKitReferences(KernelAddress ka) {
 			boolean activate = false;
 			synchronized (root) {
 				if (Group.m_first_kernel == null)
@@ -1736,7 +1742,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 		 * ); kr.m_madkit_references=0; m_kernel_references.remove(kr);
 		 * deactivateGroup(ka); }
 		 */
-		public void decrementMadKitReferences(KernelAddress ka) {
+		void decrementMadKitReferences(KernelAddress ka) {
 
 			boolean activate = false;
 			synchronized (root) {
@@ -1778,7 +1784,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 
 		}
 
-		public void setMadKitCreated(KernelAddress ka, boolean ok) {
+		void setMadKitCreated(KernelAddress ka, boolean ok) {
 			synchronized (root) {
 				if (ok) {
 					if (Group.m_first_kernel == null)
@@ -1832,7 +1838,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 		 * ); if (kr.m_madkit_references==0) { m_kernel_references.remove(kr);
 		 * deactivateGroup(ka); } }
 		 */
-		public boolean isMadKitCreated(KernelAddress ka) {
+		boolean isMadKitCreated(KernelAddress ka) {
 			synchronized (root) {
 				KernelReferences kr = kernelReferences.get(ka);
 
@@ -1847,7 +1853,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 			}
 		}
 
-		public boolean isAnyRoleRequested(KernelAddress ka) {
+		boolean isAnyRoleRequested(KernelAddress ka) {
 			synchronized (root) {
 				KernelReferences kr = kernelReferences.get(ka);
 
@@ -1858,7 +1864,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 			}
 		}
 
-		public boolean isAnyMadkitCreatedRecursive(KernelAddress ka) {
+		boolean isAnyMadkitCreatedRecursive(KernelAddress ka) {
 			synchronized (root) {
 				KernelReferences kr = kernelReferences.get(ka);
 
@@ -1871,7 +1877,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 			}
 		}
 
-		public boolean isAnyRoleRequested() {
+		boolean isAnyRoleRequested() {
 			synchronized (root) {
 				for (KernelReferences kr : kernelReferences.values()) {
 					if (kr.m_madkit_references > 1)
@@ -1924,7 +1930,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 			synchronized (root) {
 				List<GroupTree> subGroups = this.subGroups.computeIfAbsent(_g.group.hashCode(), k -> new ArrayList<>());
 				subGroups.add(_g);
-				_g.m_parent_groups.clear();
+
 				if (parent != null) {
 					_g.m_parent_groups.add(this);
 				}
@@ -1967,10 +1973,10 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 		 */
 
 		private void removeSubGroup(GroupTree _g) {
-			int hashCode=_g.hashCode();
+			int hashCode=_g.group.hashCode();
 			List<GroupTree> subGroups=this.subGroups.get(hashCode);
 			if (subGroups==null || !subGroups.remove(_g))
-				throw new IllegalAccessError("The previous test (after this line code) should return true");
+				throw new IllegalAccessError("The sub group must be present : "+subGroups);
 			if (subGroups.size()==0)
 				this.subGroups.remove(hashCode);
 			/*
@@ -1980,11 +1986,11 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 			 */
 			synchronized (root) {
 				if (parent != null) {
-					if (references == 0 && subGroups.size() == 0)
+					if (references == 0 && this.subGroups.size() == 0)
 						parent.removeSubGroup(this);
 				} else {
 					synchronized (m_groups_root) {
-						if (subGroups.size() == 0)
+						if (this.subGroups.size() == 0)
 							m_groups_root.remove(this.getCommunity());
 					}
 				}
@@ -1992,31 +1998,29 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 
 		}
 
-		public void incrementReferences() {
+		void incrementReferences() {
 			synchronized (root) {
 				++references;
 			}
 		}
 
-		public int getNbReferences() {
+		int getNbReferences() {
 			synchronized (root) {
 				return references;
 			}
 		}
 
-		public void decrementReferences() {
+		void decrementReferences() {
 			synchronized (root) {
-				if (parent != null) {
-					--references;
-					if (references == 0) {
-						if (kernelReferences.size() > 0)
-							throw new IllegalAccessError(
-									"The program shouldn't arrive on this line code. This is a MaKitGroupExtension bug !");
-						if (subGroups.size() == 0)
-							parent.removeSubGroup(this);
+				--references;
+				if (references == 0) {
+					if (kernelReferences.size() > 0)
+						throw new IllegalAccessError(
+								"The program shouldn't arrive on this line code (" + kernelReferences.size() + ", " + this.community+";"+this.path + "). This is a MaKitGroupExtension bug !");
+					if (parent != null && subGroups.size() == 0) {
+						parent.removeSubGroup(this);
 					}
-				} else
-					--references;
+				}
 			}
 		}
 
@@ -2025,7 +2029,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 		Group[] getRepresentedGroups(KernelAddress ka) {
 			Group g = root_group.get();
 			if (g == null) {
-				root_group.set(g = new Group(this, true, false));
+				root_group.set(g = new Group(this, true, true));
 			}
 			return g.getRepresentedGroups(ka);
 		}
@@ -2033,7 +2037,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 		Group[] getRepresentedGroups() {
 			Group g = root_group.get();
 			if (g == null) {
-				root_group.set(g = new Group(this, true, false));
+				root_group.set(g = new Group(this, true, true));
 			}
 			return g.getRepresentedGroups();
 		}

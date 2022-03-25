@@ -1,32 +1,41 @@
 package com.distrimind.madkit.mkle_android_tests;
 
 
-import android.util.Log;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.distrimind.madkit.kernel.network.NetworkEventListener;
+import com.distrimind.util.harddrive.AndroidHardDriveDetect;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
-import java.util.Objects;
-
+@RunWith(Parameterized.class)
 public class MultipleConnectionsTest {
-
-    @Test
-    public void testAll()
+    static {
+        AndroidHardDriveDetect.context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+    }
+    @Parameterized.Parameters
+    public static Object[][] data(){
+        return com.distrimind.madkit.kernel.network.MultipleConnectionsTest.data();
+    }
+    private com.distrimind.madkit.kernel.network.MultipleConnectionsTest t;
+    public MultipleConnectionsTest(Integer localDataAmountAcc, Integer globalDataAmountAcc,
+                                   final NetworkEventListener eventListener1, final NetworkEventListener eventListener2,
+                                   final NetworkEventListener eventListener3, final NetworkEventListener eventListener4,
+                                   final NetworkEventListener eventListener5)
     {
-        int i=1;
-        for (Object[] params : Objects.requireNonNull(com.distrimind.madkit.kernel.network.MultipleConnectionsTest.data())) {
-            com.distrimind.madkit.kernel.network.MultipleConnectionsTest t=new com.distrimind.madkit.kernel.network.MultipleConnectionsTest(
-                    (Integer)params[0],
-                    (Integer) params[1],
-                    (NetworkEventListener) params[2],
-                    (NetworkEventListener) params[3],
-                    (NetworkEventListener) params[4],
-                    (NetworkEventListener) params[5],
-                    (NetworkEventListener) params[6]);
-            Log.i("mktests", "Launch test N°"+i);
-            t.multipleAsynchronousConnectionTest();
-            Log.i("mktests", "Test N°" + i + " OK");
-        }
+        t=new com.distrimind.madkit.kernel.network.MultipleConnectionsTest(localDataAmountAcc,globalDataAmountAcc,
+                eventListener1,
+                eventListener2,
+                eventListener3,
+                eventListener4,
+                eventListener5);
+    }
+    @Test
+    public void multipleAsynchronousConnectionTest()
+    {
+        t.multipleAsynchronousConnectionTest();
+        t=null;
     }
 }

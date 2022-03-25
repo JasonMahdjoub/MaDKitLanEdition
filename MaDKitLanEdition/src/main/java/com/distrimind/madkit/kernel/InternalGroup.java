@@ -430,12 +430,15 @@ final class InternalGroup extends ConcurrentHashMap<String, InternalRole> {
 	public String toString() {
 		return I18nUtilities.getCGRString(group) + values();
 	}
-
 	void destroy() {
+		destroy(true);
+	}
+	void destroy(boolean remove) {
 		for (InternalRole r : values()) {
 			r.destroy();
 		}
-		communityObject.removeGroup(group);
+		if (remove)
+			communityObject.removeGroup(group);
 	}
 
 	Object weakSetBoard(AbstractAgent requester, String name, Object data) throws CGRNotAvailable {

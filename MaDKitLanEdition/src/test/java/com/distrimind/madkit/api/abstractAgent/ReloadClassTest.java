@@ -59,7 +59,7 @@ public class ReloadClassTest extends TestNGMadkit {
 			protected void activate() {
 				try {
 					try {
-						MadkitClassLoader.reloadClass(null);
+						MadkitClassLoader.getLoader().reloadClass(null);
 						noExceptionFailure();
 					} catch (ClassNotFoundException e) {
 						Assert.fail("wrong exception");
@@ -77,13 +77,13 @@ public class ReloadClassTest extends TestNGMadkit {
 			@Override
 			protected void activate() {
 				try {
-					MadkitClassLoader.reloadClass(aa());
+					MadkitClassLoader.getLoader().reloadClass(aa());
 					noExceptionFailure();
 				} catch (ClassNotFoundException e) {
 					e.printStackTrace();
 				}
 				try {
-					MadkitClassLoader.reloadClass(aa() + "." + aa());
+					MadkitClassLoader.getLoader().reloadClass(aa() + "." + aa());
 					noExceptionFailure();
 				} catch (ClassNotFoundException e) {
 					e.printStackTrace();
@@ -98,7 +98,7 @@ public class ReloadClassTest extends TestNGMadkit {
 			@Override
 			protected void activate() {
 				try {
-					MadkitClassLoader.reloadClass(getClass().getName());
+					MadkitClassLoader.getLoader().reloadClass(getClass().getName());
 				} catch (ClassNotFoundException e) {
 					Assert.fail("exception thrown");
 					e.printStackTrace();

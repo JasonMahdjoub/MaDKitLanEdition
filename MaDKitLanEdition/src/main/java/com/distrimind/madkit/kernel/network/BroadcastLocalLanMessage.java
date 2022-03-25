@@ -137,9 +137,10 @@ public class BroadcastLocalLanMessage extends LocalLanMessage {
 
 	@Override
 	public BroadcastLocalLanMessage clone() {
+		MessageLocker ml=this.getMessageLocker();
 		BroadcastLocalLanMessage b = new BroadcastLocalLanMessage(this, this.getOriginalMessage().clone(),
 				originalMessage == null ? null : originalMessage.clone(), this.abstract_group, this.role,
-				agentAddressesSender, this.getMessageLocker());
+				agentAddressesSender, ml!=null?ml.clone():null);
 		b.readyForInjection = readyForInjection;
 		return b;
 	}

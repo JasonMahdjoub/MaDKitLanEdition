@@ -103,7 +103,7 @@ public class ReloadTest extends TestNGMadkit {
 			protected void activate() {
 				NormalAA a = new NormalAA();
 				try {
-					MadkitClassLoader.reloadClass(a.getClass().getName());
+					MadkitClassLoader.getLoader().reloadClass(a.getClass().getName());
 					@SuppressWarnings("unchecked")
 					Class<AbstractAgent> c = (Class<AbstractAgent>) MadkitClassLoader.getLoader()
 							.loadClass(a.getClass().getName());

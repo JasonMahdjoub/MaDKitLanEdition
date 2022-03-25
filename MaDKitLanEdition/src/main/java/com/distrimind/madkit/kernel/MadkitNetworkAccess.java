@@ -46,7 +46,9 @@ import com.distrimind.madkit.kernel.network.*;
 import com.distrimind.madkit.util.NetworkMessage;
 import com.distrimind.util.io.SecureExternalizableWithoutInnerSizeControl;
 
-import static com.distrimind.util.ReflectionTools.*;
+import static com.distrimind.util.ReflectionTools.invoke;
+import static com.distrimind.util.ReflectionTools.getMethod;
+import static com.distrimind.util.ReflectionTools.getConstructor;
 
 /**
  * Gives access to Madkit Network methods
@@ -212,7 +214,7 @@ class MadkitNetworkAccess {
 	}
 
 
-	public static Class<?> loadClass(String class_name) {
+	static Class<?> loadClass(String class_name) {
 
 		try {
 			return MadkitClassLoader.getLoader().loadClass(class_name);

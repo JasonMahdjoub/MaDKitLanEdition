@@ -1784,7 +1784,6 @@ class NONAndroidUpnpServiceConfiguration extends com.distrimind.upnp_igd.Default
 }
 
 class AndroidUpnpServiceConfiguration extends com.distrimind.upnp_igd.android.AndroidUpnpServiceConfiguration {
-	private NetworkAddressFactory networkAddressFactory=null;
 
 	public AndroidUpnpServiceConfiguration(int streamListenPort, int multicastPort) {
 		super(streamListenPort, multicastPort);

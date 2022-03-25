@@ -37,23 +37,12 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import org.testng.annotations.Test;
-import org.testng.AssertJUnit;
-
-import java.lang.reflect.InvocationTargetException;
-import java.net.*;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-
-import com.distrimind.upnp_igd.support.model.PortMapping.Protocol;
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.exceptions.SelfKillException;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.AgentFakeThread;
-import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.Message;
+import com.distrimind.madkit.kernel.TestNGMadkit;
 import com.distrimind.madkit.kernel.network.UpnpIGDAgent.AskForConnectionStatusMessage;
 import com.distrimind.madkit.kernel.network.UpnpIGDAgent.AskForExternalIPMessage;
 import com.distrimind.madkit.kernel.network.UpnpIGDAgent.AskForPortMappingAddMessage;
@@ -64,6 +53,18 @@ import com.distrimind.madkit.kernel.network.UpnpIGDAgent.ExternalIPMessage;
 import com.distrimind.madkit.kernel.network.UpnpIGDAgent.IGDRouterFoundMessage;
 import com.distrimind.madkit.kernel.network.UpnpIGDAgent.MappingReturnCode;
 import com.distrimind.madkit.kernel.network.UpnpIGDAgent.PortMappingAnswerMessage;
+import com.distrimind.upnp_igd.support.model.PortMapping.Protocol;
+
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 
 public class UPNPIDGTest extends TestNGMadkit {
 	static final int internalPort = 32110;
@@ -71,7 +72,7 @@ public class UPNPIDGTest extends TestNGMadkit {
 	static final int portEnd = 55002;
 
 	@Test
-	public void testUPNPIGDAgent() throws ClassNotFoundException, InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
+	public void testUPNPIGDAgent() {
 
 		launchTest(new AbstractAgent() {
 			final AtomicBoolean routerAlreadyFound = new AtomicBoolean(false);

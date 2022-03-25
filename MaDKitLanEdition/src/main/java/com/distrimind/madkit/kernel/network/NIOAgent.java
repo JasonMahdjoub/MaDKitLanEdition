@@ -1469,7 +1469,8 @@ final class NIOAgent extends Agent {
 		}
 
 		public void sendPingMessage() {
-			NIOAgent.this.sendMessage(agentAddress, new SendPingMessage());
+			if (agentAddress!=null)
+				NIOAgent.this.sendMessage(agentAddress, new SendPingMessage());
 			time_sending_ping_messageNano = System.nanoTime();
 			waitingForPongMessage = true;
 		}
@@ -2184,8 +2185,8 @@ final class NIOAgent extends Agent {
 		public void finishCloseConnection()
 		{
 
-
-			personal_sockets.remove(this.agentAddress.getAgentNetworkID());
+			if (agentAddress!=null)
+				personal_sockets.remove(this.agentAddress.getAgentNetworkID());
 			personal_sockets_list.remove(this);
 
 
@@ -2255,7 +2256,7 @@ final class NIOAgent extends Agent {
 					logger.log(Level.SEVERE, "Unexpected exception", e);
 			}
 
-			if (ReturnCode.isSuccessOrIsTransferInProgress(NIOAgent.this.sendMessageWithRole(agentAddress, new ConnectionClosed(this.agentAddress.getAgentNetworkID(),
+			if (agentAddress!=null && ReturnCode.isSuccessOrIsTransferInProgress(NIOAgent.this.sendMessageWithRole(agentAddress, new ConnectionClosed(this.agentAddress.getAgentNetworkID(),
 					cs, new CircularArrayList<>(shortDataToSend), bigDataToSend, new CircularArrayList<>(dataToTransfer)), LocalCommunity.Roles.NIO_ROLE)))
 			{
 				try {
@@ -2308,10 +2309,12 @@ final class NIOAgent extends Agent {
 				AgentAddress indirectAgentAddress) {
 
 			this.dataToTransfer.removeIf(ad -> ad.getIDTransfer().equals(transferID));
-			NIOAgent.this.sendMessageWithRole(
-					indirectAgentAddress, new ConnectionClosed(this.agentAddress.getAgentNetworkID(), cs,
-							new ArrayList<>(0), new ArrayList<>(0), dataToTransfer),
-					LocalCommunity.Roles.NIO_ROLE);
+			if (agentAddress!=null) {
+				NIOAgent.this.sendMessageWithRole(
+						indirectAgentAddress, new ConnectionClosed(this.agentAddress.getAgentNetworkID(), cs,
+								new ArrayList<>(0), new ArrayList<>(0), dataToTransfer),
+						LocalCommunity.Roles.NIO_ROLE);
+			}
 		}
 
 		public boolean isConcernedBy(Server s) throws IOException {

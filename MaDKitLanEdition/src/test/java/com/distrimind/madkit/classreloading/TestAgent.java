@@ -79,7 +79,7 @@ public class TestAgent extends Agent {
 			pause(8000);
 			try {
 				System.err.println(System.getProperty("java.class.path"));
-				MadkitClassLoader.reloadClass("madkit.classreloading.anotherPackage.Fake");
+				MadkitClassLoader.getLoader().reloadClass("madkit.classreloading.anotherPackage.Fake");
 				logger.info("after reload : " + MadkitClassLoader.getLoader()
 						.loadClass("madkit.classreloading.anotherPackage.Fake").getDeclaredConstructor().newInstance());
 			} catch (ClassNotFoundException | SecurityException | NoSuchMethodException | InvocationTargetException | IllegalArgumentException | IllegalAccessException | InstantiationException e) {
@@ -88,7 +88,7 @@ public class TestAgent extends Agent {
             logger.info("\nfake3 is " + (new Fake()));
 			pause(8000);
 			try {
-				MadkitClassLoader.reloadClass("madkit.classreloading.anotherPackage.Fake");
+				MadkitClassLoader.getLoader().reloadClass("madkit.classreloading.anotherPackage.Fake");
 			} catch (ClassNotFoundException e) {
 				e.printStackTrace();
 			}

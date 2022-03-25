@@ -123,11 +123,24 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 				}
 			}
 
-			if (remove && remove(group) != null) {
-				group.setMadKitCreated(this.myKernel.getKernelAddress(), false);
-				checkEmptyness();
+			if (remove) {
+				remove(group);
 			}
 		}
+	}
+	@Override
+	public InternalGroup remove(Object group) {
+		return remove((Group)group);
+	}
+
+	public InternalGroup remove(Group group) {
+		InternalGroup ig=super.remove(group);
+		if (ig!=null)
+		{
+			group.setMadKitCreated(this.myKernel.getKernelAddress(), false);
+			checkEmptyness();
+		}
+		return ig;
 	}
 
 	private void checkEmptyness() {
@@ -141,6 +154,7 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 
 	ArrayList<Group> removeAgentFromAllGroups(final AbstractAgent theAgent, boolean manually_requested) {
 		final ArrayList<Group> groups = new ArrayList<>();
+		boolean checkEmpty=false;
 		for (final Iterator<Map.Entry<Group, InternalGroup>> e = this.entrySet().iterator(); e.hasNext();) {
 			final Map.Entry<Group, InternalGroup> entry = e.next();
 			final InternalGroup g = entry.getValue();
@@ -148,28 +162,41 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 				if (g.isDistributed()) {
 					groups.add(entry.getKey());
 				}
-				if (g.isEmpty())
+				if (g.isEmpty()) {
+					g.getGroup().setMadKitCreated(this.myKernel.getKernelAddress(), false);
+					checkEmpty=true;
 					e.remove();
+				}
 			}
 		}
+		if (checkEmpty)
+			checkEmptyness();
 		return groups;
 
 	}
 
 	void removeDistantKernelAddressForAllGroups(KernelAddress ka)
 	{
+		boolean checkEmpty=false;
 		for (final Iterator<Map.Entry<Group, InternalGroup>> e = this.entrySet().iterator(); e.hasNext();) {
 			final Map.Entry<Group, InternalGroup> entry = e.next();
 			final InternalGroup g = entry.getValue();
 			g.removeDistantKernelAddressForAllRoles(ka);
-			if (g.isEmpty())
+			if (g.isEmpty()) {
+				g.getGroup().setMadKitCreated(this.myKernel.getKernelAddress(), false);
 				e.remove();
+				checkEmpty=true;
+			}
+
 		}
+		if (checkEmpty)
+			checkEmptyness();
 
 	}
 
 	void updateAcceptedDistantGroupsGivenToDistantPeer(KernelAddress ka, ListGroupsRoles generalAcceptedGroup)
 	{
+		boolean checkEmpty=false;
 		for (final Iterator<Map.Entry<Group, InternalGroup>> e = this.entrySet().iterator(); e.hasNext();) {
 			final Map.Entry<Group, InternalGroup> entry = e.next();
 			final InternalGroup g = entry.getValue();
@@ -178,9 +205,14 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 				g.removeDistantKernelAddressForAllRoles(ka);
 			else
 				g.removeDistantKernelAddressForAllRolesThatDoesNotAcceptDistantRoles(ka, generalAcceptedGroup);
-			if (g.isEmpty())
+			if (g.isEmpty()) {
+				g.getGroup().setMadKitCreated(this.myKernel.getKernelAddress(), false);
 				e.remove();
+				checkEmpty=true;
+			}
 		}
+		if (checkEmpty)
+			checkEmptyness();
 	}
 
 
@@ -270,7 +302,12 @@ final class Organization extends ConcurrentHashMap<Group, InternalGroup> {
 		for (final InternalGroup g : values()) {
 			g.destroy();
 		}
+		assert size()==0;
 		myKernel.removeCommunity(communityName);
 	}
 
+	@Override
+	public void clear() {
+		destroy();
+	}
 }

@@ -43,6 +43,8 @@ import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.madkit.kernel.network.RealTimeTransferStat;
 import com.distrimind.madkit.message.hook.HookMessage.AgentActionEvent;
 import com.distrimind.madkit.message.hook.OrganizationEvent;
+import com.distrimind.util.OS;
+import com.distrimind.util.OSVersion;
 import com.distrimind.util.crypto.MessageDigestType;
 import com.distrimind.util.io.*;
 import org.testng.AssertJUnit;
@@ -134,7 +136,7 @@ public class AgentBigTransfer extends AgentFakeThread {
 		this.launchOtherLocalAgent = launchOtherLocalAgent && isLocal;
 		this.thisRole = bigTransferRole + thisPeerNumber;
 		this.thisPeerNumber = thisPeerNumber;
-		this.inputStreamLengh = sendShortData ? 200 : 50000000;
+		this.inputStreamLengh = sendShortData ? 200 : OSVersion.getCurrentOSVersion().getOS()== OS.ANDROID?4000000:50000000;
 		this.otherSendData = otherSendData || !sendData;
 		this.otherNumber = isLocal ? 1 : otherNumber;
 		this.otherSendDataNumber = otherSendData ? this.otherNumber : 0;

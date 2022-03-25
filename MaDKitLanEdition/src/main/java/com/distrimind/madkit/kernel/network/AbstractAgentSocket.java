@@ -556,6 +556,8 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 	}
 
 	private void closeConnectionProtocols(ConnectionClosedReason reason) throws ConnectionException {
+		if (connection_protocol==null)
+			return;
 		if (logger != null && logger.isLoggable(Level.FINEST))
 			logger.finest("Closing all protocols (distant_inet_address=" + distant_inet_address
 					+ ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress + ", reason=" + reason

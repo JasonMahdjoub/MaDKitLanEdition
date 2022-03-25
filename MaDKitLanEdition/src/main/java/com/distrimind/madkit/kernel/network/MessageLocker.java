@@ -92,10 +92,12 @@ public final class MessageLocker extends LockerCondition {
 		}
 	}
 
-	public void forgive()
+	public void forgive(boolean decrementLock)
 	{
 		synchronized (getLocker()) {
 			forgive=true;
+			if (decrementLock)
+				--lock_number;
 			notifyLocker();
 		}
 	}
@@ -120,8 +122,9 @@ public final class MessageLocker extends LockerCondition {
 			else
 				returns_code.putResult(ka, ReturnCode.TRANSFER_FAILED, report);
 
-			if (lock_number < 0 && !forgive)
-				throw new MadkitException("unexpected exception !, firstLockDone="+firstLockDone);
+			if (lock_number < 0 && !forgive) {
+				throw new MadkitException("unexpected exception !, firstLockDone=" + firstLockDone+", report="+report);
+			}
 			if (lock_number <= 0) {
 				notifyLocker();
 			}

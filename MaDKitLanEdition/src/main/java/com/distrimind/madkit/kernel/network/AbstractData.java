@@ -96,11 +96,13 @@ abstract class AbstractData {
 	@SuppressWarnings("deprecation")
 	@Override
 	protected void finalize() {
-		try {
-			if (!isUnlocked())
-				unlockMessage();
-		} catch (Exception ignored) {
-			
+		synchronized (this) {
+			try {
+				if (!isUnlocked())
+					unlockMessage();
+			} catch (Exception ignored) {
+
+			}
 		}
 	}
 

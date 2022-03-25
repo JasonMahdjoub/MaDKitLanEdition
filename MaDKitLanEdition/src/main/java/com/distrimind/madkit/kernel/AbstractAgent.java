@@ -3582,7 +3582,7 @@ public class AbstractAgent implements Comparable<AbstractAgent> {
 	 */
 	public void reload() {
 		try {
-			MadkitClassLoader.reloadClass(getClass().getName());
+			MadkitClassLoader.getLoader().reloadClass(getClass().getName());
 		} catch (ClassNotFoundException e) {
 			// not possible but who knows...
 			getLogger().severeLog("", e);
