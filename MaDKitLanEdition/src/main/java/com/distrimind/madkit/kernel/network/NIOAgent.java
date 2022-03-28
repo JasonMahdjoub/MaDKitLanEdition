@@ -1081,7 +1081,7 @@ final class NIOAgent extends Agent {
 		}
 
 		@Override
-		void unlockMessage() {
+		void unlockMessage(boolean cancel) {
 			unlocked = true;
 		}
 

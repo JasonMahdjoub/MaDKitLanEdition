@@ -67,7 +67,10 @@ abstract class AbstractData {
 	 * void setPriority(boolean priority) { this.priority=priority; }
 	 */
 
-	abstract void unlockMessage() throws MadkitException;
+	public void unlockMessage() throws MadkitException {
+		unlockMessage(false);
+	}
+	abstract void unlockMessage(boolean cancel) throws MadkitException;
 
 	abstract boolean isUnlocked();
 
@@ -99,7 +102,7 @@ abstract class AbstractData {
 		synchronized (this) {
 			try {
 				if (!isUnlocked())
-					unlockMessage();
+					unlockMessage(false);
 			} catch (Exception ignored) {
 
 			}

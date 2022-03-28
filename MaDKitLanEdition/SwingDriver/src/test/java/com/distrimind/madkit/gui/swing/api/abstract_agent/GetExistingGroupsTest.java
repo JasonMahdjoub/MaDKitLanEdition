@@ -35,19 +35,19 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-package com.distrimind.madkit.api.abstractAgent;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
-
-import com.distrimind.madkit.kernel.TestNGMadkit;
-import org.testng.annotations.Test;
-import org.testng.AssertJUnit;
-import java.util.Enumeration;
+package com.distrimind.madkit.gui.swing.api.abstract_agent;
 
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.kernel.AbstractAgent;
 import com.distrimind.madkit.kernel.Group;
+import com.distrimind.madkit.kernel.TestNGMadkit;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
+import java.util.Enumeration;
+
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNull;
 
 /**
  * @author Fabien Michel
@@ -66,8 +66,8 @@ public class GetExistingGroupsTest extends TestNGMadkit {
 			@Override
 			protected void activate() {
 				System.err.println(getExistingGroups(LocalCommunity.NAME));
-				assertEquals(3, getSize(getExistingGroups(LocalCommunity.NAME)));
-				//AssertJUnit.assertTrue(contains(getExistingGroups(LocalCommunity.NAME), LocalCommunity.Groups.GUI));
+				assertEquals(4, getSize(getExistingGroups(LocalCommunity.NAME)));
+				AssertJUnit.assertTrue(contains(getExistingGroups(LocalCommunity.NAME), LocalCommunity.Groups.GUI));
 			}
 		});
 	}

@@ -136,12 +136,11 @@ public class CGRSynchro extends ObjectMessage<AgentAddress> implements SecureExt
 	@SuppressWarnings("unused")
 	public void initMessageLocker(boolean lock)
 	{
+		/*&& !messageLocker.isLocked()*/
 		if (messageLocker==null) {
 			messageLocker = new MessageLocker(this);
-			if (lock)
-				messageLocker.lock();
 		}
-		else if (lock /*&& !messageLocker.isLocked()*/)
+		if (lock)
 			messageLocker.lock();
 
 	}

@@ -144,7 +144,9 @@ public class Scheduler extends Agent {
 		GUIProvider.setSchedulerDelay(this, delay);
 	}
 
-	public void setDelayWithoutInteractionWithGUI(final int delay) {
+	public void setDelayWithoutInteractionWithGUI(int delay) {
+		if (delay<0)
+			delay=0;
 		this.delay=delay;
 	}
 

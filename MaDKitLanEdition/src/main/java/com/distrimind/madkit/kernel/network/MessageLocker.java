@@ -112,11 +112,14 @@ public final class MessageLocker extends LockerCondition {
 				notifyLocker();
 		}
 	}
-
 	void unlock(KernelAddress ka, DataTransferResult report) throws MadkitException {
+		this.unlock(ka, report, false);
+	}
+	void unlock(KernelAddress ka, DataTransferResult report, boolean forgive) throws MadkitException {
 		synchronized (getLocker()) {
 			--lock_number;
-
+			if (forgive)
+				this.forgive=true;
 			if (report != null && report.hasFinishedTransfer())
 				returns_code.putResult(ka, ReturnCode.SUCCESS, report);
 			else
@@ -125,7 +128,7 @@ public final class MessageLocker extends LockerCondition {
 			if (lock_number < 0 && !forgive) {
 				throw new MadkitException("unexpected exception !, firstLockDone=" + firstLockDone+", report="+report);
 			}
-			if (lock_number <= 0) {
+			if (lock_number <= 0 || forgive) {
 				notifyLocker();
 			}
 		}

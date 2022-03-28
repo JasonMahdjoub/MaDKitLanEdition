@@ -2119,9 +2119,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		void cancel() throws IOException, MadkitException {
 			AbstractAgentSocket as=agentSocket;
 			super.cancel();
-
-
-			unlockMessage();
+			unlockMessage(true);
 			if (as!=null) {
 				//noinspection SynchronizationOnLocalVariableOrMethodParameter
 				synchronized (as) {
@@ -2315,7 +2313,7 @@ class DistantKernelAgent extends AgentFakeThread {
 
 
 		@Override
-		public void unlockMessage() throws MadkitException {
+		public void unlockMessage(boolean cancel) throws MadkitException {
 			synchronized (this) {
 				unlocked = true;
 			}
@@ -2387,7 +2385,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 
 		@Override
-		public void unlockMessage() throws MadkitException {
+		public void unlockMessage(boolean cancel) throws MadkitException {
 			synchronized (this) {
 				try {
 					if (messageLocker != null && !isUnlocked()) {
@@ -2397,7 +2395,7 @@ class DistantKernelAgent extends AgentFakeThread {
 							sendLength -= currentByteBuffer.remaining();
 
 						messageLocker.unlock(distant_kernel_address, new DataTransferResult(
-								packet.getInputStream().length(), packet.getReadDataLength(), sendLength, this.original_lan_message instanceof BroadcastLanMessage));
+								packet.getInputStream().length(), packet.getReadDataLength(), sendLength, this.original_lan_message instanceof BroadcastLanMessage), cancel);
 						
 					}
 
@@ -2405,7 +2403,7 @@ class DistantKernelAgent extends AgentFakeThread {
 					throw new MadkitException(e);
 				}
 				finally {
-					super.unlockMessage();
+					super.unlockMessage(cancel);
 				}
 			}
 		}

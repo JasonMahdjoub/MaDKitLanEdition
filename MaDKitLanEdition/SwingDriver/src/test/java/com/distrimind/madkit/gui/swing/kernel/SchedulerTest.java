@@ -35,8 +35,9 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-package com.distrimind.madkit.kernel;
+package com.distrimind.madkit.gui.swing.kernel;
 
+import com.distrimind.madkit.kernel.Scheduler;
 import org.testng.annotations.Test;
 
 import static org.testng.AssertJUnit.assertEquals;

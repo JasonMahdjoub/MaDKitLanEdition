@@ -2996,7 +2996,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		}
 
 		@Override
-		public void unlockMessage() {
+		public void unlockMessage(boolean cancel) {
 		}
 
 		@Override
@@ -3057,7 +3057,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		}
 
 		@Override
-		public void unlockMessage() {
+		public void unlockMessage(boolean cancel) {
 			if (is_locked) {
 				is_locked = false;
 				dataToTransferInQueue.addAndGet(-getBlock().getBlockSize());

@@ -3486,7 +3486,6 @@ class MadkitKernel extends Agent {
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}
-
 		Group.madkitKernelKilled(kernelAddress);
 		if (getMadkitConfig().madkitLogLevel != Level.OFF) {
 			System.out.println("\n-----------------------------------------------------------------------------"
