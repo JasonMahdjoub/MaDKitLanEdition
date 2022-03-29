@@ -49,9 +49,6 @@ import java.util.logging.Level;
 
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.util.Reference;
-import com.distrimind.upnp_igd.support.model.Connection.Status;
-import com.distrimind.upnp_igd.support.model.Connection.StatusInfo;
-import com.distrimind.upnp_igd.support.model.PortMapping.Protocol;
 
 import com.distrimind.madkit.agr.LocalCommunity;
 import com.distrimind.madkit.kernel.network.UpnpIGDAgent.AskForRouterDetectionInformation;
@@ -429,7 +426,7 @@ class LocalNetworkAgent extends AgentFakeThread {
 							network_interface_ipv4.getAddress(),
 							getMadkitConfig().networkProperties.externalRouterPortsToMap,
 							getMadkitConfig().networkProperties.portsToBindForAutomaticLocalConnections, "",
-							Protocol.TCP);
+							UpnpIGDAgent.Protocol.TCP);
 					this.sendMessageWithRole(LocalCommunity.Groups.NETWORK,
 							LocalCommunity.Roles.LOCAL_NETWORK_EXPLORER_ROLE, a,
 							LocalCommunity.Roles.LOCAL_NETWORK_ROLE);
@@ -658,7 +655,7 @@ class LocalNetworkAgent extends AgentFakeThread {
 				return false;
 			} else if (upnpIGDEnabled) {
 				for (Router r : routers.values()) {
-					if (r.getStatus().equals(Status.Connected)) {
+					if (r.getStatus().equals(UpnpIGDAgent.Status.Connected)) {
 						return true;
 					}
 				}
@@ -908,7 +905,7 @@ class LocalNetworkAgent extends AgentFakeThread {
 
 	class Router {
 		final InetAddress address;
-		private Status status = null;
+		private UpnpIGDAgent.Status status = null;
 		private boolean statusChanged = false;
 		private InetAddress external_ip = null;
 		private boolean externalIPChanged = false;
@@ -918,7 +915,7 @@ class LocalNetworkAgent extends AgentFakeThread {
 			address = _address;
 		}
 
-		protected void changeStatus(StatusInfo status_info) {
+		protected void changeStatus(UpnpIGDAgent.StatusInfo status_info) {
 			if (status == null || !status.equals(status_info.getStatus())) {
 				InetSocketAddress old_isa = getInetSocketAddressForDirectConnection();
 
@@ -934,7 +931,7 @@ class LocalNetworkAgent extends AgentFakeThread {
 		}
 
 		InetSocketAddress getInetSocketAddressForDirectConnection() {
-			if (external_ip != null && status!=null && status.equals(Status.Connected)) {
+			if (external_ip != null && status!=null && status.equals(UpnpIGDAgent.Status.Connected)) {
 				if (external_ip instanceof Inet6Address)
 					return new InetSocketAddress(external_ip,
 							getMadkitConfig().networkProperties.portsToBindForAutomaticLocalConnections);
@@ -968,7 +965,7 @@ class LocalNetworkAgent extends AgentFakeThread {
 			return r;
 		}
 
-		Status getStatus() {
+		UpnpIGDAgent.Status getStatus() {
 			return status;
 		}
 

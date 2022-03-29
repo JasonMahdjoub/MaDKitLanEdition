@@ -71,10 +71,8 @@ import com.distrimind.upnp_igd.support.igd.callback.GetExternalIP;
 import com.distrimind.upnp_igd.support.igd.callback.GetStatusInfo;
 import com.distrimind.upnp_igd.support.igd.callback.PortMappingAdd;
 import com.distrimind.upnp_igd.support.igd.callback.PortMappingDelete;
-import com.distrimind.upnp_igd.support.model.Connection.Status;
-import com.distrimind.upnp_igd.support.model.Connection.StatusInfo;
+import com.distrimind.upnp_igd.support.model.Connection;
 import com.distrimind.upnp_igd.support.model.PortMapping;
-import com.distrimind.upnp_igd.support.model.PortMapping.Protocol;
 import com.distrimind.upnp_igd.transport.RouterException;
 import com.distrimind.upnp_igd.transport.spi.*;
 import com.distrimind.util.OS;
@@ -436,12 +434,13 @@ class UpnpIGDAgent extends AgentFakeThread {
 								}
 
 								@Override
-								protected void success(StatusInfo _statusInfo) {
+								protected void success(Connection.StatusInfo _statusInfo) {
 									StatusInfo old = status.get();
-									if (old == null || !old.equals(_statusInfo)) {
+									if (old == null || !StatusInfo.equals(old, _statusInfo)) {
+										status.set(new StatusInfo(_statusInfo));
 										ConnexionStatusMessage answer = new ConnexionStatusMessage(internal_address,
-												_statusInfo, old);
-										status.set(_statusInfo);
+												status.get(), old);
+
 										synchronized (asks_for_status) {
 											asks_for_status.removeIf(m1 -> !UpnpIGDAgent.this.sendReply(m1, answer.clone())
 													.equals(ReturnCode.SUCCESS));
@@ -471,8 +470,8 @@ class UpnpIGDAgent extends AgentFakeThread {
 					}
 
 					@Override
-					protected void success(StatusInfo _statusInfo) {
-						UpnpIGDAgent.this.sendReply(m, new ConnexionStatusMessage(internal_address, _statusInfo, null));
+					protected void success(Connection.StatusInfo _statusInfo) {
+						UpnpIGDAgent.this.sendReply(m, new ConnexionStatusMessage(internal_address, new StatusInfo(_statusInfo), null));
 					}
 				});
 			}
@@ -621,7 +620,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 				pm.setEnabled(true);
 				pm.setExternalPort(new UnsignedIntegerTwoBytes(m.getExternalPortsRange()[index.getAndIncrement()]));
 				pm.setInternalPort(new UnsignedIntegerTwoBytes(m.getInternalPort()));
-				pm.setProtocol(m.getProtocol());
+				pm.setProtocol(m.getProtocol().protocol);
 				pm.setInternalClient(m.getConcernedLocalAddress().getHostAddress());
 
 				upnpService.getControlPoint().execute(new PortMappingAdd(service, pm) {
@@ -698,7 +697,7 @@ class UpnpIGDAgent extends AgentFakeThread {
 
 					for (PortMapping pm : desired_mappings) {
 						if (pm.getExternalPort().getValue() == m.getExternalPort()
-								&& pm.getProtocol().equals(m.getProtocol())) {
+								&& pm.getProtocol().equals(m.getProtocol().protocol)) {
 							pmfound = pm;
 							break;
 						}
@@ -1445,6 +1444,16 @@ class UpnpIGDAgent extends AgentFakeThread {
 
 	}
 
+	public enum Protocol {
+		UDP(PortMapping.Protocol.UDP),
+		TCP(PortMapping.Protocol.TCP);
+		final PortMapping.Protocol protocol;
+		Protocol(PortMapping.Protocol protocol)
+		{
+			this.protocol=protocol;
+		}
+	}
+
 	public static class AskForPortMappingAddMessage extends AbstractRouterMessage {
 
 		private final InetAddress concerned_local_ip;
@@ -1615,6 +1624,156 @@ class UpnpIGDAgent extends AgentFakeThread {
 			super(_concerned_router, _delay_between_each_check);
 		}
 
+	}
+	public enum Status {
+		/**
+		 * This value indicates that other variables in the service table are
+		 * uninitialized or in an invalid state.
+		 */
+		Unconfigured(Connection.Status.Unconfigured),
+
+		/**
+		 * The WANConnectionDevice is in the process of initiating a connection
+		 * for the first time after the connection became disconnected.
+		 */
+		Connecting(Connection.Status.Connecting),
+
+		/**
+		 * At least one client has successfully
+		 * initiated an Internet connection using this instance.
+		 */
+		Connected(Connection.Status.Connected),
+
+		/**
+		 * The connection is active (packets are allowed to flow
+		 * through), but will transition to Disconnecting state after a certain period.
+		 */
+		PendingDisconnect(Connection.Status.PendingDisconnect),
+
+		/**
+		 * The WANConnectionDevice is in the process of terminating a connection.
+		 * On successful termination, ConnectionStatus transitions to Disconnected.
+		 */
+		Disconnecting(Connection.Status.Disconnecting),
+
+		/**
+		 * No ISP connection is active (or being activated) from this connection
+		 * instance. No packets are transiting the gateway.
+		 */
+		Disconnected(Connection.Status.Disconnected);
+		private final Connection.Status status;
+
+		Status(Connection.Status status) {
+			this.status = status;
+		}
+
+		static Status from(Connection.Status status)
+		{
+			for (Status s : values())
+			{
+				if (s.status==status)
+					return s;
+			}
+			throw new IllegalAccessError();
+		}
+	}
+	public enum Error {
+		ERROR_NONE(Connection.Error.ERROR_NONE),
+		ERROR_COMMAND_ABORTED(Connection.Error.ERROR_COMMAND_ABORTED),
+		ERROR_NOT_ENABLED_FOR_INTERNET(Connection.Error.ERROR_NOT_ENABLED_FOR_INTERNET),
+		ERROR_USER_DISCONNECT(Connection.Error.ERROR_USER_DISCONNECT),
+		ERROR_ISP_DISCONNECT(Connection.Error.ERROR_ISP_DISCONNECT),
+		ERROR_IDLE_DISCONNECT(Connection.Error.ERROR_IDLE_DISCONNECT),
+		ERROR_FORCED_DISCONNECT(Connection.Error.ERROR_FORCED_DISCONNECT),
+		ERROR_NO_CARRIER(Connection.Error.ERROR_NO_CARRIER),
+		ERROR_IP_CONFIGURATION(Connection.Error.ERROR_IP_CONFIGURATION),
+		ERROR_UNKNOWN(Connection.Error.ERROR_UNKNOWN);
+		private final Connection.Error error;
+
+		Error(Connection.Error error) {
+			this.error = error;
+		}
+
+		static Error from(Connection.Error status)
+		{
+			for (Error s : values())
+			{
+				if (s.error==status)
+					return s;
+			}
+			throw new IllegalAccessError();
+		}
+	}
+	static public class StatusInfo {
+
+		private final Status status;
+		private final long uptimeSeconds;
+		private final Error lastError;
+
+		StatusInfo(Connection.StatusInfo statusInfo) {
+			this.status = Status.from(statusInfo.getStatus());
+			this.uptimeSeconds = statusInfo.getUptimeSeconds();
+			this.lastError = Error.from(statusInfo.getLastError());
+		}
+
+		public StatusInfo(Status status, long uptimeSeconds, Error lastError) {
+			this.status = status;
+			this.uptimeSeconds = uptimeSeconds;
+			this.lastError = lastError;
+		}
+
+		public Status getStatus() {
+			return status;
+		}
+
+		public long getUptimeSeconds() {
+			return uptimeSeconds;
+		}
+
+		public UnsignedIntegerFourBytes getUptime() {
+			return new UnsignedIntegerFourBytes(getUptimeSeconds());
+		}
+
+		@SuppressWarnings("unused")
+		public Error getLastError() {
+			return lastError;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (o == null || getClass() != o.getClass()) return false;
+
+			StatusInfo that = (StatusInfo) o;
+
+			if (uptimeSeconds != that.uptimeSeconds) return false;
+			if (lastError != that.lastError) return false;
+			return status == that.status;
+		}
+
+		public static boolean equals(StatusInfo This, Connection.StatusInfo that) {
+			if ((This==null) != (that==null))
+				return false;
+			if (This==null)
+				return true;
+
+			if (This.uptimeSeconds != that.getUptimeSeconds()) return false;
+			if (This.lastError != Error.from(that.getLastError())) return false;
+			return This.status == Status.from(that.getStatus());
+		}
+
+		@Override
+		public int hashCode() {
+			int result = status.hashCode();
+			result = 31 * result + (int) (uptimeSeconds ^ (uptimeSeconds >>> 32));
+			result = 31 * result + lastError.hashCode();
+			return result;
+		}
+
+		@Override
+		public String toString() {
+			return "(" + getClass().getSimpleName() + ") " + getStatus();
+		}
 	}
 
 	public static class ConnexionStatusMessage extends AbstractRouterMessage {

@@ -53,7 +53,6 @@ import com.distrimind.madkit.kernel.network.UpnpIGDAgent.ExternalIPMessage;
 import com.distrimind.madkit.kernel.network.UpnpIGDAgent.IGDRouterFoundMessage;
 import com.distrimind.madkit.kernel.network.UpnpIGDAgent.MappingReturnCode;
 import com.distrimind.madkit.kernel.network.UpnpIGDAgent.PortMappingAnswerMessage;
-import com.distrimind.upnp_igd.support.model.PortMapping.Protocol;
 
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -142,7 +141,7 @@ public class UPNPIDGTest extends TestNGMadkit {
 											}
 											final AskForPortMappingAddMessage a = new AskForPortMappingAddMessage(
 													m.getConcernedRouter(), ia, list_ports, internalPort, "",
-													Protocol.TCP);
+													UpnpIGDAgent.Protocol.TCP);
 											//this.pause(2000);
 											sendMessageWithRole(LocalCommunity.Groups.NETWORK,
 													LocalCommunity.Roles.LOCAL_NETWORK_EXPLORER_ROLE, a,
@@ -157,7 +156,7 @@ public class UPNPIDGTest extends TestNGMadkit {
 									if (portMapped.get())
 									{
 										PortMappingAnswerMessage m = (PortMappingAnswerMessage) _message;
-										AssertJUnit.assertEquals(Protocol.TCP, m.getProtocol());
+										AssertJUnit.assertEquals(UpnpIGDAgent.Protocol.TCP, m.getProtocol());
 										AssertJUnit.assertEquals(internalPort, m.getInternalPort());
 	
 										AssertJUnit.assertEquals("message="+m.getMessage()+", description="+m.getDescription()+", external port="+m.getExternalPort(), MappingReturnCode.REMOVED, m.getReturnCode());
@@ -171,7 +170,7 @@ public class UPNPIDGTest extends TestNGMadkit {
 									else
 									{
 										PortMappingAnswerMessage m = (PortMappingAnswerMessage) _message;
-										AssertJUnit.assertEquals(Protocol.TCP, m.getProtocol());
+										AssertJUnit.assertEquals(UpnpIGDAgent.Protocol.TCP, m.getProtocol());
 										AssertJUnit.assertEquals(internalPort, m.getInternalPort());
 	
 										AssertJUnit.assertEquals("message="+m.getMessage()+", description="+m.getDescription()+", external port="+m.getExternalPort()+", concerned router ip="+m.getConcernedRouter(), MappingReturnCode.SUCCESS, m.getReturnCode());
@@ -181,7 +180,7 @@ public class UPNPIDGTest extends TestNGMadkit {
 										portMapped.set(true);
 										sleep(1000);
 										AskForPortMappingDeleteMessage m2 = new AskForPortMappingDeleteMessage(
-												m.getConcernedRouter(), m.getExternalPort(), Protocol.TCP);
+												m.getConcernedRouter(), m.getExternalPort(), UpnpIGDAgent.Protocol.TCP);
 										this.sendMessageWithRole(LocalCommunity.Groups.NETWORK,
 												LocalCommunity.Roles.LOCAL_NETWORK_EXPLORER_ROLE, m2,
 												LocalCommunity.Roles.LOCAL_NETWORK_ROLE);

@@ -143,7 +143,7 @@ Adapt into your build.gradle file, the next code :
 	...
 	dependencies {
 		...
-		api(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.4.0-STABLE')
+		api(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.4.1-STABLE')
 		...
 	}
 	...
@@ -152,7 +152,7 @@ To use madkit GUI based on java swing, you can use the next driver. If you do no
 	...
 	dependencies {
 		...
-		api(group:'com.distrimind.madkit.gui.swing', name: 'MadkitSwingDriver', version: '2.4.0-STABLE')
+		api(group:'com.distrimind.madkit.gui.swing', name: 'MadkitSwingDriver', version: '2.4.1-STABLE')
 		...
 	}
 	...
@@ -180,7 +180,7 @@ Adapt into your pom.xml file, the next code :
 			<dependency>
 				<groupId>com.distrimind.madkit</groupId>
 				<artifactId>MaDKitLanEdition</artifactId>
-				<version>2.4.0-STABLE</version>
+				<version>2.4.1-STABLE</version>
 			</dependency>
 			...
 		</dependencies>
@@ -200,7 +200,7 @@ To use madkit GUI based on java swing, you can use the next driver. If you do no
 			<dependency>
 				<groupId>com.distrimind.madkit.gui.swing</groupId>
 				<artifactId>MadkitSwingDriver</artifactId>
-				<version>2.4.0-STABLE</version>
+				<version>2.4.1-STABLE</version>
 			</dependency>
 	...	
 When using MKLE into Android, if you want to use UpnpIGD functions, please use this additionnal dependencies :

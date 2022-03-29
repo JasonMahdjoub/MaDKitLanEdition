@@ -37,6 +37,7 @@ knowledge of the CeCILL-C license and that you accept its terms.
 
 import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
+import com.distrimind.util.data_buffers.WrappedSecretData;
 import com.distrimind.util.data_buffers.WrappedSecretString;
 import com.distrimind.util.io.*;
 
@@ -387,7 +388,7 @@ public class GroupsRoles implements Cloneable, SecureExternalizable {
 				RoleID o=(RoleID)obj;
 				if (o.hashCode!=this.hashCode)
 					return false;
-				return com.distrimind.bouncycastle.util.Arrays.constantTimeAreEqual(o.id, this.id);
+				return WrappedSecretData.constantTimeAreEqual(o.id, this.id);
 			}
 			return false;
 		}

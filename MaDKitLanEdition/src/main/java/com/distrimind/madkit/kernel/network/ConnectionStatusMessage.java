@@ -37,7 +37,6 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import com.distrimind.bcfips.util.Arrays;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
 

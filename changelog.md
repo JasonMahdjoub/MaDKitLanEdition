@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-2.4.0 STABLE (Build: 6154) (from 22/05/2015 to 28/03/2022)
+2.4.1 STABLE (Build: 6176) (from 22/05/2015 to 29/03/2022)
 
 # Creator(s):
 * Jason MAHDJOUB
@@ -12,6 +12,13 @@ MaDKitLanEdition
 * Jason MAHDJOUB (Entered in the team at 22/05/2015)
 
 # Changes:
+
+
+### 2.4.1 STABLE (29/03/2022)
+#### Internal change(s)
+* Update Utils to 5.22.4 STABLE
+* Update OOD to 3.1.20 STABLE
+* Declare some dependencies as implementation instead of API gradle mode
 
 
 ### 2.4.0 STABLE (28/03/2022)

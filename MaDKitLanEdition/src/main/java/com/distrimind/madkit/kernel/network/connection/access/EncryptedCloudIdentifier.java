@@ -41,6 +41,7 @@ import com.distrimind.util.crypto.ASymmetricKeyPair;
 import com.distrimind.util.crypto.ASymmetricPublicKey;
 import com.distrimind.util.crypto.AbstractMessageDigest;
 import com.distrimind.util.crypto.AbstractSecureRandom;
+import com.distrimind.util.data_buffers.WrappedSecretData;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
 import com.distrimind.util.io.SerializationTools;
@@ -97,7 +98,7 @@ final class EncryptedCloudIdentifier extends CloudIdentifier {
 			return true;
 		if (_cloud_identifier instanceof EncryptedCloudIdentifier) {
 			EncryptedCloudIdentifier c = (EncryptedCloudIdentifier) _cloud_identifier;
-			return com.distrimind.bouncycastle.util.Arrays.constantTimeAreEqual(bytes, c.bytes);
+			return WrappedSecretData.constantTimeAreEqual(bytes, c.bytes);
 		}
 		return false;
 	}

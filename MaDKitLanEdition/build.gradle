@@ -56,14 +56,14 @@ repositories {
 
 }
 
-def f = new File(project.getProjectDir().getParentFile(), 'lastVersion.md')
-var lastMkVersionFile = f.getText('UTF-8').trim()
+/*def f = new File(project.getProjectDir().getParentFile(), 'lastVersion.md')
+var lastMkVersionFile = f.getText('UTF-8').trim()*/
 apply from: 'common_dependencies_with_android_tests.gradle'
 apply from: 'common_dependencies_with_gui_driver.gradle'
 dependencies {
 
 
-    testImplementation 'com.distrimind.madkit.gui.swing:MadkitSwingDriver:'+lastMkVersionFile
+    //testImplementation 'com.distrimind.madkit.gui.swing:MadkitSwingDriver:'+lastMkVersionFile
 
      
 }

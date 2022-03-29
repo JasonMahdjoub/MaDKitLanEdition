@@ -37,12 +37,12 @@
  */
 package com.distrimind.madkit.kernel.network.connection.access;
 
-import com.distrimind.bouncycastle.util.Arrays;
 import com.distrimind.madkit.database.KeysPairs;
 import com.distrimind.madkit.kernel.MadkitProperties;
 import com.distrimind.madkit.kernel.network.NetworkProperties;
 import com.distrimind.ood.database.exceptions.DatabaseException;
 import com.distrimind.util.crypto.*;
+import com.distrimind.util.data_buffers.WrappedSecretData;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -697,7 +697,7 @@ public class AccessProtocolWithP2PAgreement extends AbstractAccessProtocol {
 		if (anonymousIdentifier==null || anonymousIdentifier.length<messageDigest.getDigestLengthInBytes()*2)
 			return false;
 		byte[] expectedAnonymousIdentifier= anonymizeIdentifier(identifier, anonymousIdentifier, messageDigest, localGeneratedSalt);
-		return Arrays.constantTimeAreEqual(expectedAnonymousIdentifier, anonymousIdentifier);
+		return WrappedSecretData.constantTimeAreEqual(expectedAnonymousIdentifier, anonymousIdentifier);
 	}
 	
 	
