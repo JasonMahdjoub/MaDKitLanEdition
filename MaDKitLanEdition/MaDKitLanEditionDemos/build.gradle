@@ -80,7 +80,7 @@ allprojects {
 }
 
 
-version='1.0.38'
+version='1.0.39'
 
 
 task sourcesJar(type: Jar, dependsOn: classes) {

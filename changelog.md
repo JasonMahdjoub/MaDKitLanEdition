@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-2.4.0 STABLE (Build: 6052) (from 22/05/2015 to 03/03/2022)
+2.4.0 STABLE (Build: 6154) (from 22/05/2015 to 28/03/2022)
 
 # Creator(s):
 * Jason MAHDJOUB
@@ -14,13 +14,20 @@ MaDKitLanEdition
 # Changes:
 
 
-### 2.4.0 STABLE (03/03/2022)
+### 2.4.0 STABLE (28/03/2022)
 #### New feature(s)
 * Separate Madkit GUI to a different library in order to remove Swing dependencies, and in order to make MKLE compatible with Android
 * Test MaDKitLanEdition with Android (API 26+)
+* Permit filtering direct connections between two distant kernels connected to an intermediate kernel. Add class AbstractDirectConnectionFilter.
 #### Internal change(s)
+* Update Utils to 5.22.3 STABLE
+* Update OOD to 3.1.19 STABLE
 * Use a forked version of Cling (UPNP IGD)
 * UPNP IGD : fix issue with JDK17
+#### Bug fixe(s)
+* Fix lock problem when sending CGRSynchro messages
+* Fix bad array index with ID generator
+* Fix bad group management and bad group destruction that provoked a little memory leak
 
 
 ### 2.3.7 STABLE (03/02/2022)

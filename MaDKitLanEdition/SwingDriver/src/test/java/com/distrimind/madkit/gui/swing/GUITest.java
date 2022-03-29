@@ -38,10 +38,7 @@
 package com.distrimind.madkit.gui.swing;
 
 import com.distrimind.madkit.gui.swing.action.AgentAction;
-import com.distrimind.madkit.kernel.AbstractAgent;
-import com.distrimind.madkit.kernel.Agent;
-import com.distrimind.madkit.kernel.Message;
-import com.distrimind.madkit.kernel.TestNGMadkit;
+import com.distrimind.madkit.kernel.*;
 import com.distrimind.madkit.testing.util.agent.AlwaysInCGRNormalAA;
 import org.testng.annotations.Test;
 

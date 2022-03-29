@@ -136,14 +136,14 @@ Adapt into your build.gradle file, the next code :
 	repositories {
 		...
 		maven {
-	       		url "https://artifactory.distri-mind.fr/artifactory/gradle-release"
+	       		url "https://artifactory.distri-mind.fr:443/artifactory/gradle-release/"
 	   	}
 		...
 	}
 	...
 	dependencies {
 		...
-		compile(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.4.0-STABLE')
+		api(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.4.0-STABLE')
 		...
 	}
 	...
@@ -152,10 +152,23 @@ To use madkit GUI based on java swing, you can use the next driver. If you do no
 	...
 	dependencies {
 		...
-		compile(group:'com.distrimind.madkit.gui.swing', name: 'MadkitSwingDriver', version: '2.4.0-STABLE')
+		api(group:'com.distrimind.madkit.gui.swing', name: 'MadkitSwingDriver', version: '2.4.0-STABLE')
 		...
 	}
 	...
+When using MKLE into Android, if you want to use UpnpIGD functions, please use this additionnal dependencies :
+	...
+	dependencies {
+		...
+		var jettyVersion='11.+'
+
+    		implementation 'org.eclipse.jetty:jetty-server:'+jettyVersion
+		implementation 'org.eclipse.jetty:jetty-servlet:'+jettyVersion
+		implementation 'org.eclipse.jetty:jetty-client:'+jettyVersion
+		...
+	}
+	...
+
 To know what is the last updaloed version, please refer to versions availables here : [this repository](https://artifactory.distri-mind.fr/artifactory/DistriMind-Public/com/distrimind/madkit/MaDKitLanEdition/)
 ### With Maven :
 Adapt into your pom.xml file, the next code :
@@ -176,7 +189,7 @@ Adapt into your pom.xml file, the next code :
 			...
 			<repository>
 				<id>DistriMind-Public</id>
-				<url>https://artifactory.distri-mind.fr/artifactory/gradle-release</url>
+				<url>https://artifactory.distri-mind.fr:443/artifactory/gradle-release/</url>
 			</repository>
 			...
 		</repositories>
@@ -190,6 +203,24 @@ To use madkit GUI based on java swing, you can use the next driver. If you do no
 				<version>2.4.0-STABLE</version>
 			</dependency>
 	...	
+When using MKLE into Android, if you want to use UpnpIGD functions, please use this additionnal dependencies :
+	...
+			<dependency>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-server</artifactId>
+				<version>11.0.8</version>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-servlet</artifactId>
+				<version>11.0.8</version>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.jetty</groupId>
+				<artifactId>jetty-client</artifactId>
+				<version>11.0.8</version>
+			</dependency>			
+	...
 
 To know what last version has been uploaded, please refer to versions availables into [this repository](https://artifactory.distri-mind.fr/artifactory/DistriMind-Public/com/distrimind/madkit/MaDKitLanEdition/)
 

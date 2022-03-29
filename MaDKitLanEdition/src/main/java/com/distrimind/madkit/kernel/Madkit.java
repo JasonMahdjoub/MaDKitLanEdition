@@ -37,20 +37,6 @@
  */
 package com.distrimind.madkit.kernel;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Modifier;
-import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import com.distrimind.madkit.action.AgentAction;
 import com.distrimind.madkit.action.KernelAction;
 import com.distrimind.madkit.action.SchedulingAction;
@@ -67,7 +53,6 @@ import com.distrimind.madkit.message.hook.HookMessage;
 import com.distrimind.util.OS;
 import com.distrimind.util.OSVersion;
 import com.distrimind.util.ReflectionTools;
-import com.distrimind.util.UtilClassLoader;
 import com.distrimind.util.io.SecureExternalizableWithoutInnerSizeControl;
 import com.distrimind.util.io.SerializationTools;
 import com.distrimind.util.properties.PropertiesParseException;
@@ -75,6 +60,21 @@ import com.distrimind.util.version.Description;
 import com.distrimind.util.version.Person;
 import com.distrimind.util.version.PersonDeveloper;
 import com.distrimind.util.version.Version;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Modifier;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import static com.distrimind.util.version.DescriptionType.*;
 /**
  * MaDKit 5 starter class.
@@ -1240,7 +1240,7 @@ final public class Madkit {
 	{
 		try {
 			if (OSVersion.getCurrentOSVersion().getOS()!=OS.ANDROID)
-				MadkitClassLoader.getLoader().loadClass("com.distrimind.madkit.gui.swing.GUIProvider");
+				Class.forName("com.distrimind.madkit.gui.swing.GUIProvider");
 		} catch (ClassNotFoundException ignored) {
 		}
 	}
