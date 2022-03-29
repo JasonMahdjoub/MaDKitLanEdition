@@ -55,6 +55,7 @@ import com.distrimind.util.properties.PropertiesParseException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
+import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -1575,6 +1576,49 @@ public class NetworkProperties extends MultiFormatProperties {
 		loadPatternsForAcceptedAndDeniedClasses();
 	}
 
+	private Class<? extends AbstractDirectConnectionFilter> directConnectionFilterClass=null;
+	private transient AbstractDirectConnectionFilter directConnectionFilter=null;
 
+	/**
+	 * Permit filtering direct connections between two distant kernels connected to an intermediate kernel.
+	 * @param directConnectionFilterClass the filter class
+	 */
+	public void setDirectConnectionFilterClass(Class<? extends AbstractDirectConnectionFilter> directConnectionFilterClass)
+	{
+		try {
+			directConnectionFilterClass.getDeclaredConstructor();
+		} catch (NoSuchMethodException e) {
+			throw new IllegalArgumentException(e);
+		}
+		synchronized (this) {
+			this.directConnectionFilterClass = directConnectionFilterClass;
+			this.directConnectionFilter = null;
+		}
+	}
+
+	/**
+	 * Permit filtering direct connections between two distant kernels connected to an intermediate kernel.
+	 * @return the filter instance, or null if no filter is available
+	 */
+	public AbstractDirectConnectionFilter getDirectConnectionFilterSingleton()
+	{
+		synchronized (this)
+		{
+			if (directConnectionFilterClass==null)
+				return null;
+			else
+			{
+				if (directConnectionFilter==null) {
+					try {
+						directConnectionFilter = directConnectionFilterClass.getDeclaredConstructor().newInstance();
+					} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+						e.printStackTrace();
+						return null;
+					}
+				}
+				return directConnectionFilter;
+			}
+		}
+	}
 
 }

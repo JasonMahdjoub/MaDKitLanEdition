@@ -153,6 +153,7 @@ final public class Madkit {
 							.addItem(INTERNAL_CHANGE, "UPNP IGD : fix issue with JDK17")
 							.addItem(NEW_FEATURE, "Separate Madkit GUI to a different library in order to remove Swing dependencies, and in order to make MKLE compatible with Android")
 							.addItem(NEW_FEATURE, "Test MaDKitLanEdition with Android (API 26+)")
+							.addItem(NEW_FEATURE, "Permit filtering direct connections between two distant kernels connected to an intermediate kernel. Add class AbstractDirectConnectionFilter.")
 							.addItem(BUG_FIX, "Fix lock problem when sending CGRSynchro messages")
 							.addItem(BUG_FIX, "Fix bad array index with ID generator")
 							.addItem(BUG_FIX, "Fix bad group management and bad group destruction that provoked a little memory leak")

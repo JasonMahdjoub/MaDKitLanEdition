@@ -273,7 +273,7 @@ public class AskForTransferMessage extends Message {
 		 * possible, ask for a transfer connection between the two given peers with the
 		 * current peer as intermediate peer.
 		 */
-		TRY_DIRECT_CONNECTION_FIRST_OR_TRANSFER,
+		TRY_DIRECT_CONNECTION_FIRST_OR_USE_TRANSFER_CONNECTION,
 		/**
 		 * Disconnect the transfer connexion between two given peers.
 		 */

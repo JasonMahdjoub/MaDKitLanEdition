@@ -161,13 +161,23 @@ class TransferAgent extends AgentFakeThread {
 
 						InetSocketAddress isa = null;
 						if (originalAskMessage.getType()
-								.equals(AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_TRANSFER)) {
-							
-							isa = candidate1.getInetSocketAddress(candidate2.getInetAddress().getAddress());
-							if (isa == null) {
-								
-								isa = candidate2.getInetSocketAddress(candidate1.getInetAddress().getAddress());
-								directConnection2Tried = true;
+								.equals(AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_USE_TRANSFER_CONNECTION)) {
+							AbstractDirectConnectionFilter d=getMadkitConfig().networkProperties.getDirectConnectionFilterSingleton();
+
+							if (d==null || (getEffectiveConnections()
+									.stream()
+									.anyMatch((c) -> c.getKernelAddress().equals(candidate1.getKernelAddress()) && d.acceptDirectConnection(TransferAgent.this, c))
+									&&
+									getEffectiveConnections()
+											.stream()
+											.anyMatch((c) -> c.getKernelAddress().equals(candidate2.getKernelAddress()) && d.acceptDirectConnection(TransferAgent.this, c))
+							)) {
+								isa = candidate1.getInetSocketAddress(candidate2.getInetAddress().getAddress());
+								if (isa == null) {
+
+									isa = candidate2.getInetSocketAddress(candidate1.getInetAddress().getAddress());
+									directConnection2Tried = true;
+								}
 							}
 							
 						}

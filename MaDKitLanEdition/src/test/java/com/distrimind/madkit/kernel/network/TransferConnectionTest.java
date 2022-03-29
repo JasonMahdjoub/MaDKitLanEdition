@@ -271,13 +271,13 @@ public class TransferConnectionTest extends TestNGMadkit {
 
 	@Test
 	public void tryDirectConnectionTestWithKernelAddressReference() {
-		indirectConnectionTest(AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_TRANSFER, true);
+		indirectConnectionTest(AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_USE_TRANSFER_CONNECTION, true);
 
 	}
 
 	@Test
 	public void tryDirectConnectionTestWithInetAddressReference() {
-		indirectConnectionTest(AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_TRANSFER, false);
+		indirectConnectionTest(AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_USE_TRANSFER_CONNECTION, false);
 	}
 
 	@Test
@@ -396,8 +396,8 @@ public class TransferConnectionTest extends TestNGMadkit {
 				sleep(600);
 				a1.assertConnection(1, 0, 0);
 				a2.assertConnection(
-						((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_TRANSFER) ? 0 : 1),
-						((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_TRANSFER) ? 1 : 0), 0);
+						((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_USE_TRANSFER_CONNECTION) ? 0 : 1),
+						((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_USE_TRANSFER_CONNECTION) ? 1 : 0), 0);
 
 				System.out.println(
 						"**************Disconnect transfert connection between 2 and 3 (through 1)****************");
@@ -410,7 +410,7 @@ public class TransferConnectionTest extends TestNGMadkit {
 						checkConnectedKernelsNb(this, m, 2, timeOut);
 					else if (index == 1 || index == 3) {
 						checkConnectedKernelsNb(this, m,
-								((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_TRANSFER) ? 2 : 1),
+								((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_USE_TRANSFER_CONNECTION) ? 2 : 1),
 								timeOut);
 					} else {
 						checkConnectedKernelsNb(this, m, 1, timeOut);
@@ -419,9 +419,9 @@ public class TransferConnectionTest extends TestNGMadkit {
 				sleep(400);
 				a1.assertConnection(1, 0, 1);
 				a2.assertConnection(
-						((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_TRANSFER) ? 0 : 1),
-						((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_TRANSFER) ? 1 : 0),
-						((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_TRANSFER) ? 0 : 1));
+						((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_USE_TRANSFER_CONNECTION) ? 0 : 1),
+						((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_USE_TRANSFER_CONNECTION) ? 1 : 0),
+						((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_USE_TRANSFER_CONNECTION) ? 0 : 1));
 				System.out.println(
 						"**************try(re) transfert connection between 2 and 3 (through 1)****************");
 
@@ -438,21 +438,21 @@ public class TransferConnectionTest extends TestNGMadkit {
 						checkConnectedKernelsNb(this, m, 2, timeOut);
 					else if (index == 1)
 						checkConnectedKernelsNb(this, m,
-								1 + ((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_TRANSFER) ? 1
+								1 + ((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_USE_TRANSFER_CONNECTION) ? 1
 										: 0),
 								timeOut);
 					else if (index == 3)
 						checkConnectedKernelsNb(this, m,
-								2 + ((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_TRANSFER) ? 1
+								2 + ((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_USE_TRANSFER_CONNECTION) ? 1
 										: 0),
 								timeOut);
 				}
 				sleep(400);
 				a1.assertConnection(2, 0, 1);
 				a2.assertConnection(
-						((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_TRANSFER) ? 0 : 1),
-						((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_TRANSFER) ? 1 : 0),
-						((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_TRANSFER) ? 0 : 1));
+						((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_USE_TRANSFER_CONNECTION) ? 0 : 1),
+						((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_USE_TRANSFER_CONNECTION) ? 1 : 0),
+						((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_USE_TRANSFER_CONNECTION) ? 0 : 1));
 
 				System.out.println("**************Adding kernel 4****************");
 
@@ -464,12 +464,12 @@ public class TransferConnectionTest extends TestNGMadkit {
 						checkConnectedKernelsNb(this, m, 3, timeOut);
 					else if (index == 3) {
 						checkConnectedKernelsNb(this, m,
-								2 + ((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_TRANSFER) ? 1
+								2 + ((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_USE_TRANSFER_CONNECTION) ? 1
 										: 0),
 								timeOut);
 					} else if (index == 1)
 						checkConnectedKernelsNb(this, m,
-								1 + ((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_TRANSFER) ? 1
+								1 + ((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_USE_TRANSFER_CONNECTION) ? 1
 										: 0),
 								timeOut);
 					else
@@ -487,12 +487,12 @@ public class TransferConnectionTest extends TestNGMadkit {
 						checkConnectedKernelsNb(this, m, 3, timeOut);
 					} else if (index == 3)
 						checkConnectedKernelsNb(this, m,
-								3 + ((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_TRANSFER) ? 1
+								3 + ((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_USE_TRANSFER_CONNECTION) ? 1
 										: 0),
 								timeOut);
 					else if (index == 1)
 						checkConnectedKernelsNb(this, m,
-								1 + ((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_TRANSFER) ? 1
+								1 + ((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_USE_TRANSFER_CONNECTION) ? 1
 										: 0),
 								timeOut);
 					else
@@ -500,12 +500,12 @@ public class TransferConnectionTest extends TestNGMadkit {
 				}
 				sleep(200);
 				a1.assertConnection(
-						2 + (type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_TRANSFER ? 0 : 2),
-						(type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_TRANSFER ? 2 : 0), 1);
+						2 + (type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_USE_TRANSFER_CONNECTION ? 0 : 2),
+						(type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_USE_TRANSFER_CONNECTION ? 2 : 0), 1);
 				a2.assertConnection(
-						((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_TRANSFER) ? 0 : 1),
-						((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_TRANSFER) ? 1 : 0),
-						((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_TRANSFER) ? 0 : 1));
+						((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_USE_TRANSFER_CONNECTION) ? 0 : 1),
+						((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_USE_TRANSFER_CONNECTION) ? 1 : 0),
+						((type == AskForTransferMessage.Type.TRY_DIRECT_CONNECTION_FIRST_OR_USE_TRANSFER_CONNECTION) ? 0 : 1));
 
 				if (logger != null)
 					logger.info("stoping networks");
