@@ -17,10 +17,10 @@ include 'services:webservice'
 
 rootProject.name = 'MaDKitLanEdition'
 /*include ':OOD'
-project(":OOD").projectDir = file("../../OOD/OOD")*/
+project(":OOD").projectDir = file("../OOD")*/
 /*include ':Utils'
-project(":Utils").projectDir = file("../../Utils/Utils")
+project(":Utils").projectDir = file("../Utils")
 include ':UPnPIGD'
-project(":UPnPIGD").projectDir = file("../../UpnpIGD")*/
+project(":UPnPIGD").projectDir = file("../UpnpIGD")*/
 //include 'SwingDriver'
 
