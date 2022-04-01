@@ -150,23 +150,12 @@ publishing {
                 url = 'https://github.com/JasonMahdjoub/MaDKitLanEdition'
                 developers {
                     developer {
-                        id = 'mahdjoub'
+                        id = 'jmahdjoub'
                         name = 'Jason Mahdjoub'
                         email = 'jason.mahdjoub@distri-mind.fr'
-                    }
-                    developer {
-                        id = 'michel'
-                        name = 'Fabien Michel'
-                    }
-                    developer {
-                        id = 'gutknecht'
-                        name = 'Olivier Gutknecht'
-                        email = 'jason.mahdjoub@distri-mind.fr'
-                    }
-                    developer {
-                        id = 'ferber'
-                        name = 'Jacques Ferber'
-                        email = 'jason.mahdjoub@distri-mind.fr'
+                        organization = 'DistriMind'
+                        roles.add('Entrepreneur')
+                        roles.add('Developer')
                     }
                 }
 
