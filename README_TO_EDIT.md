@@ -148,7 +148,7 @@ To use madkit GUI based on java swing, you can use the next driver. If you do no
 		...
 	}
 	...
-When using MKLE into Android, if you want to use UpnpIGD functions, please use this additionnal dependencies :
+When using MKLE into Android, if you want to use UpnpIGD functions, please use this additionnal dependencies (minimum Java version is 11) :
 	...
 	dependencies {
 		...
@@ -198,7 +198,7 @@ To use madkit GUI based on java swing, you can use the next driver. If you do no
 				<version>//PROJECT_VERSION//</version>
 			</dependency>
 	...	
-When using MKLE into Android, if you want to use UpnpIGD functions, please use this additionnal dependencies :
+When using MKLE into Android, if you want to use UpnpIGD functions, please use this additionnal dependencies (minimum Java version is 11) :
 	...
 			<dependency>
 				<groupId>org.eclipse.jetty</groupId>
@@ -214,7 +214,7 @@ When using MKLE into Android, if you want to use UpnpIGD functions, please use t
 				<groupId>org.eclipse.jetty</groupId>
 				<artifactId>jetty-client</artifactId>
 				<version>11.0.8</version>
-			</dependency>			
+			</dependency>	
 	...
 
 Librairies are available on Maven Central. You can check signatures of dependencies with this [public GPG key](./gpg_key.asc). You can also use the next repository : 
