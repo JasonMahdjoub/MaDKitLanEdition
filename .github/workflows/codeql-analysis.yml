@@ -38,9 +38,15 @@ jobs:
         java-version: 1.8
         architecture: x64  
     - name: Grant execute permission for gradlew
-      run: chmod +x ./MaDKitLanEdition/gradlew
+      run: chmod +x ./gradlew
     - name: Build with Gradle
-      run: cd MaDKitLanEdition && gradle wrapper && ./gradlew assemble -PdisableSigning
+      run: gradle wrapper && ./gradlew assemble -PdisableSigning
       
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v1
+    - name: Grant execute permission for SwingDriver gradlew
+      run: chmod +x ./SwingDriver/gradlew
+    - name: Build SwingDriver with Gradle
+      run: cd SwingDriver && gradle wrapper && ./gradlew assemble -PdisableSigning
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
