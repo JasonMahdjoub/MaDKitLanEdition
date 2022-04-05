@@ -1,7 +1,7 @@
 MaDKitLanEdition: Multiagent Development Kit (Lan Edition)
 ==========================================================
 
-[![CodeQL](https://github.com/JazZ51/MaDKitLanEdition/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/JazZ51/MaDKitLanEdition/actions/workflows/codeql-analysis.yml)
+[![CodeQL](https://github.com/JasonMahdjoub/MaDKitLanEdition/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/JasonMahdjoub/MaDKitLanEdition/actions/workflows/codeql-analysis.yml)
 
 What is MaDKit ?
 -----------------
