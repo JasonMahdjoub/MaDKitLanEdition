@@ -108,13 +108,13 @@ allprojects {
 task sourcesJar(type: Jar, dependsOn: classes) {
     archiveClassifier.set("sources")
     from sourceSets.main.allSource
-    from project.getProjectDir().getParentFile().getParentFile().getAbsolutePath()+"LICENSE"
+    from project.getProjectDir().getParentFile().getAbsolutePath()+"LICENSE"
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
     archiveClassifier.set("javadoc")
     from javadoc.destinationDir
-    from project.getProjectDir().getParentFile().getParentFile().getAbsolutePath()+"LICENSE"
+    from project.getProjectDir().getParentFile().getAbsolutePath()+"LICENSE"
 }
 
 artifacts {
@@ -130,7 +130,7 @@ jar{
         attributes('Implementation-Title': project.name,
                 'Implementation-Version': project.version)
     }
-    from project.getProjectDir().getParentFile().getParentFile().getAbsolutePath()+"LICENSE"
+    from project.getProjectDir().getParentFile().getAbsolutePath()+"LICENSE"
 
 
 }

@@ -66,7 +66,7 @@ repositories {
 
 }
 
-/*def f = new File(project.getProjectDir().getParentFile(), 'lastVersion.md')
+/*def f = new File(project.getProjectDir(), 'lastVersion.md')
 var lastMkVersionFile = f.getText('UTF-8').trim()*/
 apply from: 'common_dependencies_with_android_tests.gradle'
 apply from: 'common_dependencies_with_gui_driver.gradle'
@@ -110,14 +110,14 @@ task generateMDFiles (dependsOn: generateVersionsFile) {
 
     if (project.hasProperty('assemble') || project.hasProperty('build') || project.hasProperty('jar')) {
         doLast {
-            def lastVersionFile = new File(project.getProjectDir().getParentFile(), 'lastVersion.md')
+            def lastVersionFile = new File(project.getProjectDir(), 'lastVersion.md')
 
 
             project.version = lastVersionFile.getText('UTF-8').trim()
 
-            def mdFile = new File(project.getProjectDir().getParentFile(), 'README_TO_EDIT.md')
+            def mdFile = new File(project.getProjectDir(), 'README_TO_EDIT.md')
             if (mdFile.canRead()) {
-                def mdFileDest = new File(project.getProjectDir().getParentFile(), 'README.md')
+                def mdFileDest = new File(project.getProjectDir(), 'README.md')
 
                 mdFileDest.newWriter().withWriter { w ->
                     w << mdFile.getText('UTF-8').replaceAll("//PROJECT_VERSION//", version.toString())
@@ -163,15 +163,15 @@ idea {
 task sourcesJar(type: Jar, dependsOn: classes) {
     archiveClassifier.set("sources")
     from sourceSets.main.allSource
-    from project.getProjectDir().getParentFile().getAbsolutePath()+"LICENSE"
-    from project.getProjectDir().getParentFile().getAbsolutePath()+"changelog.md"
+    from project.getProjectDir().getAbsolutePath()+"LICENSE"
+    from project.getProjectDir().getAbsolutePath()+"changelog.md"
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
     archiveClassifier.set("javadoc")
     from javadoc.destinationDir
-    from project.getProjectDir().getParentFile().getAbsolutePath()+"LICENSE"
-    from project.getProjectDir().getParentFile().getAbsolutePath()+"changelog.md"
+    from project.getProjectDir().getAbsolutePath()+"LICENSE"
+    from project.getProjectDir().getAbsolutePath()+"changelog.md"
 }
 
 artifacts {
@@ -188,8 +188,8 @@ jar{
         attributes('Implementation-Title': project.name,
                    'Implementation-Version': project.version)
     }
-    from project.getProjectDir().getParentFile().getAbsolutePath()+"LICENSE"
-    from project.getProjectDir().getParentFile().getAbsolutePath()+"changelog.md"
+    from project.getProjectDir().getAbsolutePath()+"LICENSE"
+    from project.getProjectDir().getAbsolutePath()+"changelog.md"
 
 }
 
