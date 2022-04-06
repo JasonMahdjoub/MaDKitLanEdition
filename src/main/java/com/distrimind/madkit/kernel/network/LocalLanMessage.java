@@ -41,6 +41,7 @@ package com.distrimind.madkit.kernel.network;
 import com.distrimind.madkit.kernel.Message;
 import com.distrimind.madkit.kernel.network.DistantKernelAgent.ReceivedSerializableObject;
 import com.distrimind.madkit.util.NetworkMessage;
+import com.distrimind.util.Cleanable;
 
 /**
  * 
@@ -48,13 +49,24 @@ import com.distrimind.madkit.util.NetworkMessage;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-public class LocalLanMessage extends Message implements LockableMessage {
+public class LocalLanMessage extends Message implements LockableMessage, Cleanable {
 
-
+	private static final class Finalizer extends Cleanable.Cleaner
+	{
+		private ReceivedSerializableObject originalMessage;
+		@Override
+		protected void performCleanup() {
+			if (originalMessage != null) {
+				originalMessage.markDataAsRead();
+				originalMessage = null;
+			}
+		}
+	}
+	private final Finalizer finalizer;
 	private final Message message;
 
 	private final MessageLocker locker;
-	protected ReceivedSerializableObject originalMessage;
+
 	protected boolean readyForInjection = false;
 	private boolean innerMessageNotInitialized =true;
 	// int id_packet=-1;
@@ -65,9 +77,11 @@ public class LocalLanMessage extends Message implements LockableMessage {
 	protected LocalLanMessage(Message _message, ReceivedSerializableObject originalMessage) {
 		if (!(_message instanceof NetworkMessage))
 			throw new IllegalArgumentException("The message to send me implements NetworkMessage interface");
+		finalizer=new Finalizer();
+		registerCleaner(finalizer);
 		message = _message;
 		locker = new MessageLocker(this);
-		this.originalMessage = originalMessage;
+		this.finalizer.originalMessage = originalMessage;
 	}
 
 	protected LocalLanMessage(LocalLanMessage This, Message _message, ReceivedSerializableObject originalMessage,
@@ -75,10 +89,11 @@ public class LocalLanMessage extends Message implements LockableMessage {
 		super(This);
 		if (!(_message instanceof NetworkMessage))
 			throw new IllegalArgumentException("The message to send me implements NetworkMessage interface");
-
+		finalizer=new Finalizer();
+		registerCleaner(finalizer);
 		message = _message;
 		this.locker = locker;
-		this.originalMessage = originalMessage;
+		this.finalizer.originalMessage = originalMessage;
 	}
 
 	@Override
@@ -104,9 +119,9 @@ public class LocalLanMessage extends Message implements LockableMessage {
 	@Override
 	protected Message markMessageAsRead() {
 		if (readyForInjection) {
-			if (originalMessage != null) {
-				originalMessage.markDataAsRead();
-				originalMessage = null;
+			if (finalizer.originalMessage != null) {
+				finalizer.originalMessage.markDataAsRead();
+				finalizer.originalMessage = null;
 			}
 			return MadkitKernelAccess.markAsRead(message);
 		} else {
@@ -118,14 +133,6 @@ public class LocalLanMessage extends Message implements LockableMessage {
 		readyForInjection = true;
 	}
 
-	@SuppressWarnings("deprecation")
-	@Override
-	protected void finalize() {
-		if (originalMessage != null) {
-			originalMessage.markDataAsRead();
-			originalMessage = null;
-		}
-	}
 
 	/*
 	 * protected LocalLanMessage(MessageLocker _message_locker, Message _message) {

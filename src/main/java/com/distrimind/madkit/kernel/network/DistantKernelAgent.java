@@ -2055,42 +2055,76 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 	}
 
-	protected void removePacketID(int id) {
-		synchronized (packet_id_generator) {
-			packet_id_generator.removeID(id);
+
+	protected static abstract class AbstractPacketDataFinalizer extends AbstractData.Finalizer
+	{
+		protected boolean unlocked = false;
+		protected ByteBuffer currentByteBuffer;
+		protected RealTimeTransferStat stat;
+		protected final WritePacket packet;
+		protected final KernelAddressInterfaced distant_kernel_address;
+
+		protected AbstractPacketDataFinalizer(WritePacket packet, KernelAddressInterfaced distant_kernel_address) {
+			if (packet == null)
+				throw new NullPointerException("_packet");
+			if (distant_kernel_address == null)
+				throw new NullPointerException("distant_kernel_address");
+			this.packet=packet;
+			this.distant_kernel_address=distant_kernel_address;
+		}
+
+		@Override
+		void unlockMessage(boolean cancel) throws MadkitException{
+			synchronized (this) {
+				unlocked = true;
+			}
+			removePendingBigDataPacket();
+		}
+
+		@Override
+		boolean isUnlocked() {
+			synchronized (this) {
+				return unlocked;
+			}
+		}
+		void removePendingBigDataPacket() {
+
+		}
+		protected void finishLastStat() {
+			synchronized (this) {
+				if (currentByteBuffer != null && stat != null) {
+					stat.newBytesIdentified(currentByteBuffer.capacity() - currentByteBuffer.remaining());
+				}
+			}
 		}
 	}
-
 	@SuppressWarnings("SynchronizeOnNonFinalField")
-	abstract class AbstractPacketData extends AbstractData {
-		protected final WritePacket packet;
-		protected ByteBuffer currentByteBuffer;
-		protected Block currentBlock;
+	abstract class AbstractPacketData<F extends AbstractPacketDataFinalizer> extends AbstractData<F> {
 
+
+		protected Block currentBlock;
 		private boolean asking_new_buffer_in_process;
 
-		private RealTimeTransferStat stat;
+
 		private IDTransfer idTransfer = null;
-		private boolean unlocked = false;
+
 		protected final AgentAddress firstAgentSocketSender;
 		private final AgentAddress agentReceiver;
 
 		protected final boolean excludedFromEncryption;
 		AbstractAgentSocket agentSocket;
 
-		protected AbstractPacketData(boolean priority, AgentAddress firstAgentSocketSender, WritePacket _packet,
-				AgentAddress agentReceiver, boolean excludedFromEncryption) {
-			super(priority);
-			if (_packet == null)
-				throw new NullPointerException("_packet");
-			if (firstAgentSocketSender == null && !_packet.concernsBigData())
+
+		protected AbstractPacketData(boolean priority, F finalizer, AgentAddress firstAgentSocketSender,
+									 AgentAddress agentReceiver, boolean excludedFromEncryption) {
+			super(priority, finalizer);
+			if (firstAgentSocketSender == null && !finalizer.packet.concernsBigData())
 				throw new NullPointerException("firstAgentSocketSender");
 			this.firstAgentSocketSender = firstAgentSocketSender;
-			packet = _packet;
-			currentByteBuffer = null;
+			finalizer.currentByteBuffer = null;
 			currentBlock = null;
 			asking_new_buffer_in_process = false;
-			stat = null;
+			finalizer.stat = null;
 			this.agentReceiver = agentReceiver;
 			this.excludedFromEncryption=excludedFromEncryption;
 			//this.counterSelector=counterSelector;
@@ -2098,21 +2132,21 @@ class DistantKernelAgent extends AgentFakeThread {
 
 		@Override
 		public String toString() {
-			synchronized (this) {
-				return getClass().getSimpleName() + "[idPacket=" + packet.getID() + ", unlocked=" + unlocked
+			synchronized (finalizer) {
+				return getClass().getSimpleName() + "[idPacket=" + finalizer.packet.getID() + ", unlocked=" + finalizer.unlocked
 						+ ", canceled=" + isCanceled + ", totalDataToSendLength(Without connection protocol)="
-						+ this.packet.getDataLengthWithHashIncluded() + ", currentByteBuffer="
-						+ (currentByteBuffer == null ? null : currentByteBuffer.capacity())
+						+ this.finalizer.packet.getDataLengthWithHashIncluded() + ", currentByteBuffer="
+						+ (finalizer.currentByteBuffer == null ? null : finalizer.currentByteBuffer.capacity())
 						+ ", currentByteBufferRemaining="
-						+ (currentByteBuffer == null ? null : currentByteBuffer.remaining()) + ", dataSent="
-						+ this.packet.getReadDataLengthIncludingHash() + "]";
+						+ (finalizer.currentByteBuffer == null ? null : finalizer.currentByteBuffer.remaining()) + ", dataSent="
+						+ this.finalizer.packet.getReadDataLengthIncludingHash() + "]";
 			}
 		}
 
 		@Override
 		void closeStream() throws IOException {
-			if (!packet.getInputStream().isClosed())
-				packet.getInputStream().close();
+			if (!finalizer.packet.getInputStream().isClosed())
+				finalizer.packet.getInputStream().close();
 		}
 
 		@Override
@@ -2138,24 +2172,24 @@ class DistantKernelAgent extends AgentFakeThread {
 
 		@Override
 		public void reset() {
-			synchronized (this) {
-				if (currentByteBuffer != null) {
-					currentByteBuffer.rewind();
+			synchronized (finalizer) {
+				if (finalizer.currentByteBuffer != null) {
+					finalizer.currentByteBuffer.rewind();
 					asking_new_buffer_in_process = false;
 				}
 			}
 		}
 
-		public void removePendingBigDataPacket()
+		public final void removePendingBigDataPacket()
 		{
-
+			finalizer.removePendingBigDataPacket();
 		}
 		@Override
 		boolean isCanceledNow()
 		{
 			if (isCanceled) {
 				synchronized (this) {
-					return currentByteBuffer == null || currentByteBuffer.remaining() == 0 || currentByteBuffer.position() == 0;
+					return finalizer.currentByteBuffer == null || finalizer.currentByteBuffer.remaining() == 0 || finalizer.currentByteBuffer.position() == 0;
 				}
 			}
 			else
@@ -2164,22 +2198,22 @@ class DistantKernelAgent extends AgentFakeThread {
 		@Override
 		public ByteBuffer getByteBuffer() throws PacketException {
 			
-			synchronized (this) {
+			synchronized (finalizer) {
 				if (isCanceled)
 				{	
 					try
 					{
-						return currentByteBuffer;
+						return finalizer.currentByteBuffer;
 					}
 					finally
 					{
-						currentByteBuffer=null;
+						finalizer.currentByteBuffer=null;
 					}
 				}
-				if (currentByteBuffer == null || currentByteBuffer.remaining()==0) {
-					currentByteBuffer=null;
+				if (finalizer.currentByteBuffer == null || finalizer.currentByteBuffer.remaining()==0) {
+					finalizer.currentByteBuffer=null;
 					if (!asking_new_buffer_in_process) {
-						if (!packet.isFinished())
+						if (!finalizer.packet.isFinished())
 						{
 							updateNextByteBufferUnsafe();
 						}
@@ -2189,14 +2223,14 @@ class DistantKernelAgent extends AgentFakeThread {
 				}
 				try
 				{
-					if (stat != null)
-						stat.newBytesIdentified(currentByteBuffer.capacity());
+					if (finalizer.stat != null)
+						finalizer.stat.newBytesIdentified(finalizer.currentByteBuffer.capacity());
 
-					return currentByteBuffer;
+					return finalizer.currentByteBuffer;
 				}
 				finally
 				{
-					currentByteBuffer=null;
+					finalizer.currentByteBuffer=null;
 				}
 				
 			}
@@ -2205,10 +2239,10 @@ class DistantKernelAgent extends AgentFakeThread {
 
 		protected void setNewBlock(IDTransfer id, Block _block) throws NIOException {
 			NIOException e=null;
-			synchronized (this) {
+			synchronized (finalizer) {
 				idTransfer = id;
-				if (currentByteBuffer == null) {
-					currentByteBuffer = ByteBuffer.wrap((currentBlock=_block).getBytes(), 0, _block.getBlockSize());
+				if (finalizer.currentByteBuffer == null) {
+					finalizer.currentByteBuffer = ByteBuffer.wrap((currentBlock=_block).getBytes(), 0, _block.getBlockSize());
 					asking_new_buffer_in_process = false;
 				}  else
 					e=new NIOException("Unexpected exception !");
@@ -2225,7 +2259,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		@Override
 		boolean isDataBuildInProgress()
 		{
-			synchronized(this)
+			synchronized(finalizer)
 			{
 				return asking_new_buffer_in_process;
 			}
@@ -2239,11 +2273,11 @@ class DistantKernelAgent extends AgentFakeThread {
 				res=true;
 			}
 			else {
-				synchronized (this) {
+				synchronized (finalizer) {
 					if (asking_new_buffer_in_process) {
 						res = canceled;
-					} else if (currentByteBuffer == null || currentByteBuffer.remaining() == 0) {
-						res = canceled || this.packet.isFinished();
+					} else if (finalizer.currentByteBuffer == null || finalizer.currentByteBuffer.remaining() == 0) {
+						res = canceled || this.finalizer.packet.isFinished();
 					} else {
 						res = false;
 					}
@@ -2253,32 +2287,26 @@ class DistantKernelAgent extends AgentFakeThread {
 			return res;
 		}
 
-		protected void finishLastStat() {
-			synchronized (this) {
-				if (currentByteBuffer != null && stat != null) {
-					stat.newBytesIdentified(currentByteBuffer.capacity() - currentByteBuffer.remaining());
-				}
-			}
-		}
+
 		
 		
 
 		@Override
 		public boolean isCurrentByteBufferFinished() {
-			synchronized (this) {
-				return currentByteBuffer == null || currentByteBuffer.remaining() == 0;
+			synchronized (finalizer) {
+				return finalizer.currentByteBuffer == null || finalizer.currentByteBuffer.remaining() == 0;
 			}
 		}
 
 		@Override
 		public boolean isCurrentByteBufferFinishedOrNotStarted() {
-			synchronized (this) {
-				return currentByteBuffer == null || currentByteBuffer.remaining() == 0 || currentByteBuffer.position()==0;
+			synchronized (finalizer) {
+				return finalizer.currentByteBuffer == null || finalizer.currentByteBuffer.remaining() == 0 || finalizer.currentByteBuffer.position()==0;
 			}
 		}
 
 		public int getIDPacket() {
-			return packet.getID();
+			return finalizer.packet.getID();
 		}
 
 		private void updateNextByteBufferUnsafe() throws PacketException  {
@@ -2306,26 +2334,13 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 
 		void setStat(RealTimeTransferStat stat) {
-			synchronized (this) {
-				this.stat = stat;
+			synchronized (finalizer) {
+				this.finalizer.stat = stat;
 			}
 		}
 
 
-		@Override
-		public void unlockMessage(boolean cancel) throws MadkitException {
-			synchronized (this) {
-				unlocked = true;
-			}
-			removePendingBigDataPacket();
-		}
 
-		@Override
-		public boolean isUnlocked() {
-			synchronized (this) {
-				return unlocked;
-			}
-		}
 
 
 		AgentAddress getFirstAgentSocketSender() {
@@ -2349,39 +2364,28 @@ class DistantKernelAgent extends AgentFakeThread {
 			return this.agentReceiver;
 		}
 	}
-
-	class PacketData extends AbstractPacketData {
-
-		private final boolean last_message;
-
+	protected static class PacketDataFinalizer extends AbstractPacketDataFinalizer
+	{
+		protected final MessageLocker messageLocker;
 		protected final LanMessage original_lan_message;
+		private final IDGeneratorInt packet_id_generator ;
 
-		private final MessageLocker messageLocker;
-
-		protected PacketData(AgentAddress first_receiver, SystemMessageWithoutInnerSizeControl lan_message, WritePacket _packet,
-							 MessageLocker _messageLocker, boolean _last_message, boolean isItAPriority, boolean excludedFromEncryption) {
-			super(isItAPriority, first_receiver, _packet,
-					(lan_message instanceof LanMessage) ? ((LanMessage) lan_message).message.getReceiver() : null, excludedFromEncryption);
-			if (_packet.concernsBigData())
-				throw new IllegalArgumentException("_packet cannot use big data !");
-
-			last_message = _last_message;
-
-			boolean isSystemMessage = !(lan_message instanceof LanMessage);
-
-			this.original_lan_message = isSystemMessage ? null : (LanMessage) lan_message;
-
-			messageLocker = _messageLocker;
+		public PacketDataFinalizer(WritePacket packet, KernelAddressInterfaced distant_kernel_address, MessageLocker messageLocker, LanMessage original_lan_message, IDGeneratorInt packet_id_generator) {
+			super(packet, distant_kernel_address);
+			this.packet_id_generator=packet_id_generator;
+			this.messageLocker = messageLocker;
+			this.original_lan_message=original_lan_message;
 		}
 
 		@Override
-		public DataTransferType getDataTransferType() {
-			return DataTransferType.SHORT_DATA;
+		protected void performCleanup() {
+			removePacketID(packet.getID());
+			super.performCleanup();
 		}
-
-		@Override
-		public boolean isLastMessage() {
-			return last_message;
+		protected void removePacketID(int id) {
+			synchronized (packet_id_generator) {
+				packet_id_generator.removeID(id);
+			}
 		}
 
 		@Override
@@ -2396,7 +2400,7 @@ class DistantKernelAgent extends AgentFakeThread {
 
 						messageLocker.unlock(distant_kernel_address, new DataTransferResult(
 								packet.getInputStream().length(), packet.getReadDataLength(), sendLength, this.original_lan_message instanceof BroadcastLanMessage), cancel);
-						
+
 					}
 
 				} catch (IOException e) {
@@ -2407,12 +2411,38 @@ class DistantKernelAgent extends AgentFakeThread {
 				}
 			}
 		}
+	}
+	class PacketData extends AbstractPacketData<PacketDataFinalizer> {
+
+		private final boolean last_message;
+
+
+
+
+
+		protected PacketData(AgentAddress first_receiver, SystemMessageWithoutInnerSizeControl lan_message, WritePacket _packet,
+							 MessageLocker _messageLocker, boolean _last_message, boolean isItAPriority, boolean excludedFromEncryption) {
+			super(isItAPriority, new PacketDataFinalizer(_packet, distant_kernel_address, _messageLocker, (!(lan_message instanceof LanMessage)) ? null : (LanMessage) lan_message, packet_id_generator),
+					first_receiver,
+					(lan_message instanceof LanMessage) ? ((LanMessage) lan_message).message.getReceiver() : null, excludedFromEncryption);
+			if (_packet.concernsBigData())
+				throw new IllegalArgumentException("_packet cannot use big data !");
+
+			last_message = _last_message;
+		}
 
 		@Override
-		protected void finalize() {
-			removePacketID(packet.getID());
-			super.finalize();
+		public DataTransferType getDataTransferType() {
+			return DataTransferType.SHORT_DATA;
 		}
+
+		@Override
+		public boolean isLastMessage() {
+			return last_message;
+		}
+
+
+
 
 	}
 
@@ -2448,7 +2478,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		@Override
 		public void removePendingBigDataPacket()
 		{
-			synchronized (this) {
+			synchronized (finalizer) {
 				if (!pendingDataRemoved) {
 					pendingDataRemoved = true;
 					synchronizeActionWithLiveByCycleFunction(() -> packetsDataInQueue.remove(packet.getID()));

@@ -58,6 +58,7 @@ public final class BigDataTransferID extends ConversationID implements IBigDataT
 
 	@SuppressWarnings("unused")
 	BigDataTransferID() {
+		super(false);
 	}
 
 	private ConversationID cid;
@@ -78,7 +79,7 @@ public final class BigDataTransferID extends ConversationID implements IBigDataT
 	
 	
 	BigDataTransferID(ConversationID cid, RealTimeTransferStat stat) {
-		super(-1, null);
+		super(false, -1, null);
 		//super(cid);
 		if (cid == null)
 			throw new NullPointerException("cid");
@@ -86,7 +87,7 @@ public final class BigDataTransferID extends ConversationID implements IBigDataT
 		this.cid = cid;
 	}
 	BigDataTransferID(int id, KernelAddress kernelAddress, RealTimeTransferStat stat) {
-		super(id, kernelAddress);
+		super(false, id, kernelAddress);
 		this.stat = stat;
 	}
 
@@ -130,10 +131,6 @@ public final class BigDataTransferID extends ConversationID implements IBigDataT
 				distantKernelAddress);
 	}
 
-	@SuppressWarnings("MethodDoesntCallSuperMethod")
-    @Override
-	protected void finalize() {
-	}
 
 	@Override
 	Map<KernelAddress, InterfacedIDs> getGlobalInterfacedIDs() {

@@ -37,13 +37,13 @@
  */
 package com.distrimind.madkit.kernel.network;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import com.distrimind.madkit.exceptions.MadkitException;
 import com.distrimind.madkit.exceptions.PacketException;
 import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
+import com.distrimind.util.Cleanable;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * 
@@ -51,12 +51,33 @@ import com.distrimind.madkit.kernel.network.TransferAgent.IDTransfer;
  * @version 1.0
  * @since MadkitLanEdition 1.0
  */
-abstract class AbstractData {
+abstract class AbstractData<F extends AbstractData.Finalizer> implements Cleanable {
+	protected static abstract class Finalizer extends Cleaner
+	{
+		abstract boolean isUnlocked();
+		abstract void unlockMessage(boolean cancel) throws MadkitException;
+		@Override
+		protected void performCleanup() {
+			synchronized (this) {
+				try {
+					if (!isUnlocked())
+						unlockMessage(false);
+				} catch (Exception ignored) {
+
+				}
+			}
+		}
+	}
+	protected final F finalizer;
 	private final boolean priority;
 	protected volatile boolean isCanceled=false;
 
 
-	AbstractData(boolean priority) {
+	AbstractData(boolean priority, F finalizer) {
+		if (finalizer==null)
+			throw new NullPointerException();
+		this.finalizer=finalizer;
+		registerCleaner(finalizer);
 		this.priority = priority;
 	}
 
@@ -70,9 +91,15 @@ abstract class AbstractData {
 	public void unlockMessage() throws MadkitException {
 		unlockMessage(false);
 	}
-	abstract void unlockMessage(boolean cancel) throws MadkitException;
+	final void unlockMessage(boolean cancel) throws MadkitException
+	{
+		finalizer.unlockMessage(cancel);
+	}
 
-	abstract boolean isUnlocked();
+	final boolean isUnlocked()
+	{
+		return finalizer.isUnlocked();
+	}
 
 	abstract ByteBuffer getByteBuffer() throws PacketException;
 
@@ -96,18 +123,6 @@ abstract class AbstractData {
 				+ ", idTransfer=" + getIDTransfer() + ", lastMessage=" + isLastMessage() + "]";
 	}
 
-	@SuppressWarnings("deprecation")
-	@Override
-	protected void finalize() {
-		synchronized (this) {
-			try {
-				if (!isUnlocked())
-					unlockMessage(false);
-			} catch (Exception ignored) {
-
-			}
-		}
-	}
 
 	/*long timeToSend() {
 		return Long.MIN_VALUE;

@@ -38,6 +38,7 @@
 package com.distrimind.madkit.kernel;
 
 
+import com.distrimind.util.Cleanable;
 import com.distrimind.util.io.SecureExternalizable;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
@@ -64,16 +65,57 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @version 2.2
  * @since MadKitLanEdition 1.0
  */
-public class ConversationID implements SecureExternalizable, Cloneable {
+public class ConversationID implements SecureExternalizable, Cloneable, Cleanable {
 
 	final static private AtomicInteger ID_COUNTER = new AtomicInteger(
 			(int) (Math.random() * ((double) Integer.MAX_VALUE)));// TODO if many many ??
+	protected static final class Finalizer extends Cleanable.Cleaner
+	{
+		private transient volatile Map<KernelAddress, InterfacedIDs> global_interfaced_ids = null;
+		private transient Map<KernelAddress, OriginalID> myInterfacedIDs = null;
+		private final boolean finalize;
+		private int id;
 
-	private int id;
+		public Finalizer(boolean finalize) {
+			this.finalize = finalize;
+		}
+
+		@Override
+		protected void performCleanup() {
+			if (finalize && global_interfaced_ids != null && myInterfacedIDs != null) {
+
+				//noinspection SynchronizeOnNonFinalField
+				synchronized (global_interfaced_ids) {
+					try {
+						for (Map.Entry<KernelAddress, OriginalID> kpi : myInterfacedIDs.entrySet()) {
+							InterfacedIDs i2 = global_interfaced_ids.get(kpi.getKey());
+							i2.removeID(id);
+							if (i2.isEmpty()) {
+								global_interfaced_ids.remove(kpi.getKey());
+							}
+						}
+					} catch (Throwable e) {
+						e.printStackTrace();
+					}
+				}
+				global_interfaced_ids = null;
+				myInterfacedIDs = null;
+
+			}
+		}
+	}
+
 	private KernelAddress origin;
-
+	private final Finalizer finalizer;
+	@SuppressWarnings("unused")
 	ConversationID() {
-		id=-1;
+		this(true);
+	}
+	ConversationID(boolean finalize) {
+		finalizer=new Finalizer(finalize);
+		if (finalize)
+			registerCleaner(finalizer);
+		finalizer.id=-1;
 		//id = ID_COUNTER.getAndIncrement();
 		origin = null;
 	}
@@ -83,28 +125,37 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 	}
 
 	protected int getID() {
-		return id;
+		return finalizer.id;
 	}
 
 	ConversationID(int id, KernelAddress origin) {
-		this.id = id;
+		this(true, id, origin);
+	}
+	ConversationID(boolean finalize, int id, KernelAddress origin) {
+		finalizer=new Finalizer(finalize);
+		if (finalize)
+			registerCleaner(finalizer);
+		this.finalizer.id = id;
 		this.origin = origin;
 	}
 
 	ConversationID(ConversationID conversationID) {
 		if (conversationID==null)
 			throw new NullPointerException();
-		this.id = conversationID.id;
+		this.finalizer=new Finalizer(conversationID.finalizer.finalize);
+		if (finalizer.finalize)
+			registerCleaner(finalizer);
+		this.finalizer.id = conversationID.finalizer.id;
 		this.origin = conversationID.origin;
-		if (conversationID.global_interfaced_ids!=null)
+		if (conversationID.finalizer.global_interfaced_ids!=null)
 		{
-			this.global_interfaced_ids=conversationID.global_interfaced_ids;
-			if (conversationID.myInterfacedIDs!=null)
+			this.finalizer.global_interfaced_ids=conversationID.finalizer.global_interfaced_ids;
+			if (conversationID.finalizer.myInterfacedIDs!=null)
 			{
-				this.myInterfacedIDs=Collections.synchronizedMap(new HashMap<>());
+				this.finalizer.myInterfacedIDs=Collections.synchronizedMap(new HashMap<>());
 				try {
-					for (Map.Entry<KernelAddress, OriginalID> kpi : conversationID.myInterfacedIDs.entrySet()) {
-						myInterfacedIDs.put(kpi.getKey(), kpi.getValue());
+					for (Map.Entry<KernelAddress, OriginalID> kpi : conversationID.finalizer.myInterfacedIDs.entrySet()) {
+						finalizer.myInterfacedIDs.put(kpi.getKey(), kpi.getValue());
 						kpi.getValue().incrementPointerToThisOriginalID();
 					}
 				} catch (Throwable e) {
@@ -114,10 +165,10 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 
 			}
 			else
-				this.myInterfacedIDs=null;
+				this.finalizer.myInterfacedIDs=null;
 		}
 		else
-			this.global_interfaced_ids=null;
+			this.finalizer.global_interfaced_ids=null;
 	}
 
 
@@ -129,7 +180,7 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 
 	@Override
 	public String toString() {
-		return id + (origin == null ? "" : origin.toString());
+		return finalizer.id + (origin == null ? "" : origin.toString());
 	}
 
 	@Override
@@ -156,7 +207,7 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 
 	@Override
 	public int hashCode() {
-		return id;
+		return finalizer.id;
 	}
 
 	public KernelAddress getOrigin() {
@@ -259,36 +310,13 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 
 	}
 
-	private transient volatile Map<KernelAddress, InterfacedIDs> global_interfaced_ids = null;
-	protected transient Map<KernelAddress, OriginalID> myInterfacedIDs = null;
+
 
 	Map<KernelAddress, InterfacedIDs> getGlobalInterfacedIDs() {
-		return this.global_interfaced_ids;
+		return this.finalizer.global_interfaced_ids;
 	}
 
-	@SuppressWarnings({"SynchronizeOnNonFinalField", "deprecation"})
-	@Override
-	protected void finalize() {
-		if (global_interfaced_ids != null && myInterfacedIDs != null) {
 
-			synchronized (global_interfaced_ids) {
-				try {
-					for (Map.Entry<KernelAddress, OriginalID> kpi : myInterfacedIDs.entrySet()) {
-						InterfacedIDs i2 = global_interfaced_ids.get(kpi.getKey());
-						i2.removeID(id);
-						if (i2.isEmpty()) {
-							global_interfaced_ids.remove(kpi.getKey());
-						}
-					}
-				} catch (Throwable e) {
-					e.printStackTrace();
-				}
-			}
-			global_interfaced_ids = null;
-			myInterfacedIDs = null;
-
-		}
-	}
 
 	ConversationID getInterfacedConversationIDToDistantPeer(Map<KernelAddress, InterfacedIDs> global_interfaced_ids,
 			KernelAddress currentKernelAddress, KernelAddress distantKernelAddress) {
@@ -297,30 +325,30 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 			return this;
 		else if (origin.equals(currentKernelAddress)) {
 			OriginalID distantId = null;
-			if (myInterfacedIDs != null) {
-				distantId = myInterfacedIDs.get(distantKernelAddress);
+			if (finalizer.myInterfacedIDs != null) {
+				distantId = finalizer.myInterfacedIDs.get(distantKernelAddress);
 			}
 			if (distantId == null) {
 				//noinspection SynchronizationOnLocalVariableOrMethodParameter
 				synchronized (global_interfaced_ids) {
-					if (myInterfacedIDs == null)
-						myInterfacedIDs = Collections.synchronizedMap(new HashMap<>());
+					if (finalizer.myInterfacedIDs == null)
+						finalizer.myInterfacedIDs = Collections.synchronizedMap(new HashMap<>());
 					else
-						distantId = myInterfacedIDs.get(distantKernelAddress);
+						distantId = finalizer.myInterfacedIDs.get(distantKernelAddress);
 					if (distantId==null) {
-						this.global_interfaced_ids = global_interfaced_ids;
+						this.finalizer.global_interfaced_ids = global_interfaced_ids;
 						InterfacedIDs i = global_interfaced_ids.get(distantKernelAddress);
 						if (i == null) {
 							i = new InterfacedIDs();
 							global_interfaced_ids.put(distantKernelAddress, i);
 						}
-						distantId = i.getNewID(this.id);
+						distantId = i.getNewID(this.finalizer.id);
 					}
 					else
 						distantId.incrementPointerToThisOriginalID();
 				}
 
-				myInterfacedIDs.put(distantKernelAddress, distantId);
+				finalizer.myInterfacedIDs.put(distantKernelAddress, distantId);
 			}
 			else
 			{
@@ -366,25 +394,25 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 
 				}
 
-				OriginalID o = i.getOriginalID(id);
+				OriginalID o = i.getOriginalID(finalizer.id);
 				if (o == null) {
-					o = i.getNewIDFromDistantID(this.id);
+					o = i.getNewIDFromDistantID(this.finalizer.id);
 				}
 				else
 					o.incrementPointerToThisOriginalID();
 				OriginalID distantOriginalID=i.getDistantOriginalID(o.getOriginalID());
 				assert distantOriginalID!=null;
-				assert distantOriginalID.originalID==this.id;
+				assert distantOriginalID.originalID==this.finalizer.id;
 				ConversationID cid;
 				if (this instanceof BigDataTransferID)
 					cid=new BigDataTransferID(o.getOriginalID(), origin, ((BigDataTransferID) this).getBytePerSecondsStat());
 				else
 					cid = new ConversationID(o.getOriginalID(), origin);
 
-				cid.global_interfaced_ids = global_interfaced_ids;
-				cid.myInterfacedIDs = Collections
+				cid.finalizer.global_interfaced_ids = global_interfaced_ids;
+				cid.finalizer.myInterfacedIDs = Collections
 						.synchronizedMap(new HashMap<>());
-				cid.myInterfacedIDs.put(distantKernelAddress, distantOriginalID);
+				cid.finalizer.myInterfacedIDs.put(distantKernelAddress, distantOriginalID);
 				return cid;
 			}
 		} else 	if (this instanceof BigDataTransferID)
@@ -402,15 +430,23 @@ public class ConversationID implements SecureExternalizable, Cloneable {
 
 	@Override
 	public void writeExternal(SecuredObjectOutputStream out) throws IOException {
-		out.writeInt(this.id);
+		out.writeInt(this.finalizer.id);
 		out.writeObject(this.origin, true);
 	}
 
 	@Override
 	public void readExternal(SecuredObjectInputStream in) throws IOException, ClassNotFoundException {
-		global_interfaced_ids=null;
-		myInterfacedIDs=null;
-		this.id=in.readInt();
+		finalizer.performCleanup();
+		this.finalizer.id=in.readInt();
 		this.origin=in.readObject(true, KernelAddress.class);
+	}
+
+	@Override
+	public void close() {
+		try {
+			Cleanable.super.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }
