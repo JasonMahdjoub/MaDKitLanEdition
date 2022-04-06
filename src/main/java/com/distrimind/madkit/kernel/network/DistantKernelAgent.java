@@ -880,7 +880,7 @@ class DistantKernelAgent extends AgentFakeThread {
 					getMadkitConfig().networkProperties.maxBufferSize,
 					bgpm.bigDataExcludedFromEncryption()?0:getMadkitConfig().networkProperties.maxRandomPacketValues, random, inputStream,
 					bgpm.getStartStreamPosition(), bgpm.getTransferLength(), true, bgpm.getMessageDigestType());
-			BigPacketData packetData = new BigPacketData(chosenSocket.getAgentAddress(), packet, bgpm.getReceiver(),
+			BigPacketData packetData = new BigPacketData(this, chosenSocket.getAgentAddress(), packet, bgpm.getReceiver(),
 					bgpm.getSender(), bgpm.getConversationID(), bgpm.getStatistics(), bgpm.bigDataExcludedFromEncryption(), bgpm.getAsynchronousBigDataInternalIdentifier(), bgpm.getExternalAsynchronousBigDataIdentifier());
 			packetsDataInQueue.put(id, packetData);
 		}
@@ -1948,7 +1948,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			if (logger != null && logger.isLoggable(Level.FINEST))
 				logger.finest("Sending data (distantInterfacedKernelAddress=" + distant_kernel_address + ", packetID="
 						+ packet.getID() + ") : " + _data);
-			PacketData pd=new PacketData(receiver, _data, packet, _messageLocker, last_message, isItAPriority, _data.excludedFromEncryption());
+			PacketData pd=new PacketData(this, receiver, _data, packet, _messageLocker, last_message, isItAPriority, _data.excludedFromEncryption());
 			if (!ReturnCode.isSuccessOrIsTransferInProgress(sendMessage(receiver,
 					new DistKernADataToUpgradeMessage(pd)))) {
 				pd.unlockMessage();
@@ -2062,15 +2062,15 @@ class DistantKernelAgent extends AgentFakeThread {
 		protected ByteBuffer currentByteBuffer;
 		protected RealTimeTransferStat stat;
 		protected final WritePacket packet;
-		protected final KernelAddressInterfaced distant_kernel_address;
+		protected final DistantKernelAgent agent;
 
-		protected AbstractPacketDataFinalizer(WritePacket packet, KernelAddressInterfaced distant_kernel_address) {
+		protected AbstractPacketDataFinalizer(WritePacket packet, DistantKernelAgent agent) {
 			if (packet == null)
 				throw new NullPointerException("_packet");
-			if (distant_kernel_address == null)
+			if (agent == null)
 				throw new NullPointerException("distant_kernel_address");
 			this.packet=packet;
-			this.distant_kernel_address=distant_kernel_address;
+			this.agent=agent;
 		}
 
 		@Override
@@ -2099,7 +2099,7 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 	}
 	@SuppressWarnings("SynchronizeOnNonFinalField")
-	abstract class AbstractPacketData<F extends AbstractPacketDataFinalizer> extends AbstractData<F> {
+	static abstract class AbstractPacketData<F extends AbstractPacketDataFinalizer> extends AbstractData<F> {
 
 
 		protected Block currentBlock;
@@ -2180,10 +2180,6 @@ class DistantKernelAgent extends AgentFakeThread {
 			}
 		}
 
-		public final void removePendingBigDataPacket()
-		{
-			finalizer.removePendingBigDataPacket();
-		}
 		@Override
 		boolean isCanceledNow()
 		{
@@ -2316,8 +2312,8 @@ class DistantKernelAgent extends AgentFakeThread {
 				if ((agentSocket == null || !agentSocket.isAlive())
 						&& !isUnlocked())
 				{
-					if (logger!=null)
-						logger.warning("Impossible to send message to "+this.getAgentSocketSender());
+					/*if (logger!=null)
+						logger.warning("Impossible to send message to "+this.getAgentSocketSender());*/
 					cancel();
 					return;
 				}
@@ -2353,11 +2349,11 @@ class DistantKernelAgent extends AgentFakeThread {
 		}
 
 		public long getReadDataLength() {
-			return packet.getReadDataLength();
+			return finalizer.packet.getReadDataLength();
 		}
 
 		public long getReadDataLengthIncludingHash() {
-			return packet.getReadDataLengthIncludingHash();
+			return finalizer.packet.getReadDataLengthIncludingHash();
 		}
 
 		AgentAddress getReceiver() {
@@ -2368,11 +2364,10 @@ class DistantKernelAgent extends AgentFakeThread {
 	{
 		protected final MessageLocker messageLocker;
 		protected final LanMessage original_lan_message;
-		private final IDGeneratorInt packet_id_generator ;
 
-		public PacketDataFinalizer(WritePacket packet, KernelAddressInterfaced distant_kernel_address, MessageLocker messageLocker, LanMessage original_lan_message, IDGeneratorInt packet_id_generator) {
-			super(packet, distant_kernel_address);
-			this.packet_id_generator=packet_id_generator;
+
+		public PacketDataFinalizer(WritePacket packet, DistantKernelAgent agent, MessageLocker messageLocker, LanMessage original_lan_message) {
+			super(packet, agent);
 			this.messageLocker = messageLocker;
 			this.original_lan_message=original_lan_message;
 		}
@@ -2383,8 +2378,8 @@ class DistantKernelAgent extends AgentFakeThread {
 			super.performCleanup();
 		}
 		protected void removePacketID(int id) {
-			synchronized (packet_id_generator) {
-				packet_id_generator.removeID(id);
+			synchronized (agent.packet_id_generator) {
+				agent.packet_id_generator.removeID(id);
 			}
 		}
 
@@ -2398,7 +2393,7 @@ class DistantKernelAgent extends AgentFakeThread {
 						if (currentByteBuffer != null)
 							sendLength -= currentByteBuffer.remaining();
 
-						messageLocker.unlock(distant_kernel_address, new DataTransferResult(
+						messageLocker.unlock(agent.distant_kernel_address, new DataTransferResult(
 								packet.getInputStream().length(), packet.getReadDataLength(), sendLength, this.original_lan_message instanceof BroadcastLanMessage), cancel);
 
 					}
@@ -2412,7 +2407,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			}
 		}
 	}
-	class PacketData extends AbstractPacketData<PacketDataFinalizer> {
+	static class PacketData extends AbstractPacketData<PacketDataFinalizer> {
 
 		private final boolean last_message;
 
@@ -2420,9 +2415,9 @@ class DistantKernelAgent extends AgentFakeThread {
 
 
 
-		protected PacketData(AgentAddress first_receiver, SystemMessageWithoutInnerSizeControl lan_message, WritePacket _packet,
+		protected PacketData(DistantKernelAgent agent, AgentAddress first_receiver, SystemMessageWithoutInnerSizeControl lan_message, WritePacket _packet,
 							 MessageLocker _messageLocker, boolean _last_message, boolean isItAPriority, boolean excludedFromEncryption) {
-			super(isItAPriority, new PacketDataFinalizer(_packet, distant_kernel_address, _messageLocker, (!(lan_message instanceof LanMessage)) ? null : (LanMessage) lan_message, packet_id_generator),
+			super(isItAPriority, new PacketDataFinalizer(_packet, agent, _messageLocker, (!(lan_message instanceof LanMessage)) ? null : (LanMessage) lan_message),
 					first_receiver,
 					(lan_message instanceof LanMessage) ? ((LanMessage) lan_message).message.getReceiver() : null, excludedFromEncryption);
 			if (_packet.concernsBigData())
@@ -2445,20 +2440,38 @@ class DistantKernelAgent extends AgentFakeThread {
 
 
 	}
+	static class BigPacketDataFinalizer extends AbstractPacketDataFinalizer
+	{
+		private boolean pendingDataRemoved=false;
 
-	class BigPacketData extends AbstractPacketData {
+		protected BigPacketDataFinalizer(WritePacket packet, DistantKernelAgent agent) {
+			super(packet, agent);
+		}
+
+		@Override
+		protected void removePendingBigDataPacket()
+		{
+			synchronized (this) {
+				if (!pendingDataRemoved) {
+					pendingDataRemoved = true;
+					agent.synchronizeActionWithLiveByCycleFunction(() -> agent.packetsDataInQueue.remove(packet.getID()));
+				}
+			}
+		}
+	}
+	static class BigPacketData extends AbstractPacketData<BigPacketDataFinalizer> {
 		private final AgentAddress caller;
 		private final ConversationID conversationID;
 		private final long nanoTime;
 		private final AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier;
 		private final ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier;
-		private boolean pendingDataRemoved=false;
 
-		protected BigPacketData(AgentAddress _firstAgentSocketSender, WritePacket _packet, AgentAddress _agentReceiver,
+
+		protected BigPacketData(DistantKernelAgent agent, AgentAddress _firstAgentSocketSender, WritePacket _packet, AgentAddress _agentReceiver,
 								AgentAddress caller, ConversationID conversationID, RealTimeTransferStat stat, boolean excludedFromEncryption,
 								AbstractDecentralizedIDGenerator differedBigDataInternalIdentifier,
 								ExternalAsynchronousBigDataIdentifier externalAsynchronousBigDataIdentifier) {
-			super(false, _firstAgentSocketSender, _packet, _agentReceiver, excludedFromEncryption);
+			super(false, new BigPacketDataFinalizer(_packet, agent), _firstAgentSocketSender, _agentReceiver, excludedFromEncryption);
 			if (!_packet.concernsBigData())
 				throw new IllegalArgumentException("_packet has to use big data !");
 			if (caller == null)
@@ -2475,16 +2488,7 @@ class DistantKernelAgent extends AgentFakeThread {
 			nanoTime = System.nanoTime();
 		}
 
-		@Override
-		public void removePendingBigDataPacket()
-		{
-			synchronized (finalizer) {
-				if (!pendingDataRemoved) {
-					pendingDataRemoved = true;
-					synchronizeActionWithLiveByCycleFunction(() -> packetsDataInQueue.remove(packet.getID()));
-				}
-			}
-		}
+
 
 		@Override
 		public DataTransferType getDataTransferType() {
@@ -2514,9 +2518,9 @@ class DistantKernelAgent extends AgentFakeThread {
 
 	static class DistKernADataToUpgradeMessage extends NIOMessage {
 
-		final AbstractPacketData dataToUpgrade;
+		final AbstractPacketData<?> dataToUpgrade;
 
-		DistKernADataToUpgradeMessage(AbstractPacketData _data) {
+		DistKernADataToUpgradeMessage(AbstractPacketData<?> _data) {
 			dataToUpgrade = _data;
 		}
 	}

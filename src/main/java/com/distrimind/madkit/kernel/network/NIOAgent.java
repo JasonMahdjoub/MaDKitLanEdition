@@ -1061,15 +1061,27 @@ final class NIOAgent extends Agent {
 		}
 	}
 
+	private static final class FirstDataFinalizer extends AbstractData.Finalizer
+	{
+		private boolean unlocked = false;
+		@Override
+		void unlockMessage(boolean cancel) {
+			unlocked = true;
+		}
 
-	private static class FirstData extends AbstractData {
+		@Override
+		boolean isUnlocked() {
+			return unlocked;
+		}
+	}
+	private static class FirstData extends AbstractData<FirstDataFinalizer> {
 
 		ByteBuffer data;
-		private boolean unlocked = false;
+
 		private final IDTransfer id;
 
 		FirstData(NIOAgent agent, DatagramLocalNetworkPresenceMessage message) throws IOException, OverflowException {
-			super(true);
+			super(true, new FirstDataFinalizer());
 			data = new DatagramData(message).getByteBuffer();
 			id = IDTransfer.generateIDTransfer(MadkitKernelAccess.getIDTransferGenerator(agent));
 		}
@@ -1080,15 +1092,7 @@ final class NIOAgent extends Agent {
 			return false;
 		}
 
-		@Override
-		void unlockMessage(boolean cancel) {
-			unlocked = true;
-		}
 
-		@Override
-		boolean isUnlocked() {
-			return unlocked;
-		}
 
 		@Override
 		ByteBuffer getByteBuffer() {
@@ -1152,13 +1156,13 @@ final class NIOAgent extends Agent {
 	private class NoBackData
 	{
 		private final PersonalSocket personalSocket;
-		private final AbstractData data;
+		private final AbstractData<?> data;
 		private volatile ByteBuffer buffer;
 		private TransferException pendingException =null;
 		private IDTransfer idTransfer=null;
 
 
-		private NoBackData(PersonalSocket personalSocket, AbstractData data) {
+		private NoBackData(PersonalSocket personalSocket, AbstractData<?> data) {
 			if (data==null)
 				throw new NullPointerException();
 			this.personalSocket=personalSocket;
@@ -1274,7 +1278,7 @@ final class NIOAgent extends Agent {
 		public final AgentAddress agentAddress;
 		public final AgentSocket agentSocket;
 
-		protected CircularArrayList<AbstractData> shortDataToSend ;
+		protected CircularArrayList<AbstractData<?>> shortDataToSend ;
 		protected CircularArrayList<DistantKernelAgent.BigPacketData> bigDataToSend ;
 		protected CircularArrayList<AbstractAgentSocket.BlockDataToTransfer> dataToTransfer ;
 		private final Deque<NoBackData> noBackDataToSend;
@@ -1363,7 +1367,7 @@ final class NIOAgent extends Agent {
 
 			if (canPrepareNextData && noBackDataToSend.size()<numberOfNoBackData)
 			{
-				AbstractData ad=getNextData();
+				AbstractData<?> ad=getNextData();
 				if (ad!=null)
 				{
 					NoBackData nbd=new NoBackData(this, ad);
@@ -1494,7 +1498,7 @@ final class NIOAgent extends Agent {
 			return shortDataToSend.size()>0 || (!bigDataTransferPaused && bigDataToSend.size()>0) || dataToTransfer.size()>0;
 		}
 
-		public boolean addDataToSend(AbstractData _data) throws TransferException {
+		public boolean addDataToSend(AbstractData<?> _data) throws TransferException {
 
 
 
@@ -1621,7 +1625,7 @@ final class NIOAgent extends Agent {
 		}
 
 		private boolean isTransferTypeChangePossible() throws TransferException {
-			AbstractData data = null;
+			AbstractData<?> data = null;
 			switch (dataTransferType) {
 			case SHORT_DATA:
 				if (shortDataToSend.size() > 0) {
@@ -1658,7 +1662,7 @@ final class NIOAgent extends Agent {
 			{
 				while (bigDataToSend.size()>0)
 				{
-					AbstractData ad=bigDataToSend.get(bigDataToSendIndex);
+					AbstractData<?> ad=bigDataToSend.get(bigDataToSendIndex);
 					if (ad.isCanceledNow()) {
 						try {
 							ad.closeStream();
@@ -1678,11 +1682,11 @@ final class NIOAgent extends Agent {
 			}
 			return r;
 		}
-		private boolean purgeObsoleteDataAndTellsIfHasDataToSend(CircularArrayList<? extends AbstractData> l)
+		private boolean purgeObsoleteDataAndTellsIfHasDataToSend(CircularArrayList<? extends AbstractData<?>> l)
 		{
 			while (l.size()>0)
 			{
-				AbstractData ad=l.getFirst();
+				AbstractData<?> ad=l.getFirst();
 				if (ad.isCanceledNow()) {
 					try {
 						ad.closeStream();
@@ -1791,14 +1795,14 @@ final class NIOAgent extends Agent {
 
 		}
 
-		private AbstractData getNextData() throws TransferException {
+		private AbstractData<?> getNextData() throws TransferException {
 			if (is_closed)
 				return null;
 			switch (dataTransferType) {
 				case SHORT_DATA:
 					if (shortDataToSend.size() > 0)
 					{
-						AbstractData ad=shortDataToSend.getFirst();
+						AbstractData<?> ad=shortDataToSend.getFirst();
 						if (ad.isDataBuildInProgress())
 							return null;
 						return ad;
@@ -1808,7 +1812,7 @@ final class NIOAgent extends Agent {
 				case BIG_DATA:
 					if (bigDataToSend.size() > 0)
 					{
-						AbstractData ad=bigDataToSend.get(bigDataToSendIndex);
+						AbstractData<?> ad=bigDataToSend.get(bigDataToSendIndex);
 						if (ad.isDataBuildInProgress())
 							return null;
 						return ad;
@@ -1818,7 +1822,7 @@ final class NIOAgent extends Agent {
 				case DATA_TO_TRANSFER:
 					if (dataToTransfer.size() > 0)
 					{
-						AbstractData ad=dataToTransfer.getFirst();
+						AbstractData<?> ad=dataToTransfer.getFirst();
 						if (ad.isDataBuildInProgress())
 							return null;
 						return ad;
@@ -1831,7 +1835,7 @@ final class NIOAgent extends Agent {
 		}
 
 		@SuppressWarnings("ThrowFromFinallyBlock")
-        private boolean free(AbstractData d) throws TransferException {
+        private boolean free(AbstractData<?> d) throws TransferException {
 			try
 			{
 
@@ -1846,7 +1850,7 @@ final class NIOAgent extends Agent {
 								throw new TransferException("Unexpected exception !", e);
 							} finally {
 								if (shortDataToSend.size()>0 && shortDataToSend.getFirst()==d) {
-									AbstractData removed = shortDataToSend.removeFirst();
+									AbstractData<?> removed = shortDataToSend.removeFirst();
 									if (removed != d)
 										throw new InternalError();
 								}
@@ -1866,7 +1870,7 @@ final class NIOAgent extends Agent {
 								throw new TransferException("Unexpected exception !", e);
 							}
 							if (bigDataToSend.size()>0 && bigDataToSend.get(bigDataToSendIndex)==d) {
-								AbstractData removed = bigDataToSend.remove(bigDataToSendIndex);
+								AbstractData<?> removed = bigDataToSend.remove(bigDataToSendIndex);
 								if (removed != d)
 									throw new InternalError();
 
@@ -1891,7 +1895,7 @@ final class NIOAgent extends Agent {
 								throw new TransferException("Unexpected exception !", e);
 							}
 							if (dataToTransfer.size()>0 && dataToTransfer.getFirst()==d) {
-								AbstractData removed = dataToTransfer.removeFirst();
+								AbstractData<?> removed = dataToTransfer.removeFirst();
 								if (removed != d)
 									throw new InternalError();
 							}
@@ -2144,11 +2148,11 @@ final class NIOAgent extends Agent {
 			try {
 				for (NoBackData ad : noBackDataToSend)
 					ad.data.unlockMessage();
-				for (AbstractData ad : shortDataToSend)
+				for (AbstractData<?> ad : shortDataToSend)
 					ad.unlockMessage();
-				for (AbstractData ad : bigDataToSend)
+				for (AbstractData<?> ad : bigDataToSend)
 					ad.unlockMessage();
-				for (AbstractData ad : dataToTransfer)
+				for (AbstractData<?> ad : dataToTransfer)
 					ad.unlockMessage();
 			}
 			catch (Exception e)
@@ -2262,11 +2266,11 @@ final class NIOAgent extends Agent {
 				try {
 					for (NoBackData ad : noBackDataToSend)
 						ad.data.unlockMessage();
-					for (AbstractData ad : shortDataToSend)
+					for (AbstractData<?> ad : shortDataToSend)
 						ad.unlockMessage();
-					for (AbstractData ad : bigDataToSend)
+					for (AbstractData<?> ad : bigDataToSend)
 						ad.unlockMessage();
-					for (AbstractData ad : dataToTransfer)
+					for (AbstractData<?> ad : dataToTransfer)
 						ad.unlockMessage();
 				}
 				catch (Exception e)
@@ -2280,11 +2284,11 @@ final class NIOAgent extends Agent {
 				try {
 					for (NoBackData ad : noBackDataToSend)
 						ad.data.unlockMessage();
-					for (AbstractData ad : shortDataToSend)
+					for (AbstractData<?> ad : shortDataToSend)
 						ad.unlockMessage();
-					for (AbstractData ad : bigDataToSend)
+					for (AbstractData<?> ad : bigDataToSend)
 						ad.cancel();
-					for (AbstractData ad : dataToTransfer)
+					for (AbstractData<?> ad : dataToTransfer)
 						ad.unlockMessage();
 				}
 				catch (Exception e)

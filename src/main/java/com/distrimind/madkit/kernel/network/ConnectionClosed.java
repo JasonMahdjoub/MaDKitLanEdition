@@ -53,12 +53,12 @@ class ConnectionClosed extends NIOMessage {
 
 	final AgentNetworkID socket;
 	final ConnectionProtocol.ConnectionClosedReason reason;
-	final List<AbstractData> data_not_sent;
+	final List<AbstractData<?>> data_not_sent;
 	final List<DistantKernelAgent.BigPacketData> bigDataNotSent;
 	final List<AbstractAgentSocket.BlockDataToTransfer> dataToTransferNotSent;
 
 	ConnectionClosed(AgentNetworkID _socket, ConnectionProtocol.ConnectionClosedReason _reason,
-					 List<AbstractData> _data_not_sent, List<DistantKernelAgent.BigPacketData> _bigDataNotSent,
+					 List<AbstractData<?>> _data_not_sent, List<DistantKernelAgent.BigPacketData> _bigDataNotSent,
 					 List<AbstractAgentSocket.BlockDataToTransfer> _dataToTransferNotSent) {
 		socket = _socket;
 		reason = _reason;

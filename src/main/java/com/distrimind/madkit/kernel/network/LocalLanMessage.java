@@ -51,9 +51,9 @@ import com.distrimind.util.Cleanable;
  */
 public class LocalLanMessage extends Message implements LockableMessage, Cleanable {
 
-	private static final class Finalizer extends Cleanable.Cleaner
+	protected static final class Finalizer extends Cleanable.Cleaner
 	{
-		private ReceivedSerializableObject originalMessage;
+		protected ReceivedSerializableObject originalMessage;
 		@Override
 		protected void performCleanup() {
 			if (originalMessage != null) {
@@ -62,7 +62,7 @@ public class LocalLanMessage extends Message implements LockableMessage, Cleanab
 			}
 		}
 	}
-	private final Finalizer finalizer;
+	protected final Finalizer finalizer;
 	private final Message message;
 
 	private final MessageLocker locker;

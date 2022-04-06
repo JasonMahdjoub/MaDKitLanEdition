@@ -240,7 +240,7 @@ class IndirectAgentSocket extends AbstractAgentSocket {
 	}
 
 	@Override
-	protected void disconnected(ConnectionClosedReason reason, List<AbstractData> _data_not_sent,
+	protected void disconnected(ConnectionClosedReason reason, List<AbstractData<?>> _data_not_sent,
 								List<DistantKernelAgent.BigPacketData> bigDataNotSent, List<BlockDataToTransfer> dataToTransferNotSent) {
 		cancelPingTaskID();
 		super.disconnected(reason, _data_not_sent, bigDataNotSent, dataToTransferNotSent);

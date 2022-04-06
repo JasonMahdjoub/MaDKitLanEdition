@@ -139,7 +139,7 @@ public class BroadcastLocalLanMessage extends LocalLanMessage {
 	public BroadcastLocalLanMessage clone() {
 		MessageLocker ml=this.getMessageLocker();
 		BroadcastLocalLanMessage b = new BroadcastLocalLanMessage(this, this.getOriginalMessage().clone(),
-				originalMessage == null ? null : originalMessage.clone(), this.abstract_group, this.role,
+				finalizer.originalMessage == null ? null : finalizer.originalMessage.clone(), this.abstract_group, this.role,
 				agentAddressesSender, ml!=null?ml.clone():null);
 		b.readyForInjection = readyForInjection;
 		return b;

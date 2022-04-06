@@ -41,5 +41,10 @@
       <option name="name" value="maven" />
       <option name="url" value="https://artifactory.distri-mind.fr:443/artifactory/gradle-release/" />
     </remote-repository>
+    <remote-repository>
+      <option name="id" value="maven" />
+      <option name="name" value="maven" />
+      <option name="url" value="https://artifactory.distri-mind.fr/artifactory/gradle-release/" />
+    </remote-repository>
   </component>
 </project>

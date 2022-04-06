@@ -570,7 +570,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 
 	}
 
-	private <T extends AbstractData> ArrayList<T> getFilteredData(Collection<T> data, boolean checkTransferIds) {
+	private <T extends AbstractData<?>> ArrayList<T> getFilteredData(Collection<T> data, boolean checkTransferIds) {
 		ArrayList<T> res = new ArrayList<>(data.size());
 		for (T ad : data) {
 			if ((ad.getIDTransfer()!=null && ad.getIDTransfer().equals(getTransferType()))
@@ -588,7 +588,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 
 	}
 
-	protected void disconnected(ConnectionClosedReason reason, List<AbstractData> _data_not_sent,
+	protected void disconnected(ConnectionClosedReason reason, List<AbstractData<?>> _data_not_sent,
 								List<BigPacketData> bigDataNotSent, List<BlockDataToTransfer> dataToTransferNotSent) {
 
 		try {
@@ -621,11 +621,11 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 			bigDataNotSent = getFilteredData(bigDataNotSent, false);
 			dataToTransferNotSent = getFilteredData(dataToTransferNotSent, true);
 			try {
-				for (AbstractData ad : _data_not_sent)
+				for (AbstractData<?> ad : _data_not_sent)
 					ad.unlockMessage();
-				for (AbstractData ad : bigDataNotSent)
+				for (AbstractData<?> ad : bigDataNotSent)
 					ad.cancel();
-				for (AbstractData ad : dataToTransferNotSent)
+				for (AbstractData<?> ad : dataToTransferNotSent)
 					ad.unlockMessage();
 			}
 			catch (IOException e)
@@ -670,11 +670,11 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 	static class AgentSocketKilled extends Message {
 
 
-		protected final List<AbstractData> shortDataNotSent;
+		protected final List<AbstractData<?>> shortDataNotSent;
 		protected final List<BigPacketData> bigDataNotSent;
 		protected final List<BlockDataToTransfer> dataToTransferNotSent;
 
-		AgentSocketKilled(List<AbstractData> _data_not_sent, List<BigPacketData> bigDataNotSent,
+		AgentSocketKilled(List<AbstractData<?>> _data_not_sent, List<BigPacketData> bigDataNotSent,
 						  List<BlockDataToTransfer> dataToTransferNotSent) {
 			this.shortDataNotSent = _data_not_sent;
 			this.bigDataNotSent = bigDataNotSent;
@@ -689,7 +689,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		Class<?> clazz=_message.getClass();
 		if (clazz == DistKernADataToUpgradeMessage.class) {
 
-			AbstractPacketData d = ((DistKernADataToUpgradeMessage) _message).dataToUpgrade;
+			AbstractPacketData<?> d = ((DistKernADataToUpgradeMessage) _message).dataToUpgrade;
 			if (d.isCanceled())
 			{
 				if (logger != null && logger.isLoggable(Level.FINEST))
@@ -700,7 +700,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 				// d.setStat(getBytesPerSecondsStat());
 				if (d.isDataBuildInProgress()) {
 					try {
-						d.setNewBlock(getTransferType(), getBlock(d.packet, getTransferType().getID(), d.excludedFromEncryption));
+						d.setNewBlock(getTransferType(), getBlock(d.finalizer.packet, getTransferType().getID(), d.excludedFromEncryption));
 						if (logger != null && logger.isLoggable(Level.FINEST))
 							logger.finest("Data buffer updated (distant_inet_address=" + distant_inet_address
 									+ ", distantInterfacedKernelAddress=" + distantInterfacedKernelAddress
@@ -2008,7 +2008,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 
 	protected ReturnCode receiveDataToResend(Block block, InterfacedIDTransfer idt) {
 		ReturnCode rc = sendMessageWithRole(idt.getTransferToAgentAddress(),
-				new ResendData(new BlockDataToTransfer(block, idt.getLocalID())),
+				new ResendData(new BlockDataToTransfer(this, block, idt.getLocalID())),
 				LocalCommunity.Roles.SOCKET_AGENT_ROLE);
 		if (!ReturnCode.isSuccessOrIsTransferInProgress(rc) && logger != null)
 			logger.severeLog("Indirect data impossible to resend to " + idt.getTransferToAgentAddress());
@@ -2971,17 +2971,32 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 	protected Block getBlock(WritePacket _packet, int _transfer_type, boolean excludedFromEncryption) throws NIOException {
 		return connection_protocol.getBlock(_packet, _transfer_type, need_random ? random : null, excludedFromEncryption);
 	}
+	private static abstract class BlockDataFinalizer extends AbstractData.Finalizer
+	{
+		protected final Block block;
 
-	static protected abstract class BlockData extends AbstractData {
+		protected BlockDataFinalizer(Block block) {
+			this.block = block;
+		}
+
+		@Override
+		public void unlockMessage(boolean cancel) {
+		}
+		@Override
+		public boolean isUnlocked() {
+			return true;
+		}
+	}
+
+	static protected abstract class BlockData<F extends BlockDataFinalizer> extends AbstractData<F> {
 		private final IDTransfer id_transfer;
 		private ByteBuffer buffer;
-		private final Block block;
+
 		
 
-		BlockData(boolean priority, Block _block, IDTransfer id) {
-			super(priority);
-			block = _block;
-			buffer = ByteBuffer.wrap(_block.getBytes(), 0, _block.getBlockSize());
+		BlockData(boolean priority, F finalizer, IDTransfer id) {
+			super(priority, finalizer);
+			buffer = ByteBuffer.wrap(finalizer.block.getBytes(), 0, finalizer.block.getBlockSize());
 			id_transfer = id;
 		}
 
@@ -2992,16 +3007,7 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		}
 		
 		Block getBlock() {
-			return block;
-		}
-
-		@Override
-		public void unlockMessage(boolean cancel) {
-		}
-
-		@Override
-		public boolean isUnlocked() {
-			return true;
+			return finalizer.block;
 		}
 
 		@Override
@@ -3046,21 +3052,21 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		}
 
 	}
-
-	protected class BlockDataToTransfer extends BlockData {
-
+	private static class BlockDataToTransferFinalizer extends BlockDataFinalizer
+	{
 		private boolean is_locked = true;
+		private final AbstractAgentSocket agent;
 
-		BlockDataToTransfer(Block _block, IDTransfer _id_transfer) {
-			super(false, _block, _id_transfer);
-			dataToTransferInQueue.addAndGet(getBlock().getBlockSize());
+		protected BlockDataToTransferFinalizer(Block block, AbstractAgentSocket agent) {
+			super(block);
+			this.agent=agent;
 		}
 
 		@Override
 		public void unlockMessage(boolean cancel) {
 			if (is_locked) {
 				is_locked = false;
-				dataToTransferInQueue.addAndGet(-getBlock().getBlockSize());
+				agent.dataToTransferInQueue.addAndGet(-block.getBlockSize());
 
 			}
 		}
@@ -3069,6 +3075,18 @@ abstract class AbstractAgentSocket extends AgentFakeThread implements AccessGrou
 		public boolean isUnlocked() {
 			return is_locked;
 		}
+	}
+
+	protected static class BlockDataToTransfer extends BlockData<BlockDataToTransferFinalizer> {
+
+
+
+		BlockDataToTransfer(AbstractAgentSocket agent, Block _block, IDTransfer _id_transfer) {
+			super(false, new BlockDataToTransferFinalizer(_block, agent), _id_transfer);
+			agent.dataToTransferInQueue.addAndGet(getBlock().getBlockSize());
+		}
+
+
 
 		@Override
 		DataTransferType getDataTransferType() {
