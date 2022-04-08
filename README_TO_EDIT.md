@@ -149,7 +149,7 @@ To use madkit GUI based on java swing, you can use the next driver. If you do no
 		...
 	}
 	...
-```	
+```
 When using MKLE into Android, if you want to use UpnpIGD functions, please use this additionnal dependencies (minimum Java version is 11) :
 ```
 	...
@@ -163,7 +163,7 @@ When using MKLE into Android, if you want to use UpnpIGD functions, please use t
 		...
 	}
 	...
-```	
+```
 Librairies are available on Maven Central. You can check signatures of dependencies with this [public GPG key](./gpg_key.asc). You can also use the next repository : 
 ```
 	...
@@ -175,7 +175,7 @@ Librairies are available on Maven Central. You can check signatures of dependenc
 		...
 	}
 	...
-```	
+```
 To know what is the last updaloed version, please refer to versions availables here : [this repository](https://artifactory.distri-mind.fr/artifactory/DistriMind-Public/com/distrimind/madkit/MaDKitLanEdition/)
 ### With Maven :
 Adapt into your pom.xml file, the next code :
@@ -195,7 +195,7 @@ Adapt into your pom.xml file, the next code :
 		...
 	</project>
 	...
-```		
+```
 To use madkit GUI based on java swing, you can use the next driver. If you do not include any GUI driver, MaDKitLanEdition will continue to work without GUI.
 ```
 	...
@@ -205,7 +205,7 @@ To use madkit GUI based on java swing, you can use the next driver. If you do no
 		<version>//PROJECT_VERSION//</version>
 	</dependency>
 	...	
-```	
+```
 When using MKLE into Android, if you want to use UpnpIGD functions, please use this additionnal dependencies (minimum Java version is 11) :
 ```
 	...
@@ -225,7 +225,7 @@ When using MKLE into Android, if you want to use UpnpIGD functions, please use t
 		<version>11.0.8</version>
 	</dependency>	
 	...
-
+```
 Librairies are available on Maven Central. You can check signatures of dependencies with this [public GPG key](./gpg_key.asc). You can also use the next repository : 
 ```
 	...
