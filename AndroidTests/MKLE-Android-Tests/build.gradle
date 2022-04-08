@@ -75,16 +75,12 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-    dexOptions {
-        javaMaxHeapSize "2GB"
-    }
     testOptions {
         execution 'ANDROIDX_TEST_ORCHESTRATOR'
         unitTests.all {
             jvmArgs "-Xmx2g" // to avoid outOfMemory exception
         }
     }
-
 }
 apply from: '../../common_dependencies_with_android_tests.gradle'
 apply from: '../../common_dependencies_with_gui_driver.gradle'
@@ -105,7 +101,7 @@ dependencies {
     androidTestUtil 'androidx.test:orchestrator:1.4.1'
 
 
-    var jettyVersion='11.0.8'
+    var jettyVersion='11.0.9'
 
     implementation 'org.eclipse.jetty:jetty-server:'+jettyVersion
     implementation 'org.eclipse.jetty:jetty-servlet:'+jettyVersion

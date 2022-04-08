@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-2.4.1 STABLE (Build: 6176) (from 22/05/2015 to 29/03/2022)
+2.4.2 STABLE (Build: 6346) (from 22/05/2015 to 07/04/2022)
 
 # Creator(s):
 * Jason MAHDJOUB
@@ -12,6 +12,13 @@ MaDKitLanEdition
 * Jason MAHDJOUB (Entered in the team at 22/05/2015)
 
 # Changes:
+
+
+### 2.4.2 STABLE (07/04/2022)
+#### Internal change(s)
+* Update Utils to 5.23.3 STABLE
+* Update OOD to 3.1.23 STABLE
+* Remove finalize methods into all classes, and these classes using Cleanable API
 
 
 ### 2.4.1 STABLE (29/03/2022)

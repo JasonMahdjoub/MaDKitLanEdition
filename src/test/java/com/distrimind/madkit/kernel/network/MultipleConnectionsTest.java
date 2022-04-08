@@ -369,7 +369,7 @@ public class MultipleConnectionsTest extends TestNGMadkit {
 						AssertJUnit.assertFalse(isAgentsPresentInGroup(m, TestNGMadkit.DEFAULT_NETWORK_GROUP_FOR_ACCESS_DATA, null, true, null));
 					}
 
-
+					System.gc();
 					System.out.println("second round");
 					sleep(800);
 					// second round

@@ -47,6 +47,7 @@ import com.distrimind.madkit.kernel.network.connection.TransferedBlockChecker;
 import com.distrimind.madkit.message.ObjectMessage;
 import com.distrimind.madkit.message.hook.TransferEventMessage;
 import com.distrimind.madkit.message.hook.TransferEventMessage.TransferEventType;
+import com.distrimind.util.Cleanable;
 import com.distrimind.util.IDGeneratorInt;
 import com.distrimind.util.io.*;
 
@@ -477,67 +478,21 @@ class TransferAgent extends AgentFakeThread {
 
 		}
 	}
-
-	final static class IDTransfer implements SecureExternalizable {
-
+	private final static class IDTransferFinalizer extends Cleanable.Cleaner
+	{
 		private final transient IDGeneratorInt generator_id_transfer;
 		private int id;
 
-		private IDTransfer() {
-			generator_id_transfer = null;
-			id = -1;
-		}
-
-		boolean isGenerated() {
-			return generator_id_transfer != null;
-		}
-
-		public static IDTransfer generateIDTransfer(IDGeneratorInt generator_id_transfer) throws OverflowException {
-			return new IDTransfer(generator_id_transfer);
-		}
-
-		private IDTransfer(IDGeneratorInt generator_id_transfer) throws OverflowException {
-
+		public IDTransferFinalizer(IDTransfer cleaner, IDGeneratorInt generator_id_transfer) throws OverflowException {
+			super(cleaner);
 			this.generator_id_transfer = generator_id_transfer;
 			this.id = getNewIDTransfer();
 		}
-
-		@SuppressWarnings("deprecation")
-		@Override
-		protected void finalize() {
-			if (generator_id_transfer != null)
-				removeIDTransfer(id);
+		private IDTransferFinalizer(IDTransfer cleaner) {
+			super(cleaner);
+			generator_id_transfer = null;
+			id = -1;
 		}
-
-		public int getID() {
-			return id;
-		}
-
-		@Override
-		public int hashCode() {
-			return id;
-		}
-
-		@Override
-		public String toString() {
-			return "IDTransfer[" + id + "]";
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (o == null)
-				return false;
-			if (o == this)
-				return true;
-			if (o.getClass() == IDTransfer.class || o.getClass() == Integer.class)
-				return id == o.hashCode();
-			return false;
-		}
-
-		public boolean equals(int id) {
-			return this.id == id;
-		}
-
 		private int getNewIDTransfer() throws OverflowException {
 			synchronized (generator_id_transfer) {
 				try {
@@ -552,13 +507,69 @@ class TransferAgent extends AgentFakeThread {
 
 			}
 		}
-
-		@SuppressWarnings("UnusedReturnValue")
-		private boolean removeIDTransfer(int _id) {
+		@Override
+		protected void performCleanup() {
+			if (generator_id_transfer != null)
+				removeIDTransfer(id);
+		}
+		private void removeIDTransfer(int _id) {
 			synchronized (generator_id_transfer) {
-				return generator_id_transfer.removeID(_id);
+				generator_id_transfer.removeID(_id);
 			}
 		}
+	}
+	final static class IDTransfer implements SecureExternalizable, Cleanable {
+
+		private final IDTransferFinalizer finalizer;
+
+		private IDTransfer() {
+			finalizer=new IDTransferFinalizer(this);
+		}
+
+		boolean isGenerated() {
+			return finalizer.generator_id_transfer != null;
+		}
+
+		public static IDTransfer generateIDTransfer(IDGeneratorInt generator_id_transfer) throws OverflowException {
+			return new IDTransfer(generator_id_transfer);
+		}
+
+		private IDTransfer(IDGeneratorInt generator_id_transfer) throws OverflowException {
+			finalizer=new IDTransferFinalizer(this, generator_id_transfer);
+		}
+
+
+		public int getID() {
+			return finalizer.id;
+		}
+
+		@Override
+		public int hashCode() {
+			return finalizer.id;
+		}
+
+		@Override
+		public String toString() {
+			return "IDTransfer[" + finalizer.id + "]";
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (o == null)
+				return false;
+			if (o == this)
+				return true;
+			if (o.getClass() == IDTransfer.class || o.getClass() == Integer.class)
+				return finalizer.id == o.hashCode();
+			return false;
+		}
+
+		public boolean equals(int id) {
+			return this.finalizer.id == id;
+		}
+
+
+
 
 		@Override
 		public int getInternalSerializedSize() {
@@ -567,12 +578,13 @@ class TransferAgent extends AgentFakeThread {
 
 		@Override
 		public void writeExternal(SecuredObjectOutputStream out) throws IOException {
-			out.writeInt(id);
+			out.writeInt(finalizer.id);
 		}
 
 		@Override
 		public void readExternal(SecuredObjectInputStream in) throws IOException {
-			id=in.readInt();
+			finalizer.performCleanup();
+			finalizer.id=in.readInt();
 		}
 
 	}

@@ -18,7 +18,7 @@ plugins {
 }
 
 Properties props = new Properties()
-def propFile = new File(project.getProjectDir().getParentFile(), 'credentials.properties')
+def propFile = new File(project.getProjectDir().getParentFile().getParentFile(), 'credentials.properties')
 def artifactoryUrl="https://artifactory.distri-mind.fr:443/artifactory"
 def sonatypeStagingUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
 def artifactoryUser=""
@@ -90,7 +90,7 @@ allprojects {
 }
 
 
-version='1.0.40'
+version='1.0.41'
 
 
 task sourcesJar(type: Jar, dependsOn: classes) {

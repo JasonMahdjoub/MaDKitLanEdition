@@ -46,6 +46,7 @@ import com.distrimind.madkit.kernel.network.TransferAgent.TryDirectConnection;
 import com.distrimind.madkit.kernel.network.connection.ConnectionProtocol.ConnectionClosedReason;
 import com.distrimind.madkit.message.ObjectMessage;
 import com.distrimind.util.CircularArrayList;
+import com.distrimind.util.Cleanable;
 import com.distrimind.util.Reference;
 import com.distrimind.util.Timer;
 import com.distrimind.util.concurrent.LockerCondition;
@@ -61,6 +62,7 @@ import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Represent an server socket selector for {@link SocketChannel}, and
@@ -71,9 +73,102 @@ import java.util.logging.Level;
  * @since MadkitLanEdition 1.0
  */
 @SuppressWarnings({"unused", "UnusedReturnValue"})
-final class NIOAgent extends Agent {
+final class NIOAgent extends Agent implements Cleanable {
+
+	private static final class Finalizer extends Cleanable.Cleaner
+	{
+		private Logger logger;
+		private final ArrayList<PendingConnection> pending_connections = new ArrayList<>();
+		private final ArrayList<PersonalSocket> personal_sockets_list = new ArrayList<>(100);
+		private final HashMap<AgentNetworkID, PersonalSocket> personal_sockets = new HashMap<>();
+		private final HashMap<DatagramChannel, PersonalDatagramChannel> personal_datagram_channels = new HashMap<>();
+		private final HashMap<AgentAddress, PersonalDatagramChannel> personal_datagram_channels_per_agent_address = new HashMap<>();
+		private final HashMap<InetAddress, PersonalDatagramChannel> personal_datagram_channels_per_ni_address = new HashMap<>();
+		// The channel on which we'll accept connections
+		private final ArrayList<Server> serverChannels = new ArrayList<>();
+		// The selector we'll be monitoring
+		private final Selector selector;
+		private Finalizer(NIOAgent cleaner, Logger logger) throws ConnectionException {
+			super(cleaner);
+			try {
+				this.logger=logger;
+				selector = SelectorProvider.provider().openSelector();
 
 
+			} catch (IOException e) {
+				throw new ConnectionException(e);
+			}
+		}
+
+		@Override
+		protected void performCleanup() {
+			if (logger != null && logger.isLoggable(Level.FINER))
+				logger.finer("Closing all sockets !");
+
+			for (PendingConnection pc : pending_connections) {
+				try {
+					if (pc.getSocketChannel().isOpen())
+						pc.getSocketChannel().close();
+				} catch (Exception ignored) {
+
+				}
+			}
+
+			pending_connections.clear();
+
+			//noinspection unchecked
+			for (PersonalSocket ps : ((ArrayList<PersonalSocket>) this.personal_sockets_list.clone())) {
+				if (!ps.isClosed()) {
+					ps.closeConnection(ConnectionClosedReason.CONNECTION_LOST);
+					try {
+						for (NoBackData ad : ps.noBackDataToSend)
+							ad.data.unlockMessage();
+					}
+					catch (Exception e)
+					{
+						if (logger != null)
+							logger.log(Level.SEVERE, "Unexpected exception", e);
+					}
+				}
+			}
+
+			this.personal_sockets.clear();
+			this.personal_sockets_list.clear();
+
+
+			if (logger != null && logger.isLoggable(Level.FINER))
+				logger.finer("Closing all datagram channels !");
+			for (Object o : this.personal_datagram_channels.values().toArray()) {
+				PersonalDatagramChannel dc = (PersonalDatagramChannel) o;
+				dc.closeConnection(false);
+			}
+			this.personal_datagram_channels.clear();
+			this.personal_datagram_channels_per_agent_address.clear();
+			this.personal_datagram_channels_per_ni_address.clear();
+
+			if (logger != null && logger.isLoggable(Level.FINER))
+				logger.finer("Closing all servers !");
+
+			for (Server s : this.serverChannels) {
+				try {
+					if (s.serverChannels.isOpen())
+						s.serverChannels.close();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			this.serverChannels.clear();
+			if (logger != null && logger.isLoggable(Level.FINER))
+				logger.finer("Closing selector !");
+			if (selector.isOpen()) {
+				try {
+					this.selector.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 
 	protected static class Server {
 		protected final ServerSocketChannel serverChannels;
@@ -97,23 +192,16 @@ final class NIOAgent extends Agent {
 		}
 	}
 
-	// The channel on which we'll accept connections
-	private final ArrayList<Server> serverChannels = new ArrayList<>();
-
-	// The selector we'll be monitoring
-	private final Selector selector;
-
-	// The buffer into which we'll read data when it's available
 
 
-	private final HashMap<AgentNetworkID, PersonalSocket> personal_sockets = new HashMap<>();
-	private final ArrayList<PersonalSocket> personal_sockets_list = new ArrayList<>(100);
 
-	private final HashMap<DatagramChannel, PersonalDatagramChannel> personal_datagram_channels = new HashMap<>();
-	private final HashMap<AgentAddress, PersonalDatagramChannel> personal_datagram_channels_per_agent_address = new HashMap<>();
-	private final HashMap<InetAddress, PersonalDatagramChannel> personal_datagram_channels_per_ni_address = new HashMap<>();
+
+
+
+
+
 	private final HashMap<InetAddress, Integer> numberOfConnectionsPerIP = new HashMap<>();
-	private final ArrayList<PendingConnection> pending_connections = new ArrayList<>();
+
 
 	private boolean stopping = false;
 	private AgentAddress myAgentAddress = null;
@@ -121,16 +209,10 @@ final class NIOAgent extends Agent {
     private RealTimeTransferStat realTimeGlobalDownloadStat =null, realTimeGlobalUploadStat=null;
     private double realTimeDownloadStatDuration=0.0, realTimeUploadStatDuration=0.0;
 	private volatile LockerCondition actualLocker=null;
-
+	private final Finalizer finalizer;
 	NIOAgent() throws ConnectionException {
+		finalizer=new Finalizer(this, logger);
 
-		try {
-			selector = SelectorProvider.provider().openSelector();
-
-
-		} catch (IOException e) {
-			throw new ConnectionException(e);
-		}
 
 	}
 
@@ -179,74 +261,7 @@ final class NIOAgent extends Agent {
 			logger.fine("NIOAgent LAUNCHED !");
 	}
 
-	@SuppressWarnings("unchecked")
-	private void closeAllNow() {
-		if (logger != null && logger.isLoggable(Level.FINER))
-			logger.finer("Closing all sockets !");
 
-		for (PendingConnection pc : pending_connections) {
-			try {
-				if (pc.getSocketChannel().isOpen())
-					pc.getSocketChannel().close();
-			} catch (Exception ignored) {
-
-			}
-		}
-
-		pending_connections.clear();
-
-		for (PersonalSocket ps : ((ArrayList<PersonalSocket>) this.personal_sockets_list.clone())) {
-			if (!ps.isClosed()) {
-				ps.closeConnection(ConnectionClosedReason.CONNECTION_LOST);
-				try {
-					for (NoBackData ad : ps.noBackDataToSend)
-						ad.data.unlockMessage();
-				}
-				catch (Exception e)
-				{
-					if (logger != null)
-						logger.log(Level.SEVERE, "Unexpected exception", e);
-				}
-			}
-		}
-
-		this.personal_sockets.clear();
-		this.personal_sockets_list.clear();
-
-
-		if (logger != null && logger.isLoggable(Level.FINER))
-			logger.finer("Closing all datagram channels !");
-		for (Object o : this.personal_datagram_channels.values().toArray()) {
-			PersonalDatagramChannel dc = (PersonalDatagramChannel) o;
-			dc.closeConnection(false);
-		}
-		this.personal_datagram_channels.clear();
-		this.personal_datagram_channels_per_agent_address.clear();
-		this.personal_datagram_channels_per_ni_address.clear();
-
-		if (logger != null && logger.isLoggable(Level.FINER))
-			logger.finer("Closing all servers !");
-
-		for (Server s : this.serverChannels) {
-			try {
-				if (s.serverChannels.isOpen())
-					s.serverChannels.close();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		this.serverChannels.clear();
-		if (logger != null && logger.isLoggable(Level.FINER))
-			logger.finer("Closing selector !");
-		if (this.selector.isOpen()) {
-			try {
-				this.selector.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-
-	}
 
 	private long getDownloadToWaitInMsToBecomeUnderBandwidthLimit()
     {
@@ -291,17 +306,15 @@ final class NIOAgent extends Agent {
         return 0;
     }
 
-
-
-	@SuppressWarnings("deprecation")
 	@Override
-	protected void finalize() {
-		closeAllNow();
+	public void setLogLevel(Level newLevel) {
+		super.setLogLevel(newLevel);
+		finalizer.logger=logger;
 	}
 
 	@Override
 	protected void end() {
-		closeAllNow();
+		clean();
 
 		if (logger != null && logger.isLoggable(Level.INFO))
 			logger.info("NIOAgent KILLED !");
@@ -311,7 +324,7 @@ final class NIOAgent extends Agent {
 	@Override
 	public Message receiveMessage(Message _m) {
 		_m = super.receiveMessage(_m);
-		this.selector.wakeup();
+		this.finalizer.selector.wakeup();
 		LockerCondition lc=actualLocker;
 		if (lc!=null)
 			lc.notifyLocker();
@@ -319,7 +332,7 @@ final class NIOAgent extends Agent {
 	}
 	private void checkPingPongMessagesAndPendingConnections() throws IOException {
 		ArrayList<PersonalSocket> connections_to_close = new ArrayList<>();
-		for (PersonalSocket ps : personal_sockets_list) {
+		for (PersonalSocket ps : finalizer.personal_sockets_list) {
 			if (ps.isWaitingForPongMessage()) {
 				if (System.nanoTime()
 						- ps.getTimeSendingPingMessageNano() > getMadkitConfig().networkProperties.connectionTimeOutInMs *1000000L) {
@@ -356,17 +369,17 @@ final class NIOAgent extends Agent {
 				}
 				if (ping) {
 					if (logger != null && logger.isLoggable(Level.FINEST))
-						logger.finest("Sending ping message : " + ps.socketChannel.getRemoteAddress());
+						logger.finest("Sending ping message : " + ps.finalizer.socketChannel.getRemoteAddress());
 
 					ps.sendPingMessage();
 				}
 			}
 		}
-		if (pending_connections.size() > 0) {
+		if (finalizer.pending_connections.size() > 0) {
 			ArrayList<PendingConnection> pendingConnectionsFinished = new ArrayList<>();
 			ArrayList<PendingConnection> pendingConnectionsCanceled = new ArrayList<>();
 
-			for (PendingConnection pc : pending_connections) {
+			for (PendingConnection pc : finalizer.pending_connections) {
 				try {
 					if (pc.getSocketChannel().isConnectionPending() && pc.getSocketChannel().finishConnect())
 						pendingConnectionsFinished.add(pc);
@@ -398,7 +411,7 @@ final class NIOAgent extends Agent {
 		while (m != null) {
 			if (m instanceof DataToSendMessage) {
 				DataToSendMessage dtsm = (DataToSendMessage) m;
-				PersonalSocket ps = personal_sockets.get(dtsm.socket);
+				PersonalSocket ps = finalizer.personal_sockets.get(dtsm.socket);
 				if (ps != null)
 					ps.addDataToSend(dtsm.data);
 				else
@@ -420,16 +433,16 @@ final class NIOAgent extends Agent {
 				if (logger != null && logger.isLoggable(Level.FINER))
 					logger.finer("Receiving : " + m);
 				ConnectionClosed cc = (ConnectionClosed) m;
-				PersonalSocket ps = personal_sockets.get(cc.socket);
+				PersonalSocket ps = finalizer.personal_sockets.get(cc.socket);
 				if (ps != null)
 					ps.closeConnection(cc.reason);
 			} else if (m.getClass() == AbstractAgentSocket.AgentSocketKilled.class) {
-				if (personal_sockets_list.size() == 0 && NIOAgent.this.stopping)
+				if (finalizer.personal_sockets_list.size() == 0 && NIOAgent.this.stopping)
 					NIOAgent.this.killAgent(NIOAgent.this);
 
 			} else if (m instanceof PongMessageReceived) {
 				PongMessageReceived pmr = (PongMessageReceived) m;
-				PersonalSocket ps = personal_sockets.get(pmr.socket);
+				PersonalSocket ps = finalizer.personal_sockets.get(pmr.socket);
 				ps.pongMessageReceived();
 			}
 
@@ -441,7 +454,7 @@ final class NIOAgent extends Agent {
 				if (message.getType().equals(BindInetSocketAddressMessage.Type.BIND)) {
 					if (this.getMadkitConfig().networkProperties.needsServerSocket(addr, addr.getPort())) {
 						boolean alreadyBind = false;
-						for (Server s : serverChannels) {
+						for (Server s : finalizer.serverChannels) {
 
 							if (s.address.equals(addr)) {
 								alreadyBind = true;
@@ -456,9 +469,9 @@ final class NIOAgent extends Agent {
 								serverChannel.socket().bind(addr);
 								// Register the server socket channel, indicating an interest in
 								// accepting new connections
-								serverChannel.register(selector, SelectionKey.OP_ACCEPT);
+								serverChannel.register(finalizer.selector, SelectionKey.OP_ACCEPT);
 								Server s = new Server(serverChannel, addr);
-								serverChannels.add(s);
+								finalizer.serverChannels.add(s);
 								if (logger != null && logger.isLoggable(Level.FINER))
 									logger.finer("Server channel opened : " + s);
 
@@ -471,14 +484,14 @@ final class NIOAgent extends Agent {
 					}
 					bindDatagramData(addr);
 				} else if (message.getType().equals(BindInetSocketAddressMessage.Type.DISCONNECT)) {
-					boolean multicastToRemove = personal_datagram_channels_per_ni_address.size() > 0;
-					for (Iterator<Server> it = serverChannels.iterator(); it.hasNext();) {
+					boolean multicastToRemove = finalizer.personal_datagram_channels_per_ni_address.size() > 0;
+					for (Iterator<Server> it = finalizer.serverChannels.iterator(); it.hasNext();) {
 						Server s = it.next();
 						if (s.address.equals(addr)) {
 							s.serverChannels.close();
 
 							List<PendingConnection> pcs=new ArrayList<>();
-							for (PendingConnection pc : this.pending_connections)
+							for (PendingConnection pc : this.finalizer.pending_connections)
 							{
 								if (pc.isConcernedBy(s))
 								{
@@ -490,18 +503,18 @@ final class NIOAgent extends Agent {
 								pendingConnectionFailed(pc.socketChannel, ConnectionClosedReason.CONNECTION_LOST);
 							}
 
-							for (PersonalSocket ps : this.personal_sockets_list)
+							for (PersonalSocket ps : this.finalizer.personal_sockets_list)
 							{
 								if (ps.isConcernedBy(s))
 									sendMessage(ps.agentAddress,
 											new AskForConnectionMessage(ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED,
 													ps.agentSocket.distantIP,
-													(InetSocketAddress) ps.socketChannel.getRemoteAddress(), null, false, false));
+													(InetSocketAddress) ps.finalizer.socketChannel.getRemoteAddress(), null, false, false));
 							}
 
 							it.remove();
 
-							if (personal_datagram_channels_per_ni_address.size() == 0)
+							if (finalizer.personal_datagram_channels_per_ni_address.size() == 0)
 								break;
 							if (logger != null && logger.isLoggable(Level.FINER))
 								logger.finer("Server channel closed : " + s);
@@ -510,21 +523,21 @@ final class NIOAgent extends Agent {
 							multicastToRemove = true;
 					}
 					if (multicastToRemove)
-						personal_datagram_channels_per_ni_address.get(addr.getAddress()).closeConnection(false);
+						finalizer.personal_datagram_channels_per_ni_address.get(addr.getAddress()).closeConnection(false);
 				}
 			} else if (m instanceof UpnpIGDAgent.NetworkInterfaceInformationMessage) {
 				UpnpIGDAgent.NetworkInterfaceInformationMessage nm=(UpnpIGDAgent.NetworkInterfaceInformationMessage)m;
 				for (NetworkInterface ni : nm.getNewDisconnectedInterfaces())
 				{
-					for (PersonalSocket ps : this.personal_sockets_list)
+					for (PersonalSocket ps : this.finalizer.personal_sockets_list)
 					{
 						sendMessage(ps.agentAddress,
 								new AskForConnectionMessage(ConnectionClosedReason.CONNECTION_LOST,
 										ps.agentSocket.distantIP,
-										(InetSocketAddress) ps.socketChannel.getRemoteAddress(), null, false, false));
+										(InetSocketAddress) ps.finalizer.socketChannel.getRemoteAddress(), null, false, false));
 					}
 					List<PendingConnection> pcs=new ArrayList<>();
-					for (PendingConnection pc : this.pending_connections)
+					for (PendingConnection pc : this.finalizer.pending_connections)
 					{
 						if (pc.isConcernedBy(ni))
 						{
@@ -535,10 +548,10 @@ final class NIOAgent extends Agent {
 					{
 						pendingConnectionFailed(pc.socketChannel, ConnectionClosedReason.CONNECTION_LOST);
 					}
-					for (Iterator<Server> it = serverChannels.iterator(); it.hasNext();) {
+					for (Iterator<Server> it = finalizer.serverChannels.iterator(); it.hasNext();) {
 						Server s = it.next();
 						if (s.isConcernedBy(ni)) {
-							PersonalDatagramChannel mc=personal_datagram_channels_per_ni_address.get(s.address.getAddress());
+							PersonalDatagramChannel mc=finalizer.personal_datagram_channels_per_ni_address.get(s.address.getAddress());
 
 							s.serverChannels.close();
 							it.remove();
@@ -609,7 +622,7 @@ final class NIOAgent extends Agent {
 					logger.finest("Receiving datagram data to send : " + m);
 
 				try {
-					PersonalDatagramChannel pdc = personal_datagram_channels_per_agent_address.get(m.getSender());
+					PersonalDatagramChannel pdc = finalizer.personal_datagram_channels_per_agent_address.get(m.getSender());
 					if (pdc == null) {
 						if (logger != null)
 							logger.warning("No corresponding datagram channel : " + m);
@@ -622,7 +635,7 @@ final class NIOAgent extends Agent {
 			} else if (m instanceof MulticastListenerDeconnectionMessage) {
 				if (logger != null && logger.isLoggable(Level.FINER))
 					logger.finer("Receiving : " + m);
-				personal_datagram_channels_per_agent_address.get(m.getSender()).closeConnection(true);
+				finalizer.personal_datagram_channels_per_agent_address.get(m.getSender()).closeConnection(true);
 			} else if (m instanceof NetworkAgent.StopNetworkMessage) {
 				if (logger != null && logger.isLoggable(Level.FINER))
 					logger.finer("Receiving stop network order");
@@ -631,21 +644,21 @@ final class NIOAgent extends Agent {
 				stopping = true;
 
 				NetworkAgent.StopNetworkMessage message = (NetworkAgent.StopNetworkMessage) m;
-				for (Server s : this.serverChannels)
+				for (Server s : this.finalizer.serverChannels)
 					s.serverChannels.close();
-				List<PendingConnection> pcs=new ArrayList<>(this.pending_connections);
+				List<PendingConnection> pcs=new ArrayList<>(this.finalizer.pending_connections);
 				for (PendingConnection pc : pcs)
 					pendingConnectionFailed(pc.socketChannel, ConnectionClosedReason.CONNECTION_PROPERLY_CLOSED);
-				for (PersonalSocket ps : personal_sockets_list) {
+				for (PersonalSocket ps : finalizer.personal_sockets_list) {
 					kill = false;
 					sendMessage(ps.agentAddress,
 							new AskForConnectionMessage(message.getNetworkCloseReason().getConnectionClosedReason(),
 									ps.agentSocket.distantIP,
-									(InetSocketAddress) ps.socketChannel.getRemoteAddress(), null, false, false));
+									(InetSocketAddress) ps.finalizer.socketChannel.getRemoteAddress(), null, false, false));
 				}
 
-				while (personal_datagram_channels.size() > 0)
-					personal_datagram_channels.values().iterator().next().closeConnection(false);
+				while (finalizer.personal_datagram_channels.size() > 0)
+					finalizer.personal_datagram_channels.values().iterator().next().closeConnection(false);
 				LockerCondition lc=actualLocker;
 				if (lc!=null)
 					lc.notifyLocker();
@@ -664,7 +677,7 @@ final class NIOAgent extends Agent {
 			else if (m.getClass()==PauseBigDataTransferMessage.class)
 			{
 				PauseBigDataTransferMessage p=(PauseBigDataTransferMessage)m;
-				personal_sockets.forEach((k,v) -> {
+				finalizer.personal_sockets.forEach((k,v) -> {
 					if (p.getKernelAddress()==null || v.agentSocket.distantInterfacedKernelAddress.equals(p.getKernelAddress()))
 						v.setBigDataTransferPaused(p.isTransferSuspended());
 				});
@@ -681,7 +694,7 @@ final class NIOAgent extends Agent {
 		try {
 			// Wait for an event one of the registered channels
 			long delay;
-			if (pending_connections.size() > 0)
+			if (finalizer.pending_connections.size() > 0)
 				delay = getMadkitConfig().networkProperties.selectorTimeOutInMsWhenWaitingPendingConnections;
 			else {
 				delay = getMadkitConfig().networkProperties.selectorTimeOutInMs;
@@ -706,7 +719,7 @@ final class NIOAgent extends Agent {
 				}
 			}
             if (delay>0 && isMessageBoxEmpty()) {
-				this.selector.select(delay);
+				this.finalizer.selector.select(delay);
 			}
 
 
@@ -715,7 +728,7 @@ final class NIOAgent extends Agent {
 			handleReceivedMessages();
 
             // Iterate over the set of keys for which events are available
-			Set<SelectionKey> selectedKeys=this.selector.selectedKeys();
+			Set<SelectionKey> selectedKeys=this.finalizer.selector.selectedKeys();
 			Iterator<SelectionKey> selectedKeysIterator = selectedKeys.iterator();
 			boolean hasSpeedLimitation=hasNetworkSpeedLimitationDuringDownloadOrDuringUpload();
             long limitDownload=Long.MIN_VALUE;
@@ -751,7 +764,7 @@ final class NIOAgent extends Agent {
 						if (sc instanceof SocketChannel)
 							((PersonalSocket) key.attachment()).read(key);
 						else if (sc instanceof DatagramChannel) {
-							personal_datagram_channels.get(sc).read(key);
+							finalizer.personal_datagram_channels.get(sc).read(key);
 						}
 					} else if (key.isValid() && key.isWritable()) {
 						if (hasSpeedLimitation) {
@@ -777,7 +790,7 @@ final class NIOAgent extends Agent {
 							else if (logger != null)
 								logger.warning("Personal socket not found " + sc);
 						} else {
-							personal_datagram_channels.get(sc).write(key);
+							finalizer.personal_datagram_channels.get(sc).write(key);
 						}
 
 					}
@@ -809,13 +822,13 @@ final class NIOAgent extends Agent {
 	private void bindDatagramData(InetSocketAddress addr) {
 		try {
 			if (!stopping && getMadkitConfig().networkProperties.autoConnectWithLocalSitePeers
-					&& !personal_datagram_channels_per_ni_address.containsKey(addr.getAddress())) {
-				for (InetAddress ia : personal_datagram_channels_per_ni_address.keySet()) {
+					&& !finalizer.personal_datagram_channels_per_ni_address.containsKey(addr.getAddress())) {
+				for (InetAddress ia : finalizer.personal_datagram_channels_per_ni_address.keySet()) {
 					if (InetAddressFilter.isSameLocalNetwork(addr.getAddress(), ia))
 						return;
 				}
 
-				personal_datagram_channels_per_ni_address.put(addr.getAddress(), null);
+				finalizer.personal_datagram_channels_per_ni_address.put(addr.getAddress(), null);
 				NetworkInterface ni = NetworkInterface.getByInetAddress(addr.getAddress());
 
 				if (ni != null && ni.supportsMulticast()) {
@@ -837,20 +850,20 @@ final class NIOAgent extends Agent {
 		PersonalDatagramChannel pdc = new PersonalDatagramChannel(dc,
 				DatagramLocalNetworkPresenceMessage.getMaxDatagramMessageLength(), mlcm.getSender(),
 				mlcm.getNetworkInterfaceAddress(), mlcm.getGroupIPAddress(), mlcm.getPort());
-		personal_datagram_channels.put(dc, pdc);
-		personal_datagram_channels_per_agent_address.put(mlcm.getSender(), pdc);
-		personal_datagram_channels_per_ni_address.put(mlcm.getNetworkInterfaceAddress(), pdc);
+		finalizer.personal_datagram_channels.put(dc, pdc);
+		finalizer.personal_datagram_channels_per_agent_address.put(mlcm.getSender(), pdc);
+		finalizer.personal_datagram_channels_per_ni_address.put(mlcm.getNetworkInterfaceAddress(), pdc);
 		if (logger != null && logger.isLoggable(Level.FINER))
 			logger.finer("Multicast listener added : " + mlcm);
 
 	}
 	private void parsePersonalSockets(AbstractIP _distant_inet_address,
 											 InetSocketAddress _local_interface_address, Consumer<PersonalSocket> consumer) {
-		for (PersonalSocket ps : personal_sockets_list) {
+		for (PersonalSocket ps : finalizer.personal_sockets_list) {
 			try {
-				InetSocketAddress isa_local = (InetSocketAddress) ps.socketChannel.getLocalAddress();
+				InetSocketAddress isa_local = (InetSocketAddress) ps.finalizer.socketChannel.getLocalAddress();
 				if (_local_interface_address==null || isa_local.equals(_local_interface_address)) {
-					InetSocketAddress isa_remote = (InetSocketAddress) ps.socketChannel.getRemoteAddress();
+					InetSocketAddress isa_remote = (InetSocketAddress) ps.finalizer.socketChannel.getRemoteAddress();
 					if (isa_remote.getPort()==_distant_inet_address.getPort()) {
 						for (InetAddress ia : _distant_inet_address.getInetAddresses()) {
 							if (isa_remote.getAddress().equals(ia)) {
@@ -870,11 +883,11 @@ final class NIOAgent extends Agent {
 	private PersonalSocket getPersonalSocket(InetSocketAddress _distant_inet_address,
 			InetSocketAddress _local_interface_address) {
 		PersonalSocket found = null;
-		for (PersonalSocket ps : personal_sockets_list) {
+		for (PersonalSocket ps : finalizer.personal_sockets_list) {
 			try {
-				InetSocketAddress isa_local = (InetSocketAddress) ps.socketChannel.getLocalAddress();
+				InetSocketAddress isa_local = (InetSocketAddress) ps.finalizer.socketChannel.getLocalAddress();
 				if (_local_interface_address==null || isa_local.equals(_local_interface_address)) {
-					InetSocketAddress isa_remote = (InetSocketAddress) ps.socketChannel.getRemoteAddress();
+					InetSocketAddress isa_remote = (InetSocketAddress) ps.finalizer.socketChannel.getRemoteAddress();
 					if (isa_remote.equals(_distant_inet_address)) {
 						found = ps;
 						break;
@@ -932,7 +945,7 @@ final class NIOAgent extends Agent {
 			try {
 				sc.finishConnect();
 
-				SelectionKey clientKey = sc.register(this.selector, SelectionKey.OP_READ);
+				SelectionKey clientKey = sc.register(this.finalizer.selector, SelectionKey.OP_READ);
 				addSocket(ip, sc, true, clientKey);
 			} catch (IOException e) {
 				if (logger != null)
@@ -967,8 +980,8 @@ final class NIOAgent extends Agent {
 
 						PersonalSocket ps = new PersonalSocket(socketChannel, agent, clientKey);
 
-						personal_sockets.put(agent.getNetworkID(), ps);
-						personal_sockets_list.add(ps);
+						finalizer.personal_sockets.put(agent.getNetworkID(), ps);
+						finalizer.personal_sockets_list.add(ps);
 
 						broadcastMessageWithRole(LocalCommunity.Groups.LOCAL_NETWORKS,
 								LocalCommunity.Roles.LOCAL_NETWORK_ROLE,
@@ -1041,7 +1054,7 @@ final class NIOAgent extends Agent {
 				// Register the new SocketChannel with our Selector, indicating
 				// we'd like to be notified when there's data waiting to be read
 
-				SelectionKey clientKey = socketChannel.register(this.selector,
+				SelectionKey clientKey = socketChannel.register(this.finalizer.selector,
 						SelectionKey.OP_READ);
 
 				addSocket(null, socketChannel, false, clientKey);
@@ -1064,6 +1077,11 @@ final class NIOAgent extends Agent {
 	private static final class FirstDataFinalizer extends AbstractData.Finalizer
 	{
 		private boolean unlocked = false;
+
+		private FirstDataFinalizer() {
+			super();
+		}
+
 		@Override
 		void unlockMessage(boolean cancel) {
 			unlocked = true;
@@ -1272,11 +1290,29 @@ final class NIOAgent extends Agent {
 
 
 	}
-
-	private class PersonalSocket {
+	private static final class PersonalSocketFinalizer extends Cleaner
+	{
 		public final SocketChannel socketChannel;
-		public final AgentAddress agentAddress;
-		public final AgentSocket agentSocket;
+
+		private PersonalSocketFinalizer(PersonalSocket cleaner, SocketChannel socketChannel) {
+			super(cleaner);
+			this.socketChannel = socketChannel;
+		}
+
+		@Override
+		protected void performCleanup() {
+			try {
+				if (this.socketChannel.isConnected())
+					this.socketChannel.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	private class PersonalSocket implements Cleanable{
+		private final PersonalSocketFinalizer finalizer;
+		private final AgentAddress agentAddress;
+		private final AgentSocket agentSocket;
 
 		protected CircularArrayList<AbstractData<?>> shortDataToSend ;
 		protected CircularArrayList<DistantKernelAgent.BigPacketData> bigDataToSend ;
@@ -1346,7 +1382,7 @@ final class NIOAgent extends Agent {
 			initDataToSendLists();
 			numberOfNoBackData=3;
 			noBackDataToSend=new CircularArrayList<>(numberOfNoBackData);
-			socketChannel = _socketChannel;
+			finalizer=new PersonalSocketFinalizer(this, _socketChannel);
 			this.clientKey=clientKey;
 			clientKey.attach(this);
 			agentSocket = _agent;
@@ -1448,24 +1484,14 @@ final class NIOAgent extends Agent {
 		public String toString() {
 			SocketAddress local = null, remote = null;
 			try {
-				local = socketChannel.getLocalAddress();
-				remote = socketChannel.getRemoteAddress();
+				local = finalizer.socketChannel.getLocalAddress();
+				remote = finalizer.socketChannel.getRemoteAddress();
 			} catch (Exception ignored) {
 
 			}
 			return "Socket[localAddress" + local + ", remoteAddress=" + remote + ", agentSocket=" + agentSocket + "]";
 		}
 
-		@SuppressWarnings("deprecation")
-        @Override
-		protected void finalize() {
-			try {
-				if (this.socketChannel.isConnected())
-					this.socketChannel.close();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
 
 
 		public boolean isReadLocked() {
@@ -1930,7 +1956,7 @@ final class NIOAgent extends Agent {
 			try {
 				if (this.readBuffer==null)
 				{
-					data_read = socketChannel.read(readSizeBlock);
+					data_read = finalizer.socketChannel.read(readSizeBlock);
 
 					if (!readSizeBlock.hasRemaining())
 					{
@@ -1947,7 +1973,7 @@ final class NIOAgent extends Agent {
 						readBuffer = ByteBuffer.allocate(size);
 						readBuffer.put(readSizeBlock.array());
 						readSizeBlock.clear();
-						int s=socketChannel.read(readBuffer);
+						int s=finalizer.socketChannel.read(readBuffer);
 						if (s<0)
 							data_read=s;
 						else
@@ -1955,7 +1981,7 @@ final class NIOAgent extends Agent {
 					}
 				}
 				else
-					data_read = socketChannel.read(readBuffer);
+					data_read = finalizer.socketChannel.read(readBuffer);
 
 				if (data_read < 0) {
 					// Remote entity shut the socket down cleanly. Do the
@@ -2096,7 +2122,7 @@ final class NIOAgent extends Agent {
 								}
 							}
 
-							data_sent = socketChannel.write(buf);
+							data_sent = finalizer.socketChannel.write(buf);
 						}
 						if (firstPacketSent)
 						{
@@ -2162,8 +2188,8 @@ final class NIOAgent extends Agent {
 			}
 			try
 			{
-				if (this.socketChannel.isOpen())
-					this.socketChannel.socket().getOutputStream().flush();
+				if (this.finalizer.socketChannel.isOpen())
+					this.finalizer.socketChannel.socket().getOutputStream().flush();
 			}
 			catch(Exception e)
 			{
@@ -2190,8 +2216,8 @@ final class NIOAgent extends Agent {
 		{
 
 			if (agentAddress!=null)
-				personal_sockets.remove(this.agentAddress.getAgentNetworkID());
-			personal_sockets_list.remove(this);
+				NIOAgent.this.finalizer.personal_sockets.remove(this.agentAddress.getAgentNetworkID());
+			NIOAgent.this.finalizer.personal_sockets_list.remove(this);
 
 
 
@@ -2199,18 +2225,18 @@ final class NIOAgent extends Agent {
 			InetSocketAddress isaLocal=null;
 			try {
 
-				isa = (InetSocketAddress) this.socketChannel.getRemoteAddress();
-				isaLocal = (InetSocketAddress) this.socketChannel.getLocalAddress();
+				isa = (InetSocketAddress) this.finalizer.socketChannel.getRemoteAddress();
+				isaLocal = (InetSocketAddress) this.finalizer.socketChannel.getLocalAddress();
 				removeConnectedIP(isa.getAddress());
 
 
 				if (clientKey != null) {
 					clientKey.cancel();
 					clientKey.channel().close();
-					if (socketChannel.isConnected())
-                        socketChannel.close();//TODO remove ?
+					if (finalizer.socketChannel.isConnected())
+						finalizer.socketChannel.close();//TODO remove ?
 				} else
-					socketChannel.close();
+					finalizer.socketChannel.close();
 			} catch (Exception e) {
 				if (logger != null && logger.isLoggable(Level.FINE))
 					logger.log(Level.FINE, "Unexpected exception", e);
@@ -2220,14 +2246,14 @@ final class NIOAgent extends Agent {
 				if (isa!=null && isaLocal!=null) {
 					boolean found = false;
 
-					servers:for (Server s : serverChannels) {
+					servers:for (Server s : NIOAgent.this.finalizer.serverChannels) {
 						if (!s.address.equals(isaLocal))
 							continue;
 
-						for (PersonalSocket sc : personal_sockets_list) {
+						for (PersonalSocket sc : NIOAgent.this.finalizer.personal_sockets_list) {
 							try {
-								if (sc.socketChannel.getLocalAddress().equals(s.address)) {
-									InetSocketAddress isa2 = (InetSocketAddress) sc.socketChannel.getRemoteAddress();
+								if (sc.finalizer.socketChannel.getLocalAddress().equals(s.address)) {
+									InetSocketAddress isa2 = (InetSocketAddress) sc.finalizer.socketChannel.getRemoteAddress();
 
 									if (isa.equals(isa2)) {
 										found = true;
@@ -2300,7 +2326,7 @@ final class NIOAgent extends Agent {
 			bigDataToSend=new CircularArrayList<>(5);
 
 			try {
-				if (stopping && isAlive() && personal_sockets.isEmpty())
+				if (stopping && isAlive() && NIOAgent.this.finalizer.personal_sockets.isEmpty())
 					killAgent(NIOAgent.this);
 			}
 			finally {
@@ -2323,7 +2349,7 @@ final class NIOAgent extends Agent {
 
 		public boolean isConcernedBy(Server s) throws IOException {
 
-			return this.socketChannel.getLocalAddress().equals(s.address);
+			return this.finalizer.socketChannel.getLocalAddress().equals(s.address);
 		}
 	}
 
@@ -2340,7 +2366,7 @@ final class NIOAgent extends Agent {
 		PersonalDatagramChannel(DatagramChannel datagramSocket, int maxDataSize, AgentAddress multicastAgent,
 				InetAddress localAddress, InetAddress groupIP, int port) throws ClosedChannelException {
 			this.datagramChannel = datagramSocket;
-			selectionKey=this.datagramChannel.register(NIOAgent.this.selector, SelectionKey.OP_READ);
+			selectionKey=this.datagramChannel.register(NIOAgent.this.finalizer.selector, SelectionKey.OP_READ);
 			this.multicastAgent = multicastAgent;
 			this.localAddress = localAddress;
 			this.groupIP = groupIP;
@@ -2422,9 +2448,9 @@ final class NIOAgent extends Agent {
 				logger.finer("Closing datagram channel : " + this);
 
 			try {
-				personal_datagram_channels.remove(datagramChannel);
-				personal_datagram_channels_per_agent_address.remove(multicastAgent);
-				personal_datagram_channels_per_ni_address.remove(localAddress);
+				finalizer.personal_datagram_channels.remove(datagramChannel);
+				finalizer.personal_datagram_channels_per_agent_address.remove(multicastAgent);
+				finalizer.personal_datagram_channels_per_ni_address.remove(localAddress);
 				datagramChannel.close();
 				if (!sentFromMulticastAgent)
 					sendMessageWithRole(multicastAgent, new MulticastListenerDeconnectionMessage(),
@@ -2441,13 +2467,13 @@ final class NIOAgent extends Agent {
 		if (logger != null && logger.isLoggable(Level.FINER))
 			logger.finer("Pending connection (inetSocketAddress=" + inetSocketAddress + ", local_interface="
 					+ local_interface + ")");
-		pending_connections
+		finalizer.pending_connections
 				.add(new PendingConnection(ip, socketChannel, inetSocketAddress, local_interface, callerMessage));
 	}
 
 	private void pendingConnectionSucceeded(SocketChannel socketChannel) {
 
-		for (Iterator<PendingConnection> it = pending_connections.iterator(); it.hasNext();) {
+		for (Iterator<PendingConnection> it = finalizer.pending_connections.iterator(); it.hasNext();) {
 			PendingConnection pc = it.next();
 			if (pc.isConcernedBy(socketChannel)) {
 				if (pc.getCallerMessage() != null && pc.getCallerMessage().getJoinedPiece() != null
@@ -2472,7 +2498,7 @@ final class NIOAgent extends Agent {
 		if (logger != null && logger.isLoggable(Level.FINER))
 			logger.finer("Connection FAILED (socketChannel=" + socketChannel + "]");
 
-		for (Iterator<PendingConnection> it = pending_connections.iterator(); it.hasNext();) {
+		for (Iterator<PendingConnection> it = finalizer.pending_connections.iterator(); it.hasNext();) {
 			PendingConnection pc = it.next();
 			if (pc.isConcernedBy(socketChannel)) {
 				if (pc.getCallerMessage() != null && pc.getCallerMessage().getJoinedPiece() != null

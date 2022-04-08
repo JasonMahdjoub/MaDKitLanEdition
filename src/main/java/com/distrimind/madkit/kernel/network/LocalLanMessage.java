@@ -53,7 +53,12 @@ public class LocalLanMessage extends Message implements LockableMessage, Cleanab
 
 	protected static final class Finalizer extends Cleanable.Cleaner
 	{
-		protected ReceivedSerializableObject originalMessage;
+		ReceivedSerializableObject originalMessage;
+
+		private Finalizer(Cleanable cleanable) {
+			super(cleanable);
+		}
+
 		@Override
 		protected void performCleanup() {
 			if (originalMessage != null) {
@@ -77,8 +82,7 @@ public class LocalLanMessage extends Message implements LockableMessage, Cleanab
 	protected LocalLanMessage(Message _message, ReceivedSerializableObject originalMessage) {
 		if (!(_message instanceof NetworkMessage))
 			throw new IllegalArgumentException("The message to send me implements NetworkMessage interface");
-		finalizer=new Finalizer();
-		registerCleaner(finalizer);
+		finalizer=new Finalizer(this);
 		message = _message;
 		locker = new MessageLocker(this);
 		this.finalizer.originalMessage = originalMessage;
@@ -89,8 +93,7 @@ public class LocalLanMessage extends Message implements LockableMessage, Cleanab
 		super(This);
 		if (!(_message instanceof NetworkMessage))
 			throw new IllegalArgumentException("The message to send me implements NetworkMessage interface");
-		finalizer=new Finalizer();
-		registerCleaner(finalizer);
+		finalizer=new Finalizer(this);
 		message = _message;
 		this.locker = locker;
 		this.finalizer.originalMessage = originalMessage;

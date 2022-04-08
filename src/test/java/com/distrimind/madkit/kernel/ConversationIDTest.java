@@ -307,12 +307,10 @@ public class ConversationIDTest extends TestNGMadkit {
 					interfacedByCurrentIds = null;
 					interfacedByOtherIds = null;
 					interfacedFromOtherIds = null;
-					interfacedToOtherIds = null;
 					interfacedByCurrentIdsSerialized = null;
 					interfacedByOtherIdsSerialized = null;
 					interfacedFromOtherIdsSerialized = null;
 					interfacedToOtherIdsSerialized = null;
-					notInterfacedIdsToOther=null;
 
 
 

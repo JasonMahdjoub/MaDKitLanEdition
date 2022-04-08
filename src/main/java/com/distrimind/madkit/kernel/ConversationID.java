@@ -76,8 +76,10 @@ public class ConversationID implements SecureExternalizable, Cloneable, Cleanabl
 		private final boolean finalize;
 		private int id;
 
-		public Finalizer(boolean finalize) {
-			this.finalize = finalize;
+		public Finalizer(ConversationID cleaner, int id) {
+			super(cleaner);
+			this.finalize = cleaner!=null;
+			this.id=id;
 		}
 
 		@Override
@@ -112,10 +114,7 @@ public class ConversationID implements SecureExternalizable, Cloneable, Cleanabl
 		this(true);
 	}
 	ConversationID(boolean finalize) {
-		finalizer=new Finalizer(finalize);
-		if (finalize)
-			registerCleaner(finalizer);
-		finalizer.id=-1;
+		finalizer=new Finalizer(finalize?this:null, -1);
 		//id = ID_COUNTER.getAndIncrement();
 		origin = null;
 	}
@@ -132,20 +131,14 @@ public class ConversationID implements SecureExternalizable, Cloneable, Cleanabl
 		this(true, id, origin);
 	}
 	ConversationID(boolean finalize, int id, KernelAddress origin) {
-		finalizer=new Finalizer(finalize);
-		if (finalize)
-			registerCleaner(finalizer);
-		this.finalizer.id = id;
+		finalizer=new Finalizer(finalize?this:null, id);
 		this.origin = origin;
 	}
 
 	ConversationID(ConversationID conversationID) {
 		if (conversationID==null)
 			throw new NullPointerException();
-		this.finalizer=new Finalizer(conversationID.finalizer.finalize);
-		if (finalizer.finalize)
-			registerCleaner(finalizer);
-		this.finalizer.id = conversationID.finalizer.id;
+		this.finalizer=new Finalizer(conversationID.finalizer.finalize?this:null, conversationID.finalizer.id);
 		this.origin = conversationID.origin;
 		if (conversationID.finalizer.global_interfaced_ids!=null)
 		{
@@ -398,8 +391,9 @@ public class ConversationID implements SecureExternalizable, Cloneable, Cleanabl
 				if (o == null) {
 					o = i.getNewIDFromDistantID(this.finalizer.id);
 				}
-				else
+				else {
 					o.incrementPointerToThisOriginalID();
+				}
 				OriginalID distantOriginalID=i.getDistantOriginalID(o.getOriginalID());
 				assert distantOriginalID!=null;
 				assert distantOriginalID.originalID==this.finalizer.id;
@@ -410,8 +404,7 @@ public class ConversationID implements SecureExternalizable, Cloneable, Cleanabl
 					cid = new ConversationID(o.getOriginalID(), origin);
 
 				cid.finalizer.global_interfaced_ids = global_interfaced_ids;
-				cid.finalizer.myInterfacedIDs = Collections
-						.synchronizedMap(new HashMap<>());
+				cid.finalizer.myInterfacedIDs = Collections.synchronizedMap(new HashMap<>());
 				cid.finalizer.myInterfacedIDs.put(distantKernelAddress, distantOriginalID);
 				return cid;
 			}

@@ -54,6 +54,10 @@ import java.nio.ByteBuffer;
 abstract class AbstractData<F extends AbstractData.Finalizer> implements Cleanable {
 	protected static abstract class Finalizer extends Cleaner
 	{
+		protected Finalizer() {
+			super(null);
+		}
+
 		abstract boolean isUnlocked();
 		abstract void unlockMessage(boolean cancel) throws MadkitException;
 		@Override
@@ -77,7 +81,7 @@ abstract class AbstractData<F extends AbstractData.Finalizer> implements Cleanab
 		if (finalizer==null)
 			throw new NullPointerException();
 		this.finalizer=finalizer;
-		registerCleaner(finalizer);
+		registerCleanerIfNotDone(finalizer);
 		this.priority = priority;
 	}
 

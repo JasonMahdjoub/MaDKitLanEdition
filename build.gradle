@@ -150,6 +150,7 @@ allprojects {
         javadoc.options.addStringOption("html5", "-quiet")
     }
 
+
 }
 
 idea {

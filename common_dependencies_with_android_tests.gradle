@@ -1,5 +1,7 @@
 dependencies {
-    api(group:'com.distrimind.ood', name: 'OOD', version: '3.1.22-STABLE')
+    api(group:'com.distrimind.ood', name: 'OOD', version: '3.1.26-STABLE')
+    /*api project(':OOD')
+    api project(':Utils')*/
     implementation(group:'com.distrimind.upnp_igd', name: 'UPnPIGD', version: '1.0.2-STABLE')
 
 }

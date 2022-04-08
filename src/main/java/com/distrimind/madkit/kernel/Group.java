@@ -40,6 +40,7 @@ package com.distrimind.madkit.kernel;
 
 import com.distrimind.madkit.agr.CloudCommunity;
 import com.distrimind.madkit.agr.LocalCommunity;
+import com.distrimind.util.Cleanable;
 import com.distrimind.util.data_buffers.WrappedSecretString;
 import com.distrimind.util.io.SecuredObjectInputStream;
 import com.distrimind.util.io.SecuredObjectOutputStream;
@@ -62,7 +63,24 @@ import java.util.concurrent.atomic.AtomicReference;
  * @see AbstractGroup
  * @see MultiGroup
  */
-public final class Group extends AbstractGroup implements Comparable<Group> {
+public final class Group extends AbstractGroup implements Comparable<Group>, Cleanable {
+
+	private static final class Finalizer extends Cleanable.Cleaner
+	{
+		private transient GroupTree m_group;
+
+		private Finalizer(Cleanable cleanable) {
+			super(cleanable);
+		}
+
+		@Override
+		protected void performCleanup() {
+			if (m_group!=null) {
+				m_group.decrementReferences();
+				m_group = null;
+			}
+		}
+	}
 
 	public static final short MAX_COMMUNITY_LENGTH=1024;
 	public static final int MAX_PATH_LENGTH=16384;
@@ -71,7 +89,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	
 	public static final int MAX_CGR_LENGTH=MAX_COMMUNITY_LENGTH+MAX_PATH_LENGTH+MAX_ROLE_NAME_LENGTH+3;
 	
-	private transient GroupTree m_group;
+	private final Finalizer finalizer;
 	private transient boolean m_use_sub_groups;
 	private volatile transient GroupTree[] m_sub_groups_tree = null;
 	private volatile transient GroupTree[] m_global_groups_tree = null;
@@ -129,7 +147,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	@SuppressWarnings("unused")
 	Group()
 	{
-		
+		finalizer=new Finalizer(this);
 	}
 
 	/**
@@ -366,7 +384,8 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 			_groups = new String[0];
 		if (_groups.length == 1 && _groups[0].contains("/"))
 			_groups = getGroupsStringFromPath(_groups[0]);
-		m_group = getRoot(_community).getGroup(_isDistributed, _theIdentifier, _isReserved, forceReserved, _groups);
+		finalizer=new Finalizer(this);
+		finalizer.m_group = getRoot(_community).getGroup(_isDistributed, _theIdentifier, _isReserved, forceReserved, _groups);
 
 		m_use_sub_groups = _useSubGroups;
 		/*
@@ -374,19 +393,19 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 		 * //m_represented_groups[0]=this; }
 		 */
 		if ((default_values & DEFAULT_DISTRIBUTED_VALUE) != DEFAULT_DISTRIBUTED_VALUE) {
-			if (m_group.isDistributed() && !_isDistributed)
+			if (finalizer.m_group.isDistributed() && !_isDistributed)
 				System.err.println("[GROUP WARNING] The current created group (" + this
 						+ ") have be declared as not distributed, whereas previous declarations of the same group were distributed. So the current created group is distributed !");
-			if (!m_group.isDistributed() && _isDistributed)
+			if (!finalizer.m_group.isDistributed() && _isDistributed)
 				System.err.println("[GROUP WARNING] The current created group (" + this
 						+ ") have be declared as distributed, whereas previous declarations of the same group were not distributed. So the current created group is not distributed !");
 		}
 		if ((default_values & DEFAULT_GATEKEEPER) != DEFAULT_GATEKEEPER) {
-			if (m_group.getGateKeeper() != _theIdentifier)
+			if (finalizer.m_group.getGateKeeper() != _theIdentifier)
 				System.err.println("[GROUP WARNING] The current created group (" + this
 						+ ") have be declared with an identifier (" + _theIdentifier
 						+ ") which is not the same than the one declared with the previous same declared groups. So the current created group has the previous declared MadKit identifier ("
-						+ m_group.getGateKeeper() + ") !");
+						+ finalizer.m_group.getGateKeeper() + ") !");
 		}
 	}
 
@@ -395,10 +414,11 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	}
 
 	Group(GroupTree _g, boolean _use_sub_groups, boolean increase) {
-		m_group = _g;
+		finalizer=new Finalizer(this);
+		finalizer.m_group = _g;
 		m_use_sub_groups = _use_sub_groups;
 		if (increase)
-			m_group.incrementReferences();
+			finalizer.m_group.incrementReferences();
 		/*
 		 * if (!m_use_sub_groups) { m_represented_groups=new Group[1];
 		 * m_represented_groups[0]=this; }
@@ -406,14 +426,6 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 
 	}
 
-	@SuppressWarnings("deprecation")
-	@Override
-	protected void finalize() {
-		if (m_group!=null) {
-			m_group.decrementReferences();
-			m_group = null;
-		}
-	}
 
 	@Override
 	public int hashCode() {
@@ -443,7 +455,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 
 			if (path==null)
 				throw new IOException();
-			m_group = getRoot(com).getGroup(dist, null, isReserved, true, getGroupsStringFromPath(path));
+			finalizer.m_group = getRoot(com).getGroup(dist, null, isReserved, true, getGroupsStringFromPath(path));
 
 			if (!m_use_sub_groups) {
 				m_represented_groups = new Group[0];
@@ -528,7 +540,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	}
 
 	public boolean isReserved() {
-		return this.m_group.isReserved();
+		return this.finalizer.m_group.isReserved();
 	}
 
 	/**
@@ -538,13 +550,13 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	 * @since MadKitGroupExtension 1.0
 	 */
 	public Group getParent() {
-		GroupTree p = m_group.getParent();
+		GroupTree p = finalizer.m_group.getParent();
 		if (p == null)
 			return null;
 		else if (p.isReserved())
 			return null;
 		else
-			return new Group(m_group.getParent());
+			return new Group(finalizer.m_group.getParent());
 	}
 
 	/**
@@ -555,13 +567,13 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	 * @since MadKitGroupExtension 1.0
 	 */
 	public Group getParentWithItsSubGroups() {
-		GroupTree p = m_group.getParent();
+		GroupTree p = finalizer.m_group.getParent();
 		if (p == null)
 			return null;
 		else if (p.isReserved())
 			return null;
 		else
-			return new Group(m_group.getParent(), true, true);
+			return new Group(finalizer.m_group.getParent(), true, true);
 	}
 
 	/**
@@ -571,7 +583,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	 * @since MadKitGroupExtension 1.0
 	 */
 	public String getCommunity() {
-		return m_group.getCommunity();
+		return finalizer.m_group.getCommunity();
 	}
 
 	/**
@@ -581,7 +593,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	 * @since MadKitGroupExtension 1.0
 	 */
 	public String getName() {
-		return m_group.getGroupName();
+		return finalizer.m_group.getGroupName();
 	}
 
 	/**
@@ -594,7 +606,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	 * @since MadKitGroupExtension 1.0
 	 */
 	public String getPath() {
-		return m_group.getGroupPath();
+		return finalizer.m_group.getGroupPath();
 	}
 
 	/**
@@ -800,7 +812,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	 * @since MadKitLanEdition 1.0
 	 */
 	public Group getSubGroup(boolean _isReserved, String... _groups) {
-		return getSubGroup(m_group.isDistributed(), m_group.getGateKeeper(), _isReserved, _groups);
+		return getSubGroup(finalizer.m_group.isDistributed(), finalizer.m_group.getGateKeeper(), _isReserved, _groups);
 	}
 
 	/**
@@ -890,7 +902,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	 */
 	public Group getSubGroup(boolean _isDistributed, Gatekeeper _theIdentifier, boolean _isReserved,
 			String... _groups) {
-		return new Group(m_group.getGroup(_isDistributed, _theIdentifier, _isReserved, _groups), false, false);
+		return new Group(finalizer.m_group.getGroup(_isDistributed, _theIdentifier, _isReserved, _groups), false, false);
 	}
 
 	/**
@@ -905,7 +917,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	 * @see #getRepresentedGroups(KernelAddress)
 	 */
 	public Group getSubGroupWithItsSubGroups(String... _group) {
-		return new Group(m_group.getGroup(m_group.isDistributed(), m_group.getGateKeeper(), false, _group), true,
+		return new Group(finalizer.m_group.getGroup(finalizer.m_group.isDistributed(), finalizer.m_group.getGateKeeper(), false, _group), true,
 				false);
 	}
 
@@ -918,7 +930,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	 */
 	public Group getThisGroupWithoutItsSubGroups() {
 		if (m_use_sub_groups) {
-			return new Group(m_group, false, true);
+			return new Group(finalizer.m_group, false, true);
 		} else
 			return this;
 	}
@@ -932,7 +944,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	 */
 	public Group getThisGroupWithItsSubGroups() {
 		if (!m_use_sub_groups) {
-			return new Group(m_group, true, true);
+			return new Group(finalizer.m_group, true, true);
 		} else
 			return this;
 	}
@@ -948,7 +960,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	 * @since MadKitGroupExtension 1.0
 	 */
 	public Group[] getSubGroups(KernelAddress ka) {
-		GroupTree[] sub_groups = m_group.getSubGroups(ka);
+		GroupTree[] sub_groups = finalizer.m_group.getSubGroups(ka);
 		if (m_sub_groups_tree != sub_groups) {
 			ArrayList<Group> res = new ArrayList<>();
 
@@ -957,7 +969,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
                     res.add(new Group(sub_group, false, true));
             }
 
-			synchronized (m_group.root) {
+			synchronized (finalizer.m_group.root) {
 				m_represented_groups = null;
 				m_sub_groups = new Group[res.size()];
 				res.toArray(m_sub_groups);
@@ -977,14 +989,14 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	 * @since MadKitGroupExtension 1.0
 	 */
 	public Group[] getSubGroups() {
-		GroupTree[] sub_groups = m_group.getSubGroups();
+		GroupTree[] sub_groups = finalizer.m_group.getSubGroups();
 		if (m_global_groups_tree != sub_groups) {
 			ArrayList<Group> res = new ArrayList<>();
 			for (GroupTree gt : sub_groups) {
 				if (!gt.isReserved())
 					res.add(new Group(gt, false, true));
 			}
-			synchronized (m_group.root) {
+			synchronized (finalizer.m_group.root) {
 				m_global_represented_groups = null;
 				m_global_sub_groups = new Group[res.size()];
 				res.toArray(m_global_sub_groups);
@@ -1004,7 +1016,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	 * @since MadKitGroupExtension 1.0
 	 */
 	public Group[] getParentGroups() {
-		GroupTree[] parent_groups = m_group.getParentGroups();
+		GroupTree[] parent_groups = finalizer.m_group.getParentGroups();
 		if (m_parent_groups_tree != parent_groups) {
 			ArrayList<Group> res = new ArrayList<>(parent_groups.length);
 
@@ -1013,7 +1025,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
                     res.add(new Group(parent_group, false, true));
             }
 
-			synchronized (m_group.root) {
+			synchronized (finalizer.m_group.root) {
 				m_parent_groups = new Group[res.size()];
 				res.toArray(m_parent_groups);
 				if (m_use_sub_groups)
@@ -1033,7 +1045,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	}
 
 	public boolean equals(Group _g) {
-		return _g!=null && (_g == this || (this.m_group == _g.m_group && this.m_use_sub_groups == _g.m_use_sub_groups));
+		return _g!=null && (_g == this || (this.finalizer.m_group == _g.finalizer.m_group && this.m_use_sub_groups == _g.m_use_sub_groups));
 	}
 
 	/**
@@ -1045,7 +1057,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	 * @see #Group(boolean, boolean, Gatekeeper, String, String...)
 	 */
 	public boolean isDistributed() {
-		return m_group.isDistributed();
+		return finalizer.m_group.isDistributed();
 	}
 
 	/**
@@ -1055,38 +1067,38 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	 * @see #Group(boolean, boolean, Gatekeeper, String, String...)
 	 */
 	public Gatekeeper getGateKeeper() {
-		return m_group.getGateKeeper();
+		return finalizer.m_group.getGateKeeper();
 	}
 
 	boolean isMadKitCreated(KernelAddress ka) {
-		return m_group.isMadKitCreated(ka);
+		return finalizer.m_group.isMadKitCreated(ka);
 	}
 	
 	boolean hasMadKitTraces(KernelAddress ka) {
-		return m_group.hasMadKitTraces(ka);
+		return finalizer.m_group.hasMadKitTraces(ka);
 	}
 
 	boolean isAnyRoleRequested(KernelAddress ka) {
-		return m_group.isAnyRoleRequested(ka);
+		return finalizer.m_group.isAnyRoleRequested(ka);
 	}
 
 
 	boolean isAnyRoleRequested() {
-		return m_group.isAnyRoleRequested();
+		return finalizer.m_group.isAnyRoleRequested();
 	}
 
 	void incrementMadKitReferences(KernelAddress ka) {
-		m_group.incrementMadKitReferences(ka);
+		finalizer.m_group.incrementMadKitReferences(ka);
 	}
 
 
 	void decrementMadKitReferences(KernelAddress ka) {
-		m_group.decrementMadKitReferences(ka);
+		finalizer.m_group.decrementMadKitReferences(ka);
 	}
 
 
 	void setMadKitCreated(KernelAddress ka, boolean value) {
-		m_group.setMadKitCreated(ka, value);
+		finalizer.m_group.setMadKitCreated(ka, value);
 	}
 
 	/**
@@ -1109,14 +1121,14 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	@Override
 	public Group[] getRepresentedGroups(KernelAddress ka) {
 		if (m_use_sub_groups) {
-			synchronized (m_group.root) {
+			synchronized (finalizer.m_group.root) {
 				Group[] sg = getSubGroups(ka);
 				boolean isAnyRoleRequested;
 				isAnyRoleRequested = this.isAnyRoleRequested(ka);
 				if (m_represented_groups == null || (isAnyRoleRequested
-						&& (m_represented_groups.length == 0 || m_represented_groups[0].m_group != this.m_group))
+						&& (m_represented_groups.length == 0 || m_represented_groups[0].finalizer.m_group != this.finalizer.m_group))
 						|| (!isAnyRoleRequested && m_represented_groups.length != 0
-								&& m_represented_groups[0].m_group == this.m_group)) {
+								&& m_represented_groups[0].finalizer.m_group == this.finalizer.m_group)) {
 					if (sg == null)
 						sg = new Group[0];
 					if (isAnyRoleRequested || (this.getPath().equals(LocalCommunity.Groups.SYSTEM.getPath())
@@ -1131,7 +1143,7 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 				return m_represented_groups;
 			}
 		} else {
-			synchronized (m_group.root) {
+			synchronized (finalizer.m_group.root) {
 				if (m_represented_groups == null || m_represented_groups.length == 0) {
 					if (this.isAnyRoleRequested(ka) || this.isHiddenGroup()) {
 						m_represented_groups = new Group[1];
@@ -1159,13 +1171,13 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 	@Override
 	public Group[] getRepresentedGroups() {
 		if (m_use_sub_groups) {
-			synchronized (m_group.root) {
+			synchronized (finalizer.m_group.root) {
 				Group[] sg = getSubGroups();
 				if (m_represented_groups == null
-						|| (this.isAnyRoleRequested() && (m_global_represented_groups.length == 0 || m_global_represented_groups[0].m_group != this.m_group))
+						|| (this.isAnyRoleRequested() && (m_global_represented_groups.length == 0 || m_global_represented_groups[0].finalizer.m_group != this.finalizer.m_group))
 						|| (!this.isAnyRoleRequested() && m_global_represented_groups.length != 0
-								&& m_global_represented_groups[0].m_group == this.m_group)) {
-					if (m_group.isAnyRoleRequested() || this.isHiddenGroup()) {
+								&& m_global_represented_groups[0].finalizer.m_group == this.finalizer.m_group)) {
+					if (finalizer.m_group.isAnyRoleRequested() || this.isHiddenGroup()) {
 						m_global_represented_groups = new Group[sg.length + 1];
 						m_global_represented_groups[0] = this.getThisGroupWithoutItsSubGroups();
 						System.arraycopy(sg, 0, m_represented_groups, 1, sg.length);
@@ -1175,9 +1187,9 @@ public final class Group extends AbstractGroup implements Comparable<Group> {
 				return m_global_represented_groups;
 			}
 		} else {
-			synchronized (m_group.root) {
+			synchronized (finalizer.m_group.root) {
 				if (m_global_represented_groups == null || m_global_represented_groups.length == 0) {
-					if (m_group.isAnyRoleRequested() || this.isHiddenGroup()) {
+					if (finalizer.m_group.isAnyRoleRequested() || this.isHiddenGroup()) {
 						m_global_represented_groups = new Group[1];
 						m_global_represented_groups[0] = this;
 					} else
