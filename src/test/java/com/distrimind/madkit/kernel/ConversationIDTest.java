@@ -38,6 +38,7 @@
 package com.distrimind.madkit.kernel;
 
 import com.distrimind.madkit.JUnitFunctions;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 import com.distrimind.madkit.kernel.ConversationID.InterfacedIDs;
@@ -77,6 +78,7 @@ public class ConversationIDTest extends TestNGMadkit {
 				try {
 					final KernelAddress ka1 = new KernelAddress(false);//getKernelAddress();
 					final KernelAddress ka2 = new KernelAddress(false);
+					Assert.assertNotEquals(ka1, ka2);
 					final Map<KernelAddress, InterfacedIDs> globaInterfacedIDs1 = new HashMap<>();//getMadkitKernel().getGlobalInterfacedIDs();
 					final Map<KernelAddress, InterfacedIDs> globaInterfacedIDs2 = new HashMap<>();
 					int nb = rand.nextInt(100);
@@ -138,6 +140,7 @@ public class ConversationIDTest extends TestNGMadkit {
 						ids.add(id);
 					}
 
+					ArrayList<ConversationID> notInterfacedIdsToOther = new ArrayList<>();
 					ArrayList<ConversationID> interfacedToOtherIds = new ArrayList<>();
 					ArrayList<ConversationID> interfacedToOtherIdsSerialized = new ArrayList<>();
 
@@ -165,6 +168,7 @@ public class ConversationIDTest extends TestNGMadkit {
 							}
 						}
 						interfacedToOtherIds.add(interfacedToOther);
+						notInterfacedIdsToOther.add(id);
 					}
 					ArrayList<ConversationID> interfacedByOtherIds = new ArrayList<>();
 					ArrayList<ConversationID> interfacedByOtherIdsSerialized = new ArrayList<>();
@@ -213,9 +217,12 @@ public class ConversationIDTest extends TestNGMadkit {
 					}
 					ArrayList<ConversationID> interfacedByCurrentIds = new ArrayList<>();
 					ArrayList<ConversationID> interfacedByCurrentIdsSerialized = new ArrayList<>();
+					int i=0;
 					for (ConversationID id : interfacedFromOtherIdsSerialized) {
 						ConversationID interfacedByCurrent = id
 								.getInterfacedConversationIDFromDistantPeer(globaInterfacedIDs1, ka1, ka2);
+
+						Assert.assertEquals(interfacedByCurrent, notInterfacedIdsToOther.get(i++));
 
 						AssertJUnit.assertNotNull(interfacedByCurrent.getOrigin());
 						AssertJUnit.assertEquals(interfacedByCurrent, interfacedByCurrent);
@@ -236,15 +243,14 @@ public class ConversationIDTest extends TestNGMadkit {
 					}
 
 					ArrayList<BigDataTransferID> bigDataTransferID = new ArrayList<>();
-					int i = 0;
-                    for (ConversationID idOriginal : ids) {
+
+					for (ConversationID idOriginal : ids) {
                         if (idOriginal.getOrigin() == null)
                             continue;
                         if (idOriginal.getOrigin().equals(ka2))
                             continue;
 
                         int nbFound = 0;
-                        AssertJUnit.assertEquals(interfacedByCurrentIdsSerialized.get(i++), idOriginal);
 
                         for (ConversationID id : interfacedByCurrentIdsSerialized) {
                             if (id.equals(idOriginal))
@@ -258,11 +264,25 @@ public class ConversationIDTest extends TestNGMadkit {
                         AssertJUnit.assertEquals(bdtid, idOriginal);
 
                     }
-
+					int sum=0;
+					for (ConversationID cid : notInterfacedIdsToOther)
+						sum+=cid.hashCode();
+					System.out.println("Sum to avoid GC cleaning : "+sum);
+					interfacedToOtherIds=null;
+					notInterfacedIdsToOther=null;
                     System.gc();
+					Thread.sleep(500);
 					System.gc();
 
 					AssertJUnit.assertFalse("size=" + globaInterfacedIDs1.size(), globaInterfacedIDs1.isEmpty());
+					sum=0;
+					for (ConversationID cid : interfacedByCurrentIds)
+						sum+=cid.hashCode();
+					for (ConversationID cid : bigDataTransferID)
+					{
+						sum+=cid.hashCode();
+					}
+					System.out.println("Sum to avoid GC cleaning 2 : "+sum);
 					AssertJUnit.assertTrue("size=" + globaInterfacedIDs2.size(), globaInterfacedIDs2.isEmpty());
 					i=0;
 					for (ConversationID idOriginal : ids) {
@@ -292,6 +312,7 @@ public class ConversationIDTest extends TestNGMadkit {
 					interfacedByOtherIdsSerialized = null;
 					interfacedFromOtherIdsSerialized = null;
 					interfacedToOtherIdsSerialized = null;
+					notInterfacedIdsToOther=null;
 
 
 
