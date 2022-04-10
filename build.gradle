@@ -225,7 +225,7 @@ publishing {
             artifact javadocJar
             pom {
                 name = 'MaDKitLanEdition'
-                description = 'MaDKit is an open source multiagent-based development platform written in Java. MaDKitLanEdition Advanced network futures which enables to connect several peers between them, and emulate a secured multi-agent system that virtually evolves into the same environment, i.e. the same virtual machine.'
+                description = 'MaDKit is an open source Java Library for designing and simulating Multi-Agent Systems. MaDKitLanEdition includes network futures which enable to connect several peers between them, and emulate a secured multi-agent system that virtually evolves into the same environment, i.e. the same virtual machine.'
                 url = 'https://github.com/JasonMahdjoub/MaDKitLanEdition'
                 developers {
                     developer {

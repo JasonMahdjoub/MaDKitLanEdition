@@ -1,6 +1,6 @@
 MaDKitLanEdition
 ================
-2.4.2 STABLE (Build: 6349) (from 22/05/2015 to 07/04/2022)
+2.4.3 STABLE (Build: 6356) (from 22/05/2015 to 07/04/2022)
 
 # Creator(s):
 * Jason MAHDJOUB
@@ -12,6 +12,11 @@ MaDKitLanEdition
 * Jason MAHDJOUB (Entered in the team at 22/05/2015)
 
 # Changes:
+
+
+### 2.4.3 STABLE (07/04/2022)
+#### Internal change(s)
+* Update documentation
 
 
 ### 2.4.2 STABLE (07/04/2022)

@@ -135,7 +135,7 @@ Adapt into your build.gradle file, the next code :
 	...
 	dependencies {
 		...
-		api(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.4.2-STABLE')
+		api(group:'com.distrimind.madkit', name: 'MaDKitLanEdition', version: '2.4.3-STABLE')
 		...
 	}
 	...
@@ -145,7 +145,7 @@ To use madkit GUI based on java swing, you can use the next driver. If you do no
 	...
 	dependencies {
 		...
-		api(group:'com.distrimind.madkit.gui.swing', name: 'MadkitSwingDriver', version: '2.4.2-STABLE')
+		api(group:'com.distrimind.madkit.gui.swing', name: 'MadkitSwingDriver', version: '2.4.3-STABLE')
 		...
 	}
 	...
@@ -188,7 +188,7 @@ Adapt into your pom.xml file, the next code :
 			<dependency>
 				<groupId>com.distrimind.madkit</groupId>
 				<artifactId>MaDKitLanEdition</artifactId>
-				<version>2.4.2-STABLE</version>
+				<version>2.4.3-STABLE</version>
 			</dependency>
 			...
 		</dependencies>
@@ -202,7 +202,7 @@ To use madkit GUI based on java swing, you can use the next driver. If you do no
 	<dependency>
 		<groupId>com.distrimind.madkit.gui.swing</groupId>
 		<artifactId>MadkitSwingDriver</artifactId>
-		<version>2.4.2-STABLE</version>
+		<version>2.4.3-STABLE</version>
 	</dependency>
 	...	
 ```

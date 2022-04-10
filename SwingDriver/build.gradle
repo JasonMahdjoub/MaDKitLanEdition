@@ -146,7 +146,7 @@ publishing {
             artifact javadocJar
             pom {
                 name = 'MaDKitLanEdition - Swing driver'
-                description = 'MaDKit is an open source multiagent-based development platform written in Java. Swing driver add ability to MaDKit to use graphical interface.'
+                description = 'MaDKit is an open source Java Library for designing and simulating Multi-Agent Systems. Swing driver add ability for MaDKit to use GUI based on Swing.'
                 url = 'https://github.com/JasonMahdjoub/MaDKitLanEdition'
                 developers {
                     developer {
