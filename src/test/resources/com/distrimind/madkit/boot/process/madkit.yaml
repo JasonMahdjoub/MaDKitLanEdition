@@ -1,3 +1,0 @@
-!!com.distrimind.madkit.kernel.MadkitProperties
-databaseFactory: !!com.distrimind.ood.database.InFileEmbeddedHSQLDatabaseFactory
-    directory: mkledbtest
